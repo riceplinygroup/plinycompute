@@ -12,13 +12,13 @@ SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is
 # OSX settings
 if common_env['PLATFORM'] == 'darwin':
 	print 'Compiling on OSX'
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O3')
 
 # Linux settings
 elif  common_env['PLATFORM'] == 'posix':
 	print 'Compiling on Linux'
 	common_env.Append(LIBS = ['libdl.so'])
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0 -ldl')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O3 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
 
 
