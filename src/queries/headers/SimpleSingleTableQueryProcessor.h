@@ -29,6 +29,18 @@ typedef std :: shared_ptr <SimpleSingleTableQueryProcessor> SimpleSingleTableQue
 // this pure virtual class is spit out by a simple query class (like the Selection class)... it is then
 // used by the system to process queries
 //
+// The usage pattern is:
+//
+// 1) Create the processor from a query object
+// 2) Initialize it
+// 3) Load an input page
+// 4) Load an output page
+// 5) Call fillNextOutputPage; if it returns true, repeat from step 4
+// 6) If more input pages to process, repeat from step 3
+// 7) Call finalize
+// 8) Load an output page
+// 9) Call fillNextOutputPage; if it returns true, repeat from step 8
+//
 class SimpleSingleTableQueryProcessor {
 
 public:
@@ -46,7 +58,9 @@ public:
 	// cannot, returns false, and the next call to loadInputPage should be made
 	virtual bool fillNextOutputPage () = 0;
 
-	// must be called after all of the input pages have been sent in
+	// must be called after all of the input pages have been sent in... this lets the
+	// operation know that no more data will be processed, so any "left over" data
+	// should be sent out
 	virtual void finalize () = 0;
 
 };
