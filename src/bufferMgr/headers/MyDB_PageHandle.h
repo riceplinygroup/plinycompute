@@ -44,6 +44,11 @@ class MyDB_PageHandleBase {
 
 public:
 
+	// flush the page to disk, so that it gets written out
+	void flush () {
+		page->flush (page);
+	}
+
 	// access the raw bytes in this page
 	void *getBytes () {
 		return page->getBytes (page);

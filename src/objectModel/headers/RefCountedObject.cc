@@ -60,7 +60,7 @@ void RefCountedObject <ObjType> :: decRefCount (PDBTemplateBase &typeInfo) {
 		typeInfo.deleteConstituentObject (getObject ());
 	
 		// and free the RAM
-		allocator.freeRAM (CHAR_PTR (this));
+		getAllocator ().freeRAM (CHAR_PTR (this));
 	}
 }
 

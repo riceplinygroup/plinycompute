@@ -114,6 +114,8 @@ public:
 	// see if we are null
 	friend bool operator == (const Handle <ObjType> &lhs, std :: nullptr_t rhs) {return lhs.isNullPtr ();}
 	friend bool operator == (std :: nullptr_t rhs, const Handle <ObjType> &lhs) {return lhs.isNullPtr ();}
+	friend bool operator != (std :: nullptr_t rhs, const Handle <ObjType> &lhs) {return !lhs.isNullPtr ();}
+	friend bool operator != (const Handle <ObjType> &lhs, std :: nullptr_t rhs) {return !lhs.isNullPtr ();}
 	bool isNullPtr () const;
 
 	// get the reference count for this Handle, if it exists (returns 99999999 if it does not)
@@ -182,6 +184,10 @@ public:
 	ObjType *operator -> () const;
 	ObjType &operator * () const;
 
+	// get/set the offset
+	void setOffset (int64_t toMe);
+	int64_t getOffset ();
+
 	// so we can perform a deep copy over handles
 	ENABLE_DEEP_COPY
 
@@ -193,6 +199,7 @@ private:
 	template <class ObjTypeTwo> friend class Handle;
 	friend class Allocator;
 	template <class Obj, class... Args> friend RefCountedObject <Obj> * makeObject (Args&&... args);
+	template <class OutObjType, class InObjType> friend Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
 	template <class Obj> friend class Record;
 };
 

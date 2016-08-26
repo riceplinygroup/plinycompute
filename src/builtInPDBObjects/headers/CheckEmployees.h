@@ -49,8 +49,6 @@ public:
 		nameToExclude = nameToExcludeIn;
 	}
 	
-	// returns a lambda that returns true if the supervisor supervises someone other
-	// than the person whose name is nameToExclude
 	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
 		return lambda (checkMe, [&] () -> bool {
 			int numEmployees = checkMe->getNumEmployees ();
@@ -63,8 +61,6 @@ public:
 		});
 	}
 
-	// returns a lambda that returns a vector of handles of all of the employees supervised by
-	// this guy, who are not named nameToExclude
 	Lambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
 		return lambda (checkMe, [&] {
 			Handle <Vector <Handle <Employee>>> returnVal = makeObject <Vector <Handle <Employee>>> (10);

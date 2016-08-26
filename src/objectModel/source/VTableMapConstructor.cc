@@ -40,7 +40,7 @@ namespace pdb {
 
 	VTableMap :: VTableMap() {
 		logger = nullptr;
-		parent = nullptr;
+		catalog = nullptr;
 		pthread_mutex_init(&(myLock), nullptr);
         	for (int i = 0; i < 16384; i++) {
 			allVTables.push_back (nullptr);
@@ -54,12 +54,7 @@ namespace pdb {
 
 	}
 
-	VTableMap :: ~VTableMap () {
-		pthread_mutex_destroy(&myLock);
-	}
-
 	// various global variables
-	Allocator allocator;
 	VTableMap globalVTable;
 	VTableMap *theVTable = &globalVTable;
 	NotEnoughSpace myException;

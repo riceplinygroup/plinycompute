@@ -19,15 +19,27 @@
 
 // first, record all of the type codes
 objectTypeNamesList [getTypeName <Array <Nothing>> ()] = 1;
-objectTypeNamesList [getTypeName <CheckEmployee> ()] = 2;
-objectTypeNamesList [getTypeName <Company> ()] = 3;
-objectTypeNamesList [getTypeName <Employee> ()] = 4;
-objectTypeNamesList [getTypeName <Nothing> ()] = 5;
-objectTypeNamesList [getTypeName <Handle <Nothing>> ()] = 6;
-objectTypeNamesList [getTypeName <Object> ()] = 7;
-objectTypeNamesList [getTypeName <String> ()] = 8;
-objectTypeNamesList [getTypeName <Vector <Nothing>> ()] = 9;
-objectTypeNamesList [getTypeName <Supervisor> ()] = 10;
+objectTypeNamesList [getTypeName <CatCreateDatabaseRequest> ()] = 2;
+objectTypeNamesList [getTypeName <CatCreateSetRequest> ()] = 3;
+objectTypeNamesList [getTypeName <CatRegisterType> ()] = 4;
+objectTypeNamesList [getTypeName <CatSetObjectTypeRequest> ()] = 5;
+objectTypeNamesList [getTypeName <CatSharedLibraryRequest> ()] = 6;
+objectTypeNamesList [getTypeName <CatSharedLibraryResult> ()] = 7;
+objectTypeNamesList [getTypeName <CatTypeNameSearch> ()] = 8;
+objectTypeNamesList [getTypeName <CatTypeNameSearchResult> ()] = 9;
+objectTypeNamesList [getTypeName <CatTypeSearchResult> ()] = 10;
+objectTypeNamesList [getTypeName <CheckEmployee> ()] = 11;
+objectTypeNamesList [getTypeName <CloseConnection> ()] = 12;
+objectTypeNamesList [getTypeName <Company> ()] = 13;
+objectTypeNamesList [getTypeName <Employee> ()] = 14;
+objectTypeNamesList [getTypeName <Nothing> ()] = 15;
+objectTypeNamesList [getTypeName <Handle <Nothing>> ()] = 16;
+objectTypeNamesList [getTypeName <Object> ()] = 17;
+objectTypeNamesList [getTypeName <String> ()] = 18;
+objectTypeNamesList [getTypeName <Vector <Nothing>> ()] = 19;
+objectTypeNamesList [getTypeName <ShutDown> ()] = 20;
+objectTypeNamesList [getTypeName <SimpleRequestResult> ()] = 21;
+objectTypeNamesList [getTypeName <Supervisor> ()] = 22;
 
 void *memory = malloc (1024 * 1024 * 24);
 
@@ -45,8 +57,98 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
-		CheckEmployee tempObject;
+		CatCreateDatabaseRequest tempObject;
 		allVTables [2] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatCreateDatabaseRequest to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatCreateSetRequest tempObject;
+		allVTables [3] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatCreateSetRequest to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatRegisterType tempObject;
+		allVTables [4] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatRegisterType to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatSetObjectTypeRequest tempObject;
+		allVTables [5] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatSetObjectTypeRequest to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatSharedLibraryRequest tempObject;
+		allVTables [6] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatSharedLibraryRequest to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatSharedLibraryResult tempObject;
+		allVTables [7] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatSharedLibraryResult to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatTypeNameSearch tempObject;
+		allVTables [8] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatTypeNameSearch to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatTypeNameSearchResult tempObject;
+		allVTables [9] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatTypeNameSearchResult to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CatTypeSearchResult tempObject;
+		allVTables [10] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CatTypeSearchResult to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		CheckEmployee tempObject;
+		allVTables [11] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate CheckEmployee to extract the vTable.\n";
 	}
@@ -55,8 +157,18 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
+		CloseConnection tempObject;
+		allVTables [12] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate CloseConnection to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
 		Company tempObject;
-		allVTables [3] = tempObject.getVTablePtr ();
+		allVTables [13] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Company to extract the vTable.\n";
 	}
@@ -66,7 +178,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		Employee tempObject;
-		allVTables [4] = tempObject.getVTablePtr ();
+		allVTables [14] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Employee to extract the vTable.\n";
 	}
@@ -76,7 +188,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		Nothing tempObject;
-		allVTables [5] = tempObject.getVTablePtr ();
+		allVTables [15] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Nothing to extract the vTable.\n";
 	}
@@ -86,7 +198,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		Handle <Nothing> tempObject;
-		allVTables [6] = tempObject.getVTablePtr ();
+		allVTables [16] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Handle <Nothing> to extract the vTable.\n";
 	}
@@ -96,7 +208,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		Object tempObject;
-		allVTables [7] = tempObject.getVTablePtr ();
+		allVTables [17] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Object to extract the vTable.\n";
 	}
@@ -106,7 +218,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		String tempObject;
-		allVTables [8] = tempObject.getVTablePtr ();
+		allVTables [18] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate String to extract the vTable.\n";
 	}
@@ -116,7 +228,7 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
 		Vector <Nothing> tempObject;
-		allVTables [9] = tempObject.getVTablePtr ();
+		allVTables [19] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Vector <Nothing> to extract the vTable.\n";
 	}
@@ -125,8 +237,28 @@ makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
 {
 	try {
+		ShutDown tempObject;
+		allVTables [20] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate ShutDown to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
+		SimpleRequestResult tempObject;
+		allVTables [21] = tempObject.getVTablePtr ();
+	} catch (NotEnoughSpace &e) {
+		std :: cout << "Not enough memory to allocate SimpleRequestResult to extract the vTable.\n";
+	}
+}
+
+makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);
+{
+	try {
 		Supervisor tempObject;
-		allVTables [10] = tempObject.getVTablePtr ();
+		allVTables [22] = tempObject.getVTablePtr ();
 	} catch (NotEnoughSpace &e) {
 		std :: cout << "Not enough memory to allocate Supervisor to extract the vTable.\n";
 	}

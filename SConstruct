@@ -12,13 +12,13 @@ SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is
 # OSX settings
 if common_env['PLATFORM'] == 'darwin':
 	print 'Compiling on OSX'
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O3')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0')
 
 # Linux settings
 elif  common_env['PLATFORM'] == 'posix':
 	print 'Compiling on Linux'
 	common_env.Append(LIBS = ['libdl.so'])
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O3 -ldl')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
 
 
@@ -166,9 +166,10 @@ print 'System: ' + platform.system()
 print 'Release: ' + platform.release()
 print 'Version: ' + platform.version()
 
-# common_env.SharedLibrary('bin/ReallyCoolClass.so', ['build/objectCommunicatorTests/ReallyCoolClass.cc',
-# 													component_dir_basename_to_cc_file_paths['objectModel']])
-
+common_env.SharedLibrary('libraries/SharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc', component_dir_basename_to_cc_file_paths['work'], component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel']])
+common_env.Program('bin/pdbserver', ['src/tests/source/ServerMain.cc',  component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']])
+common_env.Program('bin/test14', ['src/tests/source/Test14.cc',  component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']])
+common_env.Program('bin/test15', ['src/tests/source/Test15.cc',  component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']])
 common_env.Program('bin/test1', ['src/tests/source/Test1.cc', component_dir_basename_to_cc_file_paths['objectModel']])
 common_env.Program('bin/test2', ['src/tests/source/Test2.cc', component_dir_basename_to_cc_file_paths['objectModel']])
 common_env.Program('bin/test3', ['src/tests/source/Test3.cc', component_dir_basename_to_cc_file_paths['objectModel']])

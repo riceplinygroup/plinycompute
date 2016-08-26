@@ -1,0 +1,73 @@
+/*****************************************************************************
+ *                                                                           *
+ *  Copyright 2018 Rice University                                           *
+ *                                                                           *
+ *  Licensed under the Apache License, Version 2.0 (the "License");          *
+ *  you may not use this file except in compliance with the License.         *
+ *  You may obtain a copy of the License at                                  *
+ *                                                                           *
+ *      http://www.apache.org/licenses/LICENSE-2.0                           *
+ *                                                                           *
+ *  Unless required by applicable law or agreed to in writing, software      *
+ *  distributed under the License is distributed on an "AS IS" BASIS,        *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ *  See the License for the specific language governing permissions and      *
+ *  limitations under the License.                                           *
+ *                                                                           *
+ *****************************************************************************/
+
+#ifndef CATALOG_CLIENT_H
+#define CATALOG_CLIENT_H
+
+namespace pdb {
+
+class CatalogClient;
+
+}
+
+#include "ServerFunctionality.h"
+#include "PDBLogger.h"
+#include "PDBServer.h"
+
+namespace pdb {
+
+class CatalogClient : public ServerFunctionality {
+
+public:
+
+	// these give us the port and the address of the catalog
+	CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger);
+
+	// function to register event handlers associated with this server functionality
+	virtual void registerHandlers (PDBServer &forMe) override;
+
+	// this uses the name of the object to find the corresponding identifier
+	int16_t searchForObjectTypeName (std :: string objectTypeName);
+
+	// this downloads the shared library assoicated with the identifier, putting it at the specified location
+	bool getSharedLibrary (int16_t identifier, std :: string objectFile);	
+
+	// this registers a type with the catalog, and returns te new type code that's been assigned
+	bool registerType (std :: string fileContainingSharedLib);
+
+	// this returns the type of object in the specified set, as a type name
+	std :: string getObjectType (std :: string databaseName, std :: string setName);
+
+	// this creates a new database... returns true on success
+	bool createDatabase (std :: string databaseName, std :: string &errMsg);
+
+	// this creates a new set in a given database... returns true on success
+	template <class DataType>
+	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+private:
+
+	int port;
+	std :: string address;
+	PDBLoggerPtr myLogger;
+
+};
+
+}
+
+#endif

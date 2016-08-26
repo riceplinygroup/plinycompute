@@ -93,7 +93,6 @@ inline unsigned InactiveAllocationBlock :: getReferenceCount () {
 #define GET_CHUNK_SIZE(ofMe) (*((unsigned *) ofMe))
 #define CHUNK_HEADER_SIZE sizeof (unsigned)
 
-
 // return true if allocations should not fail due to not enough RAM...
 // in this case, a null pointer is returned on a bad allocate, and NOT
 // an exception
@@ -117,6 +116,18 @@ inline Allocator :: Allocator () {
 	}
 	activeRAM = nullptr;
 	numBytes = 0;
+}
+
+inline Allocator :: Allocator (size_t numBytesIn) {
+	for (int i = 0; i < 32; i++) {
+		std :: vector <void *> temp;
+		chunks.push_back (temp);
+	}
+	activeRAM = nullptr;
+	numBytes = 0;
+
+	// now, setup the active block
+	setupBlock (malloc (numBytesIn), numBytesIn, true);
 }
 
 // returns true if and only if the RAM is in the current allocation block
@@ -367,6 +378,22 @@ inline void Allocator :: temporarilyUseBlockForAllocations (void *putMeHere, siz
 	setupBlock (putMeHere, numBytesAvailable, true);
 }
 
+inline void Allocator :: restoreAllocationBlockAndManageOldOne () {
+
+	// first, remember the current block
+
+	// don't remember a block with no objects
+	if (ALLOCATOR_REF_COUNT != 0) {
+		allInactives.emplace_back (activeRAM, numBytes);	
+		std :: sort (allInactives.begin (), allInactives.end ());
+	} else {
+		free (activeRAM);
+	}
+
+	// now restore the old block
+	restoreAllocationBlock ();
+}
+
 // goes back to the old allocation block.. this should only
 // by alled after a call to temporarilyUseBlockForAllocations ()
 inline void Allocator :: restoreAllocationBlock () {
@@ -390,8 +417,28 @@ inline void Allocator :: restoreAllocationBlock () {
 	ALLOCATOR_REF_COUNT--;
 }
 
-// this is the thread's one allocator
-extern Allocator allocator;
+extern void *stackBase;
+extern void *stackEnd;
+
+inline Allocator &getAllocator () {
+
+        static Allocator mainAllocator;
+
+        // this serves to gives us the location of our stack, which we use to map to an allocator
+        int i;
+
+        // if we are not in one of the created worker threads, then we return the main allocator
+        // we know we are not in one of the worker threads if (a) there are no worker threads (stackBase is null)
+        // or the address of i is not within the valid range of the stack
+        if (stackBase == nullptr || !(((char *) &i) >= (char *) stackBase && ((char *) &i) < (char *) stackEnd))
+                return mainAllocator;
+
+        // chop off the last 22 bits of i to get the address of this thread's allocator... we chop off 22 bits
+        // because the size of the allocated region is 2^22 bytes
+        size_t temp = (size_t) &i;
+        return *((Allocator *) ((temp >> 22) << 22));
+}
+
 
 }
 

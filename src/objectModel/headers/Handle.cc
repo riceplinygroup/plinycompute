@@ -44,7 +44,7 @@ template <class ObjType>
 Handle <ObjType> :: ~Handle () {
 
 	// if we are not null, then dec the referenece count 
-	if (!isNullPtr () && allocator.isManaged (getTarget ())) {
+	if (!isNullPtr () && getAllocator ().isManaged (getTarget ())) {
 		getTarget ()->decRefCount (typeInfo);
 	}
 }
@@ -53,7 +53,7 @@ template <class ObjType>
 unsigned Handle <ObjType> :: getRefCount () {
 
 	// if we are not null, then dec the referenece count 
-	if (!isNullPtr () && allocator.isManaged (getTarget ())) {
+	if (!isNullPtr () && getAllocator ().isManaged (getTarget ())) {
 		return getTarget ()->getRefCount ();
 	}
 
@@ -71,7 +71,7 @@ template <class ObjType>
 Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 
 	// if the current allocator contains us, then just return ourselves
-	if (allocator.contains (getTarget ())) {
+	if (getAllocator ().contains (getTarget ())) {
 		return *this;
 	}
 
@@ -79,7 +79,7 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	Handle <ObjType> returnVal;
 
 	// get the space... allocate and set up the reference count before it
-	void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType));
+	void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType));
 
 	// see if there was not enough RAM
 	if (space == nullptr) {
@@ -149,10 +149,10 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains ((void *) fromMe) && allocator.contains (this)) {
+	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			sizeof (ObjType));
 
 		// see if there was not enough RAM
@@ -199,10 +199,10 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains ((void *) fromMe) && allocator.contains (this)) {
+	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			sizeof (ObjTypeTwo));
 
 		// see if there was not enough RAM
@@ -246,10 +246,10 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains (fromMe.getTarget ()) && allocator.contains (this)) {
+	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
 
 		// see if there was not enough RAM
@@ -297,10 +297,10 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains (fromMe.getTarget ()) && allocator.contains (this)) {
+	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
 
 		// see if there was not enough RAM
@@ -352,10 +352,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains ((void *) fromMe) && allocator.contains (this)) {
+	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			sizeof (ObjType));
 
 		// see if there was not enough RAM
@@ -417,10 +417,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains ((void *) fromMe) && allocator.contains (this)) {
+	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE + 
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
 			sizeof (ObjTypeTwo));
 
 		// see if there was not enough RAM
@@ -478,10 +478,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains (fromMe.getTarget ()) && allocator.contains (this)) {
+	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE +
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
 			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
 
 		// see if there was not enough RAM
@@ -546,10 +546,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
-	if (!allocator.contains (fromMe.getTarget ()) && allocator.contains (this)) {
+	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
-		void *space = allocator.getRAM (REF_COUNT_PREAMBLE_SIZE +
+		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
 			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
 
 		// see if there was not enough RAM
@@ -596,6 +596,16 @@ ObjType *Handle <ObjType> :: operator -> () const {
 	// fix the vTable pointer and return a reference
 	typeInfo.setVTablePtr (getTarget ()->getObject ());
 	return getTarget ()->getObject ();
+}
+
+template <class ObjType>
+void Handle <ObjType> :: setOffset (int64_t toMe) {
+	offset = toMe;
+}
+
+template <class ObjType>
+int64_t Handle <ObjType> :: getOffset () {
+	return offset;
 }
 
 template <class ObjType>

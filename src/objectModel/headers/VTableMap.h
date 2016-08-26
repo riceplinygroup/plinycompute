@@ -30,7 +30,6 @@
 
 #include <iostream>
 #include "PDBLogger.h"
-#include "PDBCatalogClient.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -38,7 +37,7 @@
 
 namespace pdb {
 
-    // create a smart pointer for PDBServer objects
+    class CatalogClient;
 
     /**
      *   VTableMap is a helper class for maintaining information about registered
@@ -58,8 +57,6 @@ namespace pdb {
         ~VTableMap();
 
         static void setLogger (PDBLoggerPtr myLoggerIn);
-	static void setCatalogClient (PDBCatalogClientPtr catalogClient);
-	static void setRemoteServer (int port, std::string hostName);
 
         // Returns the type ID of a user-defined object, given the object name
         static int16_t getIDByName(std::string objectName);
@@ -68,21 +65,21 @@ namespace pdb {
         // type ID was not recognized)
         static void *getVTablePtr (int16_t objectTypeID);
 
-        // returns the vTablePtr for the corresponding tpye identifier (or a nullptr if the
-	// type ID was not recognized)
-	static void *getVTablePtr (int16_t objectTypeID, std::string typeName);
-
-	// this helper method takes as input the name of a file that contains a shared library, and
-	// attempts to load the shred library into RAM and extract the vTable pointer from the class
-	// that it contains; returns a nullptr on failure, and sets errorMessage accordingly
-	static void *getVTablePtr (std::string sharedLibraryFile, std::string &errorMessage);
+	// look up the vtable using the given catalog
+	static void *getVTablePtrUsingCatalog (int16_t objectTypeID);
 
 	// print out the conteents of the vTableMap
-	static void listVtableEntries();
-	static void  listVtableLabels ();
+	static void listVtableEntries ();
+	static void listVtableLabels ();
+
+	// use the catalog to look up the type ID for an object
+	static int16_t lookupTypeNameInCatalog (std :: string objectTypeName);
 
 	// returns the number of built-in objects
 	static int totalBuiltInObjects ();
+
+	// sets the catalog client for the vtable
+	static void setCatalogClient (CatalogClient *catalog);
 
     private:
 
@@ -94,16 +91,19 @@ namespace pdb {
 	std :: vector <void *> allVTables;
 
 	// this is a pointer to the catalog client that we are using to access the catalog
-	PDBCatalogClientPtr parent;
+	CatalogClient *catalog;
 
 	// and a pointer to the logger
 	PDBLoggerPtr logger;	
 
 	// so that we are thread safe
 	pthread_mutex_t myLock;
+
+	// holds all of the so handles
+	std :: vector <void *> so_handles;
+
     };
 
-extern Allocator allocator;
 extern VTableMap *theVTable;
 
 } /* namespace pdb */

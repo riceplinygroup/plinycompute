@@ -62,6 +62,8 @@ public:
 	TypeContained *c_ptr () const;
 	void resize (uint32_t toMe);
 
+	// beause the communicator needs to see inside to do efficient sends
+        friend class PDBCommunicator;
 };
 
 }

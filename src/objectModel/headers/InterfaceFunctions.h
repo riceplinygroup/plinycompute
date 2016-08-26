@@ -167,6 +167,11 @@ RefCountedObject <ObjType> *makeObject (Args&&... args);
 template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... args);
 
+// this is just like makeObject, except that the object is placed, as the only
+// object, into a temporary allocation block of the specified size.
+template <class ObjType, class... Args>
+RefCountedObject <ObjType> *makeObjectOnTempAllocatorBlock (size_t bytesForRequest, Args&&... args);
+
 // This gets a raw, bytewise representation of an object from a Handle.  This
 // call is always executed in constant time, so it is fast.  The resulting bytes
 // are then easily moved around.  For example, consider the following code:
@@ -238,10 +243,16 @@ Record <ObjType> *getRecord (Handle <ObjType> &forMe);
 template <class ObjType>
 Record <ObjType> *getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t numBytesAvailable);
 
-
 // this gets the type ID that the system has assigned to this particular type
 template <class ObjType>
 int16_t getTypeID ();
+
+// this performs a cast whose safety is not verifiable at compile time---note
+// that because of difficulties stemming from the use of shared libraries,
+// it is not possible to verify the correctness of the cast at runtime, either.
+// So use this operation CAREFULLY!!
+template <class OutObjType, class InObjType>
+Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
 
 }
 

@@ -102,6 +102,9 @@ public:
 	// return/set the number of used slots
 	uint32_t numUsedSlots ();
 	void setUsed (uint32_t toMe);
+
+	// beause the communicator needs to see inside to do efficient sends
+	friend class PDBCommunicator;
 };
 
 }

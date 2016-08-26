@@ -59,31 +59,31 @@ int16_t getTypeID () {
 #define CHAR_PTR(c) ((char *) c)
 
 inline void makeObjectAllocatorBlock (size_t numBytesIn, bool throwExceptionOnFail) {
-	allocator.setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
+	getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
 }
 
 inline void makeObjectAllocatorBlock (void *spaceToUse, size_t numBytesIn, bool throwExceptionOnFail) {
-	allocator.setupUserSuppliedBlock (spaceToUse, numBytesIn, throwExceptionOnFail);
+	getAllocator ().setupUserSuppliedBlock (spaceToUse, numBytesIn, throwExceptionOnFail);
 }
 
 inline size_t getBytesAvailableInCurrentAllocatorBlock () {
-	return allocator.getBytesAvailableInCurrentAllocatorBlock ();
+	return getAllocator ().getBytesAvailableInCurrentAllocatorBlock ();
 }
 
 inline unsigned getNumObjectsInCurrentAllocatorBlock () {
-	return allocator.getNumObjectsInCurrentAllocatorBlock ();
+	return getAllocator ().getNumObjectsInCurrentAllocatorBlock ();
 }
 
 template <class ObjType>
 unsigned getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe) {
-	return allocator.getNumObjectsInHomeAllocatorBlock (forMe);
+	return getAllocator ().getNumObjectsInHomeAllocatorBlock (forMe);
 }
 
 template <class ObjType> 
 RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 
 	// first we see if the object is located in the current allocation block
-	if (allocator.contains (&forMe)) {
+	if (getAllocator ().contains (&forMe)) {
 
 		// it is, so we can just return the RefCountedObject directly
 		return (RefCountedObject <ObjType> *) (
@@ -95,7 +95,7 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 		// get the space... allocate and set up the reference count before it
 		PDBTemplateBase temp;
 		temp.template setup <ObjType> ();
-		void *space = allocator.getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE);
+		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -119,7 +119,7 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
 
 	// create a new object
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(allocator.getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+		(getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
 
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
@@ -140,7 +140,7 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 
 	// create a new object
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(allocator.getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
 
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
@@ -160,26 +160,52 @@ template <class ObjType>
 Record <ObjType> *getRecord (Handle <ObjType> &forMe) {
 
 	// get a pointer to the allocation block for this guy
-	void *res = allocator.getAllocationBlock (forMe);
+	void *res = getAllocator ().getAllocationBlock (forMe);
 			
 	// and return that
 	return (Record <ObjType> *) res;
+}
+
+template <class ObjType, class... Args>
+RefCountedObject <ObjType> *makeObjectOnTempAllocatorBlock (size_t bytesForRequest, Args&&... args) {
+
+	// temporarily use the memory requested by the caller
+	void *putMeHere = malloc (bytesForRequest);
+	getAllocator ().temporarilyUseBlockForAllocations (putMeHere, bytesForRequest);
+
+	// make the object
+	RefCountedObject <ObjType> *returnVal = makeObject <ObjType> (args...);
+
+	// put the old allocation block back
+	getAllocator ().restoreAllocationBlockAndManageOldOne ();	
+
+	return returnVal;
+}
+
+template <class OutObjType, class InObjType>
+Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe) {
+	
+	Handle <OutObjType> result;
+	result.offset = castMe.offset + (CHAR_PTR (&castMe) - CHAR_PTR (&result));
+	result.typeInfo = castMe.typeInfo;
+	result.getTarget ()->incRefCount ();
+	return result;
 }
 
 template <class ObjType>
 Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t numBytesAvailable) {
 
 	// temporarily use the memory given by the caller
-	allocator.temporarilyUseBlockForAllocations (putMeHere, numBytesAvailable);
+	getAllocator ().temporarilyUseBlockForAllocations (putMeHere, numBytesAvailable);
 
 	// copy this guy over
 	Handle <ObjType> temp = forMe.copyTargetToCurrentAllocationBlock ();
 
 	// get a pointer to the allocation block for this guy
-	void *res = allocator.getAllocationBlock (temp);
+	void *res = getAllocator ().getAllocationBlock (temp);
 			
 	// put the old allocation block back
-	allocator.restoreAllocationBlock ();	
+	getAllocator ().restoreAllocationBlock ();	
 
 	// and return that pointer
 	return (Record <ObjType> *) res;

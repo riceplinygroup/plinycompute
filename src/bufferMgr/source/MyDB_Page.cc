@@ -52,6 +52,10 @@ MyDB_Page :: MyDB_Page (MyDB_TablePtr myTableIn, size_t iin, MyDB_BufferManager 
 	timeTick = -1;
 }
 
+void MyDB_Page :: flush (MyDB_PagePtr me) {
+	parent.flush (me);
+}
+
 void MyDB_Page :: killpage (MyDB_PagePtr me) {
 	parent.killPage (me);
 }

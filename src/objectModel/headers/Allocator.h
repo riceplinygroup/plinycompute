@@ -158,6 +158,9 @@ public:
 	// we have no active RAM
 	Allocator ();
 
+	// give this guy the specified active RAM
+	Allocator (size_t numBytes);
+
 	// get the number of currently-reachable objects in this guy's block
 	template <class ObjType>
 	unsigned getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe);
@@ -211,10 +214,21 @@ public:
 	// by alled after a call to temporarilyUseBlockForAllocations ()
 	void restoreAllocationBlock ();
 
+	// like the above call, except that it does not erase the current
+	// allocation block; it is managed (reference counted) just like all
+	// of the others, and deleted as needed later on
+	void restoreAllocationBlockAndManageOldOne ();
+
 private:
 
 	friend void makeObjectAllocatorBlock (size_t numBytesIn);
 };
+
+// returns a reference to the allocator that should be used.  Each process has one default allocator.
+// Each of the workers in a WorkerQueue are given their own allocator, which resides at the beginning
+// of the worker's call stack.  If this is called from within a worker, the worker's allocator is
+// returned; otherwise, the process' default allocator is returned.
+Allocator &getAllocator ();
 
 }
 

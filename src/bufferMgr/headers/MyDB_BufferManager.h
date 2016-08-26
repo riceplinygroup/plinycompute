@@ -72,8 +72,11 @@ public:
 	// gets a temporary page, like getPage (), except that this one is pinned
 	MyDB_PageHandle getPinnedPage ();
 
-	// un-pins the specified page
-	void unpin (MyDB_PagePtr unpinMe);
+	// unpins the specified page 
+	void unpin (MyDB_PagePtr flushMe);
+
+	// flushes the specified page to disk
+	void flush (MyDB_PagePtr flushMe);
 
 	// creates an LRU buffer manager... params are as follows:
 	// 1) the size of each page is pageSize 

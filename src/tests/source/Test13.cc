@@ -23,6 +23,8 @@ using namespace pdb;
 
 int main () {
 	
+	std :: cout << "min size: " << PTHREAD_STACK_MIN << "\n";
+
 	MyDB_BufferManager myManager (1024 * 1024, 128, "tmpFile");
 	MyDB_TablePtr dataTable = std :: make_shared <MyDB_Table> ("tmpTable", "tmpDataFile");
 	MyDB_TablePtr resultTable = std :: make_shared <MyDB_Table> ("resultTable", "resultDataFile");

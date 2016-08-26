@@ -64,7 +64,6 @@ MyDB_PageHandle MyDB_BufferManager :: getPage (MyDB_TablePtr whichTable, long i)
 	if (allPages.count (whichPage) == 0) {
 
 		// it is not there, so create a page
-		//cout << "Didn't find it\n";
 		MyDB_PagePtr returnVal = make_shared <MyDB_Page> (whichTable, i, *this);
 		allPages [whichPage] = returnVal;
 		return make_shared <MyDB_PageHandleBase> (returnVal);
@@ -129,10 +128,20 @@ void MyDB_BufferManager :: kickOutPage () {
 		killPage (page);
 }
 
+
+void MyDB_BufferManager :: flush (MyDB_PagePtr flushMe) {
+	
+	if (flushMe->bytes != nullptr && flushMe->isDirty && flushMe->myTable != nullptr) {
+		
+		// write it
+		lseek (fds[flushMe->myTable], flushMe->pos * pageSize, SEEK_SET);
+		read (fds[flushMe->myTable], flushMe->bytes, pageSize);
+
+	}
+}
+
 void MyDB_BufferManager :: killPage (MyDB_PagePtr killMe) {
 	
-	//cout << "killing " << killMe->myTable << " " << killMe->pos << "\n";
-
 	// if this is an anon page...
 	if (killMe->myTable == nullptr) {
 
@@ -196,7 +205,6 @@ void MyDB_BufferManager :: access (MyDB_PagePtr updateMe) {
 		// and read it
 		lseek (fds[updateMe->myTable], updateMe->pos * pageSize, SEEK_SET);
 		read (fds[updateMe->myTable], updateMe->bytes, pageSize);
-		//cout << "reading " << updateMe->myTable << " " << updateMe->pos << "\n";
 
 		updateMe->timeTick = ++lastTimeTick;
 		lastUsed.insert (updateMe);
@@ -224,17 +232,14 @@ MyDB_PageHandle MyDB_BufferManager :: getPinnedPage (MyDB_TablePtr whichTable, l
 	// see if we already know him
 	if (allPages.count (whichPage) == 0) {
 
-		//cout << "could not find pinned page\n";
 		// in this case, we do not
 		returnVal = make_shared <MyDB_Page> (whichTable, i, *this);
 		allPages [whichPage] = returnVal;
-		//cout << "are " << allPages.size () << " entries.\n";
 
 	// in this case, we do
 	} else {
 
 		// get him out of the LRU list if he is there
-		//cout << "found pinned page\n";
 		returnVal = allPages [whichPage];
 		if (lastUsed.count (returnVal) != 0) {
 			auto page = *(lastUsed.find (returnVal));
@@ -318,8 +323,6 @@ MyDB_BufferManager :: MyDB_BufferManager (size_t pageSizeIn, size_t numPagesIn, 
 
 MyDB_BufferManager :: ~MyDB_BufferManager () {
 	
-	//cout << "\n";
-	//cout << allPages.size () << "\n";
 	for (auto page : allPages) {
 
 		if (page.second->bytes != nullptr) {
@@ -333,7 +336,6 @@ MyDB_BufferManager :: ~MyDB_BufferManager () {
 			free (page.second->bytes);
 			page.second->bytes = nullptr;
 		}
-		//cout << "writing back " << page.second->myTable << " " << page.second->pos << "\n";
 	}
 
 	// delete the rest of the RAM

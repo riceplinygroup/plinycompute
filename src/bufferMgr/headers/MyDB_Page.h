@@ -64,6 +64,9 @@ public:
 	// sets the bytes in the page
 	void setBytes (void *bytes, size_t numBytes);
 
+	// flush the page to disk... ignored if this is a temporary page
+	void flush (MyDB_PagePtr me);
+
 	// decrements the ref count
 	inline void decRefCount (MyDB_PagePtr me) {
 		refCount--;
