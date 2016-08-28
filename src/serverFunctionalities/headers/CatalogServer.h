@@ -16,12 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
+#ifndef CATALOG_SERVER_H
+#define CATALOG_SERVER_H
+
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
 #include "MyDB_Catalog.h"
-
-#ifndef CATALOG_SERVER_H
-#define CATALOG_SERVER_H
 
 namespace pdb {
 
