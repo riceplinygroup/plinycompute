@@ -51,7 +51,7 @@ PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
     // create each worker... 
     for (int i = 0; i < numWorkers; i++) {
 	// put an allocator at the base of the stack for this worker... give him 64MB of RAM to work with
-	new (i * 1024 * 1024 * 4 + ((char *) stackBase)) Allocator (64 * 1024 * 1024);		
+	new (i * 1024 * 1024 * 4 + ((char *) stackBase)) Allocator (PDBWorkerQueue :: defaultAllocatorBlockSize);		
 
 	// now create the worker
         addAnotherWorker (i * 1024 * 1024 * 4 + sizeof (Allocator) + ((char *) stackBase), (i + 1) * 1024 * 1024 * 4 + ((char *) stackBase));

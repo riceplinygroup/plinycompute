@@ -61,6 +61,9 @@ public:
 	// the position of the page in the file
 	MyDB_Page (MyDB_TablePtr myTable, size_t i, MyDB_BufferManager &parent);
 
+	// unpin the page, if it is currently pinned
+	void unpin (MyDB_PagePtr me);
+
 	// sets the bytes in the page
 	void setBytes (void *bytes, size_t numBytes);
 

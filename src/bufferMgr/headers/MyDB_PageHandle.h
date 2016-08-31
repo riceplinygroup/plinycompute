@@ -62,6 +62,11 @@ public:
 		page->wroteBytes ();
 	}
 
+	// unpin the page
+	void unpin () {
+		page->unpin (page);
+	}
+
 	// There are no more references to the handle when this is called...
 	// this should decrmeent a reference count to the number of handles
 	// to the particular page that it references.  If the number of 

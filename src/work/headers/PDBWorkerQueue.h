@@ -48,6 +48,9 @@ typedef shared_ptr <PDBWorker> PDBWorkerPtr;
 class PDBWorkerQueue {
 public:
 
+    // the standard allocation block size in a worker is 64KB
+    static const size_t defaultAllocatorBlockSize = (1024 * 64);
+
     // create a worker queue that has the specified number of workers... output is written 
     // to the specified logger
     PDBWorkerQueue(PDBLoggerPtr myLogger, int numWorkers);

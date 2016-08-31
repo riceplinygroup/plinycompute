@@ -16,57 +16,53 @@
  *                                                                           *
  *****************************************************************************/
 
+#ifndef MYEMPLOYEE_H
+#define MYEMPLOYEE_H
 
-/****************************************************
-** COPYRIGHT 2016, Chris Jermaine, Rice University **
-**                                                 **
-** The MyDB Database System, COMP 530              **
-** Note that this file contains SOLUTION CODE for  **
-** A1.  You should not be looking at this file     **
-** unless you have completed A1!                   **
-****************************************************/
+#include "Object.h"
+#include "Handle.h"
 
-#ifndef PAGE_C
-#define PAGE_C
+//  PRELOAD %MyEmployee%
 
-#include "MyDB_BufferManager.h"
-#include "MyDB_Page.h"
-#include "MyDB_Table.h"
+namespace pdb {
 
-void *MyDB_Page :: getBytes (MyDB_PagePtr me) {
-	parent.access (me);	
-	return bytes;
-}
 
-void MyDB_Page :: unpin (MyDB_PagePtr me) {
-	parent.unpin (me);
-}
+class MyEmployee : public Object {
 
-void MyDB_Page :: wroteBytes () {
-	isDirty = true;
-}
+private:
 
-MyDB_Page :: ~MyDB_Page () {}
+    int age;
+    int salary;
 
-MyDB_Page :: MyDB_Page (MyDB_TablePtr myTableIn, size_t iin, MyDB_BufferManager &parentIn) : 
-	parent (parentIn), myTable (myTableIn), pos (iin) { 
-	bytes = nullptr;
-	isDirty = false;	
-	refCount = 0;
-	timeTick = -1;
-}
+public:
 
-void MyDB_Page :: flush (MyDB_PagePtr me) {
-	parent.flush (me);
-}
+    ENABLE_DEEP_COPY
 
-void MyDB_Page :: killpage (MyDB_PagePtr me) {
-	parent.killPage (me);
-}
+    ~MyEmployee () {}
 
-MyDB_BufferManager &MyDB_Page :: getParent () {
-	return parent;	
+    MyEmployee () {}
+
+    MyEmployee (int ageIn, int salaryIn) {
+             age = ageIn;
+             salary = salaryIn;
+    }
+
+    int getAge () {
+             return age;
+    }
+
+    int getSalary () {
+             return salary;
+    }
+
+    void print () {
+             std :: cout << "age: " << age << "; salary: " << salary << std::endl;
+    }
+
+};
+
+
+
 }
 
 #endif
-

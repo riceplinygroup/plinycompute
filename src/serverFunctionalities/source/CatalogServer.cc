@@ -41,19 +41,16 @@
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
 
-
 namespace pdb {
 
 int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) {
 
-	std :: cout << "searching for " << objectTypeName << "\n";
 	// return a -1 if we've never seen this type name
 	if (allTypeNames.count (objectTypeName) == 0) {
 		std :: cout << "Could not find it.\n";
 		return -1;
 	}
 
-	std :: cout << "Found it: " << to_string (allTypeNames[objectTypeName]) << "\n";
 	return allTypeNames[objectTypeName];
 }
 
@@ -171,6 +168,19 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 	return allTypeCodes[typeIdentifier];
 }
 
+size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName) {
+	int numPages;
+	if (!myCatalog->getInt (dbName + "." + "setName" + ".fileSize", numPages)) {
+		myCatalog->putInt (dbName + "." + "setName" + ".fileSize", 1);
+		myCatalog->save ();
+		return 0;
+	} else {
+		numPages++;
+		myCatalog->putInt (dbName + "." + "setName" + ".fileSize", numPages);
+		myCatalog->save ();
+		return numPages - 1;
+	}
+}
 
 bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg) {
 

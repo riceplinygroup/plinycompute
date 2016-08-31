@@ -198,8 +198,17 @@ Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t n
 	// temporarily use the memory given by the caller
 	getAllocator ().temporarilyUseBlockForAllocations (putMeHere, numBytesAvailable);
 
-	// copy this guy over
-	Handle <ObjType> temp = forMe.copyTargetToCurrentAllocationBlock ();
+	Handle <ObjType> temp;
+	try {
+		// copy this guy over
+		temp = forMe.copyTargetToCurrentAllocationBlock ();
+
+	// if we get an exception, then restore the allocation block and throw the exception ourselves
+	} catch (NotEnoughSpace &n) {
+		
+		getAllocator ().restoreAllocationBlock ();
+		throw n;
+	}
 
 	// get a pointer to the allocation block for this guy
 	void *res = getAllocator ().getAllocationBlock (temp);
