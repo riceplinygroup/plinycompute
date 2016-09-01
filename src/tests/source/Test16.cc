@@ -80,9 +80,13 @@ private:
 
 public:
 
+    void setNull () {
+	vectors = nullptr;
+    }
+
     ~Page () {
-            //free(rawBytes);
-            //rawBytes = nullptr;
+            free(rawBytes);
+            rawBytes = nullptr;
     }
 
     Page (char * rawBytesIn, size_t sizeIn) {
@@ -125,6 +129,10 @@ protected:
     Handle<Vector<Handle<Object>>> outVec;
 
 public:
+
+    void setNull () {
+	outVec = nullptr;
+    }
 
     Operator (PagePtr pageIn) {
             page = pageIn;
@@ -339,4 +347,11 @@ int main (int argc, char * argv[]) {
                 std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
        //TODO: how to allocate blocks for multiple operators???
 
+       // we need to remove references to all of the Handles, which will deallocate all objects
+       op1->setNull ();
+       op2->setNull ();
+       page1->setNull ();
+       page2->setNull ();
+       tempPage->setNull ();
+       std :: cout << getNumObjectsInCurrentAllocatorBlock () << "\n";
 }
