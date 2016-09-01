@@ -22,6 +22,7 @@
 #include <iostream>
 #include "LockGuard.h"
 #include "NothingWork.h"
+#include <limits.h>
 #include "PDBWorkerQueue.h"
 
 namespace pdb {

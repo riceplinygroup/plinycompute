@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-/Pipeline performance test by Jia
+//Pipeline performance test by Jia
 //Aug 30, 2016
 
 #include <cstddef>

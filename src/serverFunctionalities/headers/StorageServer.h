@@ -21,7 +21,10 @@
 
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
+#include "Record.h"
 #include "MyDB_Catalog.h"
+#include <vector>
+#include "PDBVector.h"
 #include "MyDB_BufferManager.h"
 
 namespace pdb {

@@ -13,6 +13,7 @@ SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is
 if common_env['PLATFORM'] == 'darwin':
 	print 'Compiling on OSX'
   	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0')
+	common_env.Replace(CXX = "clang++")
 
 # Linux settings
 elif  common_env['PLATFORM'] == 'posix':
@@ -20,6 +21,7 @@ elif  common_env['PLATFORM'] == 'posix':
 	common_env.Append(LIBS = ['libdl.so'])
   	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
+	common_env.Replace(CXX = "clang++")
 
 
 # two code files that will be included by the VTableMap to pre-load all of the
@@ -166,11 +168,12 @@ print 'System: ' + platform.system()
 print 'Release: ' + platform.release()
 print 'Version: ' + platform.version()
 
-all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']]
+all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['bufferMgr'], component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']]
 
 common_env.SharedLibrary('libraries/SharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
 common_env.Program('bin/test14', ['src/tests/source/Test14.cc'] + all)
 common_env.Program('bin/test15', ['src/tests/source/Test15.cc'] + all)
+common_env.Program('bin/test16', ['src/tests/source/Test16.cc'] + all)
 common_env.Program('bin/test1', ['src/tests/source/Test1.cc'] + all)
 common_env.Program('bin/test2', ['src/tests/source/Test2.cc'] + all)
 common_env.Program('bin/test3', ['src/tests/source/Test3.cc'] + all)
@@ -183,4 +186,4 @@ common_env.Program('bin/test9', ['src/tests/source/Test9.cc'] + all)
 common_env.Program('bin/test10', ['src/tests/source/Test10.cc'] + all)
 common_env.Program('bin/test11', ['src/tests/source/Test11.cc'] + all)
 common_env.Program('bin/test12', ['src/tests/source/Test12.cc'] + all)
-common_env.Program('bin/test13', ['src/tests/source/Test13.cc', component_dir_basename_to_cc_file_paths['bufferMgr']] + all)
+common_env.Program('bin/test13', ['src/tests/source/Test13.cc'] + all)

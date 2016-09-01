@@ -19,6 +19,8 @@
 #ifndef SIMPLE_REQUEST_HANDLER_H
 #define SIMPLE_REQUEST_HANDLER_H
 
+#include "PDBCommunicator.h"
+
 // This template is used to make a simple piece of work that accepts an object of type RequestType from the client,
 // processes the request, then sends the response back via a communicator.  The constructor for the class
 // takes as an argument the lambda that is to be used to process the RequestType object
