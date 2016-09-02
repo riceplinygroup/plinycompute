@@ -16,28 +16,35 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CAT_REG_TYPE_H
-#define CAT_REG_TYPE_H
+#ifndef STORAGE_CLIENT_CC
+#define STORAGE_CLIENT_CC
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBVector.h"
-
-// PRELOAD %CatRegisterType%
+#include "StorageClient.h"
 
 namespace pdb {
 
-// encapsulates a request to regster a type in the catalog
-class CatRegisterType : public Object {
+StorageClient :: StorageClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) : myHelper (portIn, addressIn, myLoggerIn) {
 
-public:
-
-	CatRegisterType () {}
-	~CatRegisterType () {}
-
-	ENABLE_DEEP_COPY
-};
+	// get the communication information
+	port = portIn;
+	address = addressIn;
+	myLogger = myLoggerIn;
 
 }
 
+void StorageClient :: registerHandlers (PDBServer &forMe) { /* no handlers for a storage client!! */}
+
+bool StorageClient :: registerType (std :: string regMe, std :: string &errMsg) {
+	return myHelper.registerType (regMe, errMsg);
+}
+
+bool StorageClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
+	return myHelper.createDatabase (databaseName, errMsg);
+}
+
+std :: string StorageClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+	return myHelper.getObjectType (databaseName, setName, errMsg);
+}
+
+}
 #endif

@@ -163,21 +163,18 @@ void StorageServer :: registerHandlers (PDBServer &forMe) {
 						// at this point, we have performed the serialization, so remember the record
 						auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
         	                                        (std :: string) request->getSetName ());
-						size_t res = getFunctionality <StorageServer> ().bufferRecord (databaseAndSet, ramForRecord); 
+						getFunctionality <StorageServer> ().bufferRecord (databaseAndSet, ramForRecord); 
 	
 						// if we have enough space to fill up a page, do it
-						if (res >= getFunctionality <StorageServer> ().getBufferManager ()->getPageSize ())
+						size_t limit = getFunctionality <StorageServer> ().getBufferManager ()->getPageSize ();
+						while (sizes[databaseAndSet] > limit) {
 							getFunctionality <StorageServer> ().writeBackRecords (databaseAndSet);
-	
-						} else {
-							errMsg = "Could not read the actual data over the socket.\n";
-							everythingOK = false;
 						}
-
-					} else {
-						errMsg = "Tried to add data of the wrong type to a set.\n";
-						everythingOK = false;
 					}
+				} else {
+					errMsg = "Tried to add data of the wrong type to a database set.\n";
+					everythingOK = false;
+				}
 			} else {
 				errMsg = "Tried to add data to a set/database combination that does not exist.\n";
 				everythingOK = false;

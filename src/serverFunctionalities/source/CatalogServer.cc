@@ -36,7 +36,6 @@
 #include "CatTypeNameSearch.h"
 #include "CatTypeSearchResult.h"
 #include "CatSharedLibraryRequest.h"
-#include "CatSharedLibraryResult.h"
 #include "CatCreateDatabaseRequest.h"
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
@@ -54,7 +53,6 @@ int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) 
 	return allTypeNames[objectTypeName];
 }
 
-
 void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 	// handle a request for an object type name search
@@ -62,10 +60,8 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 		[&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
 
 			// ask the catalog serer for the type ID 
-			std :: cout << "Asking about " << request->getObjectTypeName () << "\n";
 			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
 			Handle <CatTypeSearchResult> response = makeObjectOnTempAllocatorBlock <CatTypeSearchResult> (1024, typeID);				
-
 			// return the result
 			std :: string errMsg;
 			bool res = sendUsingMe->sendObject (response, errMsg);
@@ -82,10 +78,18 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			std :: string errMsg;
 			int16_t typeID = request->getTypeID ();
 			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, putResultHere, errMsg);
-			Handle <CatSharedLibraryResult> response = makeObjectOnTempAllocatorBlock <CatSharedLibraryResult> (1024, res, errMsg);				
+
+			Handle <Vector <char>> response;
+			if (!res) {
+				response = makeObject <Vector <char>> ();
+			} else {
+ 				response = makeObjectOnTempAllocatorBlock <Vector <char>> (1024 + putResultHere.size (), 
+					putResultHere.size (), putResultHere.size ());				
+				memmove (response->c_ptr (), putResultHere.data (), putResultHere.size ());
+			}
 
 			// return the result
-			res = sendUsingMe->sendBytes (response, putResultHere.data (), putResultHere.size (), errMsg);
+			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
 		}
 	));
@@ -97,7 +101,6 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			// ask the catalog server for the type ID and then the name of the type
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
 			Handle <CatTypeSearchResult> response = makeObjectOnTempAllocatorBlock <CatTypeSearchResult> (1024, typeID);				
-
 			// return the result
 			std :: string errMsg;
 			bool res = sendUsingMe->sendObject (response, errMsg);
@@ -114,7 +117,6 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
 
 			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				
-
 			// return the result
 			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
@@ -130,7 +132,6 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			bool res = getFunctionality <CatalogServer> ().addSet (request->whichType (), info.first, info.second, errMsg);
 
 			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				
-
 			// return the result
 			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
@@ -141,13 +142,21 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (CatRegisterType_TYPEID, make_shared <SimpleRequestHandler <CatRegisterType>> (
 		[&] (Handle <CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// write out the file
-			vector <char> soFile;
-			size_t fileLen = request->getSoFile ().size ();
-			soFile.resize (fileLen);
-			memmove (soFile.data (), request->getSoFile ().c_ptr (), fileLen);
+			// get the next object... this holds the shared library file... it could be big, so be careful!!
+			size_t objectSize = sendUsingMe->getSizeOfNextObject ();
+
+			bool res;
 			std :: string errMsg;
-			bool res = (addObjectType (soFile, errMsg) >= 0);
+			void *memory = malloc (objectSize);
+			Handle <Vector <char>> myFile = sendUsingMe->getNextObject <Vector <char>> (memory, res, errMsg);
+			if (res) {
+				vector <char> soFile;
+				size_t fileLen = myFile->size ();
+				soFile.resize (fileLen);
+				memmove (soFile.data (), myFile->c_ptr (), fileLen);
+				res = (addObjectType (soFile, errMsg) >= 0);
+			}
+			free (memory);
 
 			// create the response
 			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				

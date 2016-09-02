@@ -16,27 +16,40 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CAT_REG_TYPE_H
-#define CAT_REG_TYPE_H
+#ifndef CAT_CLIENT_TEMPL_CC
+#define CAT_CLIENT_TEMPL_CC
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBVector.h"
-
-// PRELOAD %CatRegisterType%
+#include "SimpleRequest.h"
+#include "CatalogClient.h"
+#include "CatCreateSetRequest.h"
+#include "SimpleRequestResult.h"
 
 namespace pdb {
 
-// encapsulates a request to regster a type in the catalog
-class CatRegisterType : public Object {
+template <class DataType>
+bool CatalogClient :: createSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-public:
+	int16_t typeID = searchForObjectTypeName (getTypeName <DataType> ());
+	if (typeID == -1) {
+		errMsg = "Could not find type " + getTypeName <DataType> ();
+		return -1;
+	}
 
-	CatRegisterType () {}
-	~CatRegisterType () {}
+        return simpleRequest <CatCreateSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error creating set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName, typeID);
 
-	ENABLE_DEEP_COPY
-};
+}
 
 }
 

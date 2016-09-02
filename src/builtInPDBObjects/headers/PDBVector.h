@@ -49,9 +49,19 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	// these operations all have the same semantics as in std :: vector
+	// this constructor pre-allocates initSize slots, and then initializes
+	// numUsed of them, calling a no-arg constructor on each.  Thus, after
+	// this call, size () will return numUsed
+	Vector (uint32_t initSize, uint32_t numUsed);
+
+	// this constructor pre-allocates initSize slots, but does not do anything
+	// to them.  Thus, after this call, size () will return zero
 	Vector (uint32_t initSize);
+	
+	// copy constructor
 	Vector (Vector <TypeContained> &assignToMe);
+
+	// these operations all have the same semantics as in std :: vector
 	Vector ();
 	uint32_t size ();
 	TypeContained &operator [] (uint32_t which);

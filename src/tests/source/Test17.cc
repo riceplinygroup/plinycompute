@@ -16,10 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_14_CC
-#define TEST_14_CC
+#ifndef TEST_17_CC
+#define TEST_17_CC
 
-#include "CatalogClient.h"
+#include "StorageClient.h"
+#include "PDBVector.h"
+#include "InterfaceFunctions.h"
 
 // this won't be visible to the v-table map, since it is not in the biult in types directory
 #include "../../sharedLibraries/source/SharedLibEmployee.cc"
@@ -29,24 +31,46 @@ int main () {
 	std:: cout << "Make sure to run bin/test15 in a different window!!\n";
 
 	// register the shared employee class
-	pdb :: CatalogClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"));
+	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"));
+
 	string errMsg;
-	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg))
-		cout << "Not able to register type.\n";
+	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg)) {
+		cout << "Not able to register type: " + errMsg;
+		return 0;
+	}
 
-	pdb :: makeObjectAllocatorBlock (8192 * 1024, true);
+	// now, create a new database
+	if (!temp.createDatabase ("chris_db", errMsg)) {
+		cout << "Not able to create database: " + errMsg;
+		return 0;
+	}
 
-	// since SharedEmployee is not a builtin object, this will cause a request to the catalog to 
-	// obtain the type code for the SharedEmployee class
-	pdb :: Handle <PrintableObject> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson", 12);
+	// now, create a new set in that database
+	if (!temp.createSet <SharedEmployee> ("chris_db", "chris_set", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		return 0;
+	}
 
-	// and here, we'll need to fix the vTable for myData, using the shared library from the catalog
-	myData->print ();	
-	std :: cout << "\n";
+	// now, create a bunch of data
+	void *storage = malloc (8192 * 1024);
+	pdb :: makeObjectAllocatorBlock (storage, 8192 * 1024, true);
+	pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
 
-	// and downcast
-	pdb :: Handle <SharedEmployee> newOne = pdb :: unsafeCast <SharedEmployee> (myData);
-	std :: cout << *(newOne->getName ()) << "\n";	
+	try {
+
+		for (int i = 0; true; i++) {
+			pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);	
+			storeMe->push_back (myData);
+		}
+
+	} catch (pdb :: NotEnoughSpace &n) {
+
+		// we got here, so go ahead and store the vector
+		if (!temp.storeData <SharedEmployee> (storeMe, "chris_db", "chris_set", errMsg)) {
+			cout << "Not able to store data: " + errMsg;
+			return 0;
+		}	
+	}
 }
 
 #endif

@@ -20,6 +20,7 @@
 #define CAT_CREATE_SET_H
 
 #include "Object.h"
+#include "PDBString.h"
 #include "Handle.h"
 
 // PRELOAD %CatCreateSetRequest%

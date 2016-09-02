@@ -16,54 +16,52 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CATALOG_CLIENT_H
-#define CATALOG_CLIENT_H
+#ifndef STORAGE_CLIENT_H
+#define STORAGE_CLIENT_H
 
 namespace pdb {
 
-class CatalogClient;
+class StorageClient;
 
 }
 
 #include "ServerFunctionality.h"
+#include "CatalogClient.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
 
 namespace pdb {
 
-class CatalogClient : public ServerFunctionality {
+class StorageClient : public ServerFunctionality {
 
 public:
 
 	// these give us the port and the address of the catalog
-	CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger);
+	StorageClient (int port, std :: string address, PDBLoggerPtr myLogger);
 
 	// function to register event handlers associated with this server functionality
 	virtual void registerHandlers (PDBServer &forMe) override;
 
-	// this uses the name of the object to find the corresponding identifier
-	int16_t searchForObjectTypeName (std :: string objectTypeName);
-
-	// this downloads the shared library assoicated with the identifier, putting it at the specified location
-	bool getSharedLibrary (int16_t identifier, std :: string objectFile);	
-
-	// this registers a type with the catalog
-	// returns true on success, false on fail
+	// this registers a type with the system
 	bool registerType (std :: string fileContainingSharedLib, std :: string &errMsg);
 
-	// this returns the type of object in the specified set, as a type name; returns "" on err
+	// this returns the type of object in the specified set, as a type name... returns "" on error
 	std :: string getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
 	// this creates a new database... returns true on success
-	// returns true on success, false on fail
 	bool createDatabase (std :: string databaseName, std :: string &errMsg);
 
 	// this creates a new set in a given database... returns true on success
-	// returns true on success, false on fail
 	template <class DataType>
 	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
+	// this stores data into a set... returns true on success
+	template <class DataType>
+	bool storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
 private:
+
+	CatalogClient myHelper;
 
 	int port;
 	std :: string address;
@@ -73,6 +71,6 @@ private:
 
 }
 
-#include "CatalogClientTemplates.cc"
+#include "StorageClientTemplate.cc"
 
 #endif

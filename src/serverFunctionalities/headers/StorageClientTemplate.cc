@@ -16,28 +16,34 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CAT_REG_TYPE_H
-#define CAT_REG_TYPE_H
+#ifndef STORAGE_CLIENT_TEMPLATE_CC
+#define STORAGE_CLIENT_TEMPLATE_CC
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBVector.h"
-
-// PRELOAD %CatRegisterType%
+#include "StorageClient.h"
+#include "StorageAddData.h"
+#include "SimpleRequestResult.h"
+#include "SimpleSendDataRequest.h"
 
 namespace pdb {
 
-// encapsulates a request to regster a type in the catalog
-class CatRegisterType : public Object {
-
-public:
-
-	CatRegisterType () {}
-	~CatRegisterType () {}
-
-	ENABLE_DEEP_COPY
-};
-
+template <class DataType>
+bool StorageClient :: storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+	
+	return simpleSendDataRequest <StorageAddData, Handle <DataType>, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+		[&] (Handle <SimpleRequestResult> result) {
+			if (result != nullptr) 
+				if (!result->getRes ().first) {
+					myLogger->error ("Error sending data: " + result->getRes ().second);
+					errMsg = "Error sending data: " + result->getRes ().second;
+				} 
+			return true;},
+		data, databaseName, setName, getTypeName <DataType> ());
 }
 
+template <class DataType>
+bool StorageClient :: createSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+        return myHelper.createSet <DataType> (databaseName, setName, errMsg);
+}
+
+}
 #endif

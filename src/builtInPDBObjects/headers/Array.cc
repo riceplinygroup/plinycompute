@@ -77,6 +77,24 @@ Array <TypeContained> :: Array (const Array &toMe) {
 }
 
 template <class TypeContained>
+Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
+	typeInfo.setup <TypeContained> ();
+	usedSlots = numUsedSlots;
+	numSlots = numSlotsIn;
+	if (typeInfo.descendsFromObject ()) {
+
+		// run the constructor on each object
+		for (int i = 0; i < numUsedSlots; i++) {
+			new ((void *) &(data[i])) TypeContained ();
+		}
+	} else {
+
+		// zero out everything
+		bzero (data, numUsedSlots * sizeof (TypeContained));
+	}
+}
+
+template <class TypeContained>
 Array <TypeContained> :: Array (uint32_t numSlotsIn) {
 	typeInfo.setup <TypeContained> ();
 	usedSlots = 0;

@@ -46,11 +46,15 @@ class Array : public Object {
 
 public:
 
-	// constructorsdestructor
+	// constructor/sdestructor
 	Array ();
 	Array (uint32_t numSlots);
 	Array (const Array &copyFromMe);
 	~Array ();
+
+	// this constructor pre-allocates the given number of slots, and initializes the specified number,
+	// so that the number of used slots is equal to the secod parameter
+	Array (uint32_t numSlots, uint32_t numUsedSlots);
 
 	// normally these would be defined by the ENABLE_DEEP_COPY macro, but because
 	// Array is the one variable-sized type that we allow, we need to manually override 

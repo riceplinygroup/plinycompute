@@ -172,6 +172,7 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 		// see how we are supposed to react...
 		if (throwException) {
 
+			std :: cout << "Wanted " << LAST_USED + bytesNeeded << " had " << numBytes << "\n";
 			// either we throw an exception...
 			throw myException;
 

@@ -28,11 +28,11 @@
 
 #include "CatalogClient.h"
 #include "CatRegisterType.h"
+#include "SimpleSendDataRequest.h"
 #include "SimpleRequestResult.h"
 #include "CatTypeNameSearch.h"
 #include "CatTypeSearchResult.h"
 #include "CatSharedLibraryRequest.h"
-#include "CatSharedLibraryResult.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatTypeNameSearchResult.h"
 #include "CatCreateDatabaseRequest.h"
@@ -55,7 +55,7 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 
 void CatalogClient :: registerHandlers (PDBServer &forMe) { /* no handlers for a catalog client!! */}
 
-bool CatalogClient :: registerType (std :: string fileContainingSharedLib) {
+bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :: string &errMsg) {
 	
 	// first, load up the shared library file
 	// get the file size
@@ -63,26 +63,39 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib) {
 	size_t fileLen = in.tellg();
 	
 	// read in the file that we are supposed to send
-	vector <char> putResultHere;
+	makeObjectAllocatorBlock (fileLen + 1024, true);
+
+	// this makes a an empty vector with fileLen slots
+	Handle <Vector <char>> putResultHere = makeObject <Vector <char>> (fileLen, fileLen);
+
+	// read data into it
         int filedesc = open (fileContainingSharedLib.c_str (), O_RDONLY);
-        putResultHere.resize (fileLen);
-        read (filedesc, putResultHere.data (), fileLen);
+        read (filedesc, putResultHere->c_ptr (), fileLen);
         close (filedesc);
 
-	return simpleRequest <CatRegisterType, SimpleRequestResult, bool> (myLogger, port, address, false, 
+	// and re-set the allocation block... be a good citizen!!
+	makeObjectAllocatorBlock (PDBWorkerQueue :: defaultAllocatorBlockSize, true);
+
+	return simpleSendDataRequest <CatRegisterType, char, SimpleRequestResult, bool> (myLogger, port, address, false, 
 		1024 + 4 * fileLen, 
 		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr)
+			if (result != nullptr) {
 				if (!result->getRes ().first) {
+					errMsg = "Error registering type: " + result->getRes ().second;
 					myLogger->error ("Error registering type: " + result->getRes ().second);
 					return false;
 				}
-			return true;},
+				return true;
+			} else {
+				errMsg = "Error registering type: got null pointer on return message.\n";
+				myLogger->error ("Error registering type: got null pointer on return message.\n");
+				return false;	
+			}},
 		putResultHere);
 	
 }
 
-int16_t CatalogClient :: searchForObjectTypeName (string objectTypeName) {
+int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
 
 	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024,
 		[&] (Handle <CatTypeSearchResult> result) {
@@ -93,69 +106,61 @@ int16_t CatalogClient :: searchForObjectTypeName (string objectTypeName) {
 		objectTypeName);
 }
 
-bool CatalogClient :: getSharedLibrary (int16_t identifier, string objectFile) {
+bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 	
-	return simpleRequest <CatSharedLibraryRequest, CatSharedLibraryResult, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <CatSharedLibraryResult> result) {
+	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
+		[&] (Handle <Vector <char>> result) {
 		
-			if (result == nullptr)
+			if (result == nullptr) {
+				myLogger->error ("Error getting shared library: null object returned.\n");
 				return false;
+			}
 
-			auto success = result->getRes ();
-			if (!success.first) {
-				myLogger->error ("Error getting shared library: " + success.second);
+			if (result->size () == 0) {
+				myLogger->error ("Error getting shared library, no data returned.\n");
 				return false;
 			}
 
 			// just write the shared library to the file
 			int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);	
-			write (filedesc, result->dataToSend.c_ptr (), result->dataToSend.size ());
+			write (filedesc, result->c_ptr (), result->size ());
 			close (filedesc);
 			return true;},
 		identifier);
 }
 
-std :: string CatalogClient :: getObjectType (string databaseName, string setName) {
+std :: string CatalogClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-	return simpleRequest <CatSetObjectTypeRequest, CatTypeNameSearchResult, string> (myLogger, port, address, "", 1024,
+	return simpleRequest <CatSetObjectTypeRequest, CatTypeNameSearchResult, std :: string> (myLogger, port, address, "", 1024,
 		[&] (Handle <CatTypeNameSearchResult> result) {
 			if (result != nullptr) {
 				auto success = result->wasSuccessful ();
-				if (!success.first) 
+				if (!success.first) {
+					errMsg = "Error getting type name: " + success.second;
 					myLogger->error ("Error getting type name: " + success.second);
-				else 
+				} else 
 					return result->getTypeName ();
 			}
+			errMsg = "Error getting type name: got nothing back from catalog";
 			return std :: string ("");},
 		databaseName, setName);
 }
 
-bool CatalogClient :: createDatabase (string databaseName, string &errMsg) {
+bool CatalogClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
 
 	return simpleRequest <CatCreateDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr)
+			if (result != nullptr) {
 				if (!result->getRes ().first) {
+					errMsg = "Error creating database: " + result->getRes ().second;
 					myLogger->error ("Error creating database: " + result->getRes ().second);
 					return false;
 				}
-			return true;},
+				return true;
+			}
+			errMsg = "Error getting type name: got nothing back from catalog";
+			return false;},
 		databaseName);
-}
-
-template <class DataType>
-bool CatalogClient :: createSet (string databaseName, string setName, string &errMsg) {
-
-	return simpleRequest <CatCreateSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr)
-				if (!result->getRes ().first) {
-					myLogger->error ("Error creating set: " + result->getRes ().second);
-					return false;
-				}
-			return true;},
-		databaseName, setName, getTypeName <DataType> ());
-		
 }
 
 }

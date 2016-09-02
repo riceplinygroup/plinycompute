@@ -44,6 +44,13 @@ Vector <TypeContained> :: Vector (uint32_t initSize) {
 }
 
 template <class TypeContained>
+Vector <TypeContained> :: Vector (uint32_t initSize, uint32_t usedSize) {
+
+	// this way, we'll allocate extra bytes on the end of the array
+	myArray = makeObjectWithExtraStorage <Array <TypeContained>> (sizeof (TypeContained) * initSize, initSize, usedSize);
+}
+
+template <class TypeContained>
 Vector <TypeContained> :: Vector () {
 
 	myArray = makeObjectWithExtraStorage <Array <TypeContained>> (sizeof (TypeContained), 1);
