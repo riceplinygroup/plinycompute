@@ -41,6 +41,11 @@ Handle <ObjType> :: Handle () {
 }
 
 template <class ObjType>
+int16_t Handle <ObjType> :: getTypeCode () {
+	return typeInfo.getTypeCode ();
+}
+
+template <class ObjType>
 Handle <ObjType> :: ~Handle () {
 
 	// if we are not null, then dec the referenece count 

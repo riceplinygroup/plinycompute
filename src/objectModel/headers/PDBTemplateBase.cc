@@ -28,6 +28,13 @@ inline PDBTemplateBase :: PDBTemplateBase () {
 		info = 0;
 }
 
+inline int16_t PDBTemplateBase :: getTypeCode () const {
+	if (info > 0)
+		return (int16_t) info;
+	else
+		return -1;
+}
+
 inline PDBTemplateBase &PDBTemplateBase :: operator = (const PDBTemplateBase &toMe) {
 	info = toMe.info;
 	return *this;
@@ -43,6 +50,8 @@ void PDBTemplateBase :: setup () {
 	
 		if (info == 0) {
 			std :: cerr << "This is bad.  Why did I not recognize this type??\n";
+			int *i = 0;
+			*i = 12;
 			exit (1);
 		}
 	} else  {

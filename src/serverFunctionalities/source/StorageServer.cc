@@ -22,6 +22,7 @@
 #include "StorageServer.h"
 #include "SimpleRequestResult.h"
 #include "CatalogServer.h"
+#include "../../sharedLibraries/source/SharedLibEmployeeTemp.cc"
 #include "StorageAddData.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
@@ -87,53 +88,98 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 						
 	// now, copy everything over... do all allocations on the page
 	MyDB_BufferManagerPtr myMgr = getBufferManager ();
-	makeObjectAllocatorBlock (myPage->getBytes (), myMgr->getPageSize (), true);
-	Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
+	size_t pageSize = myMgr->getPageSize ();
 
-	// and move everything to the page
-	while (allRecs.size () > 0) {
-		auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
-		int numObjectsInRecord = allObjects.size ();
+	// the position in the output vector
+	int pos = 0;
+	
+	// the number of items in the current record we are processing
+	int numObjectsInRecord;
 
-		int pos = 0;
+	// the current size (in bytes) of records we need to process
+	size_t numBytesToProcess = sizes[databaseAndSet];
+
+	// now, keep looping until we run out of records to process (in which case, we'll break)
+	while (true) {
+
+		// all allocations will be done to the page
+		UseTemporaryAllocationBlock tempBlock (myPage->getBytes (), pageSize);
+		Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
+
 		try {
-			for (pos = 0; pos < numObjectsInRecord; pos++)
-				data->push_back (allObjects[pos]);
+			// while there are still pages
+			while (allRecs.size () > 0) {
 
+				std :: cout << "Processing a record!!\n";
+
+				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
+				numObjectsInRecord = allObjects.size ();
+
+				// put all of the data onto the page
+				for (; pos < numObjectsInRecord; pos++)
+					data->push_back (allObjects[pos]);
+	
+				// now kill this record
+				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
+				free (allRecs[allRecs.size () - 1]);
+				allRecs.pop_back ();
+				pos = 0;
+			}
+
+			// if we got here, all records have been processed
+
+			std :: cout << "Write all of the bytes in the record.\n";
+			myPage->wroteBytes ();
+			myPage->flush ();
+			myPage->unpin ();
+			break;
+
+		// put the extra objects tht we could not store back in the record
 		} catch (NotEnoughSpace &n) {
 						
-			// put the extra objects tht we could not store back in the record
-			void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
-			makeObjectAllocatorBlock (myRAM, allRecs[allRecs.size () - 1]->numBytes (), true);
-			Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (allObjects.size () - pos);
-			for (; pos < numObjectsInRecord; pos++) 
-				extraData->push_back (allObjects[pos]);	
+			std :: cout << "Writing back a page!!\n";
 
-			// put the record back
-			free (allRecs[allRecs.size () - 1]);
-			allRecs[allRecs.size () - 1] = getRecord (extraData);	
-			break;
-		}
+			// write back the current page...
+			myPage->wroteBytes ();
+			myPage->flush ();
+			myPage->unpin ();
 
-		// now kill this record
-		free (allRecs[allRecs.size () - 1]);
-		allRecs.pop_back ();
-	}
+			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
+			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
+				
+				std :: cout << "Are still enough records for another page.\n";
+				myPage = getNewPage (databaseAndSet);
+				continue;
 
-	// now restore the object allocator
-	makeObjectAllocatorBlock (PDBWorkerQueue :: defaultAllocatorBlockSize, true);
+			// in this case, we have a small bit of data left
+			} else {
+					
+				// create the vector to hold these guys
+				void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
+				UseTemporaryAllocationBlock useTempBlock (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
+				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
 
-	// and now write the page to disk
-	myPage->wroteBytes ();
-	myPage->flush ();
-	myPage->unpin ();
-
-	// and rec-compute the total size of the buffered records
-	sizes[databaseAndSet] = 0;
-	for (auto *a : allRecs) {
-		sizes[databaseAndSet] += a->numBytes ();
-	}
+				// write the objects to the vector
+				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
+				for (; pos < numObjectsInRecord; pos++) {
+					extraData->push_back (allObjects[pos]);	
+				}
+				std :: cout << "Putting the records back complete.\n";
 	
+				// destroy the record that we were copying from
+				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
+				free (allRecs[allRecs.size () - 1]);
+	
+				// and get the record that we copied to
+				allRecs[allRecs.size () - 1] = getRecord (extraData);	
+				numBytesToProcess += allRecs[allRecs.size () - 1]->numBytes ();
+				break;
+			}
+		}
+	}
+
+	std :: cout << "Now all the records are back.\n";
+	sizes[databaseAndSet] = numBytesToProcess;
 }
 
 void StorageServer :: registerHandlers (PDBServer &forMe) {
@@ -154,22 +200,21 @@ void StorageServer :: registerHandlers (PDBServer &forMe) {
 					// get the record
 					size_t numBytes = sendUsingMe->getSizeOfNextObject ();
 					void *readToHere = malloc (numBytes);
-					Handle <Vector <Handle <Object>>> myData = 
-						sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+					sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
 
 					if (everythingOK) {	
-						Record <Vector <Handle <Object>>> *ramForRecord = getRecord (myData);
-					
 						// at this point, we have performed the serialization, so remember the record
 						auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
         	                                        (std :: string) request->getSetName ());
-						getFunctionality <StorageServer> ().bufferRecord (databaseAndSet, ramForRecord); 
+						getFunctionality <StorageServer> ().bufferRecord 
+							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
 	
 						// if we have enough space to fill up a page, do it
-						size_t limit = getFunctionality <StorageServer> ().getBufferManager ()->getPageSize ();
-						while (sizes[databaseAndSet] > limit) {
-							getFunctionality <StorageServer> ().writeBackRecords (databaseAndSet);
-						}
+						std :: cout << "Got the data.\n";
+						std :: cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+						getFunctionality <StorageServer> ().writeBackRecords (databaseAndSet);
+						std :: cout << "Done with write back.\n";
+						std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
 					}
 				} else {
 					errMsg = "Tried to add data of the wrong type to a database set.\n";
@@ -180,10 +225,12 @@ void StorageServer :: registerHandlers (PDBServer &forMe) {
 				everythingOK = false;
 			}
 
-			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, everythingOK, errMsg);
+			std :: cout << "Making response object.\n";
+			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                         // return the result
                         bool res = sendUsingMe->sendObject (response, errMsg);
+			std :: cout << "Sending response object.\n";
                         return make_pair (res, errMsg);
 		}
 	));

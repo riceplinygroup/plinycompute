@@ -20,6 +20,7 @@
 #define SIMPLE_REQUEST_CC
 
 #include "InterfaceFunctions.h"
+#include "UseTemporaryAllocationBlock.h"
 
 namespace pdb {
 
@@ -38,7 +39,8 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	}
 
 	// build the request
-	Handle <RequestType> request = makeObjectOnTempAllocatorBlock <RequestType> (bytesForRequest, args...);;
+	UseTemporaryAllocationBlock tempBlock (bytesForRequest);
+	Handle <RequestType> request = makeObject <RequestType> (args...);;
 	if (!temp.sendObject (request, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleRequest: not able to send request to server.\n");
@@ -46,14 +48,20 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	}
 
 	// get the response and process it
-	Handle <ResponseType> result = temp.getNextObject <ResponseType> (success, errMsg);
-	if (!success) {
-		myLogger->error (errMsg);
-		myLogger->error ("simpleRequest: not able to get next object over the wire.\n");
-		return onErr;
-	}
+	ReturnType finalResult;
+	void *memory = malloc (temp.getSizeOfNextObject ());
+	{
+		Handle <ResponseType> result = temp.getNextObject <ResponseType> (memory, success, errMsg);
+		if (!success) {
+			myLogger->error (errMsg);
+			myLogger->error ("simpleRequest: not able to get next object over the wire.\n");
+			return onErr;
+		}
 
-	return processResponse (result);
+		finalResult = processResponse (result);
+	}
+	free (memory);
+	return finalResult;
 }
 
 }

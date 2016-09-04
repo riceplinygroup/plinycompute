@@ -47,7 +47,6 @@ inline int VTableMap :: totalBuiltInObjects () {
             if (theVTable->allVTables[i] != nullptr){
                 count = count + 1;
             }
-
         }
         return count;
 }

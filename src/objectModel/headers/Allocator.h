@@ -92,16 +92,8 @@ public:
 	bool areNoReferences ();
 };
 
-template <class ObjType>
-class Handle;
-
-// this is the Allocator class.  There is one allocator per thread.  The allocator
-// is responsible for managing the RAM that is used to allocate everything that
-// is descended from object.  Most programmers (even PDB engineers) will never touch
-// the allocator class directly.  
-class Allocator {
-
-private:
+// this class holds the current state of an alloctor
+struct AllocatorState {
 
 	// the location of the block of RAM that this guy is allocating from
 	void *activeRAM;
@@ -133,13 +125,20 @@ private:
 	// service the request is returned.  If no region in the list can service it, the
 	// next list is checked.  Then the next, and so on.
 	std :: vector <std :: vector <void *>> chunks;
+};
 
-	// these mirror the above memory variables; used to save them temporarily
-        void *oldActiveRAM;
-        size_t oldNumBytes;
-        bool oldThrowException;
-	bool oldUserSuppliedBlock;
-	std :: vector <std :: vector <void *>> oldChunks;
+template <class ObjType>
+class Handle;
+
+// this is the Allocator class.  There is one allocator per thread.  The allocator
+// is responsible for managing the RAM that is used to allocate everything that
+// is descended from object.  Most programmers (even PDB engineers) will never touch
+// the allocator class directly.  
+class Allocator {
+
+private:
+
+	AllocatorState myState;
 
 	// this is the list of all self-managed allocation blocks that are not active, but
 	// still contain some object...
@@ -207,12 +206,14 @@ public:
 	void * getAllocationBlock (Handle <ObjType> &forMe);
 
 	// uses a specified block of memory for all allocations, until 
-	// restoreAllocationBlock () is called.
-	void temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable);
+	// restoreAllocationBlock () is called... SHOUD NOT BE USED DIRECTLY
+	AllocatorState temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable);
+	AllocatorState temporarilyUseBlockForAllocations (size_t numBytesAvailable);
 
 	// goes back to the old allocation block.. this should only
 	// by alled after a call to temporarilyUseBlockForAllocations ()
-	void restoreAllocationBlock ();
+	void restoreAllocationBlock (AllocatorState &restoreMe);
+	void restoreAllocationBlockAndManageOldOne (AllocatorState &restoreMe);
 
 	// like the above call, except that it does not erase the current
 	// allocation block; it is managed (reference counted) just like all

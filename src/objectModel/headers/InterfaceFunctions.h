@@ -167,11 +167,6 @@ RefCountedObject <ObjType> *makeObject (Args&&... args);
 template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... args);
 
-// this is just like makeObject, except that the object is placed, as the only
-// object, into a temporary allocation block of the specified size.
-template <class ObjType, class... Args>
-RefCountedObject <ObjType> *makeObjectOnTempAllocatorBlock (size_t bytesForRequest, Args&&... args);
-
 // This gets a raw, bytewise representation of an object from a Handle.  This
 // call is always executed in constant time, so it is fast.  The resulting bytes
 // are then easily moved around.  For example, consider the following code:

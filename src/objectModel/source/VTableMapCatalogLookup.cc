@@ -47,12 +47,16 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		return nullptr;
 	}
 
+	std :: cout << "Getting shared library for " << objectTypeID << "\n";
+
 	// make sure no one is modifying the map
 	const LockGuard guard {theVTable->myLock};
 	
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.so";
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
+	std :: cout << "Got shared librry for " << objectTypeID << "\n";
+
 	// open up the shared library
 	void *so_handle = dlopen(sharedLibraryFile.c_str(), RTLD_LOCAL | RTLD_LAZY );
 	theVTable->so_handles.push_back (so_handle);
@@ -67,23 +71,43 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	} else {
 		const char* dlsym_error = dlerror();
 
+		// first we need to correctly set all of the global variables in the shared library
+		typedef void setGlobalVars (VTableMap *, void *, void *);
+		std::string getInstance = "setAllGlobalVariables";
+		setGlobalVars *setGlobalVarsFunc = (setGlobalVars *) dlsym (so_handle, getInstance.c_str());
+
+		// see if we were able to get the function
+		if ((dlsym_error = dlerror())) {
+			if (theVTable->logger != nullptr)
+				theVTable->logger->error ("Error, can't set global variables in .so file; error is " +
+					(std::string)dlsym_error + "\n");
+			return nullptr;
+		// if we were able to, then run it
+		} else {
+			setGlobalVarsFunc (theVTable, stackBase, stackEnd);
+		}
+
+		std :: cout << "Set global vars for " << objectTypeID << "\n";
+
 		// get the function that will give us access to the vTable
 		typedef void *getObjectVTable ();
-		std::string getInstance = "getObjectVTable";
-
-		getObjectVTable *getObjectFunc = (getObjectVTable *) dlsym(so_handle, getInstance.c_str());
+		getInstance = "getObjectVTable";
+		getObjectVTable *getObjectFunc = (getObjectVTable *) dlsym (so_handle, getInstance.c_str());
 
 		// see if we were able to get the function
 		if ((dlsym_error = dlerror())) {
 			if (theVTable->logger != nullptr)
 				theVTable->logger->error ("Error, can't load function getInstance (); error is " +
 					(std::string)dlsym_error + "\n");
-
+			return nullptr;
 		// if we were able to, then run it
 		} else {
 			theVTable->allVTables[objectTypeID] = getObjectFunc ();
 		}
+
+		std :: cout << "Able to create the object.\n";
 	}
+	std :: cout << "Success!!\n";
 	return theVTable->allVTables[objectTypeID];
 }
 

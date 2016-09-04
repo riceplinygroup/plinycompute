@@ -61,6 +61,8 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	auto *record = getRecord (sendMe);
 
 	if (record == nullptr) {
+		int *a = 0;
+		*a = 12;
 		std :: cout << "BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
 		exit (1);
 	}

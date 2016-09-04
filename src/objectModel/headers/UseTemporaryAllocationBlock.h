@@ -16,48 +16,42 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef PDB_SERVER_TEMP_CC
-#define PDB_SERVER_TEMP_CC
+#ifndef USE_TEMP_ALLOCATION_BLOCK_H
+#define USE_TEMP_ALLOCATION_BLOCK_H
 
-#include "Handle.h"
-#include "PDBServer.h"
-#include "ServerFunctionality.h"
-#include <memory>
+#include "Allocator.h"
 
 namespace pdb {
 
-template <class Functionality, class... Args>
-void PDBServer :: addFunctionality (Args&&... args) {
-	
-	// first, get the name of this type
-	std :: string myType = getTypeName <Functionality> ();
+class UseTemporaryAllocationBlock {
 
-	// and remember him... map him to a particular index in the list of functionalities
-	if (allFunctionalityNames.count (myType) == 1) {
-		std :: cerr << "BAD!  You can't add the same functionality twice.\n";
-	}
-	allFunctionalityNames [myType] = allFunctionalities.size ();
+	AllocatorState oldInfo;
+	bool myMemory = false;
 
-	// then create the functionality
-	shared_ptr <ServerFunctionality> whichFunctionality = make_shared <Functionality> (args...);
-	allFunctionalities.push_back (whichFunctionality);
+public:
 
-	registerHandlersFromLastFunctionality ();
-}
-
-template <class Functionality> 
-Functionality &PDBServer :: getFunctionality () {
-
-	// first, figure out which index we are
-	static int whichIndex = -1;
-	if (whichIndex == -1) {
-		std :: string myType = getTypeName <Functionality> ();
-		whichIndex = allFunctionalityNames [myType];
+	UseTemporaryAllocationBlock (void *memory, size_t size) {
+		myMemory = true;
+		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (memory, size);			
 	}
 
-	// and now, return the functionality
-	return *((Functionality *) allFunctionalities[whichIndex].get ());
-}
+	UseTemporaryAllocationBlock (size_t size) {
+		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (size);	
+	}
+
+	~UseTemporaryAllocationBlock () {
+		
+		// if the outside world supplied the RAM
+		if (myMemory) {
+			// we don't need to free it when done; the caller is in charge
+			getAllocator ().restoreAllocationBlock (oldInfo);
+		} else {
+			// we do need to free it when done; the caller is not in charge
+			getAllocator ().restoreAllocationBlockAndManageOldOne (oldInfo);
+		}
+	}
+
+};
 
 }
 

@@ -188,6 +188,9 @@ public:
 	void setOffset (int64_t toMe);
 	int64_t getOffset ();
 
+	// get the type code
+	int16_t getTypeCode ();
+
 	// so we can perform a deep copy over handles
 	ENABLE_DEEP_COPY
 

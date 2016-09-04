@@ -166,22 +166,6 @@ Record <ObjType> *getRecord (Handle <ObjType> &forMe) {
 	return (Record <ObjType> *) res;
 }
 
-template <class ObjType, class... Args>
-RefCountedObject <ObjType> *makeObjectOnTempAllocatorBlock (size_t bytesForRequest, Args&&... args) {
-
-	// temporarily use the memory requested by the caller
-	void *putMeHere = malloc (bytesForRequest);
-	getAllocator ().temporarilyUseBlockForAllocations (putMeHere, bytesForRequest);
-
-	// make the object
-	RefCountedObject <ObjType> *returnVal = makeObject <ObjType> (args...);
-
-	// put the old allocation block back
-	getAllocator ().restoreAllocationBlockAndManageOldOne ();	
-
-	return returnVal;
-}
-
 template <class OutObjType, class InObjType>
 Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe) {
 	
@@ -196,7 +180,7 @@ template <class ObjType>
 Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t numBytesAvailable) {
 
 	// temporarily use the memory given by the caller
-	getAllocator ().temporarilyUseBlockForAllocations (putMeHere, numBytesAvailable);
+	AllocatorState tempAllocator = getAllocator ().temporarilyUseBlockForAllocations (putMeHere, numBytesAvailable);
 
 	Handle <ObjType> temp;
 	try {
@@ -206,7 +190,7 @@ Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t n
 	// if we get an exception, then restore the allocation block and throw the exception ourselves
 	} catch (NotEnoughSpace &n) {
 		
-		getAllocator ().restoreAllocationBlock ();
+		getAllocator ().restoreAllocationBlock (tempAllocator);
 		throw n;
 	}
 
@@ -214,7 +198,7 @@ Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t n
 	void *res = getAllocator ().getAllocationBlock (temp);
 			
 	// put the old allocation block back
-	getAllocator ().restoreAllocationBlock ();	
+	getAllocator ().restoreAllocationBlock (tempAllocator);	
 
 	// and return that pointer
 	return (Record <ObjType> *) res;

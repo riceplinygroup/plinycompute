@@ -36,19 +36,22 @@ int main () {
 	string errMsg;
 	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg)) {
 		cout << "Not able to register type: " + errMsg;
-		return 0;
+	} else {
+		cout << "Registered type.\n";
 	}
 
 	// now, create a new database
 	if (!temp.createDatabase ("chris_db", errMsg)) {
 		cout << "Not able to create database: " + errMsg;
-		return 0;
+	} else {
+		cout << "Created database.\n";
 	}
 
 	// now, create a new set in that database
 	if (!temp.createSet <SharedEmployee> ("chris_db", "chris_set", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
-		return 0;
+	} else {
+		cout << "Created set.\n";
 	}
 
 	// now, create a bunch of data

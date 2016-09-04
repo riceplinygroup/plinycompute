@@ -70,6 +70,9 @@ public:
 
 	// returns true if the type indicated by info is descended from pdb :: Object
 	bool descendsFromObject () const;
+
+	// returns the type code
+	int16_t getTypeCode () const;
 };
 
 }

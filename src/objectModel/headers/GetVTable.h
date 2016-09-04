@@ -19,6 +19,8 @@
 // this contains the GET_V_TABLE macro, which is used to create a shared library
 // that can send an object type around the compute cluster
 
+#include "UseTemporaryAllocationBlock.h"					
+
 #ifndef GET_V_TABLE 
 #define GET_V_TABLE(TYPE_NAME) 							\
 										\
@@ -27,6 +29,10 @@ namespace pdb {									\
 /* this returns the name of the type that we are loading */			\
 char typeName[300];								\
     										\
+extern VTableMap *theVTable;                                                    \
+extern void *stackBase;                                                         \
+extern void *stackEnd;                                                          \
+										\
 extern "C" {									\
 										\
 char *getObjectTypeName () {							\
@@ -38,15 +44,28 @@ char *getObjectTypeName () {							\
 /* this returns an instance of the vtable of the type that we are loading */	\
 void *getObjectVTable () {							\
 	void *returnVal = nullptr;						\
+	UseTemporaryAllocationBlock myBlock (1024 * 1024 * 4);			\
         try {									\
-		Handle <TYPE_NAME> temp = makeObjectOnTempAllocatorBlock 	\
-			<TYPE_NAME> (1024 * 1024 * 4);					\
-		returnVal = temp->getVTablePtr ();				\
+		TYPE_NAME temp;							\
+		returnVal = temp.getVTablePtr ();				\
+										\
         } catch (NotEnoughSpace &e) {						\
                 std :: cout << "Not enough memory to allocate TYPE_NAME";	\
 		std :: cout << " to extract the vTable.\n";			\
         }									\
 	return returnVal;							\
+}										\
+										\
+/* this must be called befroe getObjectVTable () to correctly set the static */ \
+/* and global variables that make the object model work correctly.  Since  */   \
+/* the shared library has *different* copies of all of these, they must be */   \
+/* set before the shared library is used to do anything.                   */   \
+                                                                                \
+void setAllGlobalVariables (VTableMap *theVTableIn,                             \
+	void *stackBaseIn, void *stackEndIn) {	                                \
+	stackBase = stackBaseIn;                                                \
+	stackEnd = stackEndIn;                                                  \
+	theVTable = theVTableIn;                                                \
 }										\
 										\
 }										\

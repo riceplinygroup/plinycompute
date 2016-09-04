@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <string>
 
+#include "UseTemporaryAllocationBlock.h"
 #include "CatalogServer.h"
 #include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
@@ -61,7 +62,10 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 			// ask the catalog serer for the type ID 
 			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
-			Handle <CatTypeSearchResult> response = makeObjectOnTempAllocatorBlock <CatTypeSearchResult> (1024, typeID);				
+
+			// make the result
+			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
+
 			// return the result
 			std :: string errMsg;
 			bool res = sendUsingMe->sendObject (response, errMsg);
@@ -79,17 +83,19 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			int16_t typeID = request->getTypeID ();
 			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, putResultHere, errMsg);
 
-			Handle <Vector <char>> response;
 			if (!res) {
-				response = makeObject <Vector <char>> ();
+				Handle <Vector <char>> response = makeObject <Vector <char>> ();
+				res = sendUsingMe->sendObject (response, errMsg);
 			} else {
- 				response = makeObjectOnTempAllocatorBlock <Vector <char>> (1024 + putResultHere.size (), 
-					putResultHere.size (), putResultHere.size ());				
+
+				// in this case, we need a big space to put the object!!
+				UseTemporaryAllocationBlock temp (1024 + putResultHere.size ());
+ 				Handle <Vector <char>> response = makeObject <Vector <char>> (putResultHere.size (), putResultHere.size ()); 
 				memmove (response->c_ptr (), putResultHere.data (), putResultHere.size ());
+				res = sendUsingMe->sendObject (response, errMsg);
 			}
 
 			// return the result
-			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
 		}
 	));
@@ -100,7 +106,10 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 			// ask the catalog server for the type ID and then the name of the type
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
-			Handle <CatTypeSearchResult> response = makeObjectOnTempAllocatorBlock <CatTypeSearchResult> (1024, typeID);				
+
+			// make the response
+			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
+
 			// return the result
 			std :: string errMsg;
 			bool res = sendUsingMe->sendObject (response, errMsg);
@@ -116,7 +125,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			std :: string errMsg;
 			bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
 
-			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				
+			// make the response
+			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+
 			// return the result
 			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
@@ -131,7 +142,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			auto info = request->whichSet ();
 			bool res = getFunctionality <CatalogServer> ().addSet (request->whichType (), info.first, info.second, errMsg);
 
-			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				
+			// make the response
+			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+
 			// return the result
 			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);
@@ -159,7 +172,8 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			free (memory);
 
 			// create the response
-			Handle <SimpleRequestResult> response = makeObjectOnTempAllocatorBlock <SimpleRequestResult> (1024, res, errMsg);				
+			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+
 			// return the result
 			res = sendUsingMe->sendObject (response, errMsg);
 			return make_pair (res, errMsg);

@@ -111,6 +111,8 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
 	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <Vector <char>> result) {
 		
+			std :: cout << "Made it to function call.\n";
+
 			if (result == nullptr) {
 				myLogger->error ("Error getting shared library: null object returned.\n");
 				return false;

@@ -85,9 +85,9 @@ inline unsigned InactiveAllocationBlock :: getReferenceCount () {
 // These macros are used to manipulate the block of RAM that makes up an allocation block
 // The layout is | num bytes used | offset to root object | number active objects | data <--> |
 #undef ALLOCATOR_REF_COUNT
-#define ALLOCATOR_REF_COUNT (*((unsigned *) (CHAR_PTR (activeRAM) + 2 * sizeof (size_t))))
-#define LAST_USED (*((size_t *) activeRAM))
-#define OFFSET_TO_OBJECT (*((size_t *) (CHAR_PTR (activeRAM) + sizeof (size_t))))
+#define ALLOCATOR_REF_COUNT (*((unsigned *) (CHAR_PTR (myState.activeRAM) + 2 * sizeof (size_t))))
+#define LAST_USED (*((size_t *) myState.activeRAM))
+#define OFFSET_TO_OBJECT (*((size_t *) (CHAR_PTR (myState.activeRAM) + sizeof (size_t))))
 #define OFFSET_TO_OBJECT_RELATIVE(fromWhere) (*((size_t *) (CHAR_PTR (fromWhere) + sizeof (size_t))))
 #define HEADER_SIZE (sizeof (unsigned) + 2 * sizeof (size_t))
 #define GET_CHUNK_SIZE(ofMe) (*((unsigned *) ofMe))
@@ -97,14 +97,14 @@ inline unsigned InactiveAllocationBlock :: getReferenceCount () {
 // in this case, a null pointer is returned on a bad allocate, and NOT
 // an exception
 inline bool Allocator :: doNotFail () {
-	return (throwException == false);	
+	return (myState.throwException == false);	
 }
 
 // destructor; if there is a self-allocated current allocation block, free it
 inline Allocator :: ~Allocator () {
 
-	if (activeRAM != nullptr && !curBlockUserSupplied) {
-		free (activeRAM);
+	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
+		free (myState.activeRAM);
 	}
 }
 
@@ -112,19 +112,19 @@ inline Allocator :: ~Allocator () {
 inline Allocator :: Allocator () {
 	for (int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
-		chunks.push_back (temp);
+		myState.chunks.push_back (temp);
 	}
-	activeRAM = nullptr;
-	numBytes = 0;
+	myState.activeRAM = nullptr;
+	myState.numBytes = 0;
 }
 
 inline Allocator :: Allocator (size_t numBytesIn) {
 	for (int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
-		chunks.push_back (temp);
+		myState.chunks.push_back (temp);
 	}
-	activeRAM = nullptr;
-	numBytes = 0;
+	myState.activeRAM = nullptr;
+	myState.numBytes = 0;
 
 	// now, setup the active block
 	setupBlock (malloc (numBytesIn), numBytesIn, true);
@@ -133,8 +133,8 @@ inline Allocator :: Allocator (size_t numBytesIn) {
 // returns true if and only if the RAM is in the current allocation block
 inline bool Allocator :: contains (void *whereIn) {
 	char *where = CHAR_PTR (whereIn);
-	char *target = CHAR_PTR (activeRAM);
-	return (where >= target && where < target + numBytes);
+	char *target = CHAR_PTR (myState.activeRAM);
+	return (where >= target && where < target + myState.numBytes);
 }
 
 // returns some RAM... this can throw an exception if the request is too large
@@ -154,11 +154,11 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	// in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
 	// at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
 	for (int i = 31 - numLeadingZeros; i < 32; i++) {
-		int len = chunks[i].size ();
+		int len = myState.chunks[i].size ();
 		for (int j = len - 1; j >= 0; j--) {
-			if (GET_CHUNK_SIZE (chunks[i][j]) >= bytesNeeded) {
-				void *returnVal = chunks[i][j];
-				chunks[i].erase (chunks[i].begin () + j);
+			if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
+				void *returnVal = myState.chunks[i][j];
+				myState.chunks[i].erase (myState.chunks[i].begin () + j);
 				ALLOCATOR_REF_COUNT++;
 				return CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
 			}
@@ -167,12 +167,11 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 
 	// if we got here, then we cannot fit, and we need to carve out a bit at the end
 	// if there is not enough RAM
-	if (LAST_USED + bytesNeeded > numBytes) {
+	if (LAST_USED + bytesNeeded > myState.numBytes) {
 
 		// see how we are supposed to react...
-		if (throwException) {
+		if (myState.throwException) {
 
-			std :: cout << "Wanted " << LAST_USED + bytesNeeded << " had " << numBytes << "\n";
 			// either we throw an exception...
 			throw myException;
 
@@ -184,7 +183,7 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	}
 
 	// now do the allocation
-	void *res = LAST_USED + CHAR_PTR (activeRAM);
+	void *res = LAST_USED + CHAR_PTR (myState.activeRAM);
 	LAST_USED += bytesNeeded;
 	GET_CHUNK_SIZE (res) = bytesNeeded;
 	ALLOCATOR_REF_COUNT++;
@@ -224,7 +223,7 @@ inline void Allocator :: freeRAM (void *here) {
 		int leadingZeros = __builtin_clz (chunkSize);
 
 		// and remember this chunk
-		chunks[31 - leadingZeros].push_back (here);
+		myState.chunks[31 - leadingZeros].push_back (here);
 		
 		ALLOCATOR_REF_COUNT--;
 		return;
@@ -254,20 +253,20 @@ inline void Allocator :: freeRAM (void *here) {
 
 inline void Allocator :: setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
 	setupBlock (where, numBytesIn, throwExceptionOnFail);
-	curBlockUserSupplied = true;
+	myState.curBlockUserSupplied = true;
 }
 
 inline size_t Allocator :: getBytesAvailableInCurrentAllocatorBlock () {
 
 	// count all of the chunks that are not currently in use
 	unsigned amtUnused = 0;
-	for (auto &a : chunks) {
+	for (auto &a : myState.chunks) {
 		for (auto &v  : a) {
 			amtUnused += GET_CHUNK_SIZE (v);
 		}
 	}
 	
-	return numBytes - LAST_USED + amtUnused;
+	return myState.numBytes - LAST_USED + amtUnused;
 }
 
 inline unsigned Allocator :: getNumObjectsInCurrentAllocatorBlock () {
@@ -306,28 +305,29 @@ inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwE
 	}
 
 	// remember how to handle a failed allocate
-	throwException = throwExceptionOnFail;
+	myState.throwException = throwExceptionOnFail;
 
 	// if there is currently an active block, then it becomes inactive
-	if (activeRAM != nullptr && !curBlockUserSupplied) {
+	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
 
 		// don't remember a block with no objects
 		if (ALLOCATOR_REF_COUNT != 0) {
-			allInactives.emplace_back (activeRAM, numBytes);	
+			allInactives.emplace_back (myState.activeRAM, myState.numBytes);	
 			std :: sort (allInactives.begin (), allInactives.end ());
 		} else {
-			free (activeRAM);
+			free (myState.activeRAM);
 		}
 	}
 
 	// empty out the list of unused chunks of RAM in this block
-	for (auto &c : chunks) {
+	for (auto &c : myState.chunks) {
 		c.clear ();
 	}
 
-	activeRAM = where;
-	numBytes = numBytesIn;	
-	curBlockUserSupplied = false;
+	myState.activeRAM = where;
+
+	myState.numBytes = numBytesIn;	
+	myState.curBlockUserSupplied = false;
 	LAST_USED = HEADER_SIZE;	
 	ALLOCATOR_REF_COUNT = 0;
 }
@@ -342,8 +342,8 @@ void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
 	if (contains (here)) {
 		
 		// set up the pointer to the object
-		OFFSET_TO_OBJECT = CHAR_PTR (here) - CHAR_PTR (activeRAM);
-		return activeRAM;
+		OFFSET_TO_OBJECT = CHAR_PTR (here) - CHAR_PTR (myState.activeRAM);
+		return myState.activeRAM;
 	}
 
 	// he's not, so see if he is from another block
@@ -363,52 +363,65 @@ void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
 
 // uses a specified block of memory for all allocations, until 
 // restoreAllocationBlock () is called.
-inline void Allocator :: temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable) {
+inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable) {
 
 	// remember the old stuff
-	oldActiveRAM = activeRAM;
-	oldNumBytes = numBytes;	
-	oldThrowException = throwException;
-	oldUserSuppliedBlock = curBlockUserSupplied;
-	oldChunks = chunks;
+	AllocatorState returnVal = myState;
+
+	// mark this one as user-supplied so that it is remembered
+	myState.curBlockUserSupplied = false;
 
 	// give the current alloction block a phantom reference count so it is not freed
 	ALLOCATOR_REF_COUNT++;
 	
 	// and set up the new block
-	setupBlock (putMeHere, numBytesAvailable, true);
+	setupUserSuppliedBlock (putMeHere, numBytesAvailable, true);
+	return returnVal;
 }
 
-inline void Allocator :: restoreAllocationBlockAndManageOldOne () {
+// uses a specified block of memory for all allocations, until 
+// restoreAllocationBlock () is called.
+inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t numBytesAvailable) {
+
+	// remember the old stuff
+	AllocatorState returnVal = myState;
+
+	// mark this one as user-supplied so that it is remembered
+	myState.curBlockUserSupplied = false;
+
+	// give the current alloction block a phantom reference count so it is not freed
+	ALLOCATOR_REF_COUNT++;
+	
+	// and set up the new block
+	void *putMeHere = malloc (numBytesAvailable);
+	setupBlock (putMeHere, numBytesAvailable, true);
+	return returnVal;
+}
+
+inline void Allocator :: restoreAllocationBlockAndManageOldOne (AllocatorState &useMe) {
 
 	// first, remember the current block
-
 	// don't remember a block with no objects
 	if (ALLOCATOR_REF_COUNT != 0) {
-		allInactives.emplace_back (activeRAM, numBytes);	
+		allInactives.emplace_back (myState.activeRAM, myState.numBytes);	
 		std :: sort (allInactives.begin (), allInactives.end ());
 	} else {
-		free (activeRAM);
+		free (myState.activeRAM);
 	}
 
 	// now restore the old block
-	restoreAllocationBlock ();
+	restoreAllocationBlock (useMe);
 }
 
 // goes back to the old allocation block.. this should only
-// by alled after a call to temporarilyUseBlockForAllocations ()
-inline void Allocator :: restoreAllocationBlock () {
+// by called after a call to temporarilyUseBlockForAllocations ()
+inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 
-	// restore the old allocation block
-	activeRAM = oldActiveRAM;
-	numBytes = oldNumBytes;
-	throwException = oldThrowException;
-	curBlockUserSupplied = oldUserSuppliedBlock;
-	chunks = oldChunks;
+	myState = useMe;
 	
 	// remove the old allocation block from the list of inactive ones
 	for (int i = 0; i < allInactives.size (); i++) {
-		if (allInactives[i].start == activeRAM) {
+		if (allInactives[i].start == myState.activeRAM) {
 			allInactives.erase (allInactives.begin () + i);
 			return;
 		}
