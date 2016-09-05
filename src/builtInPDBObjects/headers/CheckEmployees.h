@@ -33,7 +33,7 @@ namespace pdb {
 // if he doesn't manage anyone other than "nameToExclude".  If he does manage
 // someone other than "nameToExclude", then the query will return all of the
 // employees for the supervisor that don't have that name 
-class CheckEmployee : public Selection <Supervisor, Vector <Handle <Employee>>> {
+class CheckEmployee : public Selection <Vector <Handle <Employee>>, Supervisor> {
 
 private:
 
@@ -50,7 +50,7 @@ public:
 	}
 	
 	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
-		return lambda (checkMe, [&] () -> bool {
+		return makeLambda (checkMe, [&] () -> bool {
 			int numEmployees = checkMe->getNumEmployees ();
 			for (int i = 0; i < numEmployees; i++) {
 				if (*(checkMe->getEmp (i)->getName ()) != nameToExclude) {
@@ -62,7 +62,7 @@ public:
 	}
 
 	Lambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
-		return lambda (checkMe, [&] {
+		return makeLambda (checkMe, [&] {
 			Handle <Vector <Handle <Employee>>> returnVal = makeObject <Vector <Handle <Employee>>> (10);
 			int numEmployees = checkMe->getNumEmployees ();
 			for (int i = 0; i < numEmployees; i++) {

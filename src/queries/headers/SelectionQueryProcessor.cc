@@ -24,8 +24,8 @@
 
 namespace pdb {
 
-template <class Input, class Output>
-SelectionQueryProcessor <Input, Output> :: SelectionQueryProcessor (Selection <Input, Output> &forMe) {
+template <class Output, class Input>
+SelectionQueryProcessor <Output, Input> :: SelectionQueryProcessor (Selection <Output, Input> &forMe) {
 
 	// get a copy of the lambdas for query processing
 	selectionPred = forMe.getSelection (inputObject);
@@ -34,29 +34,29 @@ SelectionQueryProcessor <Input, Output> :: SelectionQueryProcessor (Selection <I
 }
 
 // no need to do anything
-template <class Input, class Output>
-void SelectionQueryProcessor <Input, Output> :: initialize () {
+template <class Output, class Input>
+void SelectionQueryProcessor <Output, Input> :: initialize () {
 	selectionFunc = selectionPred.getFunc ();
 	projectionFunc = projection.getFunc ();
 }
 
 // loads up another input page to process
-template <class Input, class Output>
-void SelectionQueryProcessor <Input, Output> :: loadInputPage (void *pageToProcess) {
+template <class Output, class Input>
+void SelectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProcess) {
 	Record <Vector <Handle <Input>>> *myRec = (Record <Vector <Handle <Input>>> *) pageToProcess;
 	inputVec = myRec->getRootObject ();
 	posInInput = 0;
 }
 
 // load up another output page to process
-template <class Input, class Output>
-void SelectionQueryProcessor <Input, Output> :: loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) {
+template <class Output, class Input>
+void SelectionQueryProcessor <Output, Input> :: loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) {
 	makeObjectAllocatorBlock (pageToWriteTo, numBytesInPage, true);
 	outputVec = makeObject <Vector <Handle <Output>>> (10);
 }
 
-template <class Input, class Output>
-bool SelectionQueryProcessor <Input, Output> :: fillNextOutputPage () {
+template <class Output, class Input>
+bool SelectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
 		
 	Vector <Handle <Input>> &myInVec = *(inputVec);
 	Vector <Handle <Output>> &myOutVec = *(outputVec);
@@ -89,8 +89,8 @@ bool SelectionQueryProcessor <Input, Output> :: fillNextOutputPage () {
 }
 
 // must be called repeately after all of the input pages have been sent in...
-template <class Input, class Output>
-void SelectionQueryProcessor <Input, Output> :: finalize () {
+template <class Output, class Input>
+void SelectionQueryProcessor <Output, Input> :: finalize () {
 	finalized = true;
 }
 

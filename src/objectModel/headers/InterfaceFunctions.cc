@@ -32,7 +32,7 @@
 #include "Record.h"
 #include "DeepCopy.h"
 #include "RefCountMacros.h"
-#include "TypeName.cc"
+#include "TypeName.h"
 #include "VTableMap.h"
 
 namespace pdb {

@@ -27,7 +27,7 @@
 
 namespace pdb {
 
-template <class Input, class Output> 
+template <class Output, class Input> 
 class SelectionQueryProcessor : public SimpleSingleTableQueryProcessor {
 
 private:
@@ -57,7 +57,7 @@ private:
 
 public:
 
-	SelectionQueryProcessor (Selection <Input, Output> &forMe);
+	SelectionQueryProcessor (Selection <Output, Input> &forMe);
 
 	// the standard interface functions
 	void initialize () override;

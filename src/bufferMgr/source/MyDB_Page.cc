@@ -32,6 +32,7 @@
 #include "MyDB_BufferManager.h"
 #include "MyDB_Page.h"
 #include "MyDB_Table.h"
+#include <iostream>
 
 void *MyDB_Page :: getBytes (MyDB_PagePtr me) {
 	parent.access (me);	
@@ -57,6 +58,7 @@ MyDB_Page :: MyDB_Page (MyDB_TablePtr myTableIn, size_t iin, MyDB_BufferManager 
 }
 
 void MyDB_Page :: flush (MyDB_PagePtr me) {
+	std :: cout << "Flushing page!!\n";
 	parent.flush (me);
 }
 

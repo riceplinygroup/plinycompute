@@ -16,48 +16,31 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELECTION_H
-#define SELECTION_H
+#ifndef DATABASE_QUERY_H
+#define DATABASE_QUERY_H
 
+#include <string>
 #include "Handle.h"
-#include "Lambda.h"
-#include "Object.h"
-#include "Query.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "SetScan.h"
 
 namespace pdb {
 
-// this is the basic selection type... users derive from this class in order to write
-// a selection query
-template <typename Out, typename In> 
-class Selection : public Query <Out> {
+// this is the class that allows us to ask queries...
+// a QueryClient is a factory for these objects
+class DatabaseQuery {
 
 public:
 
-	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+	// run the query!  Returns 1 on success
+	bool execute (std :: string errMSg);
 
-	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;	
-
-	// get an object that is able to process queries of this type
-	SimpleSingleTableQueryProcessorPtr getProcessor ();
-
-	// gets the number of inputs
-	virtual int getNumInputs () {return 1;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) {
-		if (i == 0)
-			return getTypeName <In> ();
-		else
-			return "bad index";
-	}
-
+	// produces a scan of an input set, in the database/set combo...
+	// the type of object stored in that database/set should match
+	// the type DataType
+	template <class DataType>
+	Handle <SetScan <DataType>> scan (std :: string setName);
 };
 
 }
-
-#include "Selection.cc"
 
 #endif

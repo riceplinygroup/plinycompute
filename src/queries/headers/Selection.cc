@@ -26,9 +26,9 @@
 
 namespace pdb {
 
-template <typename In, typename Out> 
-SimpleSingleTableQueryProcessorPtr Selection <In, Out> :: getProcessor () {
-		return std :: make_shared <SelectionQueryProcessor <In, Out>> (*this);
+template <typename Out, typename In> 
+SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProcessor () {
+	return std :: make_shared <SelectionQueryProcessor <Out, In>> (*this);
 }
 
 

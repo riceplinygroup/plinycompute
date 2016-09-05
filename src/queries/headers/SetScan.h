@@ -16,48 +16,35 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELECTION_H
-#define SELECTION_H
+#ifndef SET_SCAN_H
+#define SET_SCAN_H
 
-#include "Handle.h"
-#include "Lambda.h"
-#include "Object.h"
+#include <vector>
+#include <functional>
+#include <iostream>
+#include <memory>
+
 #include "Query.h"
-#include "SimpleSingleTableQueryProcessor.h"
 
 namespace pdb {
 
 // this is the basic selection type... users derive from this class in order to write
 // a selection query
-template <typename Out, typename In> 
-class Selection : public Query <Out> {
+template <typename Out> 
+class SetScan : public Query <Out> {
 
 public:
 
-	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
-
-	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;	
-
-	// get an object that is able to process queries of this type
-	SimpleSingleTableQueryProcessorPtr getProcessor ();
-
 	// gets the number of inputs
-	virtual int getNumInputs () {return 1;}
+	int getNumInputs () {return 0;}
 
         // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) {
-		if (i == 0)
-			return getTypeName <In> ();
-		else
-			return "bad index";
+        std :: string getIthInputType (int i) {
+		 return "I have no inputs!!";
 	}
 
 };
 
 }
-
-#include "Selection.cc"
 
 #endif

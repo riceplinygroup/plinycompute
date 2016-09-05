@@ -16,48 +16,23 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELECTION_H
-#define SELECTION_H
-
-#include "Handle.h"
-#include "Lambda.h"
-#include "Object.h"
-#include "Query.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#ifndef QUERY_CLIENT
+#define QUERY_CLIENT
 
 namespace pdb {
 
-// this is the basic selection type... users derive from this class in order to write
-// a selection query
-template <typename Out, typename In> 
-class Selection : public Query <Out> {
+class QueryClient {
 
 public:
 
-	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+	// creates a query on the specified database
+	DatabaseQuery makeQuery (std :: string databaseName);
 
-	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;	
-
-	// get an object that is able to process queries of this type
-	SimpleSingleTableQueryProcessorPtr getProcessor ();
-
-	// gets the number of inputs
-	virtual int getNumInputs () {return 1;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) {
-		if (i == 0)
-			return getTypeName <In> ();
-		else
-			return "bad index";
-	}
-
+	// connect to the database
+	QueryClient (int port, std :: string hostName);
 };
 
 }
 
-#include "Selection.cc"
-
 #endif
+

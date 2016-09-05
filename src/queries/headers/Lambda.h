@@ -78,8 +78,13 @@ public:
 
 // this helper function allows us to easily create Lambda objects
 template <typename T, typename F>
-auto lambda(T&& val, F&& func) {
+auto makeLambda(T&& val, F&& func) {
     return Lambda <decltype(func())> (val, func);
+}
+
+template <typename F>
+auto makeLambda(F&& func) {
+    return Lambda <decltype(func())> (func);
 }
 
 }

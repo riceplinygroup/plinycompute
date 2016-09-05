@@ -26,7 +26,7 @@
 #include <iterator>
 #include <cstring>
 
-#include "TypeName.cc"
+#include "TypeName.h"
 #include "Handle.h"
 #include "RefCountedObject.h"
 
