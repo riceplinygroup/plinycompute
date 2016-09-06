@@ -28,6 +28,7 @@
 #include "Object.h"
 #include "PDBVector.h"
 #include "CloseConnection.h"
+#include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBCommunicator.h"
 #include <stdio.h>
@@ -187,6 +188,7 @@ PDBCommunicator::~PDBCommunicator() {
     // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
     // set to true only if we are a client and we want to close a connection to the server
     if (needToSendDisconnectMsg && socketFD > 0) {
+        UseTemporaryAllocationBlock tempBlock (1024);
         Handle <CloseConnection> temp = makeObject <CloseConnection> ();
         logToMe->trace("PDBCommunicator: closing connection to the server");
 	std :: string errMsg;

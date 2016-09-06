@@ -220,6 +220,7 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
     // if there was a request to close the connection, just get outta here
     if (requestID == CloseConnection_TYPEID) {
+        std :: cout << "Next object size is " << myCommunicator->getSizeOfNextObject () << "\n";
 	char temp[myCommunicator->getSizeOfNextObject ()];
         Handle <CloseConnection> closeMsg = myCommunicator->getNextObject <CloseConnection> (temp, success, info);
         if (!success) {
