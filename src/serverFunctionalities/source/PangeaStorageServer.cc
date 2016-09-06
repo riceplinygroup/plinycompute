@@ -142,7 +142,7 @@ PangeaStorageServer :: ~PangeaStorageServer () {
 PDBPagePtr PangeaStorageServer :: getNewPage (pair <std :: string, std :: string> databaseAndSet) {
 
 	// and get that page
-	getFunctionality <CatalogServer> ().getNewPage (databaseAndSet.first, databaseAndSet.second);
+	//getFunctionality <CatalogServer> ().getNewPage (databaseAndSet.first, databaseAndSet.second);
 	SetPtr whichSet = getSet (databaseAndSet);
         if (whichSet == nullptr) {
             return nullptr;

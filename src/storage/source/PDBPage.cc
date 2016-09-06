@@ -107,6 +107,11 @@ void * PDBPage::getBytes() {
 
 }
 
+size_t PDBPage::getSize() {
+
+        return this->size - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+
+}
 
 void  PDBPage::unpin() {
     this->decRefCount();

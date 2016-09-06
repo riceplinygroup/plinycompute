@@ -128,6 +128,8 @@ public:
 
     void * getBytes();
 
+    size_t getSize();
+
     void unpin(); 
     
     /********************Mutexes*****************/
@@ -178,7 +180,7 @@ public:
     }
 
     //To return size of raw data.
-    size_t getSize() const {
+    size_t getRawSize() const {
         return size;
     }
 

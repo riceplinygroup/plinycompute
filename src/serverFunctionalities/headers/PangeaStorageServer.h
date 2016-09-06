@@ -19,10 +19,6 @@
 #ifndef PANGEA_STORAGE_SERVER_H
 #define PANGEA_STORAGE_SERVER_H
 
-#include <memory>
-using namespace std;
-class PangeaStorageServer;
-typedef shared_ptr <PangeaStorageServer> PangeaStorageServerPtr;
 
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
@@ -30,7 +26,6 @@ typedef shared_ptr <PangeaStorageServer> PangeaStorageServerPtr;
 #include "MyDB_Catalog.h"
 #include <vector>
 #include "PDBVector.h"
-#include "MyDB_BufferManager.h"
 #include "Configuration.h"
 #include "DataTypes.h"
 #include "PDBLogger.h"
@@ -43,10 +38,16 @@ typedef shared_ptr <PangeaStorageServer> PangeaStorageServerPtr;
 #include <map>
 #include <boost/filesystem.hpp>
 #include <pthread.h>
+#include <memory>
 
 
 
 namespace pdb {
+
+
+class PangeaStorageServer;
+typedef std :: shared_ptr <PangeaStorageServer> PangeaStorageServerPtr;
+
 
 class PangeaStorageServer : public ServerFunctionality {
 
