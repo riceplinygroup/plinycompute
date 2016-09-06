@@ -5,21 +5,21 @@
 import os
 import re
 import platform
-common_env = Environment()
+common_env = Environment(CXX = 'clang++')
 
 SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is in the working dir named as "src"
 
 # OSX settings
 if common_env['PLATFORM'] == 'darwin':
 	print 'Compiling on OSX'
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0')
+  	common_env.Append(CXXFLAGS = '-std=c++1y -Wall -g -O3')
 	common_env.Replace(CXX = "clang++")
 
 # Linux settings
 elif  common_env['PLATFORM'] == 'posix':
 	print 'Compiling on Linux'
 	common_env.Append(LIBS = ['libdl.so'])
-  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0 -ldl')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O3 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
 	common_env.Replace(CXX = "clang++")
 
@@ -157,8 +157,40 @@ for src_subdir_path in src_root_subdir_paths:
 	allSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and f2[-3:] == '.cc']
 	component_dir_basename_to_cc_file_paths [src_subdir_basename] = allSources
 
+
 # List of folders with headers
 headerpaths = [abspath(join(join(SRC_ROOT, f), 'headers/')) for f in listdir(SRC_ROOT) if os.path.isdir (join(join(SRC_ROOT, f), 'headers/'))]
+
+
+
+
+#boost has its own folder structure, which is difficult to be converted to our headers/source structure --Jia
+# set BOOST_ROOT and BOOST_SRC_ROOT
+BOOST_ROOT = os.path.join(Dir('.').abspath, "src/boost")
+BOOST_SRC_ROOT = os.path.join(Dir('.').abspath, "src/boost/libs")
+# map all boost source files to a list
+boost_component_dir_basename_to_cc_file_paths = dict ()
+boost_src_root_subdir_paths = [path for path in  map(lambda s: join(BOOST_SRC_ROOT, s), listdir(BOOST_SRC_ROOT)) if isdir(path)]
+for boost_src_subdir_path in boost_src_root_subdir_paths:
+        boost_source_folder = join(boost_src_subdir_path, 'src/')
+        if(not isdir(boost_source_folder)): # if no source folder lives under the subdir_path, skip this folder
+                continue
+
+        boost_src_subdir_basename = os.path.basename(boost_src_subdir_path)
+
+        # first, map build output folders (on the left) to source folders (on the right)
+        common_env.VariantDir(join('build/', boost_src_subdir_basename), [boost_source_folder], duplicate = 0)
+
+        # next, add all of the sources in
+        allBoostSources = [abspath(join(join ('build/', boost_src_subdir_basename),f2)) for f2 in listdir(boost_source_folder) if isfile(join(boost_source_folder, f2)) and f2[-4:] == '.cpp']
+        boost_component_dir_basename_to_cc_file_paths [boost_src_subdir_basename] = allBoostSources
+
+
+
+# append boost to headerpaths
+headerpaths.append(BOOST_ROOT)
+
+
 
 # Adds header folders and required libraries
 common_env.Append(CPPPATH = headerpaths)
@@ -168,7 +200,10 @@ print 'System: ' + platform.system()
 print 'Release: ' + platform.release()
 print 'Version: ' + platform.version()
 
-all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['bufferMgr'], component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work']]
+all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['bufferMgr'], component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work'], component_dir_basename_to_cc_file_paths['memory'], component_dir_basename_to_cc_file_paths['storage'], boost_component_dir_basename_to_cc_file_paths['filesystem'],
+                   boost_component_dir_basename_to_cc_file_paths['program_options'],
+                   boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
+                   boost_component_dir_basename_to_cc_file_paths['system']]
 
 common_env.SharedLibrary('libraries/SharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
 common_env.Program('bin/test14', ['src/tests/source/Test14.cc'] + all)

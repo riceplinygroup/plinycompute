@@ -1,0 +1,929 @@
+/*****************************************************************************
+ *                                                                           *
+ *  Copyright 2018 Rice University                                           *
+ *                                                                           *
+ *  Licensed under the Apache License, Version 2.0 (the "License");          *
+ *  you may not use this file except in compliance with the License.         *
+ *  You may obtain a copy of the License at                                  *
+ *                                                                           *
+ *      http://www.apache.org/licenses/LICENSE-2.0                           *
+ *                                                                           *
+ *  Unless required by applicable law or agreed to in writing, software      *
+ *  distributed under the License is distributed on an "AS IS" BASIS,        *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ *  See the License for the specific language governing permissions and      *
+ *  limitations under the License.                                           *
+ *                                                                           *
+ *****************************************************************************/
+
+#ifndef PANGEA_STORAGE_SERVER_C
+#define PANGEA_STORAGE_SERVER_C
+
+#include "PangeaStorageServer.h"
+#include "SimpleRequestResult.h"
+#include "CatalogServer.h"
+#include "StorageAddData.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "SimpleRequestHandler.h"
+#include "Record.h"
+#include "InterfaceFunctions.h"
+
+#include "DefaultDatabase.h"
+#include "DataTypes.h"
+#include "SharedMem.h"
+#include "PDBFlushProducerWork.h"
+#include "PDBFlushConsumerWork.h"
+
+#include <memory>
+#include <string>
+#include <iostream>
+#include <signal.h>
+#include <stdio.h>
+#include <map>
+#include <iterator>
+
+
+#define FLUSH_BUFFER_SIZE 3
+
+
+namespace pdb {
+
+size_t PangeaStorageServer :: bufferRecord (pair <std :: string, std :: string> databaseAndSet, Record <Vector <Handle <Object>>> *addMe) {
+	if (allRecords.count (databaseAndSet) == 0) {
+		std :: vector <Record <Vector <Handle <Object>>> *> records;
+		records.push_back (addMe);
+		allRecords[databaseAndSet] = records;
+		sizes[databaseAndSet] = addMe->numBytes ();
+	} else {
+		allRecords[databaseAndSet].push_back (addMe);
+		sizes[databaseAndSet] += addMe->numBytes ();
+	} 
+	return sizes[databaseAndSet];
+}
+
+PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
+                PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf) {
+
+        //server initialization
+        //cout << "Storage server is initializing...\n";
+
+        //configuring server
+        this->nodeId = conf->getNodeId();
+        this->serverName = conf->getServerName();
+        this->shm = shm;
+        this->workers = workers;
+        this->conf = conf;
+        this->logger = logger;
+        this->logger->setEnabled(conf->isLogEnabled());
+
+        //IPC file used to communicate with backend
+        this->pathToBackEndServer = this->conf->getBackEndIpcFile();
+
+        //initialize flush buffer
+        //a producer work will periodically remove unpinned data from input buffer, and
+        this->flushBuffer = make_shared<PageCircularBuffer>(FLUSH_BUFFER_SIZE, logger);
+
+        //initialize cache, must be initialized before databases
+        this->cache = make_shared<PageCache>(conf, workers, flushBuffer, logger, shm);
+
+        //initialize and load databases, must be initialized after cache
+        this->dbs = new std :: map<DatabaseID, DefaultDatabasePtr>();
+        this->name2id = new std :: map< std :: string, DatabaseID>();
+        this->tempSets = new std :: map<SetID, TempSetPtr>();
+        this->name2tempSetId = new std :: map< std :: string, SetID>();
+        this->userSets = new std :: map< std :: pair <DatabaseID, SetID>,  SetPtr>();
+        this->names2ids = new std :: map< std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>>();
+        this->typename2id = new std :: map< std :: string, SetID>(); 
+
+        //if meta/data/temp directories do not exist, create them.
+        this->createRootDirs();
+        this->initializeFromRootDirs(this->metaRootPath, this->dataRootPaths);
+        this->createTempDirs();
+        this->conf->createDir(this->metaTempPath);
+
+        //initialize meta data mutex
+        pthread_mutex_init(&(this->databaseLock), nullptr);
+        pthread_mutex_init(&(this->typeLock), nullptr);
+        pthread_mutex_init(&(this->tempsetLock), nullptr);
+        pthread_mutex_init(&(this->usersetLock), nullptr);
+
+
+}
+
+SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databaseAndSet) {
+        if (names2ids->count(databaseAndSet) != 0) {
+            pair<DatabaseID, SetID> ids = names2ids->at(databaseAndSet);
+	    if (userSets->count(ids) != 0) {
+                return (*userSets)[ids];
+	    }
+        }
+	return nullptr;
+}
+
+PangeaStorageServer :: ~PangeaStorageServer () {
+
+	for (auto &a : allRecords) {
+		while (a.second.size () > 0)
+			writeBackRecords (a.first);
+	}
+        pthread_mutex_destroy(&(this->databaseLock));
+        pthread_mutex_destroy(&(this->typeLock));
+        pthread_mutex_destroy(&(this->tempsetLock));
+        pthread_mutex_destroy(&(this->usersetLock));
+        delete this->dbs;
+        delete this->name2id;
+        delete this->tempSets;
+        delete this->name2tempSetId;
+        delete this->userSets;
+        delete this->names2ids;
+        delete this->typename2id;
+}
+
+PDBPagePtr PangeaStorageServer :: getNewPage (pair <std :: string, std :: string> databaseAndSet) {
+
+	// and get that page
+	getFunctionality <CatalogServer> ().getNewPage (databaseAndSet.first, databaseAndSet.second);
+	SetPtr whichSet = getSet (databaseAndSet);
+        if (whichSet == nullptr) {
+            return nullptr;
+        } else {
+	    return whichSet->addPage();
+        }
+}
+
+void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet) {
+
+	// get all of the records
+	auto &allRecs = allRecords[databaseAndSet];
+
+	// now, get a page to write to
+	PDBPagePtr myPage = getNewPage (databaseAndSet);
+						
+	// now, copy everything over... do all allocations on the page
+	size_t pageSize = conf->getPageSize ();
+
+	// the position in the output vector
+	int pos = 0;
+	
+	// the number of items in the current record we are processing
+	int numObjectsInRecord;
+
+	// the current size (in bytes) of records we need to process
+	size_t numBytesToProcess = sizes[databaseAndSet];
+
+	// now, keep looping until we run out of records to process (in which case, we'll break)
+	while (true) {
+
+		// all allocations will be done to the page
+		UseTemporaryAllocationBlock tempBlock (myPage->getBytes (), pageSize);
+		Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
+
+		try {
+			// while there are still pages
+			while (allRecs.size () > 0) {
+
+				std :: cout << "Processing a record!!\n";
+
+				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
+				numObjectsInRecord = allObjects.size ();
+
+				// put all of the data onto the page
+				for (; pos < numObjectsInRecord; pos++)
+					data->push_back (allObjects[pos]);
+	
+				// now kill this record
+				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
+				free (allRecs[allRecs.size () - 1]);
+				allRecs.pop_back ();
+				pos = 0;
+			}
+
+			// if we got here, all records have been processed
+
+                        // comment the following three lines of code to allow Pangea to manage pages
+			//std :: cout << "Write all of the bytes in the record.\n";
+			//myPage->wroteBytes ();
+			//myPage->flush ();
+
+
+			myPage->unpin ();
+			break;
+
+		// put the extra objects tht we could not store back in the record
+		} catch (NotEnoughSpace &n) {
+
+                        // comment the following three lines of code to allow Pangea to manage pages						
+			//std :: cout << "Writing back a page!!\n";
+			// write back the current page...
+			//myPage->wroteBytes ();
+			//myPage->flush ();
+
+			myPage->unpin ();
+
+			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
+			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
+				
+				std :: cout << "Are still enough records for another page.\n";
+				myPage = getNewPage (databaseAndSet);
+				continue;
+
+			// in this case, we have a small bit of data left
+			} else {
+					
+				// create the vector to hold these guys
+				void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
+				UseTemporaryAllocationBlock useTempBlock (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
+				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
+
+				// write the objects to the vector
+				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
+				for (; pos < numObjectsInRecord; pos++) {
+					extraData->push_back (allObjects[pos]);	
+				}
+				std :: cout << "Putting the records back complete.\n";
+	
+				// destroy the record that we were copying from
+				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
+				free (allRecs[allRecs.size () - 1]);
+	
+				// and get the record that we copied to
+				allRecs[allRecs.size () - 1] = getRecord (extraData);	
+				numBytesToProcess += allRecs[allRecs.size () - 1]->numBytes ();
+				break;
+			}
+		}
+	}
+
+	std :: cout << "Now all the records are back.\n";
+	sizes[databaseAndSet] = numBytesToProcess;
+}
+
+void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
+
+	// this handler accepts a request to store some data
+	forMe.registerHandler (StorageAddData_TYPEID, make_shared <SimpleRequestHandler <StorageAddData>> (
+		[&] (Handle <StorageAddData> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// first, check with the catalog to make sure that the given database, set, and type are correct
+			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabase (), request->getSetName ());
+			std :: string errMsg;
+			bool everythingOK = true;
+			if (typeID >= 0) {
+
+				// if we made it here, the type is correct, as is the database and the set
+				if (typeID == getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+					
+					// get the record
+					size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+					void *readToHere = malloc (numBytes);
+					sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+
+					if (everythingOK) {	
+						// at this point, we have performed the serialization, so remember the record
+						auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
+        	                                        (std :: string) request->getSetName ());
+						getFunctionality <PangeaStorageServer> ().bufferRecord 
+							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
+	
+						// if we have enough space to fill up a page, do it
+						std :: cout << "Got the data.\n";
+						std :: cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+						getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
+						std :: cout << "Done with write back.\n";
+						std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
+					}
+				} else {
+					errMsg = "Tried to add data of the wrong type to a database set.\n";
+					everythingOK = false;
+				}
+			} else {
+				errMsg = "Tried to add data to a set/database combination that does not exist.\n";
+				everythingOK = false;
+			}
+
+			std :: cout << "Making response object.\n";
+			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+
+                        // return the result
+                        bool res = sendUsingMe->sendObject (response, errMsg);
+			std :: cout << "Sending response object.\n";
+                        return make_pair (res, errMsg);
+		}
+	));
+}
+
+
+
+//Returns ipc path to backend
+string PangeaStorageServer::getPathToBackEndServer() {
+        return this->pathToBackEndServer;
+}
+
+//Returns server name
+string PangeaStorageServer::getServerName() {
+        return this->serverName;
+}
+
+//Returns nodeId
+NodeID PangeaStorageServer::getNodeId() {
+        return this->nodeId;
+}
+
+//Encode database path
+string PangeaStorageServer::encodeDBPath(string rootPath, DatabaseID dbId,
+                string dbName) {
+        char buffer[500];
+        sprintf(buffer, "%s/%d_%s", rootPath.c_str(), dbId, dbName.c_str());
+        return string(buffer);
+}
+
+//create temp directories
+void PangeaStorageServer::createTempDirs() {
+        if ((this->metaTempPath = this->conf->getMetaTempDir()).compare("") != 0) {
+                boost::filesystem::remove_all(metaTempPath);
+                this->conf->createDir(metaTempPath);
+                cout <<"metaTempPath:"<<metaTempPath<<"\n";
+        }
+        string strDataTempPaths = this->conf->getDataTempDirs();
+        string curDataTempPath;
+        size_t startPos = 0;
+        size_t curPos;
+        if ((curPos = strDataTempPaths.find(',')) == string::npos) {
+                boost::filesystem::remove_all(strDataTempPaths);
+                this->conf->createDir(strDataTempPaths);
+                cout << "dataTempPath:"<< strDataTempPaths <<"\n";
+                dataTempPaths.push_back(strDataTempPaths);
+        } else {
+                while ((curPos = strDataTempPaths.find(',')) != string::npos) {
+                        curDataTempPath = strDataTempPaths.substr(startPos, curPos);
+                        boost::filesystem::remove_all(curDataTempPath);
+                        this->conf->createDir(curDataTempPath);
+                        cout << "dataTempPath:"<<curDataTempPath<<"\n";
+                        dataTempPaths.push_back(curDataTempPath);
+                        strDataTempPaths = strDataTempPaths.substr(curPos + 1,
+                                        strDataTempPaths.length() + 1);
+                }
+                boost::filesystem::remove_all(strDataTempPaths);
+                this->conf->createDir(strDataTempPaths);
+                cout << "dataTempPath:"<<strDataTempPaths<<"\n";
+                dataTempPaths.push_back(strDataTempPaths);
+        }
+}
+
+//Create database directories
+void PangeaStorageServer::createRootDirs() {
+
+        if ((this->metaRootPath = this->conf->getMetaDir()).compare("") != 0) {
+                this->conf->createDir(metaRootPath);
+        }
+        //cout <<"Meta root path: "<<this->metaRootPath<<"\n";
+        string strDataRootPaths = this->conf->getDataDirs();
+        //cout <<"Data root paths: "<<strDataRootPaths<<"\n";
+        string curDataRootPath;
+        size_t startPos = 0;
+        size_t curPos;
+        if ((curPos = strDataRootPaths.find(',')) == string::npos) {
+                this->conf->createDir(strDataRootPaths);
+                dataRootPaths.push_back(strDataRootPaths);
+        } else {
+                while ((curPos = strDataRootPaths.find(',')) != string::npos) {
+                        curDataRootPath = strDataRootPaths.substr(startPos, curPos);
+                        //cout<<"Cur data root path: "<<curDataRootPath<<"\n";
+                        this->conf->createDir(curDataRootPath);
+                        dataRootPaths.push_back(curDataRootPath);
+                        strDataRootPaths = strDataRootPaths.substr(curPos + 1,
+                                        strDataRootPaths.length() + 1);
+                        //cout<<"Next data root path(s): "<<strDataRootPaths<<"\n";
+                }
+                this->conf->createDir(strDataRootPaths);
+                dataRootPaths.push_back(strDataRootPaths);
+        }
+}
+
+
+//add a new and empty database
+bool PangeaStorageServer::addDatabase(string dbName, DatabaseID dbId) {
+        if (this->dbs->find(dbId) != this->dbs->end()) {
+                this->logger->writeLn("PDBStorage: database exists.");
+                return false;
+        }
+        string metaDBPath;
+        if (this->metaRootPath.compare("") != 0) {
+                metaDBPath = encodeDBPath(this->metaRootPath, dbId, dbName);
+                this->conf->createDir(metaDBPath);
+        } else {
+                metaDBPath = "";
+        }
+        vector<string> * dataDBPaths = new vector<string>();
+        unsigned int i;
+        string curDataDBPath;
+        for (i = 0; i < this->dataRootPaths.size(); i++) {
+                curDataDBPath = encodeDBPath(this->dataRootPaths.at(i), dbId, dbName);
+                dataDBPaths->push_back(curDataDBPath);
+        }
+        DefaultDatabasePtr db = make_shared<DefaultDatabase>(this->nodeId, dbId,
+                        dbName, this->conf, this->logger, this->shm, metaDBPath,
+                        dataDBPaths, this->cache, this->flushBuffer);
+
+        pthread_mutex_lock(&this->databaseLock);
+        this->dbs->insert(pair<DatabaseID, DefaultDatabasePtr>(dbId, db));
+        this->name2id->insert(pair<string, DatabaseID>(dbName, dbId));
+        pthread_mutex_unlock(&this->databaseLock);
+        return true;
+}
+
+
+//add a new and empty database using only name
+bool PangeaStorageServer::addDatabase(std :: string dbName) {
+     pthread_mutex_lock(&this->databaseLock);
+     DatabaseID dbId = databaseSeqId.getNextSequenceID();
+     pthread_mutex_unlock(&this->databaseLock);
+     return this->addDatabase(dbName, dbId);
+}
+
+
+
+//clear database data and disk files for removal
+void PangeaStorageServer::clearDB(DatabaseID dbId, string dbName) {
+        unsigned int i;
+        string path;
+        path = this->encodeDBPath(this->metaRootPath, dbId, dbName);
+        boost::filesystem::remove_all(path.c_str());
+        for (i = 0; i < this->dataRootPaths.size(); i++) {
+                path = this->encodeDBPath(this->dataRootPaths.at(i), dbId, dbName);
+                boost::filesystem::remove_all(path.c_str());
+        }
+}
+
+
+//remove database
+bool PangeaStorageServer::removeDatabase(std :: string dbName) {
+        DatabaseID dbId;
+        if(name2id->count(dbName) != 0) {
+            dbId = name2id->at(dbName);
+        }
+        else {
+            //database doesn't exist;
+            return false;
+        }
+        //TODO we need to delete files on disk
+        map<DatabaseID, DefaultDatabasePtr>::iterator it = this->dbs->find(dbId);
+        if (it != this->dbs->end()) {
+                pthread_mutex_lock(&this->databaseLock);
+                string dbName = it->second->getDatabaseName();
+                clearDB(dbId, dbName);
+                map<string, DatabaseID>::iterator name2idIt = this->name2id->find(
+                                dbName);
+                name2id->erase(name2idIt);
+                dbs->erase(it);
+                pthread_mutex_unlock(&this->databaseLock);
+                return true;
+        } else {
+                this->logger->writeLn("Database doesn't exist:");
+                this->logger->writeInt(dbId);
+                return false;
+        }
+}
+
+//return database
+DefaultDatabasePtr PangeaStorageServer::getDatabase(DatabaseID dbId) {
+        //this->logger->writeLn("Searching for database:");
+        //this->logger->writeInt(dbId);
+        map<DatabaseID, DefaultDatabasePtr>::iterator it = this->dbs->find(dbId);
+        if (it != this->dbs->end()) {
+                return it->second;
+        }
+        //this->logger->writeLn("Database doesn't exist:");
+        //this->logger->writeInt(dbId);
+        return nullptr;
+
+}
+
+//to add a new and empty type
+bool PangeaStorageServer::addType(std :: string typeName, UserTypeID typeId) {
+        if(this->typename2id->count(typeName) != 0) {
+                //the type exists!
+                return false;
+        } else {
+
+                pthread_mutex_lock (&this->typeLock);
+                this->typename2id->insert(std :: pair<std :: string, UserTypeID>(typeName, typeId));
+                pthread_mutex_unlock(&this->typeLock);
+        }
+        return true;
+}
+
+
+//to remove a type from a database, and also all sets in the database having that type
+bool PangeaStorageServer::removeTypeFromDatabase(std :: string dbName, std :: string typeName) {
+        if (this->name2id->count(dbName) == 0) {
+           //database doesn't exist
+           return false;
+        } else {
+           //database exists
+           if (this->typename2id->count(typeName) == 0) {
+               //type doesn't exist
+               return false;
+           } else {
+               DatabaseID dbId = this->name2id->at(dbName);
+               DefaultDatabasePtr db = this->getDatabase(dbId);
+               UserTypeID typeId = this->typename2id->at(typeName);
+               db->removeType(typeId);
+           }
+        }
+        return true;
+}
+
+//to remove a type from the typeName to typeId mapping
+bool PangeaStorageServer::removeType(std :: string typeName) {
+        if (this->typename2id->count(typeName) == 0) {
+              //the type doesn't exist
+              return false;
+        } else {
+              pthread_mutex_lock (&this->typeLock);
+              this->typename2id->erase(typeName);
+              pthread_mutex_unlock (&this->typeLock);
+        }
+        return true;
+}
+
+
+
+//to add a new and empty set
+bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, std :: string setName, SetID setId) {
+       if (this->name2id->count(dbName) == 0) {
+           //database doesn't exist
+           return false;
+       } else {
+           //database exists
+           if (this->typename2id->count(typeName) == 0) {
+               //type doesn't exist
+               return false;
+           } else {
+               DatabaseID dbId = this->name2id->at(dbName);
+               DefaultDatabasePtr db = this->getDatabase(dbId);
+               UserTypeID typeId = this->typename2id->at(typeName);
+               TypePtr type = db->getType(typeId);
+               if(type == nullptr) {
+                    //type hasn't been added to the database, so we need to add it first for creating hierarchical directory so that optimization like compression can be applied at type and database level.
+                    db->addType(typeName, typeId);
+                    type = db->getType(typeId);
+               } 
+               type->addSet(setName, setId);
+               SetPtr set = type->getSet(setId);
+
+               pthread_mutex_lock(&this->usersetLock);
+               this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
+               this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
+               pthread_mutex_unlock(&this->usersetLock);
+           }
+       }
+       return true;
+}
+
+
+//to add a new and empty set using only name
+bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, std :: string setName) {
+       pthread_mutex_lock(&this->usersetLock);
+       SetID setId = usersetSeqId.getNextSequenceID();
+       pthread_mutex_unlock(&this->usersetLock);
+       return addSet (dbName, typeName, setName, setId);
+}
+
+
+//to remove an existing set
+bool PangeaStorageServer:: removeSet (std :: string dbName, std :: string typeName, std :: string setName) {
+       //get the type
+       DatabaseID dbId;
+       if(name2id->count(dbName) == 0) {
+          //database doesn't exist
+          return false;
+       } else {
+          dbId = name2id->at(dbName);
+          DefaultDatabasePtr database = dbs->at(dbId);
+          UserTypeID typeId;
+          if(typename2id->count(typeName) == 0) {
+              //type doesn't exist
+              return false;
+          } else {
+              typeId = typename2id->at(typeName);
+              TypePtr type = database->getType(typeId);
+              if (type != nullptr) {
+                  SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
+                  if (set != nullptr) {
+                       SetID setId = set->getSetID();
+                       pthread_mutex_lock(&this->usersetLock);
+                       type->removeSet(setId);
+                       userSets->erase(std :: pair <DatabaseID, SetID>(dbId, setId));
+                       names2ids->erase(std :: pair <std :: string, std :: string> (dbName, setName));
+                       
+                       pthread_mutex_unlock(&this->usersetLock);
+                  } else {
+                       return false;
+                  }
+              }
+          }
+       }
+       return true;
+}
+
+
+
+bool PangeaStorageServer::addTempSet(string setName, SetID &setId) {
+        this->logger->writeLn("To add temp set with setName=");
+        this->logger->writeLn(setName);
+        if (this->name2tempSetId->find(setName) != this->name2tempSetId->end()) {
+                cout << "TempSet exists!\n";
+                this->logger->writeLn("TempSet exists for setName=");
+                this->logger->writeLn(setName);
+                return false;
+        }
+        setId = this->tempsetSeqId.getNextSequenceID();
+        this->logger->writeLn("SetId=");
+        this->logger->writeInt(setId);
+        //cout << "setId:" << setId << "\n";
+        TempSetPtr tempSet = make_shared<TempSet>(setId, setName, this->metaTempPath, this->dataTempPaths,
+                        this->shm, this->cache, this->logger);
+        this->logger->writeLn("temp set created!");
+        //cout << "TempSet created!\n";
+        pthread_mutex_lock(&this->tempsetLock);
+        this->tempSets->insert(pair<SetID, TempSetPtr>(setId, tempSet));
+        //cout << "Update map!\n";
+        this->name2tempSetId->insert(pair<string, SetID>(setName, setId));
+        pthread_mutex_unlock(&this->tempsetLock);
+        return true;
+}
+
+bool PangeaStorageServer::removeTempSet(SetID setId) {
+        map<SetID, TempSetPtr>::iterator it = this->tempSets->find(setId);
+        if (it != this->tempSets->end()) {
+                string setName = it->second->getSetName();
+                it->second->clear();
+                pthread_mutex_lock(&this->tempsetLock);
+                this->name2tempSetId->erase(setName);
+                this->tempSets->erase(it);
+                pthread_mutex_unlock(&this->tempsetLock);
+                return true;
+        } else {
+                return false;
+        }
+}
+
+//returns specified temp set
+TempSetPtr PangeaStorageServer::getTempSet(SetID setId) {
+        this->logger->writeLn("PDBStorage: Searching for temp set:");
+        this->logger->writeInt(setId);
+        map<SetID, TempSetPtr>::iterator it = this->tempSets->find(setId);
+        if (it != this->tempSets->end()) {
+                return it->second;
+        }
+        this->logger->writeLn("PDBStorage: TempSet doesn't exist:");
+        this->logger->writeInt(setId);
+        return nullptr;
+}
+
+
+
+
+
+
+
+
+//returns a specified set
+SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID setId) {
+     //cout << "to get database...\n";
+     if((dbId == 0) && (typeId == 0)) {
+         return this->getTempSet(setId);
+     }
+     DefaultDatabasePtr db = this->getDatabase(dbId);
+     if (db == nullptr) {
+        this->logger->writeLn("PDBStorage: Database doesn't exist.");
+        return nullptr;
+     }
+   
+     //cout << "to get type...\n";
+     TypePtr type = db->getType(typeId);
+     if (type == nullptr) {
+        this->logger->writeLn("PDBStorage: Type doesn't exist.");
+        return nullptr;
+     }
+
+     //cout << "to get set...\n";
+     return type->getSet(setId);
+}
+
+/**
+ * Start flushing main threads, which are also consumer threads,
+ * to flush data in the flush buffer to disk files.
+ */
+void PangeaStorageServer::startFlushConsumerThreads() {
+        //get the number of threads to start
+        int numThreads = this->dataRootPaths.size();
+        cout<<"number of partitions:"<<numThreads<<"\n";
+        int i;
+        PDBFlushConsumerWorkPtr flusher;
+        PDBWorkerPtr worker;
+        for (i = 0; i < numThreads; i++) {
+                //create a flush worker
+                flusher = make_shared<PDBFlushConsumerWork>(i, this);
+                flushers.push_back(flusher);
+                //find a thread in thread pool, if we can not find a thread, we block.
+                while ((worker = this->getWorker()) == nullptr) {
+                        sched_yield();
+                }
+                worker->execute(flusher, flusher->getLinkedBuzzer());
+                cout<<"flushing thread started for partition: "<<i<<"\n";
+        }
+
+}
+
+/**
+ * Stop flushing main threads, and close flushBuffer.
+ */
+void PangeaStorageServer::stopFlushConsumerThreads() {
+
+        unsigned int i;
+        for(i=0; i<this->flushers.size(); i++) {
+                dynamic_pointer_cast<PDBFlushConsumerWork>(flushers.at(i))->stop();
+        }
+        this->flushBuffer->close();
+}
+
+/**
+ * returns a worker from thread pool
+ */
+PDBWorkerPtr PangeaStorageServer::getWorker() {
+        return this->workers->getWorker();
+}
+
+/**
+ * returns the flush buffer
+ */
+PageCircularBufferPtr PangeaStorageServer::getFlushBuffer() {
+        return this->flushBuffer;
+}
+
+using namespace boost::filesystem;
+
+/**
+ * Initialize databases in the storage from data already exists at configured root paths.
+ * Return true if successful;
+ * Return false, if data persisted on disk is not consistent.
+ */
+bool PangeaStorageServer::initializeFromRootDirs(string metaRootPath,
+                vector<string> dataRootPath) {
+        FileType curFileType;
+        path root;
+        if (metaRootPath.compare("") == 0) {
+                //This is a SequenceFile instance
+                curFileType = FileType::SequenceFileType;
+                //Then there is only one root directory,
+                //and we only check dataRootPath.at(0), all other data paths will be ignored!
+                root = path(dataRootPath.at(0));
+        } else {
+                //This is a PartitionedFile instance
+                curFileType = FileType::PartitionedFileType;
+                //Then there is only one root directory,
+                //and we only check dataRootPath.at(0), all other data paths will be ignored!
+                root = path(metaRootPath);
+        }
+        if (exists(root)) {
+                if (is_directory(root)) {
+                        vector<path> dbDirs;
+                        copy(directory_iterator(root), directory_iterator(),
+                                        back_inserter(dbDirs));
+                        vector<path>::iterator iter;
+                        std::string path;
+                        std::string dirName;
+                        std::string name;
+                        std::string strId;
+                        DatabaseID dbId;
+                        for (iter = dbDirs.begin(); iter != dbDirs.end(); iter++) {
+                                if (is_directory(*iter)) {
+                                        //find a database
+                                        path = std::string(iter->c_str());
+
+                                        //get the directory name
+                                        dirName = path.substr(path.find_last_of('/') + 1,
+                                                        path.length() - 1);
+
+                                        //parse database id from directory name
+                                        strId = dirName.substr(0, dirName.find('_'));
+                                        dbId = stoul(strId);
+
+                                        //parse database name from directory name
+                                        name = dirName.substr(dirName.find('_') + 1,
+                                                        dirName.length() - 1);
+
+
+
+                                        //cout << "Storage Server: detect database at path: " << path << "\n";
+                                        //cout << "Database name: " << name << "\n";
+                                        //cout << "Database ID:" << dbId << "\n";
+
+                                        //initialize the database instance based on existing data stored in this directory.
+                                        if(curFileType == FileType::SequenceFileType) {
+                                                this->addDatabaseBySequenceFiles(name, dbId, path);
+                                        } else {
+                                                this->addDatabaseByPartitionedFiles(name, dbId, path);
+                                        }
+                                } else {
+                                        //Meet a problem when trying to recover database instance from existing data.
+                                        //Because database directory doesn't exist.
+                                        return false;
+                                }
+                        }
+                } else {
+                        //we can't recover database instances from existing data, because root directory doesn't exist.
+                        return false;
+                }
+        } else {
+                //we can't recover database instances from existing data, because root directory doesn't exist.
+                return false;
+        }
+
+        return true;
+}
+
+
+//add database based on sequence file
+void PangeaStorageServer::addDatabaseBySequenceFiles(string dbName, DatabaseID dbId,
+                path dbPath) {
+        if (this->dbs->find(dbId) != this->dbs->end()) {
+                this->logger->writeLn("PDBStorage: database exists.");
+                return;
+        }
+        //create a database instance
+        vector<string> * dataDBPaths = new vector<string>();
+        dataDBPaths->push_back(std::string(dbPath.c_str()));
+        DefaultDatabasePtr db = make_shared<DefaultDatabase>(this->nodeId, dbId,
+                        dbName, this->conf, this->logger, this->shm, "", dataDBPaths,
+                        this->cache, this->flushBuffer);
+        if (db == nullptr) {
+                this->logger->writeLn("PDBStorage: Out of Memory.");
+                exit(1);
+        }
+        //initialize it
+        db->initializeFromDBDir(dbPath);
+        //add it to map
+        pthread_mutex_lock(&this->databaseLock);
+        this->dbs->insert(pair<DatabaseID, DefaultDatabasePtr>(dbId, db));
+        this->name2id->insert(pair<string, DatabaseID>(dbName, dbId));
+        pthread_mutex_unlock(&this->databaseLock);
+}
+
+/**
+ * Add an existing database based on Partitioned file
+ */
+void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseID dbId,
+                path metaDBPath) {
+        if (this->dbs->find(dbId) != this->dbs->end()) {
+                this->logger->writeLn("PDBStorage: database exists.");
+                return;
+        }
+        //create a database instance
+        vector<string> * dataDBPaths = new vector<string>();
+        string dataDBPath;
+        unsigned int i;
+        for (i = 0; i < dataRootPaths.size(); i++) {
+                dataDBPath = this->encodeDBPath(this->dataRootPaths.at(i), dbId,
+                                dbName);
+                dataDBPaths->push_back(dataDBPath);
+        }
+        DefaultDatabasePtr db = make_shared<DefaultDatabase>(this->nodeId, dbId,
+                        dbName, this->conf, this->logger, this->shm, string(metaDBPath.c_str()), dataDBPaths,
+                        this->cache, this->flushBuffer);
+        if (db == nullptr) {
+                this->logger->writeLn("PDBStorage: Out of Memory.");
+                exit(-1);
+        }
+        //initialize it
+        db->initializeFromMetaDBDir(metaDBPath);
+        //add it to map
+        //pthread_mutex_lock(&this->mapLock);
+        this->dbs->insert(pair<DatabaseID, DefaultDatabasePtr>(dbId, db));
+        this->name2id->insert(pair<string, DatabaseID>(dbName, dbId));
+        //pthread_mutex_unlock(&this->mapLock);
+
+}
+
+PDBLoggerPtr PangeaStorageServer::getLogger() {
+        return this->logger;
+}
+
+ConfigurationPtr PangeaStorageServer::getConf() {
+        return this->conf;
+}
+
+SharedMemPtr PangeaStorageServer::getSharedMem() {
+        return this->shm;
+}
+
+PageCachePtr PangeaStorageServer::getCache() {
+        return this->cache;
+}
+
+}
+
+
+#endif

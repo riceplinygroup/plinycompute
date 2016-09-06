@@ -1,0 +1,235 @@
+/*****************************************************************************
+ *                                                                           *
+ *  Copyright 2018 Rice University                                           *
+ *                                                                           *
+ *  Licensed under the Apache License, Version 2.0 (the "License");          *
+ *  you may not use this file except in compliance with the License.         *
+ *  You may obtain a copy of the License at                                  *
+ *                                                                           *
+ *      http://www.apache.org/licenses/LICENSE-2.0                           *
+ *                                                                           *
+ *  Unless required by applicable law or agreed to in writing, software      *
+ *  distributed under the License is distributed on an "AS IS" BASIS,        *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ *  See the License for the specific language governing permissions and      *
+ *  limitations under the License.                                           *
+ *                                                                           *
+ *****************************************************************************/
+/* 
+ * File:   Configuration.h
+ * Author: Jia
+ *
+ * Created on September 27, 2015, 12:42 PM
+ */
+
+#ifndef CONFIGURATION_H
+#define	CONFIGURATION_H
+#include <memory>
+#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <iostream>
+#include "DataTypes.h"
+using namespace std;
+
+#define DEFAULT_PAGE_SIZE  64*1024*1024
+#define DEFAULT_MAX_CONNECTIONS 200
+#define DEFAULT_SHAREDMEM_SIZE (size_t)28*(size_t)1024*(size_t)1024*(size_t)1024
+#define DEFAULT_NUM_THREADS 8
+
+// create a smart pointer for Configuration objects
+class Configuration;
+typedef shared_ptr <Configuration> ConfigurationPtr;
+
+class Configuration {
+private:
+    NodeID nodeId;
+    string serverName;
+    int port;
+    int maxConnections;
+    string ipcFile;
+    string logFile;
+    unsigned int pageSize;
+    bool useUnixDomainSock;
+    size_t shmSize;
+    bool logEnabled;
+    string dataDirs;
+    string metaDir;
+    string metaTempDir;
+    string dataTempDirs;
+    unsigned int numThreads;
+    string backEndIpcFile;
+
+public:
+
+    Configuration() {
+    	//set default values.
+    	this->nodeId = 0;
+    	serverName = "testServer";
+    	port = 8108;
+    	maxConnections = DEFAULT_MAX_CONNECTIONS;
+    	logFile = "serverLog";
+    	pageSize = DEFAULT_PAGE_SIZE;
+    	useUnixDomainSock = false;
+    	shmSize = DEFAULT_SHAREDMEM_SIZE;
+    	logEnabled = false;
+    	//temporarily added for unit tests
+    	this->createDir("pdbRoot");
+//    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
+        //dataDirs = "/data/data,/mnt/data";
+        dataDirs = "pdbRoot/data";
+    	metaDir = "pdbRoot/meta";
+    	metaTempDir = "pdbRoot/metaTmp";
+        //dataTempDirs = "/data/tmp,/mnt/tmp";
+        dataTempDirs = "pdbRoot/tmp";
+//        dataTempDirs = "/data10/tmp,/mnt/tmp";
+//    	dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
+    	numThreads = DEFAULT_NUM_THREADS;
+    	ipcFile = "pdbRoot/ipcFile";
+    	backEndIpcFile = "pdbRoot/backEndIpcFile";
+    }
+  
+    NodeID getNodeId() const {
+        return nodeId;
+    }
+
+    string getServerName() const {
+        return serverName;
+    }
+
+    string getIpcFile() const {
+        return ipcFile;
+    }
+
+    string getLogFile() const {
+        return logFile;
+    }
+
+    int getMaxConnections() const {
+        return maxConnections;
+    }
+
+    unsigned int getPageSize() const {
+        return pageSize;
+    }
+
+    int getPort() const {
+        return port;
+    }
+
+    size_t getShmSize() const {
+        return shmSize;
+    }
+
+    bool isLogEnabled() const {
+        return logEnabled;
+    }
+
+    bool isUseUnixDomainSock() const {
+        return useUnixDomainSock;
+    }
+
+    string getDataDirs() const {
+        return dataDirs;
+    }
+
+    string getMetaDir() const {
+        return metaDir;
+    }
+    
+    string getMetaTempDir() const {
+        return metaTempDir;
+    }
+
+    string getDataTempDirs() const {
+        return dataTempDirs;
+    }
+
+    unsigned int getNumThreads() const {
+        return numThreads;
+    }
+
+    string getBackEndIpcFile() const {
+        return backEndIpcFile;
+    }
+
+    void setNodeId(NodeID nodeId) {
+        this->nodeId = nodeId;
+    }
+
+    void setServerName(string serverName) {
+        this->serverName = serverName;
+    }
+
+
+    void setIpcFile(string ipcFile) {
+        this->ipcFile = ipcFile;
+    }
+
+    void setLogFile(string logFile) {
+        this->logFile = logFile;
+    }
+
+    void setMaxConnections(int maxConnections) {
+        this->maxConnections = maxConnections;
+    }
+
+    void setPageSize(unsigned int pageSize) {
+        this->pageSize = pageSize;
+    }
+
+    void setPort(int port) {
+        this->port = port;
+    }
+
+    void setShmSize(size_t shmSize) {
+        this->shmSize = shmSize;
+    }
+
+    void setUseUnixDomainSock(bool useUnixDomainSock) {
+        this->useUnixDomainSock = useUnixDomainSock;
+    }
+
+    void setLogEnabled(bool logEnabled) {
+        this->logEnabled = logEnabled;
+    }
+
+    void setDataDirs(string dataDirs) {
+        this->dataDirs = dataDirs;
+    }
+
+    void setMetaDir(string metaDir) {
+        this->metaDir = metaDir;
+    }
+    
+    void setMetaTempDir(string tempDir) {
+        this->metaTempDir = tempDir;
+    }
+
+    void setDataTempDirs(string tempDirs) {
+        this->dataTempDirs = tempDirs;
+    }
+
+    void setNumThreads(unsigned int numThreads) {
+        this->numThreads = numThreads;
+    }
+
+    void setBackEndIpcFile(string backEndIpcFile) {
+        this->backEndIpcFile = backEndIpcFile;
+    }
+
+    void createDir(string path) {
+        struct stat st = {0};
+        if (stat(path.c_str(), &st) == -1) {
+            mkdir(path.c_str(), 0777);
+            //cout << "Created dir:" << path <<"\n";
+        }
+    }
+
+};
+
+
+
+#endif	/* CONFIGURATION_H */
+
