@@ -85,7 +85,7 @@ def extractCode (common_env, targets, sources):
 	codeFile.write ('\n// now, record all of the vTables\n')
 	for classname in allClassNames:
 		#
-		codeFile.write ('{\n\tUseTemporaryAllocationBlock tempBlock (1024 * 24);');
+		codeFile.write ('{\n\tconst UseTemporaryAllocationBlock tempBlock{1024 * 24};');
 		codeFile.write ('\n\ttry {\n\t\t')
 		codeFile.write (classname + ' tempObject;\n')
 		codeFile.write ('\t\tallVTables [' + str(counter) + '] = tempObject.getVTablePtr ();\n')

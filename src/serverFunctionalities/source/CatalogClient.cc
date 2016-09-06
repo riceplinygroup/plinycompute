@@ -63,7 +63,7 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	size_t fileLen = in.tellg();
 	
 	// this makes a an empty vector with fileLen slots
-	UseTemporaryAllocationBlock tempBlock (fileLen + 1024);
+	const UseTemporaryAllocationBlock tempBlock{fileLen + 1024};
 	bool res;
 	{
 	Handle <Vector <char>> putResultHere = makeObject <Vector <char>> (fileLen, fileLen);

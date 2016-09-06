@@ -64,7 +64,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
 
 			// make the result
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
 
 			// return the result
@@ -85,13 +85,13 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, putResultHere, errMsg);
 
 			if (!res) {
-				UseTemporaryAllocationBlock tempBlock (1024);
+				const UseTemporaryAllocationBlock tempBlock{1024};
 				Handle <Vector <char>> response = makeObject <Vector <char>> ();
 				res = sendUsingMe->sendObject (response, errMsg);
 			} else {
 
 				// in this case, we need a big space to put the object!!
-				UseTemporaryAllocationBlock temp (1024 + putResultHere.size ());
+				const UseTemporaryAllocationBlock temp{1024 + putResultHere.size ()};
  				Handle <Vector <char>> response = makeObject <Vector <char>> (putResultHere.size (), putResultHere.size ()); 
 				memmove (response->c_ptr (), putResultHere.data (), putResultHere.size ());
 				res = sendUsingMe->sendObject (response, errMsg);
@@ -110,7 +110,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
 
 			// make the response
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
 
 			// return the result
@@ -129,7 +129,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
 
 			// make the response
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
 
 			// return the result
@@ -147,7 +147,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			bool res = getFunctionality <CatalogServer> ().addSet (request->whichType (), info.first, info.second, errMsg);
 
 			// make the response
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
 
 			// return the result
@@ -177,7 +177,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			free (memory);
 
 			// create the response
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
 
 			// return the result

@@ -103,7 +103,7 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 	while (true) {
 
 		// all allocations will be done to the page
-		UseTemporaryAllocationBlock tempBlock (myPage->getBytes (), pageSize);
+		const UseTemporaryAllocationBlock block{myPage->getBytes (), pageSize};
 		Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
 
 		try {
@@ -156,7 +156,7 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 					
 				// create the vector to hold these guys
 				void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
-				UseTemporaryAllocationBlock useTempBlock (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
+				const UseTemporaryAllocationBlock block{myRAM, allRecs[allRecs.size () - 1]->numBytes ()};
 				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
 
 				// write the objects to the vector
@@ -225,8 +225,7 @@ void StorageServer :: registerHandlers (PDBServer &forMe) {
 				everythingOK = false;
 			}
 
-			std :: cout << "Making response object.\n";
-			UseTemporaryAllocationBlock tempBlock (1024);
+			const UseTemporaryAllocationBlock block{1024};
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                         // return the result

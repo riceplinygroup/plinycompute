@@ -39,7 +39,7 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	}
 
 	// build the request
-	UseTemporaryAllocationBlock tempBlock (bytesForRequest);
+	const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
 	Handle <RequestType> request = makeObject <RequestType> (args...);;
 	if (!temp.sendObject (request, errMsg)) {
 		myLogger->error (errMsg);

@@ -189,7 +189,7 @@ PDBCommunicator::~PDBCommunicator() {
     // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
     // set to true only if we are a client and we want to close a connection to the server
     if (needToSendDisconnectMsg && socketFD > 0) {
-        UseTemporaryAllocationBlock tempBlock (1024);
+        const UseTemporaryAllocationBlock tempBlock{1024};
         Handle <CloseConnection> temp = makeObject <CloseConnection> ();
         logToMe->trace("PDBCommunicator: closing connection to the server");
 	std :: string errMsg;

@@ -45,7 +45,7 @@ char *getObjectTypeName () {							\
 /* this returns an instance of the vtable of the type that we are loading */	\
 void *getObjectVTable () {							\
 	void *returnVal = nullptr;						\
-	UseTemporaryAllocationBlock myBlock (1024 * 1024 * 4);			\
+	const UseTemporaryAllocationBlock myBlock{1024 * 1024 * 4};		\
         try {									\
 		TYPE_NAME temp;							\
 		returnVal = temp.getVTablePtr ();				\

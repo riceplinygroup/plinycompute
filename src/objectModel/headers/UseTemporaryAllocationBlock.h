@@ -31,12 +31,12 @@ class UseTemporaryAllocationBlock {
 
 public:
 
-	UseTemporaryAllocationBlock (void *memory, size_t size) {
+	explicit UseTemporaryAllocationBlock (void *memory, size_t size) {
 		myMemory = true;
 		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (memory, size);			
 	}
 
-	UseTemporaryAllocationBlock (size_t size) {
+	explicit UseTemporaryAllocationBlock (size_t size) {
 		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (size);	
 	}
 
@@ -51,6 +51,10 @@ public:
 			getAllocator ().restoreAllocationBlockAndManageOldOne (oldInfo);
 		}
 	}
+
+	// forbidden, to avoid double frees
+	UseTemporaryAllocationBlock (const UseTemporaryAllocationBlock &) = delete;
+	UseTemporaryAllocationBlock & operator = (const UseTemporaryAllocationBlock &) = delete;
 
 };
 
