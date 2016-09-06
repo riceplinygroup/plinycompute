@@ -226,6 +226,7 @@ void StorageServer :: registerHandlers (PDBServer &forMe) {
 			}
 
 			std :: cout << "Making response object.\n";
+			UseTemporaryAllocationBlock tempBlock (1024);
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                         // return the result

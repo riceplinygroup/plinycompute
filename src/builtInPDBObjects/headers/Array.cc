@@ -123,6 +123,10 @@ Array <TypeContained> :: Array () {
 template <class TypeContained>
 Array <TypeContained> :: ~Array () {
 
+	// do no work if the guys we store do not come from pdb :: Object
+	if (!typeInfo.descendsFromObject ()) 
+		return;
+
 	// loop through and explicitly call the destructor on everything
 	char *location = (char *) data;
 
@@ -131,6 +135,7 @@ Array <TypeContained> :: ~Array () {
 	if (usedSlots > 0)
 		objSize = typeInfo.getSizeOfConstituentObject (location);
 
+	// now, delete each of the objects in there, if we have got an object type
 	for (int i = 0; i < usedSlots; i++) {
 		typeInfo.deleteConstituentObject (location + i * objSize);
 	}

@@ -21,6 +21,7 @@
 
 #include "StorageClient.h"
 #include "PDBVector.h"
+#include "Employee.h"
 #include "InterfaceFunctions.h"
 
 // this won't be visible to the v-table map, since it is not in the biult in types directory
@@ -55,25 +56,29 @@ int main () {
 	}
 
 	// now, create a bunch of data
-	void *storage = malloc (8192 * 1024);
-	pdb :: makeObjectAllocatorBlock (storage, 8192 * 1024, true);
-	pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
+	void *storage = malloc (128 * 1024);
+	{
+		pdb :: makeObjectAllocatorBlock (storage, 128 * 1024, true);
+		pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
 
-	try {
-
-		for (int i = 0; true; i++) {
-			pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);	
-			storeMe->push_back (myData);
+		try {
+	
+			for (int i = 0; true; i++) {
+				pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);	
+				storeMe->push_back (myData);
+			}
+	
+		} catch (pdb :: NotEnoughSpace &n) {
+	
+			// we got here, so go ahead and store the vector
+			if (!temp.storeData <SharedEmployee> (storeMe, "chris_db", "chris_set", errMsg)) {
+				cout << "Not able to store data: " + errMsg;
+				return 0;
+			}	
+			std :: cout << "stored the data!!\n";
 		}
-
-	} catch (pdb :: NotEnoughSpace &n) {
-
-		// we got here, so go ahead and store the vector
-		if (!temp.storeData <SharedEmployee> (storeMe, "chris_db", "chris_set", errMsg)) {
-			cout << "Not able to store data: " + errMsg;
-			return 0;
-		}	
 	}
+	free (storage);
 }
 
 #endif

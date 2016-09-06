@@ -55,8 +55,8 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
 	}
 
         // get the response and process it
-        ReturnType finalResult;
         void *memory = malloc (temp.getSizeOfNextObject ());
+        ReturnType finalResult;
         {
                 Handle <ResponseType> result = temp.getNextObject <ResponseType> (memory, success, errMsg);
                 if (!success) {
@@ -67,6 +67,7 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
 
                 finalResult = processResponse (result);
         }
+
         free (memory);
         return finalResult;
 }

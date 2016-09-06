@@ -106,6 +106,16 @@ inline Allocator :: ~Allocator () {
 	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
 		free (myState.activeRAM);
 	}
+
+	for (auto &a : allInactives) {
+		if (a.areNoReferences ()) {
+			std :: cout << "This is bad.  There is an allocation block left with no references.\n";
+			exit (1);
+		} else {
+			std :: cout << "This is bad.  There is an allocation block left with some references.\n";
+			exit (1);
+		}
+	}
 }
 
 // we have no active RAM
@@ -116,6 +126,9 @@ inline Allocator :: Allocator () {
 	}
 	myState.activeRAM = nullptr;
 	myState.numBytes = 0;
+
+	// now, setup the active block
+	setupBlock (malloc (1024), 1024, true);
 }
 
 inline Allocator :: Allocator (size_t numBytesIn) {
@@ -423,7 +436,7 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 	for (int i = 0; i < allInactives.size (); i++) {
 		if (allInactives[i].start == myState.activeRAM) {
 			allInactives.erase (allInactives.begin () + i);
-			return;
+			break;
 		}
 	}
 
@@ -433,10 +446,9 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 
 extern void *stackBase;
 extern void *stackEnd;
+extern Allocator mainAllocator;
 
 inline Allocator &getAllocator () {
-
-        static Allocator mainAllocator;
 
         // this serves to gives us the location of our stack, which we use to map to an allocator
         int i;

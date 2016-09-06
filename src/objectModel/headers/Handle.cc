@@ -144,13 +144,13 @@ bool Handle <ObjType> :: isNullPtr () const {
 template <class ObjType>
 Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 		
+	// set up the type info for this guy
+	typeInfo.setup <ObjType> ();
+
 	if (fromMe == nullptr) {
 		offset = -1;
 		return;
 	}
-
-	// set up the type info for this guy
-	typeInfo.setup <ObjType> ();
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
@@ -194,13 +194,13 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 		one = two;  // this line will not compile with a bad assignment
 	}
 
+	// set up the type info for this guy
+	typeInfo.setup <ObjTypeTwo> ();
+
 	if (fromMe == nullptr) {
 		offset = -1;
 		return;
 	}
-
-	// set up the type info for this guy
-	typeInfo.setup <ObjTypeTwo> ();
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
@@ -346,14 +346,14 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	// get the thing that we used to point to
 	GET_OLD_TARGET;
 
+	// set up the type info for this guy
+	typeInfo.setup <ObjType> ();
+
 	if (fromMe == nullptr) {
 		DEC_OLD_REF_COUNT;
 		offset = -1;
 		return *this;
 	}
-
-	// set up the type info for this guy
-	typeInfo.setup <ObjType> ();
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
@@ -411,14 +411,14 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	// get the thing that we used to point to
 	GET_OLD_TARGET;
 
+	// set up the type info for this guy
+	typeInfo.setup <ObjTypeTwo> ();
+
 	if (fromMe == nullptr) {
 		DEC_OLD_REF_COUNT;
 		offset = -1;
 		return *this;
 	}
-
-	// set up the type info for this guy
-	typeInfo.setup <ObjTypeTwo> ();
 
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy

@@ -65,7 +65,6 @@ void PDBWorker::enter() {
 
     // then do the work
     runMe->execute(parent, buzzWhenDone);
-    std::cout << "Done with the work.\n";
     okToExecute = false;
 }
 

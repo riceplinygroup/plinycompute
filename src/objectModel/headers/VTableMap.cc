@@ -104,13 +104,21 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 }
 
 inline void VTableMap :: setCatalogClient (CatalogClient *catalogIn) {
+	const LockGuard guard {theVTable->myLock};
 	theVTable->catalog = catalogIn;
 }
 
+extern bool inSharedLibrary;
+
 inline VTableMap :: ~VTableMap () {
-	for (void *v : theVTable->so_handles) {
-		dlclose (v);
-	}
+	const LockGuard guard {theVTable->myLock};
+	if (!inSharedLibrary)
+		for (void *v : theVTable->so_handles) {
+			int res = dlclose (v);
+			if (res != 0)
+				std :: cout << dlerror () << "\n";
+		} 
+	theVTable->so_handles.clear ();
 }
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {

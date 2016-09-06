@@ -47,13 +47,6 @@ void PDBTemplateBase :: setup () {
 	// if we descend from Object, then get the type code
 	if (std::is_base_of <Object, ObjType>::value) {
 		info = (int16_t) getTypeID <ObjType> (); 
-	
-		if (info == 0) {
-			std :: cerr << "This is bad.  Why did I not recognize this type??\n";
-			int *i = 0;
-			*i = 12;
-			exit (1);
-		}
 	} else  {
 
 		// we could not recognize this type, so just record the size

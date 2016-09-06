@@ -47,16 +47,12 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		return nullptr;
 	}
 
-	std :: cout << "Getting shared library for " << objectTypeID << "\n";
-
 	// make sure no one is modifying the map
 	const LockGuard guard {theVTable->myLock};
 	
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.so";
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
-	std :: cout << "Got shared librry for " << objectTypeID << "\n";
-
 	// open up the shared library
 	void *so_handle = dlopen(sharedLibraryFile.c_str(), RTLD_LOCAL | RTLD_LAZY );
 	theVTable->so_handles.push_back (so_handle);
@@ -87,8 +83,6 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			setGlobalVarsFunc (theVTable, stackBase, stackEnd);
 		}
 
-		std :: cout << "Set global vars for " << objectTypeID << "\n";
-
 		// get the function that will give us access to the vTable
 		typedef void *getObjectVTable ();
 		getInstance = "getObjectVTable";
@@ -105,9 +99,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			theVTable->allVTables[objectTypeID] = getObjectFunc ();
 		}
 
-		std :: cout << "Able to create the object.\n";
 	}
-	std :: cout << "Success!!\n";
 	return theVTable->allVTables[objectTypeID];
 }
 

@@ -44,15 +44,12 @@ template <class ObjType>
 bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &errMsg) {
 
 	// first, write the record type
-	std :: cout << "Getting record type.\n";
 	int16_t recType = getTypeID <ObjType> ();
 	if (recType < 0) {
 		std :: cout << "BAD!  Trying to send a handle to a non-Object type.\n";
 		exit (1);
 	}
-	
 
-	std :: cout << "Sending record type.\n";
 	if (doTheWrite (((char *) &recType), ((char *) &recType) + sizeof (int16_t))) {
 		errMsg = "PDBCommunicator: not able to send the object type";
             	logToMe->error(errMsg);
@@ -70,14 +67,12 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 		exit (1);
 	}
 
-	std :: cout << "Sending record.\n";
 	if (doTheWrite ((char *) record, ((char *) record) + record->numBytes ())) {
 		errMsg = "PDBCommunicator: not able to send the object size";
             	logToMe->error(errMsg);
             	logToMe->error(strerror(errno));
 		return false;
 	}
-	std :: cout << "Done sending record.\n";
 	return true;
 }
 

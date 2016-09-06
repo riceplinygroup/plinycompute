@@ -62,10 +62,10 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
 	size_t fileLen = in.tellg();
 	
-	// read in the file that we are supposed to send
-	makeObjectAllocatorBlock (fileLen + 1024, true);
-
 	// this makes a an empty vector with fileLen slots
+	UseTemporaryAllocationBlock tempBlock (fileLen + 1024);
+	bool res;
+	{
 	Handle <Vector <char>> putResultHere = makeObject <Vector <char>> (fileLen, fileLen);
 
 	// read data into it
@@ -73,11 +73,7 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
         read (filedesc, putResultHere->c_ptr (), fileLen);
         close (filedesc);
 
-	// and re-set the allocation block... be a good citizen!!
-	makeObjectAllocatorBlock (PDBWorkerQueue :: defaultAllocatorBlockSize, true);
-
-	return simpleSendDataRequest <CatRegisterType, char, SimpleRequestResult, bool> (myLogger, port, address, false, 
-		1024 + 4 * fileLen, 
+	res = simpleSendDataRequest <CatRegisterType, char, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <SimpleRequestResult> result) {
 			if (result != nullptr) {
 				if (!result->getRes ().first) {
@@ -92,7 +88,8 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 				return false;	
 			}},
 		putResultHere);
-	
+	}
+	return res;
 }
 
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
@@ -111,8 +108,6 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
 	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <Vector <char>> result) {
 		
-			std :: cout << "Made it to function call.\n";
-
 			if (result == nullptr) {
 				myLogger->error ("Error getting shared library: null object returned.\n");
 				return false;

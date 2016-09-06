@@ -93,6 +93,7 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     logToMe->trace("PDBCommunicator: Got internet socket");
     logToMe->trace("PDBCommunicator: About to check the database for the host name");
 
+    /* CHRIS NOTE: turns out that gethostbyname () is depricated, and should be replaced */
     server = gethostbyname(serverAddress.c_str());
     if (server == nullptr) {
         logToMe->error("PDBCommunicator: could not get host by name");

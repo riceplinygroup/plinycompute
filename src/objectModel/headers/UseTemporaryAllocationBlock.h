@@ -20,6 +20,7 @@
 #define USE_TEMP_ALLOCATION_BLOCK_H
 
 #include "Allocator.h"
+#include "InterfaceFunctions.h"
 
 namespace pdb {
 

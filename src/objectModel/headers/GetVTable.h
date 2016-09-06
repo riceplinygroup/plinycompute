@@ -32,6 +32,7 @@ char typeName[300];								\
 extern VTableMap *theVTable;                                                    \
 extern void *stackBase;                                                         \
 extern void *stackEnd;                                                          \
+extern bool inSharedLibrary;							\
 										\
 extern "C" {									\
 										\
@@ -66,6 +67,7 @@ void setAllGlobalVariables (VTableMap *theVTableIn,                             
 	stackBase = stackBaseIn;                                                \
 	stackEnd = stackEndIn;                                                  \
 	theVTable = theVTableIn;                                                \
+	inSharedLibrary = true;							\
 }										\
 										\
 }										\

@@ -82,19 +82,17 @@ def extractCode (common_env, targets, sources):
 				counter = counter + 1
 				#
 	counter = 1
-	codeFile.write ('\nvoid *memory = malloc (1024 * 1024 * 24);\n\n// now, record all of the vTables\n')
+	codeFile.write ('\n// now, record all of the vTables\n')
 	for classname in allClassNames:
 		#
-		codeFile.write ('makeObjectAllocatorBlock (memory, 1024 * 1024 * 24, true);\n')
-		codeFile.write ('{\n\ttry {\n\t\t')
+		codeFile.write ('{\n\tUseTemporaryAllocationBlock tempBlock (1024 * 24);');
+		codeFile.write ('\n\ttry {\n\t\t')
 		codeFile.write (classname + ' tempObject;\n')
 		codeFile.write ('\t\tallVTables [' + str(counter) + '] = tempObject.getVTablePtr ();\n')
 		codeFile.write ('\t} catch (NotEnoughSpace &e) {\n\t\t')
 		codeFile.write ('std :: cout << "Not enough memory to allocate ' + classname + ' to extract the vTable.\\n";\n\t}\n}\n\n');
 		counter = counter + 1
 	#
-	codeFile.write ('makeObjectAllocatorBlock (1024 * 1024 * 24, true);\n')
-	codeFile.write ('free (memory);\n')
 
 # here we get a list of all of the .h files in the 'headers' directory
 from os import listdir

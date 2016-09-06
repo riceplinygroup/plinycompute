@@ -27,8 +27,8 @@
 
 namespace pdb {
 
-void *stackBase = nullptr;
-void *stackEnd = nullptr;
+extern void *stackBase;
+extern void *stackEnd;
 
 PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
     pthread_mutex_init(&waitingMutex, nullptr);
@@ -46,21 +46,15 @@ PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
     stackBase = malloc (1024 * 1024 * 4 * (numWorkers + 1));
     
     // align it to 2^22... chop off the last 22 bits, and then add 2^22 to the address
-    std :: cout << "base is " << (size_t) stackBase << "\n";
     stackBase = (void *) (((((size_t) stackBase) >> 22) << 22) + (1024 * 1024 * 4));
-    std :: cout << "base is " << (size_t) stackBase << "\n";
     stackEnd = ((char *) stackBase) + 1024 * 1024 * 4 * numWorkers;
-    std :: cout << "end is " << (size_t) stackEnd << "\n";
 
     // create each worker... 
     for (int i = 0; i < numWorkers; i++) {
-	std :: cout << "Setting up allocator\n";
 	// put an allocator at the base of the stack for this worker... give him 64MB of RAM to work with
 	new (i * 1024 * 1024 * 4 + ((char *) stackBase)) Allocator (PDBWorkerQueue :: defaultAllocatorBlockSize);		
 
 	// now create the worker
-	std :: cout << "adding a worker\n";
-	std :: cout << "allocator is at " << (size_t) (i * 1024 * 1024 * 4 + ((char *) stackBase)) << "\n";
         addAnotherWorker (i * 1024 * 1024 * 4 + sizeof (Allocator) + ((char *) stackBase), (i + 1) * 1024 * 1024 * 4 + ((char *) stackBase));
     }
     myLogger = myLoggerIn;
@@ -158,9 +152,6 @@ void PDBWorkerQueue::addAnotherWorker (void *stackBaseIn, void *stackEndIn) {
     // adjust the stack base to align it correctly
     stackBaseIn = (void *) ((((long) stackBaseIn + (PTHREAD_STACK_MIN - 1)) /
                           PTHREAD_STACK_MIN) * PTHREAD_STACK_MIN);
-
-    std :: cout << "Setting this guy's stack to " << (size_t) stackBaseIn << "\n";
-    std :: cout << "End is at " << (size_t) stackEndIn << "\n";
 
     // create a thread with an allocator located at the base of its stack
     pthread_attr_t tattr;

@@ -30,6 +30,7 @@
 // in BuiltInPDBObjects/headers
 
 #include "BuiltinPDBObjects.h"
+#include "UseTemporaryAllocationBlock.h"
 #include "VTableMap.cc"
 
 #include <dlfcn.h>
@@ -55,6 +56,10 @@ namespace pdb {
 	}
 
 	// various global variables
+	bool inSharedLibrary = false;
+	Allocator mainAllocator;
+	void *stackBase = nullptr;
+	void *stackEnd = nullptr;
 	VTableMap globalVTable;
 	VTableMap *theVTable = &globalVTable;
 	NotEnoughSpace myException;
