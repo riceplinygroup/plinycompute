@@ -54,7 +54,7 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->dataPartitionPaths = dataPartitionPaths;
 	this->logger = logger;
 	this->pageSize = pageSize;
-        this->usingDirect = true;       
+        this->usingDirect = false;       
 	//Initialize meta data;
 	this->metaData = make_shared<PartitionedFileMetaData>();
 	this->metaData->setPageSize(pageSize);
@@ -260,7 +260,7 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
 		return -1;
 	}
         */ 
-        if(this->writeData(curPartition, page->getRawBytes(), page->getSize()) < 0) {
+        if(this->writeData(curPartition, page->getRawBytes(), page->getRawSize()) < 0) {
                 //cout << "Error: can't write page!\n";
 		return -1;
 	}
@@ -291,7 +291,9 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        }
 
        PageID pageId = page->getPageID();
-       if (this->writeDataDirect(handle, page->getRawBytes(), page->getSize()) < 0) {
+       //cout <<"appendPage: typeId="<<typeId<<",setId="<<setId<<",pageId="<<pageId<<"\n";
+
+       if (this->writeDataDirect(handle, page->getRawBytes(), page->getRawSize()) < 0) {
               return -1;
        }
        this->metaData->incNumFlushedPages();
@@ -299,7 +301,7 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        if((pageId > this->metaData->getLatestPageId())||(this->metaData->getLatestPageId() == (unsigned int) (-1))) {
             this->metaData->setLatestPageId(pageId);
         }
-
+       //cout << "appendPage: before appending this page, numFlushedPages="<<this->metaData->getPartition(partitionId)->getNumPages()<<"\n";
        int ret = (int) (this->metaData->getPartition(partitionId)->getNumPages());
        this->metaData->addPageIndex(pageId, partitionId, ret);
        this->metaData->getPartition(partitionId)->incNumPages();
@@ -456,6 +458,7 @@ int PartitionedFile::updateMeta() {
  */
 size_t PartitionedFile::loadPage(FilePartitionID partitionId, unsigned int pageSeqInPartition,
 		char * pageInCache, size_t length) {
+        //cout << "to load page with partitionId="<<partitionId<<", pageSeqInPartition="<<pageSeqInPartition<<"\n";
         if(usingDirect == true) {
             return loadPageDirect(partitionId, pageSeqInPartition, pageInCache, length);
         }

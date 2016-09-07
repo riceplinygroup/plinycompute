@@ -60,17 +60,20 @@ int main (int argc, char * argv[]) {
         int numIterators = iterators->size();
         for (int i = 0; i < numIterators; i++) {
             PageIteratorPtr iter = iterators->at(i);
-            PDBPagePtr page = iter->next();
-            if (page != nullptr) {
-                auto * temp = (pdb :: Record<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> *) page->getBytes();
-                auto employees = temp->getRootObject ();
-                for (int j = 0; j < employees->size(); j++) {
-                   if (j % 100 == 0) {
-                        std :: cout << "the "<<j<<"-th employee in the "<<i<<"-th page:"<<std :: endl;
-                        (*employees)[j]->print();
-                        std :: cout << std :: endl;
-                   }
-                }
+            while (iter->hasNext()){
+                PDBPagePtr page = iter->next();
+                if (page != nullptr) {
+                    std :: cout << "processing page with pageId=" << page->getPageID()<<std :: endl;
+                    auto * temp = (pdb :: Record<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> *) page->getBytes();
+                    auto employees = temp->getRootObject ();
+                    for (int j = 0; j < employees->size(); j++) {
+                       if (j % 10000 == 0) {
+                           std :: cout << "the "<<j<<"-th employee in the "<<page->getPageID()<<"-th page:"<<std :: endl;
+                           (*employees)[j]->print();
+                           std :: cout << std :: endl;
+                       }
+                    }
+                 }
             }
         }
                 

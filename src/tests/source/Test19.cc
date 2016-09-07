@@ -87,7 +87,7 @@ int main (int argc, char * argv[]) {
         //let's flush
         int num = storage->getCache()->unpinAndEvictAllDirtyPages();
         std :: cout << num << " pages are added to flush buffer!" << std :: endl;
-        std :: cout << "wait for flushing threads to be scheduled..." << std :: endl;
+        std :: cout << "sleep 5 seconds to wait for flushing threads to be scheduled..." << std :: endl;
         sleep (5);
         std :: cout << "finish!" << std :: endl;
         storage->stopFlushConsumerThreads();

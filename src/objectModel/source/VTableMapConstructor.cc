@@ -36,6 +36,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <cctype>
+#include <iostream>
 
 namespace pdb {
 

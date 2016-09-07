@@ -197,8 +197,8 @@ void UserSet::dump (char * buffer) {
            PDBPagePtr curPage = curIter->next();
            if(curPage != nullptr) {
                //cout << "dump page for pageId=" << curPage->getPageID() << "\n";
-               memcpy(cur, curPage->getRawBytes(), curPage->getSize());
-               cur = cur + curPage->getSize(); 
+               memcpy(cur, curPage->getRawBytes(), curPage->getRawSize());
+               cur = cur + curPage->getRawSize(); 
                curPage->decRefCount();
            }
        }

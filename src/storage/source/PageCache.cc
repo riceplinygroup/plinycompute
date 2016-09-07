@@ -208,6 +208,7 @@ PDBPagePtr PageCache::loadPage(PDBFilePtr file, FilePartitionID partitionId,
 		//Check the partition size.
 		unsigned int numPagesInPartition = (unsigned int)curFile->getMetaData()->getPartition(
 				partitionId)->getNumPages();
+
 		if (pageSeqInPartition >= numPagesInPartition) {
 			return nullptr;
 		}
@@ -274,6 +275,7 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
 	key.setId = file->getSetId();
 	key.pageId = pageId;
 	PDBPagePtr page;
+        //cout << "to get page in cache with dbId="<<key.dbId<<",typeId="<<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<endl;
         
         if((partitionId == (unsigned int)(-1)) || (pageSeqInPartition == (unsigned int)(-1)))      {
                 PageIndex pageIndex = file->getMetaData()->getPageIndex(pageId);
@@ -281,7 +283,7 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                 pageSeqInPartition = pageIndex.pageSeqInPartition;
         }
         //Assumption: At one time, for a page, only one thread will try to load it.
-        //It is guaranteed by the front-end scan model
+        //Above assumption is guaranteed by the front-end scan model.
         //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: to get lock for evictionMutex...");
         pthread_mutex_lock(&this->evictionMutex);
         //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionMutex...");
@@ -294,7 +296,9 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                 //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionLock()...");
                 pthread_mutex_unlock(&this->evictionMutex);
                 //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionMutex...");
+		//cout<<"miss in cache for page with pageID="<<pageId<<"\n";
 		page = this->loadPage(file, partitionId, pageSeqInPartition, sequential);
+		//cout<<"loaded page with pageID="<<page->getPageID()<<"\n";
 		if (page == nullptr) {
 			return nullptr;
 		}
@@ -307,7 +311,6 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                 pthread_mutex_lock(&this->evictionMutex);
                 //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionMutex...");
 		this->cachePage(page, set);
-		//cout<<"miss in cache for page with pageID="<<page->getPageID()<<"\n";
                 page->setPinned(true);
                 page->setDirty(false);
                 page->incRefCount();
