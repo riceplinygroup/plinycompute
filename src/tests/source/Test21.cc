@@ -59,6 +59,7 @@ int main () {
 		(Record <Vector <Handle <SharedEmployee>>> *) ram;
 
 	Handle <Vector <Handle <SharedEmployee>>> data = myData->getRootObject ();
+	std :: cout << "Printing first 5 records on page from disk.\n";
 	for (int i = 0; i < 5; i++) {
 		(*data)[i]->print ();
 		std :: cout << "\n";

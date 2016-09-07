@@ -26,7 +26,7 @@
 
 int main () {
 
-       std :: cout << "Starting up a server!!  Make sure to run bin/test14 to perform the full test.\n";
+       std :: cout << "Starting up a catalog/storage server!!\n";
        pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        pdb :: PDBServer frontEnd (8108, 10, myLogger);
        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
