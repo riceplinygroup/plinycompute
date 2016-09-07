@@ -132,11 +132,10 @@ void MyDB_BufferManager :: kickOutPage () {
 void MyDB_BufferManager :: flush (MyDB_PagePtr flushMe) {
 	
 	if (flushMe->bytes != nullptr && flushMe->isDirty && flushMe->myTable != nullptr) {
-		
 		// write it
 		lseek (fds[flushMe->myTable], flushMe->pos * pageSize, SEEK_SET);
-		read (fds[flushMe->myTable], flushMe->bytes, pageSize);
-
+		write (fds[flushMe->myTable], flushMe->bytes, pageSize);
+		flushMe->isDirty = false;
 	}
 }
 

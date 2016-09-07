@@ -51,6 +51,9 @@ public:
 	// returns true on success, false on fail
 	bool registerType (std :: string fileContainingSharedLib, std :: string &errMsg);
 
+        // shuts down the server that we are connected to... returns true on success
+        bool shutDownServer (std :: string &errMsg);
+
 	// this returns the type of object in the specified set, as a type name; returns "" on err
 	std :: string getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg);
 

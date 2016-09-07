@@ -44,7 +44,7 @@ public:
         ~SharedEmployee () {}
         SharedEmployee () {}
 
-        void print () {
+        void print () override {
                 std :: cout << "name is: " << *name << " age is: " << age;
         }
 

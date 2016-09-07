@@ -38,6 +38,8 @@
 #include "CloseConnection.h"
 #include "ShutDown.h"
 #include "ServerFunctionality.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "SimpleRequestResult.h"
 #include <memory>
 
 namespace pdb {
@@ -220,8 +222,8 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
     // if there was a request to close the connection, just get outta here
     if (requestID == CloseConnection_TYPEID) {
-	char temp[myCommunicator->getSizeOfNextObject ()];
-        Handle <CloseConnection> closeMsg = myCommunicator->getNextObject <CloseConnection> (temp, success, info);
+	UseTemporaryAllocationBlock tempBlock {1024};
+        Handle <CloseConnection> closeMsg = myCommunicator->getNextObject <CloseConnection> (success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
         } else {
@@ -239,14 +241,22 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
     // if we are asked to shut down...
     if (requestID == ShutDown_TYPEID) {
 
-        // kill the FD and let everyone know we are done
-	char temp[myCommunicator->getSizeOfNextObject ()];
-        Handle <ShutDown> closeMsg = myCommunicator->getNextObject <ShutDown> (temp, success, info);
+	UseTemporaryAllocationBlock tempBlock {1024};
+        Handle <ShutDown> closeMsg = myCommunicator->getNextObject <ShutDown> (success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
         } else {
             myLogger->trace("PDBServer: close connection request");
         }
+
+	// ack the result
+	std :: string errMsg;
+	Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, "successful shutdown of server");
+	if (!myCommunicator->sendObject (result, errMsg)) {
+            myLogger->error("PDBServer: close connection request, but count not send response: " + errMsg);
+	}
+
+        // kill the FD and let everyone know we are done
         allDone = true;
         close(sockFD);
         return false;

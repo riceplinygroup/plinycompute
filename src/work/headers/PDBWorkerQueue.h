@@ -126,6 +126,9 @@ private:
     // the logger to write to
     PDBLoggerPtr myLogger;
 
+    // a pointer to the original location for the call stacks for all of the worker threads
+    // we need this so that we can free the memory at shutdown
+    void *origStackBase;
 };
 
 }

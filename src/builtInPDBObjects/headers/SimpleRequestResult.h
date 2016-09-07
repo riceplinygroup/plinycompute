@@ -35,6 +35,8 @@ public:
 
 	SimpleRequestResult () {}
 	~SimpleRequestResult () {}
+
+	// generally res should be true on success
 	SimpleRequestResult (bool res, std :: string errMsg) : res (res), errMsg (errMsg) {}
 
 	ENABLE_DEEP_COPY

@@ -38,6 +38,10 @@ bool StorageClient :: registerType (std :: string regMe, std :: string &errMsg) 
 	return myHelper.registerType (regMe, errMsg);
 }
 
+bool StorageClient :: shutDownServer (std :: string &errMsg) {
+	return myHelper.shutDownServer (errMsg);	
+}
+
 bool StorageClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
 	return myHelper.createDatabase (databaseName, errMsg);
 }

@@ -51,7 +51,7 @@ public:
     void handleError();
 
     // clone this guy
-    PDBCommWorkPtr clone();
+    PDBCommWorkPtr clone() override;
 
     // get buzzer linked to this guy
     PDBBuzzerPtr getLinkedBuzzer() override;

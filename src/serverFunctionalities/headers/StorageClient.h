@@ -51,6 +51,9 @@ public:
 	// this creates a new database... returns true on success
 	bool createDatabase (std :: string databaseName, std :: string &errMsg);
 
+	// shuts down the server that we are connected to... returns true on success
+	bool shutDownServer (std :: string &errMsg);
+
 	// this creates a new set in a given database... returns true on success
 	template <class DataType>
 	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
