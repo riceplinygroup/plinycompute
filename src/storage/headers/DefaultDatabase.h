@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 /* 
- * File:   DummyDatabase.h
+ * File:   DefaultDatabase.h
  * Author: Jia
  *
  * Created on September 28, 2015, 8:31 PM
@@ -108,6 +108,11 @@ public:
      */
     void flush();
 
+    /**
+     * Get all types
+     */
+    map<UserTypeID, TypePtr> * getTypes();
+
 
 protected:
 
@@ -149,5 +154,5 @@ private:
 
 
 
-#endif	/* DUMMYDATABASE_H */
+#endif	/* DEFAULTDATABASE_H */
 

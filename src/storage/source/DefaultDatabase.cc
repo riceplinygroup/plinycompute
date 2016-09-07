@@ -304,5 +304,12 @@ void DefaultDatabase::addTypeBySequenceFiles(string name, UserTypeID id, boost::
     this->addType(type);
 }
 
+/**
+ * Get all types
+ */
+map<UserTypeID, TypePtr> * DefaultDatabase::getTypes() {
+    return this->types;
+}
+
 
 #endif

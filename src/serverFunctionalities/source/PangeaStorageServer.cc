@@ -120,6 +120,7 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 	return nullptr;
 }
 
+
 PangeaStorageServer :: ~PangeaStorageServer () {
 
 	for (auto &a : allRecords) {
@@ -150,6 +151,7 @@ PDBPagePtr PangeaStorageServer :: getNewPage (pair <std :: string, std :: string
 	    return whichSet->addPage();
         }
 }
+
 
 void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet) {
 
@@ -900,11 +902,37 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
         //initialize it
         db->initializeFromMetaDBDir(metaDBPath);
         //add it to map
-        //pthread_mutex_lock(&this->mapLock);
+        pthread_mutex_lock(&this->databaseLock);
         this->dbs->insert(pair<DatabaseID, DefaultDatabasePtr>(dbId, db));
         this->name2id->insert(pair<string, DatabaseID>(dbName, dbId));
-        //pthread_mutex_unlock(&this->mapLock);
+        pthread_mutex_unlock(&this->databaseLock);
 
+        std :: map<UserTypeID, TypePtr> * types = db->getTypes();
+        std :: map<UserTypeID, TypePtr>::iterator typeIter;
+        for (typeIter = types->begin(); typeIter != types->end(); typeIter++) {
+                UserTypeID typeId = typeIter->first;
+                TypePtr type = typeIter->second;
+                std :: string typeName = type->getName();
+                pthread_mutex_lock(&this->typeLock);
+                this->typename2id->insert(std :: pair<std :: string, UserTypeID>(typeName, typeId));
+                pthread_mutex_unlock(&this->typeLock);
+                std :: map<SetID, SetPtr> * sets = type->getSets();
+                std :: map<SetID, SetPtr>::iterator setIter;
+                for (setIter = sets->begin(); setIter != sets->end(); setIter++) {
+                        SetID setId = setIter->first;
+                        SetPtr set = setIter->second;
+                        std :: cout << "Loaded existing set with database: "<<dbName<<", type: "<<typeName<<", set: "<<set->getSetName()<<std::endl;
+                        pthread_mutex_lock(&this->usersetLock);
+                        this->userSets->insert(
+                                std :: pair<std :: pair <DatabaseID, SetID>,  SetPtr>(
+                                         std :: pair<DatabaseID, SetID>(dbId, setId), set));
+                        this->names2ids->insert(
+                                std :: pair<std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>>(
+                                         std :: pair <std :: string, std :: string> (dbName, set->getSetName()),
+                                         std :: pair <DatabaseID, SetID> (dbId, setId)));
+                        pthread_mutex_unlock(&this->usersetLock);
+                }
+        }
 }
 
 PDBLoggerPtr PangeaStorageServer::getLogger() {

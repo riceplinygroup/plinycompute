@@ -121,6 +121,10 @@ public:
         return this->numSets;
     }
 
+    map<SetID, SetPtr> * getSets() {
+        return this->sets;
+    }
+
 
 protected:
 
