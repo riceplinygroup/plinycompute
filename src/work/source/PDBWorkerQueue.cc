@@ -31,6 +31,14 @@ extern void *stackBase;
 extern void *stackEnd;
 
 PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
+
+    // first, make sure that another worker queue does not exist
+    if (stackBase != nullptr) {
+        std :: cout << "I have detected that you have started two PDBWorkerQueue objects in this process.\n";
+	std :: cout << "This is a really bad idea.  It probably will result in a crash at some point, and\n";
+	std :: cout << "regardless of that, the idea is to have one queue that everyone draws workers from.\n";
+    }
+
     pthread_mutex_init(&waitingMutex, nullptr);
     pthread_mutex_init(&workingMutex, nullptr);
     pthread_cond_init(&waitingSignal, nullptr);
@@ -53,7 +61,6 @@ PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
     for (int i = 0; i < numWorkers; i++) {
 	// put an allocator at the base of the stack for this worker... give him 64MB of RAM to work with
 	new (i * 1024 * 1024 * 4 + ((char *) stackBase)) Allocator (PDBWorkerQueue :: defaultAllocatorBlockSize);		
-
 	// now create the worker
         addAnotherWorker (i * 1024 * 1024 * 4 + sizeof (Allocator) + ((char *) stackBase), (i + 1) * 1024 * 1024 * 4 + ((char *) stackBase));
     }
