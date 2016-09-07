@@ -64,7 +64,7 @@ int main (int argc, char * argv[]) {
          * Backend getIterators(int numThreads) API returns flexible number of iterators that can be specified by user;
          * Here we test frontend iterators.
          */
-        /*        
+        
         vector<PageIteratorPtr> * iterators = set->getIterators();
         int numIterators = iterators->size();
         for (int i = 0; i < numIterators; i++) {
@@ -82,7 +82,7 @@ int main (int argc, char * argv[]) {
                 }
             }
         }
-        */        
+                
 
         //let's finish
         std :: cout << "finish!" << std :: endl;
