@@ -129,6 +129,7 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 			// if we got here, all records have been processed
 
 			std :: cout << "Write all of the bytes in the record.\n";
+			getRecord (data);
 			myPage->wroteBytes ();
 			myPage->flush ();
 			myPage->unpin ();
@@ -140,6 +141,7 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 			std :: cout << "Writing back a page!!\n";
 
 			// write back the current page...
+			getRecord (data);
 			myPage->wroteBytes ();
 			myPage->flush ();
 			myPage->unpin ();

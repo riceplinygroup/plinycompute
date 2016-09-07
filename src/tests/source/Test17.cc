@@ -29,7 +29,7 @@
 
 int main () {
 
-	std:: cout << "Make sure to run bin/test15 in a different window!!\n";
+	std:: cout << "Make sure to run bin/test15 in a different window to provide a catalog/storage server.\n";
 
 	// register the shared employee class
 	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"));

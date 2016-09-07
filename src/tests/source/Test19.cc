@@ -67,7 +67,6 @@ int main (int argc, char * argv[]) {
             }
             
             const pdb :: UseTemporaryAllocationBlock block{page->getBytes(), page->getSize()};
-            // pdb :: makeObjectAllocatorBlock(page->getBytes(), page->getSize(), true);
             pdb :: Handle <pdb :: Vector <pdb :: Handle <pdb :: Employee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle<pdb :: Employee>>> ();
             
             try {

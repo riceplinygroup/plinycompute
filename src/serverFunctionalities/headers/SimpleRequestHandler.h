@@ -46,6 +46,7 @@ public:
 		PDBCommunicatorPtr myCommunicator = getCommunicator ();
 		bool success;
 		std :: string errMsg;
+		UseTemporaryAllocationBlock tempBlock {myCommunicator->getSizeOfNextObject ()};
 		Handle <RequestType> request = myCommunicator->getNextObject <RequestType> (success, errMsg);
 		
 		PDBLoggerPtr myLogger = getLogger ();
