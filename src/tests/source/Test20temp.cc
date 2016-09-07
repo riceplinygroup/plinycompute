@@ -31,14 +31,6 @@
 int main (int argc, char * argv[]) {
 
         //pdb :: VTableMap(); //doesn't work
-        int numPagesToWrite;
-        if (argc == 1) {
-            numPagesToWrite = 6;
-            std :: cout << "to generate 6 pages by default..." << std :: endl;
-        } else {
-            numPagesToWrite = atoi(argv[1]);
-            std :: cout << "to generate "<< numPagesToWrite << " by default..." << std :: endl;
-        }
 
         ConfigurationPtr conf = make_shared < Configuration > ();
         pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());

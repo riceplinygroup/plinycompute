@@ -30,15 +30,6 @@
 
 int main (int argc, char * argv[]) {
 
-        //pdb :: VTableMap(); //doesn't work
-        int numPagesToWrite;
-        if (argc == 1) {
-            numPagesToWrite = 6;
-            std :: cout << "to generate 6 pages by default..." << std :: endl;
-        } else {
-            numPagesToWrite = atoi(argv[1]);
-            std :: cout << "to generate "<< numPagesToWrite << " by default..." << std :: endl;
-        }
 
         ConfigurationPtr conf = make_shared < Configuration > ();
         pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
@@ -64,7 +55,7 @@ int main (int argc, char * argv[]) {
          * Backend getIterators(int numThreads) API returns flexible number of iterators that can be specified by user;
          * Here we test frontend iterators.
          */
-        /*        
+                
         vector<PageIteratorPtr> * iterators = set->getIterators();
         int numIterators = iterators->size();
         for (int i = 0; i < numIterators; i++) {
@@ -82,7 +73,7 @@ int main (int argc, char * argv[]) {
                 }
             }
         }
-        */        
+                
 
         //let's finish
         std :: cout << "finish!" << std :: endl;

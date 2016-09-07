@@ -78,6 +78,7 @@ int main (int argc, char * argv[]) {
             } catch ( pdb :: NotEnoughSpace &n ) {
                  //now we can unpin this page
                  cout << "we have finished one page!" << std :: endl;
+                 getRecord (storeMe);                 
                  page->unpin();
                  pagesWritten ++;
             }            
