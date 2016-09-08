@@ -55,7 +55,7 @@ public:
 
 	// creates a storage server, putting all data in the indicated directory.
 	// pages can be dynamically allocated from the specified shared memory pool.
-	PangeaStorageServer (SharedMemPtr shm, PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf);
+	PangeaStorageServer (SharedMemPtr shm, PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf, bool standalone= true);
 
 
         /*****************To Comply with Chris' Interfaces***************************/
@@ -226,7 +226,10 @@ public:
      */
     PDBWorkerPtr getWorker();
 
-
+    /**
+     * return whether the PangeaStorageServer instance is running standalone or in cluster mode.
+     */
+    bool isStandalone();
 
 
 protected:
@@ -351,6 +354,14 @@ private:
     
     //The vector of flush threads
     std :: vector<PDBWorkPtr> flushers;
+
+/****** for distribution *******************************/
+
+private:
+
+        bool standalone = true;
+
+
 
 /******* to comply with Chris' interfaces ***************/
 

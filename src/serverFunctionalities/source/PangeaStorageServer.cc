@@ -23,6 +23,7 @@
 #include "SimpleRequestResult.h"
 #include "CatalogServer.h"
 #include "StorageAddData.h"
+#include "StorageAddDatabase.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
@@ -62,7 +63,7 @@ size_t PangeaStorageServer :: bufferRecord (pair <std :: string, std :: string> 
 }
 
 PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
-                PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf) {
+                PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf, bool standalone) {
 
         //server initialization
         //cout << "Storage server is initializing...\n";
@@ -107,7 +108,7 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         pthread_mutex_init(&(this->tempsetLock), nullptr);
         pthread_mutex_init(&(this->usersetLock), nullptr);
 
-
+        this->standalone = standalone;
 }
 
 SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databaseAndSet) {
@@ -261,6 +262,34 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 }
 
 void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
+       // this handler accepts a request to add a database
+       forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
+                [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
+                        std :: string errMsg;
+                     
+                        //add a database in local
+                        bool res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
+                        if (res == false) {
+                                 errMsg = "Database already exists\n";
+                        } else {
+                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                                         res = getFunctionality<CatalogServer> ().addDatabase (request->getDatabase(), errMsg);
+                                 }
+                        }
+                        
+                        //make response
+                        const UseTemporaryAllocationBlock tempBlock{1024};
+                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                        //return the result
+                        res = sendUsingMe->sendObject (response, errMsg);
+                        return make_pair (res, errMsg);
+                }
+
+       ));
+
+
+
 
 	// this handler accepts a request to store some data
 	forMe.registerHandler (StorageAddData_TYPEID, make_shared <SimpleRequestHandler <StorageAddData>> (
@@ -800,6 +829,7 @@ bool PangeaStorageServer::initializeFromRootDirs(string metaRootPath,
                         std::string name;
                         std::string strId;
                         DatabaseID dbId;
+                        DatabaseID maxDbId = 0;
                         for (iter = dbDirs.begin(); iter != dbDirs.end(); iter++) {
                                 if (is_directory(*iter)) {
                                         //find a database
@@ -812,7 +842,9 @@ bool PangeaStorageServer::initializeFromRootDirs(string metaRootPath,
                                         //parse database id from directory name
                                         strId = dirName.substr(0, dirName.find('_'));
                                         dbId = stoul(strId);
-
+                                        if (maxDbId < dbId) {
+                                             maxDbId = dbId;
+                                        }
                                         //parse database name from directory name
                                         name = dirName.substr(dirName.find('_') + 1,
                                                         dirName.length() - 1);
@@ -829,6 +861,7 @@ bool PangeaStorageServer::initializeFromRootDirs(string metaRootPath,
                                         } else {
                                                 this->addDatabaseByPartitionedFiles(name, dbId, path);
                                         }
+                                        this->databaseSeqId.initialize(maxDbId);
                                 } else {
                                         //Meet a problem when trying to recover database instance from existing data.
                                         //Because database directory doesn't exist.
@@ -843,7 +876,7 @@ bool PangeaStorageServer::initializeFromRootDirs(string metaRootPath,
                 //we can't recover database instances from existing data, because root directory doesn't exist.
                 return false;
         }
-
+        
         return true;
 }
 
@@ -949,6 +982,11 @@ SharedMemPtr PangeaStorageServer::getSharedMem() {
 
 PageCachePtr PangeaStorageServer::getCache() {
         return this->cache;
+}
+
+//return whether the PangeaStorageServer instance is running standalone or in cluster mode.
+bool PangeaStorageServer::isStandalone() {
+        return this->standalone;
 }
 
 }

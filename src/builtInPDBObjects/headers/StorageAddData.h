@@ -27,7 +27,7 @@
 
 namespace pdb {
 
-// encapsulates a request to search for a type in the catalog
+// encapsulates a request to add data to a set in storage
 class StorageAddData  : public Object {
 
 public:

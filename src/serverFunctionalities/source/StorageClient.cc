@@ -20,16 +20,16 @@
 #define STORAGE_CLIENT_CC
 
 #include "StorageClient.h"
-
+#include "StorageAddDatabase.h"
 namespace pdb {
 
-StorageClient :: StorageClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) : myHelper (portIn, addressIn, myLoggerIn) {
+StorageClient :: StorageClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool usePangeaIn) : myHelper (portIn, addressIn, myLoggerIn) {
 
 	// get the communication information
 	port = portIn;
 	address = addressIn;
 	myLogger = myLoggerIn;
-
+        usePangea = usePangeaIn;
 }
 
 void StorageClient :: registerHandlers (PDBServer &forMe) { /* no handlers for a storage client!! */}
@@ -43,7 +43,24 @@ bool StorageClient :: shutDownServer (std :: string &errMsg) {
 }
 
 bool StorageClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
-	return myHelper.createDatabase (databaseName, errMsg);
+        if (usePangea == false) {
+	    return myHelper.createDatabase (databaseName, errMsg);
+        } else {
+            return simpleRequest <StorageAddDatabase, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating database: " + result->getRes ().second;
+                                        myLogger->error ("Error creating database: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name, nothing is back from storage";
+                        return false;},
+                databaseName);
+
+        }
 }
 
 std :: string StorageClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {

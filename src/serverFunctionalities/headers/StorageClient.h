@@ -37,7 +37,7 @@ class StorageClient : public ServerFunctionality {
 public:
 
 	// these give us the port and the address of the catalog
-	StorageClient (int port, std :: string address, PDBLoggerPtr myLogger);
+	StorageClient (int port, std :: string address, PDBLoggerPtr myLogger, bool usePangea = false);
 
 	// function to register event handlers associated with this server functionality
 	virtual void registerHandlers (PDBServer &forMe) override;
@@ -69,6 +69,8 @@ private:
 	int port;
 	std :: string address;
 	PDBLoggerPtr myLogger;
+
+        bool usePangea;
 
 };
 
