@@ -74,6 +74,7 @@ int main (int argc, char * argv[]) {
                        }
                     }
                  }
+                page->unpin();
             }
         }
                 

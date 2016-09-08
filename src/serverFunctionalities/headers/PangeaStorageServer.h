@@ -344,7 +344,7 @@ private:
     SequenceID databaseSeqId;
 
     //SequenceID for adding user set
-    SequenceID usersetSeqId; 
+    std :: map <std :: string, SequenceID * > * usersetSeqIds; 
 
     //Thread Pool for starting flushing threads
     PDBWorkerQueuePtr workers;

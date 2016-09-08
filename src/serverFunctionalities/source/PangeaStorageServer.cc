@@ -76,6 +76,7 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->conf = conf;
         this->logger = logger;
         this->logger->setEnabled(conf->isLogEnabled());
+        this->standalone = standalone;
 
         //IPC file used to communicate with backend
         this->pathToBackEndServer = this->conf->getBackEndIpcFile();
@@ -96,19 +97,20 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->names2ids = new std :: map< std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>>();
         this->typename2id = new std :: map< std :: string, SetID>(); 
 
-        //if meta/data/temp directories do not exist, create them.
-        this->createRootDirs();
-        this->initializeFromRootDirs(this->metaRootPath, this->dataRootPaths);
-        this->createTempDirs();
-        this->conf->createDir(this->metaTempPath);
-
         //initialize meta data mutex
         pthread_mutex_init(&(this->databaseLock), nullptr);
         pthread_mutex_init(&(this->typeLock), nullptr);
         pthread_mutex_init(&(this->tempsetLock), nullptr);
         pthread_mutex_init(&(this->usersetLock), nullptr);
 
-        this->standalone = standalone;
+
+        this->usersetSeqIds = new std :: map<std :: string, SequenceID * >();
+        //if meta/data/temp directories do not exist, create them.
+        this->createRootDirs();
+        this->initializeFromRootDirs(this->metaRootPath, this->dataRootPaths);
+        this->createTempDirs();
+        this->conf->createDir(this->metaTempPath);
+
 }
 
 SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databaseAndSet) {
@@ -455,10 +457,12 @@ bool PangeaStorageServer::addDatabase(string dbName, DatabaseID dbId) {
         DefaultDatabasePtr db = make_shared<DefaultDatabase>(this->nodeId, dbId,
                         dbName, this->conf, this->logger, this->shm, metaDBPath,
                         dataDBPaths, this->cache, this->flushBuffer);
-
+        
         pthread_mutex_lock(&this->databaseLock);
         this->dbs->insert(pair<DatabaseID, DefaultDatabasePtr>(dbId, db));
         this->name2id->insert(pair<string, DatabaseID>(dbName, dbId));
+        SequenceID * seqId = new SequenceID();
+        this->usersetSeqIds->insert(pair<string, SequenceID*>(dbName, seqId));
         pthread_mutex_unlock(&this->databaseLock);
         return true;
 }
@@ -507,6 +511,7 @@ bool PangeaStorageServer::removeDatabase(std :: string dbName) {
                                 dbName);
                 name2id->erase(name2idIt);
                 dbs->erase(it);
+                usersetSeqIds->erase(dbName);
                 pthread_mutex_unlock(&this->databaseLock);
                 return true;
         } else {
@@ -589,7 +594,19 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
            //database exists
            if (this->typename2id->count(typeName) == 0) {
                //type doesn't exist
-               return false;
+               //now we fetch the type id through catalog
+               if(standalone == true) {
+                   int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
+                   if(typeId < 0) {
+                       //type doesn't exist in catalog
+                       return false;   
+                   } else {
+                       this->addType(typeName, (UserTypeID)typeId);
+                   }
+               } else {
+                   //in distributed mode
+                   //TODO: we should work as a client to send a message to remote catalog server to figure it out
+               }
            } else {
                DatabaseID dbId = this->name2id->at(dbName);
                DefaultDatabasePtr db = this->getDatabase(dbId);
@@ -616,7 +633,11 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
 //to add a new and empty set using only name
 bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, std :: string setName) {
        pthread_mutex_lock(&this->usersetLock);
-       SetID setId = usersetSeqId.getNextSequenceID();
+       if(usersetSeqIds->count(dbName) == 0) {
+           //database doesn't exist
+           return false;
+       }
+       SetID setId = usersetSeqIds->at(dbName)->getNextSequenceID();
        pthread_mutex_unlock(&this->usersetLock);
        return addSet (dbName, typeName, setName, setId);
 }
@@ -942,6 +963,9 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
 
         std :: map<UserTypeID, TypePtr> * types = db->getTypes();
         std :: map<UserTypeID, TypePtr>::iterator typeIter;
+
+        //to update the sequence generator
+        SetID maxSetId = 0;
         for (typeIter = types->begin(); typeIter != types->end(); typeIter++) {
                 UserTypeID typeId = typeIter->first;
                 TypePtr type = typeIter->second;
@@ -953,6 +977,9 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
                 std :: map<SetID, SetPtr>::iterator setIter;
                 for (setIter = sets->begin(); setIter != sets->end(); setIter++) {
                         SetID setId = setIter->first;
+                        if (maxSetId <  setId) {
+                            maxSetId =  setId;
+                        }
                         SetPtr set = setIter->second;
                         std :: cout << "Loaded existing set with database: "<<dbName<<", type: "<<typeName<<", set: "<<set->getSetName()<<std::endl;
                         pthread_mutex_lock(&this->usersetLock);
@@ -966,6 +993,10 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
                         pthread_mutex_unlock(&this->usersetLock);
                 }
         }
+        SequenceID * seqId = new SequenceID();
+        seqId->initialize(maxSetId);
+        this->usersetSeqIds->insert(std :: pair < std :: string, SequenceID *> (dbName, seqId));
+        
 }
 
 PDBLoggerPtr PangeaStorageServer::getLogger() {

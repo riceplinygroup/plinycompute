@@ -43,7 +43,7 @@ int main (int argc, char * argv[]) {
 	// now, create a new database
 	if (!temp.createDatabase (databaseName, errMsg)) {
 		std :: cout << "Not able to create database: " + errMsg;
-                std :: cout << "Please change a database name, or remove the pdbRoot directory at where you run the command";
+                std :: cout << "Please change a database name, or remove the pdbRoot AND CatalogDir directories at where you run test23";
 	} else {
 		std :: cout << "Created database.\n";
 	}
