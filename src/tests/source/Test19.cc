@@ -51,8 +51,7 @@ int main (int argc, char * argv[]) {
         
         //add database
         storage->addDatabase ("testDatabase");
-        storage->addType ("Employee", 4001);
-        storage->addSet("testDatabase", "Employee", "testSet");
+        storage->addSet("testDatabase", "testSet");
         SetPtr set = storage->getSet(std :: pair <std :: string, std :: string> ("testDatabase", "testSet"));
         storage->getCache()->pin(set, MRU, Write);
 

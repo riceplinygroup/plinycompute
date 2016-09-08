@@ -170,6 +170,12 @@ public:
      */
     bool addSet (std :: string dbName, std :: string typeName, std :: string setName);
 
+    /**
+     * Add a set using only database name and set name
+     */
+    bool addSet (std :: string dbName, std :: string setName);
+
+
 
     /**
      * Remove an existing set

@@ -97,6 +97,8 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->names2ids = new std :: map< std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>>();
         this->typename2id = new std :: map< std :: string, SetID>(); 
 
+
+
         //initialize meta data mutex
         pthread_mutex_init(&(this->databaseLock), nullptr);
         pthread_mutex_init(&(this->typeLock), nullptr);
@@ -104,13 +106,14 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         pthread_mutex_init(&(this->usersetLock), nullptr);
 
 
+        this->databaseSeqId.initialize(1);//DatabaseID starting from 1
         this->usersetSeqIds = new std :: map<std :: string, SequenceID * >();
         //if meta/data/temp directories do not exist, create them.
         this->createRootDirs();
         this->initializeFromRootDirs(this->metaRootPath, this->dataRootPaths);
         this->createTempDirs();
         this->conf->createDir(this->metaTempPath);
-
+        this->addType("UnknownUserData", 0); //user type starting from 1
 }
 
 SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databaseAndSet) {
@@ -598,14 +601,16 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                if(standalone == true) {
                    int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
                    if(typeId < 0) {
-                       //type doesn't exist in catalog
-                       return false;   
-                   } else {
+                       std :: cout << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
+                       typeName = "UnknownUserData";
+                   } else { 
                        this->addType(typeName, (UserTypeID)typeId);
                    }
                } else {
                    //in distributed mode
                    //TODO: we should work as a client to send a message to remote catalog server to figure it out
+                   typeName = "UnknownUserData";
+
                }
            } else {
                DatabaseID dbId = this->name2id->at(dbName);
@@ -641,6 +646,14 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        pthread_mutex_unlock(&this->usersetLock);
        return addSet (dbName, typeName, setName, setId);
 }
+
+
+
+// to add a set using only database name and set name
+bool PangeaStorageServer::addSet (std :: string dbName, std :: string setName) {
+      return addSet(dbName, "UnknownUserData", setName);
+}
+
 
 
 //to remove an existing set
