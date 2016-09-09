@@ -47,23 +47,23 @@ int main (int argc, char * argv[]) {
 
         // register the shared employee class
         if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg)) {
-                cout << "Not able to register type: " + errMsg;
+                cout << "Not able to register type: " + errMsg<<std::endl;
         } else {
                 cout << "Registered type.\n";
         }
 
 	// now, create a new database
 	if (!temp.createDatabase (databaseName, errMsg)) {
-		std :: cout << "Not able to create database: " + errMsg;
-                std :: cout << "Please change a database name, or remove the pdbRoot AND CatalogDir directories at where you run test23";
+		std :: cout << "Not able to create database: " + errMsg << std::endl;
+                std :: cout << "Please change a database name, or remove the pdbRoot AND CatalogDir directories at where you run test23"<<std::endl;
 	} else {
 		std :: cout << "Created database.\n";
 	}
 
         // now create a new set in that database
         if (!temp.createSet<SharedEmployee> (databaseName, setName, errMsg)) {
-                std :: cout << "Not able to set: " + errMsg;
-                std :: cout << "Please change a set name, or remove the pdbRoot AND CatalogDir directories at where you run test23";
+                std :: cout << "Not able to set: " + errMsg << std :: endl;
+                std :: cout << "Please change a set name, or remove the pdbRoot AND CatalogDir directories at where you run test23"<< std::endl;
         } else {
                 std :: cout << "Created set.\n";
         }

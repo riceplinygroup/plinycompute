@@ -165,18 +165,26 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 	// get all of the records
 	auto &allRecs = allRecords[databaseAndSet];
 
+        // the current size (in bytes) of records we need to process
+        size_t numBytesToProcess = sizes[databaseAndSet];
+        size_t rawPageSize = conf->getPageSize();
+        
+        if(numBytesToProcess < rawPageSize) {
+                std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
+                return;
+        }
+        std :: cout << "buffer is full, to write to a storage page"<< std::endl;
+ 
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
-						
         size_t pageSize = myPage->getSize();
+
 	// the position in the output vector
 	int pos = 0;
 	
 	// the number of items in the current record we are processing
 	int numObjectsInRecord;
 
-	// the current size (in bytes) of records we need to process
-	size_t numBytesToProcess = sizes[databaseAndSet];
 
 	// now, keep looping until we run out of records to process (in which case, we'll break)
 	while (true) {
@@ -186,10 +194,10 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
 
 		try {
-			// while there are still pages
+			// while there are still records
 			while (allRecs.size () > 0) {
 
-				std :: cout << "Processing a record!!\n";
+				//std :: cout << "Processing a record!!\n";
 
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				numObjectsInRecord = allObjects.size ();
@@ -221,13 +229,14 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		} catch (NotEnoughSpace &n) {
 
                         // comment the following three lines of code to allow Pangea to manage pages						
-			//std :: cout << "Writing back a page!!\n";
+			std :: cout << "Writing back a page!!\n";
 			// write back the current page...
                         getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 
 			myPage->unpin ();
+                        this->getCache()->evictPage(myPage);
 
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
@@ -368,6 +377,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 				everythingOK = false;
 			}
 
+                        getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+
 			std :: cout << "Making response object.\n";
                         const UseTemporaryAllocationBlock block{1024};                        
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
@@ -378,6 +389,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         return make_pair (res, errMsg);
 		}
 	));
+
+
 }
 
 
