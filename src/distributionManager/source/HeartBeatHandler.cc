@@ -15,76 +15,54 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * NodeInfo.h
- *
- *  Created on: Mar 7, 2016
- *      Author: Kia
- */
+#ifndef HEART_BEAT_HANDLER_CC
+#define HEART_BEAT_HANDLER_CC
 
-#ifndef NODE_INFO_H
-#define NODE_INFO_H
+#include <iostream>
 
-#include "Object.h"
+#include "HeartBeatHandler.h"
+#include "NodeInfo.h"
 #include "Handle.h"
-#include "PDBString.h"
+#include "Ack.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "PDBCommunicator.h"
+#include "ServerFunctionality.h"
 
-//  PRELOAD %NodeInfo%
+pdb::HeartBeatHandler::HeartBeatHandler(string fNameIn, PDBDistributionManagerPtr distribution) {
+	this->fName = fNameIn;
+	this->distribution = distribution;
+}
 
-namespace pdb {
+pdb::HeartBeatHandler::~HeartBeatHandler() {
+}
 
-/**
- * This class encapsulates data about each node. This data is a dynamic data that represents the current node CPU load in addition to other static
- * information like hostname or host IP address and port.
- */
-class NodeInfo: public Object {
+pdb::PDBCommWorkPtr pdb::HeartBeatHandler::clone() {
+	return make_shared<HeartBeatHandler>(fName, distribution);
+}
 
-public:
+void pdb::HeartBeatHandler::execute(PDBBuzzerPtr callerBuzzer) {
 
-	NodeInfo() {
+	std::string errMsg;
+	bool success;
+
+	PDBCommunicatorPtr myCommunicator = getCommunicator();
+	size_t numBytes = myCommunicator->getSizeOfNextObject();
+	UseTemporaryAllocationBlock myBlock {numBytes};
+	Handle<NodeInfo> msg = myCommunicator->getNextObject<NodeInfo>(success, errMsg);
+
+	if (!success) {
+		getLogger()->error("HeartBeatHandler: " + errMsg);
+		callerBuzzer->buzz(PDBAlarm::HeartBeatError);
+		return;
 	}
 
-	~NodeInfo() {
-	}
+	string hostName = (string) msg->getHostName();
 
-	// CPU load might be used later to know how a processing node is overloaded with tasks.
-	int getCpuLoad() {
-		return cpuLoad;
-	}
+	getLogger()->trace("Heart Beat From Host: " + hostName +":" +to_string(msg->getPort()));
 
-	void setCpuLoad(int cpuLoad) {
-		this->cpuLoad = cpuLoad;
-	}
+	this->distribution->addOrUpdateNodes(getLogger(), hostName);
 
-	String& getHostName() {
-		return hostName;
-	}
-
-	void setHostName(pdb::String & hostName) {
-		this->hostName = hostName;
-	}
-
-	int getPort() {
-		return port;
-	}
-
-	void setPort(int port) {
-		this->port = port;
-	}
-
-	ENABLE_DEEP_COPY
-
-private:
-
-	// hostname or IP address of the PDB server
-	String hostName;
-	// port number on which the PDB server is running
-	int port;
-
-	// current cpu load of the server as an integer between 0-100, 100 means %100 CPU load.
-	int cpuLoad;
-
-};
+	callerBuzzer->buzz(PDBAlarm::WorkAllDone);
 
 }
 

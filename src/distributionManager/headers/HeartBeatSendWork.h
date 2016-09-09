@@ -16,76 +16,60 @@
  *                                                                           *
  *****************************************************************************/
 /*
- * NodeInfo.h
+ * HeartBeatSendWork.h
  *
- *  Created on: Mar 7, 2016
- *      Author: Kia
+ *  Created on: Mar 18, 2016
+ *      Author: kia
  */
 
-#ifndef NODE_INFO_H
-#define NODE_INFO_H
+#ifndef SRC_DISTRIBUTIONMANAGER_HEADERS_HEARTBEATSENDWORK_H_
+#define SRC_DISTRIBUTIONMANAGER_HEADERS_HEARTBEATSENDWORK_H_
+#include "PDBCommWork.h"
+#include "PDBDistributionManager.h"
+#include "NodeInfo.h"
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-
-//  PRELOAD %NodeInfo%
+// A smart pointer for HeartBeatHandler
 
 namespace pdb {
+class HeartBeatSendWork;
+typedef shared_ptr<HeartBeatSendWork> HeartBeatSendWorkPtr;
 
-/**
- * This class encapsulates data about each node. This data is a dynamic data that represents the current node CPU load in addition to other static
- * information like hostname or host IP address and port.
- */
-class NodeInfo: public Object {
+class HeartBeatSendWork: public PDBCommWork {
 
 public:
 
-	NodeInfo() {
+	HeartBeatSendWork(string masterNodeHostName, int masterNodePort) {
+		this->masterNodeHostName=masterNodeHostName;
+		this->masterNodePort=masterNodePort;
 	}
 
-	~NodeInfo() {
+	HeartBeatSendWork() {
 	}
 
-	// CPU load might be used later to know how a processing node is overloaded with tasks.
-	int getCpuLoad() {
-		return cpuLoad;
+
+	~HeartBeatSendWork() {
 	}
 
-	void setCpuLoad(int cpuLoad) {
-		this->cpuLoad = cpuLoad;
+	void execute(PDBBuzzerPtr callerBuzzer);
+
+	PDBCommWorkPtr clone();
+
+	pdb::Handle<NodeInfo>& getNodeInfo() {
+		return m_nodeInfo;
 	}
 
-	String& getHostName() {
-		return hostName;
+	void setNodeInfo(pdb::Handle<NodeInfo>& nodeInfo) {
+		m_nodeInfo = nodeInfo;
 	}
-
-	void setHostName(pdb::String & hostName) {
-		this->hostName = hostName;
-	}
-
-	int getPort() {
-		return port;
-	}
-
-	void setPort(int port) {
-		this->port = port;
-	}
-
-	ENABLE_DEEP_COPY
 
 private:
+	pdb::Handle<NodeInfo> m_nodeInfo;
 
-	// hostname or IP address of the PDB server
-	String hostName;
-	// port number on which the PDB server is running
-	int port;
-
-	// current cpu load of the server as an integer between 0-100, 100 means %100 CPU load.
-	int cpuLoad;
+	string masterNodeHostName;
+	int masterNodePort;
 
 };
 
 }
 
-#endif
+#endif /* SRC_DISTRIBUTIONMANAGER_HEADERS_HEARTBEATSENDWORK_H_ */

@@ -18,7 +18,7 @@ if common_env['PLATFORM'] == 'darwin':
 # Linux settings
 elif  common_env['PLATFORM'] == 'posix':
 	print 'Compiling on Linux'
-	common_env.Append(LIBS = ['libdl.so'])
+	common_env.Append(LIBS = ['libdl.so', 'uuid'])
   	common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
 	common_env.Replace(CXX = "clang++")
@@ -198,10 +198,21 @@ print 'System: ' + platform.system()
 print 'Release: ' + platform.release()
 print 'Version: ' + platform.version()
 
-all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],  component_dir_basename_to_cc_file_paths['bufferMgr'], component_dir_basename_to_cc_file_paths['communication'],  component_dir_basename_to_cc_file_paths['catalog'], component_dir_basename_to_cc_file_paths['pdbServer'], component_dir_basename_to_cc_file_paths['objectModel'], component_dir_basename_to_cc_file_paths['work'], component_dir_basename_to_cc_file_paths['memory'], component_dir_basename_to_cc_file_paths['storage'], boost_component_dir_basename_to_cc_file_paths['filesystem'],
-                   boost_component_dir_basename_to_cc_file_paths['program_options'],
-                   boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
-                   boost_component_dir_basename_to_cc_file_paths['system']]
+all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'], 
+       component_dir_basename_to_cc_file_paths['bufferMgr'],
+       component_dir_basename_to_cc_file_paths['communication'],  
+       component_dir_basename_to_cc_file_paths['catalog'], 
+       component_dir_basename_to_cc_file_paths['pdbServer'], 
+       component_dir_basename_to_cc_file_paths['objectModel'], 
+       component_dir_basename_to_cc_file_paths['work'], 
+       component_dir_basename_to_cc_file_paths['memory'], 
+       component_dir_basename_to_cc_file_paths['storage'],
+       component_dir_basename_to_cc_file_paths['timer'], 
+       component_dir_basename_to_cc_file_paths['distributionManager'], 
+       boost_component_dir_basename_to_cc_file_paths['filesystem'],
+       boost_component_dir_basename_to_cc_file_paths['program_options'],
+       boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
+       boost_component_dir_basename_to_cc_file_paths['system']]
 
 common_env.SharedLibrary('libraries/SharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
 common_env.Program('bin/test14', ['src/tests/source/Test14.cc'] + all)
