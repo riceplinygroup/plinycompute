@@ -21,6 +21,7 @@
 
 #include "StorageClient.h"
 #include "StorageAddData.h"
+#include "StorageAddSet.h"
 #include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
 
@@ -42,7 +43,25 @@ bool StorageClient :: storeData (Handle <Vector <Handle <DataType>>> data, std :
 
 template <class DataType>
 bool StorageClient :: createSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    if(usePangea == false) {
         return myHelper.createSet <DataType> (databaseName, setName, errMsg);
+    } else {
+        std :: string typeName = getTypeName <DataType>();
+        std :: cout << "typeName for set to create ="<<typeName << std :: endl;
+        return simpleRequest <StorageAddSet, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error creating set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName, typeName);
+    }
 }
 
 }

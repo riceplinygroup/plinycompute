@@ -24,6 +24,7 @@
 #include "CatalogServer.h"
 #include "StorageAddData.h"
 #include "StorageAddDatabase.h"
+#include "StorageAddSet.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
@@ -293,7 +294,36 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
        ));
 
+       // this handler accepts a request to add a set
+       forMe.registerHandler (StorageAddSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddSet>> (
+               [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         //add a set in local
+                         bool res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
+                         if (res == false) {
+                                 errMsg = "Set already exists\n";
+                         } else {
+                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                                          std :: cout << "TypeID ="<< typeID << std :: endl;
+                                          if (typeID == -1) {
+                                                    errMsg = "Could not find type " + request->getTypeName();
+                                                    res = false;
+                                          } else {
+                                                    res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
 
+                                          }
+                                 }
+                         }
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+       ));
 
 
 	// this handler accepts a request to store some data
@@ -603,34 +633,35 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                    if(typeId < 0) {
                        std :: cout << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
                        typeName = "UnknownUserData";
-                   } else { 
+                   } else {
+                       std :: cout << "Pangea add new type when add set: typeName="<< typeName << std :: endl;
+                       std :: cout << "Pangea add new type when add set: typeId="<< typeName << std :: endl; 
                        this->addType(typeName, (UserTypeID)typeId);
                    }
                } else {
                    //in distributed mode
                    //TODO: we should work as a client to send a message to remote catalog server to figure it out
                    typeName = "UnknownUserData";
-
+                
                }
-           } else {
-               DatabaseID dbId = this->name2id->at(dbName);
-               DefaultDatabasePtr db = this->getDatabase(dbId);
-               UserTypeID typeId = this->typename2id->at(typeName);
-               TypePtr type = db->getType(typeId);
-               if(type == nullptr) {
+           }
+       }         
+       DatabaseID dbId = this->name2id->at(dbName);
+       DefaultDatabasePtr db = this->getDatabase(dbId);
+       UserTypeID typeId = this->typename2id->at(typeName);
+       TypePtr type = db->getType(typeId);
+       if(type == nullptr) {
                     //type hasn't been added to the database, so we need to add it first for creating hierarchical directory so that optimization like compression can be applied at type and database level.
                     db->addType(typeName, typeId);
                     type = db->getType(typeId);
-               } 
-               type->addSet(setName, setId);
-               SetPtr set = type->getSet(setId);
+       } 
+       type->addSet(setName, setId);
+       SetPtr set = type->getSet(setId);
 
-               pthread_mutex_lock(&this->usersetLock);
-               this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
-               this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
-               pthread_mutex_unlock(&this->usersetLock);
-           }
-       }
+       pthread_mutex_lock(&this->usersetLock);
+       this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
+       this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
+       pthread_mutex_unlock(&this->usersetLock);
        return true;
 }
 

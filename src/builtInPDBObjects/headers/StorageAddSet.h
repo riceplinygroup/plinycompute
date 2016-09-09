@@ -46,7 +46,7 @@ public:
 		return setName;
 	}
 
-	std :: string getType () {
+	std :: string getTypeName () {
 		return typeName;
 	}
 

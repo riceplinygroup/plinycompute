@@ -28,8 +28,10 @@ namespace pdb {
 
 template <class DataType>
 bool CatalogClient :: createSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
-
+        //std :: cout << "type name="<<getTypeName<DataType>()<<std::endl;
+        //std :: cout << "type id="<<searchForObjectTypeName("pdb::Employee")<<std::endl;
 	int16_t typeID = searchForObjectTypeName (getTypeName <DataType> ());
+        //std :: cout << "type id="<<typeID<<std::endl;
 	if (typeID == -1) {
 		errMsg = "Could not find type " + getTypeName <DataType> ();
 		return -1;
