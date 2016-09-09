@@ -76,7 +76,7 @@ inline void PDBTemplateBase :: deleteConstituentObject (void *deleteMe) const {
 
 inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, void *source) const {
 
-	// if we are derieved from Object, use the virtual function
+	// if we are derived from Object, use the virtual function
 	if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;

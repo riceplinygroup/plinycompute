@@ -48,7 +48,7 @@ int16_t Handle <ObjType> :: getTypeCode () {
 template <class ObjType>
 Handle <ObjType> :: ~Handle () {
 
-	// if we are not null, then dec the referenece count 
+	// if we are not null, then dec the reference count
 	if (!isNullPtr () && getAllocator ().isManaged (getTarget ())) {
 		getTarget ()->decRefCount (typeInfo);
 	}
@@ -57,7 +57,7 @@ Handle <ObjType> :: ~Handle () {
 template <class ObjType>
 unsigned Handle <ObjType> :: getRefCount () {
 
-	// if we are not null, then dec the referenece count 
+	// if we are not null, then dec the reference count
 	if (!isNullPtr () && getAllocator ().isManaged (getTarget ())) {
 		return getTarget ()->getRefCount ();
 	}

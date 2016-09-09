@@ -41,8 +41,8 @@ class RefCountedObject;
 // (1) It ensures that everything pointed to by the Handle lives in the 
 //     same allocation block as the Handle (an allocation block is a 
 //     contiguous range of memory)---if the Handle itself lives in an 
-//     allocation block.  If an assignment could cause this requirment
-//     to be allocated, then a deep copy is auotmatically performed.
+//     allocation block.  If an assignment could cause this requirement
+//     to be allocated, then a deep copy is automatically performed.
 //
 //     For example, consider the following:
 //
@@ -82,7 +82,7 @@ class RefCountedObject;
 //      Objects, it is automatically freed.
 //
 //  (3) Finally, Handles act as offset pointers that can move from one address space
-//      to another without causing any prolems.  This means that objects that use
+//      to another without causing any problems.  This means that objects that use
 //      Handles can be written to disk and then read back again by another process,
 //      and there won't be any problem.
 

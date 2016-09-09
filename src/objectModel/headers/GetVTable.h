@@ -57,7 +57,7 @@ void *getObjectVTable () {							\
 	return returnVal;							\
 }										\
 										\
-/* this must be called befroe getObjectVTable () to correctly set the static */ \
+/* this must be called before getObjectVTable () to correctly set the static */ \
 /* and global variables that make the object model work correctly.  Since  */   \
 /* the shared library has *different* copies of all of these, they must be */   \
 /* set before the shared library is used to do anything.                   */   \

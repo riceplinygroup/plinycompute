@@ -64,7 +64,7 @@ template <class ObjType> class Handle;
 // automatically deleted.
 //
 // The new, active allocation block is then used in the next iteration to
-// store the next incarnations of the ojects pointed to by myEmp and foo.
+// store the next incarnations of the objects pointed to by myEmp and foo.
 // But at the next iteration, the same thing will happen again.
 //
 // The result of all of this is that after the loop executes, there will
@@ -105,13 +105,13 @@ size_t getBytesAvailableInCurrentAllocatorBlock  ();
 // are present in the current allocation block
 unsigned getNumObjectsInCurrentAllocatorBlock  ();
 
-// this gets a count of the current number of indididual, active objects that
+// this gets a count of the current number of individual, active objects that
 // are present in the allocation block that houses the object pointed to by
 // the supplied handle.  If the allocation block is not known to the Allocator
 // (because the memory to the allocation block was supplied to the Allocator
 // via a call to makeObjectAllocatorBlock (void *, size_t, bool) and there
 // has been a subsequent call to makeObjectAllocatorBlock () that caused the
-// allocator to frget that particaulr block) then the result of the call is
+// allocator to frget that particular block) then the result of the call is
 // a zero.  The only other way that the result of the call can be a zero is
 // if the Handle forMe is equl to a nullptr.
 template <class ObjType>
@@ -200,9 +200,9 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 //
 // (1) The callee does not own the resulting Record <ObjType> *.
 //     It will be deallocated automatically.  In particular, 
-//     if the destrcutor for Handle <ObjType> &forMe is called, 
+//     if the destructor for Handle <ObjType> &forMe is called,
 //     or forMe is assigned to new value at a later time,
-//     then the resulting Record <ObjType> *can be made inavlid.
+//     then the resulting Record <ObjType> *can be made invalid.
 //     Also, a second call to getRecord () can make the resulting
 //     Record <ObjType> * invalid.  However, as long as forMe
 //     is not destructed or modified, the resulting 

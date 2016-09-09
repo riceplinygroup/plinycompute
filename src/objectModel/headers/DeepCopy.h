@@ -21,7 +21,7 @@
 // This defines the macro ENABLE_DEEP_COPY
 //
 // Any subclass of pdb :: Object that wishes to make proper use of the Object's
-// deep copying facilties needs to have the macro ENABLE_DEEP_COPY somehwere in
+// deep copying facilities needs to have the macro ENABLE_DEEP_COPY somewhere in
 // the public section of the class definition.  Example:
 //
 // class Foo : public Objct {
