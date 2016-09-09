@@ -168,9 +168,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
 						
-	// now, copy everything over... do all allocations on the page
-	size_t pageSize = conf->getPageSize ();
-
+        size_t pageSize = myPage->getSize();
 	// the position in the output vector
 	int pos = 0;
 	
@@ -184,7 +182,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 	while (true) {
 
 		// all allocations will be done to the page
-		UseTemporaryAllocationBlock tempBlock (myPage->getBytes (), pageSize);
+		UseTemporaryAllocationBlock block (myPage->getBytes (), pageSize);
 		Handle <Vector <Handle <Object>>> data = makeObject <Vector <Handle <Object>>> ();
 
 		try {
@@ -211,6 +209,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
                         // comment the following three lines of code to allow Pangea to manage pages
 			//std :: cout << "Write all of the bytes in the record.\n";
+                        getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 
@@ -224,6 +223,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                         // comment the following three lines of code to allow Pangea to manage pages						
 			//std :: cout << "Writing back a page!!\n";
 			// write back the current page...
+                        getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 
@@ -234,6 +234,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				
 				std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
+                                pageSize = myPage->getSize();
 				continue;
 
 			// in this case, we have a small bit of data left
@@ -241,7 +242,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 					
 				// create the vector to hold these guys
 				void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
-				UseTemporaryAllocationBlock useTempBlock (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
+				const UseTemporaryAllocationBlock block (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
 				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
 
 				// write the objects to the vector
@@ -368,6 +369,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 			}
 
 			std :: cout << "Making response object.\n";
+                        const UseTemporaryAllocationBlock block{1024};                        
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                         // return the result
