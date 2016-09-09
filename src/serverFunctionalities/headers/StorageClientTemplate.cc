@@ -64,5 +64,14 @@ bool StorageClient :: createSet (std :: string databaseName, std :: string setNa
     }
 }
 
+template <class DataType>
+bool StorageClient :: retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    //TODO
+    return false;
+
+}
+
+
+
 }
 #endif
