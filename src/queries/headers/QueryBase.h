@@ -1,0 +1,127 @@
+/*****************************************************************************
+ *                                                                           *
+ *  Copyright 2018 Rice University                                           *
+ *                                                                           *
+ *  Licensed under the Apache License, Version 2.0 (the "License");          *
+ *  you may not use this file except in compliance with the License.         *
+ *  You may obtain a copy of the License at                                  *
+ *                                                                           *
+ *      http://www.apache.org/licenses/LICENSE-2.0                           *
+ *                                                                           *
+ *  Unless required by applicable law or agreed to in writing, software      *
+ *  distributed under the License is distributed on an "AS IS" BASIS,        *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ *  See the License for the specific language governing permissions and      *
+ *  limitations under the License.                                           *
+ *                                                                           *
+ *****************************************************************************/
+
+#ifndef QUERY_BASE_H
+#define QUERY_BASE_H
+
+#include "Object.h"
+#include "PDBString.h"
+#include "PDBVector.h"
+
+namespace pdb {
+
+// all queries are descended from this
+class QueryBase : public Object {
+
+public:
+
+	QueryBase () {
+		whichSet = "";
+		whichDB = "";
+	}
+
+	// gets the output type of this query as a string
+	virtual std :: string getOutputType () = 0;
+
+        // gets the number of intputs to this query type
+        virtual int getNumInputs () = 0;
+
+        // gets the name of the i^th input type...
+        virtual std :: string getIthInputType (int i) = 0;
+
+	// gets the name of this particular query type ("selection", "join", etc.)
+	virtual std :: string getQueryType () = 0;
+
+	// getters/setters for the output database name and set name for this query
+	void setDBName (std :: string toMe) {
+		whichDB = toMe;
+	}
+
+	void setSetName (std :: string toMe) {
+		whichSet =toMe;
+	}
+
+	std :: string getDBName () {
+		return whichDB;
+	}
+
+	std :: string getSetName () {
+		return whichSet;
+	}
+
+        // gets a handle to the i^th input to this query, which is also a query
+        Handle <QueryBase> &getIthInput (int i) const {
+        	return (*inputs)[i];
+        }
+
+	// set the first slot, by default
+	bool setInput (Handle <QueryBase> toMe) {
+		return setInput (0, toMe);
+	}
+
+        // sets the i^th input to be the output of a specific query... returns
+        // true if this is OK, false if it is not
+        bool setInput (int whichSlot, Handle <QueryBase> toMe) {
+
+                // set the array of inputs if it is a nullptr
+                if (inputs == nullptr) {
+                        inputs = makeObject <Vector <Handle <QueryBase>>> (getNumInputs ());
+                        for (int i = 0; i < getNumInputs (); i++) {
+                                inputs->push_back (nullptr);
+                        }
+                }
+
+		// if we are adding this query to a valid slot
+                if (whichSlot < getNumInputs ()) {
+
+                        // make sure the output type of the guy we are accepting meets the input type
+                        if (getIthInputType (whichSlot) != toMe->getOutputType ()) {
+                                return false;
+                        }
+
+                        (*inputs)[whichSlot] = toMe;
+
+			// make sure that the database names match up
+			if (getDBName () != toMe->getDBName ()) {
+					std :: cout << "This is bad; you seem to be combining inputs from different databases.\n";
+			} else {
+
+				// if we have not yet gotten the DB name, then set it here
+				setDBName (toMe->getDBName ());
+			}
+
+                        return true;
+                }
+
+                return false;
+        }
+
+
+private:
+
+	// this is the name of the database/set combo where the answer of this query is stored
+	String whichDB; 
+	String whichSet; 
+
+	// all of the queries that are input into this one
+	Handle <Vector <Handle <QueryBase>>> inputs;
+};
+
+}
+
+#endif

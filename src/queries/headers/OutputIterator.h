@@ -21,6 +21,8 @@
 
 #include "Query.h"
 #include "Handle.h"
+#include "DoneWithResult.h"
+#include "KeepGoing.h"
 
 namespace pdb {
 
@@ -29,16 +31,111 @@ class OutputIterator {
 
 public:
 
-	bool operator != (const OutputIterator&) const {
-		return false;	
+	bool operator != (const OutputIterator &me) const {
+		if (connection != nullptr || me.connection != nullptr)
+			return true;	
+		return false;
 	}
 
 	Handle <OutType> operator * () const {
-		return nullptr;
+		return ((*data)[pos]);
 	} 
 	
-	void operator ++ () {}
+	void operator ++ () {
+		if (pos == size) {
+			
+			// for allocations
+			const UseTemporaryAllocationBlock tempBlock {1024};
 
+			// for errors
+			std :: string errMsg;
+
+			// free the last page
+			Handle <KeepGoing> temp;
+			if (page != nullptr) {
+				free (page);
+				page = nullptr;
+				temp = makeObject <KeepGoing> ();
+				if (!connection->sendObject (temp, errMsg)) {
+					std :: cout << "Problem sending request: " << errMsg << "\n";
+					connection = nullptr;
+					return;
+				}
+			}
+
+			// get the next page
+			size_t objSize = connection->getSizeOfNextObject ();
+
+			// if the file is done, then we're good 
+			if (connection->getObjectTypeID () == DoneWithResult_TYPEID) {
+				connection = nullptr;
+				return;	
+			}
+
+			// we've got some more data
+			page = (Record <Vector <Handle <OutType>>> *) malloc (objSize);
+			if (!connection->receiveBytes (page, errMsg)) {
+				std :: cout << "Problem getting data: " << errMsg << "\n";
+				connection = nullptr;
+				return;
+			}
+			
+			// gets the vector that we are going to iterate over
+			data = page->getRootObject ();	
+			size = data->size ();
+			pos = 0;
+
+		} else {
+			pos++;
+		}
+		
+	}
+
+	OutputIterator (PDBCommunicatorPtr connectionIn) {
+		connection = connectionIn;
+		data = nullptr;
+		page = nullptr;		
+
+		// get the ball rolling!!
+		this->operator++ ();
+	}
+
+	OutputIterator () {
+		connection = nullptr;
+		data = nullptr;
+		page = nullptr;
+	}
+
+	~OutputIterator () {
+			
+		// make sure we don't leave a page sitting around
+		if (page != nullptr) 
+			delete (page);
+
+		// nothing to do if we don't have a connection
+		if (connection == nullptr) 
+			return;
+
+		// for allocations
+		const UseTemporaryAllocationBlock tempBlock {1024};
+
+		// tell the server we are done
+		Handle <DoneWithResult> temp = makeObject <DoneWithResult> ();
+		std :: string errMsg;
+		if (!connection->sendObject (temp, errMsg)) {
+			std :: cout << "Problem sending done message: " << errMsg << "\n";
+			connection = nullptr;
+			return;
+		}
+	}
+
+private:
+
+	int size = 0;
+	int pos = 0;
+	Handle <Vector <Handle <OutType>>> data;
+	Record <Vector <Handle <OutType>>> *page;
+	PDBCommunicatorPtr connection;
 };
 
 }

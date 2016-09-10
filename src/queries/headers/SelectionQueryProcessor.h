@@ -20,6 +20,7 @@
 #define SELECTION_QUERY_PROCESSOR_H
 
 #include "SimpleSingleTableQueryProcessor.h"
+#include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBVector.h"
 #include "Selection.h"
@@ -31,6 +32,9 @@ template <class Output, class Input>
 class SelectionQueryProcessor : public SimpleSingleTableQueryProcessor {
 
 private:
+
+	// this is where we write the results
+	UseTemporaryAllocationBlockPtr blockPtr; 
 
 	// this is where the input objects are put
 	Handle <Input> inputObject;

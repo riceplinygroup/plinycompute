@@ -44,16 +44,19 @@ public:
 	SimpleSingleTableQueryProcessorPtr getProcessor ();
 
 	// gets the number of inputs
-	virtual int getNumInputs () {return 1;}
+	virtual int getNumInputs () override {return 1;}
 
         // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) {
+        virtual std :: string getIthInputType (int i) override {
 		if (i == 0)
 			return getTypeName <In> ();
 		else
 			return "bad index";
 	}
 
+	virtual std :: string getQueryType () override {
+		return "selection";
+	}
 };
 
 }

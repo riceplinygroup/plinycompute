@@ -51,7 +51,15 @@ void SelectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProce
 // load up another output page to process
 template <class Output, class Input>
 void SelectionQueryProcessor <Output, Input> :: loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) {
-	makeObjectAllocatorBlock (pageToWriteTo, numBytesInPage, true);
+
+	// kill the old allocation block
+	blockPtr = nullptr;
+
+	// create the new one
+	blockPtr = std :: make_shared <UseTemporaryAllocationBlock> (pageToWriteTo, numBytesInPage);
+
+
+	// and here's where we write the ouput to
 	outputVec = makeObject <Vector <Handle <Output>>> (10);
 }
 

@@ -36,12 +36,12 @@ class Join: public Query <Out> {
 	virtual Lambda <Handle <Out>> getProjection (Handle <In1> &in1, Handle <In2> &in2, Handle <Rest> & ...otherArgs) = 0;
 	
         // gets the number of intputs to this query type
-        virtual int getNumInputs () {
+        virtual int getNumInputs () override {
 		return 2 + sizeof...(Rest);
 	}
 
         // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) {
+        virtual std :: string getIthInputType (int i) override {
 		if (i == 0)
 			return getTypeName <In1> ();
 		else if (i == 1)
@@ -53,6 +53,9 @@ class Join: public Query <Out> {
 		return nameArray[i - 2];
 	}
 
+	virtual std :: string getQueryType () override {
+                return "join";
+        }
 };
 
 }

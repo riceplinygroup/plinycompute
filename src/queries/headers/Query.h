@@ -21,7 +21,7 @@
 
 #include "Handle.h"
 #include "Object.h"
-#include "QueryRoot.h"
+#include "QueryBase.h"
 #include "PDBVector.h"
 #include "TypeName.h"
 
@@ -29,63 +29,19 @@ namespace pdb {
 
 // this is the basic query type... all queries returning OutType derive from this class
 template <typename OutType> 
-class Query : public QueryRoot {
+class Query : public QueryBase {
 
 public:
 
 	// gets the name of this output type
-	std :: string getOutputType () {
+	std :: string getOutputType () override {
 		return getTypeName <OutType> ();
 	}
 
-	// gets the number of intputs to this query type
-	virtual int getNumInputs () = 0;
-
-	// gets the name of the i^th input type...
-	virtual std :: string getIthInputType (int i) = 0;
-
-	// gets a handle to the i^th input to this query, which is also a query
-	Handle <Query> getIthInput (int i) {
-		if (inputs != nullptr)
-			return inputs[i];
-		else
-			return nullptr;
-	}
-
-	// sets the i^th input to be the output of a specific query... returns
-	// true if this is OK, false if it is not
-	bool setInput (int whichSlot, Handle <QueryRoot> toMe) {
-		
-		// set the array of inputs if it is a nullptr
-		if (inputs == nullptr) {
-			inputs = makeObject <Vector <Handle <QueryRoot>>> (getNumInputs ());
-			for (int i = 0; i < getNumInputs (); i++) {
-				inputs->push_back (nullptr);
-			}
-		}
-
-		if (whichSlot >= getNumInputs ()) {
-
-			// make sure the output type of the guy we are accepting meets the input type
-			if (getIthInputType (whichSlot) != unsafeCast <Query <Object>> (toMe)->getOutputType ()) {
-				return false;
-			}
-
-			(*inputs)[whichSlot] = toMe;
-			return true;
-		}
-
-		return false;
-	}
-
-	// sets the 0^th slot
-	bool setInput (Handle <Query> toMe) {
-		return setInput (0, toMe);
-	}
-
-private:
-
-	Handle <Vector <Handle <QueryRoot>>> inputs;
+	// from QueryBase
+	// virtual int getNumInputs () = 0;
+	// virtual std :: string getIthInputType (int i) = 0;
+	// virtual std :: string getQueryType () = 0;
 
 };
 

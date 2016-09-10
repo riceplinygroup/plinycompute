@@ -16,29 +16,40 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef DATABASE_QUERY_H
-#define DATABASE_QUERY_H
+#ifndef SET_H
+#define SET_H
 
-#include <string>
-#include "Handle.h"
-#include "SetScan.h"
+#include <vector>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include "Query.h"
 
 namespace pdb {
 
-// this is the class that allows us to ask queries...
-// a QueryClient is a factory for these objects
-class DatabaseQuery {
+// this corresponds to a database set
+template <typename Out> 
+class Set : public Query <Out> {
 
 public:
 
-	// run the query!  Returns 1 on success
-	bool execute (std :: string errMSg);
+	Set (std :: string dbName, std :: string setName) {
+		this->setDBName (dbName);
+		this->setSetName (setName);		
+	}
 
-	// produces a scan of an input set, in the database/set combo...
-	// the type of object stored in that database/set should match
-	// the type DataType
-	template <class DataType>
-	Handle <SetScan <DataType>> scan (std :: string setName);
+	// gets the number of inputs
+	virtual int getNumInputs () override {return 0;}
+
+        // gets the name of the i^th input type...
+        virtual std :: string getIthInputType (int i) override {
+		 return "I have no inputs!!";
+	}
+
+        virtual std :: string getQueryType () override {
+                return "set";
+        }
+
 };
 
 }
