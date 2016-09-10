@@ -25,6 +25,8 @@
 #include "StorageAddData.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
+#include "StorageGetData.h"
+#include "StorageGetDataResponse.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
@@ -389,6 +391,64 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         return make_pair (res, errMsg);
 		}
 	));
+
+
+       // this handler accepts a request to add a set
+       forMe.registerHandler (StorageGetData_TYPEID, make_shared<SimpleRequestHandler<StorageGetData>> (
+               [&] (Handle <StorageGetData> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         bool res;
+                         //add a set in local
+                         SetPtr set = getFunctionality<PangeaStorageServer>().getSet(std :: pair <std :: string, std :: string> (request->getDatabase(), request->getSetName()));
+                         if (set == nullptr) {
+                                 errMsg = "Set doesn't exist.\n";
+                                 res = false;
+                         } else {
+                                 int numPages = set->getNumPages();
+                                 {
+                                     const UseTemporaryAllocationBlock tempBlock{1024};
+                                     Handle<StorageGetDataResponse> response = makeObject<StorageGetDataResponse>(numPages, request->getDatabase(), request->getSetName(), res, errMsg);
+                                     res = sendUsingMe->sendObject (response, errMsg);
+                                 }
+                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getType());
+                                          std :: cout << "TypeID ="<< typeID << std :: endl;
+                                          if (typeID == -1) {
+                                                    errMsg = "Could not find type " + request->getType();
+                                                    res = false;
+                                          } else {
+                                                    getFunctionality<PangeaStorageServer>().getCache()->pin(set, MRU, Read);
+                                                    std :: vector<PageIteratorPtr> * iterators = set->getIterators();
+                                                    int numIterators = iterators->size();
+                                                    int numPagesSent = 0;
+                                                    for (int i = 0; i < numIterators; i++) {
+                                                              PageIteratorPtr iter = iterators->at(i);
+                                                              while (iter->hasNext()) {
+                                                                      PDBPagePtr page = iter->next();
+                                                                      if (page != nullptr) {
+                                                                          std :: cout << "to send the " << numPagesSent <<"-th page" << std :: endl;
+                                                                          const UseTemporaryAllocationBlock block{128*1024*1024};
+                                                                          Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) page->getBytes();
+                                                                          Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
+                                                                          res = sendUsingMe->sendObject<Vector<Handle<Object>>>(objects, errMsg);
+                                                                          page->unpin();
+                                                                          if (res == false) {
+                                                                               std :: cout << "sending data failed\n";
+                                                                               return make_pair (res, errMsg);
+                                                                          }
+                                                                          numPagesSent ++;
+                                                                      }
+                                                              }
+                                                    }
+
+                                          }
+                                 }
+                         }
+                         return make_pair (res, errMsg);
+               }
+       ));
+
+
 
 
 }

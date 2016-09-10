@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_26_CC
-#define TEST_26_CC
+#ifndef TEST_27_CC
+#define TEST_27_CC
 
 #include "StorageClient.h"
 #include "PDBVector.h"
@@ -30,31 +30,29 @@ int main (int argc, char * argv[]) {
 
 	std :: cout << "Firstly, make sure to run bin/test23 in a different window to provide a catalog/storage server.\n";
         std :: cout << "Secondly, make sure to run bin/test24 first to register the type, create the database and set to add data to.\n";
+        std :: cout << "Thirdly, make sure to run bin/test26 first to add data to the set created in last step.\n";
+        std :: cout << "Now, you can run this test case:\n";
         std :: cout << std :: endl;
         std :: cout << std :: endl;
-        std :: cout << "You can provide 3 arguments:" << std :: endl;
-        std :: cout << "(1) the name of the database to add data to;" << std :: endl;
-        std :: cout << "(2) the name of the set to add data to;"<< std :: endl;
-        std :: cout << "(3) the size of data to add (in MB) ;"<< std :: endl;
+        std :: cout << "You can provide 2 arguments:" << std :: endl;
+        std :: cout << "(1) the name of the database to fetch set from;" << std :: endl;
+        std :: cout << "(2) the name of the set to fetch data from;"<< std :: endl;
         std :: cout << std :: endl;
         std :: cout << std :: endl; 
-        std :: cout << "By default Test24_Database123 will be used for database name, Test24_Set123 will be used for set name, and 128MB will be used for data size.\n";
+        std :: cout << "By default Test24_Database123 will be used for database name, Test24_Set123 will be used for set name\n";
         std :: cout << std :: endl;
         std :: cout << std :: endl;
 
         std :: string databaseName ("Test24_Database123");
         std :: string setName ("Test24_Set123");
 
-        int numOfMb = 128;
-        if (argc == 4) {
+        if (argc == 3) {
                 databaseName = argv[1];
                 setName = argv[2];
-                numOfMb = atoi(argv[3]);
         }
 
         std :: cout << "to add database with name: " << databaseName << std :: endl;
         std :: cout << "to add set with name: " << setName << std :: endl;
-        std :: cout << "to add data with size: " << numOfMb << "MB" << std :: endl;
         std :: cout << std :: endl;
         std :: cout << std :: endl;
 
@@ -63,35 +61,8 @@ int main (int argc, char * argv[]) {
 	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
 	string errMsg;
      
-
-        // now, create a bunch of data
-        size_t dataSize = numOfMb * 1024 * 1024;
-        int numIterations = dataSize/(128 * 1024);
-        for (int i = 0; i < numIterations; i++) {
-                void *storage = malloc (128 * 1024);
-                {
-                        pdb :: makeObjectAllocatorBlock (storage, 128 * 1024, true);
-                        pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
-
-                        try {
-
-                                for (int i = 0; true; i++) {
-                                        pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
-                                        storeMe->push_back (myData);
-                                }
-
-                        } catch (pdb :: NotEnoughSpace &n) {
-
-                                // we got here, so go ahead and store the vector
-                                if (!temp.storeData <SharedEmployee> (storeMe, databaseName, setName, errMsg)) {
-                                         cout << "Not able to store data: " + errMsg;
-                                         return 0;
-                                }
-                                //std :: cout << "stored the data!!\n";
-                        }
-                 }
-                 free (storage);
-        }
+        // now, fetch data from the set specified
+        temp.retrieveData<SharedEmployee>(databaseName, setName, errMsg);
 
         
 

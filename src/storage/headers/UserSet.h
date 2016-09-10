@@ -179,6 +179,12 @@ public:
     PDBPagePtr getPage(FilePartitionID partitionId, unsigned int pageSeqInPartition, PageID pageId);
 
     /**
+     * Get number of pages.
+     */
+    int getNumPages ();
+
+
+    /**
      * Return DatabaseID of the set instance.
      */
     DatabaseID getDbID() { return this->dbId; }
@@ -317,7 +323,7 @@ protected:
         unordered_map<PageID, FileSearchKey> * dirtyPagesInPageCache;
         pthread_mutex_t dirtyPageSetMutex;        
         bool isPinned;
-        
+        int numPages;        
 };
 
 

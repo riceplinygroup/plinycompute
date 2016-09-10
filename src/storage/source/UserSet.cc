@@ -51,6 +51,7 @@ UserSet::UserSet( pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
         this->dirtyPagesInPageCache = new unordered_map<PageID, FileSearchKey>();
         pthread_mutex_init(&this->dirtyPageSetMutex, nullptr);
         this->isPinned = false;
+        this->numPages = 0;
 }
 
 
@@ -86,6 +87,8 @@ UserSet::UserSet(size_t pageSize,
         this->dirtyPagesInPageCache = new unordered_map<PageID, FileSearchKey>();
         pthread_mutex_init(&this->dirtyPageSetMutex, nullptr);
         this->isPinned = false;
+        this->numPages = this->file->getNumFlushedPages();
+        cout << "Number of existing pages = "<<this->numPages<<endl;
 }
 
 
@@ -137,6 +140,7 @@ PDBPagePtr UserSet::addPage() {
     page->preparePage();
     //cout << "Page header prepared!\n";
     this->addPageToDirtyPageSet(page->getPageID());
+    numPages ++;
     return page;
 }
 
@@ -144,6 +148,12 @@ PDBPagePtr UserSet::addPageByRawBytes(size_t sharedMemOffset) {
     return nullptr;
 }
 
+/**
+ * Get number of pages.
+ */
+int UserSet::getNumPages () {
+    return numPages;
+}
 
 /**
  * Get a set of iterators for scanning the data in the set.

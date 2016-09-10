@@ -22,8 +22,16 @@
 #include "StorageClient.h"
 #include "StorageAddData.h"
 #include "StorageAddSet.h"
+#include "StorageGetData.h"
+#include "StorageGetDataResponse.h"
 #include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
+#include "CompositeRequest.h"
+
+#include <cstddef>
+#include <fcntl.h>
+#include <fstream>
+#include <iostream>
 
 namespace pdb {
 
@@ -66,8 +74,40 @@ bool StorageClient :: createSet (std :: string databaseName, std :: string setNa
 
 template <class DataType>
 bool StorageClient :: retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
-    //TODO
-    return false;
+    std :: string typeName = getTypeName<DataType>();
+    return compositeRequest<StorageGetData, StorageGetDataResponse, bool> (myLogger, port, address, false, 1024,
+            [&] (Handle <StorageGetDataResponse> response, PDBCommunicator communicator) {
+                     if (response == nullptr) {
+                             errMsg = "Error getting type name : got nothing back from storage";
+                             return false;
+                     }
+                     int numPages = response->getNumPages();
+                     std :: string fileName=response->getSetName();
+                     bool success;
+                     int filedesc = open (fileName.c_str(), O_WRONLY | O_APPEND);
+                     if(numPages > 0) {
+                             for (int i = 0; i < numPages; i ++) {
+                                 //the protocol is that each page is corresponding to a Vector
+                                 //let's get next Vector
+                                 UseTemporaryAllocationBlock tempBlock {communicator.getSizeOfNextObject()};
+                                 Handle<Vector<Handle<Object>>> objects = communicator.getNextObject<Vector<Handle<Object>>> (success, errMsg);
+                                 for (int j = 0; j < objects->size(); j++) {
+                                         if(j%10000 == 0) {
+                                                 std :: cout << "the "<<j<<"-th object:"<< std :: endl;
+                                                 unsafeCast<DataType, Object>((*objects)[j])->print();
+                                                 std :: cout << std :: endl;
+                                         }
+                                 }
+                                 Record<Vector<Handle<Object>>> * record = getRecord (objects);
+                                 write (filedesc, record, record->numBytes());
+                             }
+                     }
+                     close (filedesc);
+                     return true;                     
+             
+                 },
+
+databaseName, setName, typeName);
 
 }
 
