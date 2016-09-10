@@ -44,6 +44,10 @@ public:
 	// this allocates a new page at the end of the indicated database/set combo
 	MyDB_PageHandle getNewPage (pair <std :: string, std :: string> databaseAndSet);
 
+	// gets the specified page; returns a nullptr if we have asked for a page past the
+	// end of the file
+	MyDB_PageHandle getPage (pair <std :: string, std :: string> databaseAndSet, size_t pageNum);
+
 	// returns a table object referencing the given database/set pair
 	MyDB_TablePtr getTable (pair <std :: string, std :: string> databaseAndSet);
 

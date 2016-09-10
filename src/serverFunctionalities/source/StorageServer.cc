@@ -78,6 +78,11 @@ MyDB_PageHandle StorageServer :: getNewPage (pair <std :: string, std :: string>
 	return getBufferManager ()->getPinnedPage (whichTable, pageNum);
 }
 
+MyDB_PageHandle StorageServer :: getPage (pair <std :: string, std :: string> databaseAndSet, size_t pageNum) {
+	MyDB_TablePtr whichTable = getTable (databaseAndSet);
+	return getBufferManager ()->getPinnedPage (whichTable, pageNum);
+}
+
 void StorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet) {
 
 	// get all of the records

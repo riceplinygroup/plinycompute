@@ -21,8 +21,12 @@
 
 #include "Allocator.h"
 #include "InterfaceFunctions.h"
+#include <memory>
 
 namespace pdb {
+
+class UseTemporaryAllocationBlock;
+typedef std :: shared_ptr <UseTemporaryAllocationBlock> UseTemporaryAllocationBlockPtr;
 
 class UseTemporaryAllocationBlock {
 

@@ -16,40 +16,51 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef QUERY_SERVER_H
+#define QUERY_SERVER_H
 
+#include "ServerFunctionality.h"
 #include "PDBServer.h"
+#include "Record.h"
+#include "MyDB_Catalog.h"
+#include <vector>
+#include "PDBVector.h"
+#include "QueryBase.h"
+#include "MyDB_BufferManager.h"
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+class QueryServer : public ServerFunctionality {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
+	// creates a query server... the param is the number of threads to use
+	// to answer queries
+	QueryServer (int numThreads);
 
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
+	// from the ServerFunctionality interface... registers the QueryServer's 
+	// single handler, which accepts a query and executes it
+	void registerHandlers (PDBServer &forMe) override;
 
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
+	// this recursively traverses a simple query graph, where each node can only have one input,
+	// makes sure that each node has been computed... setPrefix is the string that we'll use
+	// to create each set name, whichNode is the counter that we use to name each set, and
+	// computeMe is the node that we are wirred about computing
+	void computeQuery (std :: string setPrefix, int &whichNode, Handle <QueryBase> &computeMe);
+
+	// this actually computes a selection query.  The params are like the above function
+	void doSelection (std :: string setPrefix, int whichNode, Handle <QueryBase> &computeMe);
+
+	// destructor
+	~QueryServer ();
 
 private:
 
-	PDBServer *parent;	
+	// the number of threads to use
+	int numThreadsToUse;
+		
+	// used to count up temporary file names: tempSet0, tempSet1, tempSet2, ...
+	int tempSetName;
 };
 
 }

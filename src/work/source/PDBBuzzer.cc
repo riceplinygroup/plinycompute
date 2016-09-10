@@ -22,6 +22,8 @@
 #include "PDBBuzzer.h"
 #include <iostream>
 
+PDBBuzzer :: PDBBuzzer () {}
+
 void PDBBuzzer::buzz (PDBAlarm withMe) {
     pthread_mutex_lock(&waitingMutex);
     if (noStringFunc != nullptr)

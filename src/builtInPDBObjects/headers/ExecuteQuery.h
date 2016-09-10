@@ -16,40 +16,40 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef EXEC_QUERY_H
+#define EXEC_QUERY_H
 
-#include "PDBServer.h"
+#include "Object.h"
+#include "Handle.h"
+#include "QueryBase.h"
+#include "PDBString.h"
+
+// PRELOAD %ExecuteQuery%
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+// encapsulates a request to search for a type in the catalog
+class ExecuteQuery : public Object {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
+	ExecuteQuery () {}
+	~ExecuteQuery () {}
 
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
+	ExecuteQuery (Handle <Vector <Handle <QueryBase>>> allOutputs) : allOutputs (allOutputs) {}
+
+	Handle <Vector <Handle <QueryBase>>> getOutputs () {
+		return allOutputs;
 	}
 	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
-
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
+	ENABLE_DEEP_COPY
 
 private:
 
-	PDBServer *parent;	
+	// these are the outputs that we need to compute... note that each output
+	// may in turn have an input
+	Handle <Vector <Handle <QueryBase>>> allOutputs; 
+
 };
 
 }

@@ -16,42 +16,32 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef GENERIC_WORK_H
+#define GENERIC_WORK_H
 
-#include "PDBServer.h"
+#include "PDBWork.h"
 
+// This template is used to make a simple piece of work with a particular execute function, and some state
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+class GenericWork : public PDBWork {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
-
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
+	// this accepts the lambda that is used to process the RequestType object
+	GenericWork (function <void (PDBBuzzerPtr)> executeMeIn) {
+		executeMe = executeMeIn;
 	}
 
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
+	void execute (PDBBuzzerPtr callerBuzzer) {
+		executeMe (callerBuzzer);
 	}
 
 private:
-
-	PDBServer *parent;	
+	function <void (PDBBuzzerPtr)> executeMe = nullptr;
 };
 
 }
 
 #endif
+

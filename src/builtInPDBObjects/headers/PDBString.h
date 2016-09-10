@@ -48,6 +48,8 @@ public:
 	friend std::ostream& operator<< (std::ostream& stream, const String &printMe);
 	bool operator == (const String &toMe);
 	bool operator != (const String &toMe);
+	bool operator != (const std :: string &toMe);
+	bool operator != (const char *toMe);
 };
 
 }

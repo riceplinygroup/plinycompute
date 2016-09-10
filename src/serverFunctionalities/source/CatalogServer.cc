@@ -197,6 +197,15 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 	return allTypeCodes[typeIdentifier];
 }
 
+size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) { 
+	int numPages;
+	if (!myCatalog->getInt (dbName + "." + "setName" + ".fileSize", numPages)) {
+		return -1;
+	} else {
+		return numPages;
+	}
+}
+
 size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName) {
 	int numPages;
 	if (!myCatalog->getInt (dbName + "." + "setName" + ".fileSize", numPages)) {

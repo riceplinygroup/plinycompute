@@ -32,18 +32,18 @@ using namespace std;
 class PDBBuzzer;
 typedef shared_ptr <PDBBuzzer> PDBBuzzerPtr;
 
-// the way that this works is that anyone who is waiting on the buzzer (via a call to wait) is
-// blocked until someone calls buzz.  After the call to buzz:
-// 
-// (1) first, the appropriate handleBuzz function is called (either the one with the message or 
-//	without the message)
-// (2) second, anyone blocked on wait is woken up
+// A buzzer is an object given by someone who wants work done by a worker.  
 //
-// The way that this is used is that when one has work to do, they will create a piece of work,
-// as well as a worker, and then get the buzzer associated with that worker.  They then ask the
-// worker to do the work, and (optionally) they block on the work.  When the work finishes, it
-// will typically call buzz (PDBAlarm :: WorkAllDone), causing anyone blocked on the work to 
-// wake up.  
+// The buzzer's constructor takes as input a function to handle the buzzer being signaled.
+//
+// Typically, someone who wants work done will create a buzzer, and then give it to a bunch
+// of workers, then will call wait () to sleep until work is completed.
+//
+// When a piece of work is completed, the woker then calls buzz (), which invokes the 
+// function stored inside of the buzzer.
+//
+// One is guarnateed that each call to buzz () will result in a separate invocation of
+// the function.
 
 #include "PDBAlarm.h"
 #include <pthread.h>
@@ -63,6 +63,7 @@ public:
     void wait();
 
     // constructor, destructor
+    PDBBuzzer();
     PDBBuzzer(std::function <void (PDBAlarm)>);
     PDBBuzzer(std::function <void (PDBAlarm, string)>);
     ~PDBBuzzer();

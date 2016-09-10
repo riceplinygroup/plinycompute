@@ -40,7 +40,7 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
 
 	// build the request
 	const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
-	Handle <RequestType> request = makeObject <RequestType> (args...);;
+	Handle <RequestType> request = makeObject <RequestType> (args...);
 	if (!temp.sendObject (request, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleSendDataRequest: not able to send request to server.\n");

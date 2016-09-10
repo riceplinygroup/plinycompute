@@ -16,42 +16,41 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef CHRIS_SELECT_CC
+#define CHRIS_SELECT_CC
 
-#include "PDBServer.h"
+#include "Selection.h"
+#include "Employee.h"
+#include "Supervisor.h"
+#include "PDBVector.h"
+#include "PDBString.h"
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+class ChrisSelection : public Selection <String, SharedEmployee> {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
+	ENABLE_DEEP_COPY
 
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
+	ChrisSelection () {}
+	~ChrisSelection () {}
+
+	Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return (*(checkMe->getName ()) != "Joe Johnson48");
+		});
 	}
 
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
+	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
+		return makeLambda (checkMe, [&] {
+			return checkMe->getName ();
+		});
 	}
-
-private:
-
-	PDBServer *parent;	
 };
 
 }
+
+GET_V_TABLE (ChrisSelection)
 
 #endif

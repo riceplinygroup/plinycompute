@@ -16,40 +16,20 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef KEEP_GOING_H
+#define KEEP_GOING_H
 
-#include "PDBServer.h"
+#include "Object.h"
+
+//  PRELOAD %KeepGoing%
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+class KeepGoing : public Object {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
-
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
-
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
-
-private:
-
-	PDBServer *parent;	
+	ENABLE_DEEP_COPY
 };
 
 }

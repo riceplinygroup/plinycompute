@@ -16,40 +16,48 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef SET_SCAN_H
+#define SET_SCAN_H
 
-#include "PDBServer.h"
+#include "Object.h"
+#include "Handle.h"
+#include "QueryBase.h"
+#include "PDBString.h"
+
+// PRELOAD %SetScan%
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+// encapsulates a request to scan a set stored in the database 
+class SetScan : public Object {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
+	SetScan (std :: string dbNameIn, std :: string setNameIn) {
+		dbName = dbNameIn;
+		setName = setNameIn;	
+	}
 
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
+	SetScan () {}
+	~SetScan () {}
+
+	String getDatabase () {
+		return dbName;
+	}
+
+	String getSetName () {
+		return setName;
 	}
 	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
-
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
+	ENABLE_DEEP_COPY
 
 private:
 
-	PDBServer *parent;	
+	// this is the database that we are computing over
+	String dbName;
+	
+	// and the set
+	String setName;
 };
 
 }

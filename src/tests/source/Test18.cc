@@ -24,12 +24,33 @@
 #include "Query.h"
 #include "Lambda.h"
 #include "Selection.h"
-#include "DatabaseQuery.h"
 #include "QueryClient.h"
-#include "QueryOutput.h"
+#include "StorageClient.h"
+
+#include "../../sharedLibraries/source/SharedLibEmployee.cc"
 
 using namespace pdb;
 
+namespace pdb {
+
+class ChrisSelection : public Selection <String, SharedEmployee> {
+
+        Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
+                return makeLambda (checkMe, [&] () {
+                        return (*(checkMe->getName ()) != "Joe Johnson48");
+                });
+        }
+
+        Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
+                return makeLambda (checkMe, [&] {
+                        return checkMe->getName ();
+                });
+        }
+};
+
+}
+
+// this is just here as an example... not actually used
 class ChrisJoin : public Join <String, double, int, double> {
 
 	virtual Lambda <bool> getSelection (Handle <double> &in1, Handle <int> &in2, Handle <double> &in3) {
@@ -43,50 +64,33 @@ class ChrisJoin : public Join <String, double, int, double> {
 	
 };
 
-class ChrisSelect : public Selection <String, String> {
-
-	virtual Lambda <bool> getSelection (Handle <String> &in) {
-		return makeLambda ([&] () {return true;});
-	}
-
-	virtual Lambda <Handle <String>> getProjection (Handle <String> &in) {
-		return makeLambda (in, [&] () {return in;});
-	}
-};
-
 int main () {
 
-	// connect to the client
-	QueryClient myClient (8191, "localhost");
+	// register this query class
+	string errMsg;
+	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
+	StorageClient temp (8108, "localhost", myLogger);
+	temp.registerType ("libraries/libChrisSelection.so", errMsg);	
 
-	// ask him for a database qurey
-	DatabaseQuery myQuery = myClient.makeQuery ("ChrisDB");
-	
-	// the join takes as input threee tables
-	Handle <ChrisJoin> myJoin = makeObject <ChrisJoin> ();
-	myJoin->setInput (0, myQuery.scan <double> ("BunchOfDoubles"));
-	myJoin->setInput (1, myQuery.scan <int> ("BunchOfInts"));
-	myJoin->setInput (2, myQuery.scan <double> ("EvenMoreDoubles"));
+	// connect to the query client
+	QueryClient myClient (8108, "localhost", myLogger);
 
-	// the selection takes an input the result of the join
-	Handle <ChrisSelect> mySelect = makeObject <ChrisSelect> ();
-	mySelect->setInput (myJoin);
-	
+	// build a scan of the "chris_db", "chris_set" set
+	Handle <ChrisSelection> mySelect = makeObject <ChrisSelection> ();
+	mySelect->setInput (0, myClient.getSet <SharedEmployee> ("chris_db", "chris_set"));
+
 	// the result will go into an iterator on the client machine
-	Handle <QueryOutput <String>> myResult = makeObject <QueryOutput <String>> ();
-	myResult->setInput (mySelect);
+	Handle <LocalQueryOutput <String>> output = makeObject <LocalQueryOutput <String>> ();
+	output->setInput (mySelect);
 
-	// execute the query
-	std :: string errMsg;
-	if (!myQuery.execute (errMsg)) {
+	if (!myClient.execute (output, errMsg)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
 		return 0;
 	}
 	
 	// print the resuts
-	for (auto a : *myResult) 
+	for (auto a : *output) 
 		std :: cout << (*a) << "\n";
-
 }
 
 #endif

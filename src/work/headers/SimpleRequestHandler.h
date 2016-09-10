@@ -20,6 +20,10 @@
 #define SIMPLE_REQUEST_HANDLER_H
 
 #include "PDBCommunicator.h"
+#include "PDBCommWork.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "PDBBuzzer.h"
+#include <memory>
 
 // This template is used to make a simple piece of work that accepts an object of type RequestType from the client,
 // processes the request, then sends the response back via a communicator.  The constructor for the class
@@ -32,12 +36,12 @@ class SimpleRequestHandler : public PDBCommWork {
 public:
 
 	// this accepts the lambda that is used to process the RequestType object
-	SimpleRequestHandler (function <pair <bool, std :: string> (Handle <RequestType>, PDBCommunicatorPtr)> useMe) {
+	SimpleRequestHandler (std :: function <std :: pair <bool, std :: string> (Handle <RequestType>, PDBCommunicatorPtr)> useMe) {
 		processRequest = useMe;
 	}
 
 	PDBCommWorkPtr clone () {
-		return make_shared <SimpleRequestHandler <RequestType>> (processRequest);
+		return std :: make_shared <SimpleRequestHandler <RequestType>> (processRequest);
 	}
 
 	void execute (PDBBuzzerPtr callerBuzzer) {
@@ -46,31 +50,34 @@ public:
 		PDBCommunicatorPtr myCommunicator = getCommunicator ();
 		bool success;
 		std :: string errMsg;
-		UseTemporaryAllocationBlock tempBlock {myCommunicator->getSizeOfNextObject ()};
-		Handle <RequestType> request = myCommunicator->getNextObject <RequestType> (success, errMsg);
-		
-		PDBLoggerPtr myLogger = getLogger ();
-		if (!success) {
-			myLogger->error ("SimpleRequestHandler: tried to get the next object and failed; " + errMsg);
-			callerBuzzer->buzz (PDBAlarm :: GenericError);
+		void *memory = malloc (myCommunicator->getSizeOfNextObject ());
+		{
+			UseTemporaryAllocationBlock tempBlock {memory, myCommunicator->getSizeOfNextObject ()};
+			Handle <RequestType> request = myCommunicator->getNextObject <RequestType> (success, errMsg);
+			
+			PDBLoggerPtr myLogger = getLogger ();
+			if (!success) {
+				myLogger->error ("SimpleRequestHandler: tried to get the next object and failed; " + errMsg);
+				callerBuzzer->buzz (PDBAlarm :: GenericError);
+			}
+	
+			std :: pair <bool, std :: string> res = processRequest (request, myCommunicator);
+			if (!res.first) {
+				myLogger->error ("SimpleRequestHandler: tried to process the request and failed; " + errMsg);
+				callerBuzzer->buzz (PDBAlarm :: GenericError);
+				return;
+			}
+	
+			myLogger->info ("SimpleRequestHandler: finished processing requet.");
+			callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
 		}
-
-		std :: pair <bool, std :: string> res = processRequest (request, myCommunicator);
-		if (!res.first) {
-			myLogger->error ("SimpleRequestHandler: tried to process the request and failed; " + errMsg);
-			callerBuzzer->buzz (PDBAlarm :: GenericError);
-			return;
-		}
-
-		myLogger->info ("SimpleRequestHandler: finished processing requet.");
-		callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
+		free (memory);
 		return;
 	}
 
 private:
 
 	function <pair <bool, std :: string> (Handle <RequestType>, PDBCommunicatorPtr)> processRequest;
-	
 };
 
 }

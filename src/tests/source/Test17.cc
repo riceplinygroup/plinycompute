@@ -56,9 +56,9 @@ int main () {
 	}
 
 	// now, create a bunch of data
-	void *storage = malloc (128 * 1024);
+	void *storage = malloc (1024 * 1024 * 8);
 	{
-		pdb :: makeObjectAllocatorBlock (storage, 128 * 1024, true);
+		pdb :: makeObjectAllocatorBlock (storage, 1024 * 1024 * 8, true);
 		pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
 
 		try {

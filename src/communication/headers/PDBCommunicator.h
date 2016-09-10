@@ -79,24 +79,11 @@ public:
     template <class ObjType>
     bool sendObject (Handle <ObjType> &sendMe, std :: string &errMsg);
 
-    // sends an object + a bunch of binary data over the channel... the assumption is that ObjType is of the form
-    // 
-    // class ObjType {
-    //    ...
-    // public:
-    //    Handle <Vector <uint8_t>> dataToSend;
-    //    ...
-    // };
-    // 
-    // What this does is to temporarily set header->dataToSend so that header->dataToSend will contain the 
-    // contents of the parameter data (that is, (*header->dataToSend)[0] will contain the first byte of data,
-    // (*header->dataToSend)[1] will contain the second byte, and so on).  The resulting object is then
-    // sent over the wire.  One can then retrive the contents of data at the other side of the communicator by
-    // looking inside of dataToSend.  After the call, the contents of dataToSend are restored to their original
-    // contents.
-    //
-    template <class ObjType>
-    bool sendBytes (Handle <ObjType> &header, void *data, size_t size, std :: string &errMsg);
+    // sends a bunch of binary data over a channel
+    bool sendBytes (void *data, size_t size, std :: string &errMsg);
+
+    // receives a bunch of binary data over a channel
+    bool receiveBytes (void *data, std :: string &errMsg);
 
     // note that the file descriptor corresponding to the socket is always closed by the destructor!
     virtual ~PDBCommunicator();

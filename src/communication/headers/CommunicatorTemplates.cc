@@ -76,45 +76,28 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	return true;
 }
 
-template <class ObjType>
-bool PDBCommunicator :: sendBytes (Handle <ObjType> &sendMe, void *data, size_t sizeOfBytes, std :: string &errMsg) {
+inline bool PDBCommunicator :: receiveBytes (void *data, std :: string &errMsg) {
 
-	// The layout of what we write to the socket is:
-	//
-	// | Record holding sendMe | RefCountedObjectPreamble | Bytes of Array <char> up to data[0] | Bytes of data |
-	// 
-	// This requires that we update the offset of sendMe->dataToSend.myArray so that it is pointing to
-	// the first byte of RefCountedObjectPreamble.
-	
-	auto *record = getRecord (sendMe);
-	size_t recSize = record->numBytes ();
-	if (record == nullptr) {
-		std :: cout << "BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
-		exit (1);
+	// if we have previously gotten the size, just return it
+	if (!readCurMsgSize) {
+		getSizeOfNextObject ();
 	}
 
-	size_t offsetOfMyArray = ((char *) &(sendMe->dataToSend.myArray) - ((char *) record));
+	// the first few bytes of a record always record the size
+	char *mem = (char *) data;
 
-	// remember the old offset
-	int64_t oldOffset = sendMe->dataToSend.myArray.getOffset ();
-
-	// and set the new one
-	sendMe->dataToSend.myArray.setOffset (record->numBytes () - offsetOfMyArray);
-
-	// compute the size of what we are sending
-	Array <char> myArray (sizeOfBytes);
-	size_t sizeToSend = record->numBytes () + REF_COUNT_PREAMBLE_SIZE + (((char *) &(myArray.data[0])) - ((char *) &myArray)) + sizeOfBytes;
-
-	// set the size in the record
-	*((size_t *) record) = sizeToSend;
-			
-	// first, write the record type
-	int16_t recType = getTypeID <ObjType> ();
-	if (recType < 0) {
-		std :: cout << "BAD!  Trying to send a handle to a non-Object type.\n";
-		exit (1);
+	if (doTheRead (mem)) {
+		errMsg = "Could not read the next object coming over the wire";
+		readCurMsgSize = false;
+		return false;
 	}
-	
+
+	return true;
+}
+
+inline bool PDBCommunicator :: sendBytes (void *data, size_t sizeOfBytes, std :: string &errMsg) {
+
+	int16_t recType = NoMsg_TYPEID;
 	if (doTheWrite (((char *) &recType), ((char *) &recType) + sizeof (int16_t))) {
 		errMsg = "PDBCommunicator: not able to send the object type";
             	logToMe->error(errMsg);
@@ -122,27 +105,9 @@ bool PDBCommunicator :: sendBytes (Handle <ObjType> &sendMe, void *data, size_t 
 		return false;
 	}
 
-	// now write the record
-	if (doTheWrite (((char *) record), ((char *) record) + recSize)) {
+	// now write the size 
+	if (doTheWrite (((char *) &sizeOfBytes), ((char *) &sizeOfBytes) + sizeof (size_t))) {
 		errMsg = "PDBCommunicator: not able to send the object size";
-            	logToMe->error(errMsg);
-            	logToMe->error(strerror(errno));
-		return false;
-	}
-
-	// and write the preamble
-	char scratch[REF_COUNT_PREAMBLE_SIZE];
-	if (doTheWrite (((char *) scratch), ((char *) scratch) + REF_COUNT_PREAMBLE_SIZE)) {
-		errMsg = "PDBCommunicator: not able to send the object";
-            	logToMe->error(errMsg);
-            	logToMe->error(strerror(errno));
-		return false;
-	}
-	
-	// now write the array object
-	myArray.setUsed (sizeOfBytes);
-	if (doTheWrite (((char *) &myArray), ((char *) &(myArray.data[0])))) {
-		errMsg = "PDBCommunicator: not able to send the array header";
             	logToMe->error(errMsg);
             	logToMe->error(strerror(errno));
 		return false;
@@ -156,10 +121,9 @@ bool PDBCommunicator :: sendBytes (Handle <ObjType> &sendMe, void *data, size_t 
 		return false;
 	}
 	
-	// and restore the offset
-	sendMe->dataToSend.myArray.setOffset (oldOffset);
 	return true;
 }
+
 
 template <class ObjType>
 Handle <ObjType> PDBCommunicator :: getNextObject (void *readToHere, bool &success, std :: string &errMsg) {

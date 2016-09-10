@@ -16,40 +16,20 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SERVER_FUNCT_H
-#define SERVER_FUNCT_H
+#ifndef DONE_W_RES_H
+#define DONE_W_RES_H
 
-#include "PDBServer.h"
+#include "Object.h"
+
+// PRELOAD %DoneWithResult%
 
 namespace pdb {
 
-// this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
-class ServerFunctionality {
+class DoneWithResult : public Object {
 
 public:
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
-
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
-
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
-
-private:
-
-	PDBServer *parent;	
+	ENABLE_DEEP_COPY
 };
 
 }
