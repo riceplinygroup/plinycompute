@@ -45,7 +45,7 @@ namespace pdb {
 
 template <class RequestType, class ResponseType, class ReturnType, class ...RequestTypeParams>
 ReturnType compositeRequest (PDBLoggerPtr myLogger, int port, std :: string address, ReturnType onErr, size_t bytesForRequest, 
-	function <ReturnType (Handle <ResponseType>, PDBCommunicatorPtr)> processResponse, RequestTypeParams&&... args);
+	function <ReturnType (Handle <ResponseType>, PDBCommunicator)> processResponse, RequestTypeParams&&... args);
 
 }
 
