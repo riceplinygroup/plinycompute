@@ -31,8 +31,6 @@
 
 using namespace pdb;
 
-namespace pdb {
-
 class ChrisSelection : public Selection <String, SharedEmployee> {
 
         Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
@@ -48,9 +46,6 @@ class ChrisSelection : public Selection <String, SharedEmployee> {
         }
 };
 
-}
-
-// this is just here as an example... not actually used
 class ChrisJoin : public Join <String, double, int, double> {
 
 	virtual Lambda <bool> getSelection (Handle <double> &in1, Handle <int> &in2, Handle <double> &in3) {
