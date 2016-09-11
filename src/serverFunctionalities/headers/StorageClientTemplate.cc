@@ -83,16 +83,20 @@ bool StorageClient :: retrieveData (std :: string databaseName, std :: string se
                      }
                      int numPages = response->getNumPages();
                      std :: string fileName=response->getSetName();
-                     int filedesc = open (fileName.c_str(), O_WRONLY | O_APPEND);
+                     std :: cout << "fileName =" << fileName << std :: endl;
+                     int filedesc = open (fileName.c_str(), O_CREAT | O_WRONLY | O_APPEND);
+                     bool success;
+                     std :: cout << "total page number =" << numPages << std :: endl;
                      if(numPages > 0) {
                              for (int i = 0; i < numPages; i ++) {
                                  //the protocol is that each page is corresponding to a Vector
                                  //let's get next Vector
-                                 /*
-                                 UseTemporaryAllocationBlock tempBlock {communicator.getSizeOfNextObject()};
-                                 Handle<Vector<Handle<Object>>> objects = communicator.getNextObject<Vector<Handle<Object>>> (success, errMsg);
-                                 */
                                  char * recvBuffer = (char * ) malloc (response->getRawPageSize());
+                                 success =communicator.receiveBytes(recvBuffer, errMsg);
+                                 if(success == false) {
+                                      close (filedesc);
+                                      return false;
+                                 }
                                  Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) (recvBuffer + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
                                  Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
                                  for (int j = 0; j < objects->size(); j++) {

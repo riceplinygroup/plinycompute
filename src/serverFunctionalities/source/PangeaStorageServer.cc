@@ -428,13 +428,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                                       if (page != nullptr) {
                                                                           std :: cout << "to send the " << numPagesSent <<"-th page" << std :: endl;
                                                                           //const UseTemporaryAllocationBlock block{128*1024*1024};
-                                                                          /*
-                                                                          Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) page->getBytes();
-                                                                          Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
-                                                                          std :: cout << "sending the page..."<<std :: endl;
-                                                                          res = sendUsingMe->sendObject<Vector<Handle<Object>>>(objects, errMsg);
-                                                                          std :: cout << "page sent..."<<std :: endl;
-                                                                          */
                                                                           std :: cout << "sending the page..."<<std :: endl;
                                                                           res = sendUsingMe->sendBytes(page->getRawBytes(), page->getRawSize(), errMsg);
                                                                           std :: cout << "page sent..."<<std :: endl;
@@ -445,10 +438,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                                           }
                                                                           std :: cout << "sending data succeeded\n";
                                                                           numPagesSent ++;
-                                                                          std :: cout << "to send the next page\n";
+                                                                          //std :: cout << "to send the next page\n";
                                                                       }
                                                               }
                                                     }
+                                                    std :: cout << "All done!\n";
 
                                           }
                                  }
