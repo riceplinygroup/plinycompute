@@ -407,7 +407,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                  int numPages = set->getNumPages();
                                  {
                                      const UseTemporaryAllocationBlock tempBlock{1024};
-                                     Handle<StorageGetDataResponse> response = makeObject<StorageGetDataResponse>(numPages, request->getDatabase(), request->getSetName(), res, errMsg);
+                                     Handle<StorageGetDataResponse> response = makeObject<StorageGetDataResponse>(numPages, request->getDatabase(), request->getSetName(), conf->getPageSize(), conf->getPageSize()-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)), res, errMsg);
                                      res = sendUsingMe->sendObject (response, errMsg);
                                  }
                                  if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
@@ -427,16 +427,25 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                                       PDBPagePtr page = iter->next();
                                                                       if (page != nullptr) {
                                                                           std :: cout << "to send the " << numPagesSent <<"-th page" << std :: endl;
-                                                                          const UseTemporaryAllocationBlock block{128*1024*1024};
+                                                                          //const UseTemporaryAllocationBlock block{128*1024*1024};
+                                                                          /*
                                                                           Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) page->getBytes();
                                                                           Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
+                                                                          std :: cout << "sending the page..."<<std :: endl;
                                                                           res = sendUsingMe->sendObject<Vector<Handle<Object>>>(objects, errMsg);
+                                                                          std :: cout << "page sent..."<<std :: endl;
+                                                                          */
+                                                                          std :: cout << "sending the page..."<<std :: endl;
+                                                                          res = sendUsingMe->sendBytes(page->getRawBytes(), page->getRawSize(), errMsg);
+                                                                          std :: cout << "page sent..."<<std :: endl;
                                                                           page->unpin();
                                                                           if (res == false) {
                                                                                std :: cout << "sending data failed\n";
                                                                                return make_pair (res, errMsg);
                                                                           }
+                                                                          std :: cout << "sending data succeeded\n";
                                                                           numPagesSent ++;
+                                                                          std :: cout << "to send the next page\n";
                                                                       }
                                                               }
                                                     }

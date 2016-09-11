@@ -49,14 +49,14 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 		std :: cout << "BAD!  Trying to send a handle to a non-Object type.\n";
 		exit (1);
 	}
-
+        //std :: cout << "recType = " << recType << std :: endl;
 	if (doTheWrite (((char *) &recType), ((char *) &recType) + sizeof (int16_t))) {
 		errMsg = "PDBCommunicator: not able to send the object type";
             	logToMe->error(errMsg);
             	logToMe->error(strerror(errno));
 		return false;
 	}
-
+        //std :: cout << "written the type\n";
 	// next, write the object
 	auto *record = getRecord (sendMe);
 
@@ -66,7 +66,7 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 		std :: cout << "BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
 		exit (1);
 	}
-
+        //std :: cout << "record size ="<<record->numBytes()<<"\n";
 	if (doTheWrite ((char *) record, ((char *) record) + record->numBytes ())) {
 		errMsg = "PDBCommunicator: not able to send the object size";
             	logToMe->error(errMsg);

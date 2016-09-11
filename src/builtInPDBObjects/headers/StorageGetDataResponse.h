@@ -34,8 +34,8 @@ public:
 
 	StorageGetDataResponse () {};
 	~StorageGetDataResponse () {};
-	StorageGetDataResponse (int numPages, std :: string databaseName, std :: string setName, bool success, std :: string errMsg) : 
-		numPages (numPages), databaseName (databaseName), setName (setName), errMsg (errMsg), success (success) {}
+	StorageGetDataResponse (int numPages, std :: string databaseName, std :: string setName, size_t rawPageSize, size_t pageSize, bool success, std :: string errMsg) : 
+		numPages (numPages), databaseName (databaseName), setName (setName), rawPageSize(rawPageSize), pageSize(pageSize),errMsg (errMsg), success (success) {}
 
 	int getNumPages () {
 		return numPages;
@@ -53,6 +53,14 @@ public:
 		return std :: make_pair (success, errMsg);
 	}
 
+        size_t getRawPageSize() {
+                return rawPageSize;
+        }
+
+        size_t getPageSize() {
+                return pageSize;
+        }
+
 	ENABLE_DEEP_COPY
 
 private:
@@ -60,6 +68,8 @@ private:
 	int numPages;
         std :: string databaseName;
         std :: string setName;
+        size_t rawPageSize;
+        size_t pageSize;
 	String errMsg;
 	bool success;
 };

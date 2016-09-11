@@ -27,7 +27,7 @@
 #include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
 #include "CompositeRequest.h"
-
+#include "DataTypes.h"
 #include <cstddef>
 #include <fcntl.h>
 #include <fstream>
@@ -83,14 +83,18 @@ bool StorageClient :: retrieveData (std :: string databaseName, std :: string se
                      }
                      int numPages = response->getNumPages();
                      std :: string fileName=response->getSetName();
-                     bool success;
                      int filedesc = open (fileName.c_str(), O_WRONLY | O_APPEND);
                      if(numPages > 0) {
                              for (int i = 0; i < numPages; i ++) {
                                  //the protocol is that each page is corresponding to a Vector
                                  //let's get next Vector
+                                 /*
                                  UseTemporaryAllocationBlock tempBlock {communicator.getSizeOfNextObject()};
                                  Handle<Vector<Handle<Object>>> objects = communicator.getNextObject<Vector<Handle<Object>>> (success, errMsg);
+                                 */
+                                 char * recvBuffer = (char * ) malloc (response->getRawPageSize());
+                                 Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) (recvBuffer + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+                                 Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
                                  for (int j = 0; j < objects->size(); j++) {
                                          if(j%10000 == 0) {
                                                  std :: cout << "the "<<j<<"-th object:"<< std :: endl;
@@ -98,8 +102,7 @@ bool StorageClient :: retrieveData (std :: string databaseName, std :: string se
                                                  std :: cout << std :: endl;
                                          }
                                  }
-                                 Record<Vector<Handle<Object>>> * record = getRecord (objects);
-                                 write (filedesc, record, record->numBytes());
+                                 write (filedesc, recvBuffer, response->getRawPageSize());
                              }
                      }
                      close (filedesc);
