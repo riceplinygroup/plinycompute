@@ -15,60 +15,40 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef HEART_BEAT_HANDLER_CC
-#define HEART_BEAT_HANDLER_CC
+#ifndef DISTRIBUTION_MANAGER_SERVER_H
+#define DISTRIBUTION_MANAGER_SERVER_H
 
-#include <iostream>
-
-#include "HeartBeatHandler.h"
-#include "NodeInfo.h"
-#include "Handle.h"
-#include "Ack.h"
-#include "UseTemporaryAllocationBlock.h"
-#include "PDBCommunicator.h"
 #include "ServerFunctionality.h"
+#include "PDBServer.h"
+#include "PDBDistributionManager.h"
 
 namespace pdb {
 
-HeartBeatHandler::HeartBeatHandler(string fNameIn, PDBDistributionManagerPtr distribution) {
-	this->fName = fNameIn;
-	this->distribution = distribution;
-}
+class DistributionManagerServer: public ServerFunctionality {
 
-HeartBeatHandler::~HeartBeatHandler() {
-}
+public:
 
-PDBCommWorkPtr HeartBeatHandler::clone() {
-	return make_shared<HeartBeatHandler>(fName, distribution);
-}
+	// these give us the port and the address of the catalog
+	DistributionManagerServer();
 
-void HeartBeatHandler::execute(PDBBuzzerPtr callerBuzzer) {
+	~DistributionManagerServer();
 
-	std::string errMsg;
-	bool success;
+	// from the ServerFunctionality interface
+	void registerHandlers(PDBServer &forMe) override;
 
-	PDBCommunicatorPtr myCommunicator = getCommunicator();
-	size_t numBytes = myCommunicator->getSizeOfNextObject();
-	UseTemporaryAllocationBlock myBlock {numBytes};
+	// This method adds or update a node.
+	// If the node is seen for the first time it adds it to memory with the current time and returns 0
+	// If the node already exists it updates the timestamp and returns 1.
+	int addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
+
+	PDBDistributionManagerPtr getDistributionManager();
 
 
-	Handle<NodeInfo> msg = myCommunicator->getNextObject<NodeInfo>(success, errMsg);
+private:
+	PDBDistributionManagerPtr distributionManager;
 
-	if (!success) {
-		getLogger()->error("HeartBeatHandler: " + errMsg);
-		callerBuzzer->buzz(PDBAlarm::HeartBeatError);
-		return;
-	}
-
-	string hostName = (string) msg->getHostName();
-
-	getLogger()->trace("Heart Beat From Host: " + hostName +":" +to_string(msg->getPort()));
-
-	this->distribution->addOrUpdateNodes(getLogger(), hostName);
-
-	callerBuzzer->buzz(PDBAlarm::WorkAllDone);
+};
 
 }
 
-}
 #endif

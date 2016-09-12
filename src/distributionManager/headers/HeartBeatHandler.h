@@ -25,6 +25,7 @@
 // A smart pointer for HeartBeatHandler
 
 namespace pdb {
+
 class HeartBeatHandler;
 typedef shared_ptr<HeartBeatHandler> HeartBeatHandlerPtr;
 

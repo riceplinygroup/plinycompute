@@ -17,10 +17,16 @@
  *****************************************************************************/
 /*
  * PDBDistributionManager.h
+
  *
  *  Created on: Nov, 2015
  *      Author: Kia Teymourian
  */
+
+#ifndef PDB_DISTRIBUTION_MANAGER_H
+#define PDB_DISTRIBUTION_MANAGER_H
+
+
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -34,8 +40,6 @@
 #include "PDBString.h"
 
 
-#ifndef DISTRIBUTION_HEADERS_PDBDISTRIBUTIONMANAGER_H_
-#define DISTRIBUTION_HEADERS_PDBDISTRIBUTIONMANAGER_H_
 
 // A smart pointer for PDBDistributionManager
 
@@ -57,7 +61,7 @@ public:
 	// This method adds or update a node.
 	// If the node is seen for the first time it adds it to memory with the current time and returns 0
 	// If the node already exists it updates the timestamp and returns 1.
-	int addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
+	bool addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
 
 	//TODO: return the one of the nodes from the list.
 	string getSingleNode();
@@ -66,7 +70,7 @@ public:
 	// A Query ID is a global unique identifier for the query.
 	string getPermitToRunQuery(PDBLoggerPtr myLoggerIn);
 
-	// when the query executer is done with running query it has to notify Distribution Manager.
+	// When the query executer is done with running query it has to notify Distribution Manager.
 	// It has to send the same queryID and receive an Ack.
 	int queryIsDone(string& queryID, PDBLoggerPtr myLoggerIn);
 

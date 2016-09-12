@@ -23,6 +23,7 @@
  */
 #ifndef PDB_DISTRIBUTION_MANAGER_CC
 #define	PDB_DISTRIBUTION_MANAGER_CC
+
 #include "PDBDistributionManager.h"
 
 #include <stdio.h>
@@ -46,14 +47,16 @@
 
 using namespace std;
 
-pdb::PDBDistributionManager::PDBDistributionManager() {
+namespace pdb {
+
+PDBDistributionManager::PDBDistributionManager() {
 	this->heartBeatCounter = 0;
 }
 
-pdb::PDBDistributionManager::~PDBDistributionManager() {
+PDBDistributionManager::~PDBDistributionManager() {
 }
 
-int pdb::PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID) {
+bool PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID) {
 
 	std::chrono::time_point<std::chrono::system_clock> p;
 	p = std::chrono::system_clock::now();
@@ -80,13 +83,13 @@ int pdb::PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, strin
 	if (this->nodesOfCluster.count(nodeID) == 0) {
 		// insert the nodeID and timestamp
 		this->nodesOfCluster[nodeID] = timeCounter;
-		myLoggerIn->writeLn("PDBDistributionManager:  Node  with ID " + nodeID + " added.  No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
-		return 0;
+		myLoggerIn -> trace ("PDBDistributionManager:  Node  with ID " + nodeID + " added.  No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
+		return false;
 	} else {
 		// insert the nodeID and timestamp
 		this->nodesOfCluster[nodeID] = timeCounter;
-		myLoggerIn->writeLn("PDBDistributionManager: Node with ID " + nodeID + " updated.   No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
-		return 1;
+		myLoggerIn -> trace ("PDBDistributionManager: Node with ID " + nodeID + " updated.   No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
+		return true;
 	}
 
 }
@@ -96,10 +99,10 @@ int pdb::PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, strin
  * It generates a GUID as query ID as a string and returns it to the query executor.
  *
  */
-string pdb::PDBDistributionManager::getPermitToRunQuery(PDBLoggerPtr myLoggerIn) {
-//TOD: we need to know when to admit permission to run queries and when not.
+string PDBDistributionManager::getPermitToRunQuery(PDBLoggerPtr myLoggerIn) {
 
-// typedef unsigned char uuid_t[16];
+//TODO: we need to know when to admit permission to run queries and when not.
+
 	uuid_t uuid;
 
 	// generate
@@ -108,38 +111,39 @@ string pdb::PDBDistributionManager::getPermitToRunQuery(PDBLoggerPtr myLoggerIn)
 	char uuid_str[37];      // ex. "1b4e28ba-2fa1-11d2-883f-0016d3cca427" + "\0"
 	uuid_unparse_lower(uuid, uuid_str);
 
-
 	// check the time now and store the time of permitting the query.
 	std::chrono::time_point<std::chrono::system_clock> p;
 	p = std::chrono::system_clock::now();
 	long timeCounter = std::chrono::duration_cast<std::chrono::nanoseconds>(p.time_since_epoch()).count();
 
-	string uuidString=uuid_str;
+	string uuidString = uuid_str;
 
 	// store time of running this query.
 	runningQueries[uuidString] = timeCounter;
 
-	myLoggerIn->trace("PDBDistributionManager: permitted running a new query with GUID " + uuidString + "  at time " +  to_string(timeCounter) + " No. of Queries: " + to_string(runningQueries.size()));
+	myLoggerIn->trace("PDBDistributionManager: permitted running a new query with GUID " + uuidString + "  at time " + to_string(timeCounter) + " No. of Queries: " + to_string(runningQueries.size()));
 
 	return uuid_str;
 }
 
 /**
- * This method is called when a query is done.
- * This method returns 1 if it can find the query in memory and removes 0 when it has no data about this query.
+ * This is called when a query is done.
+ * Returns 1 if it can find the query in memory and removes 0 when it has no data about this query.
  */
-int pdb::PDBDistributionManager::queryIsDone(string& queryID, PDBLoggerPtr myLoggerIn) {
+int PDBDistributionManager::queryIsDone(string& queryID, PDBLoggerPtr logToMe) {
 
 	if (runningQueries.find(queryID) != runningQueries.end()) {
 		map<string, long>::iterator tmp = runningQueries.find(queryID);
 		// erase it from the map
 		runningQueries.erase(tmp);
-		myLoggerIn->trace("PDBDistributionManager: running query with " + queryID + " is done and erased from memory." + " No. of Queries: " + to_string(runningQueries.size()));
+		logToMe->trace("PDBDistributionManager: running query with " + queryID + " is done and erased from memory." + " No. of Queries: " + to_string(runningQueries.size()));
 		return 1;
 	} else {
-		myLoggerIn->error("PDBDistributionManager: running query with " + queryID + " could not be found." + " No. of Queries: " + to_string(runningQueries.size()));
+		logToMe->error("PDBDistributionManager: running query with " + queryID + " could not be found." + " No. of Queries: " + to_string(runningQueries.size()));
 		return 0;
 	}
+
+}
 
 }
 #endif

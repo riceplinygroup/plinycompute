@@ -16,49 +16,86 @@
  *                                                                           *
  *****************************************************************************/
 /*
- * PDBDistributionManagerClient.cc
+ * DistributionManagerClient.cc
  *
- *  Created on: Mar 17, 2016
- *      Author: Kia
+ *  Created on: Sep 12, 2016
+ *      Author: kia
  */
 
-#ifndef PDB_DISTRIBUTION_MANAGER_CLIENT_CC
-#define	PDB_DISTRIBUTION_MANAGER_CLIENT_CC
+#ifndef DISTRIBUTION_MANAGER_CLIENT_CC
+#define DISTRIBUTION_MANAGER_CLIENT_CC
 
-#include "PDBDistributionManagerClient.h"
+#include <chrono>
+#include <thread>
+#include <iostream>
 
-#include "PDBString.h"
-#include "BuiltInObjectTypeIDs.h"
-
+#include "DistributionManagerClient.h"
+#include "NodeInfo.h"
+#include "InterfaceFunctions.h"
 
 namespace pdb {
 
-void pdb::PDBDistributionManagerClient::sendHeartBeat(string &masterHostName, int masterNodePort, pdb::Handle<NodeInfo> m_nodeInfo, PDBLoggerPtr logger, bool &wasError, string& errMsg) {
+DistributionManagerClient::DistributionManagerClient(string &masterHostNameIn, int masterNodePortIn) {
 
-	// First build a new connection to the Server
-	PDBCommunicator myCommunicator;
-	if (myCommunicator.connectToInternetServer(logger, masterNodePort, masterHostName, errMsg)) {
-		logger->error("Error when connecting to server: " + errMsg);
-		wasError = true;
-		return;
-	}
+	masterHostName = masterHostNameIn;
+	masterNodePort = masterNodePortIn;
 
-	// send it
-	if (!myCommunicator.sendObject(m_nodeInfo, errMsg)) {
-		logger->error("HeartBeat Client: Sending nodeInfo object: " + errMsg);
-		wasError = true;
-		return;
-	}
 
 }
 
-pdb::Handle<pdb::QueryPermitResponse> pdb::PDBDistributionManagerClient::sendQueryPermitt(string& hostname, int masterNodePort, pdb::Handle<QueryPermit> m_queryPermit, PDBLoggerPtr logger, bool& wasError,
-		string& errMsg) {
+DistributionManagerClient::~DistributionManagerClient() {
+}
+
+void DistributionManagerClient::registerHandlers(PDBServer &forMe) { /* no handlers for a DistributionManager client!! */
+}
+
+void DistributionManagerClient::sendHeartBeat(string &masterHostName, int masterNodePort, pdb::Handle<NodeInfo> m_nodeInfo, PDBLoggerPtr logger, bool &wasError, string& errMsg) {
+
+	std::chrono::seconds interval(2);  // 2 seconds
+
+	//TODO: this is temporary to check the heart beat functionality and implement the timer inside PDBServer.
+	while (true) {
+		// First build a new connection to the Server
+		PDBCommunicator myCommunicator;
+		if (myCommunicator.connectToInternetServer(logger, masterNodePort, masterHostName, errMsg)) {
+			logger->error("Error when connecting to server: " + errMsg);
+			wasError = true;
+			return;
+		}
+
+		// send it
+		if (!myCommunicator.sendObject(m_nodeInfo, errMsg)) {
+			logger->error("HeartBeat Client: Sending nodeInfo object: " + errMsg);
+			wasError = true;
+			return;
+		}
+
+		// sleep for the time interval and send it again.
+		std::this_thread::sleep_for(interval);
+	}
+}
+
+//bool DistributionManagerClient::shutDownServer(std::string &errMsg) {
+//
+//	return simpleRequest<ShutDown, SimpleRequestResult, bool>(myLogger, port, address, false, 1024, [&] (Handle <SimpleRequestResult> result) {
+//		if (result != nullptr) {
+//			if (!result->getRes ().first) {
+//				errMsg = "Error shutting down server: " + result->getRes ().second;
+//				myLogger->error ("Error shutting down server: " + result->getRes ().second);
+//				return false;
+//			}
+//			return true;
+//		}
+//		errMsg = "Error getting type name: got nothing back from catalog";
+//		return false;});
+//}
+
+Handle<QueryPermitResponse> DistributionManagerClient::sendQueryPermitt(string &hostName, int masterNodePort, pdb::Handle<QueryPermit> m_queryPermit, PDBLoggerPtr logger, bool &wasError, string& errMsg) {
 
 	// First build a new connection to the Server
 	PDBCommunicator myCommunicator;
 
-	if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostname, errMsg)) {
+	if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostName, errMsg)) {
 		logger->error("Error when connecting to server: " + errMsg);
 		wasError = true;
 		return nullptr;
@@ -83,15 +120,14 @@ pdb::Handle<pdb::QueryPermitResponse> pdb::PDBDistributionManagerClient::sendQue
 	logger->trace("Got back From Server Query ID : " + string(response->getQueryId()));
 
 	return response;
-
 }
 
-pdb::Handle<pdb::Ack> pdb::PDBDistributionManagerClient::sendQueryDone(string& hostname, int masterNodePort, pdb::Handle<QueryDone> m_queryDone, PDBLoggerPtr logger, bool& wasError, string& errMsg) {
+Handle<Ack> DistributionManagerClient::sendQueryDone(string &hostName, int masterNodePort, Handle<QueryDone> m_queryDone, PDBLoggerPtr logger, bool &wasError, string& errMsg) {
 
 	// First build a new connection to the Server
 	PDBCommunicator myCommunicator;
 
-	if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostname, errMsg)) {
+	if (myCommunicator.connectToInternetServer(logger, masterNodePort, hostName, errMsg)) {
 		logger->error("Error when connecting to server: " + errMsg);
 		wasError = true;
 		return nullptr;
@@ -117,8 +153,7 @@ pdb::Handle<pdb::Ack> pdb::PDBDistributionManagerClient::sendQueryDone(string& h
 
 }
 
-pdb::Handle<pdb::Ack> pdb::PDBDistributionManagerClient::sendGetPlaceOfQueryPlanner(string &hostName, int masterNodePort, pdb::Handle<PlaceOfQueryPlanner> m_PlaceOfQueryPlanner, PDBLoggerPtr logger, bool &wasError,
-		string& errMsg) {
+pdb::Handle<Ack> DistributionManagerClient::sendGetPlaceOfQueryPlanner(string &hostName, int masterNodePort, pdb::Handle<PlaceOfQueryPlanner> m_PlaceOfQueryPlanner, PDBLoggerPtr logger, bool &wasError, string& errMsg) {
 
 	// First build a new connection to the Server
 	PDBCommunicator myCommunicator;
@@ -152,4 +187,3 @@ pdb::Handle<pdb::Ack> pdb::PDBDistributionManagerClient::sendGetPlaceOfQueryPlan
 }
 
 #endif
-
