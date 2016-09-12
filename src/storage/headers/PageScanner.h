@@ -68,8 +68,7 @@ public:
      * To receive PagePinned objects from frontend.
      */
     bool acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, string & errMsg, bool &morePagesToLoad, NodeID &dataNodeId, DatabaseID &dataDbId, UserTypeID &dataTypeId,
-            SetID &dataSetId, PageID &dataPageId, size_t &pageSize, size_t &miniPageSize, size_t &offset, unsigned int &numObjects,
-			FilePartitionID &filePartitionId, unsigned int &pageSeqInPartition);
+            SetID &dataSetId, PageID &dataPageId, size_t &pageSize, size_t &offset);
 
     /**
      * To send PagePinnedAck objects to frontend to acknowledge the receipt of PagePinned objects.

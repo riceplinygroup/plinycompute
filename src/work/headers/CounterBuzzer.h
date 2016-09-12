@@ -15,69 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
- * File:   PDBCommWork.h
- * Author: Chris
+/*
+ * CounterBuzzer.h
  *
- * Created on September 25, 2015, 5:13 PM
+ *  Created on: Dec 25, 2015
+ *      Author: Jia
  */
 
-#ifndef PDBCOMMWORK_H
-#define	PDBCOMMWORK_H
+#ifndef SRC_CPP_MAIN_STORAGE_HEADERS_STORAGECOUNTERBUZZER_H_
+#define SRC_CPP_MAIN_STORAGE_HEADERS_STORAGECOUNTERBUZZER_H_
 
-#include <memory>
 
-// "Comm" here stands for communication; so this object encapsulates some work that
-// requires communicating via a socket (ether over the internet, or locally, via a
-// UNIX socket
 
-namespace pdb {
-
-class PDBCommWork;
-typedef std :: shared_ptr <PDBCommWork> PDBCommWorkPtr;
-
-}
-// create a smart pointer for PDBCommWork objects
-#include <pthread.h>
+#include "PDBCommWork.h"
+#include "PDBAlarm.h"
+#include "PDBBuzzer.h"
 #include <string>
-#include "PDBCommunicator.h"
-#include "PDBWork.h"
 
 namespace pdb {
-
-class PDBCommWork : public PDBWork {
+class CounterBuzzer : public PDBBuzzer {
 public:
 
-    // gets a new worker of this type and returns it
-    virtual PDBCommWorkPtr clone() = 0;
+    CounterBuzzer(PDBCommWork &parentHandler) : parentHandler(parentHandler) {
+    }
 
-    // accesses the communicator buried in this guy
-    PDBCommunicatorPtr getCommunicator();
-
-    // sets the logger and the commuicator
-    void setGuts(PDBCommunicatorPtr toMe);
-
-    // inherited from PDBWork
-    // ********************************
-    // virtual void execute (PDBBuzzerPtr callerBuzzer);
-    // void execute (PDBWorker useMe, PDBBuzzerPtr callerBuzzer);
-    // PDBWorkerPtr getWorker ();
-    // PDBBuzzerPtr getLinkedBuzzer ();
-
-    void queryDone (); //added by Jia to support multithreaded handler
-
-    int  getCounter(); //added by Jia to support multithreaded handler
-
+    void handleBuzz(PDBAlarm withMe) {
+        if (withMe == PDBAlarm::WorkAllDone) {
+            parentHandler.queryDone();
+        } else if (withMe == PDBAlarm::QueryError) {
+            std :: cout << "got an error from a query worker" << std :: endl;
+        }
+    }
 
 private:
 
-    // this is responsible for talking over the network
-    PDBCommunicatorPtr myCommunicator;
-    int counter;
-
+    PDBCommWork &parentHandler;
 };
 
 }
 
-#endif	/* PDBCOMMWORK_H */
 
+#endif /* SRC_CPP_MAIN_STORAGE_HEADERS_STORAGECOUNTERBUZZER_H_ */

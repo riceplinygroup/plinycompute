@@ -58,8 +58,7 @@ PageScanner::~PageScanner() {
  * To receive PagePinned objects from frontend.
  */
 bool PageScanner::acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, string & errMsg, bool & morePagesToLoad, NodeID & dataNodeId, DatabaseID & dataDbId, UserTypeID & dataTypeId,
-        SetID & dataSetId, PageID & dataPageId, size_t & pageSize, size_t & miniPageSize, size_t & offset, unsigned int & numObjects,
-		FilePartitionID & filePartitionId, unsigned int & pageSeqInPartition) {
+        SetID & dataSetId, PageID & dataPageId, size_t & pageSize,  size_t & offset) {
 
     if (myCommunicator == nullptr) {
         return false;
@@ -137,15 +136,11 @@ bool PageScanner::recvPagesLoop(pdb :: PDBCommunicatorPtr myCommunicator) {
     SetID dataSetId;
     PageID dataPageId;
     size_t pageSize;
-    size_t miniPageSize;
     size_t offset;
-    unsigned int numObjects;
-    FilePartitionID filePartitionId;
-    unsigned int pageSeqInPartition;
     PDBPagePtr page;
     bool ret;
     while ((ret = this->acceptPagePinned(myCommunicator, errMsg, morePagesToLoad, dataNodeId, dataDbId, dataTypeId,
-            dataSetId, dataPageId, pageSize, miniPageSize, offset, numObjects, filePartitionId, pageSeqInPartition)) == true) {
+            dataSetId, dataPageId, pageSize, offset)) == true) {
         //cout << "dataPageId:"<<dataPageId<<"\n";
         //cout << "morePagesToLoad:"<<morePagesToLoad<<"\n";
         //if there are no more pages to send at the frontend side, send ACK and return.
@@ -160,8 +155,6 @@ bool PageScanner::recvPagesLoop(pdb :: PDBCommunicatorPtr myCommunicator) {
             char * rawData = (char *) this->shm->getPointer(offset);
             page = make_shared<PDBPage>(rawData, dataNodeId, dataDbId,
                      dataTypeId, dataSetId, dataPageId, pageSize, offset);
-            page->setPartitionId(filePartitionId);
-            page->setPageSeqInPartition(pageSeqInPartition);
             this->buffer->addPageToTail(page);
             //cout << "BackEndServer: sending PagePinnedAck to frontEnd...\n";
             this->sendPagePinnedAck(myCommunicator, false, "", errMsg);

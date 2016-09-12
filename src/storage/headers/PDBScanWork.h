@@ -15,30 +15,53 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+/*
+ * PDBScanWork.h
+ *
+ *  Created on: Dec 25, 2015
+ *      Author: Jia
+ */
 
-#ifndef PDB_COMM_WORK_C
-#define PDB_COMM_WORK_C
+#ifndef SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_
+#define SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_
 
-#include "PDBCommWork.h"
+#include "PDBBuzzer.h"
+#include "PageCircularBufferIterator.h"
+#include "PDBCommunicator.h"
+#include "PangeaStorageServer.h"
+#include <memory>
+using namespace std;
+class PDBScanWork;
+typedef shared_ptr<PDBScanWork> PDBScanWorkPtr;
 
-namespace pdb {
+/**
+ * This class illustrates how a FrontEnd server scan set data and communicate with BackEnd server
+ * to notify loaded pages.
+ */
 
-PDBCommunicatorPtr PDBCommWork::getCommunicator() {
-    return myCommunicator;
-}
+class PDBScanWork : public pdb :: PDBWork {
+public:
 
-void PDBCommWork::setGuts(PDBCommunicatorPtr toMe) {
-    myCommunicator = toMe;
-}
+    PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage);
 
-void PDBCommWork::queryDone() {
-    this->counter++;
-}
+    bool sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool morePagesToPin, NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
+            SetID setId, PageID pageId, size_t pageSize, size_t offset);
 
-int PDBCommWork::getCounter() {
-    return this->counter;
-}
+    bool acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bool &wasError, string &info, string & errMsg);
 
-}
+    // do the actual work
+    void execute(PDBBuzzerPtr callerBuzzer) override;
 
-#endif
+private:
+
+    PageIteratorPtr iter;
+    pdb :: PangeaStorageServer * storage;
+
+
+};
+
+
+
+
+
+#endif /* SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_ */

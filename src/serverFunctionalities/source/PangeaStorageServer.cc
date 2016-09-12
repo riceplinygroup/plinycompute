@@ -27,10 +27,14 @@
 #include "StorageAddSet.h"
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
+#include "StorageGetSetPages.h"
 #include "StoragePinPage.h"
 #include "StoragePagePinned.h"
+#include "StorageNoMorePage.h"
+#include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
+#include "MultiThreadedRequestHandler.h"
 #include "Record.h"
 #include "InterfaceFunctions.h"
 
@@ -505,6 +509,69 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 errMsg = "Fatal Error: Page doesn't exist.";
                                 std :: cout << errMsg << std :: endl;
                         }
+                        return make_pair(res, errMsg);
+                }
+        ));
+
+        // this handler accepts a request to load all pages in a set to memory iteratively, and send back information about loaded pages
+        forMe.registerHandler (StorageGetSetPages_TYPEID, make_shared <MultiThreadedRequestHandler <StorageGetSetPages>> (
+                [&] (Handle <StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<StorageGetSetPages> & handler) {
+
+                        NodeID nodeId = request->getNodeID();
+                        DatabaseID dbId = request->getDatabaseID();
+                        UserTypeID typeId = request->getUserTypeID();
+                        SetID setId = request->getSetID();
+
+                        bool res;
+                        std :: string errMsg;
+
+                        SetPtr set = getFunctionality<PangeaStorageServer>().getSet(dbId, typeId, setId);
+                        if (set == nullptr) {
+                                  res = false;
+                                  errMsg = "Fatal Error: Set doesn't exist.";
+                                  std :: cout << errMsg << std :: endl;
+                                  return make_pair (res, errMsg);
+                        }                        
+                        
+                        //use frontend iterators: one iterator for in-memory dirty pages, and one iterator for each file partition
+                        std :: vector<PageIteratorPtr> * iterators = set->getIterators();
+                        getFunctionality<PangeaStorageServer>().getCache()->pin(set, MRU, Write);
+
+                        set->setPinned(true);
+                        int numIterators = iterators->size();
+
+                        PDBBuzzerPtr tempBuzzer {handler.getLinkedBuzzer() };
+                        
+                        //scan pages and load pages in a multi-threaded style
+                        PDBWorkerPtr worker = getFunctionality<PangeaStorageServer>().getWorker();
+
+                        for (int i = 0; i < numIterators; i++) {
+                                  PDBScanWorkPtr scanWork = make_shared<PDBScanWork>(iterators->at(i), &getFunctionality<PangeaStorageServer>());
+                                  worker->execute(scanWork, tempBuzzer);
+                        }
+
+                        while (handler.getCounter() != numIterators) {
+                                  tempBuzzer->wait();
+                        }
+                        set->setPinned(false);
+
+                        //here, we have already loaded all pages, and sent all information about those pages to the other side, now we need inform the other side that this process has been done.
+                        //The other side has closed connection, so first we need to create a separate connection to backend 
+                        PDBCommunicatorPtr communicatorToBackEnd = make_shared<PDBCommunicator>();
+                        if (communicatorToBackEnd->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                            res = false;
+                            std :: cout << errMsg << std :: endl;
+                            return make_pair(res, errMsg);
+                        }
+
+                        UseTemporaryAllocationBlock myBlock{1024};
+                        Handle<StorageNoMorePage> noMorePage = makeObject<StorageNoMorePage>();
+                        if(!communicatorToBackEnd->sendObject<StorageNoMorePage>(noMorePage, errMsg)) {
+                            res = false;
+                            std :: cout << errMsg << std :: endl;
+                            return make_pair(res, errMsg);
+                        }
+
                         return make_pair(res, errMsg);
                 }
         ));
