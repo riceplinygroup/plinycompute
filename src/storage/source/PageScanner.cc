@@ -79,8 +79,6 @@ bool PageScanner::acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, str
 	dataPageId = msg->getPageID();
 	pageSize = msg->getPageSize();
 	offset = msg->getSharedMemOffset();
-	filePartitionId = msg->getFilePartitionID();
-	pageSeqInPartition = msg->getPageSeqInPartition();
     }
     return success;
 }

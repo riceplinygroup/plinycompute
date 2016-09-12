@@ -144,8 +144,6 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
         //cout << "ack->getPageID()=" << ack->getPageID() << "\n";
         //cout << "page->getPageID()=" << page->getPageID() << "\n";
-        page->setPartitionId(ack->getFilePartitionID());
-        page->setPageSeqInPartition(ack->getPageSeqInPartition());
         page->setPinned(true);
         page->setDirty(true);
         return success;
@@ -175,8 +173,6 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
          msg->setDatabaseID(dbId);
          msg->setUserTypeID(typeId);
          msg->setSetID(setId);
-         msg->setPartitionID(page->getPartitionId());
-         msg->setPageSeqInPartition(page->getPageSeqInPartition());
          msg->setPageID(pageId);
          msg->setWasNewPage(false);
 
@@ -196,9 +192,8 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
         char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
         page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-        page->setPartitionId(ack->getFilePartitionID());
-        page->setPageSeqInPartition(ack->getPageSeqInPartition());
         page->setPinned(true);
+        page->setDirty(false);
         return success;
     }
 }

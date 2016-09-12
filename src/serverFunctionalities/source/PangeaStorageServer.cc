@@ -27,6 +27,8 @@
 #include "StorageAddSet.h"
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
+#include "StoragePinPage.h"
+#include "StoragePagePinned.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
@@ -393,7 +395,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	));
 
 
-       // this handler accepts a request to add a set
+       // this handler accepts a request to get data from a set
        forMe.registerHandler (StorageGetData_TYPEID, make_shared<SimpleRequestHandler<StorageGetData>> (
                [&] (Handle <StorageGetData> request, PDBCommunicatorPtr sendUsingMe) {
                          std :: string errMsg;
@@ -451,8 +453,61 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+        // this handler accepts a request to store some data
+        forMe.registerHandler (StoragePinPage_TYPEID, make_shared <SimpleRequestHandler <StoragePinPage>> (
+                [&] (Handle <StoragePinPage> request, PDBCommunicatorPtr sendUsingMe) {
 
+                        //NodeID nodeId = request->getNodeID();
+                        DatabaseID dbId = request->getDatabaseID();
+                        UserTypeID typeId = request->getUserTypeID();
+                        SetID setId = request->getSetID();
+                        PageID pageId = request->getPageID();
+                        bool wasNewPage = request->getWasNewPage();
 
+                        bool res;
+                        string errMsg;
+
+                        PDBPagePtr page = nullptr;
+                        SetPtr set = nullptr;
+
+                        if((dbId == 0) && (typeId == 0)) {
+                                //temp set
+                                set = getFunctionality<PangeaStorageServer>().getTempSet(setId);
+                        } else {
+                                //user set
+                                set = getFunctionality<PangeaStorageServer>().getSet(dbId, typeId, setId);
+                        }
+
+                        if (set != nullptr) {
+                                if(wasNewPage == true) {
+                                        page = set->addPage();
+                                } else {
+                                        PartitionedFilePtr file = set->getFile();
+                                        PartitionedFileMetaDataPtr meta = file->getMetaData();
+                                        PageIndex index = meta->getPageIndex(pageId);
+                                        page = set->getPage(index.partitionId, index.pageSeqInPartition, pageId);
+                                }
+                        }
+                        
+                        if(page != nullptr) {
+                                const UseTemporaryAllocationBlock myBlock{1024};
+                                Handle <StoragePagePinned> ack = makeObject<StoragePagePinned>();
+                                ack->setMorePagesToLoad(true);
+                                ack->setDatabaseID(dbId);
+                                ack->setUserTypeID(typeId);
+                                ack->setPageID(pageId);
+                                ack->setPageSize(page->getRawSize());
+                                ack->setSharedMemOffset(page->getOffset());
+                                res = sendUsingMe->sendObject<StoragePagePinned>(ack, errMsg);
+                        }
+                        else {
+                                res = false;
+                                errMsg = "Fatal Error: Page doesn't exist.";
+                                std :: cout << errMsg << std :: endl;
+                        }
+                        return make_pair(res, errMsg);
+                }
+        ));
 
 }
 

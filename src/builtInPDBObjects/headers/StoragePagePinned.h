@@ -75,17 +75,6 @@ public:
 	size_t getSharedMemOffset() {return this->sharedMemOffset;}
 	void setSharedMemOffset(size_t offset) {this->sharedMemOffset = offset;}
 
-	//get/set partitionId
-	FilePartitionID getFilePartitionID() {return this->partitionId;}
-	void setFilePartitionID(FilePartitionID partitionId) {this->partitionId = partitionId;}
-
-	//get/set page seq no in file partition
-	unsigned int getPageSeqInPartition() {return this->pageSeqInPartition;}
-	void setPageSeqInPartition(unsigned int pageSeq) {this->pageSeqInPartition = pageSeq;}
-
-        //get/set current append offset for add next object
-        size_t getCurAppendOffset() {return this->curAppendOffset;}
-        void setCurAppendOffset(size_t offset) {this->curAppendOffset = offset;}
 
 private:
 	bool morePagesToLoad;
@@ -95,12 +84,7 @@ private:
 	SetID setId;
 	PageID pageId;
 	size_t pageSize;
-        size_t curAppendOffset;
 	size_t sharedMemOffset;
-	FilePartitionID partitionId;
-	unsigned int pageSeqInPartition;
-
-
 
 };
 

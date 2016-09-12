@@ -41,6 +41,8 @@ public:
 
 	~StoragePinPage () {}
 
+        StoragePinPage (bool wasNewPage, NodeID nodeId, DatabaseID dbId, UserTypeID userTypeId, SetID setId, PageID pageId) : wasNewPage(wasNewPage), nodeId(nodeId), dbId(dbId), userTypeId(userTypeId), setId(setId), pageId(pageId) {}
+
 	//
 	bool getWasNewPage() {return this->wasNewPage;}
 
@@ -66,13 +68,6 @@ public:
 
 	void setPageID(PageID pageId) {this->pageId = pageId;}
 
-	FilePartitionID getPartitionID() {return this->partitionId;}
-
-	void setPartitionID(FilePartitionID partitionId) {this->partitionId = partitionId;}
-
-	unsigned int getPageSeqInPartition() {return this->pageSeqInPartition;}
-
-	void setPageSeqInPartition(unsigned int pageSeq) {this->pageSeqInPartition = pageSeq;}
 
 private:
 	bool wasNewPage;
@@ -81,8 +76,6 @@ private:
 	UserTypeID userTypeId;
 	SetID setId;
 	PageID pageId;
-	FilePartitionID partitionId;
-	unsigned int pageSeqInPartition;
 
 
 };

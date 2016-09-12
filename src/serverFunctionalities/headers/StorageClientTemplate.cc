@@ -74,6 +74,10 @@ bool StorageClient :: createSet (std :: string databaseName, std :: string setNa
 
 template <class DataType>
 bool StorageClient :: retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    if (this->usePangea == false) {
+        std :: cout << "retrieveData can only work for PangeaStorageServer\n";
+        return false;
+    }
     std :: string typeName = getTypeName<DataType>();
     return compositeRequest<StorageGetData, StorageGetDataResponse, bool> (myLogger, port, address, false, 1024,
             [&] (Handle <StorageGetDataResponse> response, PDBCommunicator communicator) {
