@@ -39,9 +39,6 @@ public:
 
 	StorageUnpinPage () {}
 	~StorageUnpinPage () {}
-	//get/set morePagesToUnpin, if set as false, the other side knows it needs to end the receiving loop
-	bool getMorePagesToUnpin()  { return this->morePagesToUnpin; }
-	void setMorePagesToUnpin(bool morePagesToUnpin) { this->morePagesToUnpin = morePagesToUnpin; }
 	//get/set nodeId
 	NodeID getNodeID() { return this->nodeId; }
 	void setNodeID (NodeID nodeId) { this->nodeId = nodeId; }
@@ -63,7 +60,6 @@ public:
         void setWasDirty(bool wasDirty) { this->wasDirty = wasDirty; }
 
 private:
-	bool morePagesToUnpin;
 	NodeID nodeId;
 	DatabaseID dbId;
 	UserTypeID userTypeId;

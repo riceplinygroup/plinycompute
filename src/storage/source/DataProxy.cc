@@ -217,7 +217,6 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
         msg->setUserTypeID(typeId);
         msg->setSetID(setId);
         msg->setPageID(page->getPageID());
-        msg->setMorePagesToUnpin(true);
 
        if(page->isDirty() == true) {
           msg->setWasDirty(true);
@@ -240,38 +239,6 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
         pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
         return success&&(ack->getRes().first);
-    }
-}
-
-void DataProxy::closeUnpinLoop() {
-    string errMsg;
-    //create a UnpinPage object
-    {
-        const pdb :: UseTemporaryAllocationBlock myBlock{1024};
-        pdb::Handle<pdb :: StorageUnpinPage> msg = pdb::makeObject<pdb :: StorageUnpinPage>();
-
-        msg->setNodeID(this->nodeId);
-        msg->setMorePagesToUnpin(false);
-
-        //send the message out
-	if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
-		cout << "Sending object failure: " << errMsg <<"\n";
-		return;
-	}
-    }
-
-    cout << "Backend: to close the unpin loop.\n";
-    //receive the PagePinned object
-    {
-	const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
-	bool success;
-	pdb :: Handle <pdb :: SimpleRequestResult> ack =
-		this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg) ;
-	if(ack->getRes().first == false) {
-		cout<< ack->getRes().second << "\n";
-	}
-        cout << "Backend: closed the unpin loop.\n";
-        return;
     }
 }
 

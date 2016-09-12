@@ -106,11 +106,6 @@ public:
         PDBPagePtr page);
 
     /**
-     * Close the unpin loop, so that a special message can be sent.
-     */
-    void closeUnpinLoop();
-
-    /**
      * Create a PageScanner instance given the specified thread number.
      * Return a smart pointer pointing at the created PageScanner instance.
      */
