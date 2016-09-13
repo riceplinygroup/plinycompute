@@ -29,6 +29,7 @@
 #include "StorageGetDataResponse.h"
 #include "StorageGetSetPages.h"
 #include "StoragePinPage.h"
+#include "StorageUnpinPage.h"
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
 #include "StorageTestSetScan.h"
@@ -389,13 +390,13 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                         getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
 
-			std :: cout << "Making response object.\n";
+			//std :: cout << "Making response object.\n";
                         const UseTemporaryAllocationBlock block{1024};                        
 			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                         // return the result
+			//std :: cout << "Sending response object.\n";
                         bool res = sendUsingMe->sendObject (response, errMsg);
-			std :: cout << "Sending response object.\n";
                         return make_pair (res, errMsg);
 		}
 	));
@@ -436,15 +437,15 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                                       if (page != nullptr) {
                                                                           std :: cout << "to send the " << numPagesSent <<"-th page" << std :: endl;
                                                                           //const UseTemporaryAllocationBlock block{128*1024*1024};
-                                                                          std :: cout << "sending the page..."<<std :: endl;
+                                                                          //std :: cout << "sending the page..."<<std :: endl;
                                                                           res = sendUsingMe->sendBytes(page->getRawBytes(), page->getRawSize(), errMsg);
-                                                                          std :: cout << "page sent..."<<std :: endl;
+                                                                          //std :: cout << "page sent..."<<std :: endl;
                                                                           page->unpin();
                                                                           if (res == false) {
                                                                                std :: cout << "sending data failed\n";
                                                                                return make_pair (res, errMsg);
                                                                           }
-                                                                          std :: cout << "sending data succeeded\n";
+                                                                          //std :: cout << "sending data succeeded\n";
                                                                           numPagesSent ++;
                                                                           //std :: cout << "to send the next page\n";
                                                                       }
@@ -459,7 +460,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
-        // this handler accepts a request to store some data
+        // this handler accepts a request to pin a page
         forMe.registerHandler (StoragePinPage_TYPEID, make_shared <SimpleRequestHandler <StoragePinPage>> (
                 [&] (Handle <StoragePinPage> request, PDBCommunicatorPtr sendUsingMe) {
 
@@ -515,6 +516,49 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                 }
         ));
 
+        // this handler accepts a request to unpin a page
+        forMe.registerHandler (StorageUnpinPage_TYPEID, make_shared <SimpleRequestHandler <StorageUnpinPage>> (
+                [&] (Handle <StorageUnpinPage> request, PDBCommunicatorPtr sendUsingMe) {
+                       //NodeID nodeId = request->getNodeID();
+                       DatabaseID dbId = request->getDatabaseID();
+                       UserTypeID typeId = request->getUserTypeID();
+                       SetID setId = request->getSetID();
+                       PageID pageId = request->getPageID();
+                       //bool wasDirty = msg->getWasDirty();
+
+                       CacheKey key;
+                       key.dbId = dbId;
+                       key.typeId = typeId;
+                       key.setId = setId;
+                       key.pageId = pageId;
+ 
+                       bool res;
+                       std :: string errMsg;
+          
+                       if(getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
+                                res = false;
+                                errMsg = "Fatal Error: Page doesn't exist.";
+                                std :: cout << errMsg << std :: endl;
+                       } else {
+                                res = true;
+                       }
+
+                       //std :: cout << "Making response object.\n";
+                       const UseTemporaryAllocationBlock block{1024};
+                       Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                       // return the result
+                       //std :: cout << "Sending response object.\n";
+                       res = sendUsingMe->sendObject (response, errMsg);
+
+
+                       return make_pair(res, errMsg);
+
+                }
+        ));
+
+
+
         // this handler accepts a request to load all pages in a set to memory iteratively, and send back information about loaded pages
         forMe.registerHandler (StorageGetSetPages_TYPEID, make_shared <MultiThreadedRequestHandler <StorageGetSetPages>> (
                 [&] (Handle <StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<StorageGetSetPages> & handler) {
@@ -552,7 +596,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                   worker->execute(scanWork, tempBuzzer);
                         }
 
-                        while (handler.getCounter() != numIterators) {
+                        while (handler.getCounter() < numIterators) {
                                   tempBuzzer->wait();
                         }
                         set->setPinned(false);
@@ -623,7 +667,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                             communicatorToBackend->getNextObject<SimpleRequestResult>(res, errMsg);
                         }
 
-                        std :: cout << "Making response object.\n";
+                        //std :: cout << "Making response object.\n";
                         {
                             const UseTemporaryAllocationBlock block{1024};                      
                             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -632,6 +676,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                             std :: cout << "Sending response object.\n";
                             res = sendUsingMe->sendObject (response, errMsg);
                         }
+                        //std :: cout << "All Done!" << std :: endl;
                         return make_pair (res, errMsg);
 
                     } 

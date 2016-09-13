@@ -39,6 +39,9 @@ public :
     SetID getTempSetID () { return this->tempsetId;}
     void setTempSetID (SetID tempsetId) { this->tempsetId = tempsetId; }
 
+    ENABLE_DEEP_COPY
+
+
 private:
     SetID tempsetId;
 

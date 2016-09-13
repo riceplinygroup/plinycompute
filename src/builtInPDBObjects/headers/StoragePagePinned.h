@@ -75,6 +75,7 @@ public:
 	size_t getSharedMemOffset() {return this->sharedMemOffset;}
 	void setSharedMemOffset(size_t offset) {this->sharedMemOffset = offset;}
 
+        ENABLE_DEEP_COPY
 
 private:
 	bool morePagesToLoad;

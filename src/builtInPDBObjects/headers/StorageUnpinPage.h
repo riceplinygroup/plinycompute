@@ -59,6 +59,8 @@ public:
         bool getWasDirty() { return this->wasDirty; }
         void setWasDirty(bool wasDirty) { this->wasDirty = wasDirty; }
 
+        ENABLE_DEEP_COPY
+
 private:
 	NodeID nodeId;
 	DatabaseID dbId;

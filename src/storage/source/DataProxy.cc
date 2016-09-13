@@ -223,13 +223,16 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
        } else {
           msg->setWasDirty(false);
        }
+       
+       //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
+       //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
 
        //send the message out
        if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
-          cout << "Sending object failure: " << errMsg <<"\n";
+          std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
 	  return false;
        }
-       //cout << "message sent.\n";  
+       //std :: cout << "StorageUnpinPage sent.\n";  
     }
 
     //receive the Ack object

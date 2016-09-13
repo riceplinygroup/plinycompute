@@ -52,7 +52,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                 errMsg = "Fatal Error: No job is running in execution server.";
                                 std :: cout << errMsg << std :: endl;
                        } else {
-                                scanner->recvPagesLoop(sendUsingMe);
+                                //std :: cout << "to throw pinned pages to a circular buffer!" << std :: endl;
+                                scanner->recvPagesLoop(request, sendUsingMe);
                                 res = true;
                        }
                        return make_pair(res, errMsg);
@@ -89,6 +90,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       DatabaseID dbId = request->getDatabaseID();
                       UserTypeID typeId = request->getUserTypeID();
                       SetID setId = request->getSetID();
+                      std :: cout << "Backend received BackendTestSetScan message with dbId=" << dbId <<", typeId="<<typeId<<", setId="<<setId<<std :: endl;
 
                       int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
                       NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
@@ -133,13 +135,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       }
 
                       res = true;
-                      std :: cout << "Making response object.\n";
+                      //std :: cout << "Making response object.\n";
                       const UseTemporaryAllocationBlock block{1024};
                       Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 
                       // return the result
-                      res = communicatorToFrontend->sendObject (response, errMsg);
-                      std :: cout << "Sending response object.\n";
+                      res = sendUsingMe->sendObject (response, errMsg);
+                      //std :: cout << "Sending response object.\n";
                       return make_pair(res, errMsg);
 
              }

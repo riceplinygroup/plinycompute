@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_27_CC
-#define TEST_27_CC
+#ifndef TEST_29_CC
+#define TEST_29_CC
 
 #include "StorageClient.h"
 #include "PDBVector.h"
@@ -28,7 +28,7 @@
 
 int main (int argc, char * argv[]) {
 
-	std :: cout << "Firstly, make sure to run bin/test23 in a different window to provide a catalog/storage server.\n";
+	std :: cout << "Firstly, make sure to run bin/test28 in a different window to provide a catalog/storage server, with a forked backend server.\n";
         std :: cout << "Secondly, make sure to run bin/test24 first to register the type, create the database and set to add data to.\n";
         std :: cout << "Thirdly, make sure to run bin/test26 first to add data to the set created in last step.\n";
         std :: cout << "Now, you can run this test case:\n";
@@ -51,8 +51,8 @@ int main (int argc, char * argv[]) {
                 setName = argv[2];
         }
 
-        std :: cout << "to retrieve data from database with name: " << databaseName << std :: endl;
-        std :: cout << "to retrieve data from set with name: " << setName << std :: endl;
+        std :: cout << "to scan data in database with name: " << databaseName << std :: endl;
+        std :: cout << "to scan data in set with name: " << setName << std :: endl;
         std :: cout << std :: endl;
         std :: cout << std :: endl;
 
@@ -61,8 +61,8 @@ int main (int argc, char * argv[]) {
 	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
 	string errMsg;
      
-        // now, fetch data from the set specified
-        temp.retrieveData<SharedEmployee>(databaseName, setName, errMsg);
+        // now, scan data from the set specified
+        temp.scanData<SharedEmployee>(databaseName, setName, errMsg);
 
         
 

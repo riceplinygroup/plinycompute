@@ -30,6 +30,7 @@
 #include "PageCircularBufferIterator.h"
 #include "SharedMem.h"
 #include "DataTypes.h"
+#include "StoragePagePinned.h"
 #include <string.h>
 #include <pthread.h>
 #include <memory>
@@ -84,7 +85,7 @@ public:
      *
      * You can start multiple loops by assigning multiple different PDBCommunicators respectively.
      */
-    bool recvPagesLoop(pdb :: PDBCommunicatorPtr myCommunicator);
+    bool recvPagesLoop(pdb ::  Handle< pdb :: StoragePagePinned > pinnedPage, pdb :: PDBCommunicatorPtr myCommunicator);
 
     /**
      * Close the buffer

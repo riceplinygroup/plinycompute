@@ -64,7 +64,7 @@ void TestScanWork::execute(PDBBuzzerPtr callerBuzzer) {
                 callerBuzzer->buzz(PDBAlarm::QueryError);
                 return;
             }
-            std :: cout << "send out unpinPage for page with pageID:" << page->getPageID() << "." << std :: endl;
+            //std :: cout << "send out unpinPage for page with pageID:" << page->getPageID() << "." << std :: endl;
         }
     }
     callerBuzzer->buzz(PDBAlarm::WorkAllDone);

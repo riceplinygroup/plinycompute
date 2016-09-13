@@ -136,7 +136,7 @@ Handle <ObjType> PDBCommunicator :: getNextObject (void *readToHere, bool &succe
 	// the first few bytes of a record always record the size
 	char *mem = (char *) readToHere;
 	*((size_t *) mem) = msgSize;
-
+        //std :: cout << "msgSize = " << msgSize << std :: endl;
 	// now we read the rest
 	mem += sizeof (size_t);
 	msgSize -= sizeof (size_t);
@@ -153,6 +153,7 @@ Handle <ObjType> PDBCommunicator :: getNextObject (void *readToHere, bool &succe
         logToMe->trace ("PDBCommunicator: read the object with no problem.");
         logToMe->trace ("PDBCommunicator: root offset is " + std :: to_string (((Record <ObjType> *) readToHere)->rootObjectOffset ()));
 	readCurMsgSize = false;
+        //std :: cout << "to get root object..." << std :: endl;
 	return ((Record <ObjType> *) readToHere)->getRootObject ();
 }
 
@@ -166,11 +167,13 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
 
     // read in the object
     void *mem = malloc (msgSize);
+    //std :: cout << "msgSize = " << msgSize << std :: endl;
     Handle <ObjType> temp = getNextObject <ObjType> (mem, success, errMsg);
 
     // if we were successful, then copy it to the current allocation block
     if (success) {
         logToMe->trace ("PDBCommunicator: about to do the deep copy.");
+        //std :: cout << "to get handle" << std :: endl;
 	temp = getHandle (*temp);
         logToMe->trace ("PDBCommunicator: completed the deep copy.");
 	free (mem);

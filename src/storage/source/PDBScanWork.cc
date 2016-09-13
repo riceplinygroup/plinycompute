@@ -106,15 +106,17 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
         page = this->iter->next();
         if (page != nullptr) {
             //send PagePinned object to backend
-                //cout << "PDBScanWork: pin page with pageId ="<<page->getPageID()<<"\n";
+                //std :: cout << "PDBScanWork: pin page with pageId ="<<page->getPageID()<<"\n";
         	logger->writeLn("PDBScanWork: pin pages with pageId = ");
         	logger->writeInt(page->getPageID());
         	this->sendPagePinned(communicatorToBackEnd, true, page->getNodeID(), page->getDbID(), page->getTypeID(), page->getSetID(), page->getPageID(), page->getSize(), page->getOffset());
 
         	//receive ack object from backend
+                //std :: cout << "PDBScanWork: waiting for ack..." << std :: endl;
         	logger->writeLn("PDBScanWork: waiting for ack... ");
         	this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
         	logger->writeLn("PDBScanWork: ack received ");
+                //std :: cout << "PDBScanWork: got ack!" << std :: endl;
         }
     }
     //close the connection

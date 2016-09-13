@@ -55,6 +55,9 @@ public:
 	SetID getSetID() { return this->setId; }
 	void setSetID(SetID setId) { this->setId = setId; }
 
+        ENABLE_DEEP_COPY
+
+
 private:
 	NodeID nodeId;
 	DatabaseID dbId;

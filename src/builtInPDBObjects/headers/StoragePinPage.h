@@ -68,6 +68,7 @@ public:
 
 	void setPageID(PageID pageId) {this->pageId = pageId;}
 
+        ENABLE_DEEP_COPY
 
 private:
 	bool wasNewPage;

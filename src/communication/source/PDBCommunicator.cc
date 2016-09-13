@@ -143,7 +143,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
         return true;
     }
 
-    std :: cout << "In here!!\n";
+    //std :: cout << "In here!!\n";
 
     server.sun_family = AF_UNIX;
     strcpy(server.sun_path, fName.c_str());
@@ -158,7 +158,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
     // Jia: moved automatic tear-down logic from Chris' message-based communication to here
     // note that we need to close this up when we are done
     needToSendDisconnectMsg = true;
-    std :: cout << "Connected!!\n";
+    //std :: cout << "Connected!!\n";
 
     return false;
 }

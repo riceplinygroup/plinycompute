@@ -100,7 +100,8 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 
 inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 
-	// if we are derived from Object, use the virtual function 
+	// if we are derived from Object, use the virtual function
+        //std :: cout << "info =" << info << std :: endl; 
 	if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
@@ -108,10 +109,12 @@ inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 
 		// now get the size
 		if (temp != nullptr) {
+                        //std :: cout << "we fixed vTable pointer!" << std :: endl;
 			return ((Object *) &temp)->getSize (ofMe);
 
 		// in the worst case, we could not fix the vTable pointer, so try to use the object's vTable pointer
 		} else {
+                        //std :: cout << "we couldn't fix the vTable pointer!" << std :: endl;
 			return ((Object *) ofMe)->getSize (ofMe);
 		}
 	} else {

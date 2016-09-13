@@ -62,9 +62,11 @@ public:
 		PDBCommunicatorPtr myCommunicator = getCommunicator ();
 		bool success;
 		std :: string errMsg;
-		void *memory = malloc (myCommunicator->getSizeOfNextObject ());
+                size_t nextObjectSize = myCommunicator->getSizeOfNextObject ();
+                //std :: cout << "nextObjectSize = " << nextObjectSize << std :: endl;
+		void *memory = malloc (nextObjectSize);
 		{
-			UseTemporaryAllocationBlock tempBlock {memory, myCommunicator->getSizeOfNextObject ()};
+			UseTemporaryAllocationBlock tempBlock {memory, nextObjectSize};
 			Handle <RequestType> request = myCommunicator->getNextObject <RequestType> (success, errMsg);
 			
 			PDBLoggerPtr myLogger = getLogger ();

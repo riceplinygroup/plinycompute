@@ -98,7 +98,7 @@ bool PageScanner::sendPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bo
 
 vector<PageCircularBufferIteratorPtr> PageScanner::getSetIterators(NodeID nodeId,
         DatabaseID dbId, UserTypeID typeId, SetID setId) {
-        cout << "BackEndServer: send GetSetPagesMsg to frontEnd.\n";
+        std :: cout << "BackEndServer: send GetSetPagesMsg to frontEnd.\n";
 	//create an GetSetPages object
 	string errMsg;
         const pdb :: UseTemporaryAllocationBlock myBlock{1024};
@@ -125,27 +125,28 @@ vector<PageCircularBufferIteratorPtr> PageScanner::getSetIterators(NodeID nodeId
         return vec;
 }
 
-bool PageScanner::recvPagesLoop(pdb :: PDBCommunicatorPtr myCommunicator) {
+bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPage, pdb :: PDBCommunicatorPtr myCommunicator) {
 	//cout << "PageScanner: recvPagesLoop processing.\n";
 
     string errMsg;
-    bool morePagesToLoad;
-    NodeID dataNodeId;
-    DatabaseID dataDbId;
-    UserTypeID dataTypeId;
-    SetID dataSetId;
-    PageID dataPageId;
-    size_t pageSize;
-    size_t offset;
+    bool morePagesToLoad = pinnedPage->getMorePagesToLoad();
+    NodeID dataNodeId = pinnedPage->getNodeID();
+    DatabaseID dataDbId = pinnedPage->getDatabaseID();
+    UserTypeID dataTypeId = pinnedPage->getUserTypeID();
+    SetID dataSetId = pinnedPage->getSetID();
+    PageID dataPageId = pinnedPage->getPageID();
+    size_t pageSize = pinnedPage->getPageSize();
+    size_t offset = pinnedPage->getSharedMemOffset();
     PDBPagePtr page;
     bool ret;
-    while ((ret = this->acceptPagePinned(myCommunicator, errMsg, morePagesToLoad, dataNodeId, dataDbId, dataTypeId,
-            dataSetId, dataPageId, pageSize, offset)) == true) {
-        //cout << "dataPageId:"<<dataPageId<<"\n";
-        //cout << "morePagesToLoad:"<<morePagesToLoad<<"\n";
+
+    //Due to the new handling mechanism, we need to process the first message then accept the next message;
+    do  {
+        //std :: cout << "dataPageId:"<<dataPageId<<"\n";
+        //std :: cout << "morePagesToLoad:"<<morePagesToLoad<<"\n";
         //if there are no more pages to send at the frontend side, send ACK and return.
         if (morePagesToLoad == false) {
-            //cout << "BackEndServer: sending PagePinnedAck to frontEnd to end loop...\n";
+            std :: cout << "BackEndServer: sending Ack to frontEnd to end loop...\n";
             this->sendPagePinnedAck(myCommunicator, false, "", errMsg);
             return true;
         }
@@ -159,8 +160,8 @@ bool PageScanner::recvPagesLoop(pdb :: PDBCommunicatorPtr myCommunicator) {
             //cout << "BackEndServer: sending PagePinnedAck to frontEnd...\n";
             this->sendPagePinnedAck(myCommunicator, false, "", errMsg);
         }
-    }
-    //this->sendPagePinnedAck(true, errMsg, errMsg);
+    }     while ((ret = this->acceptPagePinned(myCommunicator, errMsg, morePagesToLoad, dataNodeId, dataDbId, dataTypeId,
+            dataSetId, dataPageId, pageSize, offset)) == true);
     return false;
 }
 

@@ -38,6 +38,8 @@ public:
 
 	StorageNoMorePage () {}
 	~StorageNoMorePage() {}
+       
+        ENABLE_DEEP_COPY
 
 };
 }

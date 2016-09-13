@@ -53,6 +53,7 @@ private:
 	UserTypeID userTypeId;
 	SetID setId;
 
+        ENABLE_DEEP_COPY
 
 };
 
