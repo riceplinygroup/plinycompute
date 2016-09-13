@@ -90,7 +90,7 @@ public:
     	backEndIpcFile = "pdbRoot/backEndIpcFile";
     }
   
-    NodeID getNodeId() const {
+    NodeID getNodeID() const {
         return nodeId;
     }
 

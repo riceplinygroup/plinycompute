@@ -80,7 +80,7 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         //cout << "Storage server is initializing...\n";
 
         //configuring server
-        this->nodeId = conf->getNodeId();
+        this->nodeId = conf->getNodeID();
         this->serverName = conf->getServerName();
         this->shm = shm;
         this->workers = workers;
