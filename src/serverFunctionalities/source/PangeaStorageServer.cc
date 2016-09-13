@@ -517,7 +517,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
         forMe.registerHandler (StorageGetSetPages_TYPEID, make_shared <MultiThreadedRequestHandler <StorageGetSetPages>> (
                 [&] (Handle <StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<StorageGetSetPages> & handler) {
 
-                        NodeID nodeId = request->getNodeID();
+                        //NodeID nodeId = request->getNodeID();
                         DatabaseID dbId = request->getDatabaseID();
                         UserTypeID typeId = request->getUserTypeID();
                         SetID setId = request->getSetID();
