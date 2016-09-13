@@ -24,6 +24,7 @@
 #include "StorageAddSet.h"
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
+#include "StorageTestSetScan.h"
 #include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
 #include "CompositeRequest.h"
@@ -125,6 +126,29 @@ databaseName, setName, typeName);
 
 }
 
+template <class DataType>
+bool StorageClient :: scanData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    if (this->usePangea == false) {
+        std :: cout << "scanData can only work for PangeaStorageServer\n";
+        return false;
+    }
+    std :: string typeName = getTypeName <DataType>();
+    std :: cout << "typeName for set to create ="<<typeName << std :: endl;
+    return simpleRequest <StorageTestSetScan, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error scanning data: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from server";
+                        return false;},
+                databaseName, setName);
+    
+}
 
 
 }

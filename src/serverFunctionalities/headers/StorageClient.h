@@ -62,9 +62,13 @@ public:
 	template <class DataType>
 	bool storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // this retrieves data into a set... returns true on success, added by Jia
+        // this retrieves data into a set... returns true on success
         template <class DataType>
         bool retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+        //this test set scan at backend ... returns true on success
+        template <class DataType>
+        bool scanData (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
 private:
 

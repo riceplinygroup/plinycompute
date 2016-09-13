@@ -597,8 +597,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                     }
                     else {
                         //first we need to create a separate connection to backend
-                        PDBCommunicatorPtr communicatorToBackEnd = make_shared<PDBCommunicator>();
-                        if (communicatorToBackEnd->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                        PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                        if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                             res = false;
                             std :: cout << errMsg << std :: endl;
                             return make_pair(res, errMsg);
@@ -608,15 +608,32 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         UserTypeID typeId = set->getTypeID();
                         SetID setId = set->getSetID();
                         
-                        UseTemporaryAllocationBlock myBlock{1024};
-                        Handle<BackendTestSetScan> msg = makeObject<BackendTestSetScan>(dbId, typeId, setId);
-                        if(!communicatorToBackEnd->sendObject<BackendTestSetScan>(msg, errMsg)) {
-                            res = false;
-                            std :: cout << errMsg << std :: endl;
-                            return make_pair(res, errMsg);
+                        { 
+                            const UseTemporaryAllocationBlock myBlock{1024};
+                            Handle<BackendTestSetScan> msg = makeObject<BackendTestSetScan>(dbId, typeId, setId);
+                            if(!communicatorToBackend->sendObject<BackendTestSetScan>(msg, errMsg)) {
+                                res = false;
+                                std :: cout << errMsg << std :: endl;
+                                return make_pair(res, errMsg);
+                            }
+                        }
+                        
+                        {
+                            const UseTemporaryAllocationBlock myBlock{communicatorToBackend->getSizeOfNextObject()};
+                            communicatorToBackend->getNextObject<SimpleRequestResult>(res, errMsg);
                         }
 
-                        return make_pair(res, errMsg);
+                        std :: cout << "Making response object.\n";
+                        {
+                            const UseTemporaryAllocationBlock block{1024};                      
+                            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                  
+                             // return the result
+                            std :: cout << "Sending response object.\n";
+                            res = sendUsingMe->sendObject (response, errMsg);
+                        }
+                        return make_pair (res, errMsg);
+
                     } 
 
                 }

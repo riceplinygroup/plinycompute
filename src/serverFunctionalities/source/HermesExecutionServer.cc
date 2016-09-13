@@ -27,6 +27,7 @@
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
 #include "SimpleRequestHandler.h"
+#include "SimpleRequestResult.h"
 #include "BackendTestSetScan.h"
 #include "PageCircularBufferIterator.h"
 #include "TestScanWork.h"
@@ -130,8 +131,15 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       while (handler.getCounter() < numThreads) {
                                tempBuzzer->wait();
                       }
-           
+
                       res = true;
+                      std :: cout << "Making response object.\n";
+                      const UseTemporaryAllocationBlock block{1024};
+                      Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                      // return the result
+                      res = communicatorToFrontend->sendObject (response, errMsg);
+                      std :: cout << "Sending response object.\n";
                       return make_pair(res, errMsg);
 
              }
