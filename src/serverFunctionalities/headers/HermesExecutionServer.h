@@ -39,11 +39,13 @@ class HermesExecutionServer : public ServerFunctionality {
 public:
 
 	// creates an execution server... 
-        HermesExecutionServer (SharedMemPtr shm, ConfigurationPtr conf, NodeID nodeId) {
+        HermesExecutionServer (SharedMemPtr shm, PDBWorkerQueuePtr workers, ConfigurationPtr conf, NodeID nodeId) {
             this->shm = shm;
             this->conf = conf;
             this->nodeId = nodeId;
             this->curScanner = nullptr;
+            this->logger = make_shared<pdb :: PDBLogger>("Hermes.log");
+            this->workers = workers;
         }
 
         //set the configuration instance;
@@ -59,10 +61,10 @@ public:
 	SharedMemPtr getSharedMem() { return this->shm; }
 
 	//set the nodeId for this backend server;
-	void setNodeId(NodeID nodeId) { this->nodeId = nodeId; }
+	void setNodeID(NodeID nodeId) { this->nodeId = nodeId; }
 
 	//return the nodeId of this backend server;
-	NodeID getNodeId() { return this->nodeId; }
+	NodeID getNodeID() { return this->nodeId; }
 
 
 	// from the ServerFunctionality interface... registers the HermesExecutionServer's        // handlers
@@ -90,7 +92,17 @@ public:
 	//return the PageScanner of current job;
 	PageScannerPtr getCurPageScanner() { return this->curScanner; }
 
+        //set the logger
+        void setLogger(pdb :: PDBLoggerPtr logger) { this->logger = logger; }
 
+        //get the logger
+        pdb :: PDBLoggerPtr getLogger() { return this->logger; }
+
+        //set the workers
+        void setWorkers(PDBWorkerQueuePtr workers) { this->workers = workers; }
+
+        //get the workers
+        PDBWorkerQueuePtr getWorkers() { return this->workers; }
 
 	// destructor
 	~HermesExecutionServer () {}
@@ -99,9 +111,10 @@ private:
 
         ConfigurationPtr conf;
         SharedMemPtr shm;
+        PDBWorkerQueuePtr workers;
         NodeID nodeId;
         PageScannerPtr curScanner;
-		
+        pdb :: PDBLoggerPtr logger;		
 };
 
 }

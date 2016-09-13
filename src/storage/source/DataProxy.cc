@@ -39,7 +39,7 @@
 #include "StorageRemoveTempSet.h"
 #include "CloseConnection.h"
 
-#define DATA_PROXY_SCANNER_BUFFER_SIZE 10
+#define DATA_PROXY_SCANNER_BUFFER_SIZE 3
 
 DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, SharedMemPtr shm, pdb :: PDBLoggerPtr logger) {
     this->nodeId = nodeId;

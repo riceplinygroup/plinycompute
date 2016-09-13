@@ -27,6 +27,13 @@
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
 #include "SimpleRequestHandler.h"
+#include "BackendTestSetScan.h"
+#include "PageCircularBufferIterator.h"
+#include "TestScanWork.h"
+#include "MultiThreadedRequestHandler.h"
+#include <vector>
+
+
 namespace pdb {
 
 
@@ -71,6 +78,65 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
               }
     ));
+  
+    //register a handler to process the BackendTestSetScan message
+    forMe.registerHandler (BackendTestSetScan_TYPEID, make_shared<MultiThreadedRequestHandler<BackendTestSetScan>> (
+              [&] (Handle<BackendTestSetScan> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<BackendTestSetScan>& handler) {
+                      bool res;
+                      std :: string errMsg;
+
+                      DatabaseID dbId = request->getDatabaseID();
+                      UserTypeID typeId = request->getUserTypeID();
+                      SetID setId = request->getSetID();
+
+                      int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
+                      NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+                      pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+                      SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();                                      int backendCircularBufferSize = 3;      
+
+                      PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+                      communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
+                      PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
+                       
+
+                      if(getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                              res = false;
+                              errMsg = "Error: A job is already running!";
+                              std :: cout << errMsg << std :: endl;
+                              return make_pair(res, errMsg);
+                      }
+
+                      std :: vector<PageCircularBufferIteratorPtr> iterators =
+                              scanner->getSetIterators(nodeId, dbId, typeId, setId);
+
+                      int numIteratorsReturned = iterators.size();
+                      if( numIteratorsReturned != numThreads ) {
+                              res = false;
+                              errMsg = "Error: number of iterators doesn't match number of threads!";
+                              std :: cout << errMsg << std :: endl;
+                              return make_pair(res, errMsg);
+                      }
+
+                      PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
+
+                      for (int i = 0; i < numThreads; i++) {
+                              PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                              
+                              //starting processing threads;
+                              TestScanWorkPtr testScanWork = make_shared<TestScanWork> (iterators.at(i), &(getFunctionality<HermesExecutionServer>()));
+                              worker->execute(testScanWork, tempBuzzer);
+                      }
+
+                      while (handler.getCounter() < numThreads) {
+                               tempBuzzer->wait();
+                      }
+           
+                      res = true;
+                      return make_pair(res, errMsg);
+
+             }
+             ));
+
         
 } 
 
