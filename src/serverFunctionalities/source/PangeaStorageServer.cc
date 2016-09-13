@@ -31,6 +31,8 @@
 #include "StoragePinPage.h"
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
+#include "StorageTestSetScan.h"
+#include "BackendTestSetScan.h"
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
@@ -575,6 +577,52 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         return make_pair(res, errMsg);
                 }
         ));
+
+        // this handler accepts a request to translate <databaseName, setName> into <databaseId, typeId, setId> and forward to backend
+        forMe.registerHandler (StorageTestSetScan_TYPEID, make_shared <SimpleRequestHandler <StorageTestSetScan>> (
+                [&] (Handle <StorageTestSetScan> request, PDBCommunicatorPtr sendUsingMe) {
+
+                    std :: string dbName = request->getDatabase();
+                    std :: string setName = request->getSetName();
+                    SetPtr set = getFunctionality<PangeaStorageServer>().getSet(std :: pair<std :: string, std::string>(dbName, setName));
+
+                    bool res;
+                    std :: string errMsg;
+
+                    if(set == nullptr) {
+                        res = false;
+                        errMsg = "Fatal Error: Set doesn't exist!";
+                        std :: cout << errMsg << std :: endl;
+                        return make_pair(res, errMsg);
+                    }
+                    else {
+                        //first we need to create a separate connection to backend
+                        PDBCommunicatorPtr communicatorToBackEnd = make_shared<PDBCommunicator>();
+                        if (communicatorToBackEnd->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                            res = false;
+                            std :: cout << errMsg << std :: endl;
+                            return make_pair(res, errMsg);
+                        }
+
+                        DatabaseID dbId = set->getDbID();
+                        UserTypeID typeId = set->getTypeID();
+                        SetID setId = set->getSetID();
+                        
+                        UseTemporaryAllocationBlock myBlock{1024};
+                        Handle<BackendTestSetScan> msg = makeObject<BackendTestSetScan>(dbId, typeId, setId);
+                        if(!communicatorToBackEnd->sendObject<BackendTestSetScan>(msg, errMsg)) {
+                            res = false;
+                            std :: cout << errMsg << std :: endl;
+                            return make_pair(res, errMsg);
+                        }
+
+                        return make_pair(res, errMsg);
+                    } 
+
+                }
+        ));
+
+
 
 }
 

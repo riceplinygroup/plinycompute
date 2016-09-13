@@ -38,8 +38,7 @@ class HermesExecutionServer : public ServerFunctionality {
 
 public:
 
-	// creates an execution server... the param is the number of threads to use
-	// to do computation
+	// creates an execution server... 
         HermesExecutionServer (SharedMemPtr shm, ConfigurationPtr conf, NodeID nodeId) {
             this->shm = shm;
             this->conf = conf;

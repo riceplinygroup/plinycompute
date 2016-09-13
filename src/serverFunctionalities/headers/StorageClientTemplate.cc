@@ -72,6 +72,9 @@ bool StorageClient :: createSet (std :: string databaseName, std :: string setNa
     }
 }
 
+
+// added by Jia
+
 template <class DataType>
 bool StorageClient :: retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
     if (this->usePangea == false) {
