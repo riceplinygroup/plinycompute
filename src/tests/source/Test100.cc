@@ -41,7 +41,6 @@ int main(int argc, char *argv[]) {
 	std::cout << "start:  ./bin/test100 8108 frontEndDM.log localhost 8108 1 \n";
 	std::cout << "start:  ./bin/test100 8109 frontEndDM1.log localhost 8108 0 \n";
 
-
 	CommandLineStringArgs cmdlineStringArgs(&argv[0], &argv[0 + argc]);
 
 	if (argc == 6) {
@@ -75,35 +74,30 @@ int main(int argc, char *argv[]) {
 
 		frontEnd.addFunctionality<pdb::DistributionManagerServer>();
 
-
-		cout<< "Master node hostname is " << masterNodeHostname <<  "  port is " << masterPortNumber << endl ;
-
-
+		cout << "Master node hostname is " << masterNodeHostname << "  port is " << masterPortNumber << endl;
 
 		if (isMaster == 0) {
 			std::cout << "Server is a Slave Node." << std::endl;
 
 			// TODO: Not sure if I have to make the DistributionManager as a server functionality.
-			frontEnd.addFunctionality<pdb::DistributionManagerClient>(masterNodeHostname, masterPortNumber);
+			frontEnd.addFunctionality<pdb::DistributionManagerClient>(frontEnd.getLogger());
 
 			// Get the functionality back to start the heart beat.
-			pdb::DistributionManagerClient  myDMClient=frontEnd.getFunctionality<pdb::DistributionManagerClient>();
+			pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
 
-				bool wasError;
-				std::string errMsg;
+			bool wasError;
+			std::string errMsg;
 
-				makeObjectAllocatorBlock(1024 * 24, true);
-				Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
-				pdb::String hostname(masterNodeHostname);
+			makeObjectAllocatorBlock(1024 * 24, true);
+			Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
+			pdb::String hostname(masterNodeHostname);
 
-				m_nodeInfo->setHostName(hostname);
-				m_nodeInfo->setPort(masterPortNumber);
+			m_nodeInfo->setHostName(hostname);
+			m_nodeInfo->setPort(masterPortNumber);
 
-				myDMClient.sendHeartBeat(masterNodeHostname, masterPortNumber, m_nodeInfo, frontEnd.getLogger(), wasError, errMsg);
-				std::cout << errMsg<<std::endl ;
-
+			myDMClient.sendHeartBeat(masterNodeHostname, masterPortNumber, m_nodeInfo, wasError, errMsg);
+			std::cout << errMsg << std::endl;
 		}
-
 
 		frontEnd.startServer(nullptr);
 	} else {
