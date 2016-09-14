@@ -15,45 +15,52 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef DISTRIBUTION_MANAGER_SERVER_H
-#define DISTRIBUTION_MANAGER_SERVER_H
+#ifndef EXEC_QUERIES_ON_CLUSTER_H
+#define EXEC_QUERIES_ON_CLUSTER_H
 
-#include "ServerFunctionality.h"
-#include "PDBServer.h"
-#include "PDBDistributionManager.h"
+#include "Object.h"
 #include "Handle.h"
 #include "QueryBase.h"
-#include "PDBVector.h"
+
+#include "PDBString.h"
+
+// PRELOAD %ExecuteQueriesOnCluster%
 
 namespace pdb {
 
-class DistributionManagerServer: public ServerFunctionality {
+// encapsulates a request to execute a set of queries on the PDB cluster nodes.
+
+class ExecuteQueriesOnCluster: public Object {
 
 public:
 
-	// these give us the port and the address of the catalog
-	DistributionManagerServer();
+	ExecuteQueriesOnCluster() {
+	}
+	~ExecuteQueriesOnCluster() {
 
-	~DistributionManagerServer();
+	}
 
-	// from the ServerFunctionality interface
-	void registerHandlers(PDBServer &forMe) override;
+	ExecuteQueriesOnCluster(Handle<Vector<Handle<QueryBase>>> allOutputs) : allOutputs (allOutputs) {}
 
-	// This method adds or update a node.
-	// If the node is seen for the first time it adds it to memory with the current time and returns 0
-	// If the node already exists it updates the timestamp and returns 1.
-	int addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
+	Handle <Vector <Handle <QueryBase>>> getOutputs () {
+		return allOutputs;
+	}
 
-
-
-	PDBDistributionManagerPtr getDistributionManager();
-
+	ENABLE_DEEP_COPY
 
 private:
-	PDBDistributionManagerPtr distributionManager;
 
-};
+			// all of the queries that have to be executed.
+			Handle <Vector <Handle <QueryBase>>> allOutputs;
 
-}
+			// hostnames of the nodes
+			Handle <Vector <Handle <String>>> hostNames;
+
+			// ports of the nodes
+			Handle <Vector <Handle <int>>> hostPorts;
+
+		};
+
+	}
 
 #endif

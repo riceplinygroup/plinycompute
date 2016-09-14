@@ -78,6 +78,10 @@ public:
     // asks the server to handle a particular request coming over the wire with the particular work type
     void registerHandler(int16_t typeID, PDBCommWorkPtr handledBy);
 
+    // like registerHandler but repeat the work in a time interval
+    // TODO: to be implemented later.
+    //  void registerTimedHandler (uint32_t intervalInMilliseconds, PDBWorkPtr handledBy);
+
     // starts the server---this creates all of the threads and lets the server start taking requests; this
     // call will never return.  Note that if runMeAtStart is not null, then runMeAtStart is executed 
     // before the server starts handling requests

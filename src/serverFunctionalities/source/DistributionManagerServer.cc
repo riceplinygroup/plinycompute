@@ -33,6 +33,8 @@
 #include "SimpleRequestResult.h"
 #include "DistributionManagerServer.h"
 #include "NodeInfo.h"
+#include "Ack.h"
+#include "ExecuteQueryOnSingleHost.h"
 
 namespace pdb {
 
@@ -56,16 +58,47 @@ void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 			std::string hostname = request->getHostName();
 
 			// update
+			//TODO: result is unused so far.
 			bool resulstFromUpdate = myDM->addOrUpdateNodes(forMe.getLogger(), hostname);
+			bool wasError;
+
+			//TODO
+			if(resulstFromUpdate)
+			wasError=true;
+			else
+			wasError=true;
 
 			//TODO : I have no fail case, so I send always true with no errMsg.
 			// return the result
-			return make_pair (true, errMsg);
+			return make_pair (wasError, errMsg);
 		}));
+
+
+	forMe.registerHandler(ExecuteQueryOnSingleHost_TYPEID, make_shared<SimpleRequestHandler<ExecuteQueryOnSingleHost>>([&] (Handle <ExecuteQueryOnSingleHost> request, PDBCommunicatorPtr sendUsingMe) {
+
+			//TODO: There is no errMsg that I can forward. Check if we need to forward some errMsg.
+			std :: string errMsg;
+
+			// get the pointer to the distribution manager instance
+			PDBDistributionManagerPtr myDM = getFunctionality <DistributionManagerServer>().getDistributionManager();
+
+			Handle<Ack> myAck=myDM->executeQueryOnLocalHost(request->getQueries());
+
+			bool wasError=myAck->getWasError();
+
+
+
+
+
+			return make_pair (wasError, errMsg);
+		}));
+
+
 }
 
 PDBDistributionManagerPtr DistributionManagerServer::getDistributionManager() {
 	return this->distributionManager;
 }
+
 
 }

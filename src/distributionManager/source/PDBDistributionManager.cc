@@ -45,6 +45,9 @@
 #include <chrono>
 #include <uuid/uuid.h>
 
+
+#include "UseTemporaryAllocationBlock.h"
+
 using namespace std;
 
 namespace pdb {
@@ -64,7 +67,7 @@ bool PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& n
 	this->heartBeatCounter++;
 	long timeCounter = std::chrono::duration_cast<std::chrono::nanoseconds>(p.time_since_epoch()).count();
 
-	// if we have 20 hear beat messages, activate the cleaning process.
+	// if we have 20 heart beat messages from any servers then we activate the cleaning process.
 	if (this->heartBeatCounter >= 20) {
 		// iterate over the list of nodes and remove old ones.
 		for (auto myPair = nodesOfCluster.begin(); myPair != nodesOfCluster.end();) {
@@ -144,6 +147,16 @@ int PDBDistributionManager::queryIsDone(string& queryID, PDBLoggerPtr logToMe) {
 	}
 
 }
+
+
+
+Handle<Ack> PDBDistributionManager::executeQueryOnLocalHost(Handle<Vector<Handle<QueryBase>>> queries) {
+
+	// 	TODO: At this stage we only return an ack, but later in the project this should run the queries on the localhost.
+		const UseTemporaryAllocationBlock block {1024};
+		Handle<Ack> ack = makeObject<Ack>();
+		return ack;
+	}
 
 }
 #endif

@@ -38,15 +38,21 @@
 #include "PDBLogger.h"
 #include "Ack.h"
 #include "PDBString.h"
+#include "PDBVector.h"
+#include "QueryBase.h"
 
-
-
-// A smart pointer for PDBDistributionManager
 
 namespace pdb {
+
+/**
+ * This class represents the distribution manager of PDB cluster system.
+ */
+
+
 class PDBDistributionManager;
 using namespace std;
 
+// A smart pointer for PDBDistributionManager
 typedef shared_ptr<PDBDistributionManager> PDBDistributionManagerPtr;
 
 
@@ -74,7 +80,7 @@ public:
 	// It has to send the same queryID and receive an Ack.
 	int queryIsDone(string& queryID, PDBLoggerPtr myLoggerIn);
 
-	unordered_map<string, long>& getNodesOfCluster() {
+	unordered_map<string, long>& getUpNodesOfCluster() {
 		return nodesOfCluster;
 	}
 
@@ -94,12 +100,22 @@ public:
 		this->queryPlannerPlace = queryPlannerPlace;
 	}
 
+
+
+	// TODO: it has to be checked with other components.
+	// this method gets a set of queries over the network and runs them on the local host
+	// It returns an ACK
+	Handle<Ack> executeQueryOnLocalHost(Handle <Vector<Handle <QueryBase>>> queries);
+
+
+
 private:
 
 	// stores the heart beat data that we are collecting form all worker nodes in the cluster.
 	unordered_map<string, long> nodesOfCluster;
 
-	// this is counter to active the cleaning process and remove nodes that do not send heart beats any more.
+	// This is a counter to count heart beat messages and active the cleaning process after we got specific number of messages.
+	// This is just to do not start the cleaning process immediately after cluster bootstrapping.
 	int heartBeatCounter;
 
 	// it stores the location of the query planner in the cluster.
