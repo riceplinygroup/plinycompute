@@ -50,9 +50,15 @@ public:
     
     // returns a pointer to the bytes making up the page
     void * getRAM();
-    
+
+    // returns a pointer to the bytes after meta data
+    void * getWritableBytes();
+
     // gets the page size, in bytes
     size_t getSize();
+
+    // returns the size of writable bytes in the page
+    size_t getWritableSize();
 
     // gets pageId
     PageID getPageID();

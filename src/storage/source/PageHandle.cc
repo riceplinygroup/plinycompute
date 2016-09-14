@@ -77,7 +77,15 @@ void * PageHandle::getRAM() {
     return this->page->getRawBytes();
 }
 
+void * PageHandle::getWritableBytes() {
+    return this->page->getBytes();
+}
+
 size_t PageHandle::getSize() {
+    return this->page->getRawSize();
+}
+
+size_t PageHandle::getWritableSize() {
     return this->page->getSize();
 }
 

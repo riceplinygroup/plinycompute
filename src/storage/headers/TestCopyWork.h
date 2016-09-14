@@ -15,42 +15,52 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+/* 
+ * File:   TestCopyWork.h
+ * Author: Jia 
+ *
+ * Created on November 16, 2015, 10:22 AM
+ */
 
-#ifndef STORAGE_REMOVE_TEMP_SET_H
-#define STORAGE_REMOVE_TEMP_SET_H
+#ifndef TESTCOPYWORK_H
+#define	TESTCOPYWORK_H
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
+#include "PDBBuzzer.h"
+#include "PageCircularBufferIterator.h"
 #include "DataTypes.h"
+#include "HermesExecutionServer.h"
+#include <memory>
 
-// PRELOAD %StorageRemoveTempSet%
+using namespace std;
 
-namespace pdb {
+class TestCopyWork;
+typedef shared_ptr<TestCopyWork> TestCopyWorkPtr;
 
-// encapsulates a request to remove a temp set from storage
-class StorageRemoveTempSet  : public Object {
+/**
+ * This class illustrates how a backend server can communicate with frontend server
+ * to scan data and copy data to another set in storage.
+ */
 
+class TestCopyWork : public pdb :: PDBWork {
 public:
 
-	StorageRemoveTempSet () {}
-	~StorageRemoveTempSet () {}
+    TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server);
 
-	StorageRemoveTempSet (SetID setId) : setId (setId) {}
-
-	SetID getSetID () {
-		return setId;
-	}
-
-
-	ENABLE_DEEP_COPY
+    // do the actual work
+    void execute(PDBBuzzerPtr callerBuzzer) override;
 
 private:
 
-	SetID setId;
+    PageCircularBufferIteratorPtr iter;
+    pdb :: HermesExecutionServer * server;
+    DatabaseID destDatabaseId;
+    UserTypeID destTypeId;
+    SetID destSetId;
 
 };
 
-}
 
-#endif
+
+
+#endif	/* TESTCOPYWORK_H */
+

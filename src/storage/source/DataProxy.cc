@@ -86,12 +86,8 @@ bool DataProxy::removeTempSet(SetID setId) {
     //create a RemoveSet object
     {
          const pdb :: UseTemporaryAllocationBlock myBlock{1024};
-         pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>();
+         pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>(setId);
 
-         //We reserve Database 0 and Type 0 as temp data
-         msg->setDatabaseID(0);
-         msg->setUserTypeID(0);
-         msg->setSetID(setId);
          //send the message out
          if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
               cout << "Sending object failure: " << errMsg <<"\n";

@@ -29,8 +29,11 @@
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
 #include "BackendTestSetScan.h"
+#include "BackendTestSetCopy.h"
 #include "PageCircularBufferIterator.h"
 #include "TestScanWork.h"
+#include "TestCopyWork.h"
+#include "DataProxy.h"
 #include "MultiThreadedRequestHandler.h"
 #include <vector>
 
@@ -95,7 +98,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
                       NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
                       pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
-                      SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();                                      int backendCircularBufferSize = 3;      
+                      SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();                                      
+                      int backendCircularBufferSize = 3;      
 
                       PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
                       communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
@@ -135,6 +139,122 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       }
 
                       res = true;
+                      //std :: cout << "Making response object.\n";
+                      const UseTemporaryAllocationBlock block{1024};
+                      Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                      // return the result
+                      res = sendUsingMe->sendObject (response, errMsg);
+                      //std :: cout << "Sending response object.\n";
+                      return make_pair(res, errMsg);
+
+             }
+             ));
+
+    //register a handler to process the BackendTestSetScan message
+    forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<MultiThreadedRequestHandler<BackendTestSetCopy>> (
+              [&] (Handle<BackendTestSetCopy> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<BackendTestSetCopy>& handler) {
+                      bool res;
+                      std :: string errMsg;
+
+                      //get input and output information
+                      DatabaseID dbIdIn = request->getDatabaseIn();
+                      UserTypeID typeIdIn = request->getTypeIdIn();
+                      SetID setIdIn = request->getSetIdIn();
+                      DatabaseID dbIdOut = request->getDatabaseOut();
+                      UserTypeID typeIdOut = request->getTypeIdOut();
+                      SetID setIdOut = request->getSetIdOut();
+                      std :: cout << "Backend received BackendTestSetCopy message to copy from <dbId=" << dbIdIn <<", typeId=" << typeIdIn <<", setId=" << setIdIn
+                                  << "> to < dbId=" << dbIdOut << ", typeId=" << typeIdOut << ", setId=" << setIdOut << ">" <<std :: endl;
+
+                      int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
+                      NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+                      pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+                      SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();                                      
+                      int backendCircularBufferSize = 3;
+
+
+                      //create a scanner for input set
+                      PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+                      communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
+                      PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
+
+   
+                      if(getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                              res = false;
+                              errMsg = "Error: A job is already running!";
+                              std :: cout << errMsg << std :: endl;
+                              return make_pair(res, errMsg);
+                      }
+
+                      std :: vector<PageCircularBufferIteratorPtr> iterators =
+                              scanner->getSetIterators(nodeId, dbIdIn, typeIdIn, setIdIn);
+
+                      int numIteratorsReturned = iterators.size();
+                      if( numIteratorsReturned != numThreads ) {
+                              res = false;
+                              errMsg = "Error: number of iterators doesn't match number of threads!";
+                              std :: cout << errMsg << std :: endl;
+                              return make_pair(res, errMsg);
+                      }
+
+
+                      //create a data proxy for creating temp set
+                      PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+                      anotherCommunicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
+                      DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+                      SetID tempSetId;
+                      proxy->addTempSet("intermediateData", tempSetId);
+                      std :: cout << "temp set created with setId = " << tempSetId << std :: endl;
+
+
+                      PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
+
+                      for (int i = 0; i < numThreads; i++) {
+                              PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+
+                              //starting processing threads;
+                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), 0, 0, tempSetId, &(getFunctionality<HermesExecutionServer>()));
+                              worker->execute(testCopyWork, tempBuzzer);
+                      }
+
+                      while (handler.getCounter() < numThreads) {
+                               tempBuzzer->wait();
+                      }
+
+
+                      //create a scanner for intermediate set
+                      communicatorToFrontend = make_shared<PDBCommunicator>();
+                      communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
+                      scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
+                      getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr);
+                      getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner);
+                      iterators = scanner->getSetIterators(nodeId, 0, 0, tempSetId);
+
+                      
+                      PDBBuzzerPtr anotherTempBuzzer {handler.getLinkedBuzzer()};
+
+                      for (int i = 0; i < numThreads; i++) {
+                              PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+
+                              //starting processing threads;
+                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), dbIdOut, typeIdOut, setIdOut, &(getFunctionality<HermesExecutionServer>()));
+                              worker->execute(testCopyWork, anotherTempBuzzer);
+                      }
+
+                      while (handler.getCounter() < numThreads) {
+                               anotherTempBuzzer->wait();
+                      }
+
+
+                      res = proxy->removeTempSet(tempSetId);
+                      if (res == true) {
+                           std :: cout << "temp set removed with setId = " << tempSetId << std :: endl;
+                      } else {
+                           errMsg = "Fatal error: Temp Set doesn't exist!";
+                           std :: cout << errMsg << std :: endl;
+                      }
+
                       //std :: cout << "Making response object.\n";
                       const UseTemporaryAllocationBlock block{1024};
                       Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);

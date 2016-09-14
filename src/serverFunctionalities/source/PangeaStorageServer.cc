@@ -34,6 +34,11 @@
 #include "StorageNoMorePage.h"
 #include "StorageTestSetScan.h"
 #include "BackendTestSetScan.h"
+#include "StorageTestSetCopy.h"
+#include "BackendTestSetCopy.h"
+#include "StorageAddTempSet.h"
+#include "StorageAddTempSetResult.h"
+#include "StorageRemoveTempSet.h"
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
@@ -345,6 +350,51 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          return make_pair (res, errMsg);
                }
        ));
+
+       // this handler requests to add a temp set
+       forMe.registerHandler (StorageAddTempSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddTempSet>> (
+               [&] (Handle <StorageAddTempSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         //add a temp set in local
+                         SetID setId;
+                         bool res = getFunctionality<PangeaStorageServer>().addTempSet(request->getSetName(), setId);
+                         if (res == false) {
+                                 errMsg = "Set already exists\n";
+                         } 
+             
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <StorageAddTempSetResult> response = makeObject <StorageAddTempSetResult> (res, errMsg, setId);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+       ));
+
+
+       // this handler requests to remove a temp set
+       forMe.registerHandler (StorageRemoveTempSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveTempSet>> (
+               [&] (Handle <StorageRemoveTempSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         //add a set in local
+                         SetID setId = request->getSetID();                        
+                         bool res = getFunctionality<PangeaStorageServer>().removeTempSet(setId);
+                         if (res == false) {
+                                 errMsg = "Set doesn't exist\n";
+                         } 
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+       ));
+
+
+
 
 
 	// this handler accepts a request to store some data
@@ -684,6 +734,83 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                 }
         ));
 
+
+        // this handler accepts a request to translate <<srcDatabaseName, srcSetName>, <destDatabaseName, destSetName>> into <<srcDatabaseId, srcTypeId, SrcSetId>, <destDatabaseId, destTypeId, destSetId>> and forward to backend
+        forMe.registerHandler (StorageTestSetCopy_TYPEID, make_shared <SimpleRequestHandler <StorageTestSetCopy>> (
+                [&] (Handle <StorageTestSetCopy> request, PDBCommunicatorPtr sendUsingMe) {
+
+                    std :: string dbNameIn = request->getDatabaseIn();
+                    std :: string setNameIn = request->getSetNameIn();
+                    SetPtr setIn = getFunctionality<PangeaStorageServer>().getSet(std :: pair<std :: string, std::string>(dbNameIn, setNameIn));
+
+                    std :: string dbNameOut = request->getDatabaseOut();
+                    std :: string setNameOut = request->getSetNameOut();
+                    SetPtr setOut = getFunctionality<PangeaStorageServer>().getSet(std :: pair<std :: string, std::string>(dbNameOut, setNameOut));
+
+
+                    bool res;
+                    std :: string errMsg;
+
+                    if(setIn == nullptr) {
+                        res = false;
+                        errMsg = "Fatal Error: Input set doesn't exist!";
+                        std :: cout << errMsg << std :: endl;
+                        //return make_pair(res, errMsg);
+                    }
+
+                    if(setOut == nullptr) {
+                        res = false;
+                        errMsg += "Fatal Error: Output set doesn't exist!";
+                        std :: cout << errMsg << std :: endl;
+                    }
+
+
+                    if ((setIn != nullptr) && (setOut != nullptr))
+                    {
+                        //first we need to create a separate connection to backend
+                        PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                        if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                            res = false;
+                            std :: cout << errMsg << std :: endl;
+                            return make_pair(res, errMsg);
+                        }
+
+                        DatabaseID dbIdIn = setIn->getDbID();
+                        UserTypeID typeIdIn = setIn->getTypeID();
+                        SetID setIdIn = setIn->getSetID();
+                        DatabaseID dbIdOut = setOut->getDbID();
+                        UserTypeID typeIdOut = setOut->getTypeID();
+                        SetID setIdOut = setOut->getSetID();
+
+                        
+                        const UseTemporaryAllocationBlock myBlock{4096};
+                        Handle<BackendTestSetCopy> msg = makeObject<BackendTestSetCopy>(dbIdIn, typeIdIn, setIdIn, dbIdOut, typeIdOut, setIdOut);
+                        if(!communicatorToBackend->sendObject<BackendTestSetCopy>(msg, errMsg)) {
+                                res = false;
+                                std :: cout << errMsg << std :: endl;
+                                //return make_pair(res, errMsg);
+                        }
+                        else {
+                                const UseTemporaryAllocationBlock myBlock{communicatorToBackend->getSizeOfNextObject()};
+                                communicatorToBackend->getNextObject<SimpleRequestResult>(res, errMsg);
+                        }
+                     }
+
+                     //std :: cout << "Making response object.\n";
+                     {
+                         const UseTemporaryAllocationBlock block{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         //std :: cout << "Sending response object.\n";
+                         res = sendUsingMe->sendObject (response, errMsg);
+                     }
+
+                     //std :: cout << "All Done!" << std :: endl;
+                     return make_pair (res, errMsg);
+
+                }
+        ));
 
 
 }
