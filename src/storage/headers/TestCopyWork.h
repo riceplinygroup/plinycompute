@@ -44,7 +44,7 @@ typedef shared_ptr<TestCopyWork> TestCopyWorkPtr;
 class TestCopyWork : public pdb :: PDBWork {
 public:
 
-    TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server);
+    TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server, int & counter);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
@@ -56,6 +56,7 @@ private:
     DatabaseID destDatabaseId;
     UserTypeID destTypeId;
     SetID destSetId;
+    int & counter;
 
 };
 

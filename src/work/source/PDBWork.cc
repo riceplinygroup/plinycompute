@@ -21,7 +21,7 @@
 
 #include "PDBWork.h"
 #include <pthread.h>
-
+#include <iostream>
 namespace pdb {
 
 void PDBWork::execute(PDBWorkerQueue *parentIn, PDBBuzzerPtr callerBuzzer) {
@@ -38,6 +38,8 @@ PDBLoggerPtr PDBWork::getLogger() {
 }
 
 PDBBuzzerPtr PDBWork::getLinkedBuzzer() {
+    std :: cout << "+++++++++++++++++++++++++++++++++\n";
+    std :: cout << "PDBBuzzer is invoked from PDBWork!\n";
     return {make_shared <PDBBuzzer> ([] (PDBAlarm myAlarm) {})};
 }
 

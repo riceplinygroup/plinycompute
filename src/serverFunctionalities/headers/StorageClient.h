@@ -70,6 +70,10 @@ public:
         template <class DataType>
         bool scanData (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
+        //this test set copy at backend ... returns true on success
+        template <class DataType>
+        bool copyData (std :: string srcDatabaseName, std :: string srcSetName, std :: string destDatabaseName, std :: string destSetName, std :: string &errMsg);
+
 private:
 
 	CatalogClient myHelper;

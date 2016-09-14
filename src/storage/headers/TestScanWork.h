@@ -41,7 +41,7 @@ typedef shared_ptr<TestScanWork> TestScanWorkPtr;
 class TestScanWork : public pdb :: PDBWork {
 public:
 
-    TestScanWork(PageCircularBufferIteratorPtr iter, pdb :: HermesExecutionServer * server);
+    TestScanWork(PageCircularBufferIteratorPtr iter, pdb :: HermesExecutionServer * server, int & counter);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
@@ -50,7 +50,7 @@ private:
 
     PageCircularBufferIteratorPtr iter;
     pdb :: HermesExecutionServer * server;
-
+    int & counter;
 
 };
 

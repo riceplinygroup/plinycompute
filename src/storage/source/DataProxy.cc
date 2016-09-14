@@ -65,6 +65,8 @@ bool DataProxy::addTempSet(string setName, SetID &setId) {
 	    return false;
         }
     }
+    //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
+
     //receive the StorageAddSetResult message
     {
         const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
@@ -73,6 +75,7 @@ bool DataProxy::addTempSet(string setName, SetID &setId) {
 	    this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
         if(success == true) {
 	    setId = ack->getTempSetID();
+            //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
         }     
         return success;
     }
@@ -138,8 +141,10 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
         char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
         page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-        //cout << "ack->getPageID()=" << ack->getPageID() << "\n";
-        //cout << "page->getPageID()=" << page->getPageID() << "\n";
+        //cout << "ack->SetID()=" << ack->getSetID() << "\n";
+        //cout << "page->SetID()=" << page->getSetID() << "\n";
+        //cout << "ack->PageID()=" << ack->getPageID() << "\n";
+        //cout << "page->PageID()=" << page->getPageID() << "\n";
         page->setPinned(true);
         page->setDirty(true);
         return success;
@@ -232,11 +237,13 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
     }
 
     //receive the Ack object
-    {      
+    {
+        //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
         pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
         bool success;
         pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
+        //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
         return success&&(ack->getRes().first);
     }
 }

@@ -167,10 +167,12 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
         this->lockDirtyPageSet(); 
 	vector<PageIteratorPtr> * retVec = new vector<PageIteratorPtr>();
 	PageIteratorPtr iterator = nullptr;
-	iterator = make_shared<SetCachePageIterator>(this->pageCache, this);
-	if (iterator != nullptr) {
+        if( dirtyPagesInPageCache->size() > 0 ) {
+	    iterator = make_shared<SetCachePageIterator>(this->pageCache, this);
+	    if (iterator != nullptr) {
 		retVec->push_back(iterator);
-	}
+	    }
+        }
 	if (this->file->getFileType() == FileType::SequenceFileType) {
 		SequenceFilePtr seqFile = dynamic_pointer_cast<SequenceFile>(
 				this->file);

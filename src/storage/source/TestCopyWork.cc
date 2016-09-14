@@ -28,9 +28,10 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "PDBVector.h"
 #include <string>
+#include "Employee.h"
 using namespace std;
 
-TestCopyWork::TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server) {
+TestCopyWork::TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server, int & counter): counter(counter) {
     this->iter = iter;
     this->destDatabaseId = destDatabaseId;
     this->destTypeId = destTypeId;
@@ -57,8 +58,20 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
 
     PDBPagePtr page, destPage;
     proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
+    //std :: cout << "databaseId  = " << destDatabaseId << std :: endl;
+    //std :: cout << "typeId = " << destTypeId << std :: endl;
+    //std :: cout << "setId  = " << destSetId << std :: endl;
     PageHandlePtr destPageHandle = make_shared<PageHandle>(proxy, destPage);
- 
+    //std :: cout << "databaseId of destPage = " << destPage->getDbID() << std :: endl;
+    //std :: cout << "typeId of destPage = " << destPage->getTypeID() << std :: endl;
+    //std :: cout << "setId of destPage = " << destPage->getSetID() << std :: endl;
+
+    //load output page
+    pdb :: UseTemporaryAllocationBlockPtr blockPtr;
+    blockPtr = std :: make_shared <pdb :: UseTemporaryAllocationBlock>(destPageHandle->getWritableBytes(), destPageHandle->getWritableSize());
+    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Employee>>> outputVec =
+                pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> (300000);
+    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Employee>>> inputVec; 
     while (this->iter->hasNext()) {
         page = this->iter->next(); 
         //page still can be nullptr, so we MUST check nullptr here.
@@ -66,36 +79,42 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
 
             //load input page
             std :: cout << "processing page with pageId=" << page->getPageID() << std :: endl;
-            pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Object>>> * temp = (pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Object>>> *) page->getBytes();
-            pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Object>>> objects = temp->getRootObject();
-            std :: cout << "there are "<< objects->size() << " objects on the page."<< std :: endl;
+            pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Employee>>> * temp = (pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Employee>>> *) page->getBytes();
+            inputVec = temp->getRootObject();
+            std :: cout << "there are "<< inputVec->size() << " objects on the page."<< std :: endl;
  
-            //load output page
-            const pdb :: UseTemporaryAllocationBlock myBlock{destPageHandle->getWritableBytes(), destPageHandle->getWritableSize()};
-            pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Object>>> outputObjects = 
-                pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Object>>> (10);
-            pdb :: Vector<pdb :: Handle<pdb :: Object>> & outVec = *(outputObjects);
 
-            for (int i = 0; i < objects->size(); i++) {
-                pdb :: Handle<pdb :: Object> object = (*objects)[i];
+            for (int i = 0; i < inputVec->size(); i++) {
+                pdb :: Handle<pdb :: Employee> object = (*inputVec)[i];
+                if (i%10000 == 0) {
+                    std :: cout << i << ":";
+                    object->print();
+                    std :: cout << std :: endl;
+                }
                 try {
-                    outVec.push_back(object);
+                    outputVec->push_back(object);
                 }
                 catch (pdb :: NotEnoughSpace &n) {
-                    std :: cout << "TestCopyWork:"<<iter->getId()<<", unpin a destination page with pageId=" << destPageHandle->getPageID()<<"\n";
+                    std :: cout << "########################################\n";
+                    std :: cout << "a page is fully written with "<<outputVec->size()<<" objects\n";
+                    getRecord(outputVec);
+                    //std :: cout << "TestCopyWork:"<<iter->getId()<<", unpin a destination page with pageId=" << destPageHandle->getPageID()<<"\n";
                     destPageHandle->unpin();
+                    //std :: cout << "TestCopyWork:"<< iter->getId()<< "unpinned a destination page with pageId=" << destPageHandle->getPageID()<<"\n";
                     proxy->addUserPage(this->destDatabaseId, this->destTypeId, this->destSetId, destPage);
                     logger->writeLn("TestCopyWork: proxy pinned a new temp page with pageId=");
                     logger->writeInt(destPage->getPageID());
-                    std :: cout << "TestCopyWork:"<<iter->getId()<< ", proxy pinned a new destination page with pageId=" <<destPage->getPageID()<<"\n";
+                    //std :: cout << "TestCopyWork:"<<iter->getId()<< ": proxy pinned a new destination page with pageId=" <<destPage->getPageID()<<"\n";
                     destPageHandle = make_shared<PageHandle>(proxy, destPage);
-                    const pdb :: UseTemporaryAllocationBlock myBlock{destPageHandle->getWritableBytes(), destPageHandle->getWritableSize()};
-                    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Object>>> outputObjects = 
-                               pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Object>>> (10);
-                    outVec = *(outputObjects);
+           
+                    blockPtr = nullptr;
+                    blockPtr = std :: make_shared <pdb :: UseTemporaryAllocationBlock>(destPageHandle->getWritableBytes(), destPageHandle->getWritableSize());
+                    outputVec = pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> (300000);
+                    outputVec->push_back(object);
+
                 }
             }
-            std :: cout <<iter->getId()<< ": copied " << objects->size() << " objects for source page with pageID: " << page->getPageID() << ".\n";
+            //std :: cout <<iter->getId()<< ": copied " << inputVec->size() << " objects for source page with pageID: " << page->getPageID() << ".\n";
             //clean the page;
             if (proxy->unpinUserPage(nodeId, page->getDbID(),
                     page->getTypeID(), page->getSetID(), page) == false) {
@@ -106,12 +125,17 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
             }
             logger->writeLn("TestCopyWork: send out unpinPage for source page with pageID:");
             logger->writeInt(page->getPageID());
-            std :: cout << iter->getId()<<", send out unpinPage for source page with pageID:" << page->getPageID() << ".\n";
+            //std :: cout << iter->getId()<<": unpinned source page with pageID:" << page->getPageID() << ".\n";
         }
+        //std :: cout << iter->getId() << ": to get next page" << std :: endl;
     }
+    std :: cout << "########################################\n";
+    std :: cout << "a page is fully written with "<<outputVec->size()<<" objects\n";
+    getRecord(outputVec);
+    //std :: cout << "TestCopyWork: to unpin the last destination page with pageId=" << destPageHandle->getPageID() << "\n"; 
     destPageHandle->unpin();
-    std :: cout << "TestCopyWork:"<< iter->getId()<< "unpinned a destination page with pageId=" << destPageHandle->getPageID()<<"\n";
-    callerBuzzer->buzz(PDBAlarm::WorkAllDone);
+    //std :: cout << "TestCopyWork:"<< iter->getId()<< "unpinned a destination page with pageId=" << destPageHandle->getPageID()<<"\n";
+    callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
     return;
 }
 

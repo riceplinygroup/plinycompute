@@ -20,6 +20,8 @@
 #define PDB_COMM_WORK_C
 
 #include "PDBCommWork.h"
+#include <iostream>
+
 
 namespace pdb {
 
@@ -31,13 +33,6 @@ void PDBCommWork::setGuts(PDBCommunicatorPtr toMe) {
     myCommunicator = toMe;
 }
 
-void PDBCommWork::queryDone() {
-    this->counter++;
-}
-
-int PDBCommWork::getCounter() {
-    return this->counter;
-}
 
 }
 

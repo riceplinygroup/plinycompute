@@ -21,6 +21,9 @@
 #include "SimpleRequestResult.h"
 #include "DataTypes.h"
 
+//  PRELOAD %StorageAddTempSetResult%
+
+
 namespace pdb {
 
 class StorageAddTempSetResult : public SimpleRequestResult {

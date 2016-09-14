@@ -50,6 +50,7 @@ typedef shared_ptr <PDBBuzzer> PDBBuzzerPtr;
 #include <string>
 #include <functional>
 
+
 class PDBBuzzer {
 public:
 
@@ -59,6 +60,9 @@ public:
     // sounds the buzzer, causing stringFunc () to be called
     void buzz(PDBAlarm withMe, string message);
 
+    // sounds the buzzer, causing workFunc () to be called
+    void buzz(PDBAlarm withMe, int& counter);
+
     // blocks until someone calls buzz 
     void wait();
 
@@ -66,7 +70,9 @@ public:
     PDBBuzzer();
     PDBBuzzer(std::function <void (PDBAlarm)>);
     PDBBuzzer(std::function <void (PDBAlarm, string)>);
+    PDBBuzzer(std::function <void (PDBAlarm, int&)>);
     ~PDBBuzzer();
+
 
 private:
 
@@ -75,6 +81,8 @@ private:
     bool signalSent = false;
     std::function <void (PDBAlarm)> noStringFunc = nullptr; 
     std::function <void (PDBAlarm, std::string)> stringFunc = nullptr; 
+    std::function <void (PDBAlarm, int&)> intFunc = nullptr;
+
 };
 
 

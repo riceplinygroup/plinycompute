@@ -42,7 +42,7 @@ typedef shared_ptr<PDBScanWork> PDBScanWorkPtr;
 class PDBScanWork : public pdb :: PDBWork {
 public:
 
-    PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage);
+    PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter);
 
     bool sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool morePagesToPin, NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
             SetID setId, PageID pageId, size_t pageSize, size_t offset);
@@ -56,6 +56,7 @@ private:
 
     PageIteratorPtr iter;
     pdb :: PangeaStorageServer * storage;
+    int & counter;
 
 
 };

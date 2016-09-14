@@ -98,7 +98,7 @@ bool PageScanner::sendPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bo
 
 vector<PageCircularBufferIteratorPtr> PageScanner::getSetIterators(NodeID nodeId,
         DatabaseID dbId, UserTypeID typeId, SetID setId) {
-        std :: cout << "BackEndServer: send GetSetPagesMsg to frontEnd.\n";
+        //std :: cout << "BackEndServer: send GetSetPagesMsg to frontEnd.\n";
 	//create an GetSetPages object
 	string errMsg;
         const pdb :: UseTemporaryAllocationBlock myBlock{1024};
@@ -146,7 +146,7 @@ bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPa
         //std :: cout << "morePagesToLoad:"<<morePagesToLoad<<"\n";
         //if there are no more pages to send at the frontend side, send ACK and return.
         if (morePagesToLoad == false) {
-            std :: cout << "BackEndServer: sending Ack to frontEnd to end loop...\n";
+            //std :: cout << "BackEndServer: sending Ack to frontEnd to end loop...\n";
             this->sendPagePinnedAck(myCommunicator, false, "", errMsg);
             return true;
         }

@@ -366,8 +366,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <StorageAddTempSetResult> response = makeObject <StorageAddTempSetResult> (res, errMsg, setId);
 
+         
                          // return the result
-                         res = sendUsingMe->sendObject (response, errMsg);
+                         //std :: cout << "To send StorageAddTempSetResult object to backend..." << std :: endl;
+                         res = sendUsingMe->sendObject<StorageAddTempSetResult> (response, errMsg);
+                         //std :: cout << "Sent StorageAddTempSetResult object to backend." << std :: endl;
                          return make_pair (res, errMsg);
                }
        ));
@@ -552,7 +555,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 ack->setMorePagesToLoad(true);
                                 ack->setDatabaseID(dbId);
                                 ack->setUserTypeID(typeId);
-                                ack->setPageID(pageId);
+                                ack->setSetID(setId);
+                                ack->setPageID(page->getPageID());
                                 ack->setPageSize(page->getRawSize());
                                 ack->setSharedMemOffset(page->getOffset());
                                 res = sendUsingMe->sendObject<StoragePagePinned>(ack, errMsg);
@@ -575,13 +579,15 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                        SetID setId = request->getSetID();
                        PageID pageId = request->getPageID();
                        //bool wasDirty = msg->getWasDirty();
-
+ 
                        CacheKey key;
                        key.dbId = dbId;
                        key.typeId = typeId;
                        key.setId = setId;
                        key.pageId = pageId;
- 
+
+                       //std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
+
                        bool res;
                        std :: string errMsg;
           
@@ -591,6 +597,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 std :: cout << errMsg << std :: endl;
                        } else {
                                 res = true;
+                                //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
 
                        //std :: cout << "Making response object.\n";
@@ -635,22 +642,33 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                         set->setPinned(true);
                         int numIterators = iterators->size();
-
+           
+                        //std :: cout << "88888888888888888888888888888888\n";
+                        //std :: cout << "Buzzer is created in PDBScanWork\n";
                         PDBBuzzerPtr tempBuzzer {handler.getLinkedBuzzer() };
                         
                         //scan pages and load pages in a multi-threaded style
                         PDBWorkerPtr worker = getFunctionality<PangeaStorageServer>().getWorker();
-
+                     
+                        int counter = 0;
                         for (int i = 0; i < numIterators; i++) {
-                                  PDBScanWorkPtr scanWork = make_shared<PDBScanWork>(iterators->at(i), &getFunctionality<PangeaStorageServer>());
+                                  PDBScanWorkPtr scanWork = make_shared<PDBScanWork>(iterators->at(i), &getFunctionality<PangeaStorageServer>(), counter);
                                   worker->execute(scanWork, tempBuzzer);
                         }
+                        //std :: cout << "Frontend number of iterataors:" << numIterators << std :: endl;
 
-                        while (handler.getCounter() < numIterators) {
+                        while (counter < numIterators) {
                                   tempBuzzer->wait();
                         }
+                        //std :: cout << "Frontend to send NoMorePage message." << std :: endl;
                         set->setPinned(false);
 
+                        set->setPinned(true);
+                        set->flushDirtyPages();
+                        set->setPinned(false);
+
+                        
+                         
                         //here, we have already loaded all pages, and sent all information about those pages to the other side, now we need inform the other side that this process has been done.
                         //The other side has closed connection, so first we need to create a separate connection to backend 
                         PDBCommunicatorPtr communicatorToBackEnd = make_shared<PDBCommunicator>();

@@ -26,6 +26,7 @@
 #define	PDBCOMMWORK_H
 
 #include <memory>
+#include "PDBWork.h"
 
 // "Comm" here stands for communication; so this object encapsulates some work that
 // requires communicating via a socket (ether over the internet, or locally, via a
@@ -41,7 +42,6 @@ typedef std :: shared_ptr <PDBCommWork> PDBCommWorkPtr;
 #include <pthread.h>
 #include <string>
 #include "PDBCommunicator.h"
-#include "PDBWork.h"
 
 namespace pdb {
 
@@ -64,17 +64,11 @@ public:
     // PDBWorkerPtr getWorker ();
     // PDBBuzzerPtr getLinkedBuzzer ();
 
-    void queryDone (); //added by Jia to support multithreaded handler
-
-    int  getCounter(); //added by Jia to support multithreaded handler
-
 
 private:
 
     // this is responsible for talking over the network
     PDBCommunicatorPtr myCommunicator;
-    int counter;
-
 };
 
 }

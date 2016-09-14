@@ -34,7 +34,7 @@
 using namespace std;
 
 
-PDBScanWork::PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage) {
+PDBScanWork::PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter): counter(counter) {
     this->iter = iter;
     this->storage = storage;
 }
@@ -85,7 +85,7 @@ bool PDBScanWork::acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, 
 void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
     pdb :: PDBLoggerPtr logger = storage->getLogger();
     logger->writeLn("PDBScanWork: running...");
-
+    //std :: cout << "PDBScanWork: running..." << std :: endl;
     PDBPagePtr page;
     string errMsg, info;
     bool wasError;
@@ -120,11 +120,12 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
         }
     }
     //close the connection
+    //std :: cout << "PDBScanWork to close the loop" << std :: endl;
     this->sendPagePinned(communicatorToBackEnd, false, 0, 0, 0, 0, 0, 0, 0 );
     this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
     //notify the caller that this scan thread has finished work.
-    //cout << "PDBScanWork finished.\n";
-    callerBuzzer->buzz(PDBAlarm::WorkAllDone);
+    //std :: cout << "PDBScanWork finished.\n";
+    callerBuzzer->buzz(PDBAlarm::WorkAllDone, this->counter);
 }
 
 #endif

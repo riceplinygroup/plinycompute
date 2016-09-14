@@ -47,6 +47,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
     
     forMe.registerHandler (StoragePagePinned_TYPEID, make_shared<SimpleRequestHandler<StoragePagePinned>> (
               [&] (Handle<StoragePagePinned> request, PDBCommunicatorPtr sendUsingMe) {
+                       std :: cout << "Start a handler to process StoragePagePinned messages\n";
                        bool res;
                        std :: string errMsg;
                        PageScannerPtr scanner = getFunctionality<HermesExecutionServer>().getCurPageScanner();
@@ -69,15 +70,16 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               [&] (Handle<StorageNoMorePage> request, PDBCommunicatorPtr sendUsingMe) {
                       bool res;
                       std :: string errMsg;
+                      std :: cout << "Got StorageNoMorePage object." << std :: endl;
                       PageScannerPtr scanner = getFunctionality<HermesExecutionServer>().getCurPageScanner();
+                      std :: cout << "To close the scanner..." << std :: endl;
                       if (scanner == nullptr) {
-                              res = false;
-                              errMsg = "Fatal Error: No job is running in execution server.";
-                              std :: cout << errMsg << std :: endl;
+                              std :: cout << "The scanner has already been closed." << std :: endl;
                       } else {
                               scanner->closeBuffer();
-                              res = true;
-                      }                     
+                              std :: cout << "We closed the scanner buffer." << std :: endl;
+                      }
+                      res = true;                     
                       return make_pair(res, errMsg);
                 
 
@@ -123,18 +125,18 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                               std :: cout << errMsg << std :: endl;
                               return make_pair(res, errMsg);
                       }
-
+                      std :: cout << "Buzzer is created in TestScanWork\n";
                       PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
-
+                      int counter = 0;
                       for (int i = 0; i < numThreads; i++) {
                               PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
                               
                               //starting processing threads;
-                              TestScanWorkPtr testScanWork = make_shared<TestScanWork> (iterators.at(i), &(getFunctionality<HermesExecutionServer>()));
+                              TestScanWorkPtr testScanWork = make_shared<TestScanWork> (iterators.at(i), &(getFunctionality<HermesExecutionServer>()), counter);
                               worker->execute(testScanWork, tempBuzzer);
                       }
 
-                      while (handler.getCounter() < numThreads) {
+                      while (counter < numThreads) {
                                tempBuzzer->wait();
                       }
 
@@ -164,8 +166,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       DatabaseID dbIdOut = request->getDatabaseOut();
                       UserTypeID typeIdOut = request->getTypeIdOut();
                       SetID setIdOut = request->getSetIdOut();
-                      std :: cout << "Backend received BackendTestSetCopy message to copy from <dbId=" << dbIdIn <<", typeId=" << typeIdIn <<", setId=" << setIdIn
-                                  << "> to < dbId=" << dbIdOut << ", typeId=" << typeIdOut << ", setId=" << setIdOut << ">" <<std :: endl;
+                      //std :: cout << "Backend received BackendTestSetCopy message to copy from <dbId=" << dbIdIn <<", typeId=" << typeIdIn <<", setId=" << setIdIn
+                        //          << "> to < dbId=" << dbIdOut << ", typeId=" << typeIdOut << ", setId=" << setIdOut << ">" <<std :: endl;
 
                       int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
                       NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
@@ -207,23 +209,30 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       proxy->addTempSet("intermediateData", tempSetId);
                       std :: cout << "temp set created with setId = " << tempSetId << std :: endl;
 
-
+                      //std :: cout << "Buzzer is created in TestCopyWork!\n";
                       PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
+                      int counter = 0;
 
                       for (int i = 0; i < numThreads; i++) {
                               PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-
+                              //std :: cout << "to run the " << i << "-th work..." << std :: endl;
                               //starting processing threads;
-                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), 0, 0, tempSetId, &(getFunctionality<HermesExecutionServer>()));
+                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), 0, 0, tempSetId, &(getFunctionality<HermesExecutionServer>()), counter);
                               worker->execute(testCopyWork, tempBuzzer);
                       }
 
-                      while (handler.getCounter() < numThreads) {
+                      
+                      while (counter < numThreads) {
                                tempBuzzer->wait();
                       }
+                      
 
-
+                      counter = 0;                      
+                      std :: cout << "All objects have been copied from set with databaseID =" << dbIdIn << ", typeID=" << typeIdIn << ", setID=" << setIdIn << std :: endl;
+                      std :: cout << "All objects have been copied to a temp set with setID =" << tempSetId << std::endl;
+                
                       //create a scanner for intermediate set
+                      
                       communicatorToFrontend = make_shared<PDBCommunicator>();
                       communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
                       scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
@@ -238,15 +247,18 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                               PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
 
                               //starting processing threads;
-                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), dbIdOut, typeIdOut, setIdOut, &(getFunctionality<HermesExecutionServer>()));
+                              TestCopyWorkPtr testCopyWork = make_shared<TestCopyWork> (iterators.at(i), dbIdOut, typeIdOut, setIdOut, &(getFunctionality<HermesExecutionServer>()), counter);
                               worker->execute(testCopyWork, anotherTempBuzzer);
                       }
 
-                      while (handler.getCounter() < numThreads) {
+                      while (counter < numThreads) {
                                anotherTempBuzzer->wait();
                       }
 
-
+                      std :: cout << "All objects have been copied from a temp set with setID=" << tempSetId << std :: endl;
+                      std :: cout << "All objects have been copied to a set with databaseID=" << dbIdOut << ", typeID=" << typeIdOut << ", setID =" << setIdOut << std::endl;
+                      
+                      getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr);
                       res = proxy->removeTempSet(tempSetId);
                       if (res == true) {
                            std :: cout << "temp set removed with setId = " << tempSetId << std :: endl;

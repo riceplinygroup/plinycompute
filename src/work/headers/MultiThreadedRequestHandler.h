@@ -25,10 +25,9 @@
 #define MULTI_THREADED_REQUEST_HANDLER_H
 
 #include "PDBCommunicator.h"
+#include "PDBBuzzer.h"
 #include "PDBCommWork.h"
 #include "UseTemporaryAllocationBlock.h"
-#include "PDBBuzzer.h"
-#include "CounterBuzzer.h"
 #include <memory>
 
 // This template is used to make a simple piece of work that accepts an object of type RequestType from the client,
@@ -52,8 +51,15 @@ public:
 	}
 
 
-        PDBBuzzerPtr getLinkedbuzzer() {
-                return make_shared<CounterBuzzer>(*this);
+
+        virtual PDBBuzzerPtr getLinkedBuzzer() override {
+                //std :: cout << "*****************************" << std :: endl;
+                //std :: cout << "to create buzzer with intFunc!" << std :: endl;
+                return make_shared<PDBBuzzer>(
+                           [&] (PDBAlarm myAlarm, int & counter) {
+                                    counter ++;
+                                    std :: cout << "counter = " << counter << std :: endl;
+                           });
         }
 
 	void execute (PDBBuzzerPtr callerBuzzer) {

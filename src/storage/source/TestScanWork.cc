@@ -27,7 +27,7 @@
 #include <string>
 using namespace std;
 
-TestScanWork::TestScanWork(PageCircularBufferIteratorPtr iter, pdb :: HermesExecutionServer * server) {
+TestScanWork::TestScanWork(PageCircularBufferIteratorPtr iter, pdb :: HermesExecutionServer * server, int & counter) : counter (counter) {
     this->iter = iter;
     this->server = server;
 }
@@ -67,7 +67,7 @@ void TestScanWork::execute(PDBBuzzerPtr callerBuzzer) {
             //std :: cout << "send out unpinPage for page with pageID:" << page->getPageID() << "." << std :: endl;
         }
     }
-    callerBuzzer->buzz(PDBAlarm::WorkAllDone);
+    callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
     return;
 }
 
