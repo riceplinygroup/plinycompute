@@ -189,7 +189,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                 std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
                 return;
         }
-        std :: cout << "buffer is full, to write to a storage page"<< std::endl;
+        //std :: cout << "buffer is full, to write to a storage page"<< std::endl;
  
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
@@ -245,7 +245,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		} catch (NotEnoughSpace &n) {
 
                         // comment the following three lines of code to allow Pangea to manage pages						
-			std :: cout << "Writing back a page!!\n";
+			//std :: cout << "Writing back a page!!\n";
 			// write back the current page...
                         getRecord(data);
 			//myPage->wroteBytes ();
@@ -257,7 +257,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				std :: cout << "Are still enough records for another page.\n";
+				//std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
                                 pageSize = myPage->getSize();
 				continue;
@@ -275,7 +275,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				for (; pos < numObjectsInRecord; pos++) {
 					extraData->push_back (allObjects[pos]);	
 				}
-				std :: cout << "Putting the records back complete.\n";
+				//std :: cout << "Putting the records back complete.\n";
 	
 				// destroy the record that we were copying from
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
