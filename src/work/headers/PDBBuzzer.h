@@ -68,6 +68,7 @@ public:
 
     // constructor, destructor
     PDBBuzzer();
+    PDBBuzzer(std::nullptr_t nullp);
     PDBBuzzer(std::function <void (PDBAlarm)>);
     PDBBuzzer(std::function <void (PDBAlarm, string)>);
     PDBBuzzer(std::function <void (PDBAlarm, int&)>);

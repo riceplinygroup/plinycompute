@@ -32,6 +32,14 @@ PDBBuzzer :: PDBBuzzer () {
 
 }
 
+PDBBuzzer::PDBBuzzer(std::nullptr_t) {
+    pthread_cond_init(&waitingSignal, nullptr);
+    pthread_mutex_init(&waitingMutex, nullptr);
+    stringFunc = nullptr;
+    signalSent = false;
+}
+
+
 void PDBBuzzer::buzz (PDBAlarm withMe) {
     pthread_mutex_lock(&waitingMutex);    
     if (noStringFunc != nullptr)
