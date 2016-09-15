@@ -25,7 +25,7 @@
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
 #include "StorageTestSetScan.h"
-#include "StoragetestSetCopy.h"
+#include "StorageTestSetCopy.h"
 #include "SimpleRequestResult.h"
 #include "SimpleSendDataRequest.h"
 #include "CompositeRequest.h"
