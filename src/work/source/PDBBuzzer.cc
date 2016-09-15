@@ -22,7 +22,15 @@
 #include "PDBBuzzer.h"
 #include <iostream>
 
-PDBBuzzer :: PDBBuzzer () {}
+
+PDBBuzzer :: PDBBuzzer () {
+
+   pthread_cond_init(&waitingSignal, nullptr);
+   pthread_mutex_init(&waitingMutex, nullptr);
+   stringFunc = nullptr;
+   signalSent = false;
+
+}
 
 void PDBBuzzer::buzz (PDBAlarm withMe) {
     pthread_mutex_lock(&waitingMutex);    
@@ -67,18 +75,21 @@ PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm)> noStringFuncIn) {
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     noStringFunc = noStringFuncIn;
+    signalSent = false;
 }
 
 PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm, std::string)> stringFuncIn) {
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     stringFunc = stringFuncIn;
+    signalSent = false;
 }
 
 PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm, int &)> intFuncIn) {    
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     intFunc = intFuncIn;
+    signalSent = false;
 }
 
 
