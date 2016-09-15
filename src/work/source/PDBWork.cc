@@ -38,8 +38,6 @@ PDBLoggerPtr PDBWork::getLogger() {
 }
 
 PDBBuzzerPtr PDBWork::getLinkedBuzzer() {
-    std :: cout << "+++++++++++++++++++++++++++++++++\n";
-    std :: cout << "PDBBuzzer is invoked from PDBWork!\n";
     return {make_shared <PDBBuzzer> ([] (PDBAlarm myAlarm) {})};
 }
 
