@@ -16,48 +16,25 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_H
-#define SET_H
-
-#include <vector>
-#include <functional>
 #include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
 
-namespace pdb {
+#include "QueryItermediaryRepTestsRunner.h"
+#include "QueriesTestsRunner.h"
+#include "qunit.h"
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
 
-public:
+using QUnit::UnitTest;
+using pdb_tests::runQueriesTests;
+using pdb_tests::runQueryIrTests;
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
+int main()
+{
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
+    UnitTest qunit(std::cerr, QUnit::normal);
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
+    runQueriesTests(qunit);
+    runQueryIrTests(qunit);
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+    return qunit.errors();
 }
 
-#endif

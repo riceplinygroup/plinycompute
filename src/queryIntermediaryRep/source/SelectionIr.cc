@@ -16,48 +16,43 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_H
-#define SET_H
+#include "SelectionIr.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+#include "InterfaceFunctions.h"
 
-namespace pdb {
+using pdb::makeObject;
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+namespace pdb_detail
+{
 
-public:
+    Handle<SelectionIr> SelectionIr::make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)
+    {
+        return makeObject<SelectionIr>(inputSet, condition);
+    }
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
+    SelectionIr::SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)
+            : _inputSet(inputSet), _condition(condition)
+    {
+    }
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
+    void SelectionIr::execute(QueryNodeIrAlgo &algo)
+    {
+        algo.forSelection(*this);
+    }
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
+    void SelectionIr::execute(SetExpressionIrAlgo &algo)
+    {
+        algo.forSelection(*this);
+    }
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
+    Handle<SetExpressionIr> SelectionIr::getInputSet()
+    {
+       return _inputSet;
+    }
 
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
+    Handle<RecordPredicateIr> SelectionIr::getCondition()
+    {
+        return _condition;
+    }
 
 }
-
-#endif

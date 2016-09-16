@@ -15,49 +15,23 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_IRBUILDER_H
+#define PDB_QUERYINTERMEDIARYREP_IRBUILDER_H
 
-#ifndef SET_H
-#define SET_H
-
-#include <vector>
-#include <functional>
-#include <iostream>
 #include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
 
-namespace pdb {
+#include "Handle.h"
+#include "QueryBase.h"
+#include "QueryNodeIr.h"
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+using std::shared_ptr;
 
-public:
+using pdb::Handle;
+using pdb::QueryBase;
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+namespace pdb_detail
+{
+    Handle<QueryNodeIr> buildIr(Handle<QueryBase> query);
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H

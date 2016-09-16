@@ -15,49 +15,29 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
 
-#ifndef SET_H
-#define SET_H
+#include "QueryNodeIr.h"
+#include "SetExpressionIrAlgo.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+namespace pdb_detail
+{
+    /**
+     * Base class for any class that models a PDB set.
+     */
+    class SetExpressionIr : public QueryNodeIr
+    {
 
-namespace pdb {
+    public:
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
-
-public:
-
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+        /**
+         * Executes the given algorithm on the expression.
+         *
+         * @param algo the algoithm to execute.
+         */
+        virtual void execute(SetExpressionIrAlgo &algo) = 0;
+    };
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H

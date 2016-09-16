@@ -15,56 +15,64 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#ifndef SELECTION_H
-#define SELECTION_H
+#ifndef PDB_QUERYINTERMEDIARYREP_SETNAMEIR_H
+#define PDB_QUERYINTERMEDIARYREP_SETNAMEIR_H
 
 #include "Handle.h"
-#include "Lambda.h"
-#include "Object.h"
-#include "Query.h"
-#include "SetOperation.h"
-#include "QueryAlgo.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "PDBString.h"
+#include "SetExpressionIr.h"
 
-namespace pdb {
+using pdb::Handle;
+using pdb::String;
 
-// this is the basic selection type... users derive from this class in order to write
-// a selection query
-template <typename Out, typename In> 
-class Selection : public Query <Out> {
+namespace pdb_detail
+{
+    /**
+     * A PDB set identified by database name and set name.
+     */
+    class SetNameIr : public SetExpressionIr
+    {
 
-public:
+    public:
 
-	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+        /**
+         * Creates a set name from the given database name and set name.
+         *
+         * @param databaseName the database name.
+         * @param setName the set name.
+         * @return the set name.
+         */
+        SetNameIr(Handle<String> databaseName, Handle<String> setName);
 
-	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
+        // contract from super
+        void execute(QueryNodeIrAlgo &algo) override;
 
-    void execute(QueryAlgo& algo) override;
+        // contract from super
+        void execute(SetExpressionIrAlgo &algo) override;
 
-	// get an object that is able to process queries of this type
-	SimpleSingleTableQueryProcessorPtr getProcessor ();
+        /**
+         * @return the name of the database containing the set.
+         */
+        Handle<String> getDatabaseName();
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 1;}
+        /**
+         * @return the name of the set.
+         */
+        Handle<String> getName();
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		if (i == 0)
-			return getTypeName <In> ();
-		else
-			return "bad index";
-	}
 
-	virtual std :: string getQueryType () override {
-		return "selection";
-	}
-};
+    private:
 
+        /**
+         * The name of the database that contains the set.
+         */
+        Handle<String> const _databaseName;
+
+        /**
+         * The name of the set in the database.
+         */
+        Handle<String> const _setName;
+    };
 }
 
-#include "Selection.cc"
-
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_SETNAMEIR_H

@@ -15,49 +15,30 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_QUERYNODEIRALGO_H
+#define PDB_QUERYINTERMEDIARYREP_QUERYNODEIRALGO_H
 
-#ifndef SET_H
-#define SET_H
+#include "SetExpressionIrAlgo.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+namespace pdb_detail
+{
+    class RecordPredicateIr;
 
-namespace pdb {
+    class RecordProjectionIr;
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+    class ProjectionIr;
 
-public:
+    class QueryNodeIrAlgo : public SetExpressionIrAlgo
+    {
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
+    public:
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
+        virtual void forRecordPredicate(RecordPredicateIr &recordPredicate) = 0;
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
+        virtual void forRecordProjection(RecordProjectionIr &recordProjection) = 0;
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+        virtual void forProjection(ProjectionIr &recordProjection) = 0;
+    };
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_QUERYNODEIRALGO_H

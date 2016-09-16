@@ -16,55 +16,65 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELECTION_H
-#define SELECTION_H
+#include "SelectionIrTests.h"
 
 #include "Handle.h"
-#include "Lambda.h"
-#include "Object.h"
-#include "Query.h"
-#include "SetOperation.h"
-#include "QueryAlgo.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "SelectionIr.h"
+#include "SetExpressionIr.h"
+#include "QueryNodeIrAlgo.h"
+#include "RecordPredicateIr.h"
+#include "SetNameIr.h"
 
-namespace pdb {
+using pdb::Handle;
 
-// this is the basic selection type... users derive from this class in order to write
-// a selection query
-template <typename Out, typename In> 
-class Selection : public Query <Out> {
+using pdb_detail::SelectionIr;
+using pdb_detail::SetExpressionIr;
+using pdb_detail::QueryNodeIrAlgo;
+using pdb_detail::RecordPredicateIr;
+using pdb_detail::RecordProjectionIr;
+using pdb_detail::ProjectionIr;
+using pdb_detail::SetNameIr;
 
-public:
+namespace pdb_tests
+{
+    void testSelectionIrExecute(UnitTest &qunit)
+    {
+        class Algo : public QueryNodeIrAlgo
+        {
+        public:
 
-	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+            void forRecordPredicate(RecordPredicateIr &recordPredicate)
+            {
+            }
 
-	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
+            void forRecordProjection(RecordProjectionIr &recordProjection)
+            {
+            }
 
-    void execute(QueryAlgo& algo) override;
+            void forProjection(ProjectionIr &projection)
+            {
+            }
 
-	// get an object that is able to process queries of this type
-	SimpleSingleTableQueryProcessorPtr getProcessor ();
+            void forSelection(SelectionIr &selection)
+            {
+                success = true;
+            }
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 1;}
+            void forSetName(SetNameIr &setName)
+            {
+            }
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		if (i == 0)
-			return getTypeName <In> ();
-		else
-			return "bad index";
-	}
+            bool success = false;
+        } algo;
 
-	virtual std :: string getQueryType () override {
-		return "selection";
-	}
-};
+        Handle<SetExpressionIr> nullInputSet;
+        Handle<RecordPredicateIr> nullCondition;
+        SelectionIr projection(nullInputSet, nullCondition);
 
+        projection.execute(algo);
+
+
+        QUNIT_IS_TRUE(algo.success);
+
+    }
 }
-
-#include "Selection.cc"
-
-#endif

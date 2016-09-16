@@ -22,6 +22,7 @@
 #include "Object.h"
 #include "PDBString.h"
 #include "PDBVector.h"
+#include "QueryAlgo.h"
 
 namespace pdb {
 
@@ -43,6 +44,12 @@ public:
 
         // gets the name of the i^th input type...
         virtual std :: string getIthInputType (int i) = 0;
+
+	/**
+     * Executes the given algorithm on the QueryRoot.
+     * @param algo the algorithm to execute.
+     */
+	virtual void execute(QueryAlgo& algo) = 0;
 
 	// gets the name of this particular query type ("selection", "join", etc.)
 	virtual std :: string getQueryType () = 0;

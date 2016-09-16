@@ -15,49 +15,18 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#include "UnarySetOperator.h"
 
-#ifndef SET_H
-#define SET_H
+namespace pdb_detail
+{
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+    UnarySetOperator::UnarySetOperator(Handle<SetExpressionIr>  operand) : _operand(operand)
+    {
+    }
 
-namespace pdb {
-
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
-
-public:
-
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
+    Handle<SetExpressionIr> UnarySetOperator::getOperand()
+    {
+        return _operand;
+    }
 
 }
-
-#endif

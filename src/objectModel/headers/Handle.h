@@ -181,7 +181,7 @@ public:
 	Handle <ObjType> &operator = (const Handle <ObjTypeTwo> &fromMe);
 
 	// de-reference operators
-	ObjType *operator -> () const;
+    ObjType *operator -> () const;
 	ObjType &operator * () const;
 
 	// get/set the offset

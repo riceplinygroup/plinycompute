@@ -15,49 +15,41 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_RECORDPREDICATEIR_H
+#define PDB_QUERYINTERMEDIARYREP_RECORDPREDICATEIR_H
 
-#ifndef SET_H
-#define SET_H
+#include "Handle.h"
+#include "Lambda.h"
+#include "Object.h"
+#include "QueryNodeIr.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+using pdb::Handle;
+using pdb::Lambda;
+using pdb::Object;
 
-namespace pdb {
+namespace pdb_detail
+{
+    /**
+     * A boolean function that operates over a single input record.
+     */
+    class RecordPredicateIr : public QueryNodeIr
+    {
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+    public:
 
-public:
+        // contract from super
+        void execute(QueryNodeIrAlgo &algo);
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
+        /**
+         * Produces a Lambda<bool> representation of the predicate.
+         *
+         * @param inputRecordPlaceholder a placeholder to represend the "free variable" input record the predicate
+         *                               operates over within the structure of the returned Lambda.
+         * @return a Lambda version of the predciate.
+         */
+        virtual Lambda<bool> toLambda(Handle<Object> &inputRecordPlaceholder) = 0;
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+    };
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_RECORDPREDICATEIR_H

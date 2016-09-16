@@ -15,49 +15,32 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_RECORDPROJECTIONIR_H
+#define PDB_QUERYINTERMEDIARYREP_RECORDPROJECTIONIR_H
 
-#ifndef SET_H
-#define SET_H
+#include "Handle.h"
+#include "Lambda.h"
+#include "QueryNodeIr.h"
+#include "QueryNodeIrAlgo.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+using pdb::Handle;
+using pdb::Lambda;
 
-namespace pdb {
+namespace pdb_detail
+{
+    class RecordProjectionIr : public QueryNodeIr
+    {
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+    public:
 
-public:
-
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
+        void execute(QueryNodeIrAlgo &algo)
+        {
+            algo.forRecordProjection(*this);
         }
 
-};
+        virtual Lambda<Handle<Object>> toLambda(Handle<Object> &inputRecordPlaceholder) = 0;
 
+    };
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_RECORDPROJECTIONIR_H

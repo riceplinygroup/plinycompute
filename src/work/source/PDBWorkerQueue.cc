@@ -20,6 +20,7 @@
 #define PDB_WORKER_Q_C
 
 #include <iostream>
+#include <climits>
 #include "LockGuard.h"
 #include "NothingWork.h"
 #include <limits.h>

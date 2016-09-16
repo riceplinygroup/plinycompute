@@ -19,8 +19,15 @@
 #ifndef SIMPLE_REQUEST_CC
 #define SIMPLE_REQUEST_CC
 
+#include <functional>
+#include <string>
+
 #include "InterfaceFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
+#include "PDBCommunicator.h"
+
+using std::function;
+using std::string;
 
 namespace pdb {
 

@@ -15,49 +15,20 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#include "QueriesTestsRunner.h"
 
-#ifndef SET_H
-#define SET_H
+#include "BuildIrTests.h"
+#include "DotBuilderTests.h"
+#include "ProjectionIrTests.h"
+#include "SelectionIrTests.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
-
-namespace pdb {
-
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
-
-public:
-
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+namespace pdb_tests
+{
+    void runQueryIrTests(UnitTest &qunit)
+    {
+        testDotBuilderSelection(qunit);
+        testBuildIrSelection(qunit);
+        testProjectionIrExecute(qunit);
+        testSelectionIrExecute(qunit);
+    }
 }
-
-#endif

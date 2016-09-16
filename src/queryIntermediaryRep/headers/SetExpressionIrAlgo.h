@@ -15,49 +15,33 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIRALGO_H
+#define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIRALGO_H
 
-#ifndef SET_H
-#define SET_H
+namespace pdb_detail
+{
+    class SelectionIr; // without forward declaration we get circular includes and can't compile
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+    class SetNameIr; // without forward declaration we get circular includes and can't compile
 
-namespace pdb {
+    /**
+     * Visitor interface for Visitor Pattern over SetExpressionIr.
+     */
+    class SetExpressionIrAlgo
+    {
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+    public:
 
-public:
+        /**
+         * For the SelectionIr case.
+         */
+        virtual void forSelection(SelectionIr &selection) = 0;
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
-
+        /**
+         * For the SetNameIr case.
+         */
+        virtual void forSetName(SetNameIr &setName) = 0;
+    };
 }
 
-#endif
+#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIRALGO_H

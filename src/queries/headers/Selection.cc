@@ -31,6 +31,11 @@ SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProcessor () {
 	return std :: make_shared <SelectionQueryProcessor <Out, In>> (*this);
 }
 
+	template <typename In, typename Out>
+	void Selection<In, Out>::execute(QueryAlgo& algo)
+	{
+		algo.forSelection();
+	};
 
 }
 

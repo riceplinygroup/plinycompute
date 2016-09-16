@@ -15,49 +15,21 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef SETOPERATIONSELECTION_H
+#define SETOPERATIONSELECTION_H
 
-#ifndef SET_H
-#define SET_H
+#include "Handle.h"
+#include "SetOperation.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
-
-namespace pdb {
-
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
-
-public:
-
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
-
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
+namespace pdb
+{
+    class SetOperationSelection : public SetOperation
+    {
+        void execute(Handle<SetOperationAlgo> algo) override
+        {
+            algo->forSelection();
         }
-
-};
-
+    };
 }
 
-#endif
+#endif //PDB_SETOPERATIONSELECTION_H

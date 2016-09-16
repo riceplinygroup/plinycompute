@@ -16,48 +16,38 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_H
-#define SET_H
+#include "SetNameIr.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+namespace pdb_detail
+{
 
-namespace pdb {
+    SetNameIr::SetNameIr(Handle<String> databaseName, Handle<String> setName)
+            : _databaseName(databaseName), _setName(setName)
+    {
+    }
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+    void SetNameIr::execute(QueryNodeIrAlgo &algo)
+    {
+        algo.forSetName(*this);
+    }
 
-public:
+    void SetNameIr::execute(SetExpressionIrAlgo &algo)
+    {
+        algo.forSetName(*this);
+    }
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
+    Handle<String> SetNameIr::getDatabaseName()
+    {
+        return _databaseName;
+    }
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
+    Handle<String> SetNameIr::getName()
+    {
+        return _setName;
+    }
 
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
-};
 
 }
 
-#endif

@@ -74,6 +74,11 @@ public:
 		Handle <Object> *temp = (Handle <Object> *) &firstParam;
 		myData->addParam (temp);
 	}
+
+    bool operator==(const Lambda<Out>& rhs)
+    {
+        return myData == rhs.myData;
+    }
 };
 
 // this helper function allows us to easily create Lambda objects

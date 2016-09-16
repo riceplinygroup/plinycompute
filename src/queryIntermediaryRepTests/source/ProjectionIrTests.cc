@@ -16,48 +16,64 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_H
-#define SET_H
+#include "ProjectionIrTests.h"
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+#include "Handle.h"
+#include "ProjectionIr.h"
+#include "QueryNodeIrAlgo.h"
+#include "RecordProjectionIr.h"
+#include "SelectionIr.h"
+#include "SetNameIr.h"
 
-namespace pdb {
+using pdb::Handle;
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+using pdb_detail::ProjectionIr;
+using pdb_detail::QueryNodeIrAlgo;
+using pdb_detail::RecordPredicateIr;
+using pdb_detail::RecordProjectionIr;
+using pdb_detail::SelectionIr;
+using pdb_detail::SetNameIr;
 
-public:
+namespace pdb_tests
+{
+    void testProjectionIrExecute(UnitTest &qunit)
+    {
+        class Algo : public QueryNodeIrAlgo
+        {
+        public:
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
-	}
+            void forRecordPredicate(RecordPredicateIr &recordPredicate)
+            {
+            }
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
+            void forRecordProjection(RecordProjectionIr &recordProjection)
+            {
+            }
 
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
+            void forProjection(ProjectionIr &projection)
+            {
+                success = true;
+            }
 
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
-	}
+            void forSelection(SelectionIr &selection)
+            {
+            }
 
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
+            void forSetName(SetNameIr &setName)
+            {
+            }
 
-};
+            bool success = false;
+        } algo;
 
+        Handle<SetExpressionIr> nullInputSet;
+        Handle<RecordProjectionIr> nullProjector;
+        ProjectionIr projection(nullInputSet, nullProjector);
+
+        projection.execute(algo);
+
+
+        QUNIT_IS_TRUE(algo.success);
+
+    }
 }
-
-#endif
