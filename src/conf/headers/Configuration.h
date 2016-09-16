@@ -31,6 +31,10 @@
 #include <unistd.h>
 #include <iostream>
 #include "DataTypes.h"
+
+#include "LogLevel.h"
+
+
 using namespace std;
 
 #define DEFAULT_PAGE_SIZE  64*1024*1024
@@ -40,196 +44,275 @@ using namespace std;
 
 // create a smart pointer for Configuration objects
 class Configuration;
-typedef shared_ptr <Configuration> ConfigurationPtr;
+typedef shared_ptr<Configuration> ConfigurationPtr;
 
 class Configuration {
 private:
-    NodeID nodeId;
-    string serverName;
-    int port;
-    int maxConnections;
-    string ipcFile;
-    string logFile;
-    unsigned int pageSize;
-    bool useUnixDomainSock;
-    size_t shmSize;
-    bool logEnabled;
-    string dataDirs;
-    string metaDir;
-    string metaTempDir;
-    string dataTempDirs;
-    unsigned int numThreads;
-    string backEndIpcFile;
+	NodeID nodeId;
+	string serverName;
+	int port;
+	int maxConnections;
+	string ipcFile;
+	string logFile;
+	unsigned int pageSize;
+	bool useUnixDomainSock;
+	size_t shmSize;
+	bool logEnabled;
+	string dataDirs;
+	string metaDir;
+	string metaTempDir;
+	string dataTempDirs;
+	unsigned int numThreads;
+	string backEndIpcFile;
+
+
+	bool isMaster;
+	string masterNodeHostName;
+	int masterNodePort;
+	string queryPlannerPlace;
+	LogLevel logLevel;
 
 public:
 
-    Configuration() {
-    	//set default values.
-    	this->nodeId = 0;
-    	serverName = "testServer";
-    	port = 8108;
-    	maxConnections = DEFAULT_MAX_CONNECTIONS;
-    	logFile = "serverLog";
-    	pageSize = DEFAULT_PAGE_SIZE;
-    	useUnixDomainSock = false;
-    	shmSize = DEFAULT_SHAREDMEM_SIZE;
-    	logEnabled = false;
-    	//temporarily added for unit tests
-    	this->createDir("pdbRoot");
+	Configuration() {
+		//set default values.
+		this->nodeId = 0;
+		serverName = "testServer";
+		port = 8108;
+		maxConnections = DEFAULT_MAX_CONNECTIONS;
+		logFile = "serverLog";
+		pageSize = DEFAULT_PAGE_SIZE;
+		useUnixDomainSock = false;
+		shmSize = DEFAULT_SHAREDMEM_SIZE;
+		logEnabled = false;
+		//temporarily added for unit tests
+		this->createDir("pdbRoot");
 //    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
-        //dataDirs = "/data/data,/mnt/data";
-        dataDirs = "pdbRoot/data";
-    	metaDir = "pdbRoot/meta";
-    	metaTempDir = "pdbRoot/metaTmp";
-        //dataTempDirs = "/data/tmp,/mnt/tmp";
-        dataTempDirs = "pdbRoot/tmp";
+		//dataDirs = "/data/data,/mnt/data";
+		dataDirs = "pdbRoot/data";
+		metaDir = "pdbRoot/meta";
+		metaTempDir = "pdbRoot/metaTmp";
+		//dataTempDirs = "/data/tmp,/mnt/tmp";
+		dataTempDirs = "pdbRoot/tmp";
 //        dataTempDirs = "/data10/tmp,/mnt/tmp";
 //    	dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
-    	numThreads = DEFAULT_NUM_THREADS;
-    	ipcFile = "pdbRoot/ipcFile";
-    	backEndIpcFile = "pdbRoot/backEndIpcFile";
-    }
-  
-    NodeID getNodeID() const {
-        return nodeId;
-    }
+		numThreads = DEFAULT_NUM_THREADS;
+		ipcFile = "pdbRoot/ipcFile";
+		backEndIpcFile = "pdbRoot/backEndIpcFile";
+	}
 
-    string getServerName() const {
-        return serverName;
-    }
+	NodeID getNodeID() const {
+		return nodeId;
+	}
 
-    string getIpcFile() const {
-        return ipcFile;
-    }
+	string getServerName() const {
+		return serverName;
+	}
 
-    string getLogFile() const {
-        return logFile;
-    }
+	string getIpcFile() const {
+		return ipcFile;
+	}
 
-    int getMaxConnections() const {
-        return maxConnections;
-    }
+	string getLogFile() const {
+		return logFile;
+	}
 
-    unsigned int getPageSize() const {
-        return pageSize;
-    }
+	int getMaxConnections() const {
+		return maxConnections;
+	}
 
-    int getPort() const {
-        return port;
-    }
+	unsigned int getPageSize() const {
+		return pageSize;
+	}
 
-    size_t getShmSize() const {
-        return shmSize;
-    }
+	int getPort() const {
+		return port;
+	}
 
-    bool isLogEnabled() const {
-        return logEnabled;
-    }
+	size_t getShmSize() const {
+		return shmSize;
+	}
 
-    bool isUseUnixDomainSock() const {
-        return useUnixDomainSock;
-    }
+	bool isLogEnabled() const {
+		return logEnabled;
+	}
 
-    string getDataDirs() const {
-        return dataDirs;
-    }
+	bool isUseUnixDomainSock() const {
+		return useUnixDomainSock;
+	}
 
-    string getMetaDir() const {
-        return metaDir;
-    }
-    
-    string getMetaTempDir() const {
-        return metaTempDir;
-    }
+	string getDataDirs() const {
+		return dataDirs;
+	}
 
-    string getDataTempDirs() const {
-        return dataTempDirs;
-    }
+	string getMetaDir() const {
+		return metaDir;
+	}
 
-    unsigned int getNumThreads() const {
-        return numThreads;
-    }
+	string getMetaTempDir() const {
+		return metaTempDir;
+	}
 
-    string getBackEndIpcFile() const {
-        return backEndIpcFile;
-    }
+	string getDataTempDirs() const {
+		return dataTempDirs;
+	}
 
-    void setNodeId(NodeID nodeId) {
-        this->nodeId = nodeId;
-    }
+	unsigned int getNumThreads() const {
+		return numThreads;
+	}
 
-    void setServerName(string serverName) {
-        this->serverName = serverName;
-    }
+	string getBackEndIpcFile() const {
+		return backEndIpcFile;
+	}
+
+	void setNodeId(NodeID nodeId) {
+		this->nodeId = nodeId;
+	}
+
+	void setServerName(string serverName) {
+		this->serverName = serverName;
+	}
+
+	void setIpcFile(string ipcFile) {
+		this->ipcFile = ipcFile;
+	}
+
+	void setLogFile(string logFile) {
+		this->logFile = logFile;
+	}
+
+	void setMaxConnections(int maxConnections) {
+		this->maxConnections = maxConnections;
+	}
+
+	void setPageSize(unsigned int pageSize) {
+		this->pageSize = pageSize;
+	}
+
+	void setPort(int port) {
+		this->port = port;
+	}
+
+	void setShmSize(size_t shmSize) {
+		this->shmSize = shmSize;
+	}
+
+	void setUseUnixDomainSock(bool useUnixDomainSock) {
+		this->useUnixDomainSock = useUnixDomainSock;
+	}
+
+	void setLogEnabled(bool logEnabled) {
+		this->logEnabled = logEnabled;
+	}
+
+	void setDataDirs(string dataDirs) {
+		this->dataDirs = dataDirs;
+	}
+
+	void setMetaDir(string metaDir) {
+		this->metaDir = metaDir;
+	}
+
+	void setMetaTempDir(string tempDir) {
+		this->metaTempDir = tempDir;
+	}
+
+	void setDataTempDirs(string tempDirs) {
+		this->dataTempDirs = tempDirs;
+	}
+
+	void setNumThreads(unsigned int numThreads) {
+		this->numThreads = numThreads;
+	}
+
+	void setBackEndIpcFile(string backEndIpcFile) {
+		this->backEndIpcFile = backEndIpcFile;
+	}
+
+	void createDir(string path) {
+		struct stat st = { 0 };
+		if (stat(path.c_str(), &st) == -1) {
+			mkdir(path.c_str(), 0777);
+			//cout << "Created dir:" << path <<"\n";
+		}
+	}
+
+	bool getIsMaster() const {
+		return isMaster;
+	}
+
+	void setIsMaster(bool isMaster) {
+		this->isMaster = isMaster;
+	}
+
+	string getMasterNodeHostName() const {
+		return masterNodeHostName;
+	}
+
+	void setMasterNodeHostName(string masterNodeHostName) {
+		this->masterNodeHostName = masterNodeHostName;
+	}
+
+	int getMasterNodePort() const {
+		return masterNodePort;
+	}
+
+	void setMasterNodePort(int masterNodePort) {
+		this->masterNodePort = masterNodePort;
+	}
+
+	const string getQueryPlannerPlace() const {
+		return queryPlannerPlace;
+	}
+
+	void setQueryPlannerPlace(const string queryPlannerPlace) {
+		this->queryPlannerPlace = queryPlannerPlace;
+	}
+
+	LogLevel getLogLevel() const {
+		return logLevel;
+	}
+
+	void setLogLevel(LogLevel logLevel) {
+		this->logLevel = logLevel;
+	}
 
 
-    void setIpcFile(string ipcFile) {
-        this->ipcFile = ipcFile;
-    }
 
-    void setLogFile(string logFile) {
-        this->logFile = logFile;
-    }
+	void printOut(){
+		cout<< "nodeID: "  << nodeId<<endl;
+		cout<< "serverName: "  << serverName<<endl;
+//		cout<< "serverAddress: "  << serverAddress<<endl;
+		cout<< "port: "  << port<<endl;
+		cout<< "maxConnections: "  << maxConnections<<endl;
+//		cout<< "recvBufferSize: "  << recvBufferSize<<endl;
+		cout<< "ipcFile: "  << ipcFile<<endl;
+//		cout<< "clientPageSize: "  << clientPageSize<<endl;
+//		cout<< "inputBufferSize: "  << inputBufferSize<<endl;
+//		cout<< "logFile: "  << logFile<<endl;
+		cout<< "pageSize: "  << pageSize<<endl;
+//		cout<< "miniPageSize: "  << miniPageSize<<endl;
+		cout<< "useUnixDomainSock: "  << useUnixDomainSock<<endl;
+		cout<< "shmSize: "  << shmSize<<endl;
+//		cout<< "numTestObjects: "  << numTestObjects<<endl;
+		cout<< "dataDirs: "  << dataDirs<<endl;
+		cout<< "metaDir: "  << metaDir<<endl;
+		cout<< "metaTempDir: "  << metaTempDir<<endl;
+		cout<< "dataTempDirs: "  << dataTempDirs<<endl;
+//		cout<< "flushThreshold: "  << flushThreshold<<endl;
+		cout<< "numThreads: "  << numThreads<<endl;
+//		cout<< "memPerConnection: "  << memPerConnection<<endl;
+		cout<< "backEndIpcFile: "  << backEndIpcFile<<endl;
+//		cout<< "useByteArray: "  << useByteArray<<endl;
+//        cout<< "pageAlignment: " << alignment <<endl;
+		cout<< "isMaster: "  << isMaster<<endl;
+		cout<< "masterNodeHostName: "  << masterNodeHostName<<endl;
+		cout<< "masterNodePort: "  << masterNodePort<<endl;
+		cout<< "logEnabled: "  << logEnabled<<endl;
 
-    void setMaxConnections(int maxConnections) {
-        this->maxConnections = maxConnections;
-    }
 
-    void setPageSize(unsigned int pageSize) {
-        this->pageSize = pageSize;
-    }
-
-    void setPort(int port) {
-        this->port = port;
-    }
-
-    void setShmSize(size_t shmSize) {
-        this->shmSize = shmSize;
-    }
-
-    void setUseUnixDomainSock(bool useUnixDomainSock) {
-        this->useUnixDomainSock = useUnixDomainSock;
-    }
-
-    void setLogEnabled(bool logEnabled) {
-        this->logEnabled = logEnabled;
-    }
-
-    void setDataDirs(string dataDirs) {
-        this->dataDirs = dataDirs;
-    }
-
-    void setMetaDir(string metaDir) {
-        this->metaDir = metaDir;
-    }
-    
-    void setMetaTempDir(string tempDir) {
-        this->metaTempDir = tempDir;
-    }
-
-    void setDataTempDirs(string tempDirs) {
-        this->dataTempDirs = tempDirs;
-    }
-
-    void setNumThreads(unsigned int numThreads) {
-        this->numThreads = numThreads;
-    }
-
-    void setBackEndIpcFile(string backEndIpcFile) {
-        this->backEndIpcFile = backEndIpcFile;
-    }
-
-    void createDir(string path) {
-        struct stat st = {0};
-        if (stat(path.c_str(), &st) == -1) {
-            mkdir(path.c_str(), 0777);
-            //cout << "Created dir:" << path <<"\n";
-        }
-    }
-
+	}
 };
-
-
 
 #endif	/* CONFIGURATION_H */
 

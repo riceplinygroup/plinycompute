@@ -100,15 +100,6 @@ public:
 		this->queryPlannerPlace = queryPlannerPlace;
 	}
 
-
-
-	// TODO: it has to be checked with other components.
-	// this method gets a set of queries over the network and runs them on the local host
-	// It returns an ACK
-	Handle<Ack> executeQueryOnLocalHost(Handle <Vector<Handle <QueryBase>>> queries);
-
-
-
 private:
 
 	// stores the heart beat data that we are collecting form all worker nodes in the cluster.

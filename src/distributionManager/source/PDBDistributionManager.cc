@@ -148,16 +148,6 @@ int PDBDistributionManager::queryIsDone(string& queryID, PDBLoggerPtr logToMe) {
 
 }
 
-
-
-Handle<Ack> PDBDistributionManager::executeQueryOnLocalHost(Handle<Vector<Handle<QueryBase>>> queries) {
-
-	// 	TODO: At this stage we only return an ack, but later in the project this should run the queries on the localhost.
-		const UseTemporaryAllocationBlock block {1024};
-		Handle<Ack> ack = makeObject<Ack>();
-		return ack;
-	}
-
 }
 #endif
 
