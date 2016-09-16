@@ -42,7 +42,6 @@
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
-#include "MultiThreadedRequestHandler.h"
 #include "Record.h"
 #include "InterfaceFunctions.h"
 
@@ -617,8 +616,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
 
         // this handler accepts a request to load all pages in a set to memory iteratively, and send back information about loaded pages
-        forMe.registerHandler (StorageGetSetPages_TYPEID, make_shared <MultiThreadedRequestHandler <StorageGetSetPages>> (
-                [&] (Handle <StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<StorageGetSetPages> & handler) {
+        forMe.registerHandler (StorageGetSetPages_TYPEID, make_shared <SimpleRequestHandler <StorageGetSetPages>> (
+                [&] (Handle <StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe) {
 
                         //NodeID nodeId = request->getNodeID();
                         DatabaseID dbId = request->getDatabaseID();
@@ -645,7 +644,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
            
                         //std :: cout << "88888888888888888888888888888888\n";
                         //std :: cout << "Buzzer is created in PDBScanWork\n";
-                        PDBBuzzerPtr tempBuzzer {handler.getLinkedBuzzer() };
+                        PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                           [&] (PDBAlarm myAlarm, int & counter) {
+                                    counter ++;
+                                    std :: cout << "counter = " << counter << std :: endl;
+                           });
                         
                         //scan pages and load pages in a multi-threaded style
                         PDBWorkerPtr worker = getFunctionality<PangeaStorageServer>().getWorker();

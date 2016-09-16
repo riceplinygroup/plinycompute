@@ -34,7 +34,6 @@
 #include "TestScanWork.h"
 #include "TestCopyWork.h"
 #include "DataProxy.h"
-#include "MultiThreadedRequestHandler.h"
 #include <vector>
 
 
@@ -87,8 +86,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
     ));
   
     //register a handler to process the BackendTestSetScan message
-    forMe.registerHandler (BackendTestSetScan_TYPEID, make_shared<MultiThreadedRequestHandler<BackendTestSetScan>> (
-              [&] (Handle<BackendTestSetScan> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<BackendTestSetScan>& handler) {
+    forMe.registerHandler (BackendTestSetScan_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetScan>> (
+              [&] (Handle<BackendTestSetScan> request, PDBCommunicatorPtr sendUsingMe) {
                       bool res;
                       std :: string errMsg;
 
@@ -126,7 +125,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                               return make_pair(res, errMsg);
                       }
                       std :: cout << "Buzzer is created in TestScanWork\n";
-                      PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
+                      PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                           [&] (PDBAlarm myAlarm, int & counter) {
+                                    counter ++;
+                                    std :: cout << "counter = " << counter << std :: endl;
+                           });
                       int counter = 0;
                       for (int i = 0; i < numThreads; i++) {
                               PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
@@ -154,8 +157,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              ));
 
     //register a handler to process the BackendTestSetScan message
-    forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<MultiThreadedRequestHandler<BackendTestSetCopy>> (
-              [&] (Handle<BackendTestSetCopy> request, PDBCommunicatorPtr sendUsingMe, MultiThreadedRequestHandler<BackendTestSetCopy>& handler) {
+    forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetCopy>> (
+              [&] (Handle<BackendTestSetCopy> request, PDBCommunicatorPtr sendUsingMe) {
                       bool res;
                       std :: string errMsg;
 
@@ -210,7 +213,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       std :: cout << "temp set created with setId = " << tempSetId << std :: endl;
 
                       //std :: cout << "Buzzer is created in TestCopyWork!\n";
-                      PDBBuzzerPtr tempBuzzer{handler.getLinkedBuzzer()};
+                      PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                           [&] (PDBAlarm myAlarm, int & counter) {
+                                    counter ++;
+                                    std :: cout << "counter = " << counter << std :: endl;
+                           });
                       int counter = 0;
 
                       for (int i = 0; i < numThreads; i++) {
@@ -241,7 +248,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                       iterators = scanner->getSetIterators(nodeId, 0, 0, tempSetId);
 
                       
-                      PDBBuzzerPtr anotherTempBuzzer {handler.getLinkedBuzzer()};
+                      PDBBuzzerPtr anotherTempBuzzer = make_shared<PDBBuzzer>(
+                           [&] (PDBAlarm myAlarm, int & counter) {
+                                    counter ++;
+                                    std :: cout << "counter = " << counter << std :: endl;
+                           });
 
                       for (int i = 0; i < numThreads; i++) {
                               PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
