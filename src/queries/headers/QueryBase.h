@@ -119,8 +119,6 @@ public:
                         if (getIthInputType (whichSlot) != toMe->getOutputType ()) {
 				std :: cout << "Cannot set output of query node with output of type " << toMe->getOutputType () << " to be the input";
 				std :: cout << " of a query with input type " << getIthInputType (whichSlot) << ".\n";
-				int *q = 0;
-				*q = 12;
 				isError = true;
                                 return false;
 			}

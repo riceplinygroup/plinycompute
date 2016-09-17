@@ -90,6 +90,8 @@ public:
 		myLogger = &myLoggerIn;
 	}
 
+	void execute (QueryAlgo&) override {}
+
 private:
 
 	// these are used so that the output knows how to connect to the server for iteration
