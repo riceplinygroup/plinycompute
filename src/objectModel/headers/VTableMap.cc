@@ -40,6 +40,15 @@
 
 namespace pdb {
 
+inline int16_t VTableMap :: lookupBuiltInType (std :: string objectTypeName) {
+	if (theVTable->objectTypeNamesList.count (objectTypeName) != 0)
+		if (theVTable->objectTypeNamesList[objectTypeName] >= 0 && theVTable->objectTypeNamesList[objectTypeName] <= 8191)
+			return theVTable->objectTypeNamesList[objectTypeName];
+	
+	// otherwise, return -1 to signify that this was not a built-in type
+	return -1;
+}
+
 // returns the number of registered built-in objects
 inline int VTableMap :: totalBuiltInObjects () {
         int count = 0;

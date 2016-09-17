@@ -33,6 +33,9 @@ bool inSharedLibrary = false;
 // this is the allocator for pdb :: Objects that is associated with the main thread
 Allocator mainAllocator;
 
+// since we want to be able to change the allocator, we use a pointer to it
+Allocator *mainAllocatorPtr = &mainAllocator;
+
 // these tell us where the call stack for all of the threads in the PDBWorkerQueue
 // is located
 void *stackBase = nullptr;

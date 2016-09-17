@@ -31,6 +31,7 @@
 #include "CatalogServer.h"
 #include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
+#include "CatTypeNameSearchResult.h"
 #include "CatTypeSearchResult.h"
 #include "CatSetObjectTypeRequest.h"
 #include "CatRegisterType.h"
@@ -45,9 +46,12 @@ namespace pdb {
 
 int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) {
 
+	// first search for the type name in the vTable map (in case it is built in)
+	if (VTableMap :: lookupBuiltInType (objectTypeName) != -1)
+		return VTableMap :: lookupBuiltInType (objectTypeName);
+
 	// return a -1 if we've never seen this type name
 	if (allTypeNames.count (objectTypeName) == 0) {
-		std :: cout << "Could not find it.\n";
 		return -1;
 	}
 
@@ -59,6 +63,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	// handle a request for an object type name search
 	forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
 		[&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
 
 			// ask the catalog serer for the type ID 
 			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
@@ -77,6 +84,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	// handle a request to obtain a copy of a shared library
 	forMe.registerHandler (CatSharedLibraryRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryRequest>> (
 		[&] (Handle <CatSharedLibraryRequest> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
 
 			// ask the catalog serer for the shared library
 			vector <char> putResultHere;
@@ -106,12 +116,19 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (CatSetObjectTypeRequest_TYPEID, make_shared <SimpleRequestHandler <CatSetObjectTypeRequest>> (
 		[&] (Handle <CatSetObjectTypeRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
+
 			// ask the catalog server for the type ID and then the name of the type
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
 
 			// make the response
 			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
+			Handle <CatTypeNameSearchResult> response;
+			if (typeID >= 0) 
+				response = makeObject <CatTypeNameSearchResult> (searchForObjectTypeName (typeID), true, "success");
+			else 
+				response = makeObject <CatTypeNameSearchResult> ("", false, "could not find requested type");
 
 			// return the result
 			std :: string errMsg;
@@ -123,6 +140,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	// handle a request to create a database 
 	forMe.registerHandler (CatCreateDatabaseRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateDatabaseRequest>> (
 		[&] (Handle <CatCreateDatabaseRequest> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
 
 			// ask the catalog server for the type ID and then the name of the type
 			std :: string errMsg;
@@ -140,6 +160,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	
 	forMe.registerHandler (CatCreateSetRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateSetRequest>> (
 		[&] (Handle <CatCreateSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
 
 			// ask the catalog server for the type ID and then the name of the type
 			std :: string errMsg;
@@ -159,6 +182,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	// handles a request to register a shared library
 	forMe.registerHandler (CatRegisterType_TYPEID, make_shared <SimpleRequestHandler <CatRegisterType>> (
 		[&] (Handle <CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
+
+			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
+			const LockGuard guard{workingMutex};
 
 			// get the next object... this holds the shared library file... it could be big, so be careful!!
 			size_t objectSize = sendUsingMe->getSizeOfNextObject ();
@@ -199,7 +225,7 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 
 size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) { 
 	int numPages;
-	if (!myCatalog->getInt (dbName + "." + "setName" + ".fileSize", numPages)) {
+	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
 		return -1;
 	} else {
 		return numPages;
@@ -208,13 +234,13 @@ size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName
 
 size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName) {
 	int numPages;
-	if (!myCatalog->getInt (dbName + "." + "setName" + ".fileSize", numPages)) {
-		myCatalog->putInt (dbName + "." + "setName" + ".fileSize", 1);
+	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
+		myCatalog->putInt (dbName + "." + setName + ".fileSize", 1);
 		myCatalog->save ();
 		return 0;
 	} else {
 		numPages++;
-		myCatalog->putInt (dbName + "." + "setName" + ".fileSize", numPages);
+		myCatalog->putInt (dbName + "." + setName + ".fileSize", numPages);
 		myCatalog->save ();
 		return numPages - 1;
 	}
@@ -284,26 +310,29 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 	write (filedesc, soFile.data (), soFile.size ());
 	close (filedesc);	
 
-	// add the new type name
-	int16_t typeCode = 8192 + allTypeNames.size ();
-	allTypeNames [typeName] = typeCode;
-	allTypeCodes [typeCode] = typeName;
-
-	// and update the catalog file
-	vector <string> typeNames;
-	vector <int> typeCodes;
-
-	// get the two vectors to add
-	for (auto &pair : allTypeNames) {
-		typeNames.push_back (pair.first);
-		typeCodes.push_back (pair.second);
-	}
-
-	// and add them
-	myCatalog->putStringList ("typeNames", typeNames);
-	myCatalog->putIntList ("typeCodes", typeCodes);
-	myCatalog->save ();
-	return typeCode;
+	// add the new type name, if we don't already have it
+	if (allTypeNames.count (typeName) == 0) {
+		int16_t typeCode = 8192 + allTypeNames.size ();
+		allTypeNames [typeName] = typeCode;
+		allTypeCodes [typeCode] = typeName;
+	
+		// and update the catalog file
+		vector <string> typeNames;
+		vector <int> typeCodes;
+	
+		// get the two vectors to add
+		for (auto &pair : allTypeNames) {
+			typeNames.push_back (pair.first);
+			typeCodes.push_back (pair.second);
+		}
+	
+		// and add them
+		myCatalog->putStringList ("typeNames", typeNames);
+		myCatalog->putIntList ("typeCodes", typeCodes);
+		myCatalog->save ();
+		return typeCode;
+	} else 
+		return allTypeNames [typeName];
 }
 
 bool CatalogServer :: addSet (int16_t typeIdentifier, string databaseName, std :: string setName, std :: string &errMsg) {
@@ -324,8 +353,8 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, string databaseName, std :
 		}
 	}
 
-	// make sure that type code exists
-	if (allTypeCodes.count (typeIdentifier) == 0) {
+	// make sure that type code exists, if we get one that is not built in
+	if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
 		errMsg = "Type code does not exist.\n";
 		return false;
 	}
@@ -366,12 +395,18 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 	return true;
 }
 
+CatalogServer :: ~CatalogServer () {
+	pthread_mutex_destroy(&workingMutex);
+}
 
 CatalogServer :: CatalogServer (std :: string catalogDirectoryIn) {
 
 	catalogDirectory = catalogDirectoryIn;
 
 	myCatalog = make_shared <MyDB_Catalog> (catalogDirectory + "/catalog");
+
+	// set up the mutex
+	pthread_mutex_init(&workingMutex, nullptr);
 
 	// first, get the list of type names and type codes
 	vector <string> typeNames;

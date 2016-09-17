@@ -35,6 +35,9 @@ class CatalogClient : public ServerFunctionality {
 
 public:
 
+	// destructor
+	~CatalogClient ();
+
 	// these give us the port and the address of the catalog
 	CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger);
 
@@ -66,12 +69,17 @@ public:
 	template <class DataType>
 	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
+	// same as above, but here we use the type code
+	bool createSet (int16_t identifier, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
 private:
 
 	int port;
 	std :: string address;
 	PDBLoggerPtr myLogger;
 
+	// serialize access to shared library loading
+	pthread_mutex_t workingMutex;
 };
 
 }

@@ -62,9 +62,10 @@ void *getObjectVTable () {							\
 /* the shared library has *different* copies of all of these, they must be */   \
 /* set before the shared library is used to do anything.                   */   \
                                                                                 \
-void setAllGlobalVariables (VTableMap *theVTableIn,                             \
+void setAllGlobalVariables (Allocator *newAllocator, VTableMap *theVTableIn,    \
 	void *stackBaseIn, void *stackEndIn) {	                                \
 	stackBase = stackBaseIn;                                                \
+	mainAllocatorPtr = newAllocator;                                        \
 	stackEnd = stackEndIn;                                                  \
 	theVTable = theVTableIn;                                                \
 	inSharedLibrary = true;							\

@@ -24,8 +24,9 @@
 #include "Supervisor.h"
 #include "PDBVector.h"
 #include "PDBString.h"
+#include "../../sharedLibraries/source/SharedLibEmployee.cc"
 
-namespace pdb {
+using namespace pdb;
 
 class ChrisSelection : public Selection <String, SharedEmployee> {
 
@@ -34,7 +35,6 @@ public:
 	ENABLE_DEEP_COPY
 
 	ChrisSelection () {}
-	~ChrisSelection () {}
 
 	Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
@@ -48,8 +48,6 @@ public:
 		});
 	}
 };
-
-}
 
 GET_V_TABLE (ChrisSelection)
 

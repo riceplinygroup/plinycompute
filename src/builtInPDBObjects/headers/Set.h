@@ -16,55 +16,57 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SHARED_EMPLOYEE_C
-#define SHARED_EMPLOYEE_C
+#ifndef SET_H
+#define SET_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "GetVTable.h"
+#include <vector>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include "Query.h"
 
-class PrintableObject : public pdb :: Object {
+// PRELOAD %Set <Nothing>%
 
-public:
+namespace pdb {
 
-	virtual void print () = 0;
-};
-
-class SharedEmployee : public PrintableObject {
-
-        int age;
+// this corresponds to a database set
+template <typename Out> 
+class Set : public Query <Out> {
 
 public:
-
-        pdb :: Handle <pdb :: String> name;
 
 	ENABLE_DEEP_COPY
 
-        ~SharedEmployee () {}
-        SharedEmployee () {}
+	Set () {}
+	~Set () {}
 
-        void print () override {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	pdb :: Handle <pdb :: String> &getName () {
-		return name;
+	Set (bool isError) {
+		this->setError ();
 	}
 
-	bool isFrank () {
-		return (*name == "Frank");
+	Set (std :: string dbName, std :: string setName) {
+		this->setDBName (dbName);
+		this->setSetName (setName);		
 	}
 
-        SharedEmployee (std :: string nameIn, int ageIn) {
-                name = pdb :: makeObject <pdb :: String> (nameIn);
-                age = ageIn;
+	void execute(QueryAlgo& algo) override {
+		algo.forSet();
+	}
+
+	// gets the number of inputs
+	virtual int getNumInputs () override {return 0;}
+
+        // gets the name of the i^th input type...
+        virtual std :: string getIthInputType (int i) override {
+		 return "I have no inputs!!";
+	}
+
+        virtual std :: string getQueryType () override {
+                return "set";
         }
+
 };
 
-#ifndef CHRIS_SELECT_CC
-GET_V_TABLE (SharedEmployee)
-#endif
+}
 
 #endif

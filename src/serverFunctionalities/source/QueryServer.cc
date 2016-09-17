@@ -61,29 +61,39 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 			// we will want to store all of the names of the output sets
 			const UseTemporaryAllocationBlock tempBlock {1024 * 128};
 			{
-				// this is the set
+	
+				// get the list of queries to execute
+				std :: string errMsg;
+				bool success;
+				Handle <Vector <Handle <QueryBase>>> runUs = sendUsingMe->getNextObject <Vector <Handle <QueryBase>>> (success, errMsg);
+				if (!success) {
+					return std :: make_pair (false, errMsg);
+				}
+
+				// this is the name of the set that we are going to write temporary data to
 				std :: string tempSetPrefix = "tempSet" + std :: to_string (tempSetName);
 				tempSetName++;
 	
-				// this keeps track of which node we computed
+				// this keeps track of which node in the query plan we computed
 				int whichNode = 0;
 	
 				// first, loop through all of the outputs and compute them
-				for (int i = 0; i < request->getOutputs ()->size (); i++) {
-					computeQuery (tempSetPrefix, whichNode, (*(request->getOutputs ()))[i]);
+				for (int i = 0; i < runUs->size (); i++) {
+					computeQuery (tempSetPrefix, whichNode, (*runUs)[i]);
 				}	
 
 				// now, we send back the result
 				const UseTemporaryAllocationBlock tempBlock {1024};
 				Handle <Vector <String>> result = makeObject <Vector <String>> ();
-				for (int i = 0; i < request->getOutputs ()->size (); i++) {
-					if ((*(request->getOutputs ()))[i]->getQueryType () == "localoutput") {
-						result->push_back ((*(request->getOutputs ()))[i]->getSetName ());
+				for (int i = 0; i < runUs->size (); i++) {
+					if ((*runUs)[i]->getQueryType () == "localoutput") {
+						result->push_back ((*runUs)[i]->getSetName ());
+					} else {
+						std :: cout << "We only support local outputs for queries.\n";
 					}
 				}
 
 				// return the results
-				std :: string errMsg;
 				if (!sendUsingMe->sendObject (result, errMsg)) {
 					return std :: make_pair (false, errMsg);
 				}
@@ -190,12 +200,25 @@ void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle 
 	// get the input information from the query node
 	std :: string inputSet = computeMe->getIthInput (0)->getSetName ();
 	std :: string inputDatabase = computeMe->getIthInput (0)->getDBName ();
-	std :: pair <std :: string, std :: string> databaseAndSet = std :: make_pair (inputSet, inputDatabase);
+	std :: pair <std :: string, std :: string> databaseAndSet = std :: make_pair (inputDatabase, inputSet);
 	MyDB_TablePtr tableToProcess = getFunctionality <StorageServer> ().getTable (databaseAndSet);
-	int numPagesToProcess = getFunctionality <CatalogServer> ().getNumPages (inputSet, inputDatabase);
+	int numPagesToProcess = getFunctionality <CatalogServer> ().getNumPages (inputDatabase, inputSet);
+
+	// make sure we got a valid result
+	if (numPagesToProcess < 0) {
+		std :: cout << "Error: is " << inputDatabase << "." << inputSet << " a valid data set?\n";
+	}
 
 	// this is the output table
 	std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (inputDatabase, setPrefix + "." + std :: to_string (whichNode));
+
+	// create the output table in the storage manager and in the catalog
+	std :: string errMsg;
+	int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (myQuery->getOutputType ());
+	if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
+		std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";	
+		exit (1);
+	}
 	MyDB_TablePtr resultTable = getFunctionality <StorageServer> ().getTable (outDatabaseAndSet);
 
 	// annotate this guy with his output name
@@ -210,7 +233,7 @@ void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle 
 	pthread_mutex_init(&workerMutex, nullptr);
 
 	// we'll wait on this
-	PDBBuzzerPtr myBuzzer = make_shared <PDBBuzzer> ();
+	PDBBuzzerPtr myBuzzer = make_shared <PDBBuzzer> (nullptr);
 
 	// get all of the workers
 	for (int i = 0; i < numThreadsToUse; i++) {
@@ -258,12 +281,19 @@ void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle 
 
 						// tell the buffer manager that we wrote the current output page
 						myOutPage->wroteBytes ();
+						myOutPage->unpin ();
+						myOutPage->flush ();
 						myOutPage = getFunctionality <StorageServer> ().getNewPage (outDatabaseAndSet);
 							
 						// and get the next output page
-						queryProc->loadOutputPage (myOutPage->getBytes (), 1024 * 1024);
+						queryProc->loadOutputPage (myOutPage->getBytes (), myBufferMgr->getPageSize ());
 					}
 				}
+
+				// allow the page to be written back
+				myOutPage->wroteBytes ();
+				myOutPage->unpin ();
+				myOutPage->flush ();
 
 				// let the caller know that we are all done
 				callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
@@ -276,6 +306,9 @@ void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle 
 		
 	// now, wait until we are done
 	myBuzzer->wait ();	
+
+	// deallocate the mutex
+	pthread_mutex_destroy(&workerMutex);
 }
 
 }

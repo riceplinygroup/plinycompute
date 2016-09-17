@@ -20,15 +20,12 @@
 #define EXEC_QUERY_H
 
 #include "Object.h"
-#include "Handle.h"
-#include "QueryBase.h"
-#include "PDBString.h"
 
 // PRELOAD %ExecuteQuery%
 
 namespace pdb {
 
-// encapsulates a request to search for a type in the catalog
+// encapsulates a request to run a query
 class ExecuteQuery : public Object {
 
 public:
@@ -36,19 +33,7 @@ public:
 	ExecuteQuery () {}
 	~ExecuteQuery () {}
 
-	ExecuteQuery (Handle <Vector <Handle <QueryBase>>> allOutputs) : allOutputs (allOutputs) {}
-
-	Handle <Vector <Handle <QueryBase>>> getOutputs () {
-		return allOutputs;
-	}
-	
 	ENABLE_DEEP_COPY
-
-private:
-
-	// these are the outputs that we need to compute... note that each output
-	// may in turn have an input
-	Handle <Vector <Handle <QueryBase>>> allOutputs; 
 
 };
 

@@ -213,12 +213,14 @@ all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],
        boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
        boost_component_dir_basename_to_cc_file_paths['system']]
 
-common_env.SharedLibrary('libraries/SharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libSharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libChrisSelection.so', ['src/sharedLibraries/source/ChrisSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libStringSelection.so', ['src/sharedLibraries/source/StringSelection.cc'] + all)
 common_env.Program('bin/test14', ['src/tests/source/Test14.cc'] + all)
 common_env.Program('bin/test15', ['src/tests/source/Test15.cc'] + all)
 common_env.Program('bin/test16', ['src/tests/source/Test16.cc'] + all)
 common_env.Program('bin/test17', ['src/tests/source/Test17.cc'] + all)
-#common_env.Program('bin/test18', ['src/tests/source/Test18.cc'] + all)
+common_env.Program('bin/test18', ['src/tests/source/Test18.cc'] + all)
 common_env.Program('bin/test19', ['src/tests/source/Test19.cc'] + all)
 common_env.Program('bin/test20', ['src/tests/source/Test20.cc'] + all)
 common_env.Program('bin/test21', ['src/tests/source/Test21.cc'] + all)

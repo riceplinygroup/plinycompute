@@ -29,6 +29,9 @@ class CatalogServer : public ServerFunctionality {
 
 public:
 
+	// destructor
+	~CatalogServer ();
+
 	// these give us the port and the address of the catalog
 	CatalogServer (std :: string catalogDirectory);
 
@@ -80,6 +83,9 @@ private:
 
 	// where the catalog is located
 	std :: string catalogDirectory;
+
+	// serialize access
+	pthread_mutex_t workingMutex;
 };
 
 }

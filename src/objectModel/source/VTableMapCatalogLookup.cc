@@ -32,6 +32,7 @@
 #include <dlfcn.h>
 #include "LockGuard.h"
 #include <unistd.h>
+#include <unistd.h>
 #include "PDBLogger.h"
 #include <cctype>
 #include "CatalogClient.h"
@@ -50,7 +51,9 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	// make sure no one is modifying the map
 	const LockGuard guard {theVTable->myLock};
 	
-	std :: string sharedLibraryFile = "/var/tmp/objectFile.so";
+	std :: string sharedLibraryFile = "/var/tmp/objectFile";
+	sharedLibraryFile += to_string (objectTypeID) + ".so";
+	unlink (sharedLibraryFile.c_str ());
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
 	// open up the shared library
@@ -68,7 +71,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		const char* dlsym_error = dlerror();
 
 		// first we need to correctly set all of the global variables in the shared library
-		typedef void setGlobalVars (VTableMap *, void *, void *);
+		typedef void setGlobalVars (Allocator *, VTableMap *, void *, void *);
 		std::string getInstance = "setAllGlobalVariables";
 		setGlobalVars *setGlobalVarsFunc = (setGlobalVars *) dlsym (so_handle, getInstance.c_str());
 
@@ -80,7 +83,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			return nullptr;
 		// if we were able to, then run it
 		} else {
-			setGlobalVarsFunc (theVTable, stackBase, stackEnd);
+			setGlobalVarsFunc (mainAllocatorPtr, theVTable, stackBase, stackEnd);
 		}
 
 		// get the function that will give us access to the vTable

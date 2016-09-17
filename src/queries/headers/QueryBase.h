@@ -36,6 +36,16 @@ public:
 		whichDB = "";
 	}
 
+	void print () {
+		std :: cout << whichDB << "." << whichSet << ": " << getQueryType () << "(" << getOutputType () << ")\n";
+		for (int i = 0; i < getNumInputs (); i++) {
+			if (getIthInput (i) == nullptr)
+				std :: cout << "<nullptr>";
+			else
+				getIthInput (i)->print ();	
+		}
+	}
+
 	// gets the output type of this query as a string
 	virtual std :: string getOutputType () = 0;
 
@@ -57,6 +67,15 @@ public:
 	// getters/setters for the output database name and set name for this query
 	void setDBName (std :: string toMe) {
 		whichDB = toMe;
+	}
+
+	// used to mark this query as bad
+	void setError () {
+		isError = true;
+	}
+
+	bool wasError () {
+		return isError;
 	}
 
 	void setSetName (std :: string toMe) {
@@ -98,14 +117,26 @@ public:
 
                         // make sure the output type of the guy we are accepting meets the input type
                         if (getIthInputType (whichSlot) != toMe->getOutputType ()) {
+				std :: cout << "Cannot set output of query node with output of type " << toMe->getOutputType () << " to be the input";
+				std :: cout << " of a query with input type " << getIthInputType (whichSlot) << ".\n";
+				int *q = 0;
+				*q = 12;
+				isError = true;
                                 return false;
-                        }
+			}
 
                         (*inputs)[whichSlot] = toMe;
 
+			// carry throgh an error
+			if (toMe->isError)
+				isError = true;
+
 			// make sure that the database names match up
-			if (getDBName () != toMe->getDBName ()) {
-					std :: cout << "This is bad; you seem to be combining inputs from different databases.\n";
+			if (getDBName () != "" && getDBName () != toMe->getDBName ()) {
+				std :: cout << "This is bad; you seem to be combining inputs from different databases.\n";
+				std :: cout << "DBs used are " << getDBName () << " and " << toMe->getDBName () << ".\n";	
+				isError = true;
+                                return false;
 			} else {
 
 				// if we have not yet gotten the DB name, then set it here
@@ -118,12 +149,14 @@ public:
                 return false;
         }
 
-
 private:
 
 	// this is the name of the database/set combo where the answer of this query is stored
 	String whichDB; 
 	String whichSet; 
+	
+	// if there was an error
+	bool isError = false;
 
 	// all of the queries that are input into this one
 	Handle <Vector <Handle <QueryBase>>> inputs;

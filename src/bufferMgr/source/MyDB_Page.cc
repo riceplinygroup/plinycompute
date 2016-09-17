@@ -58,7 +58,6 @@ MyDB_Page :: MyDB_Page (MyDB_TablePtr myTableIn, size_t iin, MyDB_BufferManager 
 }
 
 void MyDB_Page :: flush (MyDB_PagePtr me) {
-	std :: cout << "Flushing page!!\n";
 	parent.flush (me);
 }
 

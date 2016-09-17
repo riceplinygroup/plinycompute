@@ -26,6 +26,7 @@
 #include <iterator>
 #include <cstring>
 
+#include "TypeName.h"
 #include "DeepCopy.h"
 
 namespace pdb {

@@ -33,6 +33,8 @@ using namespace pdb;
 
 class ChrisSelection : public Selection <String, SharedEmployee> {
 
+	ENABLE_DEEP_COPY
+
         Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
                 return makeLambda (checkMe, [&] () {
                         return (*(checkMe->getName ()) != "Joe Johnson48");
@@ -46,46 +48,71 @@ class ChrisSelection : public Selection <String, SharedEmployee> {
         }
 };
 
-class ChrisJoin : public Join <String, double, int, double> {
+class StringSelection : public Selection <String, String> {
 
-	virtual Lambda <bool> getSelection (Handle <double> &in1, Handle <int> &in2, Handle <double> &in3) {
-		return makeLambda ([&] () {return true;});
-	}
+public:
 
-	virtual Lambda <Handle <String>> getProjection (Handle <double> &in1, Handle <int> &in2, Handle <double> &in3) {	
-		return makeLambda ([&] () {Handle <String> returnVal = makeObject <String> ("Hi mom!!");
-					   return returnVal;});
-	}
-	
+        ENABLE_DEEP_COPY
+
+        Lambda <bool> getSelection (Handle <String> &checkMe) override {
+                return makeLambda (checkMe, [&] () {
+                        return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
+                });
+        }
+
+        Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
+                return makeLambda (checkMe, [&] () {
+                        return checkMe;
+                });
+        }
 };
 
+
 int main () {
+
+	// for allocations
+	const UseTemporaryAllocationBlock tempBlock {1024 * 128};
 
 	// register this query class
 	string errMsg;
 	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
 	StorageClient temp (8108, "localhost", myLogger);
 	temp.registerType ("libraries/libChrisSelection.so", errMsg);	
+	temp.registerType ("libraries/libStringSelection.so", errMsg);	
 
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", myLogger);
 
 	// build a scan of the "chris_db", "chris_set" set
-	Handle <ChrisSelection> mySelect = makeObject <ChrisSelection> ();
-	mySelect->setInput (0, myClient.getSet <SharedEmployee> ("chris_db", "chris_set"));
+	Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
+	myFirstSelect->setInput (myClient.getSet <SharedEmployee> ("chris_db", "chris_set"));
 
-	// the result will go into an iterator on the client machine
-	Handle <LocalQueryOutput <String>> output = makeObject <LocalQueryOutput <String>> ();
-	output->setInput (mySelect);
+	// now, scan again 
+	Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
+	mySecondSelect->setInput (myFirstSelect);
 
-	if (!myClient.execute (output, errMsg)) {
+	// the results will go into two iterators on the client machine
+	Handle <LocalQueryOutput <String>> outputOne = makeObject <LocalQueryOutput <String>> ();
+	outputOne->setInput (myFirstSelect);
+
+	Handle <LocalQueryOutput <String>> outputTwo = makeObject <LocalQueryOutput <String>> ();
+	outputTwo->setInput (mySecondSelect);
+	
+	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
 		return 0;
 	}
 	
 	// print the resuts
-	for (auto a : *output) 
-		std :: cout << (*a) << "\n";
+	std :: cout << "First set of query results: ";
+	for (auto a : *outputOne) 
+		std :: cout << (*a) << "; ";
+
+	std :: cout << "\n\nSecond set of query results: ";
+	for (auto a : *outputTwo) 
+		std :: cout << (*a) << "; ";
+
+	std :: cout << "\n";
 }
 
 #endif

@@ -22,7 +22,11 @@
 #include "Query.h"
 #include "Handle.h"
 #include "DoneWithResult.h"
+#include "PDBCommunicator.h"
+#include "PDBString.h"
 #include "KeepGoing.h"
+#include <string>
+#include <memory>
 
 namespace pdb {
 
@@ -37,13 +41,13 @@ public:
 		return false;
 	}
 
-	Handle <OutType> operator * () const {
+	Handle <OutType> &operator * () const {
 		return ((*data)[pos]);
 	} 
 	
 	void operator ++ () {
-		if (pos == size) {
-			
+		if (pos == size - 1) {
+
 			// for allocations
 			const UseTemporaryAllocationBlock tempBlock {1024};
 
@@ -110,7 +114,7 @@ public:
 			
 		// make sure we don't leave a page sitting around
 		if (page != nullptr) 
-			delete (page);
+			free (page);
 
 		// nothing to do if we don't have a connection
 		if (connection == nullptr) 
@@ -132,7 +136,7 @@ public:
 private:
 
 	int size = 0;
-	int pos = 0;
+	int pos = -1;
 	Handle <Vector <Handle <OutType>>> data;
 	Record <Vector <Handle <OutType>>> *page;
 	PDBCommunicatorPtr connection;

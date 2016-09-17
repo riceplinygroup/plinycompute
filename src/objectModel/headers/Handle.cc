@@ -36,7 +36,7 @@ namespace pdb {
 
 template <class ObjType>
 Handle <ObjType> :: Handle () {
-	typeInfo.setup <ObjType> ();
+	typeInfo.setup <Nothing> ();
 	offset = -1;
 }
 
@@ -68,7 +68,7 @@ unsigned Handle <ObjType> :: getRefCount () {
 
 template <class ObjType>
 Handle <ObjType> :: Handle (const std :: nullptr_t rhs) {
-	typeInfo.setup <ObjType> ();
+	typeInfo.setup <Nothing> ();
 	offset = -1;
 }
 

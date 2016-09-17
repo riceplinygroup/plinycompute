@@ -71,5 +71,50 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	return finalResult;
 }
 
+template <class RequestType, class SecondRequestType, class ResponseType, class ReturnType>
+ReturnType simpleDoubleRequest (PDBLoggerPtr myLogger, int port, std :: string address, ReturnType onErr, size_t bytesForRequest,
+        function <ReturnType (Handle <ResponseType>)> processResponse, Handle <RequestType> &firstRequest,
+        Handle <SecondRequestType> &secondRequest) {
+
+	PDBCommunicator temp;
+	string errMsg;
+	bool success;
+
+	if (temp.connectToInternetServer (myLogger, port, address, errMsg)) {
+		myLogger->error (errMsg);
+		myLogger->error ("simpleRequest: not able to connect to server.\n");
+		return onErr;
+	}
+
+	// build the request
+	if (!temp.sendObject (firstRequest, errMsg)) {
+		myLogger->error (errMsg);
+		myLogger->error ("simpleDoubleRequest: not able to send first request to server.\n");
+		return onErr;
+	}
+
+	if (!temp.sendObject (secondRequest, errMsg)) {
+		myLogger->error (errMsg);
+		myLogger->error ("simpleDoubleRequest: not able to send second request to server.\n");
+		return onErr;
+	}
+
+	// get the response and process it
+	ReturnType finalResult;
+	void *memory = malloc (temp.getSizeOfNextObject ());
+	{
+		Handle <ResponseType> result = temp.getNextObject <ResponseType> (memory, success, errMsg);
+		if (!success) {
+			myLogger->error (errMsg);
+			myLogger->error ("simpleRequest: not able to get next object over the wire.\n");
+			return onErr;
+		}
+
+		finalResult = processResponse (result);
+	}
+	free (memory);
+	return finalResult;
+}
+
 }
 #endif

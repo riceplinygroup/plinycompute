@@ -75,10 +75,21 @@ public:
 		myData->addParam (temp);
 	}
 
-    bool operator==(const Lambda<Out>& rhs)
-    {
-        return myData == rhs.myData;
-    }
+	template <typename ClassType>
+	Lambda  (Handle <ClassType> &, Out (ClassType::*arg) ()) {
+		myData = nullptr;
+	}
+
+	template <typename ClassType>
+	static Lambda <Out> makeLambdaUsingMember (ClassType &, Out &) {
+		Lambda <Out> temp;
+		temp.myData = nullptr;
+		return temp;
+	}
+
+	bool operator==(const Lambda<Out>& rhs) {
+		return myData == rhs.myData;
+	}
 };
 
 // this helper function allows us to easily create Lambda objects
@@ -92,6 +103,18 @@ auto makeLambda(F&& func) {
     return Lambda <decltype(func())> (func);
 }
 
+template <typename ReturnType, typename ClassType>
+auto makeLambdaUsingMethod (std :: string, Handle <ClassType> var, ReturnType (ClassType:: *arg) ()) {
+	return Lambda <ReturnType> (var, arg);
 }
 
+template <typename ReturnType, typename ClassType>
+auto makeLambdaUsingMember (std :: string, ClassType &var, ReturnType &member) {
+	return Lambda <ReturnType> :: makeLambdaUsingMember (var, member);
+}
+
+#define makeLambdaFromMethod(VAR,METHOD) (makeLambdaUsingMethod (std :: string (#METHOD), VAR, &std::remove_reference<decltype(*VAR)>::type::METHOD))
+
+#define makeLambdaFromMember(VAR,MEMBER) (makeLambdaUsingMember (std :: string (#MEMBER), VAR, VAR->MEMBER))
+}
 #endif

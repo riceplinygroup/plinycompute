@@ -21,7 +21,7 @@
 
 #include "Object.h"
 #include "Handle.h"
-#include <utility>
+#include "PDBString.h"
 
 // PRELOAD %CatTypeNameSearchResult%
 

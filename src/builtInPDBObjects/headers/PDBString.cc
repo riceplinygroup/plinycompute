@@ -92,6 +92,14 @@ inline bool String :: operator == (const String &toMe) {
 	return strcmp (data->c_ptr (), toMe.data->c_ptr ()) == 0;
 }
 
+inline bool String :: operator == (const std :: string &toMe) {
+	return strcmp (data->c_ptr (), toMe.c_str ()) == 0;
+}
+
+inline bool String :: operator == (const char *toMe) {
+	return strcmp (data->c_ptr (), toMe) == 0;
+}
+
 inline bool String :: operator != (const String &toMe) {
 	return strcmp (data->c_ptr (), toMe.data->c_ptr ()) != 0;
 }

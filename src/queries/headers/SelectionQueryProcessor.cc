@@ -58,7 +58,6 @@ void SelectionQueryProcessor <Output, Input> :: loadOutputPage (void *pageToWrit
 	// create the new one
 	blockPtr = std :: make_shared <UseTemporaryAllocationBlock> (pageToWriteTo, numBytesInPage);
 
-
 	// and here's where we write the ouput to
 	outputVec = makeObject <Vector <Handle <Output>>> (10);
 }
@@ -70,10 +69,8 @@ bool SelectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
 	Vector <Handle <Output>> &myOutVec = *(outputVec);
 
 	// if we are finalized, see if there are some left over records
-	if (finalized && myOutVec.size () > 0) {
+	if (finalized) {
 		getRecord (outputVec);
-		return true;
-	} else if (finalized) {
 		return false;
 	}
 

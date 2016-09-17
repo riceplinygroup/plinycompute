@@ -51,29 +51,41 @@ public:
 		
 		if (typeName == "") {
 			myLogger->error ("query client: not able to verify type: " + errMsg);
-			return nullptr;
+			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
+			return returnVal;
 		}
 
 		if (typeName != getTypeName <Type> ()) {
 			std :: cout << "Wrong type for database set " << setName << "\n";
-			return nullptr;
+			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
+			return returnVal;
 		}
 
 		Handle <Set <Type>> returnVal = makeObject <Set <Type>> (databaseName, setName);
 		return returnVal;
 	}
 
-	template <class QueryBase, class ...Types>
-	bool execute (Handle <QueryBase> firstParam, Handle <Types>... args, std :: string &errMsg) {
+	template <class ...Types>
+	bool execute (std :: string &errMsg, Handle <QueryBase> firstParam, Handle <Types>... args) {
+		if (firstParam->wasError ()) {
+			std :: cout << "There was an error constructing this query.  Can't run it.\n";
+			exit (1);
+		}
+
 		runUs->push_back (firstParam);
-		return execute (args..., errMsg);	
+		return execute (errMsg, args...);	
 	}
 
 	bool execute (std :: string &errMsg) {
 
+		// this is the request
+		const UseTemporaryAllocationBlock myBlock {1024};
+		Handle <ExecuteQuery> executeQuery = makeObject <ExecuteQuery> ();
+
 		// this call asks the database to execute the query, and then it inserts the result set name
 		// within each of the results, as well as the database connection information
-		return simpleRequest <ExecuteQuery, Vector <String>, bool> (myLogger, port, address, false, 1024,
+		return simpleDoubleRequest <ExecuteQuery, Vector <Handle <QueryBase>>, Vector <String>, bool> (myLogger, port, 
+		address, false, 124 * 1024, 
                 [&] (Handle <Vector <String>> result) {
                         if (result != nullptr) {
 
@@ -87,6 +99,10 @@ public:
 				// now, annotate each of the results with information on the set where
 				// they are stored, as well as the info on how to connect to the server
 				for (int i = 0; i < result->size (); i++) {
+
+					if ((*runUs)[i]->getQueryType () != "localoutput")
+						std :: cout << "This is bad... there was an output that was not a local query output.\n";
+
 					(*runUs)[i]->setSetName ((*result)[i]);
 					Handle <LocalQueryOutput <Object>> temp = unsafeCast <LocalQueryOutput <Object>> ((*runUs)[i]);
 					temp->setServer (port, address, myLogger);
@@ -94,7 +110,7 @@ public:
                                 return true;
                         }
                         errMsg = "Error getting type name: got nothing back from catalog";
-                        return false;}, runUs);
+                        return false;}, executeQuery, runUs);
 	}
 
 private:

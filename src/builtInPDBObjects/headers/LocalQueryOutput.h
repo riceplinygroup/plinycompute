@@ -24,6 +24,8 @@
 #include "TypeName.h"
 #include "SetScan.h"
 
+// PRELOAD %LocalQueryOutput <Nothing>%
+
 namespace pdb {
 
 template <class OutType>
@@ -31,15 +33,23 @@ class LocalQueryOutput : public Query <OutType> {
 
 public:
 
+	LocalQueryOutput () {
+		myOutType = getTypeName <OutType> ();
+	}
+
+	~LocalQueryOutput () {}
+
+	ENABLE_DEEP_COPY
+
 	// this basically sets up a connection to the server, and returns it
 	OutputIterator <OutType> begin () {
 		
 		// establish a connection 
-        	string errMsg;
-		PDBCommunicatorPtr temp = make_shared <PDBCommunicator> ();
+        	std :: string errMsg;
+		PDBCommunicatorPtr temp = std :: make_shared <PDBCommunicator> ();
 		if (temp->connectToInternetServer (*myLogger, port, serverName, errMsg)) {	
 			(*myLogger)->error (errMsg);
-			(*myLogger)->error ("simpleRequest: not able to connect to server.\n");
+			(*myLogger)->error ("output iterator: not able to connect to server.\n");
 			return OutputIterator <OutType> ();
 		}
 
@@ -48,7 +58,7 @@ public:
 		Handle <SetScan> request = makeObject <SetScan> (this->getDBName (), this->getSetName ());
 		if (!temp->sendObject (request, errMsg)) {
 			(*myLogger)->error (errMsg);
-			(*myLogger)->error ("simpleRequest: not able to send request to server.\n");
+			(*myLogger)->error ("output iterator: not able to send request to server.\n");
 			return OutputIterator <OutType> ();
 		}
 
@@ -67,7 +77,7 @@ public:
 		if (i != 0) {
 			return "Bad index";
 		}
-		return getTypeName <OutType> ();
+		return myOutType;
 	}
 
 	virtual std :: string getQueryType () override {
@@ -86,6 +96,9 @@ private:
 	int port;
 	String serverName;
 	PDBLoggerPtr *myLogger;
+
+	// records the output type
+	String myOutType;
 };
 
 }

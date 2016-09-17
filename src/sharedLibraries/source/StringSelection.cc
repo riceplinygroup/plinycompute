@@ -16,48 +16,35 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_H
-#define SET_H
+#ifndef STRING_SELECT_CC
+#define STRING_SELECT_CC
 
-#include <vector>
-#include <functional>
-#include <iostream>
-#include <memory>
-#include "Query.h"
-#include "QueryAlgo.h"
+#include "Selection.h"
+#include "PDBVector.h"
+#include "GetVTable.h"
+#include "PDBString.h"
 
-namespace pdb {
+using namespace pdb;
 
-// this corresponds to a database set
-template <typename Out> 
-class Set : public Query <Out> {
+class StringSelection : public Selection <String, String> {
 
 public:
 
-	Set (std :: string dbName, std :: string setName) {
-		this->setDBName (dbName);
-		this->setSetName (setName);		
+	ENABLE_DEEP_COPY
+
+	Lambda <bool> getSelection (Handle <String> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
+		});
 	}
 
-	void execute(QueryAlgo& algo) override
-	{
-		algo.forSet();
-	};
-
-	// gets the number of inputs
-	virtual int getNumInputs () override {return 0;}
-
-        // gets the name of the i^th input type...
-        virtual std :: string getIthInputType (int i) override {
-		 return "I have no inputs!!";
+	Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return checkMe;
+		});
 	}
-
-        virtual std :: string getQueryType () override {
-                return "set";
-        }
-
 };
 
-}
+GET_V_TABLE (StringSelection)
 
 #endif

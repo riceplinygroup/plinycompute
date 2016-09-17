@@ -115,8 +115,6 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 			// while there are still pages
 			while (allRecs.size () > 0) {
 
-				std :: cout << "Processing a record!!\n";
-
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				numObjectsInRecord = allObjects.size ();
 
@@ -143,8 +141,6 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 		// put the extra objects tht we could not store back in the record
 		} catch (NotEnoughSpace &n) {
 						
-			std :: cout << "Writing back a page!!\n";
-
 			// write back the current page...
 			getRecord (data);
 			myPage->wroteBytes ();
@@ -154,7 +150,6 @@ void StorageServer :: writeBackRecords (pair <std :: string, std :: string> data
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
 				continue;
 

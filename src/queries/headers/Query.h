@@ -33,15 +33,21 @@ class Query : public QueryBase {
 
 public:
 
+	Query () {
+		myOutType = getTypeName <OutType> ();
+	}
+
 	// gets the name of this output type
 	std :: string getOutputType () override {
-		return getTypeName <OutType> ();
+		return myOutType;
 	}
 
 	// from QueryBase
 	// virtual int getNumInputs () = 0;
 	// virtual std :: string getIthInputType (int i) = 0;
 	// virtual std :: string getQueryType () = 0;
+
+	String myOutType;
 
 };
 

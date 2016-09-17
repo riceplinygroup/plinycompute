@@ -52,12 +52,21 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 
 	// and let the v-table map know this information
 	theVTable->setCatalogClient (this);
+
+	// set up the mutex
+	pthread_mutex_init(&workingMutex, nullptr);
+}
+
+CatalogClient :: ~CatalogClient () {
+	pthread_mutex_destroy (&workingMutex);
 }
 
 void CatalogClient :: registerHandlers (PDBServer &forMe) { /* no handlers for a catalog client!! */}
 
 bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :: string &errMsg) {
 	
+	const LockGuard guard{workingMutex};
+
 	// first, load up the shared library file
 	// get the file size
 	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
@@ -122,6 +131,8 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 	
+	const LockGuard guard{workingMutex};
+
 	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <Vector <char>> result) {
 		
@@ -158,6 +169,24 @@ std :: string CatalogClient :: getObjectType (std :: string databaseName, std ::
 			errMsg = "Error getting type name: got nothing back from catalog";
 			return std :: string ("");},
 		databaseName, setName);
+}
+
+bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+
+        return simpleRequest <CatCreateSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error creating set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName, typeID);
+
 }
 
 bool CatalogClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {

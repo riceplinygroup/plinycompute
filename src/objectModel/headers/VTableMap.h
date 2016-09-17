@@ -75,6 +75,9 @@ namespace pdb {
 	// use the catalog to look up the type ID for an object
 	static int16_t lookupTypeNameInCatalog (std :: string objectTypeName);
 
+	// use to lookup a built-in type... return a -1 if not found
+	static int16_t lookupBuiltInType (std :: string objectTypeName);
+
 	// returns the number of built-in objects
 	static int totalBuiltInObjects ();
 

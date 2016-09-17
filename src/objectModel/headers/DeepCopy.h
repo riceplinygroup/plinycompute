@@ -50,7 +50,7 @@ void deleter (void *deleteMe, ObjType *dummy) {
 }
 
 #define ENABLE_DEEP_COPY                                   		      	\
-void setUpAndCopyFrom (void *target, void *source) const override {   		 	\
+void setUpAndCopyFrom (void *target, void *source) const override { 	 	\
         setUpAndCopyFromTemplate (target, source, this);         		\
 }                                                                		\
                                                                  		\

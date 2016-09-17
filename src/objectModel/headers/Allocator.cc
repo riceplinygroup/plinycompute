@@ -446,7 +446,7 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 
 extern void *stackBase;
 extern void *stackEnd;
-extern Allocator mainAllocator;
+extern Allocator *mainAllocatorPtr;
 
 inline Allocator &getAllocator () {
 
@@ -457,7 +457,7 @@ inline Allocator &getAllocator () {
         // we know we are not in one of the worker threads if (a) there are no worker threads (stackBase is null)
         // or the address of i is not within the valid range of the stack
         if (stackBase == nullptr || !(((char *) &i) >= (char *) stackBase && ((char *) &i) < (char *) stackEnd))
-                return mainAllocator;
+                return *mainAllocatorPtr;
 
         // chop off the last 22 bits of i to get the address of this thread's allocator... we chop off 22 bits
         // because the size of the allocated region is 2^22 bytes
