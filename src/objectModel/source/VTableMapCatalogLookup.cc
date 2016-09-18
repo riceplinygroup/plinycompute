@@ -30,7 +30,6 @@
 // in BuiltInPDBObjects/headers
 
 #include <dlfcn.h>
-#include "LockGuard.h"
 #include <unistd.h>
 #include <unistd.h>
 #include "PDBLogger.h"
@@ -39,6 +38,7 @@
 
 namespace pdb {
 
+// note: this should only be called while protected by a lock on the vTableMap
 void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 
 	// in ths case, we do not have the vTable pointer for this guy, so we will try to load it
@@ -48,15 +48,13 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		return nullptr;
 	}
 
-	// make sure no one is modifying the map
-	const LockGuard guard {theVTable->myLock};
-	
-	std :: string sharedLibraryFile = "/var/tmp/objectFile";
-	sharedLibraryFile += to_string (objectTypeID) + ".so";
+	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
+	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
 	unlink (sharedLibraryFile.c_str ());
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
 	// open up the shared library
+	std :: cout << "Opening up " << sharedLibraryFile.c_str () << "\n";
 	void *so_handle = dlopen(sharedLibraryFile.c_str(), RTLD_LOCAL | RTLD_LAZY );
 	theVTable->so_handles.push_back (so_handle);
 

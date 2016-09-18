@@ -314,6 +314,8 @@ inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwE
 	// make sure that we are gonna be able to write the header
 	if (numBytesIn < HEADER_SIZE) {
 		std :: cerr << "You need to have an allocation block that is at least " << HEADER_SIZE << " bytes.\n";
+		int *foo = 0;
+		*foo = 24;
 		exit (1);
 	}
 

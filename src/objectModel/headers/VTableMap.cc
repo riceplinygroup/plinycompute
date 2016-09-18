@@ -132,12 +132,24 @@ inline VTableMap :: ~VTableMap () {
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 
-        // there are two cases; first, we already have the vTable pointer for this guy
+	// OK, first, we check to see if we have the v table pointer for this guy...
+	// this is done without a lock, so we can be very fast...
 	void *returnVal = theVTable->allVTables[objectTypeID];
 	if (returnVal != nullptr)
 		return returnVal;
 
-	return getVTablePtrUsingCatalog (objectTypeID);
+	// we do not, so get the lock...
+	const LockGuard guard {theVTable->myLock};
+
+	// before we go out to the network for the v table pointer, just verify
+	// that another thread has not since gotten it for us
+	returnVal = theVTable->allVTables[objectTypeID];
+	if (returnVal != nullptr)
+		return returnVal;
+	else
+
+		// if they have not gotten it for us, then go and get it
+		return getVTablePtrUsingCatalog (objectTypeID);
 }
 
 } /* namespace pdb */
