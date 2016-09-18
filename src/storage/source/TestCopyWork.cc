@@ -28,7 +28,8 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "PDBVector.h"
 #include <string>
-#include "Employee.h"
+#include "SharedEmployeeCopy.h"
+
 using namespace std;
 
 TestCopyWork::TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server, int & counter): counter(counter) {
@@ -69,9 +70,9 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
     //load output page
     pdb :: UseTemporaryAllocationBlockPtr blockPtr;
     blockPtr = std :: make_shared <pdb :: UseTemporaryAllocationBlock>(destPageHandle->getWritableBytes(), destPageHandle->getWritableSize());
-    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Employee>>> outputVec =
-                pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> (300000);
-    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: Employee>>> inputVec; 
+    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> outputVec =
+                pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> (300000);
+    pdb :: Handle< pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> inputVec; 
     while (this->iter->hasNext()) {
         page = this->iter->next(); 
         //page still can be nullptr, so we MUST check nullptr here.
@@ -79,13 +80,13 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
 
             //load input page
             std :: cout << "processing page with pageId=" << page->getPageID() << std :: endl;
-            pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Employee>>> * temp = (pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: Employee>>> *) page->getBytes();
+            pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> * temp = (pdb :: Record < pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> *) page->getBytes();
             inputVec = temp->getRootObject();
             std :: cout << "there are "<< inputVec->size() << " objects on the page."<< std :: endl;
  
 
             for (int i = 0; i < inputVec->size(); i++) {
-                pdb :: Handle<pdb :: Employee> object = (*inputVec)[i];
+                pdb :: Handle<pdb :: SharedEmployeeCopy> object = (*inputVec)[i];
                 if (i%10000 == 0) {
                     std :: cout << i << ":";
                     object->print();
@@ -109,7 +110,7 @@ void TestCopyWork::execute(PDBBuzzerPtr callerBuzzer) {
            
                     blockPtr = nullptr;
                     blockPtr = std :: make_shared <pdb :: UseTemporaryAllocationBlock>(destPageHandle->getWritableBytes(), destPageHandle->getWritableSize());
-                    outputVec = pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: Employee>>> (300000);
+                    outputVec = pdb :: makeObject<pdb :: Vector<pdb :: Handle<pdb :: SharedEmployeeCopy>>> (300000);
                     outputVec->push_back(object);
 
                 }
