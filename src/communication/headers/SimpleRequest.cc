@@ -57,7 +57,6 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	// get the response and process it
 	ReturnType finalResult;
 	void *memory = malloc (temp.getSizeOfNextObject ());
-	std :: cout << temp.getSizeOfNextObject () << "Was the size of the next object.\n";
 	{
 		Handle <ResponseType> result = temp.getNextObject <ResponseType> (memory, success, errMsg);
 		if (!success) {

@@ -54,7 +54,6 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
 	// open up the shared library
-	std :: cout << "Opening up " << sharedLibraryFile.c_str () << "\n";
 	void *so_handle = dlopen(sharedLibraryFile.c_str(), RTLD_LOCAL | RTLD_LAZY );
 	theVTable->so_handles.push_back (so_handle);
 
