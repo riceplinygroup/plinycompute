@@ -22,7 +22,7 @@
 #include "StorageClient.h"
 #include "PDBVector.h"
 #include "InterfaceFunctions.h"
-#include "../../sharedLibraries/source/SharedLibEmployee.cc"
+#include "SharedEmployee.h"
 
 // this won't be visible to the v-table map, since it is not in the built in types directory
 

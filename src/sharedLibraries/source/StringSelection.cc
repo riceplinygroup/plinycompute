@@ -16,34 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef STRING_SELECT_CC
-#define STRING_SELECT_CC
+#ifndef STRING_SELECTION_CC
+#define STRING_SELECTION_CC
 
-#include "Selection.h"
-#include "PDBVector.h"
 #include "GetVTable.h"
-#include "PDBString.h"
+#include "StringSelection.h"
 
-using namespace pdb;
-
-class StringSelection : public Selection <String, String> {
-
-public:
-
-	ENABLE_DEEP_COPY
-
-	Lambda <bool> getSelection (Handle <String> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
-			return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
-		});
-	}
-
-	Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
-			return checkMe;
-		});
-	}
-};
 
 GET_V_TABLE (StringSelection)
 

@@ -25,7 +25,7 @@
 #include "InterfaceFunctions.h"
 
 // this won't be visible to the v-table map, since it is not in the biult in types directory
-#include "../../sharedLibraries/source/SharedLibEmployee.cc"
+#include "SharedEmployee.h"
 
 int main () {
 

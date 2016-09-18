@@ -16,12 +16,38 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CHRIS_SELECT_CC
-#define CHRIS_SELECT_CC
+#ifndef CHRIS_SELECT_H
+#define CHRIS_SELECT_H
 
-#include "ChrisSelection.h"
-#include "GetVTable.h"
+#include "Selection.h"
+#include "Employee.h"
+#include "Supervisor.h"
+#include "PDBVector.h"
+#include "PDBString.h"
+#include "SharedEmployee.h"
 
-GET_V_TABLE (ChrisSelection)
+using namespace pdb;
+
+class ChrisSelection : public Selection <String, SharedEmployee> {
+
+public:
+
+	ENABLE_DEEP_COPY
+
+	ChrisSelection () {}
+
+	Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return (*(checkMe->getName ()) != "Joe Johnson48");
+		});
+	}
+
+	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
+		return makeLambda (checkMe, [&] {
+			return checkMe->getName ();
+		});
+	}
+};
+
 
 #endif

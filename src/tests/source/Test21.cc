@@ -36,7 +36,7 @@
 #include "PDBVector.h"
 #include "Record.h"
 #include "Handle.h"
-#include "../../sharedLibraries/source/SharedLibEmployee.cc"
+#include "SharedEmployee.h"
 
 using namespace pdb;
 

@@ -19,49 +19,9 @@
 #ifndef SHARED_EMPLOYEE_C
 #define SHARED_EMPLOYEE_C
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
 #include "GetVTable.h"
+#include "SharedEmployee.h"
 
-class PrintableObject : public pdb :: Object {
-
-public:
-
-	virtual void print () = 0;
-};
-
-class SharedEmployee : public PrintableObject {
-
-        int age;
-
-public:
-
-        pdb :: Handle <pdb :: String> name;
-
-	ENABLE_DEEP_COPY
-
-        ~SharedEmployee () {}
-        SharedEmployee () {}
-
-        void print () override {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	pdb :: Handle <pdb :: String> &getName () {
-		return name;
-	}
-
-	bool isFrank () {
-		return (*name == "Frank");
-	}
-
-        SharedEmployee (std :: string nameIn, int ageIn) {
-                name = pdb :: makeObject <pdb :: String> (nameIn);
-                age = ageIn;
-        }
-};
 
 #ifndef CHRIS_SELECT_CC
 GET_V_TABLE (SharedEmployee)

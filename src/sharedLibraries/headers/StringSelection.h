@@ -16,56 +16,34 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SHARED_EMPLOYEE_COPY_C
-#define SHARED_EMPLOYEE_COPY_C
+#ifndef STRING_SELECT_CC
+#define STRING_SELECT_CC
 
-#include "Object.h"
+#include "Selection.h"
 #include "PDBVector.h"
+#include "GetVTable.h"
 #include "PDBString.h"
-#include "Handle.h"
 
-// PRELOAD %SharedEmployeeCopy%
+using namespace pdb;
 
-namespace pdb {
-
-class PrintableObject : public pdb :: Object {
+class StringSelection : public Selection <String, String> {
 
 public:
-
-	virtual void print () = 0;
-};
-
-class SharedEmployeeCopy : public PrintableObject {
-
-        int age;
-
-public:
-
-        pdb :: Handle <pdb :: String> name;
 
 	ENABLE_DEEP_COPY
 
-        ~SharedEmployeeCopy () {}
-        SharedEmployeeCopy () {}
-
-        void print () override {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	pdb :: Handle <pdb :: String> &getName () {
-		return name;
+	Lambda <bool> getSelection (Handle <String> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
+		});
 	}
 
-	bool isFrank () {
-		return (*name == "Frank");
+	Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
+		return makeLambda (checkMe, [&] () {
+			return checkMe;
+		});
 	}
-
-        SharedEmployeeCopy (std :: string nameIn, int ageIn) {
-                name = pdb :: makeObject <pdb :: String> (nameIn);
-                age = ageIn;
-        }
 };
 
-}
 
 #endif

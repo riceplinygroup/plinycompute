@@ -27,7 +27,7 @@
 #include "QueryClient.h"
 #include "StorageClient.h"
 
-#include "../../sharedLibraries/source/SharedLibEmployee.cc"
+#include "SharedEmployee.h"
 
 using namespace pdb;
 
@@ -102,7 +102,11 @@ int main () {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
 		return 0;
 	}
-	
+
+        // Jia: below code will cause segfault in commit 2258, 2260, and 2263
+        // I suspect it is still an issue caused by merge of r2257 and r2256
+        // Temporarily fix the segfault by commenting below code. We need a full fix here.
+        /*	
 	// print the resuts
 	std :: cout << "First set of query results: ";
 	for (auto a : *outputOne) 
@@ -111,7 +115,7 @@ int main () {
 	std :: cout << "\n\nSecond set of query results: ";
 	for (auto a : *outputTwo) 
 		std :: cout << (*a) << "; ";
-
+        */
 	std :: cout << "\n";
 }
 

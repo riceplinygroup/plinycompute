@@ -16,12 +16,51 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CHRIS_SELECT_CC
-#define CHRIS_SELECT_CC
+#ifndef SHARED_EMPLOYEE_H
+#define SHARED_EMPLOYEE_H
 
-#include "ChrisSelection.h"
-#include "GetVTable.h"
+#include "Object.h"
+#include "PDBVector.h"
+#include "PDBString.h"
+#include "Handle.h"
 
-GET_V_TABLE (ChrisSelection)
+class PrintableObject : public pdb :: Object {
+
+public:
+
+	virtual void print () = 0;
+};
+
+class SharedEmployee : public PrintableObject {
+
+        int age;
+
+public:
+
+        pdb :: Handle <pdb :: String> name;
+
+	ENABLE_DEEP_COPY
+
+        ~SharedEmployee () {}
+        SharedEmployee () {}
+
+        void print () override {
+                std :: cout << "name is: " << *name << " age is: " << age;
+        }
+
+	pdb :: Handle <pdb :: String> &getName () {
+		return name;
+	}
+
+	bool isFrank () {
+		return (*name == "Frank");
+	}
+
+        SharedEmployee (std :: string nameIn, int ageIn) {
+                name = pdb :: makeObject <pdb :: String> (nameIn);
+                age = ageIn;
+        }
+};
+
 
 #endif

@@ -213,7 +213,7 @@ all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],
        boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
        boost_component_dir_basename_to_cc_file_paths['system']]
 
-common_env.SharedLibrary('libraries/libSharedEmployee.so', ['src/sharedLibraries/source/SharedLibEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libSharedEmployee.so', ['src/sharedLibraries/source/SharedEmployee.cc'] + all)
 common_env.SharedLibrary('libraries/libChrisSelection.so', ['src/sharedLibraries/source/ChrisSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['src/sharedLibraries/source/StringSelection.cc'] + all)
 common_env.Program('bin/test14', ['src/tests/source/Test14.cc'] + all)
