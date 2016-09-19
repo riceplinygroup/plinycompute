@@ -27,47 +27,11 @@
 #include "QueryClient.h"
 #include "QueryOutput.h"
 #include "StorageClient.h"
-
+#include "ChrisSelection.h"
+#include "StringSelection.h"
 #include "SharedEmployee.h"
 
 using namespace pdb;
-
-class ChrisSelection : public Selection <String, SharedEmployee> {
-
-	ENABLE_DEEP_COPY
-
-        Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
-                        return (*(checkMe->getName ()) != "Joe Johnson48");
-                });
-        }
-
-        Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
-                return makeLambda (checkMe, [&] {
-                        return checkMe->getName ();
-                });
-        }
-};
-
-class StringSelection : public Selection <String, String> {
-
-public:
-
-        ENABLE_DEEP_COPY
-
-        Lambda <bool> getSelection (Handle <String> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
-                        return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
-                });
-        }
-
-        Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
-                        return checkMe;
-                });
-        }
-};
-
 
 int main () {
 
@@ -98,21 +62,15 @@ int main () {
 		return 0;
 	}
 
-        // Jia: below code will cause segfault in commit 2258, 2260, and 2263
-        // I suspect it is still an issue caused by merge of r2257 and r2256
-        // Temporarily fix the segfault by commenting below code. We need a full fix here.
-        /*	
 	// print the resuts
 	SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	std :: cout << "First set of query results: ";
 	for (auto a : result) 
 		std :: cout << (*a) << "; ";
-
 	std :: cout << "\n\nSecond set of query results: ";
 	result = myClient.getSetIterator <String> ("chris_db", "output_set2");
 	for (auto a : result) 
 		std :: cout << (*a) << "; ";
-        */
 	std :: cout << "\n";
 	
 	// and delete the sets
