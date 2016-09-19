@@ -140,7 +140,7 @@ class PageCache {
 
 public:
     //create an MRU page cache
-    PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, PageCircularBufferPtr flushBuffer, pdb :: PDBLoggerPtr logger, SharedMemPtr shm, CacheStrategy strategy = UnifiedIntelligent);
+    PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, PageCircularBufferPtr flushBuffer, pdb :: PDBLoggerPtr logger, SharedMemPtr shm, CacheStrategy strategy = UnifiedMRU);
     ~PageCache();
 
     //Get a page from cache, if the page is flushed to file, and is not in cache,
