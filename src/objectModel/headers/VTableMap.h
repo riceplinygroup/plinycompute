@@ -78,6 +78,9 @@ namespace pdb {
 	// use to lookup a built-in type... return a -1 if not found
 	static int16_t lookupBuiltInType (std :: string objectTypeName);
 
+	// use to lookup a built-in type... return a "" if not found
+	static std :: string lookupBuiltInType (int16_t);
+
 	// returns the number of built-in objects
 	static int totalBuiltInObjects ();
 

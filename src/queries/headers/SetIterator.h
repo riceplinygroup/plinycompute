@@ -16,49 +16,60 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LOC_QUERY_OUTPUT_H
-#define LOC_QUERY_OUTPUT_H
+#ifndef SET_ITER_H
+#define SET_ITER_H
 
-#include "Query.h"
 #include "OutputIterator.h"
-#include "TypeName.h"
 #include "SetScan.h"
-
-// PRELOAD %LocalQueryOutput <Nothing>%
 
 namespace pdb {
 
 template <class OutType>
-class LocalQueryOutput : public Query <OutType> {
+class SetIterator {
 
 public:
 
-	LocalQueryOutput () {
-		myOutType = getTypeName <OutType> ();
+	// constructor; this should only be used by the query client
+	SetIterator (PDBLoggerPtr loggerIn, int portIn, std :: string &serverNameIn, std :: string &dbNameIn,
+		std :: string &setNameIn) {
+		myLogger = loggerIn;
+		port = portIn;
+		serverName = serverNameIn;
+		dbName = dbNameIn;
+		setName = setNameIn;
+		wasError = false;
 	}
 
-	~LocalQueryOutput () {}
+	SetIterator () {
+		wasError = true;	
+	}
 
-	ENABLE_DEEP_COPY
+	~SetIterator () {}
 
 	// this basically sets up a connection to the server, and returns it
 	OutputIterator <OutType> begin () {
 		
+		// if there was an error, just get outta here
+		if (wasError) {
+			std :: cout << "You are trying to create an iterator when there was an error.\n";
+			return OutputIterator <OutType> ();
+		}
+
 		// establish a connection 
         	std :: string errMsg;
 		PDBCommunicatorPtr temp = std :: make_shared <PDBCommunicator> ();
-		if (temp->connectToInternetServer (*myLogger, port, serverName, errMsg)) {	
-			(*myLogger)->error (errMsg);
-			(*myLogger)->error ("output iterator: not able to connect to server.\n");
+		if (temp->connectToInternetServer (myLogger, port, serverName, errMsg)) {	
+			myLogger->error (errMsg);
+			myLogger->error ("output iterator: not able to connect to server.\n");
 			return OutputIterator <OutType> ();
 		}
 
 		// build the request
 		const UseTemporaryAllocationBlock tempBlock{1024};
-		Handle <SetScan> request = makeObject <SetScan> (this->getDBName (), this->getSetName ());
+		Handle <SetScan> request = makeObject <SetScan> (dbName, setName);
 		if (!temp->sendObject (request, errMsg)) {
-			(*myLogger)->error (errMsg);
-			(*myLogger)->error ("output iterator: not able to send request to server.\n");
+			myLogger->error (errMsg);
+			myLogger->error ("output iterator: not able to send request to server.\n");
 			return OutputIterator <OutType> ();
 		}
 
@@ -69,38 +80,22 @@ public:
 		return OutputIterator <OutType> ();
 	}	
 
-	virtual int getNumInputs () override {
-		return 1;
-	}
-
-	virtual std :: string getIthInputType (int i) override {
-		if (i != 0) {
-			return "Bad index";
-		}
-		return myOutType;
-	}
-
-	virtual std :: string getQueryType () override {
-		return "localoutput";
-	}
-
-	void setServer (int portIn, std :: string serverIn, PDBLoggerPtr &myLoggerIn) {
-		port = portIn;
-		serverName = serverIn;	
-		myLogger = &myLoggerIn;
-	}
-
-	void execute (QueryAlgo&) override {}
-
 private:
 
 	// these are used so that the output knows how to connect to the server for iteration
 	int port;
-	String serverName;
-	PDBLoggerPtr *myLogger;
+	std :: string serverName;
+	PDBLoggerPtr myLogger;
 
-	// records the output type
-	String myOutType;
+	// records the place where the input comes from
+	std :: string dbName;
+	std :: string setName;
+
+	// true if there is an error
+	bool wasError;
+
+	// allows creation of these objects
+	friend class QueryClient;
 };
 
 }

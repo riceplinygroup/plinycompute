@@ -26,6 +26,7 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "Record.h"
+#include <unistd.h>
 #include "InterfaceFunctions.h"
 
 namespace pdb {
@@ -81,6 +82,17 @@ MyDB_PageHandle StorageServer :: getNewPage (pair <std :: string, std :: string>
 MyDB_PageHandle StorageServer :: getPage (pair <std :: string, std :: string> databaseAndSet, size_t pageNum) {
 	MyDB_TablePtr whichTable = getTable (databaseAndSet);
 	return getBufferManager ()->getPinnedPage (whichTable, pageNum);
+}
+
+bool StorageServer :: deleteSet (pair <std :: string, std :: string> databaseAndSet) {
+
+	if (allTables.count (databaseAndSet) != 0) {
+		allTables.erase (databaseAndSet);
+		unlink ((storageDir + "/" + databaseAndSet.first + "." + databaseAndSet.second).c_str ());		
+		return true;
+	}
+
+	return false;
 }
 
 void StorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet) {

@@ -41,6 +41,7 @@
 #include "CatCreateDatabaseRequest.h"
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
+#include "StorageServer.h"
 
 namespace pdb {
 
@@ -216,10 +217,16 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) {
 
+	// first search for the type name in the vTable map (in case it is built in)
+	std :: string result = VTableMap :: lookupBuiltInType (typeIdentifier);
+	if (result != "")
+		return result;
+
 	// return a -1 if we've never seen this type name
 	if (allTypeCodes.count (typeIdentifier) == 0)
 		return "";
 
+	// return a non built-in type
 	return allTypeCodes[typeIdentifier];
 }
 
@@ -335,7 +342,47 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 		return allTypeNames [typeName];
 }
 
-bool CatalogServer :: addSet (int16_t typeIdentifier, string databaseName, std :: string setName, std :: string &errMsg) {
+bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+
+	if (allDatabases.count (databaseName) == 0) {
+		errMsg = "Database does not exist.\n";
+		return false;	
+	}
+	
+	// delete the set from the map of sets
+	bool foundIt = false;
+	vector <string> &setList = allDatabases[databaseName];
+	for (int i = 0; i < setList.size (); i++) {
+		if (setList[i] == setName) {
+			setList.erase (setList.begin () + i);
+			foundIt = true;
+			break;
+		}
+	}
+
+	if (!foundIt) {
+		errMsg = "Database does not exist in set.\n";
+		return false;	
+	}
+
+	// write back the changed list
+	myCatalog->putStringList (databaseName + ".sets", setList);
+	
+	// delete the type code info
+	myCatalog->deleteKey (databaseName + "." + setName + ".code");
+	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
+	myCatalog->save ();
+
+	// delete the file from the catalog
+	if (!getFunctionality <StorageServer> ().deleteSet (std :: make_pair (databaseName, setName))) {
+		errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
+		return false;	
+	}
+
+	return true;
+}
+
+bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
 	// make sure we are only adding to an existing database
 	if (allDatabases.count (databaseName) == 0) {

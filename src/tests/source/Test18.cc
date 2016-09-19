@@ -25,6 +25,7 @@
 #include "Lambda.h"
 #include "Selection.h"
 #include "QueryClient.h"
+#include "QueryOutput.h"
 #include "StorageClient.h"
 
 #include "SharedEmployee.h"
@@ -83,20 +84,14 @@ int main () {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", myLogger);
 
-	// build a scan of the "chris_db", "chris_set" set
+	// make the query graph
+	Handle <Set <SharedEmployee>> myInputSet = myClient.getSet <SharedEmployee> ("chris_db", "chris_set");
 	Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
-	myFirstSelect->setInput (myClient.getSet <SharedEmployee> ("chris_db", "chris_set"));
-
-	// now, scan again 
+	myFirstSelect->setInput (myInputSet);
 	Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
 	mySecondSelect->setInput (myFirstSelect);
-
-	// the results will go into two iterators on the client machine
-	Handle <LocalQueryOutput <String>> outputOne = makeObject <LocalQueryOutput <String>> ();
-	outputOne->setInput (myFirstSelect);
-
-	Handle <LocalQueryOutput <String>> outputTwo = makeObject <LocalQueryOutput <String>> ();
-	outputTwo->setInput (mySecondSelect);
+	Handle <QueryOutput <String>> outputOne = makeObject <QueryOutput <String>> ("chris_db", "output_set1", myFirstSelect);
+	Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
 	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
@@ -108,15 +103,21 @@ int main () {
         // Temporarily fix the segfault by commenting below code. We need a full fix here.
         /*	
 	// print the resuts
+	SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	std :: cout << "First set of query results: ";
-	for (auto a : *outputOne) 
+	for (auto a : result) 
 		std :: cout << (*a) << "; ";
 
 	std :: cout << "\n\nSecond set of query results: ";
-	for (auto a : *outputTwo) 
+	result = myClient.getSetIterator <String> ("chris_db", "output_set2");
+	for (auto a : result) 
 		std :: cout << (*a) << "; ";
         */
 	std :: cout << "\n";
+	
+	// and delete the sets
+	myClient.deleteSet ("chris_db", "output_set1");
+	myClient.deleteSet ("chris_db", "output_set2");
 }
 
 #endif

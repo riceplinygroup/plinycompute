@@ -20,12 +20,13 @@
 #define QUERY_CLIENT
 
 #include "Set.h"
+#include "SetIterator.h"
 #include "Handle.h"
 #include "PDBLogger.h"
 #include "PDBVector.h"
 #include "CatalogClient.h"
+#include "DeleteSet.h"
 #include "ExecuteQuery.h"
-#include "LocalQueryOutput.h"
 
 namespace pdb {
 
@@ -50,6 +51,7 @@ public:
 		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
 		
 		if (typeName == "") {
+			std :: cout << "I was not able to obtain the type for database set " << setName << "\n";
 			myLogger->error ("query client: not able to verify type: " + errMsg);
 			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
 			return returnVal;
@@ -65,11 +67,61 @@ public:
 		return returnVal;
 	}
 
+	// get an iterator for a set in the database
+	template <class Type>
+	SetIterator <Type> getSetIterator (std :: string databaseName, std :: string setName) {
+
+		// verify that the database and set work 
+		std :: string errMsg;
+		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
+		
+		if (typeName == "") {
+			myLogger->error ("query client: not able to verify type: " + errMsg);
+			SetIterator <Type> returnVal;
+			return returnVal;
+		}
+
+		if (typeName != getTypeName <Type> ()) {
+			std :: cout << "Wrong type for database set " << setName << "\n";
+			SetIterator <Type> returnVal;
+			return returnVal;
+		}
+
+		SetIterator <Type> returnVal (myLogger, port, address, databaseName, setName);
+		return returnVal;
+	}
+
+	bool deleteSet (std :: string databaseName, std :: string setName) {
+		
+		return simpleRequest <DeleteSet, SimpleRequestResult, bool, String, String> (myLogger, port, 
+		address, false, 124 * 1024, 
+                [&] (Handle <SimpleRequestResult> result) {
+			std :: string errMsg;
+                        if (result != nullptr) {
+
+				// make sure we got the correct number of results
+				if (!result->getRes ().first) {
+                                        errMsg = "Could not remove set: " + result->getRes ().second;
+                                        myLogger->error ("QueryErr: " + errMsg);
+                                        return false;
+                                }
+
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;}, databaseName, setName);
+	}
+
 	template <class ...Types>
 	bool execute (std :: string &errMsg, Handle <QueryBase> firstParam, Handle <Types>... args) {
 		if (firstParam->wasError ()) {
 			std :: cout << "There was an error constructing this query.  Can't run it.\n";
 			exit (1);
+		}
+
+		if (firstParam->getQueryType () != "localoutput") {
+			std :: cout << "Currently, we can only execute queries that write output sets to the server...\n";
+			std :: cout << "You seem to have done something else.  Who knows what will happen???\n";
 		}
 
 		runUs->push_back (firstParam);
@@ -96,20 +148,17 @@ public:
                                         return false;
                                 }
 
-				// now, annotate each of the results with information on the set where
-				// they are stored, as well as the info on how to connect to the server
+				// make sure the results are all sets
 				for (int i = 0; i < result->size (); i++) {
 
 					if ((*runUs)[i]->getQueryType () != "localoutput")
-						std :: cout << "This is bad... there was an output that was not a local query output.\n";
+						std :: cout << "This is bad... there was an output that was not writing to a set.\n";
 
-					(*runUs)[i]->setSetName ((*result)[i]);
-					Handle <LocalQueryOutput <Object>> temp = unsafeCast <LocalQueryOutput <Object>> ((*runUs)[i]);
-					temp->setServer (port, address, myLogger);
+					myLogger->info (std :: string ("Query execute: wrote set ") + std :: string ((*result)[i]));
 				}
                                 return true;
                         }
-                        errMsg = "Error getting type name: got nothing back from catalog";
+                        errMsg = "Error getting query execution results";
                         return false;}, executeQuery, runUs);
 	}
 
@@ -127,6 +176,7 @@ private:
 
 	// for logging
 	PDBLoggerPtr myLogger;
+
 };
 
 }

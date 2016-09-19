@@ -64,6 +64,9 @@ public:
 	// the data storage and access is performed
 	MyDB_BufferManagerPtr getBufferManager ();
 	
+	// deletes a set from disk
+	bool deleteSet (pair <std :: string, std :: string> databaseAndSet);
+
 	// destructor
 	~StorageServer ();
 

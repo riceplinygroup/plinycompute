@@ -59,6 +59,9 @@ public:
 	// this creates a new database... returns true on success
 	bool addDatabase (string databaseName, string &errMsg);
 
+	// deletes a set from the database
+	bool deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
 	// this creates a new set in a given database... returns true on success
 	bool addSet (int16_t typeIdentifier, string databaseName, string setName, string &errMsg);
 	

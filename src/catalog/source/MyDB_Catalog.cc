@@ -37,6 +37,10 @@ void MyDB_Catalog :: putStringList (string key, vector <string> value) {
 	myData [key] = res;
 }
 
+void MyDB_Catalog :: deleteKey (string key) {
+	myData.erase (key);
+}
+
 void MyDB_Catalog :: putInt (string key, int value) {
 	ostringstream convert;
 	convert << value;
@@ -62,7 +66,6 @@ void MyDB_Catalog :: putIntList (string key, vector <int> value) {
 }
 
 bool MyDB_Catalog :: getStringList (string key, vector <string> &returnVal) {
-
 	// verify the entry is in the map
 	if (myData.count (key) == 0)
 		return false;
@@ -105,6 +108,8 @@ bool MyDB_Catalog :: getInt (string key, int &value) {
 
 MyDB_Catalog :: MyDB_Catalog (string fNameIn) {
 
+	pthread_mutex_init (&workingMutex, nullptr);
+
 	// remember the catalog name
 	fName = fNameIn;
 
@@ -140,10 +145,12 @@ MyDB_Catalog :: ~MyDB_Catalog () {
 
 	// just save the contents
 	save ();
+	pthread_mutex_destroy (&workingMutex);
 }
 
 void MyDB_Catalog :: save () {
 
+	const LockGuard guard{workingMutex};
 	ofstream myFile (fName, ofstream::out | ofstream::trunc);
 	if (myFile.is_open()) {
 		for (auto const &ent : myData) {

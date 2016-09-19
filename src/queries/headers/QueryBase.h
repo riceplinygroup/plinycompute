@@ -74,12 +74,12 @@ public:
 		isError = true;
 	}
 
-	bool wasError () {
-		return isError;
+	void setSetName (std :: string toMe) {
+		whichSet = toMe;
 	}
 
-	void setSetName (std :: string toMe) {
-		whichSet =toMe;
+	bool wasError () {
+		return isError;
 	}
 
 	std :: string getDBName () {

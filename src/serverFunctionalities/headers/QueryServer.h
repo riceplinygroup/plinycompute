@@ -43,13 +43,15 @@ public:
 	void registerHandlers (PDBServer &forMe) override;
 
 	// this recursively traverses a simple query graph, where each node can only have one input,
-	// makes sure that each node has been computed... setPrefix is the string that we'll use
+	// makes sure that each node has been computed... if setOutputName is equal to "", then
+	// the parameter setPrefix is the string that we'll use
 	// to create each set name, whichNode is the counter that we use to name each set, and
 	// computeMe is the node that we are wirred about computing
-	void computeQuery (std :: string setPrefix, int &whichNode, Handle <QueryBase> &computeMe);
+	void computeQuery (std :: string setOutputName, std :: string setPrefix, int &whichNode, Handle <QueryBase> &computeMe, 
+		std :: vector <std :: string> &tempSetsCreated);
 
-	// this actually computes a selection query.  The params are like the above function
-	void doSelection (std :: string setPrefix, int whichNode, Handle <QueryBase> &computeMe);
+	// this actually computes a selection query
+	void doSelection (std :: string setOutputName, Handle <QueryBase> &computeMe);
 
 	// destructor
 	~QueryServer ();

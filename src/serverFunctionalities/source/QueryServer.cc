@@ -35,6 +35,7 @@
 #include "ExecuteQuery.h"
 #include "InterfaceFunctions.h"
 #include "GenericWork.h"
+#include "DeleteSet.h"
 #include "CatalogServer.h"
 #include "SetScan.h"
 #include "Selection.h"
@@ -62,6 +63,9 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 			const UseTemporaryAllocationBlock tempBlock {1024 * 128};
 			{
 	
+				// this lists all of the temporary sets created
+				std :: vector <std :: string> setsCreated;
+
 				// get the list of queries to execute
 				std :: string errMsg;
 				bool success;
@@ -79,8 +83,19 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 	
 				// first, loop through all of the outputs and compute them
 				for (int i = 0; i < runUs->size (); i++) {
-					computeQuery (tempSetPrefix, whichNode, (*runUs)[i]);
+					computeQuery ("", tempSetPrefix, whichNode, (*runUs)[i], setsCreated);
 				}	
+
+				// delete all of the temporary sets created
+				if (runUs->size () > 0) {
+					std :: string whichDatabase = (*runUs)[0]->getDBName ();
+					for (auto &s : setsCreated) {
+						std :: string errMsg;
+						if (!getFunctionality <CatalogServer> ().deleteSet (whichDatabase, s, errMsg)) {
+							std :: cout << "Error deleting set " << s << ": " << errMsg << "\n";	
+						}	
+					}
+				}
 
 				// now, we send back the result
 				const UseTemporaryAllocationBlock tempBlock {1024};
@@ -89,7 +104,7 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 					if ((*runUs)[i]->getQueryType () == "localoutput") {
 						result->push_back ((*runUs)[i]->getSetName ());
 					} else {
-						std :: cout << "We only support local outputs for queries.\n";
+						std :: cout << "We only support set: outputs for queries.\n";
 					}
 				}
 
@@ -103,6 +118,29 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 		}));
 
 
+	// handle a request to delete a file
+	forMe.registerHandler (DeleteSet_TYPEID, make_shared <SimpleRequestHandler <DeleteSet>> (
+		[&] (Handle <DeleteSet> request, PDBCommunicatorPtr sendUsingMe) {
+
+			const UseTemporaryAllocationBlock tempBlock {1024};
+			{
+				std :: string errMsg;
+				if (!getFunctionality <CatalogServer> ().deleteSet (request->whichDatabase (), request->whichSet (), errMsg)) {
+					Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> 
+						(false, std :: string ("error attempting to delete set: " + errMsg));
+					if (!sendUsingMe->sendObject (result, errMsg)) {
+						return std :: make_pair (false, errMsg);
+					}
+				} else {
+					Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (false, std :: string ("successfully deleted set"));
+					if (!sendUsingMe->sendObject (result, errMsg)) {
+						return std :: make_pair (false, errMsg);
+					}
+				}
+				return std :: make_pair (true, std :: string ("delete complete"));
+			}
+		}));
+	
 	// handle a request to iterate through a file	
 	forMe.registerHandler (SetScan_TYPEID, make_shared <SimpleRequestHandler <SetScan>> (
 		[&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
@@ -162,28 +200,36 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 // this recursively traverses a simple query graph, where each node can only have one input,
 // makes sure that each node has been computed... the return value is the (DB, set) pair holding
 // the result of the query
-void QueryServer :: computeQuery (std :: string setPrefix, int &whichNode, Handle <QueryBase> &computeMe) {
+void QueryServer :: computeQuery (std :: string setNameToUse, std :: string setPrefix, int &whichNode, 
+	Handle <QueryBase> &computeMe, std :: vector <std :: string> &setsCreated) {
 
 	// base case: this node has been computed, so we are done
-	if (computeMe->getSetName () != "") {
+	if (computeMe->getSetName () != "" && computeMe->getQueryType () != "localoutput") {
 		return;
 	}	
 
 	// recursive case: compute the parent of this node... we assume only one input in this simple case
-	computeQuery (setPrefix, whichNode, computeMe->getIthInput (0));
 	whichNode++;
 
 	// now, execute this node
 	if (computeMe->getQueryType () == "selection") {
 
-		// run the selection
-		doSelection (setPrefix, whichNode, computeMe);	
+		// run the rest of the query plan
+		computeQuery ("", setPrefix, whichNode, computeMe->getIthInput (0), setsCreated);
+
+		// now run this guy
+		if (setNameToUse == "") {
+			std :: string tempFileName = setPrefix + "." + std :: to_string (++whichNode);
+			setsCreated.push_back (tempFileName);
+			doSelection (tempFileName, computeMe);	
+		} else {
+			doSelection (setNameToUse, computeMe);	
+		}
 
 	} else if (computeMe->getQueryType () == "localoutput") {
 		
-		// set the set same for this guy
-		computeMe->setSetName (computeMe->getIthInput (0)->getSetName ());
-		return;
+		// run the rest of the query plan
+		computeQuery (computeMe->getSetName (), setPrefix, whichNode, computeMe->getIthInput (0), setsCreated);
 
 	} else {
 
@@ -192,7 +238,7 @@ void QueryServer :: computeQuery (std :: string setPrefix, int &whichNode, Handl
 	}
 }
 
-void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle <QueryBase> &computeMe) {
+void QueryServer :: doSelection (std :: string setNameToUse, Handle <QueryBase> &computeMe) {
 
 	// the query we are executing
 	Handle <Selection <Object, Object>> myQuery = unsafeCast <Selection <Object, Object>> (computeMe);
@@ -210,7 +256,7 @@ void QueryServer :: doSelection (std :: string setPrefix, int whichNode, Handle 
 	}
 
 	// this is the output table
-	std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (inputDatabase, setPrefix + "." + std :: to_string (whichNode));
+	std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (inputDatabase, setNameToUse);
 
 	// create the output table in the storage manager and in the catalog
 	std :: string errMsg;

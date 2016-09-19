@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "LockGuard.h"
 
 using namespace std;
 
@@ -60,6 +61,9 @@ public:
 	void putDoubleList (string key, vector <double> value);
 	void putLong (string key, vector <long> value);
 
+	// deletes an item
+	void deleteKey (string key);
+
 	// creates an instance of the catalog.  If the specified file does
 	// not exist, it is created.  Otherwise, the existing file is 
 	// opened.
@@ -72,6 +76,8 @@ public:
 	void save ();
 
 private:
+
+	pthread_mutex_t workingMutex;
 
 	// the name of the catalog file
 	string fName;

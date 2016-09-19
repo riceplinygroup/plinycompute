@@ -49,6 +49,18 @@ inline int16_t VTableMap :: lookupBuiltInType (std :: string objectTypeName) {
 	return -1;
 }
 
+inline std :: string VTableMap :: lookupBuiltInType (int16_t objectType) {
+
+	// loop through every type in the mape
+	for (auto &a : theVTable->objectTypeNamesList) {
+		if (a.second == objectType)
+			return a.first;
+	}
+	
+	// otherwise, return "" to signify that this was not a built-in type
+	return "";
+}
+
 // returns the number of registered built-in objects
 inline int VTableMap :: totalBuiltInObjects () {
         int count = 0;
