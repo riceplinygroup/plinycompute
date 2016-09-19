@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <cstring>
 #ifndef _MSC_VER
 #include <cxxabi.h>
