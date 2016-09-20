@@ -17,7 +17,7 @@
 PDB_CLUSTER_CONFIG_FILE="pdbCluster.config"
 PEM_FILE=$1
 PDB_HOME="PDBServer/"
-PDB_COMMAND="./pdbServer"
+PDB_COMMAND="pdbServer"
 PDB_STARTUP="pdbStartup.sh"
 PDB_DIRS1="bin/pdbServer"
 PDB_DIRS2="libraries/"
