@@ -64,6 +64,7 @@ using namespace pdb;
 int main(int numArgs, const char *args[]) {
 
 	string serverName;
+	string myIP;
 	string catalogHostname;
 	string ipcFile;
 	string backEndIpcFile;
@@ -109,6 +110,7 @@ int main(int numArgs, const char *args[]) {
 			("isMaster", po::value<bool>(&isMaster), "true if this node is master")
 			("port",     po::value<int>(&port), "frontEnd server listening port, default is 8108. In the case of Client this is the frontEnd server to connect to")
 			("serverName", po::value<string>(&serverName), "name of the node")
+			("myIP", po::value<string>(&myIP), "public IP address of this server.")
 			("ipcFile", po::value<string>(&ipcFile), "ipc file name for client-frontEnd communication, default is ipcFile")
 			("useUnixDomainSock", po::value<bool>(&useUnixDomainSock), "whether to use local server for client-frontEnd communication, default is n")
 			("backEndIpcFile", po::value<string>(&backEndIpcFile), "ipc file name for frontEnd-backEnd communication, default is backEndIpcFile")
@@ -353,7 +355,10 @@ int main(int numArgs, const char *args[]) {
 		cout << "enableDM was set to " << logEnabled << ".\n";
 	}
 
-
+	if (vm.count("myIP")) {
+		dataDirs = vm["myIP"].as<std::string>();
+		cout << "Public IP address of this server  was set to " << myIP << ".\n";
+	}
 
 //	conf->setFlushThreshold(flushThreshold);
 
@@ -436,7 +441,7 @@ int main(int numArgs, const char *args[]) {
 		bool wasError;
 		std::string errMsg;
 
-		pdb::String hostname(serverName);
+		pdb::String hostname(myIP);
     	frontEnd.addFunctionality <pdb :: DistributionManagerClient>(hostname, port , logger);
 		pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
 		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, wasError, errMsg);
