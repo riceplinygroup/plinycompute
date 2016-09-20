@@ -34,6 +34,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
+#include <pthread.h>
+
 
 #include <signal.h>
 #include <stdio.h>
@@ -53,6 +56,7 @@ using namespace std;
 namespace pdb {
 
 PDBDistributionManager::PDBDistributionManager() {
+    pthread_mutex_init(&this->writeLock, nullptr);
 	this->heartBeatCounter = 0;
 }
 
@@ -60,15 +64,21 @@ PDBDistributionManager::~PDBDistributionManager() {
 }
 
 bool PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID) {
+//	 pthread_mutex_lock(&writeLock);
+//   pthread_mutex_unlock(&writeLock);
 
 	std::chrono::time_point<std::chrono::system_clock> p;
 	p = std::chrono::system_clock::now();
-
-	this->heartBeatCounter++;
 	long timeCounter = std::chrono::duration_cast<std::chrono::nanoseconds>(p.time_since_epoch()).count();
 
+	// Lock for write
+
+	pthread_mutex_lock(&this->writeLock);
+	this->heartBeatCounter++;
 	// if we have 20 heart beat messages from any servers then we activate the cleaning process.
 	if (this->heartBeatCounter >= 20) {
+
+
 		// iterate over the list of nodes and remove old ones.
 		for (auto myPair = nodesOfCluster.begin(); myPair != nodesOfCluster.end();) {
 			// if a node does not send heart beat messages then remove it from the list. If we don't get heart beat more than 10sec.
@@ -78,19 +88,28 @@ bool PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& n
 				myPair = nodesOfCluster.erase(myPair);
 			} else
 				++myPair;
-
 		}
 		this->heartBeatCounter = 0;
 	}
+	// unlock
+	pthread_mutex_unlock(&this->writeLock);
+
 
 	if (this->nodesOfCluster.count(nodeID) == 0) {
 		// insert the nodeID and timestamp
+		pthread_mutex_lock(&this->writeLock);
 		this->nodesOfCluster[nodeID] = timeCounter;
+		pthread_mutex_unlock(&this->writeLock);
+
 		myLoggerIn -> info ("PDBDistributionManager:  Node  with ID " + nodeID + " added.  No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
 		return false;
 	} else {
+
 		// insert the nodeID and timestamp
+		pthread_mutex_lock(&this->writeLock);
 		this->nodesOfCluster[nodeID] = timeCounter;
+		pthread_mutex_unlock(&this->writeLock);
+
 		myLoggerIn -> info ("PDBDistributionManager: Node with ID " + nodeID + " updated.   No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
 		return true;
 	}

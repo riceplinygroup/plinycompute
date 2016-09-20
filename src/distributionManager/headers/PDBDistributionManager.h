@@ -116,6 +116,9 @@ private:
 	// we store the start time of query execution to be able to clean the list when one of the executors goes down and does not response any more.
 	map<string, long> runningQueries;
 
+    //////Mutex/////////////////
+    pthread_mutex_t writeLock;
+
 };
 }
 #endif /* DISTRIBUTION_HEADERS_PDBDISTRIBUTIONMANAGER_H_ */

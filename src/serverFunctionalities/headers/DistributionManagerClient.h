@@ -22,6 +22,7 @@
 #include "ServerFunctionality.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
+#include "PDBString.h"
 
 
 #include "NodeInfo.h"
@@ -32,6 +33,7 @@
 #include "PlaceOfQueryPlanner.h"
 #include "PDBVector.h"
 #include "QueryBase.h"
+#include "ListOfNodes.h"
 
 namespace pdb {
 
@@ -59,6 +61,9 @@ public:
 	// send the HeartBeat info to the server.
 	void sendHeartBeat(string &masterHostName, int masterNodePort, bool &wasError, string& errMsg);
 
+	// send the HeartBeat info to the server.
+	Handle<ListOfNodes> getCurrentNodes(string &masterHostName, int masterNodePort, bool &wasError, string& errMsg);
+
 	// send a request for running a query
 	Handle<QueryPermitResponse> sendQueryPermitt(string &hostName, int masterNodePort, pdb::Handle<QueryPermit> m_queryPermit, bool &wasError, string& errMsg);
 
@@ -69,10 +74,10 @@ public:
 	Handle<Ack> sendGetPlaceOfQueryPlanner(string &hostName, int masterNodePort, Handle<PlaceOfQueryPlanner> m_PlaceOfQueryPlanner, bool &wasError, string& errMsg);
 
 	// Executes a vector of queries on the cluster on a specific set of cluster nodes.
-	Handle <Vector <Handle <Ack>>> executeQueriesOnCluster(Handle <Vector<Handle <QueryBase>>> queries, Handle <Vector <Handle <String>>> hostNames, Handle <Vector <Handle <int>>> hostPorts);
+//	Handle <Vector <Handle <Ack>>> executeQueriesOnCluster(Handle <Vector<Handle <QueryBase>>> queries, Handle <Vector <Handle <String>>> hostNames, Handle <Vector <Handle <int>>> hostPorts);
 
 	// Executes a single queries on a single remote node.
-	Handle<Ack> executeQueryOnSingleNode(Handle <Vector<Handle <QueryBase>>> queries, Handle <String> hostNames, Handle <int> hostPorts,  string& errMsg);
+//	Handle<Ack> executeQueryOnSingleNode(Handle <Vector<Handle <QueryBase>>> queries, Handle <String> hostNames, Handle <int> hostPorts,  string& errMsg);
 
    //get the logger
    PDBLoggerPtr getLogger() { return this->logger; }
@@ -82,6 +87,7 @@ private:
     pdb::String hostname;
    	int port;
 	PDBLoggerPtr logger;
+
 
 };
 

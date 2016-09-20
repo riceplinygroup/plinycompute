@@ -35,6 +35,7 @@
 
 #include "ExecuteQueryOnSingleHost.h"
 #include "UseTemporaryAllocationBlock.h"
+#include "GetListOfNodes.h"
 
 namespace pdb {
 
@@ -42,13 +43,12 @@ DistributionManagerClient::DistributionManagerClient(PDBLoggerPtr loggerIn) {
 	logger = loggerIn;
 }
 
-
-DistributionManagerClient::DistributionManagerClient (pdb::String hostnameIn, int portIn, PDBLoggerPtr loggerIn){
+DistributionManagerClient::DistributionManagerClient(pdb::String hostnameIn, int portIn, PDBLoggerPtr loggerIn) {
 	logger = loggerIn;
-	port=portIn;
-	hostname=hostnameIn;
-};
-
+	port = portIn;
+	hostname = hostnameIn;
+}
+;
 
 DistributionManagerClient::~DistributionManagerClient() {
 }
@@ -71,21 +71,68 @@ void DistributionManagerClient::sendHeartBeat(string &masterHostName, int master
 		// First build a new connection to the Server
 		PDBCommunicator myCommunicator;
 		if (myCommunicator.connectToInternetServer(logger, masterNodePort, masterHostName, errMsg)) {
-			logger->error("Error when connecting to server: " + errMsg);
-			wasError = true;
-			return;
-		}
+			logger->error("[DistributionManagerClient] - Error when connecting to server: " + errMsg);
 
-		// send it
-		if (!myCommunicator.sendObject(m_nodeInfo, errMsg)) {
-			logger->error("HeartBeat Client: Sending nodeInfo object: " + errMsg);
-			wasError = true;
-			return;
+			// try to connect again after awhile.
+//			wasError = true;
+		} else {
+
+			try {
+				// send  the object over
+				if (!myCommunicator.sendObject(m_nodeInfo, errMsg)) {
+					logger->error("[DistributionManagerClient] - HeartBeat Client: Sending nodeInfo object: " + errMsg);
+					// try to connect and send the object again.
+//				wasError = true;
+				}
+
+			} catch (NotEnoughSpace &e) {
+				logger->error("[DistributionManagerClient] - Not enough memory");
+			}
 		}
 
 		// sleep for the time interval and send it again.
 		std::this_thread::sleep_for(interval);
 	}
+
+}
+
+Handle<ListOfNodes> DistributionManagerClient::getCurrentNodes(string &masterHostName, int masterNodePort, bool &wasError, string& errMsg) {
+	// First build a new connection to the Server
+	PDBCommunicator myCommunicator;
+	if (myCommunicator.connectToInternetServer(logger, masterNodePort, masterHostName, errMsg)) {
+		logger->error("[DistributionManagerClient] - Error when connecting to server: " + errMsg);
+		wasError = true;
+		return nullptr;
+	}
+	makeObjectAllocatorBlock(1024, true);
+
+	try {
+		Handle<GetListOfNodes> requestToGetListOfNodes = makeObject<GetListOfNodes>();
+
+		// send  the object over
+		if (!myCommunicator.sendObject(requestToGetListOfNodes, errMsg)) {
+			logger->error("[DistributionManagerClient] - HeartBeat Client: Sending nodeInfo object: " + errMsg);
+			// try to connect and send the object again.
+			wasError = true;
+			return nullptr;
+		}
+
+	} catch (NotEnoughSpace &e) {
+		logger->error("[DistributionManagerClient] - Not enough memory");
+	}
+
+
+	// Get the response from the server.
+	bool success;
+	Handle<ListOfNodes> response = myCommunicator.getNextObject<ListOfNodes>(success, errMsg);
+	if (!success) {
+		logger->error("[DistributionManagerClient] - getCurrentNodes Error when connecting to server: " + errMsg);
+		return nullptr;
+	}
+
+	return response;
+
+
 }
 
 //bool DistributionManagerClient::shutDownServer(std::string &errMsg) {
@@ -197,78 +244,78 @@ Handle<Ack> DistributionManagerClient::sendGetPlaceOfQueryPlanner(string &master
 	return response;
 }
 
-Handle<Vector<Handle<Ack>>> DistributionManagerClient::executeQueriesOnCluster(Handle <Vector<Handle <QueryBase>>> queries, Handle <Vector <Handle <String>>> hostNames, Handle <Vector <Handle <int>>> hostPorts) {
-
-	// Assume that we got the correct vectors and they are all the same size.
-
-	// We need to run all of the queries in parallel.
-	// We first connect to one of the servers and then request to run all of the queries on that server.
-
-//	PDBCommunicator  myCommunicators[sizeof(hostnames)];
+//Handle<Vector<Handle<Ack>>> DistributionManagerClient::executeQueriesOnCluster(Handle <Vector<Handle <QueryBase>>> queries, Handle <Vector <Handle <String>>> hostNames, Handle <Vector <Handle <int>>> hostPorts) {
 //
+//	// Assume that we got the correct vectors and they are all the same size.
 //
-//	for (int i = 0; i < sizeof(hostnames); ++i) {
-//		 bool wasError;
-//		 string errMsg;
-//		 // first make the connection to the server.
-//		if ( myCommunicators[i].connectToInternetServer(logger, ports[i], hostnames[i], errMsg)) {
+//	// We need to run all of the queries in parallel.
+//	// We first connect to one of the servers and then request to run all of the queries on that server.
+//
+////	PDBCommunicator  myCommunicators[sizeof(hostnames)];
+////
+////
+////	for (int i = 0; i < sizeof(hostnames); ++i) {
+////		 bool wasError;
+////		 string errMsg;
+////		 // first make the connection to the server.
+////		if ( myCommunicators[i].connectToInternetServer(logger, ports[i], hostnames[i], errMsg)) {
+////			logger->error("Error when connecting to server: " + errMsg);
+////			wasError=true;
+////			return nullptr;
+////		}
+////
+////		// now send the request object over the socket.
+////		if (!myCommunicator.sendObject(m_PlaceOfQueryPlanner, errMsg)) {
+////			logger->error("sendQueryDone Client: Sending QueryPermit object: " + errMsg);
+////			wasError = true;
+////			return nullptr;
+////		}
+////
+////
+////	}
+//
+//	logger->trace("");
+//
+//	return nullptr;
+//}
+
+//Handle<Ack> DistributionManagerClient::executeQueryOnSingleNode(Handle<Vector<Handle<QueryBase>>> queries, Handle <String> hostNames, Handle <int> hostPorts, string& errMsg) {
+//
+//	bool wasError;
+//
+//		// First build a new connection to the Server
+//		PDBCommunicator myCommunicator;
+//		int myPort= *hostPorts;
+//
+//		if (myCommunicator.connectToInternetServer(logger, myPort, string(hostNames->c_str()), errMsg)) {
 //			logger->error("Error when connecting to server: " + errMsg);
-//			wasError=true;
+//			wasError = true;
 //			return nullptr;
 //		}
 //
-//		// now send the request object over the socket.
-//		if (!myCommunicator.sendObject(m_PlaceOfQueryPlanner, errMsg)) {
+//		// make the result
+//		const UseTemporaryAllocationBlock tempBlock {1024};
+//		Handle <ExecuteQueryOnSingleHost> requestToExecuteQuery = makeObject <ExecuteQueryOnSingleHost> ();
+//
+//		// TODO: By now we just send a request with nothing inside it, later we should add the queries to it.
+//		// send QueryPermit object over the socket
+//		if (!myCommunicator.sendObject(requestToExecuteQuery, errMsg)) {
 //			logger->error("sendQueryDone Client: Sending QueryPermit object: " + errMsg);
 //			wasError = true;
 //			return nullptr;
 //		}
 //
+//		bool success;
+//		// get the next object
+//		pdb::Handle<Ack> response = myCommunicator.getNextObject<Ack>(success, errMsg);
 //
+//		if (!success) {
+//			logger->error("ERROR ExecuteQueryOnSingleHost: Uh oh.  Could not get response for ExecuteQueryOnSingleHost!!\n");
+//		}
+//
+//		logger->trace("executeQueryOnSingleNode: Got back From Server Query ID : " + string(response->getInfo()));
+//		return response;
 //	}
-
-	logger->trace("");
-
-	return nullptr;
-}
-
-Handle<Ack> DistributionManagerClient::executeQueryOnSingleNode(Handle<Vector<Handle<QueryBase>>> queries, Handle <String> hostNames, Handle <int> hostPorts, string& errMsg) {
-
-	bool wasError;
-
-		// First build a new connection to the Server
-		PDBCommunicator myCommunicator;
-		int myPort= *hostPorts;
-
-		if (myCommunicator.connectToInternetServer(logger, myPort, string(hostNames->c_str()), errMsg)) {
-			logger->error("Error when connecting to server: " + errMsg);
-			wasError = true;
-			return nullptr;
-		}
-
-		// make the result
-		const UseTemporaryAllocationBlock tempBlock {1024};
-		Handle <ExecuteQueryOnSingleHost> requestToExecuteQuery = makeObject <ExecuteQueryOnSingleHost> ();
-
-		// TODO: By now we just send a request with nothing inside it, later we should add the queries to it.
-		// send QueryPermit object over the socket
-		if (!myCommunicator.sendObject(requestToExecuteQuery, errMsg)) {
-			logger->error("sendQueryDone Client: Sending QueryPermit object: " + errMsg);
-			wasError = true;
-			return nullptr;
-		}
-
-		bool success;
-		// get the next object
-		pdb::Handle<Ack> response = myCommunicator.getNextObject<Ack>(success, errMsg);
-
-		if (!success) {
-			logger->error("ERROR ExecuteQueryOnSingleHost: Uh oh.  Could not get response for ExecuteQueryOnSingleHost!!\n");
-		}
-
-		logger->trace("executeQueryOnSingleNode: Got back From Server Query ID : " + string(response->getInfo()));
-		return response;
-	}
 
 }
 
