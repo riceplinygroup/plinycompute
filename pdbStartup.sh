@@ -14,7 +14,7 @@
 #  ======================================================================== 
 #!/bin/bash
 
-PDB_HOME="PDB"
+PDB_HOME="PDBServer"
 echo "PDB_HOME is $PDB_HOME";
 
 cd $PDB_HOME;
