@@ -38,9 +38,8 @@
 
 namespace pdb {
 
-DistributionManagerServer::DistributionManagerServer() {
-	// make the distribution manager instance.
-	this->distributionManager = make_shared<PDBDistributionManager>();
+DistributionManagerServer::DistributionManagerServer(PDBDistributionManagerPtr distributionManagerIn) {
+	distributionManager=distributionManagerIn;
 }
 
 DistributionManagerServer::~DistributionManagerServer() {
@@ -72,6 +71,11 @@ void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 			// return the result
 			return make_pair (wasError, errMsg);
 		}));
+
+}
+
+void  DistributionManagerServer::setDistributionManager(PDBDistributionManagerPtr distributionManagerIn) {
+	distributionManager=distributionManagerIn;
 
 }
 

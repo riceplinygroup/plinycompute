@@ -61,8 +61,8 @@ void DistributionManagerClient::sendHeartBeat(string &masterHostName, int master
 	std::chrono::seconds interval(2);  // 2 seconds
 
 	makeObjectAllocatorBlock(1024 * 24, true);
-
 	Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
+
 	m_nodeInfo->setHostName(hostname);
 	m_nodeInfo->setPort(port);
 
