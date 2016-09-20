@@ -13,35 +13,38 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
+
 PDB_CLUSTER_CONFIG_FILE="pdbCluster.config"
 PEM_FILE=$1
 PDB_HOME="PDB/"
 PDB_COMMAND="./pdbServer"
-PDB_DIRS1="bin/pdbServer" 
-PDB_DIRS2="libraries/" 
-PDB_DIRS3="pdbSettings.conf" 
+PDB_STARTUP="pdbStartup.sh"
+PDB_DIRS1="bin/pdbServer"
+PDB_DIRS2="libraries/"
+PDB_DIRS3="pdbSettings.conf"
 
 
 
 ##############  Function to Copy Files to each node ####################
 readClusterConfigAndCopy() {
-   
-old_IFS=$IFS  # save the field separator           
-IFS=$'\n'     # new field separator, the end of line           
 
-for line in $(cat "$1")          
-do      
+old_IFS=$IFS  # save the field separator
+IFS=$'\n'     # new field separator, the end of line
 
-# parse the line to an array 
+for line in $(cat "$1")
+do
+
+# parse the line to an array
 IFS='#' read -ra ADDR <<< "$line"
 
-# first create the director - if exists remove and make it 
+# first create the director - if exists remove and make it
 ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf $3 && mkdir -p $3" ;
 
-# now copy files 
-scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ; 
+# now copy files
+scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
+scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
 
-done          
+done
 IFS=$old_IFS     # restore default field separator
 
 } 
@@ -49,40 +52,40 @@ IFS=$old_IFS     # restore default field separator
 
 ##############  Function to Run pdbServer on each node ####################
 readClusterConfigAndRun() {
-   
-old_IFS=$IFS  # save the field separator           
-IFS=$'\n'     # new field separator, the end of line           
 
-for line in $(cat "$1")          
-do      
+old_IFS=$IFS  # save the field separator
+IFS=$'\n'     # new field separator, the end of line
 
-# parse the line to an array 
+for line in $(cat "$1")
+do
+
+# parse the line to an array
 IFS='#' read -ra ADDR <<< "$line"
 
 
 # Now SSH to each machine and start up the pdbServer
-# echo "ssh -i $2 ${ADDR[0]} \"cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & \"  "; 
+# echo "ssh -i $2 ${ADDR[0]} \"cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & \"  ";
 
-ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 &&   screen -d -m $4 ${ADDR[1]} "'
+# ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 && screen -d -m ./pdbServer  ${ADDR[1]}  "' ;
+ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]}  "./pdbStartup.sh  ${ADDR[1]} " ;
 
-done          
+done
 IFS=$old_IFS     # restore default field separator
-} 
+
+}
 
 
 ###############################################
-#######  
-#######   Main Body of the Script 
-#######  
+#######
+#######   Main Body of the Script
+#######
 ###############################################
-
-
 
 
 read -p "Do you wish to copy PDB to all cluster nodes?[y/n]" yn
 
 case $yn in
-   [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_DIRS1 $PDB_DIRS2 $PDB_DIRS3;;
+   [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_DIRS1 $PDB_DIRS2 $PDB_DIRS3  $PDB_STARTUP;;
    [Nn]* ) echo "Not Copying only starting cluster" ;;
        * ) echo "Please answer yes or no.";;
 esac
@@ -93,5 +96,3 @@ readClusterConfigAndRun $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_COMMAND ;
 
 
 # scp  -i /home/kia/kiaRicekey.pem -oStrictHostKeyChecking=no  -r $PDB_DIRS   ubuntu@10.134.96.142:~pdb/
-
-
