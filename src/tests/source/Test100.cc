@@ -72,7 +72,8 @@ int main(int argc, char *argv[]) {
 		pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>(logfile);
 		pdb::PDBServer frontEnd(portNumber, 10, myLogger);
 
-		frontEnd.addFunctionality<pdb::DistributionManagerServer>();
+		PDBDistributionManagerPtr myDM=make_shared<PDBDistributionManager>();
+		frontEnd.addFunctionality<pdb::DistributionManagerServer>(myDM);
 
 		cout << "Master node hostname is " << masterNodeHostname << "  port is " << masterPortNumber << endl;
 

@@ -51,6 +51,7 @@
 
 #include "DistributionManagerServer.h"
 #include "DistributionManagerClient.h"
+#include "PDBDistributionManager.h"
 
 #include "InterfaceFunctions.h"
 #include "NodeInfo.h"
@@ -356,7 +357,7 @@ int main(int numArgs, const char *args[]) {
 	}
 
 	if (vm.count("myIP")) {
-		dataDirs = vm["myIP"].as<std::string>();
+		myIP = vm["myIP"].as<std::string>();
 		cout << "Public IP address of this server  was set to " << myIP << ".\n";
 	}
 
@@ -445,12 +446,13 @@ int main(int numArgs, const char *args[]) {
     	frontEnd.addFunctionality <pdb :: DistributionManagerClient>(hostname, port , logger);
 		pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
 		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, wasError, errMsg);
-
 		std::cout << errMsg << std::endl;
+
 	}else{
-
-		frontEnd.addFunctionality<pdb::DistributionManagerServer>();
-
+		PDBDistributionManagerPtr myDM=make_shared<PDBDistributionManager>();
+		frontEnd.addFunctionality<pdb::DistributionManagerServer>(myDM);
+		// make the distribution and set it to the distribution manager server.
+//		frontEnd.getFunctionality<pdb::DistributionManagerServer>().setDistributionManager();
 	}
 
     }else{

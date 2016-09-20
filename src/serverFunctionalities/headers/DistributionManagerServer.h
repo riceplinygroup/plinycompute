@@ -32,7 +32,7 @@ class DistributionManagerServer: public ServerFunctionality {
 public:
 
 	// these give us the port and the address of the catalog
-	DistributionManagerServer();
+	DistributionManagerServer(PDBDistributionManagerPtr distributionManagerIn);
 
 	~DistributionManagerServer();
 
@@ -44,10 +44,8 @@ public:
 	// If the node already exists it updates the timestamp and returns 1.
 	int addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
 
-
-
 	PDBDistributionManagerPtr getDistributionManager();
-
+	void  setDistributionManager(PDBDistributionManagerPtr distributionManagerIn);
 
 private:
 	PDBDistributionManagerPtr distributionManager;
