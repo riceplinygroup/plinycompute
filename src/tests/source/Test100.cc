@@ -79,23 +79,19 @@ int main(int argc, char *argv[]) {
 		if (isMaster == 0) {
 			std::cout << "Server is a Slave Node." << std::endl;
 
-			// TODO: Not sure if I have to make the DistributionManager as a server functionality.
-			frontEnd.addFunctionality<pdb::DistributionManagerClient>(frontEnd.getLogger());
-
-			// Get the functionality back to start the heart beat.
-			pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
 
 			bool wasError;
 			std::string errMsg;
 
-			makeObjectAllocatorBlock(1024 * 24, true);
-			Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
-			pdb::String hostname(masterNodeHostname);
 
-			m_nodeInfo->setHostName(hostname);
-			m_nodeInfo->setPort(masterPortNumber);
+			pdb::String hostname("localhost");
 
-			myDMClient.sendHeartBeat(masterNodeHostname, masterPortNumber, m_nodeInfo, wasError, errMsg);
+			frontEnd.addFunctionality<pdb::DistributionManagerClient>(hostname,  portNumber, frontEnd.getLogger());
+
+    		// Get the functionality back to start the heart beat.
+     	  	pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
+
+			myDMClient.sendHeartBeat(masterNodeHostname, masterPortNumber, wasError, errMsg);
 			std::cout << errMsg << std::endl;
 		}
 

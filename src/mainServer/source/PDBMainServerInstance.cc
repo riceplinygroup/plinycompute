@@ -429,24 +429,23 @@ int main(int numArgs, const char *args[]) {
 	if (!isMaster) {
 		std::cout << "Distribution Manager is a Slave Node.\n" << std::endl;
 
-		frontEnd.addFunctionality<pdb::DistributionManagerClient>(logger);
 
 		// TODO: find a way to not start the heart beat operation here.
 		// Get the functionality back to start the heart beat.
-		pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
 
 		bool wasError;
 		std::string errMsg;
 
-		makeObjectAllocatorBlock(1024 * 24, true);
-		Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
-
 		pdb::String hostname(serverName);
-		m_nodeInfo->setHostName(hostname);
-		m_nodeInfo->setPort(port);
+    	frontEnd.addFunctionality <pdb :: DistributionManagerClient>(hostname, port , logger);
+		pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
+		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, wasError, errMsg);
 
-		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, m_nodeInfo, wasError, errMsg);
 		std::cout << errMsg << std::endl;
+	}else{
+
+		frontEnd.addFunctionality<pdb::DistributionManagerServer>();
+
 	}
 
     }else{

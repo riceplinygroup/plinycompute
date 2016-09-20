@@ -42,15 +42,29 @@ DistributionManagerClient::DistributionManagerClient(PDBLoggerPtr loggerIn) {
 	logger = loggerIn;
 }
 
+
+DistributionManagerClient::DistributionManagerClient (pdb::String hostnameIn, int portIn, PDBLoggerPtr loggerIn){
+	logger = loggerIn;
+	port=portIn;
+	hostname=hostnameIn;
+};
+
+
 DistributionManagerClient::~DistributionManagerClient() {
 }
 
 void DistributionManagerClient::registerHandlers(PDBServer &forMe) { /* no handlers for a DistributionManager client!! */
 }
 
-void DistributionManagerClient::sendHeartBeat(string &masterHostName, int masterNodePort, pdb::Handle<NodeInfo> m_nodeInfo, bool &wasError, string& errMsg) {
+void DistributionManagerClient::sendHeartBeat(string &masterHostName, int masterNodePort, bool &wasError, string& errMsg) {
 
 	std::chrono::seconds interval(2);  // 2 seconds
+
+	makeObjectAllocatorBlock(1024 * 24, true);
+
+	Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
+	m_nodeInfo->setHostName(hostname);
+	m_nodeInfo->setPort(port);
 
 	//TODO: this is temporary to check the heart beat functionality and implement the timer inside PDBServer.
 	while (true) {
