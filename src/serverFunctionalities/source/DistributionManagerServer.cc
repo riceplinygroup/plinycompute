@@ -16,7 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 #include <cstddef>
-#include <iostream>
+#include <iostream>     // std::cout
+//#include <iterator>     // std::iterator, std::input_iterator_tag
 #include <fstream>
 #include <vector>
 #include <cstring>
@@ -26,6 +27,7 @@
 #include <fcntl.h>
 #include <string>
 
+
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
@@ -33,8 +35,13 @@
 #include "SimpleRequestResult.h"
 #include "DistributionManagerServer.h"
 #include "NodeInfo.h"
+#include "GetListOfNodes.h"
+#include "ListOfNodes.h"
 #include "Ack.h"
 #include "ExecuteQueryOnSingleHost.h"
+#include "InterfaceFunctions.h"
+#include "UseTemporaryAllocationBlock.h"
+
 
 namespace pdb {
 
@@ -43,10 +50,13 @@ DistributionManagerServer::DistributionManagerServer(PDBDistributionManagerPtr d
 }
 
 DistributionManagerServer::~DistributionManagerServer() {
+
+
 }
 
 void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 
+	// A handler for Heart Beat Operation - Nodes send NodeInfo
 	forMe.registerHandler(NodeInfo_TYPEID, make_shared<SimpleRequestHandler<NodeInfo>>([&] (Handle <NodeInfo> request, PDBCommunicatorPtr sendUsingMe) {
 
 		//TODO: There is no errMsg that I can forward. Check if we need to forward some errMsg.
@@ -59,6 +69,7 @@ void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 			// update
 			//TODO: result is unused so far.
 			bool resulstFromUpdate = myDM->addOrUpdateNodes(forMe.getLogger(), hostname);
+
 			bool wasError;
 
 			//TODO
@@ -70,6 +81,38 @@ void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 			//TODO : I have no fail case, so I send always true with no errMsg.
 			// return the result
 			return make_pair (wasError, errMsg);
+		}));
+
+
+
+
+	forMe.registerHandler(GetListOfNodes_TYPEID, make_shared<SimpleRequestHandler<GetListOfNodes>>([&] (Handle <GetListOfNodes> request, PDBCommunicatorPtr sendUsingMe) {
+			std :: string errMsg;
+
+			// get the pointer to the distribution manager instance
+			PDBDistributionManagerPtr myDM = getFunctionality <DistributionManagerServer>().getDistributionManager();
+			unordered_map<string, long> myList= myDM->getUpNodesOfCluster();
+
+			// make the vector
+     		Handle <Vector <String>> hostNames;
+			makeObjectAllocatorBlock (1024 * 24, true);
+     		hostNames = makeObject <Vector <String>> ();
+
+
+     		for(auto &ent1 : myList) {
+     		  // ent1.first is the first key
+     			string tmpHostName=ent1.first;
+     			hostNames->push_back(tmpHostName);
+     		}
+
+     		//  Make the list of nodes
+     		makeObjectAllocatorBlock(1024 * 48, true);
+     		Handle<ListOfNodes> response = makeObject<ListOfNodes>();
+     		response->setHostNames(hostNames);
+
+     		// return the result
+            bool res = sendUsingMe->sendObject (response, errMsg);
+			return make_pair (res, errMsg);
 		}));
 
 }
