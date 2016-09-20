@@ -63,7 +63,7 @@ IFS='#' read -ra ADDR <<< "$line"
 # Now SSH to each machine and start up the pdbServer
 # echo "ssh -i $2 ${ADDR[0]} \"cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & \"  "; 
 
-ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & "'
+ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 &&   screen -d -m $4 ${ADDR[1]} "'
 
 done          
 IFS=$old_IFS     # restore default field separator
