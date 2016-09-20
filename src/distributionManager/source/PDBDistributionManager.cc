@@ -86,12 +86,12 @@ bool PDBDistributionManager::addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& n
 	if (this->nodesOfCluster.count(nodeID) == 0) {
 		// insert the nodeID and timestamp
 		this->nodesOfCluster[nodeID] = timeCounter;
-		myLoggerIn -> trace ("PDBDistributionManager:  Node  with ID " + nodeID + " added.  No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
+		myLoggerIn -> info ("PDBDistributionManager:  Node  with ID " + nodeID + " added.  No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
 		return false;
 	} else {
 		// insert the nodeID and timestamp
 		this->nodesOfCluster[nodeID] = timeCounter;
-		myLoggerIn -> trace ("PDBDistributionManager: Node with ID " + nodeID + " updated.   No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
+		myLoggerIn -> info ("PDBDistributionManager: Node with ID " + nodeID + " updated.   No. of Nodes in Cluster " + to_string(nodesOfCluster.size()));
 		return true;
 	}
 
