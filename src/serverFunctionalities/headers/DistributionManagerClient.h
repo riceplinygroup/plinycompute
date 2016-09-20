@@ -42,8 +42,9 @@ class DistributionManagerClient : public ServerFunctionality {
 
 public:
 
-
 	DistributionManagerClient (PDBLoggerPtr logger);
+
+	DistributionManagerClient (pdb::String hostnameIn, int portIn, PDBLoggerPtr logger);
 
 	~DistributionManagerClient ();
 
@@ -56,7 +57,7 @@ public:
 //	bool shutDownServer (std :: string &errMsg);
 
 	// send the HeartBeat info to the server.
-	void sendHeartBeat(string &masterHostName, int masterNodePort, pdb::Handle<NodeInfo> m_nodeInfo, bool &wasError, string& errMsg);
+	void sendHeartBeat(string &masterHostName, int masterNodePort, bool &wasError, string& errMsg);
 
 	// send a request for running a query
 	Handle<QueryPermitResponse> sendQueryPermitt(string &hostName, int masterNodePort, pdb::Handle<QueryPermit> m_queryPermit, bool &wasError, string& errMsg);
@@ -78,6 +79,8 @@ public:
 
 private:
 
+    pdb::String hostname;
+   	int port;
 	PDBLoggerPtr logger;
 
 };
