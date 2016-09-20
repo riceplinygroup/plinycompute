@@ -440,10 +440,10 @@ int main(int numArgs, const char *args[]) {
 
 		makeObjectAllocatorBlock(1024 * 24, true);
 		Handle<NodeInfo> m_nodeInfo = makeObject<NodeInfo>();
-		pdb::String hostname(masterNodeHostName);
 
+		pdb::String hostname(serverName);
 		m_nodeInfo->setHostName(hostname);
-		m_nodeInfo->setPort(masterNodePort);
+		m_nodeInfo->setPort(port);
 
 		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, m_nodeInfo, wasError, errMsg);
 		std::cout << errMsg << std::endl;
