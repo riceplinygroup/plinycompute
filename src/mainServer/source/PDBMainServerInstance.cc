@@ -75,6 +75,8 @@ int main(int numArgs, const char *args[]) {
 	string masterNodeHostName;
 	string queryPlannerPlace;
 	string logLevelSt;
+	string configurationFile;
+
 
 	int port;
 	int masterNodePort;
@@ -103,7 +105,7 @@ int main(int numArgs, const char *args[]) {
 	po::options_description desc("Options");
 	desc.add_options()
 			("help", "produce help messages")
-			("conf",     po::value<std::vector<std::string>>(), "configure files")
+			("conf",     po::value<string>(&configurationFile), "configure files")
 			("isMaster", po::value<bool>(&isMaster), "true if this node is master")
 			("port",     po::value<int>(&port), "frontEnd server listening port, default is 8108. In the case of Client this is the frontEnd server to connect to")
 			("serverName", po::value<string>(&serverName), "name of the node")
@@ -142,7 +144,7 @@ int main(int numArgs, const char *args[]) {
 	po::store(po::command_line_parser(numArgs, args).options(desc).positional(p).run(), vm);
 	po::notify(vm);
 
-	string configurationFile;
+
 	if (vm.count("conf")) {
 		configurationFile = vm["conf"].as<string>();
 		cout << "Configuration file is" << configurationFile << ".\n";
