@@ -39,6 +39,7 @@
 #include "StorageAddTempSet.h"
 #include "StorageAddTempSetResult.h"
 #include "StorageRemoveTempSet.h"
+#include "StorageRemoveUserSet.h"
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
@@ -386,6 +387,28 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+       // this handler requests to remove a user set
+       forMe.registerHandler (StorageRemoveUserSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveUserSet>> (
+               [&] (Handle <StorageRemoveUserSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         std :: string databaseName = request->getDatabase();
+                         std :: string typeName = request->getTypeName ();
+                         std :: string setName = request->getSetName();
+                         bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
+                         if (res == false) {
+                                 errMsg = "Set doesn't exist\n";
+                         }
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+
+       ));
+
 
        // this handler requests to remove a temp set
        forMe.registerHandler (StorageRemoveTempSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveTempSet>> (
@@ -592,7 +615,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         }
                         else {
                                 res = false;
-                                errMsg = "Fatal Error: Page doesn't exist.";
+                                errMsg = "Fatal Error: Page doesn't exist for pinning page.";
+                                std :: cout << "dbId = " << dbId << ", typeId = " << typeId << ", setId = " << setId << std :: endl; 
                                 std :: cout << errMsg << std :: endl;
                         }
                         return make_pair(res, errMsg);
@@ -622,7 +646,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
           
                        if(getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
                                 res = false;
-                                errMsg = "Fatal Error: Page doesn't exist.";
+                                errMsg = "Fatal Error: Page doesn't exist for unpinning page.";
+                                std :: cout << "dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                                 std :: cout << errMsg << std :: endl;
                        } else {
                                 res = true;
@@ -681,10 +706,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                            });
                         
                         //scan pages and load pages in a multi-threaded style
-                        PDBWorkerPtr worker = getFunctionality<PangeaStorageServer>().getWorker();
                      
                         int counter = 0;
                         for (int i = 0; i < numIterators; i++) {
+                                  PDBWorkerPtr worker = getFunctionality<PangeaStorageServer>().getWorker();
                                   PDBScanWorkPtr scanWork = make_shared<PDBScanWork>(iterators->at(i), &getFunctionality<PangeaStorageServer>(), counter);
                                   worker->execute(scanWork, tempBuzzer);
                         }
@@ -1144,7 +1169,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        } 
        type->addSet(setName, setId);
        SetPtr set = type->getSet(setId);
-
+       this->getCache()->pin(set, MRU, Write);
        pthread_mutex_lock(&this->usersetLock);
        this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
        this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
@@ -1227,6 +1252,7 @@ bool PangeaStorageServer::addTempSet(string setName, SetID &setId) {
         //cout << "setId:" << setId << "\n";
         TempSetPtr tempSet = make_shared<TempSet>(setId, setName, this->metaTempPath, this->dataTempPaths,
                         this->shm, this->cache, this->logger);
+        this->getCache()->pin(tempSet, MRU, Write);
         this->logger->writeLn("temp set created!");
         //cout << "TempSet created!\n";
         pthread_mutex_lock(&this->tempsetLock);
@@ -1276,7 +1302,9 @@ TempSetPtr PangeaStorageServer::getTempSet(SetID setId) {
 SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID setId) {
      //cout << "to get database...\n";
      if((dbId == 0) && (typeId == 0)) {
-         return this->getTempSet(setId);
+         SetPtr set = this->getTempSet(setId);
+         //this->getCache()->pin(set, MRU, Write);
+         return set;
      }
      DefaultDatabasePtr db = this->getDatabase(dbId);
      if (db == nullptr) {
@@ -1292,7 +1320,9 @@ SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID set
      }
 
      //cout << "to get set...\n";
-     return type->getSet(setId);
+     SetPtr set = type->getSet(setId);
+     //this->getCache()->pin(set, MRU, Write);
+     return set;
 }
 
 /**

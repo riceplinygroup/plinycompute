@@ -22,6 +22,7 @@
 #include "StorageClient.h"
 #include "StorageAddData.h"
 #include "StorageAddSet.h"
+#include "StorageRemoveUserSet.h"
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
 #include "StorageTestSetScan.h"
@@ -75,7 +76,39 @@ bool StorageClient :: createSet (std :: string databaseName, std :: string setNa
 }
 
 
-// added by Jia
+
+
+template <class DataType>
+bool StorageClient :: removeSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    if(this->usePangea == true) {
+
+       std :: string typeName = getTypeName <DataType> ();
+       std :: cout << "typeName for set to create =" << typeName << std :: endl;
+       return simpleRequest <StorageRemoveUserSet, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                       if (result != nullptr) {
+                             if (!result->getRes().first) {
+                                     errMsg = "Error removing set: " + result->getRes().second;
+                                     myLogger->error ("Error removing set: " + result->getRes().second);
+                                     return false;
+                             }
+                             return true;
+                       }
+                       errMsg = "Error getting type name: got nothing back from catalog";
+                       return false;
+
+                }, databaseName, setName, typeName);
+
+    } else {
+
+       return false;
+
+    }
+
+}
+
+
+
 
 template <class DataType>
 bool StorageClient :: retrieveData (std :: string databaseName, std :: string setName, std :: string &errMsg) {
