@@ -142,13 +142,22 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 	return nullptr;
 }
 
+void PangeaStorageServer :: clean() {
+        std :: cout << "to clean up for storage..." << std :: endl; 
+        for (auto &a : allRecords) {
+                while (a.second.size () > 0)
+                        writeBackRecords (a.first);
+        }
+        getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+        std :: cout << "sleep for 5 seconds to wait for all data gets flushed" << std :: endl;
+        sleep(5);
+        std :: cout << "cleaned up for storage..." << std :: endl;
+}
 
 PangeaStorageServer :: ~PangeaStorageServer () {
 
-	for (auto &a : allRecords) {
-		while (a.second.size () > 0)
-			writeBackRecords (a.first);
-	}
+        //clean();
+        stopFlushConsumerThreads(); 
         pthread_mutex_destroy(&(this->databaseLock));
         pthread_mutex_destroy(&(this->typeLock));
         pthread_mutex_destroy(&(this->tempsetLock));
@@ -180,14 +189,17 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 	// get all of the records
 	auto &allRecs = allRecords[databaseAndSet];
 
+
         // the current size (in bytes) of records we need to process
         size_t numBytesToProcess = sizes[databaseAndSet];
+        /*
         size_t rawPageSize = conf->getPageSize();
         
         if(numBytesToProcess < rawPageSize) {
                 std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
                 return;
         }
+        */
         //std :: cout << "buffer is full, to write to a storage page"<< std::endl;
  
 	// now, get a page to write to
@@ -395,8 +407,17 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+       /*
+       forMe.registerHandler (StorageShutDown_TYPEID, make_shared <SimpleRequestHandler <ShutDown>> (
+                [&] (Handle<ShutDown> request, PDBCommunicatorPtr sendUsingMe) {
+                         getFunctionality <PangeaStorageServer> ().clean();
+                         bool res = true;
+                         std :: string errMsg;
+                         return make_pair (res, errMsg);
+                }
 
-
+       ));
+       */
 
 
 	// this handler accepts a request to store some data
@@ -423,13 +444,22 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
         	                                        (std :: string) request->getSetName ());
 						getFunctionality <PangeaStorageServer> ().bufferRecord 
 							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
-	
-						// if we have enough space to fill up a page, do it
-						std :: cout << "Got the data.\n";
-						std :: cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
-						getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
-						std :: cout << "Done with write back.\n";
-						std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
+
+
+                                                size_t numBytesToProcess = sizes[databaseAndSet];
+                                                size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
+
+                                                if(numBytesToProcess < rawPageSize) {
+                                                      std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
+                                                 }
+                                                else {
+						      // if we have enough space to fill up a page, do it
+						      std :: cout << "Got the data.\n";
+						      std :: cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+						      getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
+						      std :: cout << "Done with write back.\n";
+						      std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
+                                                }
 					}
 				} else {
 					errMsg = "Tried to add data of the wrong type to a database set.\n";
@@ -754,7 +784,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                 }
         ));
-
 
         // this handler accepts a request to translate <<srcDatabaseName, srcSetName>, <destDatabaseName, destSetName>> into <<srcDatabaseId, srcTypeId, SrcSetId>, <destDatabaseId, destTypeId, destSetId>> and forward to backend
         forMe.registerHandler (StorageTestSetCopy_TYPEID, make_shared <SimpleRequestHandler <StorageTestSetCopy>> (

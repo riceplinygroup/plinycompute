@@ -249,6 +249,12 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
             myLogger->trace("PDBServer: close connection request");
         }
 
+        // for each functionality, invoke its clean() method
+        for (int i = 0; i < allFunctionalities.size(); i++) {
+            allFunctionalities.at(i)->clean();
+        }
+
+
 	// ack the result
 	std :: string errMsg;
 	Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, "successful shutdown of server");

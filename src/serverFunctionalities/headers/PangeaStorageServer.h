@@ -237,8 +237,12 @@ public:
     bool isStandalone();
 
 
+   // cleaner to be invoked in destructor
+    void clean() override;
 
 protected:
+
+
 
     /**
      * Encode database path
