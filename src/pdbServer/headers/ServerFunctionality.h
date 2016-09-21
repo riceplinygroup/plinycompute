@@ -32,6 +32,9 @@ public:
 	// registers any particular handlers that this server needs
 	virtual void registerHandlers (PDBServer &forMe) = 0;
 
+        // added by Jia, it will be invoked when PDBServer is to be shutdown
+        virtual void clean() {}
+ 
 	// access a particular functionality on the attached server
 	template <class Functionality>
 	Functionality &getFunctionality () {

@@ -39,6 +39,7 @@ bool StorageClient :: registerType (std :: string regMe, std :: string &errMsg) 
 }
 
 bool StorageClient :: shutDownServer (std :: string &errMsg) {
+        
 	return myHelper.shutDownServer (errMsg);	
 }
 
