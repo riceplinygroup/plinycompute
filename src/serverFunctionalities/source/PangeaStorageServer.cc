@@ -1174,6 +1174,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
        this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
        pthread_mutex_unlock(&this->usersetLock);
+       
        return true;
 }
 
@@ -1538,8 +1539,8 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
                 std :: map<SetID, SetPtr>::iterator setIter;
                 for (setIter = sets->begin(); setIter != sets->end(); setIter++) {
                         SetID setId = setIter->first;
-                        if (maxSetId <  setId) {
-                            maxSetId =  setId;
+                        if (maxSetId <=  setId) {
+                            maxSetId =  setId + 1;
                         }
                         SetPtr set = setIter->second;
                         std :: cout << "Loaded existing set with database: "<<dbName<<", type: "<<typeName<<", set: "<<set->getSetName()<<std::endl;
