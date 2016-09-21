@@ -55,16 +55,16 @@ int main () {
 		cout << "Created set.\n";
 	}
 
-	for (int num = 0; num < 25; ++num) {
+	//for (int num = 0; num < 25; ++num) {
 		// now, create a bunch of data
 		void *storage = malloc (1024 * 1024 * 8);
 		{
 			pdb :: makeObjectAllocatorBlock (storage, 1024 * 1024 * 8, true);
 			pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
-
+			int i;
 			try {
 		
-				for (int i = 0; true; i++) {
+				for (i = 0; true; i++) {
 					pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);	
 					storeMe->push_back (myData);
 				}
@@ -76,17 +76,18 @@ int main () {
 					cout << "Not able to store data: " + errMsg;
 					return 0;
 				}	
+				std :: cout << i << std::endl;
 				std :: cout << "stored the data!!\n";
 			}
 		}
 		free (storage);
-	}
+	//}
 
 	// and shut down the server
-	/*
+	
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
-	*/
+	
 }
 
 #endif
