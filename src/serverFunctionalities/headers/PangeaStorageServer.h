@@ -72,8 +72,7 @@ public:
         SetPtr getSet (std :: pair < std :: string, std :: string> databaseAndSet);
 
 
-	// from the ServerFunctionality interface... registers the StorageServer's 
-	// single handler, which accepts a vector of records and stores it
+	// from the ServerFunctionality interface... registers the StorageServer's handlers
 	void registerHandlers (PDBServer &forMe) override;
 
 	// stores a record---we'll keep buffering records until we get enough of them that
