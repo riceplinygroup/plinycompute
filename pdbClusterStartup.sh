@@ -21,7 +21,7 @@ PDB_COMMAND="pdbServer"
 PDB_STARTUP="pdbStartup.sh"
 PDB_DIRS1="bin/pdbServer"
 PDB_DIRS2="libraries/"
-PDB_DIRS3="pdbSettings.conf"
+PDB_DIRS3="conf/"
 
 
 
