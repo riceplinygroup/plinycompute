@@ -152,7 +152,7 @@ int main(int numArgs, const char *args[]) {
 		configurationFile = vm["conf"].as<string>();
 		cout << "Configuration file is" << configurationFile << ".\n";
 	} else {
-		configurationFile = "pdbSettings.conf";
+		configurationFile = "conf/pdbSettings.conf";
 	}
 
 	// Load from configuration file.
