@@ -72,7 +72,14 @@ int main (int argc, char * argv[]) {
         // now, copy data from the source set to the destination set
         temp.copyData<SharedEmployee>(srcDatabaseName, srcSetName, destDatabaseName, destSetName, errMsg);
 
-        
+        // now, remove data from the destination set
+        std :: cout << "to remove the destination set." << std :: endl;
+        temp.removeSet<SharedEmployee>(destDatabaseName, destSetName, errMsg);
+
+        // now, add the destination set again
+        std :: cout << "to create a new destination set for next test." << std :: endl;
+        temp.createSet<SharedEmployee>(destDatabaseName, destSetName, errMsg);
+                
 
 }
 

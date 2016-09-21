@@ -16,56 +16,47 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef OPERATOR_H
-#define OPERATOR_H
+#ifndef STORAGE_REMOVE_USER_SET_H
+#define STORAGE_REMOVE_USER_SET_H
 
+#include "Object.h"
+#include "Handle.h"
+#include "PDBString.h"
+
+// PRELOAD %StorageRemoveUserSet%
 
 namespace pdb {
 
-
-// this pure virtual class defines the common interfaces of operators;
-// each query type can be split into a graph of operators;
-// the system supports a fixed set of operators for query execution at backend.
-// it has several differences with the SimpleSingleTableQueryProcessor interface:
-//     - it is batch oriented
-//     - it can describe join, aggregation, simple selection and so on.
-
-
-
-class Operator {
+// encapsulates a request to remove a set from storage
+class StorageRemoveUserSet  : public Object {
 
 public:
 
-    // must be called before the operator is asked to do anything
-    virtual void initialize() = 0;
+	StorageRemoveUserSet () {}
+	~StorageRemoveUserSet () {}
 
-    // loads up another batch of the i-th input data to process
-    virtual void loadInputBatch(int inputDataId, void * batchToProcess) = 0;
+	StorageRemoveUserSet (std :: string dataBase, std :: string setName, std :: string typeName) : dataBase (dataBase), setName (setName), typeName(typeName) {}
 
-    // loads up another batch of the i-th output data to fill
-    virtual void loadOutputBatch(int outputDataId, void * batchToFill, size_t numBytesInBatch) = 0;
+        std :: string getDatabase () {
+                return dataBase;
+        }
 
-    // attempts to process next input batch of the i-th input data
-    virtual bool processNextInputBatch(int inputDataId) = 0;
+	std :: string getSetName () {
+		return setName;
+	}
 
-    // must be called after all of the input pages have been processed
-    virtual void finalize () = 0;
+        std :: string getTypeName () {
+                return typeName;
+        }
 
+	ENABLE_DEEP_COPY
 
-
+private:
+        String dataBase;
+	String setName;
+        String typeName;
 };
 
-
-
 }
-
-
-
-
-
-
-
-
-
 
 #endif

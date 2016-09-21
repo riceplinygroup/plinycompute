@@ -58,6 +58,11 @@ public:
 	template <class DataType>
 	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
+        // this removes a set from a given database... returns true on success
+        template <class DataType>
+        bool removeSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+
 	// this stores data into a set... returns true on success
 	template <class DataType>
 	bool storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg);
