@@ -23,6 +23,7 @@
 #include "SimpleRequestHandler.h"
 #include "RequestResources.h"
 #include "AllocatedResources.h"
+#include "DataTypes.h"
 #include <stdlib.h>
 #include <regex>
 #include <iostream>
@@ -35,14 +36,15 @@ namespace pdb {
 ResourceManagerServer :: ~ResourceManagerServer () { this->resources = nullptr; }
 
 
-ResourceManagerServer :: ResourceManagerServer (std :: string catalogIp, int port) {   
+ResourceManagerServer :: ResourceManagerServer (std :: string catalogIp) {   
 
 //TODO  
 
 }
 
 
-ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList) {
+ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, int port) {
+    this->port = port;
     this->initialize (pathToServerList);
 }
 
@@ -52,19 +54,49 @@ Handle<Vector<Handle<ResourceInfo>>> ResourceManagerServer :: getAllResources ()
 
 }
 
+Handle<Vector<Handle<NodeDispatcherData>>> ResourceManagerServer :: getAllNodes() {
+   return nodes;
+}
+
+
 void ResourceManagerServer :: initialize (std :: string pathToServerList) {
 
     //Allocate a Vector
     int maxNodeNum = 1000;
     makeObjectAllocatorBlock (1024*1024, true);
     this->resources = makeObject<Vector<Handle<ResourceInfo>>>(maxNodeNum);
-
+    makeObjectAllocatorBlock (1024*1024, true);
+    this->nodes = makeObject<Vector<Handle<NodeDispatcherData>>>(maxNodeNum);
+    analyzeNodes(pathToServerList);
     //to run a script to obtain all system resources
     system ("scripts/collect_proc.sh");    
-    analyze ("conf/cluster/cluster_info.txt");
+    analyzeResources ("conf/cluster/cluster_info.txt");
 }
 
-void ResourceManagerServer :: analyze (std :: string resourceFileName) {
+void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
+    std :: cout << serverlist << std :: endl;
+    std :: string address;
+    NodeID nodeId = 0;
+    std :: ifstream nodeFile (serverlist);
+    if (nodeFile.is_open()) {
+       while (! nodeFile.eof()) {
+           std :: getline (nodeFile, address);
+           //std :: cout << address << std :: endl;
+           const UseTemporaryAllocationBlock block (1024);
+           Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+           this->nodes->push_back(node);
+           std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
+           nodeId ++;
+       } 
+       nodeFile.close();
+    }
+    else {
+          std :: cout << "file can't be open" << std :: endl;
+    } 
+}
+
+
+void ResourceManagerServer :: analyzeResources (std :: string resourceFileName) {
 
     //to analyze and obtain resources
     std :: string line;
@@ -97,9 +129,9 @@ void ResourceManagerServer :: analyze (std :: string resourceFileName) {
                 std :: stringstream SS(*N->begin());
                 SS >> memSize;
                 std :: cout << "memSize =" << memSize << std :: endl;
-                numServers ++;
-                Handle<ResourceInfo> resource = makeObject<ResourceInfo>(numCores, memSize);
+                Handle<ResourceInfo> resource = makeObject<ResourceInfo>(numCores, memSize, (*this->nodes)[numServers]->getAddress(), port, numServers);
                 this->resources->push_back(resource);
+                numServers ++;
             }
 
 

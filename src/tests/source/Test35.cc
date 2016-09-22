@@ -34,7 +34,7 @@ int main () {
        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
        frontEnd.addFunctionality <pdb :: StorageServer> ("StorageDir", 1024 * 128, 128);
        frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
-       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist");
+       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8101);
        frontEnd.addFunctionality <pdb :: QuerySchedulerServer> ("localhost", 8108, myLogger);
        frontEnd.startServer (nullptr);
 }

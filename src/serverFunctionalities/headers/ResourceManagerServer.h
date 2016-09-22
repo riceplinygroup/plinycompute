@@ -23,6 +23,7 @@
 #include "ResourceInfo.h"
 #include "Handle.h"
 #include "PDBVector.h"
+#include "NodeDispatcherData.h"
 
 
 namespace pdb {
@@ -35,12 +36,14 @@ public:
        ~ResourceManagerServer ();
 
        //constructor, initialize from catalog
-       ResourceManagerServer (std :: string catalogIp, int port);
+       ResourceManagerServer (std :: string catalogIp);
 
        //constructor, initialize from a server list file 
-       ResourceManagerServer (std :: string pathToServerList);
+       ResourceManagerServer (std :: string pathToServerList, int port);
 
        Handle<Vector<Handle<ResourceInfo>>> getAllResources ();
+
+       Handle<Vector<Handle<NodeDispatcherData>>> getAllNodes();
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
@@ -52,13 +55,17 @@ protected:
       // now all resources shall be initialized when the cluster is started
       void initialize (std :: string pathToServerList);
 
-      void analyze(std :: string resourceFileName);       
+      void analyzeResources(std :: string resourceFileName);       
 
+      void analyzeNodes(std :: string serverList);
 
 private:
 
       Handle<Vector<Handle<ResourceInfo>>> resources;
 
+      Handle<Vector<Handle<NodeDispatcherData>>> nodes;
+
+      int port;
 };
 
 
