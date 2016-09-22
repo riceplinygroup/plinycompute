@@ -28,6 +28,8 @@
 #include <string>
 #include <memory>
 
+#include "UseTemporaryAllocationBlock.h"
+
 namespace pdb {
 
 template <class OutType>
