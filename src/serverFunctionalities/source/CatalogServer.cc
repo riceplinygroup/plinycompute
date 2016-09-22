@@ -90,10 +90,11 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			const LockGuard guard{workingMutex};
 
 			// ask the catalog serer for the shared library
-			vector <char> putResultHere;
+                        // added by Jia to fix a length error bug
+			vector <char> * putResultHere = new vector<char>();
 			std :: string errMsg;
 			int16_t typeID = request->getTypeID ();
-			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, putResultHere, errMsg);
+			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
 
 			if (!res) {
 				const UseTemporaryAllocationBlock tempBlock{1024};
@@ -102,12 +103,12 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			} else {
 
 				// in this case, we need a big space to put the object!!
-				const UseTemporaryAllocationBlock temp{1024 + putResultHere.size ()};
- 				Handle <Vector <char>> response = makeObject <Vector <char>> (putResultHere.size (), putResultHere.size ()); 
-				memmove (response->c_ptr (), putResultHere.data (), putResultHere.size ());
+				const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size ()};
+ 				Handle <Vector <char>> response = makeObject <Vector <char>> ((*putResultHere).size (), (*putResultHere).size ()); 
+				memmove (response->c_ptr (), (*putResultHere).data (), (*putResultHere).size ());
 				res = sendUsingMe->sendObject (response, errMsg);
 			}
-
+                        delete putResultHere;
 			// return the result
 			return make_pair (res, errMsg);
 		}
@@ -267,6 +268,7 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 	size_t fileLen = in.tellg();
 
 	int filedesc = open (whichFile.c_str (), O_RDONLY);
+        std :: cout << "fileLen=" << fileLen << std :: endl;
 	putResultHere.resize (fileLen);
 	read (filedesc, putResultHere.data (), fileLen);
 	close (filedesc);

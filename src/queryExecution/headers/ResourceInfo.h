@@ -28,6 +28,7 @@
 #include "Object.h"
 #include "Handle.h"
 #include "PDBString.h"
+#include "DataTypes.h"
 
 //  PRELOAD %ResourceInfo%
 
@@ -46,7 +47,7 @@ public:
 	~ResourceInfo() {
 	}
 
-        ResourceInfo (int numCores, int memSize) : numCores(numCores), memSize(memSize) {}
+        ResourceInfo (int numCores, int memSize, std :: string address, int port, int nodeId) : numCores(numCores), memSize(memSize), address(address), port(port), nodeId(nodeId) {}
 
 	// To get number of CPUs in this resource
 	int getNumCores() {
@@ -67,28 +68,41 @@ public:
         }
 
 
-	String& getHostName() {
-		return hostName;
+	String& getAddress() {
+		return address;
 	}
 
-	void setHostName(pdb::String & hostName) {
-		this->hostName = hostName;
+	void setAddress(pdb::String & address) {
+		this->address = address;
 	}
+
+        NodeID getNodeId() {
+                return this->nodeId;
+        }      
+  
+        void setNodeId (NodeID nodeId) {
+                this->nodeId = nodeId;
+        }
 
 
 	ENABLE_DEEP_COPY
 
 private:
 
-	// hostname or IP address of the PDB server
-	String hostName;
-
-	// number of CPU cores
-	int numCores;
+        // number of CPU cores
+        int numCores;
 
         // size of memory in MB
         int memSize;
 
+	// hostname or IP address of the PDB server
+	String address;
+ 
+        // port of the PDB server
+        int port;
+
+        //NodeID of the PDB server
+        NodeID nodeId;
          
 
 };

@@ -26,7 +26,7 @@
 #include "PDBString.h"
 #include "PDBVector.h"
 #include "DataTypes.h"
-#include "SetInfo.h"
+//#include "SetInfo.h"
 
 #include <string>
 
@@ -67,10 +67,12 @@ public:
         return 0;
     }
 
+    /*
     void addSet(std::string set, std::string database, long typeId) {
         sets.push_back(pdb::makeObject<pdb::SetInfo> (set, database, typeId));
         bytesSent.push_back(0);
     }
+    */
 
     bool operator==(const NodeDispatcherData& other) {
         return this->port == other.getPort() && this->address == other.getAddress();
@@ -87,7 +89,7 @@ private:
     String address;
 
     // TODO: Replace this with map when possible. Provides a mapping between a set and the number of bytes sent to it.
-    Vector<Handle<SetInfo>> sets;
+    //Vector<Handle<SetInfo>> sets;
 
     // JOSEPH: These bottom values will only be available to the dispatcher
     Vector<size_t> bytesSent;
