@@ -1,0 +1,84 @@
+/*****************************************************************************
+ *                                                                           *
+ *  Copyright 2018 Rice University                                           *
+ *                                                                           *
+ *  Licensed under the Apache License, Version 2.0 (the "License");          *
+ *  you may not use this file except in compliance with the License.         *
+ *  You may obtain a copy of the License at                                  *
+ *                                                                           *
+ *      http://www.apache.org/licenses/LICENSE-2.0                           *
+ *                                                                           *
+ *  Unless required by applicable law or agreed to in writing, software      *
+ *  distributed under the License is distributed on an "AS IS" BASIS,        *
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. *
+ *  See the License for the specific language governing permissions and      *
+ *  limitations under the License.                                           *
+ *                                                                           *
+ *****************************************************************************/
+#ifndef QUERY_SCHEDULER_SERVER_H
+#define QUERY_SCHEDULER_SERVER_H
+
+
+#include "ServerFunctionality.h"
+#include "ResourceInfo.h"
+#include "Handle.h"
+#include "PDBVector.h"
+#include "QueryBase.h"
+#include "ResourceInfo.h"
+#include "JobStage.h"
+#include "SimpleSingleTableQueryProcessor.h"
+#include "PDBLogger.h"
+#include <vector>
+
+namespace pdb {
+
+class QuerySchedulerServer : public ServerFunctionality {
+
+public:
+
+       //destructor
+       ~QuerySchedulerServer ();
+
+       //constructor, initialize from catalog
+       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger);
+
+       //to directly parse client query into a physical plan, for temporarily 
+       std :: vector <SimpleSingleTableQueryProcessorPtr> * parseQuery(Handle<Vector<Handle<QueryBase>>> userQuery);
+
+       //to execute optimized client query into a physical plan
+       Handle<Vector<Handle<JobStage>>> parseOptimizedQuery(pdb::Object interfaceTBD );
+
+       //from the serverFunctionality interface... register the resource manager handlers
+       void registerHandlers (PDBServer &forMe) override;
+
+
+protected:
+
+       //current resources
+       Handle<Vector<Handle<ResourceInfo>>> resources;
+
+       // resource manager IP address
+       std :: string resourceManagerIp;
+
+       // port number
+       int port;
+
+       // physical plan for temporarily use
+       std :: vector<SimpleSingleTableQueryProcessorPtr> * currentTempPlan;
+
+       // physical plan
+       Handle<Vector<Handle<JobStage>>> currentPlan;
+
+       // logger
+       PDBLoggerPtr logger;
+
+       //TODO: status report
+
+};
+
+
+}
+
+
+
+#endif

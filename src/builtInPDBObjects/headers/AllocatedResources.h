@@ -43,6 +43,12 @@ public:
 		return resources;
 	}
 
+        void print() {
+                for (int i = 0; i < resources->size(); i++) {
+                     std::cout << i << ":" << "CPU number=" << (*resources)[i]->getNumCores() << ", memory size=" << (*resources)[i]->getMemSize() << std :: endl;
+                }
+
+        }
 
 	ENABLE_DEEP_COPY
 
