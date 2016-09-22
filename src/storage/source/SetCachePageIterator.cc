@@ -57,9 +57,12 @@ PDBPagePtr SetCachePageIterator::end() {
 
 PDBPagePtr SetCachePageIterator::next() {
     //this->set->getLogger()->writeLn("SetCachePageIterator: to get lock for evictionLock()...");
+    //std :: cout << "to get lock!" << std :: endl;
     this->cache->evictionLock();
+    //std :: cout << "got lock!" << std :: endl;
     //this->set->getLogger()->writeLn("SetCachePageIterator: got lock for evictionLock()...");
     if(this->iter != this->set->getDirtyPageSet()->end()) {
+        //std :: cout << "has next!" << std :: endl;
         if(this->iter->second.inCache == true) {
             CacheKey key;
             key.dbId = this->set->getDbID();
@@ -68,7 +71,7 @@ PDBPagePtr SetCachePageIterator::next() {
             key.pageId = this->iter->first;
             //this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
             //this->set->getLogger()->writeInt(key.pageId);
-            //cout << "SetCachePageIterator: curPageId="<<key.pageId<<"\n";
+            //std :: cout << "SetCachePageIterator: curPageId="<<key.pageId<<"\n";
             PDBPagePtr page = this->cache->getPage(key, this->set);
             this->cache->evictionUnlock();
             //this->set->getLogger()->writeLn("SetCachePageIterator: unlocked for evictionLock()...");
@@ -79,6 +82,7 @@ PDBPagePtr SetCachePageIterator::next() {
             //this->set->getLogger()->writeLn("SetCachePageIterator: unlocked for evictionLock()...");
             //the page is already flushed to file, so load from file
             PageID pageId = this->iter->first;
+            //std :: cout << "SetCachePageIterator: curPageId="<<pageId<<"\n";
             //this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
             //this->set->getLogger()->writeInt(pageId);
             FileSearchKey searchKey = this->iter->second;

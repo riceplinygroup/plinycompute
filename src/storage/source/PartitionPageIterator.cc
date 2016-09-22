@@ -49,7 +49,7 @@ PartitionPageIterator::PartitionPageIterator(PageCachePtr cache, PDBFilePtr file
  * To return the next page. If there is no more page, return nullptr.
  */
 PDBPagePtr PartitionPageIterator::next() {
-
+        //std :: cout << "using PartitionPageIterator to find next page" << std :: endl;
 	PDBPagePtr pageToReturn;
 	if(this->numIteratedPages >= this->numPages) {
 		return nullptr;
@@ -61,10 +61,11 @@ PDBPagePtr PartitionPageIterator::next() {
 			PageID curPageId = this->partitionedFile->loadPageId(this->partitionId, this->numIteratedPages);
 //                  cache->getLogger()->writeLn("ParatitionedPageIterator:curPageID=");
 //                  cache->getLogger()->writeInt(curPageId);      
-			//cout<<"PartitionedPageIterator: curTypeId="<<this->partitionedFile->getTypeId()<<",curSetId="<<this->partitionedFile->getSetId() <<",curPageId="<<curPageId<<"\n";
+			//std :: cout<<"PartitionedPageIterator: curTypeId="<<this->partitionedFile->getTypeId()<<",curSetId="<<this->partitionedFile->getSetId() <<",curPageId="<<curPageId<<"\n";
 			//page is pinned (ref count ++)
 			pageToReturn = cache->getPage(this->partitionedFile, this->partitionId, this->numIteratedPages,
 					curPageId, false, set);
+                        //std :: cout << "got page" << std :: endl;
 			this->numIteratedPages ++;
 
 		}

@@ -145,14 +145,14 @@ void PangeaQueryServer :: registerHandlers (PDBServer &forMe) {
 	// handle a request to iterate through a file	
 	forMe.registerHandler (SetScan_TYPEID, make_shared <SimpleRequestHandler <SetScan>> (
 		[&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
-
+                   
 			// for error handling
 			std :: string errMsg;
 
 			// this is the number of pages
 			std :: string whichDatabase = request->getDatabase ();
 			std :: string whichSet = request->getSetName ();
-
+                        //std :: cout << "we are now iterating set:" << whichSet << std :: endl;
 			// and keep looping while someone wants to get the output
 			SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
 			loopingSet->setPinned(true);
@@ -160,13 +160,17 @@ void PangeaQueryServer :: registerHandlers (PDBServer &forMe) {
 
 			// loop through all pages
 			int numIterators = pageIters->size();
+                        //std :: cout << "number of iterators:" << numIterators << std :: endl;
 		    for (int i = 0; i < numIterators; i++) {
+                        //std :: cout << "to use iterator " << i << std :: endl;
 		        PageIteratorPtr iter = pageIters->at(i);
 		        while (iter->hasNext()){
+                            //std :: cout << "has next!" << std :: endl;
 		            PDBPagePtr nextPage = iter->next();
 		            
 		            // send the relevant page.
 		            if (nextPage != nullptr) {
+                                                //std :: cout << "We've got a page to sent..." << std :: endl;
 						const UseTemporaryAllocationBlock tempBlock {1024};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
@@ -186,17 +190,20 @@ void PangeaQueryServer :: registerHandlers (PDBServer &forMe) {
 								return std :: make_pair (true, std :: string ("everything OK!"));
 						}
 
-		            }
+		            } else {
+                                                //std :: cout << "We've got a null page!!!" << std :: endl;
+                            }
+                            nextPage->unpin();
 
 		        }
 			}
+                        loopingSet->setPinned(false);
 			// tell the caller we are done
 			const UseTemporaryAllocationBlock tempBlock {1024};
 			Handle <DoneWithResult> temp = makeObject <DoneWithResult> ();
 			if (!sendUsingMe->sendObject (temp, errMsg)) {
 				return std :: make_pair (false, "could not send done message: " + errMsg);
 			}
-
 			// we got to here means success!!  We processed the query, and got all of the results
 			return std :: make_pair (true, std :: string ("query completed!!"));
 		}));
@@ -210,6 +217,7 @@ void PangeaQueryServer :: computeQuery (std :: string setNameToUse, std :: strin
 	
 	// base case: this node has been computed, so we are done
 	if (computeMe->getSetName () != "" && computeMe->getQueryType () != "localoutput") {
+                //std :: cout << "the node is saying I can return" << std :: endl;
 		return;
 	}	
 
@@ -259,6 +267,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 
 	// add the output set
 	std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (inputDatabase, setNameToUse);
+        //std :: cout << "now we add a set with name=" << setNameToUse << std :: endl;
 	getFunctionality <PangeaStorageServer> ().addSet(inputDatabase, setNameToUse);
         SetPtr set = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
 	set->setPinned(true);
@@ -266,7 +275,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 	std :: string errMsg;
 	int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (myQuery->getOutputType ());
 	if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
-		std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";	
+		//std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";	
 		exit (1);
 	}
 
@@ -329,7 +338,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 							}
 						}
 					}
-                                        std :: cout << "to process one page..." << std :: endl;
+                                        //std :: cout << "to process one page..." << std :: endl;
 					// load up the next page
 					if (!allDone) {
 						queryProc->loadInputPage (inputPage->getBytes ());
@@ -337,7 +346,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 					
 					// get the results
 					while (queryProc->fillNextOutputPage ()) {
-                                                std :: cout << "to write another page..." << std :: endl;
+                                                //std :: cout << "to write another page..." << std :: endl;
 						++numOutputPages;
 						//Load new output page as we fill the current output page.
         				PDBPagePtr outputPage = getFunctionality <PangeaStorageServer> ().getNewPage (outDatabaseAndSet);
@@ -346,21 +355,25 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
         				prevOutpage = outputPage;
 
 					}
+                                        if (inputPage != nullptr) {
+                                             inputPage->unpin();
+                                        }
 				}
 				prevOutpage->unpin();
-                                std :: cout << "finished!" << std :: endl;
+                                //std :: cout << "finished!" << std :: endl;
 				// let the caller know that we are all done
 				callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
 			}	
 		);
-
+                
 		// ask our worker to do the work
 		myWorker->execute (myWork, myBuzzer);
 	}
 		
 	// now, wait until we are done
 	myBuzzer->wait ();	
-
+        set->setPinned(false);
+        inputSet_sp->setPinned(false);
 	// deallocate the mutex
 	pthread_mutex_destroy(&workerMutex);
 }
