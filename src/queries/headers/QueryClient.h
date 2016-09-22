@@ -35,7 +35,7 @@ class QueryClient {
 public:
 
 	// connect to the database
-	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) : myHelper (portIn, addressIn, myLoggerIn) {
+	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool usePangea=false) : myHelper (portIn, addressIn, myLoggerIn) {
 		port = portIn;
 		address = addressIn;
 		myLogger = myLoggerIn;
@@ -136,7 +136,27 @@ public:
 
 		// this call asks the database to execute the query, and then it inserts the result set name
 		// within each of the results, as well as the database connection information
-		return simpleDoubleRequest <ExecuteQuery, Vector <Handle <QueryBase>>, Vector <String>, bool> (myLogger, port, 
+
+                if (usePangea == true) {
+                     return simpleDoubleRequest<ExecuteQuery, Vector<Handle<QueryBase>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
+                [&] (Handle<SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error scanning data: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from server";
+                        return false;
+
+
+                }, executeQuery, runUs);
+
+
+                } else {
+		     return simpleDoubleRequest <ExecuteQuery, Vector <Handle <QueryBase>>, Vector <String>, bool> (myLogger, port, 
 		address, false, 124 * 1024, 
                 [&] (Handle <Vector <String>> result) {
                         if (result != nullptr) {
@@ -160,6 +180,8 @@ public:
                         }
                         errMsg = "Error getting query execution results";
                         return false;}, executeQuery, runUs);
+                 }
+         
 	}
 
 private:
@@ -176,6 +198,8 @@ private:
 
 	// for logging
 	PDBLoggerPtr myLogger;
+
+        bool usePangea;
 
 };
 
