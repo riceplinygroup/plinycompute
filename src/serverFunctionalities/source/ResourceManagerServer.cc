@@ -24,6 +24,7 @@
 #include "RequestResources.h"
 #include "AllocatedResources.h"
 #include <stdlib.h>
+#include <regex>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -77,21 +78,24 @@ void ResourceManagerServer :: analyze (std :: string resourceFileName) {
             std :: getline (resourceFile,line);
             if (line.find("CPUNumber") != string::npos) {
                 //get the number of cores
-                std :: stringstream ss( line );
-                std :: string token;
-                std :: getline (ss, token, ':');
-                std :: getline (ss, token, ':');
-                ss >> numCores; 
+                std :: cout << line << std :: endl;
+                const std :: regex r("[0-9]+");
+                numCores = 0;
+                std :: sregex_iterator N(line.begin(), line.end(), r); 
+                std :: stringstream SS(*N->begin());
+                numCores = 0;
+                SS >> numCores;
                 std :: cout << "numCores =" << numCores << std :: endl;
             }
 
             if (line.find("MemTotal") != string::npos) {
+                std :: cout << line << std :: endl;
                 //get the size of memory in MB
-                std :: stringstream ss( line);
-                std :: string token;
-                std :: getline (ss, token, ':');
-                std :: getline (ss, token, ':');
-                ss >> memSize;
+                const std :: regex r("[0-9]+");
+                memSize = 0;
+                std :: sregex_iterator N(line.begin(), line.end(), r);
+                std :: stringstream SS(*N->begin());
+                SS >> memSize;
                 std :: cout << "memSize =" << memSize << std :: endl;
                 numServers ++;
                 Handle<ResourceInfo> resource = makeObject<ResourceInfo>(numCores, memSize);

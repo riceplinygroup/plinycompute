@@ -71,8 +71,11 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          const UseTemporaryAllocationBlock block1 {128 * 1024};
          std :: string errMsg;
          bool success;
+         std :: cout << "Got the ExecuteQuery object" << std :: endl;
          Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
+         std :: cout << "Got the Query object" << std :: endl;
          if (!success) {
+             std :: cout << errMsg << std :: endl;
              return std :: make_pair (false, errMsg);
          }
          this->parseQuery (userQuery);
@@ -89,6 +92,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          Handle <RequestResources> resourceRequest = makeObject<RequestResources>(8, 16000);
          success = communicatorToResourceManager->sendObject<RequestResources>(resourceRequest, errMsg);
          if (!success) {
+             std :: cout << errMsg << std :: endl;
              return std :: make_pair (false, errMsg);
          }
 
@@ -96,6 +100,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          Handle<AllocatedResources> resourceResponse = communicatorToResourceManager->getNextObject<AllocatedResources>(success, errMsg);
     
          if (!success) {
+             std :: cout << errMsg << std :: endl;
              return std :: make_pair (false, errMsg);
          }
 
