@@ -181,6 +181,12 @@ public:
      */
     bool removeSet(std :: string dbName, std :: string typeName, std :: string setName);
 
+    /**
+     * Remove an existing set
+     */
+    bool removeSet(std :: string dbName, std :: string setName);
+
+
 
     /**
      * Returns a specified database.

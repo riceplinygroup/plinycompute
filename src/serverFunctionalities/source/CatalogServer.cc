@@ -42,7 +42,7 @@
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
 #include "StorageServer.h"
-
+#include "PangeaStorageServer.h"
 namespace pdb {
 
 int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) {
@@ -373,11 +373,18 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
 	myCatalog->save ();
 
-	// delete the file from the catalog
-	if (!getFunctionality <StorageServer> ().deleteSet (std :: make_pair (databaseName, setName))) {
-		errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
-		return false;	
-	}
+	// delete the file from the storage
+        if (usePangea == false) {
+        	if (!getFunctionality <StorageServer> ().deleteSet (std :: make_pair (databaseName, setName))) {
+	        	errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
+         		return false;	
+        	}
+        } else {
+              if (!getFunctionality <PangeaStorageServer> ().removeSet (databaseName, setName)) {
+                        errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
+                        return false;
+              }
+        }
 
 	return true;
 }
@@ -446,9 +453,10 @@ CatalogServer :: ~CatalogServer () {
 	pthread_mutex_destroy(&workingMutex);
 }
 
-CatalogServer :: CatalogServer (std :: string catalogDirectoryIn) {
+CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool usePangea) {
 
 	catalogDirectory = catalogDirectoryIn;
+        this->usePangea = usePangea;
 
 	myCatalog = make_shared <MyDB_Catalog> (catalogDirectory + "/catalog");
 
@@ -486,6 +494,7 @@ CatalogServer :: CatalogServer (std :: string catalogDirectoryIn) {
 			}
 		}
 	}
+        
 }
 
 }
