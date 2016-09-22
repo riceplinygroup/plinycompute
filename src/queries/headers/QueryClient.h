@@ -35,7 +35,7 @@ class QueryClient {
 public:
 
 	// connect to the database
-	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool usePangea=false) : myHelper (portIn, addressIn, myLoggerIn) {
+	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, int useScheduler=false) : myHelper (portIn, addressIn, myLoggerIn) {
 		port = portIn;
 		address = addressIn;
 		myLogger = myLoggerIn;
@@ -92,7 +92,7 @@ public:
 	}
 
 	bool deleteSet (std :: string databaseName, std :: string setName) {
-		
+                // this is for query testing stuff
 		return simpleRequest <DeleteSet, SimpleRequestResult, bool, String, String> (myLogger, port, 
 		address, false, 124 * 1024, 
                 [&] (Handle <SimpleRequestResult> result) {
@@ -137,7 +137,8 @@ public:
 		// this call asks the database to execute the query, and then it inserts the result set name
 		// within each of the results, as well as the database connection information
 
-                if (usePangea == true) {
+                // this is for query scheduling stuff
+                if (useScheduler == true) {
                      return simpleDoubleRequest<ExecuteQuery, Vector<Handle<QueryBase>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
                 [&] (Handle<SimpleRequestResult> result) {
                         if (result != nullptr) {
@@ -199,7 +200,7 @@ private:
 	// for logging
 	PDBLoggerPtr myLogger;
 
-        bool usePangea;
+        bool useScheduler;
 
 };
 

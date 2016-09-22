@@ -155,6 +155,7 @@ void PangeaQueryServer :: registerHandlers (PDBServer &forMe) {
 
 			// and keep looping while someone wants to get the output
 			SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
+			loopingSet->setPinned(true);
 			vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
 
 			// loop through all pages
@@ -252,13 +253,15 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 	std :: string inputDatabase = computeMe->getIthInput (0)->getDBName ();
 	std :: pair <std :: string, std :: string> databaseAndSet = std :: make_pair (inputDatabase, inputSet);
 	SetPtr inputSet_sp = getFunctionality <PangeaStorageServer> ().getSet (databaseAndSet);
+        inputSet_sp->setPinned(true);
 	vector<PageIteratorPtr> * inPageIters = inputSet_sp->getIterators();
 	int numIterators = inPageIters->size();
 
 	// add the output set
 	std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (inputDatabase, setNameToUse);
 	getFunctionality <PangeaStorageServer> ().addSet(inputDatabase, setNameToUse);
-	
+        SetPtr set = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+	set->setPinned(true);
 	// create the output set in the storage manager and in the catalog
 	std :: string errMsg;
 	int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (myQuery->getOutputType ());
@@ -303,12 +306,14 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 				bool allDone = false;
 				while (!allDone) {
 					
-					PDBPagePtr inputPage;
+					PDBPagePtr inputPage = nullptr;
+                                        while (inputPage == nullptr)
 					{
 						const LockGuard guard {workerMutex};
 						if (pageIterNum + 1 == numIterators && !iter->hasNext()) {
 							queryProc->finalize ();
 							allDone = true;
+                                                        break;
 						} else if (iter->hasNext()){
 							inputPage = iter->next();
 							++numInputPage;
@@ -320,10 +325,11 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 							} else {
 								queryProc->finalize ();
 								allDone = true;
+                                                                break;
 							}
 						}
 					}
-
+                                        std :: cout << "to process one page..." << std :: endl;
 					// load up the next page
 					if (!allDone) {
 						queryProc->loadInputPage (inputPage->getBytes ());
@@ -331,6 +337,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 					
 					// get the results
 					while (queryProc->fillNextOutputPage ()) {
+                                                std :: cout << "to write another page..." << std :: endl;
 						++numOutputPages;
 						//Load new output page as we fill the current output page.
         				PDBPagePtr outputPage = getFunctionality <PangeaStorageServer> ().getNewPage (outDatabaseAndSet);
@@ -341,6 +348,7 @@ void PangeaQueryServer :: doSelection (std :: string setNameToUse, Handle <Query
 					}
 				}
 				prevOutpage->unpin();
+                                std :: cout << "finished!" << std :: endl;
 				// let the caller know that we are all done
 				callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
 			}	

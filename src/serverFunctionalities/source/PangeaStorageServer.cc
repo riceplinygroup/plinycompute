@@ -45,7 +45,7 @@
 #include "SimpleRequestHandler.h"
 #include "Record.h"
 #include "InterfaceFunctions.h"
-
+#include "DeleteSet.h"
 #include "DefaultDatabase.h"
 #include "DataTypes.h"
 #include "SharedMem.h"
@@ -408,6 +408,29 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
 
        ));
+
+       // this handler requests to remove a user set
+       forMe.registerHandler (DeleteSet_TYPEID, make_shared<SimpleRequestHandler<DeleteSet>> (
+               [&] (Handle <DeleteSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         std :: string databaseName = request->whichDatabase();
+                         std :: string setName = request->whichSet();
+                         bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName);
+                         if (res == false) {
+                                 errMsg = "Set doesn't exist\n";
+                         }
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+
+       ));
+
+
 
 
        // this handler requests to remove a temp set
@@ -1198,7 +1221,20 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string setName) {
       return addSet(dbName, "UnknownUserData", setName);
 }
 
-
+bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setName) {
+     SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
+     DatabaseID dbId = set->getDbID();
+     UserTypeID typeId = set->getTypeID();
+     SetID setId = set->getSetID();
+     DefaultDatabasePtr database = dbs->at(dbId);
+     TypePtr type = database->getType(typeId);
+     pthread_mutex_lock(&this->usersetLock);
+     type->removeSet(setId);
+     userSets->erase(std :: pair <DatabaseID, SetID>(dbId, setId));
+     names2ids->erase(std :: pair <std :: string, std :: string> (dbName, setName));
+     pthread_mutex_unlock(&this->usersetLock);
+     return true;
+}
 
 //to remove an existing set
 bool PangeaStorageServer:: removeSet (std :: string dbName, std :: string typeName, std :: string setName) {
