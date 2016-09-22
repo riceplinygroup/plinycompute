@@ -62,7 +62,7 @@ namespace pdb {
 
             //to return whether this stage produces final outputs
             bool isFinal() {
-                return this->aggregationOrNot;
+                return this->finalOrNot;
             }
 
             ENABLE_DEEP_COPY
@@ -74,17 +74,17 @@ namespace pdb {
             //operators
             Handle<Vector<Handle<Operator>>> operators;
 
-            //Is this stage an aggregation stage?
-            bool aggregationOrNot;
-
-            //Does this stage produces final output?
-            bool finalOrNot;
-
             //Input set information
             Handle<Vector<Handle<SetIdentifier>>> inputs;
 
             //Output set information
             Handle<Vector<Handle<SetIdentifier>>> outputs;
+
+            //Is this stage an aggregation stage?
+            bool aggregationOrNot;
+
+            //Does this stage produces final output?
+            bool finalOrNot;
 
 
 
@@ -93,4 +93,4 @@ namespace pdb {
 
 }
 
-#endif JOBSTAGE_H
+#endif
