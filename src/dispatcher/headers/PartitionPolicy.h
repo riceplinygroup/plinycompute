@@ -29,7 +29,6 @@
 #include "PDBVector.h"
 
 #include "NodeDispatcherData.h"
-#include "SetInfo.h"
 
 #include <unordered_map>
 

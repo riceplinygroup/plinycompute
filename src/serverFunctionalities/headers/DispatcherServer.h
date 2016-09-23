@@ -26,7 +26,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "PDBVector.h"
 
-#include "SetInfo.h"
 #include "NodeDispatcherData.h"
 #include "StorageClient.h"
 

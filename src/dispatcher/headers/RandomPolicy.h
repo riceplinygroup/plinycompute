@@ -23,7 +23,6 @@
 #define OBJECTQUERYMODEL_RANDOMPOLICY_H
 
 #include "PartitionPolicy.h"
-#include "SetInfo.h"
 
 #include <random>
 
