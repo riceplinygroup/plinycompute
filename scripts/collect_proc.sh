@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-#!/bin/sh
+#!/bin/bash
 # by Jia
 
 
@@ -25,11 +25,12 @@ USERNAME=ubuntu
 
 #remember to set environment variable: PDB_HOME first
 if [ -z ${PDB_HOME} ]; 
-    then echo "Please set PDB_HOME first!";
+    then echo "[ERROR] Please set PDB_HOME first";
 else 
     echo "Your current PDB_HOME is: '$PDB_HOME'";
 fi
 
+chmod -R 600 $PDB_HOME/conf/jia-test-key.pem
 #remember to provide your pem file as parameter
 if [ -z ${PEM_FILE} ];
     then PEM_FILE=$PDB_HOME/conf/jia-test-key.pem;

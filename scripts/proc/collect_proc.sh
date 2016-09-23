@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-#!/bin/sh
+#!/bin/bash
 # by Jia
 
 ip_len_valid=3

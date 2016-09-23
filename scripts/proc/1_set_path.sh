@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-#!/bin/sh
+#!/bin/bash
 # By Jia
 
 #local_b_dir=$PDB_HOME/scripts

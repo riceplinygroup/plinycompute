@@ -81,12 +81,14 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
     if (nodeFile.is_open()) {
        while (! nodeFile.eof()) {
            std :: getline (nodeFile, address);
-           //std :: cout << address << std :: endl;
-           const UseTemporaryAllocationBlock block (1024);
-           Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
-           this->nodes->push_back(node);
-           std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
-           nodeId ++;
+           if(address.find(".") != string::npos) {
+               //std :: cout << address << std :: endl;
+               const UseTemporaryAllocationBlock block (1024);
+               Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+               this->nodes->push_back(node);
+               std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
+               nodeId ++;
+           }
        } 
        nodeFile.close();
     }

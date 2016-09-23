@@ -19,7 +19,7 @@ PEM_FILE=$1
 PDB_HOME="PDBServer/"
 PDB_COMMAND="pdbServer"
 PDB_STARTUP="pdbStartup.sh"
-PDB_DIRS1="bin/pdbServer"
+PDB_DIRS1="bin/"
 PDB_DIRS2="libraries/"
 PDB_DIRS3="conf/"
 
