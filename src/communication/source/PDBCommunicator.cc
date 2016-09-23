@@ -188,6 +188,7 @@ PDBCommunicator::~PDBCommunicator() {
     // Jia: moved below logic from Chris' message-based communication to here.
     // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
     // set to true only if we are a client and we want to close a connection to the server
+    /*
     if (needToSendDisconnectMsg && socketFD > 0) {
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle <CloseConnection> temp = makeObject <CloseConnection> ();
@@ -196,9 +197,16 @@ PDBCommunicator::~PDBCommunicator() {
 	if (!sendObject (temp, errMsg)) {
 	    logToMe->trace("PDBCommunicator: could not send close connection message");
 	}
+
     }
 
     if (socketFD >= 0) {
+        close(socketFD);
+    }
+
+    */
+
+    if (needToSendDisconnectMsg && socketFD > 0) {
         close(socketFD);
     }
 
@@ -225,6 +233,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
         logToMe->error("PDBCommunicator: could not read next message type");
         logToMe->error(strerror(errno));
         nextTypeID = NoMsg_TYPEID;
+        close(socketFD);
 
     // OK, we did get enough bytes
     } else {
@@ -238,6 +247,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     if ((bytesRead = read(socketFD, &msgSize, sizeof (size_t))) <  (int) sizeof (size_t)) {
         logToMe->error ("PDBCommunicator: could not read next message size" + std :: to_string (bytesRead));
         logToMe->error(strerror(errno));
+        close(socketFD);
         msgSize = 0;
 
     // OK, we did get enough bytes
@@ -262,6 +272,7 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
 	    logToMe->trace("PDBCommunicator: tried to write " + std :: to_string (end - start) + " bytes.\n");
     	    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
             logToMe->error(strerror(errno));
+            close(socketFD);
             return true;
         } else {
 	    logToMe->trace("PDBCommunicator: wrote " + std :: to_string (numBytes) + " and are " + std :: to_string (end - start - numBytes) + " to go!");
@@ -291,6 +302,7 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         if (numBytes <= 0) {
             logToMe->error("PDBCommunicator: error reading socket when trying to accept text message");
             logToMe->error(strerror(errno));
+            close(socketFD); 
             return true;
         }
         cur += numBytes;
