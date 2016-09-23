@@ -202,6 +202,7 @@ all = [component_dir_basename_to_cc_file_paths['serverFunctionalities'],
        component_dir_basename_to_cc_file_paths['bufferMgr'],
        component_dir_basename_to_cc_file_paths['communication'],  
        component_dir_basename_to_cc_file_paths['catalog'], 
+       component_dir_basename_to_cc_file_paths['dispatcher'],
        component_dir_basename_to_cc_file_paths['pdbServer'], 
        component_dir_basename_to_cc_file_paths['objectModel'], 
        component_dir_basename_to_cc_file_paths['work'], 
@@ -253,6 +254,10 @@ common_env.Program('bin/test11', ['src/tests/source/Test11.cc'] + all)
 common_env.Program('bin/test12', ['src/tests/source/Test12.cc'] + all)
 common_env.Program('bin/test13', ['src/tests/source/Test13.cc'] + all)
 common_env.Program('bin/test100', ['src/tests/source/Test100.cc'] + all)
+common_env.Program('bin/test400', ['src/tests/source/Test400.cc'] + all)
+common_env.Program('bin/test401', ['src/tests/source/Test401.cc'] + all)
+common_env.Program('bin/test402', ['src/tests/source/Test402.cc'] + all)
+common_env.Program('bin/test403', ['src/tests/source/Test403.cc'] + all)
 common_env.Program('bin/test600', ['src/tests/source/Test600.cc'] + all)
 common_env.Program('bin/test601', ['src/tests/source/Test601.cc'] + all)
 common_env.Program('bin/test602', ['src/tests/source/Test602.cc'] + all)
