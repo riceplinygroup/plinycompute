@@ -58,6 +58,14 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 }
 
 CatalogClient :: ~CatalogClient () {
+
+    std::cout << "Catalog being destroyed " << port << ":" << address << std::endl;
+
+    // Clean up the VTable catalog ptr if it is using this CatalogClient
+    if (theVTable->getCatalogClient() == this) {
+        theVTable->setCatalogClient(nullptr);
+    }
+
 	pthread_mutex_destroy (&workingMutex);
 }
 
