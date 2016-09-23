@@ -132,10 +132,10 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 	
 	const LockGuard guard{workingMutex};
-
+        //std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
 	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <Vector <char>> result) {
-		
+	                //std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;	
 			if (result == nullptr) {
 				myLogger->error ("Error getting shared library: null object returned.\n");
 				return false;

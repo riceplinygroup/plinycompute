@@ -224,6 +224,7 @@ bool PartitionedFile::closeDirect() {
  * To delete a file instance.
  */
 void PartitionedFile::clear() {
+        this->closeAll();
 	remove(this->metaPartitionPath.c_str());
 	int i;
 	int numPartitions = this->dataPartitionPaths.size();

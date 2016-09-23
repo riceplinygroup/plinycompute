@@ -96,6 +96,7 @@ UserSet::UserSet(size_t pageSize,
  * Destructor.
  */
 UserSet::~UserSet() {
+    this->file->closeAll();
     delete this->dirtyPagesInPageCache;
 }
 

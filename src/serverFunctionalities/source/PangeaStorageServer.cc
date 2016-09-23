@@ -150,8 +150,8 @@ void PangeaStorageServer :: clean() {
                         writeBackRecords (a.first);
         }
         getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
-        std :: cout << "sleep for 5 seconds to wait for all data gets flushed" << std :: endl;
-        sleep(5);
+        std :: cout << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
+        sleep(1);
         std :: cout << "cleaned up for storage..." << std :: endl;
 }
 
