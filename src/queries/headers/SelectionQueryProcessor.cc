@@ -42,7 +42,8 @@ void SelectionQueryProcessor <Output, Input> :: initialize () {
 
 // loads up another input page to process
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProcess) {
+void SelectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProcess)
+{
 	Record <Vector <Handle <Input>>> *myRec = (Record <Vector <Handle <Input>>> *) pageToProcess;
 	inputVec = myRec->getRootObject ();
 	posInInput = 0;

@@ -69,9 +69,9 @@ namespace pdb_tests
 
         Handle<SetExpressionIr> nullInputSet;
         Handle<RecordPredicateIr> nullCondition;
-        SelectionIr projection(nullInputSet, nullCondition);
+        SelectionIr selection(nullInputSet, nullCondition);
 
-        projection.execute(algo);
+        selection.execute(algo);
 
 
         QUNIT_IS_TRUE(algo.success);

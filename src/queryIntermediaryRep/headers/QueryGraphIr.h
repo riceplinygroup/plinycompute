@@ -15,33 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
-#define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
-
-#include <list>
+#ifndef PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H
+#define PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H
 
 #include "Handle.h"
-#include "ConsumableNodeIr.h"
-#include "SetExpressionIrAlgo.h"
+#include "Object.h"
+#include "PDBVector.h"
+#include "QueryNodeIr.h"
+
+using pdb::Handle;
+using pdb::Object;
+using pdb::Vector;
 
 namespace pdb_detail
 {
-    /**
-     * Base class for any class that models a PDB set.
-     */
-    class SetExpressionIr : public ConsumableNodeIr
+    class QueryGraphIr : public Object
     {
-
     public:
 
-        /**
-         * Executes the given algorithm on the expression.
-         *
-         * @param algo the algoithm to execute.
-         */
-        virtual void execute(SetExpressionIrAlgo &algo) = 0;
+        QueryGraphIr(Handle<Vector<Handle<QueryNodeIr>>> sourceNodes) : _sourceNodes(sourceNodes)
+        {
+        }
+
+        uint32_t getSourceNodeCount()
+        {
+            return _sourceNodes->size();
+        }
+
+        Handle<QueryNodeIr> getSourceNode(uint32_t index)
+        {
+            return _sourceNodes->operator[](index);
+        }
+
+
+    private:
+
+        Handle<Vector<Handle<QueryNodeIr>>> _sourceNodes;
 
     };
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#endif //PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H

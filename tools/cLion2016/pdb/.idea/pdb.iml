@@ -2,18 +2,17 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../src">
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorkerQueue.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBBuzzer.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorker.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWork.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Page.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_BufferManager.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Table.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapConstructor.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapCatalogLookup.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/serverFunctionalities/source/CatalogClient.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/QueriesTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/SelectionTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/UnarySetOperator.cc" isTestSource="false" />
@@ -21,14 +20,16 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SetName.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapConstructor.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapCatalogLookup.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/serverFunctionalities/source/CatalogClient.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Page.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_BufferManager.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Table.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/pdbServer/source/PDBLogger.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />

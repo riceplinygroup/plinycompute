@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 include_directories(
         ../../../src/bufferMgr/headers
         ../../../src/builtInPDBObjects/headers
+        ../../../src/conf/headers
         ../../../src/communication/headers
         ../../../src/mocking/headers
         ../../../src/objectModel/headers
@@ -18,6 +19,7 @@ include_directories(
         ../../../src/queryIntermediaryRepTests/headers
         ../../../src/qunit/headers
         ../../../src/queryIntermediaryRep/headers
+        ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
         ../../../src/work/headers)
 
@@ -42,8 +44,9 @@ set(SOURCE_FILES
         ../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc
         ../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc
         ../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc
+        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
-#        ../../../src/tests/source/Test13.cc
+#        ../../../src/tests/source/Test13a.cc
         ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc

@@ -18,6 +18,7 @@
 
 #include "IrBuilder.h"
 
+#include "PDBVector.h"
 #include "ProjectionIr.h"
 #include "RecordPredicateIr.h"
 #include "Selection.h"
@@ -30,6 +31,7 @@
 
 #include "Employee.h"
 
+using pdb::Vector;
 using pdb::Query;
 using pdb::QueryAlgo;
 using pdb::QueryBase;
@@ -109,11 +111,24 @@ namespace pdb_detail
 
         };
 
-        Handle <QueryBase> selectionInput = selection->getIthInput(0);
+
+        Handle<SetExpressionIr> selectionInputIr;
+        {
+            if(selection->hasInput())
+            {
+                selectionInputIr = makeSetExpression(selection->getIthInput(0));
+            }
+            else
+            {
+                Handle<String> empty = makeObject<String>();
+                selectionInputIr = makeObject<SetNameIr>(empty, empty);
+            }
+        }
+
 
         Handle<RecordPredicateFromSelection> predicate = makeObject<RecordPredicateFromSelection>(selection);
 
-        Handle<SetExpressionIr> selectionInputIr = makeSetExpression(selectionInput);
+
 
         return SelectionIr::make(selectionInputIr, predicate);
     }
@@ -145,7 +160,7 @@ namespace pdb_detail
         return  ProjectionIr::make(inputSet, predicate);
     }
 
-    Handle<QueryNodeIr> buildIr(Handle<QueryBase> query)
+    Handle<QueryGraphIr> buildIr(Handle<QueryBase> query)
     {
         class Algo : public QueryAlgo
         {
@@ -162,15 +177,24 @@ namespace pdb_detail
 
                 Handle<SelectionIr> selection = makeSelection(queryAsSelection);
                 Handle<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
-                output = projection;
+
+                Handle<Vector<Handle<QueryNodeIr>>> treeLeaves = makeObject<Vector<Handle<QueryNodeIr>>>();
+                treeLeaves->push_back(selection->getInputSet());
+
+                output = makeObject<QueryGraphIr>(treeLeaves);
             }
 
             void forSet()
             {
-                output = makeSetExpression(_query);
+                Handle<Vector<Handle<QueryNodeIr>>> treeLeaves = makeObject<Vector<Handle<QueryNodeIr>>>();
+
+                Handle<SetExpressionIr> set = makeSetExpression(_query);
+                treeLeaves->push_back(set);
+
+                output = makeObject<QueryGraphIr>(treeLeaves);
             }
 
-            Handle<QueryNodeIr> output;
+            Handle<QueryGraphIr> output;
 
         private:
 

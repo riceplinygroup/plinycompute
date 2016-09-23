@@ -22,7 +22,7 @@
 
 #include "Handle.h"
 #include "QueryBase.h"
-#include "QueryNodeIr.h"
+#include "QueryGraphIr.h"
 
 using std::shared_ptr;
 
@@ -31,7 +31,7 @@ using pdb::QueryBase;
 
 namespace pdb_detail
 {
-    Handle<QueryNodeIr> buildIr(Handle<QueryBase> query);
+    Handle<QueryGraphIr> buildIr(Handle<QueryBase> query);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H

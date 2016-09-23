@@ -34,13 +34,15 @@ using pdb::Lambda;
 
 namespace pdb_detail
 {
-    class ProjectionIr : public QueryNodeIr
+    class ProjectionIr : public ConsumableNodeIr
     {
     public:
 
         static Handle<ProjectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector)
         {
-            return makeObject<ProjectionIr>(inputSet, projector);
+            Handle<ProjectionIr> projection = makeObject<ProjectionIr>(inputSet, projector);
+            inputSet->addConsumer(projection);
+            return projection;
         }
 
         ProjectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector)
