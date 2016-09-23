@@ -129,6 +129,11 @@ inline void VTableMap :: setCatalogClient (CatalogClient *catalogIn) {
 	theVTable->catalog = catalogIn;
 }
 
+inline CatalogClient * VTableMap :: getCatalogClient () {
+	const LockGuard guard {theVTable->myLock};
+	return theVTable->catalog;
+}
+
 extern bool inSharedLibrary;
 
 inline VTableMap :: ~VTableMap () {

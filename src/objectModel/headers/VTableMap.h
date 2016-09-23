@@ -87,6 +87,9 @@ namespace pdb {
 	// sets the catalog client for the vtable
 	static void setCatalogClient (CatalogClient *catalog);
 
+	// gets the catalog client for the vtable
+	static CatalogClient * getCatalogClient ();
+
     private:
 
         // a map containing the typeIDs indexed by object name---a -1 for the typeID means that
