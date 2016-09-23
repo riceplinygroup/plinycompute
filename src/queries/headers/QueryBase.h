@@ -94,6 +94,10 @@ public:
         Handle <QueryBase> &getIthInput (int i) const {
         	return (*inputs)[i];
         }
+	bool hasInput()
+	{
+        return !inputs.isNullPtr();
+	}
 
 	// set the first slot, by default
 	bool setInput (Handle <QueryBase> toMe) {

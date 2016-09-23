@@ -18,17 +18,22 @@
 
 #include <iostream>
 
+#include "InterfaceFunctions.h"
 #include "QueryItermediaryRepTestsRunner.h"
 #include "QueriesTestsRunner.h"
 #include "qunit.h"
 
 
 using QUnit::UnitTest;
+
+using pdb::makeObjectAllocatorBlock;
+
 using pdb_tests::runQueriesTests;
 using pdb_tests::runQueryIrTests;
 
 int main()
 {
+    makeObjectAllocatorBlock (2048, true);
 
     UnitTest qunit(std::cerr, QUnit::normal);
 

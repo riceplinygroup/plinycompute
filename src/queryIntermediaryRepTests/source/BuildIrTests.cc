@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "BuildIrTests.h"
+#include "ConsumableNodeIr.h"
 #include "CheckEmployees.h"
 #include "IrBuilder.h"
 #include "QueryNodeIr.h"
@@ -29,6 +30,7 @@
 #include "SetNameIr.h"
 #include "Supervisor.h"
 #include "ProjectionIr.h"
+#include "QueryGraphIr.h"
 
 using std::function;
 using std::string;
@@ -44,8 +46,10 @@ using pdb::Set;
 using pdb::unsafeCast;
 
 using pdb_detail::buildIr;
+using pdb_detail::ConsumableNodeIr;
 using pdb_detail::QueryNodeIr;
 using pdb_detail::QueryNodeIrAlgo;
+using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
 using pdb_detail::RecordProjectionIr;
@@ -90,12 +94,15 @@ namespace pdb_tests
         /**
          * Translate MySelection to QueryNodeIr.
          */
-        Handle<QueryNodeIr> buildResult = buildIr(selection);
+        Handle<QueryGraphIr> queryTree = buildIr(selection);
+        Handle<QueryNodeIr> queryLeaf = queryTree->getSourceNode(0);
+
+        QUNIT_IS_EQUAL(1, queryTree->getSourceNodeCount());
 
         /**
-         * Test that buildResult is a ProjectionIr.
-         */
-        class IsProjection : public QueryNodeIrAlgo
+        * Test that the input to the selection is the set "setname" in the database "databasename"
+        */
+        class IsSetName : public QueryNodeIrAlgo
         {
         public:
 
@@ -109,7 +116,6 @@ namespace pdb_tests
 
             void forProjection(ProjectionIr &recordProjection)
             {
-                correct = true;
             }
 
             void forSelection(SelectionIr &selection)
@@ -118,27 +124,30 @@ namespace pdb_tests
 
             void forSetName(SetNameIr &setName)
             {
+                correct = true;
             }
 
             bool correct = false;
 
-        } isProjection;
+        } isSetName;
 
-        buildResult->execute(isProjection);
+        queryLeaf->execute(isSetName);
 
-        QUNIT_IS_TRUE(isProjection.correct);
+        QUNIT_IS_TRUE(isSetName.correct);
+        if(!isSetName.correct)
+            return;
 
-        Handle<ProjectionIr> projectionIr = unsafeCast<ProjectionIr,QueryNodeIr>(buildResult);
+        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,QueryNodeIr>(queryLeaf);
 
-        Handle<Object> placeHolder1;
-        Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
-        QUNIT_IS_TRUE(projector == proj);
-
+        QUNIT_IS_EQUAL("databasename", string(selectionSetName->getDatabaseName()->c_str()));
+        QUNIT_IS_EQUAL("setname", string(selectionSetName->getName()->c_str()));
 
         /**
-         * Test that the input to buildResult (projection) is a SetExpressionIr
+         * Test that a slection node consumes the set name.
          */
-        Handle<SetExpressionIr> projectionIrInput = projectionIr->getInputSet();
+
+        QUNIT_IS_EQUAL(1, selectionSetName->getConsumerCount());
+        Handle<QueryNodeIr> setParent = selectionSetName->getConsumer(0);
 
         class IsSelection : public QueryNodeIrAlgo
         {
@@ -169,24 +178,39 @@ namespace pdb_tests
 
         } isSelection;
 
-        projectionIrInput->execute(isSelection);
+        setParent->execute(isSelection);
 
         QUNIT_IS_TRUE(isSelection.correct);
 
-        Handle<SelectionIr> projectionIrInputSelection = unsafeCast<SelectionIr,SetExpressionIr>(projectionIrInput);
+        Handle<SelectionIr> projectionIrInputSelection = unsafeCast<SelectionIr,QueryNodeIr>(setParent);
 
         Handle<Object> placeHolder2;
         Lambda<bool> cond = projectionIrInputSelection->getCondition()->toLambda(placeHolder2);
         QUNIT_IS_TRUE(condition == cond);
 
 
-
         /**
-         * Test that the input to the selection is the set "setname" in the database "databasename"
+         * Test that projection is the parent of selection.
          */
-        class IsSetName : public SetExpressionIrAlgo
+        QUNIT_IS_EQUAL(1, projectionIrInputSelection->getConsumerCount());
+        Handle<QueryNodeIr> selectionParent = projectionIrInputSelection->getConsumer(0);
+
+        class IsProjection : public QueryNodeIrAlgo
         {
         public:
+
+            void forRecordPredicate(RecordPredicateIr &recordPredicate)
+            {
+            }
+
+            void forRecordProjection(RecordProjectionIr &recordProjection)
+            {
+            }
+
+            void forProjection(ProjectionIr &recordProjection)
+            {
+                correct = true;
+            }
 
             void forSelection(SelectionIr &selection)
             {
@@ -194,22 +218,22 @@ namespace pdb_tests
 
             void forSetName(SetNameIr &setName)
             {
-                correct = true;
             }
 
             bool correct = false;
 
-        } isSetName;
+        } isProjection;
 
-        Handle<SetExpressionIr> inputSet = projectionIrInputSelection->getInputSet();
-        inputSet->execute(isSetName);
+        selectionParent->execute(isProjection);
 
-        QUNIT_IS_TRUE(isSetName.correct);
+        QUNIT_IS_TRUE(isProjection.correct);
 
-        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,SetExpressionIr>(inputSet);
+        Handle<ProjectionIr> projectionIr = unsafeCast<ProjectionIr,QueryNodeIr>(selectionParent);
 
-        QUNIT_IS_EQUAL("databasename", string(selectionSetName->getDatabaseName()->c_str()));
-        QUNIT_IS_EQUAL("setname", string(selectionSetName->getName()->c_str()));
+        Handle<Object> placeHolder1;
+        Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
+        QUNIT_IS_TRUE(projector == proj);
+
 
     }
 }

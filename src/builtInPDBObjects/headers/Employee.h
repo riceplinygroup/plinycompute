@@ -47,6 +47,11 @@ public:
 		return name;
 	}
 
+    int getAge()
+    {
+        return age;
+    }
+
         Employee (std :: string nameIn, int ageIn) {
                 name = makeObject <String> (nameIn);
                 age = ageIn;

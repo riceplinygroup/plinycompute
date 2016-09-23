@@ -27,7 +27,9 @@ namespace pdb_detail
 
     Handle<SelectionIr> SelectionIr::make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)
     {
-        return makeObject<SelectionIr>(inputSet, condition);
+        Handle<SelectionIr> selection = makeObject<SelectionIr>(inputSet, condition);
+        inputSet->addConsumer(selection);
+        return selection;
     }
 
     SelectionIr::SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)

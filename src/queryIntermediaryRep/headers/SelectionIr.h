@@ -38,6 +38,8 @@ namespace pdb_detail
         /**
          * Creates a selection over the given input set filtered by the given condition.
          *
+         * Adds the returned selection to inputSet's consumers.
+         *
          * @param inputSet the source of records from which the selection subset will be drawn.
          * @param condition the filter to apply to the input set to produce the subset
          * @return the selection

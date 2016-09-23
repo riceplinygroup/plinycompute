@@ -18,10 +18,15 @@
 #ifndef PDB_QUERYINTERMEDIARYREP_QUERYNODEIR_H
 #define PDB_QUERYINTERMEDIARYREP_QUERYNODEIR_H
 
-#include "QueryNodeIrAlgo.h"
 #include "Object.h"
+#include "PDBVector.h"
+#include "QueryNodeIrAlgo.h"
 
+
+using pdb::Handle;
 using pdb::Object;
+using pdb::Vector;
+
 
 namespace pdb_detail
 {
@@ -39,6 +44,7 @@ namespace pdb_detail
          * @param algo the algoithm to execute.
          */
         virtual void execute(QueryNodeIrAlgo &algo) = 0;
+
     };
 }
 

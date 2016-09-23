@@ -15,33 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
-#define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#ifndef PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
+#define PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
 
-#include <list>
+#include "InterfaceFunctions.h"
+#include "QueryNodeIr.h"
 
-#include "Handle.h"
-#include "ConsumableNodeIr.h"
-#include "SetExpressionIrAlgo.h"
+using pdb::makeObject;
 
 namespace pdb_detail
 {
-    /**
-     * Base class for any class that models a PDB set.
-     */
-    class SetExpressionIr : public ConsumableNodeIr
+    class ConsumableNodeIr : public QueryNodeIr
     {
-
     public:
 
-        /**
-         * Executes the given algorithm on the expression.
-         *
-         * @param algo the algoithm to execute.
-         */
-        virtual void execute(SetExpressionIrAlgo &algo) = 0;
 
+        void addConsumer(Handle<QueryNodeIr> consumer)
+        {
+            // TODO: check for duplicate before adding
+
+            _consumers.push_back(consumer);
+        }
+
+        uint32_t getConsumerCount()
+        {
+            return _consumers.size();
+        }
+
+        Handle<QueryNodeIr> getConsumer(uint32_t index)
+        {
+            return _consumers[index];
+        }
+
+
+    private:
+
+        // TODO: this is probably better as a pdb::Set once that type exists.
+        Vector<Handle<QueryNodeIr>> _consumers;
     };
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#endif //PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
