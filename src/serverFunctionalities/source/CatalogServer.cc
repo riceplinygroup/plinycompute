@@ -90,10 +90,11 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			const LockGuard guard{workingMutex};
 
 			// ask the catalog serer for the shared library
-                        // added by Jia to fix a length error bug
+                        // added by Jia to test a length error bug
 			vector <char> * putResultHere = new vector<char>();
 			std :: string errMsg;
 			int16_t typeID = request->getTypeID ();
+                        //std :: cout << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << typeID << std :: endl;
 			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
 
 			if (!res) {
@@ -256,6 +257,7 @@ size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName)
 
 bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg) {
 
+        //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
 	// first, make sure we have this identifier
 	if (allTypeCodes.count (identifier) == 0) {
 		errMsg = "Error: didn't know the identifier you sent me";
@@ -264,11 +266,14 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 
 	// now, read in the .so file, and put it in the vector
 	std :: string whichFile = catalogDirectory + "/" + allTypeCodes[identifier] + ".so";
+        //std :: cout << "to fetch file:" << whichFile << std :: endl;
 	std :: ifstream in (whichFile, std::ifstream::ate | std::ifstream::binary);
 	size_t fileLen = in.tellg();
-
+        struct stat st;
+        stat(whichFile.c_str (), &st);
+        fileLen = st.st_size;
 	int filedesc = open (whichFile.c_str (), O_RDONLY);
-        std :: cout << "fileLen=" << fileLen << std :: endl;
+        //std :: cout << "CatalogServer getSharedLibrary: fileLen=" << fileLen << std :: endl;
 	putResultHere.resize (fileLen);
 	read (filedesc, putResultHere.data (), fileLen);
 	close (filedesc);

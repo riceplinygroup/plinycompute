@@ -50,10 +50,12 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
 	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
+        //std :: cout << "sharedLibraryFile =" << sharedLibraryFile << std :: endl;
 	unlink (sharedLibraryFile.c_str ());
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
 	// open up the shared library
+      
 	void *so_handle = dlopen(sharedLibraryFile.c_str(), RTLD_LOCAL | RTLD_LAZY );
 	theVTable->so_handles.push_back (so_handle);
 
@@ -97,6 +99,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		// if we were able to, then run it
 		} else {
 			theVTable->allVTables[objectTypeID] = getObjectFunc ();
+                        //std :: cout << "VTablePtr for objectTypeID="<<objectTypeID<<" is set in allVTables to be "<< theVTable->allVTables[objectTypeID] << std :: endl;
 		}
 
 	}
