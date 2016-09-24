@@ -35,7 +35,7 @@ namespace pdb {
     bool DispatcherClient::registerSet(std::pair<std::string, std::string> setAndDatabase) {
 
         std::cout << "Registering partition policy for " << port << " : " << address << std::endl;
-
+        return 1;
     }
 
     bool DispatcherClient::sendData(std::pair<std::string, std::string> setAndDatabase,
