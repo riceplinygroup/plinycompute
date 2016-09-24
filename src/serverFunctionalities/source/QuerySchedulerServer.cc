@@ -20,6 +20,7 @@
 
 
 #include "QuerySchedulerServer.h"
+#include "ResourceManagerServer.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "InterfaceFunctions.h"
 #include "QueryBase.h"
@@ -71,52 +72,29 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                  return std :: make_pair (false, errMsg);
              }
          }
-             //this->parseQuery (userQuery);
-             std :: cout << "connect to resource manager" << std :: endl;
-             //to query the resource manager and obtain resources
-             PDBCommunicatorPtr communicatorToResourceManager = std :: make_shared<PDBCommunicator>();
-             if(communicatorToResourceManager->connectToInternetServer(logger, port, resourceManagerIp, errMsg)) {
-             success = false;
-             std :: cout << errMsg << std :: endl;
-             return std :: make_pair(success, errMsg);
-             }
-         
+
+
          
 
-         {
-             std :: cout << "To send a RequestResource object to the resource manager" << std :: endl;
-             const UseTemporaryAllocationBlock block {4096};
-             Handle <RequestResources> resourceRequest = makeObject<RequestResources>(8, 16000);
-             success = communicatorToResourceManager->sendObject<RequestResources>(resourceRequest, errMsg);
-             if (!success) {
-                 std :: cout << errMsg << std :: endl;
-                 return std :: make_pair (false, errMsg);
-             }
-         }
-
-
-         {
-
-             std :: cout << "To get the resource object from the resource manager" << std :: endl;
-             const UseTemporaryAllocationBlock block {communicatorToResourceManager->getSizeOfNextObject()};
-             Handle<AllocatedResources> resourceResponse = communicatorToResourceManager->getNextObject<AllocatedResources>(success, errMsg);
+         std :: cout << "To get the resource object from the resource manager" << std :: endl;
+         makeObjectAllocatorBlock (1*1024*1024, true);
+         this->resources = getFunctionality<ResourceManagerServer>().getAllResources();
     
-             if (!success) {
-                 std :: cout << errMsg << std :: endl;
-                 return std :: make_pair (false, errMsg);
-             }
 
-             this->resources = resourceResponse->getResources();
+         //print out the resources
+         for (int i = 0; i < this->resources->size(); i++) {
 
-             //print out the resources
-             resourceResponse->print();
- 
-             //to send query processor to each compute node
-             //TODO 
-
-            return std :: make_pair (true, errMsg);
+             std :: cout << i << ": address=" << (*(this->resources))[i]->getAddress() << ", numCores=" << (*(this->resources))[i]->getNumCores() << ", memSize=" << (*(this->resources))[i]->getMemSize() << std :: endl;
 
          }
+ 
+
+         //to send query processor to each compute node
+         //TODO 
+
+         return std :: make_pair (true, errMsg);
+
+    
 
       }));
     
