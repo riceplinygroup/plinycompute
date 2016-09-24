@@ -28,7 +28,6 @@
 #include "Handle.h"
 #include "ExecuteQuery.h"
 #include "RequestResources.h"
-#include "AllocatedResources.h"
 #include "Selection.h"
 #include "SimpleRequestHandler.h"
 #include <vector>
