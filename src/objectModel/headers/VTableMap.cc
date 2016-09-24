@@ -143,6 +143,7 @@ inline VTableMap :: ~VTableMap () {
 			int res = dlclose (v);
 			if (res != 0)
 				std :: cout << dlerror () << "\n";
+                        
 		} 
 	theVTable->so_handles.clear ();
 }
