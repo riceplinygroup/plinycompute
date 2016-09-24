@@ -40,7 +40,7 @@
 int main (int argc, char * argv[]) {
 
 
-    const std::string DISPATCHER_IP = "192.168.1.161";
+    const std::string DISPATCHER_IP = "10.134.96.45";
     const int PORT = 8108;
 
     std:: cout << "Make sure to run bin/test28 in a different window to provide a catalog/storage server.\n";
@@ -72,7 +72,7 @@ int main (int argc, char * argv[]) {
 
         auto node = (* allNodes)[i];
 
-        std::cout << "Registering types for storage node at port: " << node->getPort() << std::endl;
+        std::cout << "Registering types for storage node at port: " << node->getAddress() << ":" << node->getPort() << std::endl;
 
         pdb :: StorageClient temp (node->getPort(), node->getAddress(), make_shared <pdb::PDBLogger> ("TempStorageClientLog"), usePangaea);
         string errMsg;
