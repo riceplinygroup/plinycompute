@@ -20,6 +20,7 @@
 
 
 #include "QuerySchedulerServer.h"
+#include "ResourceInfo.h"
 #include "ResourceManagerServer.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "InterfaceFunctions.h"
@@ -96,11 +97,15 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              
              std :: cout << "to connect to the " << i << "-th node" << std :: endl;
              PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+             std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
+             std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
              if(communicator->connectToInternetServer(logger, (*resources)[i]->getPort(), (*resources)[i]->getAddress(), errMsg)) {
                   success = false;
                   std :: cout << errMsg << std :: endl;
                   return std :: make_pair(success, errMsg);
              }
+
              communicators->push_back(communicator);
          }
          
