@@ -45,6 +45,7 @@ public:
 	operator std :: string ();
 	char *c_str ();
 	size_t size ();
+	size_t hash () const;
 	friend std::ostream& operator<< (std::ostream& stream, const String &printMe);
 	bool operator == (const String &toMe);
 	bool operator == (const char *toMe);

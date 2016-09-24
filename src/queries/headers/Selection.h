@@ -42,7 +42,8 @@ public:
 	// over-ridden by the user so they can supple the actual projection
 	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
 
-    void execute(QueryAlgo& algo) override;
+        // internal use
+        void execute(QueryAlgo& algo) override;
 
 	// get an object that is able to process queries of this type
 	SimpleSingleTableQueryProcessorPtr getProcessor ();

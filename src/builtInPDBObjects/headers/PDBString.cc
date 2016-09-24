@@ -20,6 +20,7 @@
 #define PDBSTRING_CC
 
 #include "PDBString.h"
+#include "PDBMap.h"
 #include <string.h>
 #include <iostream>
 #include <string>
@@ -27,6 +28,10 @@
 namespace pdb {
 
 inline String :: String () {}
+
+inline size_t String :: hash () const {
+	return hashMe (data->c_ptr (), data->numUsedSlots () - 1);
+}
 
 inline String &String :: operator = (const char *toMe) {
 	int len = strlen (toMe) + 1;

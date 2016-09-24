@@ -16,66 +16,50 @@
  *                                                                           *
  *****************************************************************************/
 
+#ifndef MAP_H
+#define MAP_H
+
+// PRELOAD %Map <Nothing>%
+
 #include "Object.h"
-#include "PDBTemplateBase.h"
 #include "Handle.h"
-#include "Array.h"
-
-#ifndef VECTOR_H
-#define VECTOR_H
-
-#include <cstddef>
-#include <iostream>
-#include <iterator>
-#include <cstring>
-
-// PRELOAD %Vector <Nothing>%
+#include "PairArray.h"
 
 namespace pdb {
 
-// This is the basic Vector type that works correcrly with Objects and Handles.
-// The operations have exactly the same interface as std :: vector, except that
-// not all operations are implemented.
+// This is the basic Map type that works correcrly with Objects and Handles.
 
-template <class TypeContained>           
-class Vector : public Object {
+template <class KeyType, class ValueType = Nothing>
+class Map : public Object {
 
 private:
 
 	// this is where the data are actually stored
-	Handle <Array <TypeContained>> myArray;
+	Handle <PairArray <KeyType, ValueType>> myArray;
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	// this constructor pre-allocates initSize slots, and then initializes
-	// numUsed of them, calling a no-arg constructor on each.  Thus, after
-	// this call, size () will return numUsed
-	Vector (uint32_t initSize, uint32_t numUsed);
+	// this constructor pre-allocates initSize slots... initSize must be a power of two
+	Map (uint32_t initSize);
 
-	// this constructor pre-allocates initSize slots, but does not do anything
-	// to them.  Thus, after this call, size () will return zero
-	Vector (uint32_t initSize);
-	
-	// these operations all have the same semantics as in std :: vector
-	Vector ();
-	uint32_t size ();
-	TypeContained &operator [] (uint32_t which);
-	void assign (uint32_t which, const TypeContained& val);
-	void push_back (const TypeContained& val);
-	void pop_back ();
-	void clear ();
-	TypeContained *c_ptr () const;
-	void resize (uint32_t toMe);
+	// this constructor creates a map with a single slot
+	Map ();
 
-	// beause the communicator needs to see inside to do efficient sends
-        friend class PDBCommunicator;
+	// destructor
+	~Map ();
+
+	// access the value at "which"; if this is undefined, define it and return a reference
+	ValueType &operator [] (KeyType &which);
+
+	// returns 0 if this entry is undefined; 1 if it is defined
+	int count (KeyType &which);
 };
 
 }
 
-#include "PDBVector.cc"
+#include "PDBMap.cc"
 
 #endif
 

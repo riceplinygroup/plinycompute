@@ -118,6 +118,12 @@ public:
 	friend bool operator != (const Handle <ObjType> &lhs, std :: nullptr_t rhs) {return !lhs.isNullPtr ();}
 	bool isNullPtr () const;
 
+	// equality on handles checks for equality of the underlying objects 
+	friend bool operator == (const Handle <ObjType> &lhs, const Handle <ObjType> &rhs) {return *lhs == *rhs;}
+
+	// a hash on a handle just hashes the underlying object
+	size_t hash () const {return (*this)->hash ();}
+
 	// get the reference count for this Handle, if it exists (returns 99999999 if it does not)
 	unsigned getRefCount ();
 
@@ -181,7 +187,7 @@ public:
 	Handle <ObjType> &operator = (const Handle <ObjTypeTwo> &fromMe);
 
 	// de-reference operators
-    ObjType *operator -> () const;
+	ObjType *operator -> () const;
 	ObjType &operator * () const;
 
 	// get/set the offset
