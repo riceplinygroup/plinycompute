@@ -67,6 +67,11 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
 
 void DispatcherServer :: registerStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) {
     this->storageNodes = storageNodes;
+    for (int i = 0; i < storageNodes->size(); i++) {
+        auto node = (*storageNodes)[i];
+        std::cout << "Dispatcher register node: " << node->getAddress() << " : " << node->getPort()  << std::endl;
+    }
+
     for (auto const partitionPolicy : partitionPolicies) {
         partitionPolicy.second->updateStorageNodes(storageNodes);
     }
@@ -127,7 +132,7 @@ Handle<NodeDispatcherData> DispatcherServer :: findNode(NodeID nodeId) {
             return storageNode;
         }
     }
-    // TODO: This should be an error case
+    return nullptr;
 }
 
 }

@@ -79,7 +79,9 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	// get the file size
 	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
 	size_t fileLen = in.tellg();
-	
+
+	std::cout << "Registering type " << fileContainingSharedLib << std::endl;
+
 	// this makes a an empty vector with fileLen slots
 	const UseTemporaryAllocationBlock tempBlock{fileLen + 1024};
 	bool res;
