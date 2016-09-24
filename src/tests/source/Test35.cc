@@ -43,7 +43,7 @@ int main () {
        frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
        frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
 
-       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8101);
+       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8108);
        frontEnd.addFunctionality <pdb :: QuerySchedulerServer> ("localhost", 8108, myLogger);
        frontEnd.startServer (nullptr);
 }

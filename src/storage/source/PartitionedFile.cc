@@ -94,7 +94,7 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->pageSize = pageSize;
 	//Initialize meta FILE instances;
 	this->metaFile = nullptr;
-        this->usingDirect = true;
+        this->usingDirect = false;
 }
 
 /**
