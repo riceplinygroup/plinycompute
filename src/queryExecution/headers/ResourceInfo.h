@@ -84,7 +84,6 @@ public:
                 this->nodeId = nodeId;
         }
 
-
 	ENABLE_DEEP_COPY
 
 private:

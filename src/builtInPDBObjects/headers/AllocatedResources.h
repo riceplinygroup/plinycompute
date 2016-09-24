@@ -45,7 +45,7 @@ public:
 
         void print() {
                 for (int i = 0; i < resources->size(); i++) {
-                     std::cout << i << ":" << "CPU number=" << (*resources)[i]->getNumCores() << ", memory size=" << (*resources)[i]->getMemSize() << std :: endl;
+                     std::cout << i << ":" << "Node address=" << (*resources)[i]->getAddress()<< ", CPU number=" << (*resources)[i]->getNumCores() << ", memory size=" << (*resources)[i]->getMemSize() << std :: endl;
                 }
 
         }

@@ -680,7 +680,7 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
          * - ...
 	 */
 	//Open meta partition for reading
-	if(this->openMeta() < 0) {
+	if(this->openMeta() == false) {
 		this->logger->writeLn("PartitionedFile: Error: can't open meta partition.");
 		exit(-1);
 	}
