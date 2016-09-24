@@ -60,7 +60,7 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 
 			// this will allow us to have some extra RAM for local allocations; in particular,
 			// we will want to store all of the names of the output sets
-			const UseTemporaryAllocationBlock tempBlock {1024 * 128};
+			const UseTemporaryAllocationBlock tempBlock {1024 * 256};
 			{
 	
 				// this lists all of the temporary sets created
@@ -98,7 +98,7 @@ void QueryServer :: registerHandlers (PDBServer &forMe) {
 				}
 
 				// now, we send back the result
-				const UseTemporaryAllocationBlock tempBlock {1024};
+				//const UseTemporaryAllocationBlock tempBlock {1024};
 				Handle <Vector <String>> result = makeObject <Vector <String>> ();
 				for (int i = 0; i < runUs->size (); i++) {
 					if ((*runUs)[i]->getQueryType () == "localoutput") {
