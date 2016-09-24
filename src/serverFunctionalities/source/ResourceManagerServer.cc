@@ -132,12 +132,14 @@ void ResourceManagerServer :: analyzeResources (std :: string resourceFileName) 
                 SS >> memSize;
                 std :: cout << "memSize =" << memSize << std :: endl;
                 Handle<ResourceInfo> resource = makeObject<ResourceInfo>(numCores, memSize, (*this->nodes)[numServers]->getAddress(), port, numServers);
+                std :: cout << numServers << ": address=" << resource->getAddress() << ", numCores=" << resource->getNumCores() << ", memSize=" << resource->getMemSize() << std :: endl;
                 this->resources->push_back(resource);
                 numServers ++;
             }
 
 
         }
+       
         resourceFile.close();
 
     } else {
@@ -157,6 +159,7 @@ void ResourceManagerServer :: registerHandlers (PDBServer &forMe) {
                     std :: string errMsg;
                     const UseTemporaryAllocationBlock block (2 * 1024 * 1024);
                     Handle<AllocatedResources> response = makeObject<AllocatedResources> (this->resources);
+                    response->print();
                     bool res = sendUsingMe->sendObject(response, errMsg);                                             
 
                     return make_pair (res, errMsg);
