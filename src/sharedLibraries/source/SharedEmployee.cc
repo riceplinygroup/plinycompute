@@ -22,9 +22,6 @@
 #include "GetVTable.h"
 #include "SharedEmployee.h"
 
-
-#ifndef CHRIS_SELECT_CC
 GET_V_TABLE (SharedEmployee)
-#endif
 
 #endif
