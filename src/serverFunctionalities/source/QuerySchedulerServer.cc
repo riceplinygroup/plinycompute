@@ -41,22 +41,11 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
 
      this->resourceManagerIp = resourceManagerIp;
      this->port = port;
-     this->currentTempPlan = nullptr;
      this->currentPlan = nullptr;
      this->resources = nullptr;
      this->logger = logger;
 }
 
-std :: vector <SimpleSingleTableQueryProcessorPtr> * QuerySchedulerServer :: parseQuery(Handle<Vector<Handle<QueryBase>>> userQuery) {
-     currentTempPlan = new std :: vector<SimpleSingleTableQueryProcessorPtr> ();
-     for (int i = 0; i < userQuery->size(); i++) {
-         Handle<Selection<Object, Object>> myQuery = unsafeCast<Selection <Object, Object>> ((*userQuery)[i]);
-         currentTempPlan->push_back(myQuery->getProcessor());
-
-     }
-
-     return currentTempPlan;
-} 
 
 Handle<Vector<Handle<JobStage>>> QuerySchedulerServer :: parseOptimizedQuery (pdb :: Object interfaceTBD) { 
     return nullptr;
@@ -67,52 +56,68 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
     forMe.registerHandler (ExecuteQuery_TYPEID, make_shared<SimpleRequestHandler<ExecuteQuery>> (
          [&] (Handle <ExecuteQuery> request, PDBCommunicatorPtr sendUsingMe) {
 
-         //parse the query
-         const UseTemporaryAllocationBlock block1 {128 * 1024};
          std :: string errMsg;
          bool success;
-         std :: cout << "Got the ExecuteQuery object" << std :: endl;
-         Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
-         std :: cout << "Got the Query object" << std :: endl;
-         if (!success) {
-             std :: cout << errMsg << std :: endl;
-             return std :: make_pair (false, errMsg);
-         }
-         this->parseQuery (userQuery);
 
-         //to query the resource manager and obtain resources
-         PDBCommunicatorPtr communicatorToResourceManager = std :: make_shared<PDBCommunicator>();
-         if(communicatorToResourceManager->connectToInternetServer(logger, port, resourceManagerIp, errMsg)) {
+         //parse the query
+         {
+
+             const UseTemporaryAllocationBlock block {128 * 1024};
+             std :: cout << "Got the ExecuteQuery object" << std :: endl;
+             Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
+             std :: cout << "Got the ExecuteQuery object" << std :: endl;
+             if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return std :: make_pair (false, errMsg);
+             }
+         }
+             //this->parseQuery (userQuery);
+             std :: cout << "connect to resource manager" << std :: endl;
+             //to query the resource manager and obtain resources
+             PDBCommunicatorPtr communicatorToResourceManager = std :: make_shared<PDBCommunicator>();
+             if(communicatorToResourceManager->connectToInternetServer(logger, port, resourceManagerIp, errMsg)) {
              success = false;
              std :: cout << errMsg << std :: endl;
              return std :: make_pair(success, errMsg);
-         }
+             }
          
-         const UseTemporaryAllocationBlock block2 {4096};
-         Handle <RequestResources> resourceRequest = makeObject<RequestResources>(8, 16000);
-         success = communicatorToResourceManager->sendObject<RequestResources>(resourceRequest, errMsg);
-         if (!success) {
-             std :: cout << errMsg << std :: endl;
-             return std :: make_pair (false, errMsg);
+         
+
+         {
+             std :: cout << "To send a RequestResource object to the resource manager" << std :: endl;
+             const UseTemporaryAllocationBlock block {4096};
+             Handle <RequestResources> resourceRequest = makeObject<RequestResources>(8, 16000);
+             success = communicatorToResourceManager->sendObject<RequestResources>(resourceRequest, errMsg);
+             if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return std :: make_pair (false, errMsg);
+             }
          }
 
-         const UseTemporaryAllocationBlock block3 {communicatorToResourceManager->getSizeOfNextObject()};
-         Handle<AllocatedResources> resourceResponse = communicatorToResourceManager->getNextObject<AllocatedResources>(success, errMsg);
+
+         {
+
+             std :: cout << "To get the resource object from the resource manager" << std :: endl;
+             const UseTemporaryAllocationBlock block {communicatorToResourceManager->getSizeOfNextObject()};
+             Handle<AllocatedResources> resourceResponse = communicatorToResourceManager->getNextObject<AllocatedResources>(success, errMsg);
     
-         if (!success) {
-             std :: cout << errMsg << std :: endl;
-             return std :: make_pair (false, errMsg);
+             if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return std :: make_pair (false, errMsg);
+             }
+
+             this->resources = resourceResponse->getResources();
+
+             //print out the resources
+             resourceResponse->print();
+ 
+             //to send query processor to each compute node
+             //TODO 
+
+            return std :: make_pair (true, errMsg);
+
          }
 
-         this->resources = resourceResponse->getResources();
-
-         //print out the resources
-         resourceResponse->print();
- 
-         //to send query processor to each compute node
-         //TODO 
-
-         return std :: make_pair (true, errMsg);
       }));
     
 

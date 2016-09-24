@@ -42,9 +42,6 @@ public:
        //constructor, initialize from catalog
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger);
 
-       //to directly parse client query into a physical plan, for temporarily 
-       std :: vector <SimpleSingleTableQueryProcessorPtr> * parseQuery(Handle<Vector<Handle<QueryBase>>> userQuery);
-
        //to execute optimized client query into a physical plan
        Handle<Vector<Handle<JobStage>>> parseOptimizedQuery(pdb::Object interfaceTBD );
 
@@ -63,8 +60,6 @@ protected:
        // port number
        int port;
 
-       // physical plan for temporarily use
-       std :: vector<SimpleSingleTableQueryProcessorPtr> * currentTempPlan;
 
        // physical plan
        Handle<Vector<Handle<JobStage>>> currentPlan;
