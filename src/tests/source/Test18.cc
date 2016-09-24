@@ -76,6 +76,8 @@ int main () {
 	// and delete the sets
 	myClient.deleteSet ("chris_db", "output_set1");
 	myClient.deleteSet ("chris_db", "output_set2");
+        system ("scripts/cleanSoFiles.sh");
+        
 }
 
 #endif

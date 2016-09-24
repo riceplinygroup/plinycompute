@@ -188,7 +188,7 @@ PDBCommunicator::~PDBCommunicator() {
     // Jia: moved below logic from Chris' message-based communication to here.
     // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
     // set to true only if we are a client and we want to close a connection to the server
-    
+#ifdef __APPLE__    
     if (needToSendDisconnectMsg && socketFD > 0) {
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle <CloseConnection> temp = makeObject <CloseConnection> ();
@@ -203,14 +203,14 @@ PDBCommunicator::~PDBCommunicator() {
     if (socketFD >= 0) {
         close(socketFD);
     }
-
-    /*
+#else
+    
 
     if (needToSendDisconnectMsg && socketFD > 0) {
         close(socketFD);
     }
 
-    */
+#endif
 
 }
 
