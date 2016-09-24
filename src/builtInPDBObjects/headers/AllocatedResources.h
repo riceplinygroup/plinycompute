@@ -24,6 +24,7 @@
 #include "PDBString.h"
 #include "ResourceInfo.h"
 #include "PDBVector.h"
+#include "UseTemporaryAllocationBlock.h"
 
 // PRELOAD %AllocatedResources%
 
@@ -37,7 +38,15 @@ public:
 	AllocatedResources () {}
 	~AllocatedResources () {}
 
-	AllocatedResources (Handle<Vector<Handle<ResourceInfo>>> resources) : resources (resources) {}
+	AllocatedResources (Handle<Vector<Handle<ResourceInfo>>> resources)  {
+
+                const UseTemporaryAllocationBlock block (2 * 1024 * 1024);
+                this->resources = makeObject<Vector<Handle<ResourceInfo>>>();
+                for (int i = 0; i < resources->size(); i++) {
+                     this->resources->push_back((*resources)[i]);
+                }
+
+        }
 
 	Handle<Vector<Handle<ResourceInfo>>> getResources () {
 		return resources;

@@ -151,21 +151,7 @@ void ResourceManagerServer :: analyzeResources (std :: string resourceFileName) 
 
 
 void ResourceManagerServer :: registerHandlers (PDBServer &forMe) {
-
-    forMe. registerHandler (RequestResources_TYPEID, make_shared<SimpleRequestHandler<RequestResources>> (
-                [&] (Handle <RequestResources> request, PDBCommunicatorPtr sendUsingMe) {
-
-                        
-                    std :: string errMsg;
-                    const UseTemporaryAllocationBlock block (2 * 1024 * 1024);
-                    Handle<AllocatedResources> response = makeObject<AllocatedResources> (this->resources);
-                    response->print();
-                    bool res = sendUsingMe->sendObject(response, errMsg);                                             
-
-                    return make_pair (res, errMsg);
-                }
-
-));
+//Now we use ResourceManager through getFunctionality() at Scheduler and Dispatcher
 }
 
 
