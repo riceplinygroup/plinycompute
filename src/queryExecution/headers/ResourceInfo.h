@@ -84,6 +84,17 @@ public:
                 this->nodeId = nodeId;
         }
 
+        int getPort() {
+
+                return port;
+        }
+
+        void setPort (int port) {
+
+                this->port = port;    
+
+        }
+
 	ENABLE_DEEP_COPY
 
 private:
