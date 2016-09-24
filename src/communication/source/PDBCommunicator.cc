@@ -188,7 +188,7 @@ PDBCommunicator::~PDBCommunicator() {
     // Jia: moved below logic from Chris' message-based communication to here.
     // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
     // set to true only if we are a client and we want to close a connection to the server
-    /*
+    
     if (needToSendDisconnectMsg && socketFD > 0) {
         const UseTemporaryAllocationBlock tempBlock{1024};
         Handle <CloseConnection> temp = makeObject <CloseConnection> ();
@@ -204,11 +204,13 @@ PDBCommunicator::~PDBCommunicator() {
         close(socketFD);
     }
 
-    */
+    /*
 
     if (needToSendDisconnectMsg && socketFD > 0) {
         close(socketFD);
     }
+
+    */
 
 }
 
@@ -234,6 +236,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
         logToMe->error(strerror(errno));
         nextTypeID = NoMsg_TYPEID;
         close(socketFD);
+        return 0;
 
     // OK, we did get enough bytes
     } else {
