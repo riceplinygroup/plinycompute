@@ -64,10 +64,11 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
          //parse the query
          
-
+             getRecord(request);
              const UseTemporaryAllocationBlock block {128 * 1024};
              std :: cout << "Got the ExecuteQuery object" << std :: endl;
              Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
+             getRecord(userQuery);
              std :: cout << "Got the ExecuteQuery object" << std :: endl;
              if (!success) {
                  std :: cout << errMsg << std :: endl;
@@ -121,6 +122,8 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                       std :: cout << errMsg << std :: endl;
                       callerBuzzer->buzz(PDBAlarm :: GenericError);
                   }
+                  
+ 
                   success = communicator->sendObject<Vector<Handle<QueryBase>>>(userQuery, errMsg);
                   if (!success) {
                       std :: cout << errMsg << std :: endl;
