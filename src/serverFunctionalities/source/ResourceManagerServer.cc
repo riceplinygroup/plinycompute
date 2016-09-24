@@ -22,7 +22,6 @@
 #include "InterfaceFunctions.h"
 #include "SimpleRequestHandler.h"
 #include "RequestResources.h"
-#include "AllocatedResources.h"
 #include "DataTypes.h"
 #include <stdlib.h>
 #include <regex>
