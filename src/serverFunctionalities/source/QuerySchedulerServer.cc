@@ -147,6 +147,12 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          }
          */
          sleep (5);
+
+         Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
+         if (!sendUsingMe->sendObject (result, errMsg)) {
+              return std :: make_pair (false, errMsg);
+         }
+
          return std :: make_pair (true, errMsg);
 
     
