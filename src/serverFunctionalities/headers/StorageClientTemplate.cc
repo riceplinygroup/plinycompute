@@ -39,8 +39,7 @@
 namespace pdb {
 
 template <class DataType>
-bool StorageClient :: storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg) {
-	
+bool StorageClient :: storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg, bool typeCheck) {
 	return simpleSendDataRequest <StorageAddData, Handle <DataType>, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <SimpleRequestResult> result) {
 			if (result != nullptr) 
@@ -49,7 +48,8 @@ bool StorageClient :: storeData (Handle <Vector <Handle <DataType>>> data, std :
 					errMsg = "Error sending data: " + result->getRes ().second;
 				} 
 			return true;},
-		data, databaseName, setName, getTypeName <DataType> ());
+		data, databaseName, setName, getTypeName <DataType> (), typeCheck);
+        
 }
 
 template <class DataType>

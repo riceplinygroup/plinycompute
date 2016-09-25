@@ -83,7 +83,7 @@ int main (int argc, char * argv[]) {
                         } catch (pdb :: NotEnoughSpace &n) {
 
                                 // we got here, so go ahead and store the vector
-                                if (!temp.storeData <SharedEmployee> (storeMe, databaseName, setName, errMsg)) {
+                                if (!temp.storeData <SharedEmployee> (storeMe, databaseName, setName, errMsg, false)) {
                                          cout << "Not able to store data: " + errMsg;
                                          return 0;
                                 }

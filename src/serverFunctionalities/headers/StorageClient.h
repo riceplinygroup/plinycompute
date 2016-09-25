@@ -65,7 +65,8 @@ public:
 
 	// this stores data into a set... returns true on success
 	template <class DataType>
-	bool storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg);
+	bool storeData (Handle <Vector <Handle <DataType>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg, bool typeCheck=true);
+
 
         // this retrieves data into a set... returns true on success
         template <class DataType>
