@@ -35,8 +35,10 @@ public:
 	StorageAddData () {}
 	~StorageAddData () {}
 
-	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName) : dataBase (dataBase), setName (setName),
-		typeName (typeName) {}
+	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true) : dataBase (dataBase), setName (setName),
+		typeName (typeName) {
+                this->typeCheck = typeCheck;
+        }
 
 	std :: string getDatabase () {
 		return dataBase;
@@ -50,6 +52,11 @@ public:
 		return typeName;
 	}
 
+        bool isTypeCheck() {
+                return typeCheck;
+        }
+
+
 	ENABLE_DEEP_COPY
 
 private:
@@ -57,7 +64,7 @@ private:
 	String dataBase;
 	String setName;
 	String typeName;
-
+        bool typeCheck;
 };
 
 }

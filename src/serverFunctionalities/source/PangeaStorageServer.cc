@@ -470,29 +470,36 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (StorageAddData_TYPEID, make_shared <SimpleRequestHandler <StorageAddData>> (
 		[&] (Handle <StorageAddData> request, PDBCommunicatorPtr sendUsingMe) {
 
+	        std :: string errMsg;
+		bool everythingOK = true;
+                bool typeCheckOrNot = request->isTypeCheck();
+                if (typeCheckOrNot == true) {
+
 			// first, check with the catalog to make sure that the given database, set, and type are correct
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabase (), request->getSetName ());
-			std :: string errMsg;
-			bool everythingOK = true;
-			if (typeID >= 0) {
-
+			if (typeID < 0) {
+                                everythingOK = false;
+                        }
 				// if we made it here, the type is correct, as is the database and the set
-				if (typeID == getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+		        else if (typeID != getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+                                everythingOK = false;
+                        }
+                 }
 					
-					// get the record
-					size_t numBytes = sendUsingMe->getSizeOfNextObject ();
-					void *readToHere = malloc (numBytes);
-					sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+	         // get the record
+		 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+	         void *readToHere = malloc (numBytes);
+		 sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
 
-					if (everythingOK) {	
+		 if (everythingOK) {	
 						// at this point, we have performed the serialization, so remember the record
-						auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
+				auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
         	                                        (std :: string) request->getSetName ());
-						getFunctionality <PangeaStorageServer> ().bufferRecord 
+				getFunctionality <PangeaStorageServer> ().bufferRecord 
 							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
 
 
-                                                size_t numBytesToProcess = sizes[databaseAndSet];
+                                 size_t numBytesToProcess = sizes[databaseAndSet];
                                                 size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
 
                                                 if(numBytesToProcess < rawPageSize) {
@@ -506,27 +513,22 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 						      std :: cout << "Done with write back.\n";
 						      std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
                                                 }
-					}
-				} else {
-					errMsg = "Tried to add data of the wrong type to a database set.\n";
-					everythingOK = false;
-				}
-			} else {
-				errMsg = "Tried to add data to a set/database combination that does not exist.\n";
+		 }
+		 else {
+				errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
 				everythingOK = false;
-			}
+		 }
+                 getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
 
-                        getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+	         //std :: cout << "Making response object.\n";
+                 const UseTemporaryAllocationBlock block{1024};                        
+		 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
-			//std :: cout << "Making response object.\n";
-                        const UseTemporaryAllocationBlock block{1024};                        
-			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
-
-                        // return the result
-			//std :: cout << "Sending response object.\n";
-                        bool res = sendUsingMe->sendObject (response, errMsg);
-                        return make_pair (res, errMsg);
-		}
+                 // return the result
+		 //std :: cout << "Sending response object.\n";
+                 bool res = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair (res, errMsg);
+             }
 	));
 
 
