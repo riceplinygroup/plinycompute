@@ -264,7 +264,7 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
         // kill the FD and let everyone know we are done
         allDone = true;
-        close(sockFD);
+        //close(sockFD); //should this be handled by the PDBCommunicator destructor??
         return false;
 
     } 
