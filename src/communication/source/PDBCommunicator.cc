@@ -210,6 +210,14 @@ PDBCommunicator::~PDBCommunicator() {
         close(socketFD);
     } else if (!needToSendDisconnectMsg && socketFD > 0) {
         shutdown(socketFD, SHUT_WR);
+        char c;
+        ssize_t res = recv(socketFD, &c, 1, MSG_PEEK);
+        if (res == 0) {
+            std :: cout << "server socket closed" << std :: endl;
+        } else {
+            std :: cout << "there is some error in the socket" << std :: endl;
+        }
+        close(socketFD);
     }
 
 #endif

@@ -32,8 +32,17 @@
 namespace pdb {
 
 
-ResourceManagerServer :: ~ResourceManagerServer () { this->resources = nullptr; }
+ResourceManagerServer :: ~ResourceManagerServer () { 
 
+}
+
+
+void ResourceManagerServer :: clean () {
+
+     this->resources = nullptr;
+     this->nodes = nullptr;
+
+}
 
 ResourceManagerServer :: ResourceManagerServer (std :: string catalogIp) {   
 
@@ -56,6 +65,7 @@ Handle<Vector<Handle<ResourceInfo>>> ResourceManagerServer :: getAllResources ()
 Handle<Vector<Handle<NodeDispatcherData>>> ResourceManagerServer :: getAllNodes() {
    return nodes;
 }
+
 
 
 void ResourceManagerServer :: initialize (std :: string pathToServerList) {

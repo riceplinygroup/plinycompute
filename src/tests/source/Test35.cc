@@ -37,11 +37,11 @@ int main () {
        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
        frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
 
-       //ConfigurationPtr conf = make_shared < Configuration > ();
-       //pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
-       //SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
-       //frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
-       //frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+       ConfigurationPtr conf = make_shared < Configuration > ();
+       pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
+       SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
+       frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
+       frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
 
        frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8108);
        frontEnd.addFunctionality <pdb :: QuerySchedulerServer> ("localhost", 8108, myLogger);

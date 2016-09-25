@@ -38,7 +38,15 @@
 
 namespace pdb {
 
-QuerySchedulerServer :: ~QuerySchedulerServer () {}
+QuerySchedulerServer :: ~QuerySchedulerServer () {
+}
+
+void QuerySchedulerServer ::clean() {
+
+    this->currentPlan = nullptr;
+    this->resources = nullptr;
+
+}
 
 QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger) {
 
