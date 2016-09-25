@@ -16,36 +16,36 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_35_CC
-#define TEST_35_CC
+#ifndef TEST_38_CC
+#define TEST_38_CC
 
-#include "PDBServer.h"
-#include "ResourceManagerServer.h"
-#include "QuerySchedulerServer.h"
-#include "CatalogServer.h"
-#include "CatalogClient.h"
-#include "StorageServer.h"
-#include "Configuration.h"
-#include "PangeaStorageServer.h"
-#include "SharedMem.h"
+#include "StorageClient.h"
+#include "PDBVector.h"
+#include "InterfaceFunctions.h"
+#include "ChrisSelection.h"
+#include "StringSelection.h"
+
+// this won't be visible to the v-table map, since it is not in the biult in types directory
+#include "SharedEmployee.h"
 
 int main () {
 
-       std :: cout << "Starting up a resource manager/query scheduler server!!\n";
-       pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
-       pdb :: PDBServer frontEnd (8108, 10, myLogger);
-       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
-       frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
+	std:: cout << "Make sure to run bin/test601 or bin/test35 in a different window to provide a catalog/storage server.\n";
 
-       //ConfigurationPtr conf = make_shared < Configuration > ();
-       //pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
-       //SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
-       //frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
-       //frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+	// register the shared employee class
+	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), true);
 
-       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8108);
-       frontEnd.addFunctionality <pdb :: QuerySchedulerServer> ("localhost", 8108, myLogger);
-       frontEnd.startServer (nullptr);
+	string errMsg;
+	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg)) {
+		cout << "Not able to register type: " + errMsg;
+	} else {
+		cout << "Registered type.\n";
+	}
+
+        //to register selection type 
+        temp.registerType ("libraries/libChrisSelection.so", errMsg);
+        temp.registerType ("libraries/libStringSelection.so", errMsg);
+	
 }
 
 #endif
