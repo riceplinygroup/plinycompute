@@ -64,12 +64,10 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
          //parse the query
              //getRecord(request);
-             const UseTemporaryAllocationBlock block {128 * 1024};
+             const UseTemporaryAllocationBlock block {2 * 1024 * 1024};
              Handle<ExecuteQuery> request1 = makeObject<ExecuteQuery>();
-             request1 = request;
              std :: cout << "Got the ExecuteQuery object" << std :: endl;
              Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
-             getRecord(userQuery);
              std :: cout << "Got the ExecuteQuery object" << std :: endl;
              if (!success) {
                  std :: cout << errMsg << std :: endl;
@@ -77,11 +75,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              }
          
 
-
-         
-
          std :: cout << "To get the resource object from the resource manager" << std :: endl;
-         makeObjectAllocatorBlock (1*1024*1024, true);
          this->resources = getFunctionality<ResourceManagerServer>().getAllResources();
     
 
@@ -106,8 +100,20 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                   success = false;
                   std :: cout << errMsg << std :: endl;
                   return std :: make_pair(success, errMsg);
+
+             }
+             std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
+             success = communicator->sendObject<ExecuteQuery>(request1, errMsg);
+             if (!success) {
+                  std :: cout << errMsg << std :: endl;
+                  return std :: make_pair(success, errMsg);
              }
 
+             success = communicator->sendObject<Vector<Handle<QueryBase>>>(userQuery, errMsg);
+             if (!success) {
+                  std :: cout << errMsg << std :: endl;
+                  return std :: make_pair(success, errMsg);
+             }
              communicators->push_back(communicator);
          }
          
@@ -116,20 +122,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              PDBWorkerPtr myWorker = getWorker(); 
              PDBWorkPtr myWork = make_shared <GenericWork> (
                  [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
                   PDBCommunicatorPtr communicator = communicators->at(i);
-                  success = communicator->sendObject<ExecuteQuery>(request1, errMsg);
-                  if (!success) {
-                      std :: cout << errMsg << std :: endl;
-                      callerBuzzer->buzz(PDBAlarm :: GenericError);
-                  }
-                  
- 
-                  success = communicator->sendObject<Vector<Handle<QueryBase>>>(userQuery, errMsg);
-                  if (!success) {
-                      std :: cout << errMsg << std :: endl;
-                      callerBuzzer->buzz(PDBAlarm :: GenericError);
-                  }
                   std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
                   const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
                   Handle<SimpleRequestResult> result = communicator->getNextObject<SimpleRequestResult>(success, errMsg);
