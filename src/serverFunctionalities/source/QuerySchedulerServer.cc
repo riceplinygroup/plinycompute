@@ -132,8 +132,12 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                   PDBCommunicatorPtr communicator = communicators->at(i);
                   std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
                   const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
-                  Handle<SimpleRequestResult> result = communicator->getNextObject<SimpleRequestResult>(success, errMsg);
-                  std :: cout << "got the ack!" << std :: endl;
+                  Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+                  if (result != nullptr) {
+                       for (int j = 0; j < result->size(); j++) {
+                           std :: cout << "Query execute: wrote set:" << (*result)[i] << std :: endl;
+                       }
+                  }
                   callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
                  }
              ); 

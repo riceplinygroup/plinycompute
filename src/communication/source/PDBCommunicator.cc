@@ -210,6 +210,8 @@ PDBCommunicator::~PDBCommunicator() {
         close(socketFD);
     } else if (!needToSendDisconnectMsg && socketFD > 0) {
         shutdown(socketFD, SHUT_WR);
+        //below logic doesn't work!
+        /*
         char c;
         ssize_t res = recv(socketFD, &c, 1, MSG_PEEK);
         if (res == 0) {
@@ -217,6 +219,7 @@ PDBCommunicator::~PDBCommunicator() {
         } else {
             std :: cout << "there is some error in the socket" << std :: endl;
         }
+        */
         close(socketFD);
     }
 
