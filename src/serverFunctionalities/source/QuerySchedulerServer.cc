@@ -133,12 +133,12 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              myWorker->execute(myWork, myBuzzers[i]);
          }
 
-         /*
+         /* 
          for (auto &b : myBuzzers) {
               b->wait();
          }
          */
-         sleep (3);
+         sleep (5);
          return std :: make_pair (true, errMsg);
 
     

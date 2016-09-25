@@ -205,9 +205,11 @@ PDBCommunicator::~PDBCommunicator() {
     }
 #else
     
-
+  
     if (needToSendDisconnectMsg && socketFD > 0) {
         close(socketFD);
+    } else if (!needToSendDisconnectMsg && socketFD > 0) {
+        shutdown(socketFD, SHUT_WR);
     }
 
 #endif
