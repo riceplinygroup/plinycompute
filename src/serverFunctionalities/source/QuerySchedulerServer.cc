@@ -63,16 +63,15 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          bool success;
 
          //parse the query
-             //getRecord(request);
-             const UseTemporaryAllocationBlock block {2 * 1024 * 1024};
-             Handle<ExecuteQuery> request1 = makeObject<ExecuteQuery>();
-             std :: cout << "Got the ExecuteQuery object" << std :: endl;
-             Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
-             std :: cout << "Got the ExecuteQuery object" << std :: endl;
-             if (!success) {
+         const UseTemporaryAllocationBlock block {2 * 1024 * 1024};
+         Handle<ExecuteQuery> request1 = makeObject<ExecuteQuery>();
+         std :: cout << "Got the ExecuteQuery object" << std :: endl;
+         Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
+         std :: cout << "Got the ExecuteQuery object" << std :: endl;
+         if (!success) {
                  std :: cout << errMsg << std :: endl;
                  return std :: make_pair (false, errMsg);
-             }
+         }
          
 
          std :: cout << "To get the resource object from the resource manager" << std :: endl;
@@ -134,10 +133,12 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              myWorker->execute(myWork, myBuzzers[i]);
          }
 
+         /*
          for (auto &b : myBuzzers) {
               b->wait();
          }
-
+         */
+         sleep (3);
          return std :: make_pair (true, errMsg);
 
     
