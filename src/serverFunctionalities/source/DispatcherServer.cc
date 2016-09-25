@@ -57,10 +57,12 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
 
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
-                dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()), dataToSend);
+                dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
+                             request->getTypeName(), dataToSend);
 
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
+
                 return make_pair(res, errMsg);
     }));
 }
@@ -89,21 +91,21 @@ void DispatcherServer :: registerSet(std::pair<std::string, std::string> setAndD
 
 
 
-bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<Object>>> toDispatch) {
+bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<Vector<Handle<Object>>> toDispatch) {
     // TODO: Implement this
 
     if (partitionPolicies.find(setAndDatabase) == partitionPolicies.end()) {
         std::cout << "No partition policy was found for set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
         std::cout << "Defaulting to random policy" << std::endl;
         registerSet(setAndDatabase, std::make_shared<RandomPolicy>());
-        return dispatchData(setAndDatabase, toDispatch);
+        return dispatchData(setAndDatabase, type, toDispatch);
     } else {
 
         auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(toDispatch);
 
         for (auto const &pair : (* mappedPartitions)) {
 
-            if (!sendData(setAndDatabase ,findNode(pair.first), pair.second)) {
+            if (!sendData(setAndDatabase, type, findNode(pair.first), pair.second)) {
                 return false;
             }
         }
@@ -111,14 +113,14 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
     }
 }
 
-bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDatabase,
+bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDatabase, std::string type,
                                    Handle<NodeDispatcherData> destination, Handle<Vector<Handle<Object>>> toSend) {
 
     std::cout << "Sending data to " << destination->getPort() << " : " << destination->getAddress() << std::endl;
 
     std::string err;
     StorageClient storageClient = StorageClient(destination->getPort(), destination->getAddress(), logger);
-    if (!storageClient.storeData <pdb::Object> (toSend, setAndDatabase.second, setAndDatabase.first, err)) {
+    if (!storageClient.storeData (toSend, setAndDatabase.second, setAndDatabase.first, type, err)) {
         cout << "Not able to store data: " << err << std::endl;
         return 0;
     }

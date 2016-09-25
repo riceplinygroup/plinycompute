@@ -79,7 +79,7 @@ public:
      * @param toDispatch vector of pdb::Object's to dispatch
      * @return true on success
      */
-    bool dispatchData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<Object>>> toDispatch);
+    bool dispatchData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<Vector<Handle<Object>>> toDispatch);
 
 private:
 
@@ -87,7 +87,7 @@ private:
     Handle<Vector<Handle<NodeDispatcherData>>> storageNodes;
     std::map<std::pair<std::string, std::string>, PartitionPolicyPtr> partitionPolicies;
 
-    bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<NodeDispatcherData> destination,
+    bool sendData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<NodeDispatcherData> destination,
                   Handle<Vector<Handle<Object>>> toSend);
     Handle<NodeDispatcherData> findNode(NodeID nodeId);
 

@@ -18,12 +18,10 @@
 #ifndef TEST_402_CC
 #define TEST_402_CC
 
+#include "DispatcherClient.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SharedEmployee.h"
-#include "DispatcherClient.h"
 #include "StorageClient.h"
-
-#include <iostream>
 
 /**
  * Test: Dispatcher Server and Client
@@ -117,6 +115,9 @@ int main (int argc, char * argv[]) {
                 pdb :: Handle <SharedEmployee> myData =
                             pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
                 storeMe->push_back (myData);
+
+
+
             }
         } catch (pdb :: NotEnoughSpace &n) {
 
@@ -124,8 +125,7 @@ int main (int argc, char * argv[]) {
         std::string err;
         for (int i = 0; i < 10; i++) {
             std::cout << "Dispatching a vector of size " <<  storeMe->size() << std::endl;
-
-            if (!temp.sendData(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
+            if (!temp.sendData<pdb::Object>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
                 std::cout << "Failed to send data to dispatcher server" << std::endl;
                 return 1;
             }

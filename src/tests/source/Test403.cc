@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_402_CC
-#define TEST_402_CC
+#ifndef TEST_403_CC
+#define TEST_403_CC
 
+#include "DispatcherClient.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SharedEmployee.h"
-#include "DispatcherClient.h"
 #include "StorageClient.h"
 #include "ResourceManagerServer.h"
 
@@ -106,8 +106,8 @@ int main (int argc, char * argv[]) {
 
     {
         // pdb :: makeObjectAllocatorBlock (storage, 1024 * 8, true);
-        pdb::Handle<pdb::Vector<pdb::Handle<pdb::Object>>> storeMe =
-                pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Object>>> ();
+        pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
+                pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
         try {
             for (int i = 0; i < 512; i++) {
                 pdb :: Handle <SharedEmployee> myData =
@@ -121,7 +121,7 @@ int main (int argc, char * argv[]) {
         for (int i = 0; i < 10; i++) {
             std::cout << "Dispatching a vector of size " <<  storeMe->size() << std::endl;
 
-            if (!temp.sendData(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
+            if (!temp.sendData<SharedEmployee>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
                 std::cout << "Failed to send data to dispatcher server" << std::endl;
                 return 1;
             }

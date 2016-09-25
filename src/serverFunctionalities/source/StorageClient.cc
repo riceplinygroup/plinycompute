@@ -64,6 +64,18 @@ bool StorageClient :: createDatabase (std :: string databaseName, std :: string 
         }
 }
 
+bool StorageClient :: storeData (Handle <Vector <Handle <Object>>> data, std :: string databaseName, std :: string setName, std::string typeName, std :: string &errMsg) {
+    return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr)
+                if (!result->getRes ().first) {
+                    myLogger->error ("Error sending data: " + result->getRes ().second);
+                    errMsg = "Error sending data: " + result->getRes ().second;
+                }
+            return true;}, data, databaseName, setName, typeName, true);
+}
+
+
 std :: string StorageClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 	return myHelper.getObjectType (databaseName, setName, errMsg);
 }
