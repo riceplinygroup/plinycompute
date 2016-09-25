@@ -143,8 +143,8 @@ public:
                 [&] (Handle<SimpleRequestResult> result) {
                         if (result != nullptr) {
                                 if (!result->getRes ().first) {
-                                        errMsg = "Error creating set: " + result->getRes ().second;
-                                        myLogger->error ("Error scanning data: " + result->getRes ().second);
+                                        errMsg = "Error in query: " + result->getRes ().second;
+                                        myLogger->error ("Error querying data: " + result->getRes ().second);
                                         return false;
                                 }
                                 return true;

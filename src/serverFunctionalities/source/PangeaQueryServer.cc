@@ -133,7 +133,7 @@ void PangeaQueryServer :: registerHandlers (PDBServer &forMe) {
 						return std :: make_pair (false, errMsg);
 					}
 				} else {
-					Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (false, std :: string ("successfully deleted set"));
+					Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully deleted set"));
 					if (!sendUsingMe->sendObject (result, errMsg)) {
 						return std :: make_pair (false, errMsg);
 					}
