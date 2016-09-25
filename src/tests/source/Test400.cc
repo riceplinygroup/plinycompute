@@ -22,8 +22,7 @@
 #include "DispatcherServer.h"
 #include "NodeDispatcherData.h"
 #include "RandomPolicy.h"
-
-// TODO:
+#include "TypeName.h"
 
 #include <iostream>
 
@@ -108,6 +107,7 @@ int main (int argc, char * argv[]) {
     newNodes->push_back(node2);
     // Register two nodes with the dispatcher
     dispatcherServer.registerStorageNodes(newNodes);
+    std::string typeName;
 
     // now, create a bunch of data
     // void *storage = malloc (1024 * 8);
@@ -118,6 +118,7 @@ int main (int argc, char * argv[]) {
 
             for (int i = 0; true; i++) {
                 pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
+                typeName = pdb :: getTypeName<SharedEmployee>();
                 storeMe->push_back (myData);
             }
 
@@ -126,7 +127,7 @@ int main (int argc, char * argv[]) {
             for (int i = 0; i < 10; i++) {
                 // TODO: Place this line back in
 
-                dispatcherServer.dispatchData(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe);
+                dispatcherServer.dispatchData(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), typeName, storeMe);
             }
         }
     }

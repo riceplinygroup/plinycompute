@@ -54,7 +54,8 @@ namespace pdb {
          * @param setAndDatabase
          * @return
          */
-        bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<Object>>> dataToSend);
+        template <class DataType>
+        bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend);
 
     private:
 
@@ -63,7 +64,8 @@ namespace pdb {
         PDBLoggerPtr logger;
 
     };
-
 }
+
+#include "DispatcherClientTemplate.cc"
 
 #endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H

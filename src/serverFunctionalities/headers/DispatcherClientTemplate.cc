@@ -15,28 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_CC
-#define OBJECTQUERYMODEL_DISPATCHERCLIENT_CC
+#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENTTEMPLATE_CC
+#define OBJECTQUERYMODEL_DISPATCHERCLIENTTEMPLATE_CC
 
 #include "DispatcherClient.h"
+#include "DispatcherAddData.h"
+#include "SimpleSendDataRequest.h"
+#include "SimpleRequestResult.h"
 
 namespace pdb {
 
-    DispatcherClient::DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) :
-            port(portIn), address(addressIn), logger(myLoggerIn) {}
-    DispatcherClient::~DispatcherClient() {}
+template <class DataType>
+bool DispatcherClient::sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend) {
 
-    void DispatcherClient::registerHandlers (PDBServer &forMe) {} // no-op
+    std::cout << "Sending data to " << port << " : " << address << std::endl;
 
-    bool DispatcherClient::registerSet(std::pair<std::string, std::string> setAndDatabase) {
-        // TODO: Implement this
-        std::cout << "Registering partition policy for " << port << " : " << address << std::endl;
-        return 1;
+    bool res = simpleSendDataRequest <DispatcherAddData, Handle<DataType>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
+        [&](Handle <SimpleRequestResult> result) {
+            if (result != nullptr){
+                if (!result->getRes ().first) {
+                    logger->error ("Error sending data: " + result->getRes().second);
+                }
+            }
+            return true;}, dataToSend, setAndDatabase.second, setAndDatabase.first, getTypeName <DataType> ()); // TODO: Set the type id in the future
+    if (!res) {
+        std::cout << "Failed to send data" << std::endl;
+    } else {
+        std::cout << "Successfully sent data" << std::endl;
     }
+    return res;
+}
 
 }
 
-#include "StorageClientTemplate.cc"
-
 #endif
-
