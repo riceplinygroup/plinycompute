@@ -40,7 +40,13 @@ public:
 		address = addressIn;
 		myLogger = myLoggerIn;
 		runUs = makeObject <Vector <Handle <QueryBase>>> ();
+                this->useScheduler = useScheduler;
 	}
+
+        //added by Jia
+        ~QueryClient() {
+                runUs = nullptr;
+       }
 
 	// access a set in the database
 	template <class Type>

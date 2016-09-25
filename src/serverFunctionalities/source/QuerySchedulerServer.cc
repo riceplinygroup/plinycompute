@@ -18,6 +18,8 @@
 #ifndef QUERY_SCHEDULER_SERVER_CC
 #define QUERY_SCHEDULER_SERVER_CC
 
+//by Jia, Sept 2016
+
 
 #include "QuerySchedulerServer.h"
 #include "ResourceInfo.h"
@@ -124,7 +126,12 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              communicators->push_back(communicator);
          }
          
-         std :: vector<PDBBuzzerPtr> myBuzzers(communicators->size());
+         int counter = 0;
+         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
+                 [&] (PDBAlarm myAlarm, int &counter) {
+                       counter ++;
+                       std :: cout << "counter = " << counter << std :: endl;
+                 });
          for (int i = 0; i < communicators->size(); i++) {
              PDBWorkerPtr myWorker = getWorker(); 
              PDBWorkPtr myWork = make_shared <GenericWork> (
@@ -135,21 +142,19 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                   Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
                   if (result != nullptr) {
                        for (int j = 0; j < result->size(); j++) {
-                           std :: cout << "Query execute: wrote set:" << (*result)[i] << std :: endl;
+                           std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
                        }
                   }
-                  callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
+                  callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
                  }
              ); 
-             myBuzzers.push_back (make_shared <PDBBuzzer> (nullptr));
-             myWorker->execute(myWork, myBuzzers[i]);
+             myWorker->execute(myWork, tempBuzzer);
          }
 
-         /* 
-         for (auto &b : myBuzzers) {
-              b->wait();
-         }
-         */
+          
+         while(counter < communicators->size()) {
+            tempBuzzer->wait();
+         } 
          sleep (5);
 
          Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
