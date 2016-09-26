@@ -251,7 +251,7 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
         // for each functionality, invoke its clean() method
         for (int i = 0; i < allFunctionalities.size(); i++) {
-            allFunctionalities.at(i)->clean();
+            allFunctionalities.at(i)->cleanup();
         }
 
 

@@ -33,7 +33,7 @@ public:
 	virtual void registerHandlers (PDBServer &forMe) = 0;
 
         // added by Jia, it will be invoked when PDBServer is to be shutdown
-        virtual void clean() {}
+        virtual void cleanup() {}
  
 	// access a particular functionality on the attached server
 	template <class Functionality>

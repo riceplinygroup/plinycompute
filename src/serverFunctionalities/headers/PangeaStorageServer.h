@@ -244,7 +244,7 @@ public:
 
 
    // cleaner to be invoked in destructor
-    void clean() override;
+    void cleanup() override;
 
 protected:
 
