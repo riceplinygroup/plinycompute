@@ -48,7 +48,7 @@ public:
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
 
-       void clean () override;
+       void cleanup () override;
 
 protected:
 

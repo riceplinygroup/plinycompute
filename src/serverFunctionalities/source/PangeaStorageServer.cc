@@ -143,7 +143,7 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 	return nullptr;
 }
 
-void PangeaStorageServer :: clean() {
+void PangeaStorageServer :: cleanup() {
         std :: cout << "to clean up for storage..." << std :: endl; 
         for (auto &a : allRecords) {
                 while (a.second.size () > 0)

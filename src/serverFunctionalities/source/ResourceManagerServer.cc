@@ -18,6 +18,8 @@
 #ifndef RESOURCE_MANAGER_SERVER_CC
 #define RESOURCE_MANAGER_SERVER_CC
 
+//by Jia, Sept 2016
+
 #include "ResourceManagerServer.h"
 #include "InterfaceFunctions.h"
 #include "SimpleRequestHandler.h"
@@ -37,7 +39,7 @@ ResourceManagerServer :: ~ResourceManagerServer () {
 }
 
 
-void ResourceManagerServer :: clean () {
+void ResourceManagerServer :: cleanup () {
 
      this->resources = nullptr;
      this->nodes = nullptr;

@@ -19,6 +19,7 @@
 #ifndef OPERATOR_H
 #define OPERATOR_H
 
+//by Jia, Sept 2016
 
 namespace pdb {
 
@@ -45,8 +46,8 @@ public:
     // loads up another batch of the i-th output data to fill
     virtual void loadOutputBatch(int outputDataId, void * batchToFill, size_t numBytesInBatch) = 0;
 
-    // attempts to process next input batch of the i-th input data
-    virtual bool processNextInputBatch(int inputDataId) = 0;
+    // attempts to fill the next output batch of the i-th output data. returns true if it can. if it cannot, returns false, and the next call to loadInputBatch should be made
+    virtual bool fillNextOutputBatch(int outputDataId) = 0;
 
     // must be called after all of the input pages have been processed
     virtual void finalize () = 0;

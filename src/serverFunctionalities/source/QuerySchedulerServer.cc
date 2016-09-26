@@ -43,7 +43,7 @@ namespace pdb {
 QuerySchedulerServer :: ~QuerySchedulerServer () {
 }
 
-void QuerySchedulerServer ::clean() {
+void QuerySchedulerServer ::cleanup() {
 
     this->currentPlan = nullptr;
     this->resources = nullptr;
@@ -74,7 +74,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
          //parse the query
          const UseTemporaryAllocationBlock block {2 * 1024 * 1024};
-         Handle<ExecuteQuery> request1 = makeObject<ExecuteQuery>();
+         Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
          std :: cout << "Got the ExecuteQuery object" << std :: endl;
          Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
          std :: cout << "Got the ExecuteQuery object" << std :: endl;
@@ -112,7 +112,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
              }
              std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
-             success = communicator->sendObject<ExecuteQuery>(request1, errMsg);
+             success = communicator->sendObject<ExecuteQuery>(newRequest, errMsg);
              if (!success) {
                   std :: cout << errMsg << std :: endl;
                   return std :: make_pair(success, errMsg);
@@ -155,7 +155,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          while(counter < communicators->size()) {
             tempBuzzer->wait();
          } 
-         sleep (5);
+
 
          Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
          if (!sendUsingMe->sendObject (result, errMsg)) {
