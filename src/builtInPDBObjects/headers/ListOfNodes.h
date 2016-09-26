@@ -22,7 +22,9 @@
 #include "Object.h"
 #include "Handle.h"
 #include "PDBString.h"
+#include "PDBVector.h"
 
+using pdb::Vector;
 
 //  PRELOAD %ListOfNodes%
 

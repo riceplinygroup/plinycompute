@@ -33,7 +33,8 @@ namespace pdb_detail
     {
     public:
 
-        QueryGraphIr(Handle<Vector<Handle<QueryNodeIr>>> sourceNodes) : _sourceNodes(sourceNodes)
+        QueryGraphIr(Handle<Vector<Handle<QueryNodeIr>>> sourceNodes, Handle<Vector<Handle<QueryNodeIr>>> sinkNodes)
+                : _sourceNodes(sourceNodes), _sinkNodes(sinkNodes)
         {
         }
 
@@ -47,10 +48,22 @@ namespace pdb_detail
             return _sourceNodes->operator[](index);
         }
 
+        uint32_t getSinkNodeCount()
+        {
+            return _sinkNodes->size();
+        }
+
+        Handle<QueryNodeIr> getSinkNode(uint32_t index)
+        {
+            return _sinkNodes->operator[](index);
+        }
+
 
     private:
 
         Handle<Vector<Handle<QueryNodeIr>>> _sourceNodes;
+
+        Handle<Vector<Handle<QueryNodeIr>>> _sinkNodes;
 
     };
 }

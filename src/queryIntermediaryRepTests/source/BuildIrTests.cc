@@ -96,9 +96,10 @@ namespace pdb_tests
          */
         Handle<QueryGraphIr> queryGraph = buildIr(selection);
 
-        Handle<QueryNodeIr> queryLeaf = queryGraph->getSourceNode(0);
+        Handle<QueryNodeIr> querySource = queryGraph->getSourceNode(0);
 
         QUNIT_IS_EQUAL(1, queryGraph->getSourceNodeCount());
+        QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
 
         /**
         * Test that the input to the selection is the set "setname" in the database "databasename"
@@ -132,13 +133,13 @@ namespace pdb_tests
 
         } isSetName;
 
-        queryLeaf->execute(isSetName);
+        querySource->execute(isSetName);
 
         QUNIT_IS_TRUE(isSetName.correct);
         if(!isSetName.correct)
             return;
 
-        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,QueryNodeIr>(queryLeaf);
+        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,QueryNodeIr>(querySource);
 
         QUNIT_IS_EQUAL("databasename", string(selectionSetName->getDatabaseName()->c_str()));
         QUNIT_IS_EQUAL("setname", string(selectionSetName->getName()->c_str()));
@@ -236,6 +237,14 @@ namespace pdb_tests
         QUNIT_IS_TRUE(projector == proj);
 
 
+
+        Handle<QueryNodeIr> querySink = queryGraph->getSinkNode(0);
+        IsProjection isProj;
+
+        querySink->execute(isProj);
+
+        QUNIT_IS_TRUE(isProj.correct);
+        Handle<ProjectionIr> sinkProjectionIr = unsafeCast<ProjectionIr,QueryNodeIr>(querySink);
     }
 }
 
