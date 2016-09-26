@@ -44,6 +44,7 @@ using namespace pdb;
 int main () {
 
 	makeObjectAllocatorBlock (124 * 1024 * 1024, true);
+	Handle <int> temp = makeObject <int> ();
 
 	Handle <Map <int, int>> myMap = makeObject <Map <int, int>> ();
 
@@ -55,6 +56,7 @@ int main () {
 		std :: cout << (*myMap)[i] << " ";
 	}
 	std :: cout << "\n";
+	myMap = nullptr;
 
 	Handle <Map <String, int>> myOtherMap = makeObject <Map <String, int>> ();
 
@@ -68,6 +70,7 @@ int main () {
 		std :: cout << (*myOtherMap)[temp] << " ";
 	}
 	std :: cout << "\n";
+	myOtherMap = nullptr;
 
 	Handle <Map <Handle <String>, Handle <Employee>>> anotherMap = makeObject <Map <Handle <String>, Handle <Employee>>> ();
 
@@ -104,7 +107,24 @@ int main () {
 		std :: cout << " ";
 	}
 	std :: cout << "\n";
+
+	// now, do a deep copy
+	makeObjectAllocatorBlock (124 * 1024 * 1024, true);
+	std :: cout << "Allocation.\n";
+	Handle <Map <Handle <String>, Handle <Employee>>> aFinalMap = makeObject <Map <Handle <String>, Handle <Employee>>> ();
+	std :: cout << "Copy.\n";
+	*aFinalMap = *anotherMap;
+	std :: cout << "Deletion.\n";
+	anotherMap = nullptr;	
+	std :: cout << "Zeroing.\n";
+	bzero (myBytes, fileLen);
 	free (myBytes);
+
+	for (auto &a : *aFinalMap) {
+		a.value->print ();
+		std :: cout << " ";
+	}
+	std :: cout << "\n";
 }
 
 #endif

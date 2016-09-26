@@ -31,6 +31,8 @@
 #include "Object.h"
 #include "InterfaceFunctions.h"
 
+namespace pdb {
+
 // this little class is used to ask the compiler to build the layout of the records used to
 // store (hash, KeyType, ValueType) triples
 template <class KeyType, class ValueType>
@@ -39,14 +41,12 @@ struct MapRecordClass {
 	KeyType key;
 	ValueType value;
 
-	MapRecordClass <KeyType, ValueType> *me;
-
 	size_t getObjSize () {
 		return sizeof (MapRecordClass <KeyType, ValueType>);
 	}
 	
 	size_t getValueOffset () {
-		return ((char *) &(me->value)) - ((char *) me);
+		return ((char *) &value) - ((char *) this);
 	}
 };
 
@@ -88,6 +88,7 @@ public:
 
 // access keys, hashes, and data in the underlying array
 #define GET_HASH(data, i) (*((size_t *) (((char *) data) + (i * objSize))))
+#define GET_HASH_PTR(data, i) ((size_t *) (((char *) data) + (i * objSize)))
 #define GET_KEY_PTR(data, i) ((void *) (((char *) data) + sizeof (size_t) + (i * objSize )))
 #define GET_VALUE_PTR(data, i) ((void *) (((char *) data) + valueOffset + (i * objSize)))
 #define GET_KEY(data, i, type) (*((type *) (((char *) data) + sizeof (size_t) + (i * objSize ))))
@@ -96,7 +97,6 @@ public:
 // Note: we need to write all operations in constructors, destructors, and assignment operators WITHOUT using
 // the underlying type in any way (including assignment, initialization, destruction, size).  
 //
-namespace pdb {
 
 template <class KeyType, class ValueType>
 void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *source) const {
@@ -128,9 +128,15 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
 	// one of them is not primitive...
 
 	// compute the key and value sizes
-	uint32_t keySize = (valueOffset - sizeof (size_t));
-	uint32_t valueSize = (objSize - valueOffset);
+	uint32_t keySize = (toMe.valueOffset - sizeof (size_t));
+	uint32_t valueSize = (toMe.objSize - toMe.valueOffset);
  
+	// these are needed to make the GET_HASH and other macros work correctly... they refer
+	// to variables objSize and valueOffset... this.objSize and this.valueOffset are possibly
+	// undefined here.  By having local variables that shadow these, we get around potential problems
+	uint32_t objSize = toMe.objSize;
+	uint32_t valueOffset = toMe.valueOffset;
+
 	// loop through and do the deep copy
 	for (int i = 0; i < toMe.numSlots; i++) {
 
@@ -269,7 +275,7 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 	bool gotIt = false;
 	uint32_t val = 1;
 	for (int pow = 0; pow <= 31; pow++) {
-		if (val == numSlotsIn) {
+		if (val >= numSlotsIn) {
 			gotIt = true;
 			break;
 		}
@@ -278,7 +284,7 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 
 	// if we are not a power of two, exit
 	if (!gotIt) {
-		std :: cout << "Bad: trying to build a PairArray with a number of slots that is not a power of two\n";
+		std :: cout << "Bad: could not get the correct size for the array\n";
 		exit (1);
 	}
 
@@ -302,7 +308,7 @@ PairArray <KeyType, ValueType> :: PairArray () {
 
 	// remember the types for this guy
 	keyTypeInfo.setup <KeyType> ();
-	valueTypeInfo.setup <KeyType> ();
+	valueTypeInfo.setup <ValueType> ();
 
 	// used to let the compiler to tell us how to pack items in our array of slots
 	MapRecordClass <KeyType, ValueType> temp;
@@ -317,6 +323,7 @@ PairArray <KeyType, ValueType> :: PairArray () {
 
 	// the max number of used slots is zero
 	maxSlots = 0;
+
 }
 
 // Note: because this can be called by Object.deleteObject (), it must be written so as to not use TypeContained
@@ -334,9 +341,6 @@ PairArray <KeyType, ValueType> :: ~PairArray () {
 				keyTypeInfo.deleteConstituentObject (GET_KEY_PTR (data, i));
 			if (valueTypeInfo.descendsFromObject ())
 				valueTypeInfo.deleteConstituentObject (GET_VALUE_PTR (data, i));
-			std :: cout << "Deleting.\n";
-		} else {
-			std :: cout << "Skipping.\n";
 		}
 	}
 }
@@ -384,8 +388,52 @@ void PairArray <KeyType, ValueType> :: deleteObject (void *deleteMe) {
                                                                  
 template <class KeyType, class ValueType>
 size_t PairArray <KeyType, ValueType> :: getSize (void *forMe) {                                              
-	return sizeof (PairArray <Nothing>) + 
-		objSize * numSlots;		
+	PairArray <KeyType, ValueType> &target = *((PairArray <KeyType, ValueType> *) forMe);
+	return sizeof (PairArray <Nothing>) + target.objSize * target.numSlots;
+}
+
+template <class KeyType, class ValueType> 
+PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn, bool) : iterateMe (*iterateMeIn) {
+	slot = 0;
+	done = false;
+	int objSize = iterateMe.objSize;
+	while (slot != iterateMe.numSlots && GET_HASH (iterateMe.data, slot) == UNUSED) 
+		slot++;
+
+	if (slot == iterateMe.numSlots)
+		done = true;
+}
+
+template <class KeyType, class ValueType> 
+PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn) : iterateMe (*iterateMeIn) {
+	done = true;
+}
+
+template <class KeyType, class ValueType>
+void PDBMapIterator <KeyType, ValueType> :: operator ++ () {
+	if (!done)
+		slot++;
+
+	int objSize = iterateMe.objSize;
+	while (slot != iterateMe.numSlots && GET_HASH (iterateMe.data, slot) == UNUSED) 
+		slot++;
+
+	if (slot == iterateMe.numSlots)
+		done = true;
+}
+
+template <class KeyType, class ValueType>
+MapRecordClass <KeyType, ValueType> & PDBMapIterator <KeyType, ValueType> :: operator * () {
+	
+	int objSize = iterateMe.objSize;
+	return *((MapRecordClass <KeyType, ValueType> *) GET_HASH_PTR (iterateMe.data, slot)); 
+}
+
+template <class KeyType, class ValueType>
+bool PDBMapIterator <KeyType, ValueType> :: operator != (const PDBMapIterator <KeyType, ValueType> &me) const {
+	if (!done || !me.done)
+		return true;
+	return false;
 }
 
 }

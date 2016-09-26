@@ -109,6 +109,19 @@ int Map <KeyType, ValueType> :: count (KeyType &which) {
 	return myArray->count ();
 }
 
+template <class KeyType, class ValueType>
+PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: begin () {
+	PDBMapIterator <KeyType, ValueType> returnVal (myArray, true);
+	return returnVal;	
+}
+
+template <class KeyType, class ValueType>
+PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () {
+	PDBMapIterator <KeyType, ValueType> returnVal (myArray);
+	return returnVal;	
+}
+
+
 }
 
 #endif

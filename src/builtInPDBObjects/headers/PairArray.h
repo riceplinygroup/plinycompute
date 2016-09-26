@@ -32,6 +32,29 @@
 
 namespace pdb {
 
+template <class KeyType, class ValueType> class PairArray;
+template <class KeyType, class ValueType> struct MapRecordClass;
+
+// this little class is used to support iteration over pdb :: Maps
+template <class KeyType, class ValueType>
+class PDBMapIterator {
+
+public:
+
+	bool operator != (const PDBMapIterator &me) const;
+	MapRecordClass <KeyType, ValueType> &operator * ();
+	void operator ++ ();
+	PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn, bool);
+	PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn);
+
+private:
+
+	uint32_t slot;
+	PairArray <KeyType, ValueType> &iterateMe;
+	bool done;
+	
+};
+
 // The Array type is the one type that we allow to be variable length.  This is accomplished
 // the the data[] array at the end of the class.  When an Array object is alllocated, it is
 // always allocated with some extra space at the end of the class to allow this array to
@@ -98,6 +121,10 @@ public:
 
 	// returns 0 if this entry is undefined; 1 if it is defined
 	int count (KeyType &which);
+
+	// so this guy can look inside
+	template <class KeyTwo, class ValueTwo> friend class PDBMapIterator;
+
 };
 
 }

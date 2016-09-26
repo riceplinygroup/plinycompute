@@ -118,9 +118,6 @@ public:
 	friend bool operator != (const Handle <ObjType> &lhs, std :: nullptr_t rhs) {return !lhs.isNullPtr ();}
 	bool isNullPtr () const;
 
-	// equality on handles checks for equality of the underlying objects 
-	friend bool operator == (const Handle <ObjType> &lhs, const Handle <ObjType> &rhs) {return *lhs == *rhs;}
-
 	// a hash on a handle just hashes the underlying object
 	size_t hash () const {return (*this)->hash ();}
 
@@ -211,6 +208,16 @@ private:
 	template <class OutObjType, class InObjType> friend Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
 	template <class Obj> friend class Record;
 };
+
+// equality on handles checks for equality of the underlying objects... 
+template <class ObjTypeOne, class ObjTypeTwo>
+bool operator == (const Handle <ObjTypeOne> &lhs, const Handle <ObjTypeTwo> &rhs) {return *lhs == *rhs;}
+
+template <class ObjTypeOne, class ObjTypeTwo>
+bool operator == (const ObjTypeOne &lhs, const Handle <ObjTypeTwo> &rhs) {return lhs == *rhs;}
+
+template <class ObjTypeOne, class ObjTypeTwo>
+bool operator == (const Handle<ObjTypeOne> &lhs, const ObjTypeTwo &rhs) {return *lhs == rhs;}
 
 }
 

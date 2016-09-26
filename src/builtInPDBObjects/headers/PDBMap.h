@@ -55,6 +55,11 @@ public:
 
 	// returns 0 if this entry is undefined; 1 if it is defined
 	int count (KeyType &which);
+
+        // these are used for iteration
+        PDBMapIterator <KeyType, ValueType> begin ();
+        PDBMapIterator <KeyType, ValueType> end ();
+
 };
 
 }
