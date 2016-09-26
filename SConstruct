@@ -5,6 +5,8 @@
 import os
 import re
 import platform
+import multiprocessing
+
 common_env = Environment(CXX = 'clang++')
 
 SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is in the working dir named as "src"
@@ -23,6 +25,9 @@ elif  common_env['PLATFORM'] == 'posix':
 	common_env.Append(LINKFLAGS = '-pthread')
 	common_env.Replace(CXX = "clang++")
 
+# Make the build multithreaded
+num_cpu = int(multiprocessing.cpu_count())
+SetOption('num_jobs', num_cpu)
 
 # two code files that will be included by the VTableMap to pre-load all of the
 # built-in object types into the map
