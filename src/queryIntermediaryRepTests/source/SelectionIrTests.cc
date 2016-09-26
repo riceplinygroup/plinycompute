@@ -69,7 +69,11 @@ namespace pdb_tests
 
         Handle<SetExpressionIr> nullInputSet;
         Handle<RecordPredicateIr> nullCondition;
-        SelectionIr selection(nullInputSet, nullCondition);
+        SimpleSingleTableQueryProcessorPtr pageProcessor;
+
+        SelectionIr selection(nullInputSet, nullCondition, pageProcessor);
+
+        QUNIT_IS_TRUE(selection.getPageProcessor() == pageProcessor);
 
         selection.execute(algo);
 

@@ -21,8 +21,10 @@
 #include "Handle.h"
 #include "RecordPredicateIr.h"
 #include "SetExpressionIr.h"
+#include "SimpleSingleTableQueryProcessor.h"
 
 using pdb::Handle;
+using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
 {
@@ -42,18 +44,21 @@ namespace pdb_detail
          *
          * @param inputSet the source of records from which the selection subset will be drawn.
          * @param condition the filter to apply to the input set to produce the subset
+         * @param the page processor originally associated with user query node
          * @return the selection
          */
-        static Handle<SelectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition);
+        static Handle<SelectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
+                                        SimpleSingleTableQueryProcessorPtr pageProcessor);
 
         /**
          * Creates a selection over the given input set filtered by the given condition.
          *
          * @param inputSet the source of records from which the selection subset will be drawn.
          * @param condition the filter to apply to the input set to produce the subset
+         * @param the page processor originally associated with user query node
          * @return the selection
          */
-        SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition);
+        SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition, SimpleSingleTableQueryProcessorPtr pageProcessor);
 
         // contract from super
         virtual void execute(QueryNodeIrAlgo &algo) override;
@@ -71,6 +76,11 @@ namespace pdb_detail
          */
         virtual Handle<RecordPredicateIr> getCondition();
 
+        /**
+         * @return gets a processor capable of applying this node type to input pages to produce output pages.
+         */
+        SimpleSingleTableQueryProcessorPtr getPageProcessor();
+
     private:
 
         /**
@@ -82,6 +92,8 @@ namespace pdb_detail
          * Records filter.
          */
         Handle<RecordPredicateIr> _condition;
+
+        SimpleSingleTableQueryProcessorPtr _pageProcessor;
     };
 }
 

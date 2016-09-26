@@ -94,10 +94,11 @@ namespace pdb_tests
         /**
          * Translate MySelection to QueryNodeIr.
          */
-        Handle<QueryGraphIr> queryTree = buildIr(selection);
-        Handle<QueryNodeIr> queryLeaf = queryTree->getSourceNode(0);
+        Handle<QueryGraphIr> queryGraph = buildIr(selection);
 
-        QUNIT_IS_EQUAL(1, queryTree->getSourceNodeCount());
+        Handle<QueryNodeIr> queryLeaf = queryGraph->getSourceNode(0);
+
+        QUNIT_IS_EQUAL(1, queryGraph->getSourceNodeCount());
 
         /**
         * Test that the input to the selection is the set "setname" in the database "databasename"
