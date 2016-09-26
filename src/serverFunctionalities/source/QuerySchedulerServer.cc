@@ -74,8 +74,8 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
          //parse the query
          const UseTemporaryAllocationBlock block {2 * 1024 * 1024};
-         Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
-         std :: cout << "Got the ExecuteQuery object" << std :: endl;
+         //Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
+         //std :: cout << "Got the ExecuteQuery object" << std :: endl;
          Handle <Vector <Handle<QueryBase>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<QueryBase>>> (success, errMsg);
          std :: cout << "Got the ExecuteQuery object" << std :: endl;
          if (!success) {
@@ -95,7 +95,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
          }
  
-
+/*
          //to send query processor to each compute node
          std :: vector <PDBCommunicatorPtr> * communicators = new std :: vector <PDBCommunicatorPtr>();
          for (int i = 0; i < this->resources->size(); i++) {
@@ -125,6 +125,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              }
              communicators->push_back(communicator);
          }
+*/
          
          int counter = 0;
          PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
@@ -132,27 +133,67 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                        counter ++;
                        std :: cout << "counter = " << counter << std :: endl;
                  });
-         for (int i = 0; i < communicators->size(); i++) {
+         for (int i = 0; i < this->resources->size(); i++) {
              PDBWorkerPtr myWorker = getWorker(); 
              PDBWorkPtr myWork = make_shared <GenericWork> (
                  [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  PDBCommunicatorPtr communicator = communicators->at(i);
-                  std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
-                  const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
-                  Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
-                  if (result != nullptr) {
-                       for (int j = 0; j < result->size(); j++) {
-                           std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+
+
+                       std :: cout << "to connect to the " << i << "-th node" << std :: endl;
+                       PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+                       std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
+                       std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
+                       if(communicator->connectToInternetServer(logger, (*resources)[i]->getPort(), (*resources)[i]->getAddress(), errMsg)) {
+                            success = false;
+                            std :: cout << errMsg << std :: endl;
+                            callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                            return;
                        }
-                  }
-                  callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+
+                       std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
+                       {
+                           const UseTemporaryAllocationBlock block{1024};
+                           Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
+                           success = communicator->sendObject<ExecuteQuery>(newRequest, errMsg);
+                           if (!success) {
+                               std :: cout << errMsg << std :: endl;
+                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                               return;
+                           }
+                       }
+
+                       Handle <Vector <Handle<QueryBase>>> newUserQuery = makeObject<Vector <Handle<QueryBase>>>();
+                       *newUserQuery = *userQuery;
+
+                       success = communicator->sendObject<Vector<Handle<QueryBase>>>(newUserQuery, errMsg);
+                       if (!success) {
+                           std :: cout << errMsg << std :: endl;
+                           callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                           return;
+                       }
+
+                       std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
+                       const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
+                       Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+                       if (result != nullptr) {
+                           for (int j = 0; j < result->size(); j++) {
+                               std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+                           }
+                      }
+                      else {
+                         std :: cout << "Query execute failure: can't get results" << std :: endl;
+                         callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                         return;
+                      }
+                      callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
                  }
              ); 
              myWorker->execute(myWork, tempBuzzer);
          }
 
           
-         while(counter < communicators->size()) {
+         while(counter < this->resources->size()) {
             tempBuzzer->wait();
          } 
 
