@@ -88,13 +88,41 @@ inline void VTableMap :: listVtableLabels () {
 
 inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 
-	// find the first instance of '<' so that we can strip out any template argument
-	size_t loc = objectTypeName.find_first_of ("<");
-
-	// strip out the template argument and replace with "<pdb::Nothing>"
-	if (loc != std::string::npos) {
-		objectTypeName = objectTypeName.substr (0, loc) + "<pdb::Nothing>";
+	// one important issue is that we might need to lookup soething nasty like:
+	//
+	// pdb::PairArray<pdb::Handle<pdb::String>,pdb::Handle<pdb::Employee>>
+	//
+	// this needs to be normalized to:
+	//
+	// pdb::PairArray<<pdb::Nothing>,<pdb::Nothing>?
+	//
+	// basically, we have a stack that pushes and pops the depth of the template by counting instances of '>' and '<'
+	// Any time that we see a "," at depth 1, it means we've hit an additional template arguement, and so we add
+	// a "<pdb::Nothing>" to the replacement string
+	std :: string replacementString ("");
+	std :: string prefix ("");
+	bool isTemplate = false;
+	int depth = 0;
+	int length = objectTypeName.size ();
+	for (int loc = 0; loc < length; loc++) {
+		if (objectTypeName[loc] == '<') {
+			depth++;
+			if (depth == 1) {
+				isTemplate = true;
+				prefix = objectTypeName.substr (0, loc);
+				replacementString = std :: string ("pdb::Nothing");
+			}
+		} else if (objectTypeName[loc] == '>') {
+			depth--;
+		} else if (objectTypeName[loc] == ',' && depth == 1) {
+			std :: string nextReplacement (",pdb::Nothing");
+			replacementString += nextReplacement;	
+		}	
 	}
+
+	// if this was a template, do the normalization
+	if (isTemplate)
+		objectTypeName = prefix + std :: string ("<") + replacementString + std :: string (">");
 
 	// now, check to make sure that we have seen the given object type before
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {

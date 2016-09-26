@@ -78,6 +78,7 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 
 	// if we are derived from Object, use the virtual function
 	if (info > 0) {
+
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
 		((Object *) &temp)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));
@@ -93,6 +94,9 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 
 	} else {
 		
+		std :: cout << "Info was " << info << "; ";
+		std :: cout << "Just doing a memove.\n";
+
 		// just do a memmove
 		memmove (target, source, -info);
 	}
