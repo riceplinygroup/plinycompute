@@ -104,6 +104,9 @@ inline bool Allocator :: doNotFail () {
 inline Allocator :: ~Allocator () {
 
 	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
+		if (getNumObjectsInCurrentAllocatorBlock () != 0) {
+			std :: cout << "This is bad.  Current allocation block has " << getNumObjectsInCurrentAllocatorBlock () << " references.\n";
+		}
 		free (myState.activeRAM);
 	}
 
@@ -112,7 +115,7 @@ inline Allocator :: ~Allocator () {
 			std :: cout << "This is bad.  There is an allocation block left with no references.\n";
 			exit (1);
 		} else {
-			std :: cout << "This is bad.  There is an allocation block left with some references.\n";
+			std :: cout << "This is bad.  There is an allocation block left with " << a.getReferenceCount () << " references.\n";
 			exit (1);
 		}
 	}

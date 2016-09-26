@@ -59,6 +59,9 @@ public:
 			// free the last page
 			Handle <KeepGoing> temp;
 			if (page != nullptr) {
+
+				// if we don't have this line, we'll still be pointing into the freed page
+				data = nullptr;
 				free (page);
 				page = nullptr;
 				temp = makeObject <KeepGoing> ();
@@ -115,6 +118,7 @@ public:
 	~OutputIterator () {
 			
 		// make sure we don't leave a page sitting around
+		data = nullptr;
 		if (page != nullptr) 
 			free (page);
 

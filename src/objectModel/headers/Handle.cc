@@ -36,7 +36,7 @@ namespace pdb {
 
 template <class ObjType>
 Handle <ObjType> :: Handle () {
-	typeInfo.setup <Nothing> ();
+	typeInfo.setup <ObjType> ();
 	offset = -1;
 }
 
@@ -104,8 +104,8 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	return returnVal;
 }
 
-#define GET_OLD_TARGET RefCountedObject <ObjType> *oldTarget = nullptr; if (!isNullPtr ()) oldTarget = getTarget ()
-#define DEC_OLD_REF_COUNT if (oldTarget != nullptr) oldTarget->decRefCount (typeInfo)
+#define GET_OLD_TARGET RefCountedObject <ObjType> *oldTarget = nullptr; if (!isNullPtr ()) oldTarget = getTarget (); PDBTemplateBase oldTypeInfo = typeInfo;
+#define DEC_OLD_REF_COUNT if (oldTarget != nullptr) oldTarget->decRefCount (oldTypeInfo)
 
 template <class ObjType>
 Handle <ObjType> &Handle <ObjType> :: operator = (const std :: nullptr_t rhs) {

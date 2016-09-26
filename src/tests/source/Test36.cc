@@ -87,6 +87,7 @@ int main () {
 	}
 	std :: cout << "\n";	        
 
+	
 	int filedesc = open ("testfile", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 	Record <Map <Handle <String>, Handle <Employee>>> *myBytes = getRecord <Map <Handle <String>, Handle <Employee>>> (anotherMap);
 	write (filedesc, myBytes, myBytes->numBytes ());
@@ -100,6 +101,7 @@ int main () {
 	read (filedesc, myBytes, fileLen);	
 	close (filedesc);
 	anotherMap = myBytes->getRootObject ();
+	std :: cout << "Type code is " << anotherMap.getTypeCode () << "\n";
 
 	for (int i = 0; i < 100; i++) {
 		Handle <String> empName = makeObject <String> (std :: to_string (i) + std :: string (" is my number"));
@@ -125,6 +127,7 @@ int main () {
 		std :: cout << " ";
 	}
 	std :: cout << "\n";
+	aFinalMap = nullptr;
 }
 
 #endif
