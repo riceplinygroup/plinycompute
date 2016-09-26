@@ -89,7 +89,7 @@ namespace pdb_detail
     }
 
 
-    Handle<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selection)
+    Handle<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selectAndProject)
     {
         class RecordPredicateFromSelection : public RecordPredicateIr
         {
@@ -114,9 +114,9 @@ namespace pdb_detail
 
         Handle<SetExpressionIr> selectionInputIr;
         {
-            if(selection->hasInput())
+            if(selectAndProject->hasInput())
             {
-                selectionInputIr = makeSetExpression(selection->getIthInput(0));
+                selectionInputIr = makeSetExpression(selectAndProject->getIthInput(0));
             }
             else
             {
@@ -126,15 +126,15 @@ namespace pdb_detail
         }
 
 
-        Handle<RecordPredicateFromSelection> predicate = makeObject<RecordPredicateFromSelection>(selection);
+        Handle<RecordPredicateFromSelection> predicate = makeObject<RecordPredicateFromSelection>(selectAndProject);
 
 
 
-        return SelectionIr::make(selectionInputIr, predicate);
+        return SelectionIr::make(selectionInputIr, predicate, selectAndProject->getProcessor());
     }
 
 
-    Handle<ProjectionIr> makeProjection(Handle<SetExpressionIr> inputSet, Handle<Selection<Object,Object>> query)
+    Handle<ProjectionIr> makeProjection(Handle<SetExpressionIr> inputSet, Handle<Selection<Object,Object>> selectAndProject)
     {
         class RecordProjectionFromSelection : public RecordProjectionIr
         {
@@ -156,8 +156,8 @@ namespace pdb_detail
 
         };
 
-        Handle<RecordProjectionFromSelection> predicate = makeObject<RecordProjectionFromSelection>(query);
-        return  ProjectionIr::make(inputSet, predicate);
+        Handle<RecordProjectionFromSelection> predicate = makeObject<RecordProjectionFromSelection>(selectAndProject);
+        return  ProjectionIr::make(inputSet, predicate, selectAndProject->getProcessor());
     }
 
     Handle<QueryGraphIr> buildIr(Handle<QueryBase> query)
@@ -178,20 +178,20 @@ namespace pdb_detail
                 Handle<SelectionIr> selection = makeSelection(queryAsSelection);
                 Handle<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
 
-                Handle<Vector<Handle<QueryNodeIr>>> treeLeaves = makeObject<Vector<Handle<QueryNodeIr>>>();
-                treeLeaves->push_back(selection->getInputSet());
+                Handle<Vector<Handle<QueryNodeIr>>> sourceNodes = makeObject<Vector<Handle<QueryNodeIr>>>();
+                sourceNodes->push_back(selection->getInputSet());
 
-                output = makeObject<QueryGraphIr>(treeLeaves);
+                output = makeObject<QueryGraphIr>(sourceNodes);
             }
 
             void forSet()
             {
-                Handle<Vector<Handle<QueryNodeIr>>> treeLeaves = makeObject<Vector<Handle<QueryNodeIr>>>();
+                Handle<Vector<Handle<QueryNodeIr>>> sourceNodes = makeObject<Vector<Handle<QueryNodeIr>>>();
 
                 Handle<SetExpressionIr> set = makeSetExpression(_query);
-                treeLeaves->push_back(set);
+                sourceNodes->push_back(set);
 
-                output = makeObject<QueryGraphIr>(treeLeaves);
+                output = makeObject<QueryGraphIr>(sourceNodes);
             }
 
             Handle<QueryGraphIr> output;

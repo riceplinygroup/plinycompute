@@ -25,15 +25,17 @@ using pdb::makeObject;
 namespace pdb_detail
 {
 
-    Handle<SelectionIr> SelectionIr::make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)
+    Handle<SelectionIr> SelectionIr::make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
+                                          SimpleSingleTableQueryProcessorPtr pageProcessor)
     {
-        Handle<SelectionIr> selection = makeObject<SelectionIr>(inputSet, condition);
+        Handle<SelectionIr> selection = makeObject<SelectionIr>(inputSet, condition, pageProcessor);
         inputSet->addConsumer(selection);
         return selection;
     }
 
-    SelectionIr::SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition)
-            : _inputSet(inputSet), _condition(condition)
+    SelectionIr::SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
+                             SimpleSingleTableQueryProcessorPtr pageProcessor)
+            : _inputSet(inputSet), _condition(condition), _pageProcessor(pageProcessor)
     {
     }
 
@@ -55,6 +57,11 @@ namespace pdb_detail
     Handle<RecordPredicateIr> SelectionIr::getCondition()
     {
         return _condition;
+    }
+
+    SimpleSingleTableQueryProcessorPtr SelectionIr::getPageProcessor()
+    {
+        return _pageProcessor;
     }
 
 }

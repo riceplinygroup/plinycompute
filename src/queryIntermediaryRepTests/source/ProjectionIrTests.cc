@@ -68,7 +68,8 @@ namespace pdb_tests
 
         Handle<SetExpressionIr> nullInputSet;
         Handle<RecordProjectionIr> nullProjector;
-        ProjectionIr projection(nullInputSet, nullProjector);
+        SimpleSingleTableQueryProcessorPtr processorPtr;
+        ProjectionIr projection(nullInputSet, nullProjector, processorPtr);
 
         projection.execute(algo);
 

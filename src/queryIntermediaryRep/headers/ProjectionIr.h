@@ -23,14 +23,17 @@
 #include "InterfaceFunctions.h"
 #include "RecordProjectionIr.h"
 #include "Lambda.h"
+#include "SimpleSingleTableQueryProcessor.h"
 #include "QueryNodeIr.h"
 #include "UnarySetOperator.h"
+
 
 using std::shared_ptr;
 using std::make_shared;
 
 using pdb::makeObject;
 using pdb::Lambda;
+using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
 {
@@ -38,14 +41,16 @@ namespace pdb_detail
     {
     public:
 
-        static Handle<ProjectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector)
+        static Handle<ProjectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector,
+                                         SimpleSingleTableQueryProcessorPtr pageProcessor)
         {
-            Handle<ProjectionIr> projection = makeObject<ProjectionIr>(inputSet, projector);
+            Handle<ProjectionIr> projection = makeObject<ProjectionIr>(inputSet, projector, pageProcessor);
             inputSet->addConsumer(projection);
             return projection;
         }
 
-        ProjectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector)
+        ProjectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector,
+                     SimpleSingleTableQueryProcessorPtr pageProcessor)
                 : _inputSet(inputSet),  _projector(projector)
         {
         }
@@ -74,6 +79,8 @@ namespace pdb_detail
         Handle<SetExpressionIr> _inputSet;
 
         Handle<RecordProjectionIr> _projector;
+
+        SimpleSingleTableQueryProcessorPtr _pageProcessor;
     };
 }
 
