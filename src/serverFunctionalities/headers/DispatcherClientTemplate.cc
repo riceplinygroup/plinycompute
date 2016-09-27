@@ -26,7 +26,7 @@
 namespace pdb {
 
 template <class DataType>
-bool DispatcherClient::sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend) {
+bool DispatcherClient::sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg) {
 
     std::cout << "Sending data to " << port << " : " << address << std::endl;
 
@@ -34,11 +34,13 @@ bool DispatcherClient::sendData(std::pair<std::string, std::string> setAndDataba
         [&](Handle <SimpleRequestResult> result) {
             if (result != nullptr){
                 if (!result->getRes ().first) {
-                    logger->error ("Error sending data: " + result->getRes().second);
+                    errMsg = "Error dispatching data: " + result->getRes().second;
+                    logger->error (errMsg);
                 }
             }
             return true;}, dataToSend, setAndDatabase.second, setAndDatabase.first, getTypeName <DataType> ()); // TODO: Set the type id in the future
     if (!res) {
+        errMsg = "Failed to receive response from Dispatcher.sendData()";
         std::cout << "Failed to send data" << std::endl;
     } else {
         std::cout << "Successfully sent data" << std::endl;

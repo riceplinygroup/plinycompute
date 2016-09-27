@@ -23,6 +23,8 @@
 #include "SharedEmployee.h"
 #include "StorageClient.h"
 
+#include "PartitionPolicy.h"
+
 /**
  * Test: Dispatcher Server and Client
  *
@@ -35,6 +37,8 @@
  */
 
 int main (int argc, char * argv[]) {
+
+    std::string err;
 
     std:: cout << "Make sure to run bin/test28 in a different window to provide a catalog/storage server.\n";
 
@@ -102,12 +106,11 @@ int main (int argc, char * argv[]) {
 
     pdb::DispatcherClient temp = pdb::DispatcherClient(dispatchPort, "localhost", make_shared <pdb :: PDBLogger> ("Test402log"));
 
+    temp.registerSet(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), pdb::PartitionPolicy::Policy::RANDOM, err);
     void *storage = malloc (96 * 1024);
-    // const pdb::UseTemporaryAllocationBlock tempBlock {storage, 1024 * 96, true};
     pdb :: makeObjectAllocatorBlock(storage, 1024 * 96, true);
 
     {
-        // pdb :: makeObjectAllocatorBlock (storage, 1024 * 8, true);
         pdb::Handle<pdb::Vector<pdb::Handle<pdb::Object>>> storeMe =
                     pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Object>>> ();
         try {
@@ -115,17 +118,13 @@ int main (int argc, char * argv[]) {
                 pdb :: Handle <SharedEmployee> myData =
                             pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
                 storeMe->push_back (myData);
-
-
-
             }
         } catch (pdb :: NotEnoughSpace &n) {
 
         }
-        std::string err;
         for (int i = 0; i < 10; i++) {
             std::cout << "Dispatching a vector of size " <<  storeMe->size() << std::endl;
-            if (!temp.sendData<pdb::Object>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
+            if (!temp.sendData<pdb::Object>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe, err)) {
                 std::cout << "Failed to send data to dispatcher server" << std::endl;
                 return 1;
             }

@@ -44,7 +44,7 @@ typedef std::shared_ptr<PartitionPolicy> PartitionPolicyPtr;
 class PartitionPolicy {
 public:
 
-    enum Policy { RANDOM, FAIR};
+    enum Policy {RANDOM, FAIR, DEFAULT};
 
     /**
      * Partitions a Vector of PDB data into a number of smaller Vectors all mapped to a respective Storage Node
