@@ -121,7 +121,7 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
 	// now we need to copy the array
 	// if our types are fully primitive, just do a memmove
 	if (!keyTypeInfo.descendsFromObject () && !valueTypeInfo.descendsFromObject ()) {
-		memmove (toMe.data, fromMe.data, ((size_t) toMe.objSize) * (toMe.numSlots));
+		memmove ((void *) toMe.data, (void *) fromMe.data, ((size_t) toMe.objSize) * (toMe.numSlots));
 		return;
 	}
 
