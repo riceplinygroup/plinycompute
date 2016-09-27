@@ -15,44 +15,24 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
-#define PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
-
-#include "InterfaceFunctions.h"
-#include "QueryNodeIr.h"
-
-using pdb::makeObject;
-
-namespace pdb_detail
-{
-    class ConsumableNodeIr : public QueryNodeIr
-    {
-    public:
-
-
-        void addConsumer(Handle<QueryNodeIr> consumer)
-        {
-            // TODO: check for duplicate before adding
-
-            _consumers.push_back(consumer);
-        }
-
-        uint32_t getConsumerCount()
-        {
-            return _consumers.size();
-        }
-
-        Handle<QueryNodeIr> getConsumer(uint32_t index)
-        {
-            return _consumers[index];
-        }
-
-
-    private:
-
-        // TODO: this is probably better as a pdb::Set once that type exists.
-        Vector<Handle<QueryNodeIr>> _consumers;
-    };
-}
-
-#endif //PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
+//#ifndef PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
+//#define PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
+//
+//#include "Handle.h"
+//#include "InterfaceFunctions.h"
+//#include "SetExpressionIr.h"
+//#include "QueryNodeIr.h"
+//
+//using pdb::Handle;
+//using pdb::makeObject;
+//
+//
+//namespace pdb_detail
+//{
+//    class ConsumableNodeIr
+//    {
+//
+//    };
+//}
+//
+//#endif //PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H

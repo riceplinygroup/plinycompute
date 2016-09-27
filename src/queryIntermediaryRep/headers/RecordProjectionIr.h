@@ -25,18 +25,14 @@
 
 using pdb::Handle;
 using pdb::Lambda;
+using pdb::Object;
 
 namespace pdb_detail
 {
-    class RecordProjectionIr : public QueryNodeIr
+    class RecordProjectionIr
     {
 
     public:
-
-        void execute(QueryNodeIrAlgo &algo)
-        {
-            algo.forRecordProjection(*this);
-        }
 
         virtual Lambda<Handle<Object>> toLambda(Handle<Object> &inputRecordPlaceholder) = 0;
 

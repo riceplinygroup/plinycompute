@@ -26,11 +26,6 @@ namespace pdb_detail
     {
     }
 
-    void SetNameIr::execute(QueryNodeIrAlgo &algo)
-    {
-        algo.forSetName(*this);
-    }
-
     void SetNameIr::execute(SetExpressionIrAlgo &algo)
     {
         algo.forSetName(*this);

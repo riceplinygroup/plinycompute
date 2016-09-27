@@ -23,13 +23,17 @@
 #include "Handle.h"
 #include "ConsumableNodeIr.h"
 #include "SetExpressionIrAlgo.h"
+#include "PDBVector.h"
+
+using pdb::Handle;
+using pdb::Vector;
 
 namespace pdb_detail
 {
     /**
      * Base class for any class that models a PDB set.
      */
-    class SetExpressionIr : public ConsumableNodeIr
+    class SetExpressionIr
     {
 
     public:
@@ -40,6 +44,30 @@ namespace pdb_detail
          * @param algo the algoithm to execute.
          */
         virtual void execute(SetExpressionIrAlgo &algo) = 0;
+
+
+        void addConsumer(Handle<SetExpressionIr> consumer)
+        {
+            // TODO: check for duplicate before adding
+
+            _consumers.push_back(consumer);
+        }
+
+        uint32_t getConsumerCount()
+        {
+            return _consumers.size();
+        }
+
+        Handle<SetExpressionIr> getConsumer(uint32_t index)
+        {
+            return _consumers[index];
+        }
+
+
+    private:
+
+        // TODO: this is probably better as a pdb::Set once that type exists.
+        Vector<Handle<SetExpressionIr>> _consumers;
 
     };
 }

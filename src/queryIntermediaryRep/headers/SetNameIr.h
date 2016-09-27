@@ -45,9 +45,6 @@ namespace pdb_detail
         SetNameIr(Handle<String> databaseName, Handle<String> setName);
 
         // contract from super
-        void execute(QueryNodeIrAlgo &algo) override;
-
-        // contract from super
         void execute(SetExpressionIrAlgo &algo) override;
 
         /**

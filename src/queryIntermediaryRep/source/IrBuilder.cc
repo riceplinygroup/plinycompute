@@ -178,10 +178,10 @@ namespace pdb_detail
                 Handle<SelectionIr> selection = makeSelection(queryAsSelection);
                 Handle<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
 
-                Handle<Vector<Handle<QueryNodeIr>>> sourceNodes = makeObject<Vector<Handle<QueryNodeIr>>>();
+                Handle<Vector<Handle<SetExpressionIr>>> sourceNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
                 sourceNodes->push_back(selection->getInputSet());
 
-                Handle<Vector<Handle<QueryNodeIr>>> sinkNodes = makeObject<Vector<Handle<QueryNodeIr>>>();
+                Handle<Vector<Handle<SetExpressionIr>>> sinkNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
                 sinkNodes->push_back(projection);
 
                 output = makeObject<QueryGraphIr>(sourceNodes, sinkNodes);
@@ -189,7 +189,7 @@ namespace pdb_detail
 
             void forSet()
             {
-                Handle<Vector<Handle<QueryNodeIr>>> sourceNodes = makeObject<Vector<Handle<QueryNodeIr>>>();
+                Handle<Vector<Handle<SetExpressionIr>>> sourceNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
 
                 Handle<SetExpressionIr> set = makeSetExpression(_query);
                 sourceNodes->push_back(set);

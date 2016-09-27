@@ -29,27 +29,19 @@ using pdb::Handle;
 
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
-using pdb_detail::QueryNodeIrAlgo;
 using pdb_detail::RecordPredicateIr;
-using pdb_detail::RecordProjectionIr;
 using pdb_detail::ProjectionIr;
+using pdb_detail::SetExpressionIrAlgo;
 using pdb_detail::SetNameIr;
 
 namespace pdb_tests
 {
     void testSelectionIrExecute(UnitTest &qunit)
     {
-        class Algo : public QueryNodeIrAlgo
+        class Algo : public SetExpressionIrAlgo
         {
         public:
 
-            void forRecordPredicate(RecordPredicateIr &recordPredicate)
-            {
-            }
-
-            void forRecordProjection(RecordProjectionIr &recordProjection)
-            {
-            }
 
             void forProjection(ProjectionIr &projection)
             {
