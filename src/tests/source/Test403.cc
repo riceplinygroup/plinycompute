@@ -120,8 +120,7 @@ int main (int argc, char * argv[]) {
         std::string err;
         for (int i = 0; i < 10; i++) {
             std::cout << "Dispatching a vector of size " <<  storeMe->size() << std::endl;
-
-            if (!temp.sendData<SharedEmployee>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe)) {
+            if (!temp.sendData<SharedEmployee>(std::pair<std::string, std::string>("dispatch_test_set", "dispatch_test_db"), storeMe, err)) {
                 std::cout << "Failed to send data to dispatcher server" << std::endl;
                 return 1;
             }

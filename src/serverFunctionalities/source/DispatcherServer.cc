@@ -25,7 +25,8 @@
 #include "DispatcherAddData.h"
 #include "BuiltInObjectTypeIDs.h"
 
-#include "RandomPolicy.h"
+#include "PartitionPolicyFactory.h"
+#include "DispatcherRegisterPartitionPolicy.h"
 
 namespace pdb {
 
@@ -33,13 +34,10 @@ DispatcherServer :: DispatcherServer (PDBLoggerPtr logger) {
     this->logger = logger;
     this->storageNodes = pdb::makeObject<Vector<Handle<NodeDispatcherData>>>();
     this->partitionPolicies = std::map<std::pair<std::string, std::string>, PartitionPolicyPtr>();
-
-    // TODO: Assume we have node dispatcher, and then Resource Manager
-
 }
 
 void DispatcherServer :: initialize() {
-    // TODO JIA: registerStorageNodes
+
 }
 
 DispatcherServer :: ~DispatcherServer () {
@@ -65,6 +63,22 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
 
                 return make_pair(res, errMsg);
     }));
+    forMe.registerHandler(DispatcherRegisterPartitionPolicy_TYPEID, make_shared<SimpleRequestHandler<DispatcherRegisterPartitionPolicy>> (
+            [&] (Handle <DispatcherRegisterPartitionPolicy> request, PDBCommunicatorPtr sendUsingMe) {
+
+                std::cout << "Registering partition policy for set " << request->getSetName() << ":" << request->getDatabaseName() << std::endl;
+
+                std :: string errMsg;
+                bool res = true;
+
+                registerSet(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
+                            PartitionPolicyFactory::buildPartitionPolicy(request->getPolicy()));
+
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                res = sendUsingMe->sendObject (response, errMsg);
+
+                return make_pair(res, errMsg);
+            }));
 }
 
 void DispatcherServer :: registerStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) {
@@ -97,14 +111,13 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
     if (partitionPolicies.find(setAndDatabase) == partitionPolicies.end()) {
         std::cout << "No partition policy was found for set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
         std::cout << "Defaulting to random policy" << std::endl;
-        registerSet(setAndDatabase, std::make_shared<RandomPolicy>());
+        registerSet(setAndDatabase, PartitionPolicyFactory::buildDefaultPartitionPolicy());
         return dispatchData(setAndDatabase, type, toDispatch);
     } else {
 
         auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(toDispatch);
 
         for (auto const &pair : (* mappedPartitions)) {
-
             if (!sendData(setAndDatabase, type, findNode(pair.first), pair.second)) {
                 return false;
             }
@@ -117,10 +130,9 @@ bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDat
                                    Handle<NodeDispatcherData> destination, Handle<Vector<Handle<Object>>> toSend) {
 
     std::cout << "Sending data to " << destination->getPort() << " : " << destination->getAddress() << std::endl;
-
     std::string err;
     StorageClient storageClient = StorageClient(destination->getPort(), destination->getAddress(), logger);
-    if (!storageClient.storeData (toSend, setAndDatabase.second, setAndDatabase.first, type, err)) {
+    if (!storageClient.storeData(toSend, setAndDatabase.second, setAndDatabase.first, type, err)) {
         cout << "Not able to store data: " << err << std::endl;
         return 0;
     }

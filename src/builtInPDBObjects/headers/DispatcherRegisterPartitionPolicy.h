@@ -16,57 +16,55 @@
  *                                                                           *
  *****************************************************************************/
 //
-// Created by Joseph Hwang on 9/22/16.
+// Created by Joseph Hwang on 9/25/16.
 //
 
-#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-#define OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#ifndef OBJECTQUERYMODEL_DISPATCHERREGISTERPARTITIONPOLICY_H
+#define OBJECTQUERYMODEL_DISPATCHERREGISTERPARTITIONPOLICY_H
 
-#include "ServerFunctionality.h"
+#include "Object.h"
 #include "Handle.h"
-#include "PDBVector.h"
-#include "PDBObject.h"
+#include "PDBString.h"
+
 #include "PartitionPolicy.h"
+
+// PRELOAD %DispatcherRegisterPartitionPolicy%
 
 namespace pdb {
 
-    class DispatcherClient : public ServerFunctionality {
+class DispatcherRegisterPartitionPolicy : public Object {
 
-    public:
+public:
 
-        DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn);
-        ~DispatcherClient();
+    DispatcherRegisterPartitionPolicy() {}
+    ~DispatcherRegisterPartitionPolicy() {}
 
-        /**
-         *
-         * @param forMe
-         */
-        void registerHandlers (PDBServer &forMe) override; // no-op
+    DispatcherRegisterPartitionPolicy(std::string setNameIn, std::string databaseNameIn, PartitionPolicy::Policy policyIn) :
+            setName(setNameIn), databaseName(databaseNameIn), policy(policyIn) {}
 
-        /**
-         *
-         * @param setAndDatabase
-         * @return
-         */
-        bool registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg);
+    String getSetName() {
+        return this->setName;
+    }
 
-        /**
-         *
-         * @param setAndDatabase
-         * @return
-         */
-        template <class DataType>
-        bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
+    String getDatabaseName() {
+        return this->databaseName;
+    }
 
-    private:
+    PartitionPolicy::Policy getPolicy() {
+        return this->policy;
+    }
 
-        int port;
-        std :: string address;
-        PDBLoggerPtr logger;
+    ENABLE_DEEP_COPY
 
-    };
+private:
+
+    String setName;
+    String databaseName;
+    PartitionPolicy::Policy policy;
+
+};
+
 }
 
-#include "DispatcherClientTemplate.cc"
 
-#endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#endif //OBJECTQUERYMODEL_DISPATCHERREGISTERPARTITIONPOLICY_H
