@@ -35,6 +35,9 @@
 #include <map>
 #include <algorithm>
 
+// this is the special type ID used for any type that the system does not know about
+#define TYPE_NOT_RECOGNIZED 8191
+
 namespace pdb {
 
     class CatalogClient;

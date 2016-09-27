@@ -137,8 +137,8 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 		// if the identifier is -1, then it means the catalog has never seen this type before
 		// so let the caller know, and remember that we have not seen it
 		if (identifier == -1) {
-			theVTable->objectTypeNamesList[objectTypeName] = -1;
-			return -1;
+			theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
+			return TYPE_NOT_RECOGNIZED;
 
 		// otherwise, return the ID
 		} else {
@@ -146,8 +146,12 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 			return identifier;
 		}
 
-	// in the easy case, we have seen it before, so just return the typeID
+	} else if (theVTable->objectTypeNamesList.count (objectTypeName) == 0) {
+		// we don't know this type, and we have no catalog client
+		theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
+		return TYPE_NOT_RECOGNIZED;
 	} else {
+		// in the easy case, we have seen it before, so just return the typeID
 		return theVTable->objectTypeNamesList[objectTypeName];	
 	}
 }
@@ -182,8 +186,8 @@ inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 	// this is done without a lock, so we can be very fast...
 	void *returnVal = theVTable->allVTables[objectTypeID];
 	if (returnVal != nullptr) {
-                //std :: cout << "VTablePtr for objectTypeID("<<objectTypeID<<") exists" << std :: endl;
-		return returnVal;}
+		return returnVal;
+	}
 
 	// we do not, so get the lock...
 	const LockGuard guard {theVTable->myLock};
@@ -192,10 +196,8 @@ inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 	// that another thread has not since gotten it for us
 	returnVal = theVTable->allVTables[objectTypeID];
 	if (returnVal != nullptr) {
-                //std :: cout << "VTablePtr for objectTypeID=" << objectTypeID << " exists" << std :: endl;
-		return returnVal;}
-	else {
-                //std :: cout << "VTablePtr for objectTypeID=" << objectTypeID << " doesn't exist" << std :: endl;
+		return returnVal;
+	} else {
 		// if they have not gotten it for us, then go and get it
 		return getVTablePtrUsingCatalog (objectTypeID);
         }
