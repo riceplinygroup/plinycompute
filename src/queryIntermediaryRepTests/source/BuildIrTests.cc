@@ -46,9 +46,6 @@ using pdb::Set;
 using pdb::unsafeCast;
 
 using pdb_detail::buildIr;
-using pdb_detail::ConsumableNodeIr;
-using pdb_detail::QueryNodeIr;
-using pdb_detail::QueryNodeIrAlgo;
 using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
@@ -96,7 +93,7 @@ namespace pdb_tests
          */
         Handle<QueryGraphIr> queryGraph = buildIr(selection);
 
-        Handle<QueryNodeIr> querySource = queryGraph->getSourceNode(0);
+        Handle<SetExpressionIr> querySource = queryGraph->getSourceNode(0);
 
         QUNIT_IS_EQUAL(1, queryGraph->getSourceNodeCount());
         QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
@@ -104,17 +101,9 @@ namespace pdb_tests
         /**
         * Test that the input to the selection is the set "setname" in the database "databasename"
         */
-        class IsSetName : public QueryNodeIrAlgo
+        class IsSetName : public SetExpressionIrAlgo
         {
         public:
-
-            void forRecordPredicate(RecordPredicateIr &recordPredicate)
-            {
-            }
-
-            void forRecordProjection(RecordProjectionIr &recordProjection)
-            {
-            }
 
             void forProjection(ProjectionIr &recordProjection)
             {
@@ -139,7 +128,7 @@ namespace pdb_tests
         if(!isSetName.correct)
             return;
 
-        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,QueryNodeIr>(querySource);
+        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,SetExpressionIr>(querySource);
 
         QUNIT_IS_EQUAL("databasename", string(selectionSetName->getDatabaseName()->c_str()));
         QUNIT_IS_EQUAL("setname", string(selectionSetName->getName()->c_str()));
@@ -149,19 +138,11 @@ namespace pdb_tests
          */
 
         QUNIT_IS_EQUAL(1, selectionSetName->getConsumerCount());
-        Handle<QueryNodeIr> setParent = selectionSetName->getConsumer(0);
+        Handle<SetExpressionIr> setParent = selectionSetName->getConsumer(0);
 
-        class IsSelection : public QueryNodeIrAlgo
+        class IsSelection : public SetExpressionIrAlgo
         {
         public:
-
-            void forRecordPredicate(RecordPredicateIr &recordPredicate)
-            {
-            }
-
-            void forRecordProjection(RecordProjectionIr &recordProjection)
-            {
-            }
 
             void forProjection(ProjectionIr &recordProjection)
             {
@@ -184,7 +165,7 @@ namespace pdb_tests
 
         QUNIT_IS_TRUE(isSelection.correct);
 
-        Handle<SelectionIr> projectionIrInputSelection = unsafeCast<SelectionIr,QueryNodeIr>(setParent);
+        Handle<SelectionIr> projectionIrInputSelection = unsafeCast<SelectionIr,SetExpressionIr>(setParent);
 
         Handle<Object> placeHolder2;
         Lambda<bool> cond = projectionIrInputSelection->getCondition()->toLambda(placeHolder2);
@@ -195,20 +176,12 @@ namespace pdb_tests
          * Test that projection is the parent of selection.
          */
         QUNIT_IS_EQUAL(1, projectionIrInputSelection->getConsumerCount());
-        Handle<QueryNodeIr> selectionParent = projectionIrInputSelection->getConsumer(0);
+        Handle<SetExpressionIr> selectionParent = projectionIrInputSelection->getConsumer(0);
 
-        class IsProjection : public QueryNodeIrAlgo
+        class IsProjection : public SetExpressionIrAlgo
         {
         public:
-
-            void forRecordPredicate(RecordPredicateIr &recordPredicate)
-            {
-            }
-
-            void forRecordProjection(RecordProjectionIr &recordProjection)
-            {
-            }
-
+            
             void forProjection(ProjectionIr &recordProjection)
             {
                 correct = true;
@@ -230,7 +203,7 @@ namespace pdb_tests
 
         QUNIT_IS_TRUE(isProjection.correct);
 
-        Handle<ProjectionIr> projectionIr = unsafeCast<ProjectionIr,QueryNodeIr>(selectionParent);
+        Handle<ProjectionIr> projectionIr = unsafeCast<ProjectionIr,SetExpressionIr>(selectionParent);
 
         Handle<Object> placeHolder1;
         Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
@@ -238,13 +211,13 @@ namespace pdb_tests
 
 
 
-        Handle<QueryNodeIr> querySink = queryGraph->getSinkNode(0);
+        Handle<SetExpressionIr> querySink = queryGraph->getSinkNode(0);
         IsProjection isProj;
 
         querySink->execute(isProj);
 
         QUNIT_IS_TRUE(isProj.correct);
-        Handle<ProjectionIr> sinkProjectionIr = unsafeCast<ProjectionIr,QueryNodeIr>(querySink);
+        Handle<ProjectionIr> sinkProjectionIr = unsafeCast<ProjectionIr,SetExpressionIr>(querySink);
     }
 }
 

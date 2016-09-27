@@ -39,10 +39,6 @@ namespace pdb_detail
     {
     }
 
-    void SelectionIr::execute(QueryNodeIrAlgo &algo)
-    {
-        algo.forSelection(*this);
-    }
 
     void SelectionIr::execute(SetExpressionIrAlgo &algo)
     {

@@ -32,13 +32,10 @@ namespace pdb_detail
     /**
      * A boolean function that operates over a single input record.
      */
-    class RecordPredicateIr : public QueryNodeIr
+    class RecordPredicateIr
     {
 
     public:
-
-        // contract from super
-        void execute(QueryNodeIrAlgo &algo);
 
         /**
          * Produces a Lambda<bool> representation of the predicate.

@@ -17,11 +17,3 @@
  *****************************************************************************/
 
 #include "RecordPredicateIr.h"
-
-namespace pdb_detail
-{
-    void RecordPredicateIr::execute(QueryNodeIrAlgo &algo)
-    {
-        algo.forRecordPredicate(*this);
-    }
-}

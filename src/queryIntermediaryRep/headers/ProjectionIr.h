@@ -37,7 +37,7 @@ using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
 {
-    class ProjectionIr : public ConsumableNodeIr
+    class ProjectionIr : public SetExpressionIr
     {
     public:
 
@@ -55,7 +55,7 @@ namespace pdb_detail
         {
         }
 
-        void execute(QueryNodeIrAlgo &algo) override
+        void execute(SetExpressionIrAlgo &algo) override
         {
             algo.forProjection(*this);
         }

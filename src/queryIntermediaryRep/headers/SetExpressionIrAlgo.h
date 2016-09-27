@@ -20,6 +20,8 @@
 
 namespace pdb_detail
 {
+    class ProjectionIr; // without forward declaration we get circular includes and can't compile
+
     class SelectionIr; // without forward declaration we get circular includes and can't compile
 
     class SetNameIr; // without forward declaration we get circular includes and can't compile
@@ -31,6 +33,11 @@ namespace pdb_detail
     {
 
     public:
+
+        /**
+         * For the SelectionIr case.
+         */
+        virtual void forProjection(ProjectionIr &projection) = 0;
 
         /**
          * For the SelectionIr case.

@@ -22,6 +22,7 @@
 #include "Object.h"
 #include "PDBVector.h"
 #include "QueryNodeIr.h"
+#include "SetExpressionIr.h"
 
 using pdb::Handle;
 using pdb::Object;
@@ -33,7 +34,7 @@ namespace pdb_detail
     {
     public:
 
-        QueryGraphIr(Handle<Vector<Handle<QueryNodeIr>>> sourceNodes, Handle<Vector<Handle<QueryNodeIr>>> sinkNodes)
+        QueryGraphIr(Handle<Vector<Handle<SetExpressionIr>>> sourceNodes, Handle<Vector<Handle<SetExpressionIr>>> sinkNodes)
                 : _sourceNodes(sourceNodes), _sinkNodes(sinkNodes)
         {
         }
@@ -43,7 +44,7 @@ namespace pdb_detail
             return _sourceNodes->size();
         }
 
-        Handle<QueryNodeIr> getSourceNode(uint32_t index)
+        Handle<SetExpressionIr> getSourceNode(uint32_t index)
         {
             return _sourceNodes->operator[](index);
         }
@@ -53,7 +54,7 @@ namespace pdb_detail
             return _sinkNodes->size();
         }
 
-        Handle<QueryNodeIr> getSinkNode(uint32_t index)
+        Handle<SetExpressionIr> getSinkNode(uint32_t index)
         {
             return _sinkNodes->operator[](index);
         }
@@ -61,9 +62,9 @@ namespace pdb_detail
 
     private:
 
-        Handle<Vector<Handle<QueryNodeIr>>> _sourceNodes;
+        Handle<Vector<Handle<SetExpressionIr>>> _sourceNodes;
 
-        Handle<Vector<Handle<QueryNodeIr>>> _sinkNodes;
+        Handle<Vector<Handle<SetExpressionIr>>> _sinkNodes;
 
     };
 }

@@ -61,9 +61,6 @@ namespace pdb_detail
         SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition, SimpleSingleTableQueryProcessorPtr pageProcessor);
 
         // contract from super
-        virtual void execute(QueryNodeIrAlgo &algo) override;
-
-        // contract from super
         virtual void execute(SetExpressionIrAlgo &algo) override;
 
         /**
