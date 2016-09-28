@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELECTION_QUERY_PROCESSOR_H
-#define SELECTION_QUERY_PROCESSOR_H
+#ifndef FILTER_QUERY_PROCESSOR_H
+#define FILTER_QUERY_PROCESSOR_H
 
 #include "SimpleSingleTableQueryProcessor.h"
 #include "UseTemporaryAllocationBlock.h"
@@ -29,7 +29,7 @@
 namespace pdb {
 
 template <class Output, class Input> 
-class SelectionQueryProcessor : public SimpleSingleTableQueryProcessor {
+class FilterQueryProcessor : public SimpleSingleTableQueryProcessor {
 
 private:
 
@@ -46,22 +46,21 @@ private:
 	size_t posInInput;
 
 	// this is where the output objects are put
-	Handle <Vector <Handle <Output>>> outputVec;
+	Handle <Vector <Handle <Input>>> outputVec;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <bool> selectionPred;
-	Lambda <Handle <Output>> projection;
+	Lambda <bool> filterPred;
 
 	// and here are the actual functions
-	std :: function <bool ()> selectionFunc;
-	std :: function <Handle <Output> ()> projectionFunc;
+	std :: function <bool ()> filterFunc;
 	
 	// tells whether we have been finalized
 	bool finalized;
 
 public:
 
-	SelectionQueryProcessor (Selection <Output, Input> &forMe);
+	FilterQueryProcessor (Selection <Output, Input> &forMe);
+        FilterQueryProcessor (Lambda <bool> filterPred);
 	// the standard interface functions
 	void initialize () override;
         void loadInputPage (void *pageToProcess) override;
@@ -72,6 +71,6 @@ public:
 
 }
 
-#include "SelectionQueryProcessor.cc"
+#include "FilterQueryProcessor.cc"
 
 #endif

@@ -21,6 +21,8 @@
 
 #include "Selection.h"
 #include "SelectionQueryProcessor.h"
+#include "FilterQueryProcessor.h"
+#include "ProjectionQueryProcessor.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include <memory>
 
@@ -30,6 +32,20 @@ template <typename Out, typename In>
 SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProcessor () {
 	return std :: make_shared <SelectionQueryProcessor <Out, In>> (*this);
 }
+
+template <typename Out, typename In>
+SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getFilterProcessor () {
+        return std :: make_shared <FilterQueryProcessor <Out, In>> (*this);
+}
+
+
+template <typename Out, typename In>
+SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProjectionProcessor () {
+        return std :: make_shared <ProjectionQueryProcessor <Out, In>> (*this);
+}
+
+
+
 
 	template <typename In, typename Out>
 	void Selection<In, Out>::execute(QueryAlgo& algo)

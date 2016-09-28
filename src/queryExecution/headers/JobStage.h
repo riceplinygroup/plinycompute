@@ -23,7 +23,6 @@
 #include "Handle.h"
 #include "PDBVector.h"
 #include "PDBString.h"
-#include "Operator.h"
 #include "SetIdentifier.h"
 
 // PRELOAD %JobStage%
@@ -37,13 +36,9 @@ namespace pdb {
             JobStage () {}
             ~JobStage () {}
  
-            JobStage (Handle<Vector<Handle<Operator>>> operators, Handle<Vector<Handle<SetIdentifier>>> inputs, Handle<Vector<Handle<SetIdentifier>>> outputs, bool aggregationOrNot, bool finalOrNot) : operators(operators), inputs(inputs), outputs(outputs), aggregationOrNot(aggregationOrNot), finalOrNot(finalOrNot) {}
+            JobStage (Handle<Vector<Handle<SetIdentifier>>> inputs, Handle<Vector<Handle<SetIdentifier>>> outputs, bool aggregationOrNot, bool finalOrNot) : inputs(inputs), outputs(outputs), aggregationOrNot(aggregationOrNot), finalOrNot(finalOrNot) {}
 
 
-            //to return a vector of operators
-            Handle<Vector<Handle<Operator>>> getOperators() {
-                return this->operators;
-            }
 
             //to return a vector of input set identifiers
             Handle<Vector<Handle<SetIdentifier>>> getInputs() {
@@ -71,8 +66,6 @@ namespace pdb {
     private:
 
 
-            //operators
-            Handle<Vector<Handle<Operator>>> operators;
 
             //Input set information
             Handle<Vector<Handle<SetIdentifier>>> inputs;
