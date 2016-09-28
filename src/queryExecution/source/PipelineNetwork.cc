@@ -34,6 +34,8 @@ PipelineNetwork :: PipelineNetwork (JobStageID id, size_t batchSize, int numThre
     stageId = id;
     this->batchSize = batchSize;
     this->numThreads = numThreads;
+    //initialize the data proxy
+
 }
 
 JobStageID PipelineNetwork :: getStageId () {
@@ -76,9 +78,9 @@ void PipelineNetwork :: runAllSources() {
 }
 
 void PipelineNetwork :: runSource (int sourceNode) {
-    PipelineNodePtr source = this->sourceNodes->at(sourceNode);
-        
-
+    //PipelineNodePtr source = this->sourceNodes->at(sourceNode);
+    //initialize the scanner and set iterators    
+    //TODO
 }
 
 #endif
