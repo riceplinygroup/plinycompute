@@ -88,7 +88,7 @@ bool FilterQueryProcessor <Output, Input> :: fillNextOutputPage () {
 			inputObject = myInVec[posInInput];
 			if (filterFunc ()) {
 				myOutVec.push_back (inputObject);
-                                inputObject->print();	
+                                //inputObject->print();	
 			}
 		}	
 

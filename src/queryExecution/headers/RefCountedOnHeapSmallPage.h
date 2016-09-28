@@ -15,69 +15,63 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef REFCOUNTED_ONHEAP_SMALL_PAGE_H
+#define REFCOUNTED_ONHEAP_SMALL_PAGE_H
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+//by Jia, Sept 2016
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
+#include <memory>
+typedef std :: shared_ptr<RefCountedOnHeapSmallPage> RefCountedOnHeapSmallPagePtr;
 
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+// this is a helper class for storing intermediate data between nodes in a pipeline
 
-public:
-
-	SetIdentifier () {}
-	~SetIdentifier () {}
-
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
-
-	std :: string getDatabase () {
-		return dataBase;
-	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
+class RefCountedOnHeapSmallPage {
 
 private:
 
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
+    void * data;
+    size_t size;
+
+public:
+    //destructor
+    ~RefCountedOnHeapSmallPage() {
+        if (data != nullptr) {
+            free(data);
+        }
+        data = 0;
+        size = 0;
+    }
+
+
+    //constructor
+    RefCountedOnHeapSmallPage (size_t size) {
+        this->data = (void *) malloc (size);
+        this->size = size;
+    }
+
+    //return memory
+    void * getData() {
+        return this->data;
+    }
+
+    size_t getSize() {
+        return this->size;
+    }
+
+   
+
+
+
 
 };
 
+
+
 }
+
+
+
 
 #endif
