@@ -48,6 +48,12 @@ public:
 	// get an object that is able to process queries of this type
 	SimpleSingleTableQueryProcessorPtr getProcessor ();
 
+        // get an object that is able to process filtering of this type
+        SimpleSingleTableQueryProcessorPtr getFilterProcessor ();
+
+        // get an object that is able to process projection of this type
+        SimpleSingleTableQueryProcessorPtr getProjectionProcessor ();
+
 	// gets the number of inputs
 	virtual int getNumInputs () override {return 1;}
 
