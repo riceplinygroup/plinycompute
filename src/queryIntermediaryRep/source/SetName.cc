@@ -16,29 +16,32 @@
  *                                                                           *
  *****************************************************************************/
 
-#include "SetNameIr.h"
+#include "SourceSetNameIr.h"
 
 namespace pdb_detail
 {
+    SourceSetNameIr::SourceSetNameIr()
+    {
+    }
 
-    SetNameIr::SetNameIr(Handle<String> databaseName, Handle<String> setName)
+    SourceSetNameIr::SourceSetNameIr(string databaseName, string setName)
             : _databaseName(databaseName), _setName(setName)
     {
     }
 
-    void SetNameIr::execute(SetExpressionIrAlgo &algo)
+    void SourceSetNameIr::execute(SetExpressionIrAlgo &algo)
     {
-        algo.forSetName(*this);
+        algo.forSourceSetName(*this);
     }
 
 
-    Handle<String> SetNameIr::getDatabaseName()
+    string SourceSetNameIr::getDatabaseName()
     {
         return _databaseName;
     }
 
 
-    Handle<String> SetNameIr::getName()
+    string SourceSetNameIr::getName()
     {
         return _setName;
     }

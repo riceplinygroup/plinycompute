@@ -28,7 +28,7 @@
 
 namespace pdb {
 
-template <class Output, class Input> 
+template <class Output, class Input>
 class FilterQueryProcessor : public SimpleSingleTableQueryProcessor {
 
 private:

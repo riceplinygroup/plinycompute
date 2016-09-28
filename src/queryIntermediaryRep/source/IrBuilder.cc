@@ -16,6 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
+#include "Handle.h"
 #include "IrBuilder.h"
 
 #include "PDBVector.h"
@@ -26,32 +27,32 @@
 #include "Query.h"
 #include "QueryBase.h"
 #include "Set.h"
-#include "SetNameIr.h"
+#include "SourceSetNameIr.h"
 
 
 #include "Employee.h"
 
-using pdb::Vector;
+using pdb::Handle;
 using pdb::Query;
 using pdb::QueryAlgo;
 using pdb::QueryBase;
 using pdb::Selection;
-using pdb::makeObject;
 using pdb::Object;
 using pdb::Set;
 using pdb::String;
 using pdb::unsafeCast;
+using pdb::Vector;
 
 
 namespace pdb_detail
 {
 
-    Handle<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selection); // forward declaration
+    shared_ptr<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selection); // forward declaration
 
-    Handle<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode)
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode)
     {
         if(queryNode.isNullPtr())
-            return Handle<SetExpressionIr>();
+            return shared_ptr<SetExpressionIr>();
 
         class Algo : public QueryAlgo
         {
@@ -69,13 +70,26 @@ namespace pdb_detail
             virtual void forSet()
             {
                 Handle<Set<Object>> set = unsafeCast<Set<Object>,QueryBase>(_queryNode);
-                Handle<String> dbName = makeObject<String>(set->getDBName());
-                Handle<String> setName = makeObject<String>(set->getSetName());
+                int numInputs = set->getNumInputs();
 
-                output = makeObject<SetNameIr>(dbName, setName);
+                string dbName = set->getDBName();
+                string setName = set->getSetName();
+
+                if(numInputs == 0)
+                {
+                    output = make_shared<SourceSetNameIr>(dbName, setName);
+                }
+                else
+                {
+                    Handle<QueryBase> setInput = set->getIthInput(0);
+
+                    output = makeSetExpression(setInput);
+
+                    output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
+                }
             }
 
-            Handle<SetExpressionIr> output;
+            shared_ptr<SetExpressionIr> output;
 
         private:
 
@@ -89,7 +103,7 @@ namespace pdb_detail
     }
 
 
-    Handle<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selectAndProject)
+    shared_ptr<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selectAndProject)
     {
         class RecordPredicateFromSelection : public RecordPredicateIr
         {
@@ -112,7 +126,7 @@ namespace pdb_detail
         };
 
 
-        Handle<SetExpressionIr> selectionInputIr;
+        shared_ptr<SetExpressionIr> selectionInputIr;
         {
             if(selectAndProject->hasInput())
             {
@@ -120,21 +134,19 @@ namespace pdb_detail
             }
             else
             {
-                Handle<String> empty = makeObject<String>();
-                selectionInputIr = makeObject<SetNameIr>(empty, empty);
+                selectionInputIr = make_shared<SourceSetNameIr>("", "");
             }
         }
 
 
-        Handle<RecordPredicateFromSelection> predicate = makeObject<RecordPredicateFromSelection>(selectAndProject);
+        shared_ptr<RecordPredicateFromSelection> predicate =
+                make_shared<RecordPredicateFromSelection>(selectAndProject);
 
-
-
-        return SelectionIr::make(selectionInputIr, predicate, selectAndProject->getProcessor());
+        return make_shared<SelectionIr>(selectionInputIr, predicate, selectAndProject->getFilterProcessor());
     }
 
 
-    Handle<ProjectionIr> makeProjection(Handle<SetExpressionIr> inputSet, Handle<Selection<Object,Object>> selectAndProject)
+    shared_ptr<ProjectionIr> makeProjection(shared_ptr<SetExpressionIr> inputSet, Handle<Selection<Object,Object>> selectAndProject)
     {
         class RecordProjectionFromSelection : public RecordProjectionIr
         {
@@ -156,11 +168,13 @@ namespace pdb_detail
 
         };
 
-        Handle<RecordProjectionFromSelection> predicate = makeObject<RecordProjectionFromSelection>(selectAndProject);
-        return  ProjectionIr::make(inputSet, predicate, selectAndProject->getProcessor());
+        shared_ptr<RecordProjectionFromSelection> predicate =
+                make_shared<RecordProjectionFromSelection>(selectAndProject);
+
+        return make_shared<ProjectionIr>(inputSet, predicate, selectAndProject->getProcessor());
     }
 
-    Handle<QueryGraphIr> buildIr(Handle<QueryBase> query)
+    QueryGraphIr buildIr(Handle<QueryBase> query)
     {
         class Algo : public QueryAlgo
         {
@@ -175,29 +189,29 @@ namespace pdb_detail
                 Handle<Selection<Object,Object>> queryAsSelection =
                         unsafeCast<Selection<Object,Object> ,QueryBase>(_query);
 
-                Handle<SelectionIr> selection = makeSelection(queryAsSelection);
-                Handle<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
+                shared_ptr<SelectionIr> selection = makeSelection(queryAsSelection);
+                shared_ptr<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
 
-                Handle<Vector<Handle<SetExpressionIr>>> sourceNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
-                sourceNodes->push_back(selection->getInputSet());
+                shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes
+                        = make_shared<vector<shared_ptr<SetExpressionIr>>>();
 
-                Handle<Vector<Handle<SetExpressionIr>>> sinkNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
                 sinkNodes->push_back(projection);
 
-                output = makeObject<QueryGraphIr>(sourceNodes, sinkNodes);
+                output = QueryGraphIr(sinkNodes);
             }
 
             void forSet()
             {
-                Handle<Vector<Handle<SetExpressionIr>>> sourceNodes = makeObject<Vector<Handle<SetExpressionIr>>>();
+                shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes
+                        = make_shared<vector<shared_ptr<SetExpressionIr>>>();
 
-                Handle<SetExpressionIr> set = makeSetExpression(_query);
-                sourceNodes->push_back(set);
+                shared_ptr<SetExpressionIr> set = makeSetExpression(_query);
+                sinkNodes->push_back(set);
 
-                output = makeObject<QueryGraphIr>(sourceNodes, sourceNodes);
+                output = QueryGraphIr(sinkNodes);
             }
 
-            Handle<QueryGraphIr> output;
+            QueryGraphIr output;
 
         private:
 

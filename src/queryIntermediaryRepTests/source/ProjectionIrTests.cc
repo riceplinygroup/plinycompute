@@ -23,7 +23,7 @@
 #include "QueryNodeIrAlgo.h"
 #include "RecordProjectionIr.h"
 #include "SelectionIr.h"
-#include "SetNameIr.h"
+#include "SourceSetNameIr.h"
 
 using pdb::Handle;
 
@@ -32,7 +32,7 @@ using pdb_detail::RecordPredicateIr;
 using pdb_detail::RecordProjectionIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIrAlgo;
-using pdb_detail::SetNameIr;
+using pdb_detail::SourceSetNameIr;
 
 namespace pdb_tests
 {
@@ -52,15 +52,15 @@ namespace pdb_tests
             {
             }
 
-            void forSetName(SetNameIr &setName)
+            void forSourceSetName(SourceSetNameIr &setName)
             {
             }
 
             bool success = false;
         } algo;
 
-        Handle<SetExpressionIr> nullInputSet;
-        Handle<RecordProjectionIr> nullProjector;
+        shared_ptr<SetExpressionIr> nullInputSet;
+        shared_ptr<RecordProjectionIr> nullProjector;
         SimpleSingleTableQueryProcessorPtr processorPtr;
         ProjectionIr projection(nullInputSet, nullProjector, processorPtr);
 

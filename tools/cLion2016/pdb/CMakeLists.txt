@@ -11,11 +11,13 @@ include_directories(
         ../../../src/builtInPDBObjects/headers
         ../../../src/conf/headers
         ../../../src/communication/headers
+        ../../../src/dispatcher/headers
         ../../../src/mocking/headers
         ../../../src/objectModel/headers
         ../../../src/pdbServer/headers
         ../../../src/queries/headers
         ../../../src/queriesTests/headers
+        ../../../src/queryExecution/headers
         ../../../src/queryIntermediaryRepTests/headers
         ../../../src/qunit/headers
         ../../../src/queryIntermediaryRep/headers
@@ -36,6 +38,7 @@ set(SOURCE_FILES
         ../../../src/queriesTests/source/QueriesTestsRunner.cc
         ../../../src/queryIntermediaryRep/source/IrBuilder.cc
         ../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc
+        ../../../src/queryIntermediaryRep/source/MaterializationMode.cc
         ../../../src/queryIntermediaryRep/source/SelectionIr.cc
         ../../../src/queryIntermediaryRep/source/SetName.cc
         ../../../src/queryIntermediaryRep/source/UnarySetOperator.cc
@@ -47,6 +50,7 @@ set(SOURCE_FILES
         ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
 #        ../../../src/tests/source/Test13a.cc
+#        ../../../src/tests/source/Traverse.cc
         ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
