@@ -61,7 +61,7 @@ int main () {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
 		return 0;
 	}
-
+	std::cout << std::endl;
 	// print the resuts
 	SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	std :: cout << "First set of query results: ";

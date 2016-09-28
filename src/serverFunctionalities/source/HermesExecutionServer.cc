@@ -30,10 +30,15 @@
 #include "SimpleRequestResult.h"
 #include "BackendTestSetScan.h"
 #include "BackendTestSetCopy.h"
+#include "BackendExecuteSelection.h"
 #include "PageCircularBufferIterator.h"
+#include "BackendSelectionWork.h"
 #include "TestScanWork.h"
+#include "ExecuteQuery.h"
 #include "TestCopyWork.h"
 #include "DataProxy.h"
+#include "Selection.h"
+#include "QueryBase.h"
 #include <vector>
 
 
@@ -41,6 +46,88 @@ namespace pdb {
 
 
 void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
+
+    forMe.registerHandler(BackendExecuteSelection_TYPEID, make_shared <SimpleRequestHandler <BackendExecuteSelection>> (
+              [&] (Handle <BackendExecuteSelection> request, PDBCommunicatorPtr sendUsingMe) {
+                std :: cout << "Start a handler to process BackendExecuteSelection messages in backend\n";
+                const UseTemporaryAllocationBlock tempBlock {1024 * 128};
+                {
+                  bool success;
+                  std :: string errMsg;
+                  Handle <Vector <Handle <QueryBase>>> runUs = sendUsingMe->getNextObject <Vector <Handle <QueryBase>>> (success, errMsg);
+                  if (!success) {
+                    return std :: make_pair (false, errMsg);
+                  }
+
+                  // there should be only one guy
+                  if (runUs->size() != 1) {
+                    std :: cout << "Error: there should be exactly 1 single selection for backend to execute!" << std :: endl;
+                  }
+                  Handle <Selection <Object, Object>> myQuery = unsafeCast <Selection <Object, Object>> ((*runUs)[0]);
+                  
+                  DatabaseID dbIdIn = request->getDatabaseIn();
+                  UserTypeID typeIdIn = request->getTypeIdIn();
+                  SetID setIdIn = request->getSetIdIn();
+                  DatabaseID dbIdOut = request->getDatabaseOut();
+                  UserTypeID typeIdOut = request->getTypeIdOut();
+                  SetID setIdOut = request->getSetIdOut();
+
+                  int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
+                  NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+                  pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+                  SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();                                      
+                  int backendCircularBufferSize = 3;
+
+                  //create a scanner for input set
+                  PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+                  communicatorToFrontend->connectToInternetServer(logger, getFunctionality<HermesExecutionServer>().getConf()->getPort(), "localhost", errMsg);
+                  PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
+
+                  if(getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                    success = false;
+                    errMsg = "Error: A job is already running!";
+                    std :: cout << errMsg << std :: endl;
+                    return make_pair(success, errMsg);
+                  }
+
+                  std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, dbIdIn, typeIdIn, setIdIn);
+
+                  int numIteratorsReturned = iterators.size();
+                  if( numIteratorsReturned != numThreads ) {
+                    success = false;
+                    errMsg = "Error: number of iterators doesn't match number of threads!";
+                    std :: cout << errMsg << std :: endl;
+                    return make_pair(success, errMsg);
+                  }
+
+
+                  int counter = 0;
+                  PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                    [&] (PDBAlarm myAlarm, int & counter) {
+                      counter ++;
+                      std :: cout << "counter = " << counter << std :: endl;
+                    });
+
+                  for (int i = 0; i < numThreads; i++) {
+                    PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                    SelectionWorkPtr queryWork = make_shared<BackendSelectionWork> (iterators.at(i), dbIdOut, typeIdOut, setIdOut, &(getFunctionality<HermesExecutionServer>()), counter, myQuery);
+                    worker->execute(queryWork, tempBuzzer);
+                  }
+                  
+                  while (counter < numThreads) {
+                    tempBuzzer->wait();
+                  }
+                  getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr);
+                  // now, we notify frontend that we are done with the query
+                  Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (true, std :: string("Done."));
+                  if (!sendUsingMe->sendObject (response, errMsg)) {
+                    return std :: make_pair (false, errMsg);
+                  }
+                  
+                }
+                return std :: make_pair(true, std :: string("Done executing query."));
+              }
+    ));
 
     //register a handler to process StoragePagePinned messages that are reponses to the same StorageGetSetPages message initiated by the current PageScanner instance.
     
