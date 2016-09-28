@@ -15,11 +15,12 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/serverFunctionalities/source/CatalogClient.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/QueriesTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/SelectionTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/UnarySetOperator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SelectionIr.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SetName.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />

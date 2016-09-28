@@ -18,35 +18,27 @@
 #ifndef PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H
 #define PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H
 
-#include "Handle.h"
 #include "Object.h"
-#include "PDBVector.h"
 #include "QueryNodeIr.h"
 #include "SetExpressionIr.h"
 
-using pdb::Handle;
+using std::shared_ptr;
+using std::vector;
+
 using pdb::Object;
-using pdb::Vector;
 
 namespace pdb_detail
 {
-    class QueryGraphIr : public Object
+    class QueryGraphIr
     {
     public:
 
-        QueryGraphIr(Handle<Vector<Handle<SetExpressionIr>>> sourceNodes, Handle<Vector<Handle<SetExpressionIr>>> sinkNodes)
-                : _sourceNodes(sourceNodes), _sinkNodes(sinkNodes)
+        QueryGraphIr()
         {
         }
 
-        uint32_t getSourceNodeCount()
+        QueryGraphIr(shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes) : _sinkNodes(sinkNodes)
         {
-            return _sourceNodes->size();
-        }
-
-        Handle<SetExpressionIr> getSourceNode(uint32_t index)
-        {
-            return _sourceNodes->operator[](index);
         }
 
         uint32_t getSinkNodeCount()
@@ -54,17 +46,14 @@ namespace pdb_detail
             return _sinkNodes->size();
         }
 
-        Handle<SetExpressionIr> getSinkNode(uint32_t index)
+        shared_ptr<SetExpressionIr> getSinkNode(uint32_t index)
         {
             return _sinkNodes->operator[](index);
         }
 
-
     private:
 
-        Handle<Vector<Handle<SetExpressionIr>>> _sourceNodes;
-
-        Handle<Vector<Handle<SetExpressionIr>>> _sinkNodes;
+        shared_ptr<vector<shared_ptr<SetExpressionIr>>> _sinkNodes;
 
     };
 }

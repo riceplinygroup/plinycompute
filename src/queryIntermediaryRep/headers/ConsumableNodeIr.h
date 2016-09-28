@@ -24,7 +24,6 @@
 //#include "QueryNodeIr.h"
 //
 //using pdb::Handle;
-//using pdb::makeObject;
 //
 //
 //namespace pdb_detail

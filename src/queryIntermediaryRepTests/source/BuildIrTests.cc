@@ -27,11 +27,12 @@
 #include "SelectionIr.h"
 #include "Set.h"
 #include "SetExpressionIrAlgo.h"
-#include "SetNameIr.h"
+#include "SourceSetNameIr.h"
 #include "Supervisor.h"
 #include "ProjectionIr.h"
 #include "QueryGraphIr.h"
 
+using std::dynamic_pointer_cast;
 using std::function;
 using std::string;
 
@@ -53,7 +54,7 @@ using pdb_detail::RecordProjectionIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 using pdb_detail::SetExpressionIrAlgo;
-using pdb_detail::SetNameIr;
+using pdb_detail::SourceSetNameIr;
 
 
 namespace pdb_tests
@@ -66,19 +67,24 @@ namespace pdb_tests
         /**
          * Create the selection to translate.
          */
-        static Lambda<bool> condition = Lambda<bool>( [] () { return true; } );
-        static Lambda <Handle<Object>> projector = Lambda <Handle<Object>>( [] () { return nullptr; });
+        static Lambda<bool> condition = Lambda<bool>([]() { return true; });
+        static Lambda<Handle<Object>> projector = Lambda<Handle<Object>>([]() { return nullptr; });
         class MySelectionType : public Selection<Object, Object>
         {
-            virtual Lambda <bool> getSelection (Handle <Object> &in)
+
+        public:
+
+            virtual Lambda<bool> getSelection(Handle<Object> &in) override
             {
                 return condition;
             }
 
-            virtual Lambda <Handle<Object>> getProjection (Handle <Object> &in)
+            virtual Lambda<Handle<Object>> getProjection(Handle<Object> &in) override
             {
                 return projector;
             }
+
+            ENABLE_DEEP_COPY
         };
 
         Handle<MySelectionType> selection = makeObject<MySelectionType>();
@@ -87,58 +93,54 @@ namespace pdb_tests
             selection->setInput(selectionInput);
         }
 
-
         /**
          * Translate MySelection to QueryNodeIr.
          */
-        Handle<QueryGraphIr> queryGraph = buildIr(selection);
+        QueryGraphIr queryGraph = buildIr(selection);
 
-        Handle<SetExpressionIr> querySource = queryGraph->getSourceNode(0);
-
-        QUNIT_IS_EQUAL(1, queryGraph->getSourceNodeCount());
-        QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
 
         /**
-        * Test that the input to the selection is the set "setname" in the database "databasename"
-        */
-        class IsSetName : public SetExpressionIrAlgo
+         * Test that projection is the only sink node
+         */
+        QUNIT_IS_EQUAL(1, queryGraph.getSinkNodeCount());
+        shared_ptr<SetExpressionIr> querySink = queryGraph.getSinkNode(0);
+
+        class IsProjection : public SetExpressionIrAlgo
         {
         public:
 
             void forProjection(ProjectionIr &recordProjection)
             {
+                correct = true;
             }
 
             void forSelection(SelectionIr &selection)
             {
             }
 
-            void forSetName(SetNameIr &setName)
+            void forSourceSetName(SourceSetNameIr &setName)
             {
-                correct = true;
             }
 
             bool correct = false;
 
-        } isSetName;
+        } isProjection;
 
-        querySource->execute(isSetName);
+        querySink->execute(isProjection);
 
-        QUNIT_IS_TRUE(isSetName.correct);
-        if(!isSetName.correct)
-            return;
+        QUNIT_IS_TRUE(isProjection.correct);
 
-        Handle<SetNameIr> selectionSetName = unsafeCast<SetNameIr,SetExpressionIr>(querySource);
+        shared_ptr<ProjectionIr> projectionIr = dynamic_pointer_cast<ProjectionIr>(querySink);
 
-        QUNIT_IS_EQUAL("databasename", string(selectionSetName->getDatabaseName()->c_str()));
-        QUNIT_IS_EQUAL("setname", string(selectionSetName->getName()->c_str()));
+        Handle<Object> placeHolder1;
+        Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
+        QUNIT_IS_TRUE(projector == proj);
+
 
         /**
-         * Test that a slection node consumes the set name.
+         * Test that the input to the projection is the selection
          */
-
-        QUNIT_IS_EQUAL(1, selectionSetName->getConsumerCount());
-        Handle<SetExpressionIr> setParent = selectionSetName->getConsumer(0);
+        shared_ptr<SetExpressionIr> projectionInput = projectionIr->getInputSet();
 
         class IsSelection : public SetExpressionIrAlgo
         {
@@ -153,7 +155,7 @@ namespace pdb_tests
                 correct = true;
             }
 
-            void forSetName(SetNameIr &setName)
+            void forSourceSetName(SourceSetNameIr &setName)
             {
             }
 
@@ -161,63 +163,54 @@ namespace pdb_tests
 
         } isSelection;
 
-        setParent->execute(isSelection);
+        projectionInput->execute(isSelection);
 
         QUNIT_IS_TRUE(isSelection.correct);
 
-        Handle<SelectionIr> projectionIrInputSelection = unsafeCast<SelectionIr,SetExpressionIr>(setParent);
+        shared_ptr<SelectionIr> selectionIr = dynamic_pointer_cast<SelectionIr>(projectionInput);
 
         Handle<Object> placeHolder2;
-        Lambda<bool> cond = projectionIrInputSelection->getCondition()->toLambda(placeHolder2);
+        Lambda<bool> cond = selectionIr->getCondition()->toLambda(placeHolder2);
         QUNIT_IS_TRUE(condition == cond);
 
-
         /**
-         * Test that projection is the parent of selection.
+         * Test that the input to the selection is the set "setname" in the database "databasename"
          */
-        QUNIT_IS_EQUAL(1, projectionIrInputSelection->getConsumerCount());
-        Handle<SetExpressionIr> selectionParent = projectionIrInputSelection->getConsumer(0);
-
-        class IsProjection : public SetExpressionIrAlgo
+        shared_ptr<SetExpressionIr> selectionInput = selectionIr->getInputSet();
+        class IsSetName : public SetExpressionIrAlgo
         {
         public:
-            
+
             void forProjection(ProjectionIr &recordProjection)
             {
-                correct = true;
             }
 
             void forSelection(SelectionIr &selection)
             {
             }
 
-            void forSetName(SetNameIr &setName)
+            void forSourceSetName(SourceSetNameIr &setName)
             {
+                correct = true;
             }
 
             bool correct = false;
 
-        } isProjection;
+        } isSetName;
 
-        selectionParent->execute(isProjection);
+        selectionInput->execute(isSetName);
 
-        QUNIT_IS_TRUE(isProjection.correct);
+        QUNIT_IS_TRUE(isSetName.correct);
+        if (!isSetName.correct)
+            return;
 
-        Handle<ProjectionIr> projectionIr = unsafeCast<ProjectionIr,SetExpressionIr>(selectionParent);
+        shared_ptr<SourceSetNameIr> selectionSetName = dynamic_pointer_cast<SourceSetNameIr>(selectionInput);
 
-        Handle<Object> placeHolder1;
-        Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
-        QUNIT_IS_TRUE(projector == proj);
+        QUNIT_IS_EQUAL("databasename", selectionSetName->getDatabaseName());
+        QUNIT_IS_EQUAL("setname", selectionSetName->getName());
 
-
-
-        Handle<SetExpressionIr> querySink = queryGraph->getSinkNode(0);
-        IsProjection isProj;
-
-        querySink->execute(isProj);
-
-        QUNIT_IS_TRUE(isProj.correct);
-        Handle<ProjectionIr> sinkProjectionIr = unsafeCast<ProjectionIr,SetExpressionIr>(querySink);
     }
+
+
 }
 

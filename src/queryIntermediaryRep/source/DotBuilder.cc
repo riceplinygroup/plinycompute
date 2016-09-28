@@ -15,13 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#include <DotBuilder.h>
-
-namespace pdb_detail
-{
-    string buildDot(QueryIr query)
-    {
-        return "";
-    }
-}
+//
+//#include <DotBuilder.h>
+//
+//namespace pdb_detail
+//{
+//    string buildDot(QueryIr query)
+//    {
+//        return "";
+//    }
+//}

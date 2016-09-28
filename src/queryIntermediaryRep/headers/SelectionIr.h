@@ -23,6 +23,9 @@
 #include "SetExpressionIr.h"
 #include "SimpleSingleTableQueryProcessor.h"
 
+using std::function;
+using std::shared_ptr;
+
 using pdb::Handle;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
@@ -37,18 +40,8 @@ namespace pdb_detail
     {
     public:
 
-        /**
-         * Creates a selection over the given input set filtered by the given condition.
-         *
-         * Adds the returned selection to inputSet's consumers.
-         *
-         * @param inputSet the source of records from which the selection subset will be drawn.
-         * @param condition the filter to apply to the input set to produce the subset
-         * @param the page processor originally associated with user query node
-         * @return the selection
-         */
-        static Handle<SelectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
-                                        SimpleSingleTableQueryProcessorPtr pageProcessor);
+
+        SelectionIr();
 
         /**
          * Creates a selection over the given input set filtered by the given condition.
@@ -58,7 +51,8 @@ namespace pdb_detail
          * @param the page processor originally associated with user query node
          * @return the selection
          */
-        SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition, SimpleSingleTableQueryProcessorPtr pageProcessor);
+        SelectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordPredicateIr> condition,
+                    SimpleSingleTableQueryProcessorPtr processor);
 
         // contract from super
         virtual void execute(SetExpressionIrAlgo &algo) override;
@@ -66,31 +60,32 @@ namespace pdb_detail
         /**
          * @return the set of input records from which the selection subset is drawn.
          */
-        virtual Handle<SetExpressionIr> getInputSet();
+        virtual shared_ptr<SetExpressionIr> getInputSet();
 
         /**
          * @return the filter applied to each record of the input set to determine membership in the subset.
          */
-        virtual Handle<RecordPredicateIr> getCondition();
+        virtual shared_ptr<RecordPredicateIr> getCondition();
 
         /**
          * @return gets a processor capable of applying this node type to input pages to produce output pages.
          */
-        SimpleSingleTableQueryProcessorPtr getPageProcessor();
+   //     template <class Output, class Input>
+     //   SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> inputPlaceholder);
 
     private:
 
         /**
          * Records source.
          */
-        Handle<SetExpressionIr> _inputSet;
+        shared_ptr<SetExpressionIr> _inputSet;
 
         /**
          * Records filter.
          */
-        Handle<RecordPredicateIr> _condition;
+        shared_ptr<RecordPredicateIr> _condition;
 
-        SimpleSingleTableQueryProcessorPtr _pageProcessor;
+        //function<Handle<I>,SimpleSingleTableQueryProcessorPtr> _processor;
     };
 }
 

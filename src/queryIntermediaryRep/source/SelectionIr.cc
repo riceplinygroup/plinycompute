@@ -16,26 +16,28 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <memory>
+
 #include "SelectionIr.h"
 
+//#include "FilterQueryProcessor.h"
 #include "InterfaceFunctions.h"
 
+using std::make_shared;
+
+//using pdb::FilterQueryProcessor;
 using pdb::makeObject;
 
 namespace pdb_detail
 {
 
-    Handle<SelectionIr> SelectionIr::make(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
-                                          SimpleSingleTableQueryProcessorPtr pageProcessor)
+    SelectionIr::SelectionIr()
     {
-        Handle<SelectionIr> selection = makeObject<SelectionIr>(inputSet, condition, pageProcessor);
-        inputSet->addConsumer(selection);
-        return selection;
     }
 
-    SelectionIr::SelectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordPredicateIr> condition,
+    SelectionIr::SelectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordPredicateIr> condition,
                              SimpleSingleTableQueryProcessorPtr pageProcessor)
-            : _inputSet(inputSet), _condition(condition), _pageProcessor(pageProcessor)
+            : _inputSet(inputSet), _condition(condition)
     {
     }
 
@@ -45,19 +47,21 @@ namespace pdb_detail
         algo.forSelection(*this);
     }
 
-    Handle<SetExpressionIr> SelectionIr::getInputSet()
+    shared_ptr<SetExpressionIr> SelectionIr::getInputSet()
     {
        return _inputSet;
     }
 
-    Handle<RecordPredicateIr> SelectionIr::getCondition()
+    shared_ptr<RecordPredicateIr> SelectionIr::getCondition()
     {
         return _condition;
     }
 
-    SimpleSingleTableQueryProcessorPtr SelectionIr::getPageProcessor()
-    {
-        return _pageProcessor;
-    }
+//    template <class Output, class Input>
+//    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor(Handle<Input> inputPlaceholder)
+//    {
+//        Lambda<bool> lambdaCondition = _condition->toLambda(inputPlaceholder);
+//        return make_shared<FilterQueryProcessor<Output,Input>>(lambdaCondition);
+//    }
 
 }

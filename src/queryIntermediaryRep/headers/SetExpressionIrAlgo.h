@@ -24,7 +24,7 @@ namespace pdb_detail
 
     class SelectionIr; // without forward declaration we get circular includes and can't compile
 
-    class SetNameIr; // without forward declaration we get circular includes and can't compile
+    class SourceSetNameIr; // without forward declaration we get circular includes and can't compile
 
     /**
      * Visitor interface for Visitor Pattern over SetExpressionIr.
@@ -45,9 +45,9 @@ namespace pdb_detail
         virtual void forSelection(SelectionIr &selection) = 0;
 
         /**
-         * For the SetNameIr case.
+         * For the SourceSetNameIr case.
          */
-        virtual void forSetName(SetNameIr &setName) = 0;
+        virtual void forSourceSetName(SourceSetNameIr &setName) = 0;
     };
 }
 

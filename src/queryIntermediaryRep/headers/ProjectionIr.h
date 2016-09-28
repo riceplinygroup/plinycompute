@@ -31,7 +31,6 @@
 using std::shared_ptr;
 using std::make_shared;
 
-using pdb::makeObject;
 using pdb::Lambda;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
@@ -41,15 +40,12 @@ namespace pdb_detail
     {
     public:
 
-        static Handle<ProjectionIr> make(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector,
-                                         SimpleSingleTableQueryProcessorPtr pageProcessor)
+
+        ProjectionIr()
         {
-            Handle<ProjectionIr> projection = makeObject<ProjectionIr>(inputSet, projector, pageProcessor);
-            inputSet->addConsumer(projection);
-            return projection;
         }
 
-        ProjectionIr(Handle<SetExpressionIr> inputSet, Handle<RecordProjectionIr> projector,
+        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordProjectionIr> projector,
                      SimpleSingleTableQueryProcessorPtr pageProcessor)
                 : _inputSet(inputSet),  _projector(projector)
         {
@@ -60,12 +56,12 @@ namespace pdb_detail
             algo.forProjection(*this);
         }
 
-        virtual Handle<RecordProjectionIr> getProjector()
+        virtual shared_ptr<RecordProjectionIr> getProjector()
         {
             return _projector;
         }
 
-        virtual Handle<SetExpressionIr> getInputSet()
+        virtual shared_ptr<SetExpressionIr> getInputSet()
         {
             return _inputSet;
         }
@@ -76,9 +72,9 @@ namespace pdb_detail
         /**
          * Records source.
          */
-        Handle<SetExpressionIr> _inputSet;
+        shared_ptr<SetExpressionIr> _inputSet;
 
-        Handle<RecordProjectionIr> _projector;
+        shared_ptr<RecordProjectionIr> _projector;
 
         SimpleSingleTableQueryProcessorPtr _pageProcessor;
     };

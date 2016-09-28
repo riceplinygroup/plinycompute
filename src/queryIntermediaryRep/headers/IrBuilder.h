@@ -31,7 +31,7 @@ using pdb::QueryBase;
 
 namespace pdb_detail
 {
-    Handle<QueryGraphIr> buildIr(Handle<QueryBase> query);
+    QueryGraphIr buildIr(Handle<QueryBase> query);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H

@@ -18,15 +18,13 @@
 #ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
 #define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
 
-#include <list>
-
-#include "Handle.h"
 #include "ConsumableNodeIr.h"
+#include "MaterializationMode.h"
 #include "SetExpressionIrAlgo.h"
-#include "PDBVector.h"
 
-using pdb::Handle;
-using pdb::Vector;
+using std::make_shared;
+using std::shared_ptr;
+using std::string;
 
 namespace pdb_detail
 {
@@ -45,29 +43,14 @@ namespace pdb_detail
          */
         virtual void execute(SetExpressionIrAlgo &algo) = 0;
 
-
-        void addConsumer(Handle<SetExpressionIr> consumer)
+        void setMaterializationMode(shared_ptr<MaterializationMode> materializationMode)
         {
-            // TODO: check for duplicate before adding
-
-            _consumers.push_back(consumer);
+            _materializationMode = materializationMode;
         }
-
-        uint32_t getConsumerCount()
-        {
-            return _consumers.size();
-        }
-
-        Handle<SetExpressionIr> getConsumer(uint32_t index)
-        {
-            return _consumers[index];
-        }
-
 
     private:
 
-        // TODO: this is probably better as a pdb::Set once that type exists.
-        Vector<Handle<SetExpressionIr>> _consumers;
+        shared_ptr<MaterializationMode> _materializationMode =  make_shared<MaterializationModeNone>();
 
     };
 }
