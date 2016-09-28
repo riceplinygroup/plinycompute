@@ -38,6 +38,8 @@ typedef unsigned int FilePartitionID;
 typedef size_t MemPoolOffset;
 typedef size_t PageOffset;
 typedef unsigned long long ticks_t;
+typedef unsigned int OperatorID;
+typedef unsigned int JobStageID;
 
 //Priority level for keeping in memory
 //from low to high

@@ -15,69 +15,81 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PIPELINE_NETWORK_H
+#define PIPELINE_NETWORK_H
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+//by Jia, Sept 2016
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
+#include <vector>
+#include "PipelineNode.h"
 #include "DataTypes.h"
 
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
-
-public:
-
-	SetIdentifier () {}
-	~SetIdentifier () {}
-
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
-
-	std :: string getDatabase () {
-		return dataBase;
-	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
+// this class encapsulates the pipeline network
+class PipelineNetwork {
 
 private:
 
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
+    // all source nodes
+    std :: vector<PipelineNodePtr> * sourceNodes;
+
+    // all nodes in this network
+    std :: unordered_map<OperatorID, PipelineNodePtr> * allNodes;
+
+    // Job stage id
+    JobStageID stageId;
+
+    // batch size
+    size_t batchSize;
+
+    // number of threads
+    int numThreads;
+
+
+public:
+
+    //destructor
+    ~PipelineNetwork();
+
+    //constructor
+    PipelineNetwork(JobStageID id, size_t batchSize, int numThreads);
+
+    //return the job stage id
+    JobStageID getStageId();
+
+    //return all source nodes
+    std :: vector<PipelineNodePtr> getSourceNodes();
+
+    //append a node to the pipeline network
+    bool appendNode(OperatorID parentId, PipelineNodePtr node);
+
+    //append a source node to the pipeline network
+    void appendSourceNode(PipelineNodePtr node); 
+
+    //return the number of threads that are required to run the pipeline network
+    int getNumThreads();
+
+    //return the number of sources of the pipeline network
+    int getNumSources();
+
+    //running all sources in the pipeline (in one thread)
+    void runAllSources();
+
+    //running the i-the source (in one thread)
+    //so you can multiple sources in different threads
+    void runSource (int i);
 
 };
 
+
+
+
+
 }
+
+
+
+
 
 #endif
