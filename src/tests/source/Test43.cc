@@ -93,19 +93,20 @@ std::cout << "Filling filtering page" << std::endl;
                 while (filterProc->fillNextOutputPage ()) {
 
                         MyDB_PageHandle myOutPage = myManager.getPage (resultTable, posInOutTable);
-                        /*
+                        
                         projProc->initialize();
                         projProc->loadOutputPage (myOutPage->getBytes (), 1024 * 1024);
                         projProc->loadInputPage(tempPage);
                         while(projProc->fillNextOutputPage()) {
                                 std::cout << "Inside projection" << std::endl;
+                                filterProc->clearOutputPage();
                                 myOutPage->wroteBytes ();
                                 myOutPage = myManager.getPage (resultTable, ++posInOutTable);
                                 projProc->loadOutputPage (myOutPage->getBytes (), 1024 * 1024);
                         }
                         projProc->finalize();
                         projProc->fillNextOutputPage();
-                        */
+                        
                         filterProc->clearOutputPage();
                         free(tempPage);
                         tempPage = malloc(1024*256);
