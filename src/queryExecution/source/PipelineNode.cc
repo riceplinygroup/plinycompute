@@ -65,7 +65,7 @@ void PipelineNode :: addChild(PipelineNodePtr node) {
 }
 
 
-bool PipelineNode :: run(void * inputBatch, int batchSize) {
+bool PipelineNode :: run(DataProxyPtr proxy, void * inputBatch, int batchSize) {
     // TODO
 
     if (this->amISink == false) {

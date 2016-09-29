@@ -22,20 +22,28 @@
 
 #include "PipelineNetwork.h"
 #include "PageCircularBufferIterator.h"
+#include "DataProxy.h"
+#include "HermesExecutionServer.h"
+#include "PageScanner.h"
+#include "PageCircularBufferIterator.h"
+
+namespace pdb {
 
 PipelineNetwork :: ~PipelineNetwork () {
     delete sourceNodes;
     delete allNodes;
 }
 
-PipelineNetwork :: PipelineNetwork (JobStageID id, size_t batchSize, int numThreads) {
+PipelineNetwork :: PipelineNetwork (SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, JobStageID id, size_t batchSize, int numThreads) {
     sourceNodes = new std :: vector<PipelineNodePtr> ();
     allNodes = new std :: unordered_map<OperatorID, PipelineNodePtr>();
     stageId = id;
     this->batchSize = batchSize;
     this->numThreads = numThreads;
-    //initialize the data proxy
-
+    this->nodeId = nodeId;
+    this->logger = logger;
+    this->conf = conf;
+    this->shm = shm;
 }
 
 JobStageID PipelineNetwork :: getStageId () {
@@ -78,9 +86,80 @@ void PipelineNetwork :: runAllSources() {
 }
 
 void PipelineNetwork :: runSource (int sourceNode) {
-    //PipelineNodePtr source = this->sourceNodes->at(sourceNode);
-    //initialize the scanner and set iterators    
-    //TODO
+    bool success;
+    std :: string errMsg;
+    PipelineNodePtr source = this->sourceNodes->at(sourceNode);
+    //initialize the data proxy, scanner and set iterators
+    PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>(); 
+    communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+
+    //getScanner
+    int backendCircularBufferSize = 3;
+    PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId); 
+    if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+        success = false;
+        errMsg = "Error: A job is already running!";
+        std :: cout << errMsg << std :: endl;
+        return;
+    }
+
+    //get set information
+    SetIdentifier set = source->getSet();
+
+    //get iterators
+    std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, set->getDatabaseId(), set->getTypeId(), set->getSetId());
+
+    int numIteratorsReturned = iterators.size();
+    if (numIteratorsReturned != numThreads) {
+         success = false;
+         errMsg = "Error: number of iterators doesn't match number of threads!";
+         std :: cout << errMsg << std :: endl;
+         return;
+    }   
+
+    //create a buzzer and counter
+    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+         [&] (PDBAlarm myAlarm, int & counter) {
+             counter ++;
+             std :: cout << "counter = " << counter << std :: endl;
+         });
+    
+    int counter = 0;
+    int batchSize = 4096;
+    for (int i = 0; i < numThreads; i++) {
+         PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+         //std :: cout << "to run the " << i << "-th work..." << std :: endl;
+         //TODO: start threads
+         PDBWorkPtr myWork = make_shared<GenericWork> (
+             [&, i] (PDBBuzzerPtr callerBuzzer) {
+                  //create a data proxy
+                  PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+                  anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                  DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+                  PageCircularBufferIteratorPtr iter = iterators.at(i);
+                  while (iter->hasNext()) {
+                      PDBPagePtr page = iter->next();
+                      if (page != nullptr) {
+                          source->run(proxy, page->getBytes(), batchSize);
+                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);  
+                      }
+                  }
+
+             }
+
+         );
+         worker->execute(myWork, tempBuzzer);
+    }
+
+    while (counter < numThreads) {
+         tempBuzzer->wait();
+    }
+
+    return;
+    
+
+}
+
 }
 
 #endif

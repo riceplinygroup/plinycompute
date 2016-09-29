@@ -27,6 +27,7 @@
 #include "SetIdentifier.h"
 #include "RefCountedOnHeapSmallPage.h"
 #include <memory>
+#include "DataProxy.h"
 
 typdef std :: shared_ptr<PipelineNode> PipelineNodePtr;
 
@@ -85,7 +86,7 @@ public:
     void addChild(PipelineNodePtr node);
 
     // running the pipeline
-    bool run (void * inputBatch, int batchSize);
+    bool run (DataProxyPtr proxy, void * inputBatch, int batchSize);
       
 };
 

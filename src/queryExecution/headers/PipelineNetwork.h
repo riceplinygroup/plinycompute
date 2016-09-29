@@ -23,6 +23,9 @@
 #include <vector>
 #include "PipelineNode.h"
 #include "DataTypes.h"
+#include "PDBLogger.h"
+#include "Configuration.h"
+#include "SharedMem.h"
 
 namespace pdb {
 
@@ -46,6 +49,17 @@ private:
     // number of threads
     int numThreads;
 
+    // node id
+    NodeID nodeId;
+
+    // logger
+    PDBLoggerPtr logger;
+
+    // configuration
+    ConfigurationPtr conf;
+
+    // shared memory
+    SharedMemPtr shm;
 
 public:
 
@@ -53,7 +67,7 @@ public:
     ~PipelineNetwork();
 
     //constructor
-    PipelineNetwork(JobStageID id, size_t batchSize, int numThreads);
+    PipelineNetwork(SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, JobStageID id, size_t batchSize, int numThreads);
 
     //return the job stage id
     JobStageID getStageId();
