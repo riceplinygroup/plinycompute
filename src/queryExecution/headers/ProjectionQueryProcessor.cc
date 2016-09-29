@@ -47,6 +47,7 @@ ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (Lambda <Ha
 template <class Output, class Input>
 void ProjectionQueryProcessor <Output, Input> :: initialize () {
 	projectionFunc = projection.getFunc ();
+	finalized = false;
 }
 
 // loads up another input page to process
@@ -87,8 +88,10 @@ bool ProjectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
+		std :: cout << "Vector Size: " << std::to_string(vecSize) << std::endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
+		std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;
 			myOutVec.push_back (projectionFunc ());	
 		}	
 
@@ -110,6 +113,7 @@ void ProjectionQueryProcessor <Output, Input> :: finalize () {
 // must be called before freeing the memory in output page
 template <class Output, class Input>
 void ProjectionQueryProcessor <Output, Input> :: clearOutputPage () {
+        outputVec = nullptr;
         blockPtr = nullptr;
 }
 
