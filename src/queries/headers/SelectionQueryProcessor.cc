@@ -100,6 +100,12 @@ void SelectionQueryProcessor <Output, Input> :: finalize () {
 	finalized = true;
 }
 
+// must be called before freeing the memory in output page
+template <class Output, class Input>
+void SelectionQueryProcessor <Output, Input> :: clearOutputPage () {
+        blockPtr = nullptr;
+}
+
 }
 
 #endif

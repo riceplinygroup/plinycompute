@@ -107,6 +107,13 @@ void ProjectionQueryProcessor <Output, Input> :: finalize () {
 	finalized = true;
 }
 
+// must be called before freeing the memory in output page
+template <class Output, class Input>
+void ProjectionQueryProcessor <Output, Input> :: clearOutputPage () {
+        blockPtr = nullptr;
+}
+
+
 }
 
 #endif
