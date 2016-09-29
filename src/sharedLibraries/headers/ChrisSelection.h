@@ -38,12 +38,14 @@ public:
 
 	Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
+			//std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
 			return (*(checkMe->getName ()) != "Joe Johnson48");
 		});
 	}
 
 	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] {
+			//std :: cout << *(checkMe->getName ()) << std :: endl;
 			return checkMe->getName ();
 		});
 	}

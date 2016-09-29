@@ -84,18 +84,24 @@ bool FilterQueryProcessor <Output, Input> :: fillNextOutputPage () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
+		//std :: cout << std::to_string(vecSize) << std::endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
+		//std :: cout << std::to_string(posInInput) << std::endl;
 			if (filterFunc ()) {
+				//std::cout << "Pushing back" << std::endl;
 				myOutVec.push_back (inputObject);
                                 //inputObject->print();	
+				//std::cout << "Finished pushing back" << std::endl;
+
 			}
 		}	
+				//std::cout << "Returning false" << std::endl;
 
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-		
+		//std::cout << "Got not enough space " << std::endl;
 		getRecord (outputVec);
 		return true;
 	}
