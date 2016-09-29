@@ -49,6 +49,9 @@ public:
 	// must be called after all of the input pages have been sent in
 	virtual void finalize () = 0;
 
+        // must be called before free the data in output page
+        virtual void clearOutputPage() = 0;
+
 };
 
 }

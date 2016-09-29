@@ -68,6 +68,7 @@ public:
         void loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) override;
         bool fillNextOutputPage () override;
         void finalize () override;
+        void clearOutputPage () override;
 };
 
 }
