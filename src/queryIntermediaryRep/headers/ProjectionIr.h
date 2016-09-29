@@ -23,6 +23,7 @@
 #include "InterfaceFunctions.h"
 #include "RecordProjectionIr.h"
 #include "Lambda.h"
+#include "Selection.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "QueryNodeIr.h"
 #include "UnarySetOperator.h"
@@ -32,6 +33,7 @@ using std::shared_ptr;
 using std::make_shared;
 
 using pdb::Lambda;
+using pdb::ProjectionQueryProcessor;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
@@ -45,10 +47,14 @@ namespace pdb_detail
         {
         }
 
-        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordProjectionIr> projector,
-                     SimpleSingleTableQueryProcessorPtr pageProcessor)
+        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordProjectionIr> projector)
                 : _inputSet(inputSet),  _projector(projector)
         {
+        }
+
+        string getName() override
+        {
+            return "ProjectionIr";
         }
 
         void execute(SetExpressionIrAlgo &algo) override
@@ -66,6 +72,13 @@ namespace pdb_detail
             return _inputSet;
         }
 
+        template <class Output, class Input>
+        SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> &inputPlaceholder)
+        {
+            Lambda<Handle<Output>> lambdaProjection = _projector->toLambda(inputPlaceholder);
+            return make_shared<ProjectionQueryProcessor<Output,Input>>(lambdaProjection);
+        };
+
 
     private:
 
@@ -75,8 +88,6 @@ namespace pdb_detail
         shared_ptr<SetExpressionIr> _inputSet;
 
         shared_ptr<RecordProjectionIr> _projector;
-
-        SimpleSingleTableQueryProcessorPtr _pageProcessor;
     };
 }
 

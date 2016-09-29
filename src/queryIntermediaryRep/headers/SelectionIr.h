@@ -70,8 +70,10 @@ namespace pdb_detail
         /**
          * @return gets a processor capable of applying this node type to input pages to produce output pages.
          */
-   //     template <class Output, class Input>
-     //   SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> inputPlaceholder);
+        template <class Output, class Input>
+        SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> &inputPlaceholder);
+
+        string getName() override;
 
     private:
 

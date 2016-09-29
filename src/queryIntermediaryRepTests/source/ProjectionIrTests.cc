@@ -61,8 +61,7 @@ namespace pdb_tests
 
         shared_ptr<SetExpressionIr> nullInputSet;
         shared_ptr<RecordProjectionIr> nullProjector;
-        SimpleSingleTableQueryProcessorPtr processorPtr;
-        ProjectionIr projection(nullInputSet, nullProjector, processorPtr);
+        ProjectionIr projection(nullInputSet, nullProjector);
 
         projection.execute(algo);
 

@@ -24,18 +24,26 @@
 
 #include <string>
 
+#include "MaterializationModeAlgo.h"
+
 using std::string;
 
 namespace pdb_detail
 {
     class MaterializationMode
     {
+    public:
+
         virtual bool isNone() = 0;
+
+        virtual void execute(MaterializationModeAlgo &algo) = 0;
     };
 
     class MaterializationModeNone : public MaterializationMode
     {
         bool isNone() override;
+
+        void execute(MaterializationModeAlgo &algo) override ;
 
     };
 
@@ -47,6 +55,8 @@ namespace pdb_detail
         MaterializationModeNamedSet(string databaseName, string setName);
 
         bool isNone() override;
+
+        void execute(MaterializationModeAlgo &algo) override ;
 
         string getDatabaseName();
 

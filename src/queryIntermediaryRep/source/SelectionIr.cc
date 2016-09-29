@@ -20,12 +20,12 @@
 
 #include "SelectionIr.h"
 
-//#include "FilterQueryProcessor.h"
+#include "Selection.h"
 #include "InterfaceFunctions.h"
 
 using std::make_shared;
 
-//using pdb::FilterQueryProcessor;
+using pdb::FilterQueryProcessor;
 using pdb::makeObject;
 
 namespace pdb_detail
@@ -41,6 +41,10 @@ namespace pdb_detail
     {
     }
 
+    string SelectionIr::getName()
+    {
+        return "SelectionIr";
+    }
 
     void SelectionIr::execute(SetExpressionIrAlgo &algo)
     {
@@ -57,11 +61,11 @@ namespace pdb_detail
         return _condition;
     }
 
-//    template <class Output, class Input>
-//    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor(Handle<Input> inputPlaceholder)
-//    {
-//        Lambda<bool> lambdaCondition = _condition->toLambda(inputPlaceholder);
-//        return make_shared<FilterQueryProcessor<Output,Input>>(lambdaCondition);
-//    }
+    template <class Output, class Input>
+    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor(Handle<Input> &inputPlaceholder)
+    {
+        Lambda<bool> lambdaCondition = _condition->toLambda(inputPlaceholder);
+        return make_shared<FilterQueryProcessor<Output,Input>>(lambdaCondition);
+    }
 
 }

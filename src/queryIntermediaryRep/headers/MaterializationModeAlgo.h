@@ -15,51 +15,30 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
-#define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+//
+// Created by barnett on 9/28/16.
+//
 
-#include "ConsumableNodeIr.h"
+#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODEALGO_H
+#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODEALGO_H
+
 #include "MaterializationMode.h"
-#include "SetExpressionIrAlgo.h"
-
-using std::make_shared;
-using std::shared_ptr;
-using std::string;
 
 namespace pdb_detail
 {
-    /**
-     * Base class for any class that models a PDB set.
-     */
-    class SetExpressionIr
+    class MaterializationModeNone;
+
+    class MaterializationModeNamedSet;
+
+    class MaterializationModeAlgo
     {
 
     public:
 
-        /**
-         * Executes the given algorithm on the expression.
-         *
-         * @param algo the algoithm to execute.
-         */
-        virtual void execute(SetExpressionIrAlgo &algo) = 0;
+        virtual void forNone(MaterializationModeNone &mode) = 0;
 
-        virtual string getName() = 0;
-
-        void setMaterializationMode(shared_ptr<MaterializationMode> materializationMode)
-        {
-            _materializationMode = materializationMode;
-        }
-
-        shared_ptr<MaterializationMode> getMaterializationMode()
-        {
-            return _materializationMode;
-        }
-
-    private:
-
-        shared_ptr<MaterializationMode> _materializationMode =  make_shared<MaterializationModeNone>();
-
+        virtual void forNamedSet(MaterializationModeNamedSet &mode) = 0;
     };
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODEALGO_H
