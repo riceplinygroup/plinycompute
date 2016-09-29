@@ -157,12 +157,14 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 			vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
 			// loop through all pages
 			int numIterators = pageIters->size();
+			std::cout << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
 		    for (int i = 0; i < numIterators; i++) {
 		        PageIteratorPtr iter = pageIters->at(i);
 		        while (iter->hasNext()){
 		            PDBPagePtr nextPage = iter->next();
 		            // send the relevant page.
 		            if (nextPage != nullptr) {
+		            	std::cout << "Sending out next page!" << std::endl;
 						const UseTemporaryAllocationBlock tempBlock {1024};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
