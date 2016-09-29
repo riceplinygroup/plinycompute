@@ -26,10 +26,20 @@ namespace pdb_detail
         return true;
     }
 
+    void MaterializationModeNone::execute(MaterializationModeAlgo &algo)
+    {
+        algo.forNone(*this);
+    }
+
 
     MaterializationModeNamedSet::MaterializationModeNamedSet(string databaseName, string setName)
             : _databaseName(databaseName), _setName(setName)
     {
+    }
+
+    void MaterializationModeNamedSet::execute(MaterializationModeAlgo &algo)
+    {
+        algo.forNamedSet(*this);
     }
 
     bool MaterializationModeNamedSet::isNone()

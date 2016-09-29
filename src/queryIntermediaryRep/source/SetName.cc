@@ -34,6 +34,10 @@ namespace pdb_detail
         algo.forSourceSetName(*this);
     }
 
+    string SourceSetNameIr::getName()
+    {
+        return "SourceSetNameIr";
+    }
 
     string SourceSetNameIr::getDatabaseName()
     {
@@ -41,7 +45,7 @@ namespace pdb_detail
     }
 
 
-    string SourceSetNameIr::getName()
+    string SourceSetNameIr::getSetName()
     {
         return _setName;
     }

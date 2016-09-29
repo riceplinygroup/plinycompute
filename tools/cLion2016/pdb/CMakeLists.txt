@@ -47,7 +47,7 @@ set(SOURCE_FILES
         ../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc
         ../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc
         ../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc
-        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
+#        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc

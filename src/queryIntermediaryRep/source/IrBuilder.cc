@@ -46,62 +46,7 @@ using pdb::Vector;
 
 namespace pdb_detail
 {
-
-    shared_ptr<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selection); // forward declaration
-
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode)
-    {
-        if(queryNode.isNullPtr())
-            return shared_ptr<SetExpressionIr>();
-
-        class Algo : public QueryAlgo
-        {
-        public:
-
-            Algo(Handle<QueryBase> queryNodeParam) : _queryNode(queryNodeParam)
-            {
-            }
-
-            virtual void forSelection()
-            {
-                output = makeSelection(unsafeCast<Selection<Object,Object> ,QueryBase>(_queryNode));
-            }
-
-            virtual void forSet()
-            {
-                Handle<Set<Object>> set = unsafeCast<Set<Object>,QueryBase>(_queryNode);
-                int numInputs = set->getNumInputs();
-
-                string dbName = set->getDBName();
-                string setName = set->getSetName();
-
-                if(numInputs == 0)
-                {
-                    output = make_shared<SourceSetNameIr>(dbName, setName);
-                }
-                else
-                {
-                    Handle<QueryBase> setInput = set->getIthInput(0);
-
-                    output = makeSetExpression(setInput);
-
-                    output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
-                }
-            }
-
-            shared_ptr<SetExpressionIr> output;
-
-        private:
-
-            Handle<QueryBase> _queryNode;
-
-        } algo(queryNode);
-
-        queryNode->execute(algo);
-
-        return algo.output;
-    }
-
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode);
 
     shared_ptr<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selectAndProject)
     {
@@ -146,8 +91,10 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<ProjectionIr> makeProjection(shared_ptr<SetExpressionIr> inputSet, Handle<Selection<Object,Object>> selectAndProject)
+    shared_ptr<ProjectionIr> makeProjection(Handle<Selection<Object,Object>> selectAndProject)
     {
+        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject);
+
         class RecordProjectionFromSelection : public RecordProjectionIr
         {
         public:
@@ -171,57 +118,79 @@ namespace pdb_detail
         shared_ptr<RecordProjectionFromSelection> predicate =
                 make_shared<RecordProjectionFromSelection>(selectAndProject);
 
-        return make_shared<ProjectionIr>(inputSet, predicate, selectAndProject->getProcessor());
+        shared_ptr<ProjectionIr> projection =  make_shared<ProjectionIr>(inputSet, predicate);
+
+        if(selectAndProject->getDBName() != "")
+        {
+            string dbName = selectAndProject->getDBName();
+            string setName = selectAndProject->getSetName();
+            projection->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
+        }
+
+        return projection;
     }
 
-    QueryGraphIr buildIr(Handle<QueryBase> query)
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode)
     {
+        if(queryNode.isNullPtr())
+            return shared_ptr<SetExpressionIr>();
+
         class Algo : public QueryAlgo
         {
         public:
 
-            Algo(Handle<QueryBase> query) : _query(query)
+            Algo(Handle<QueryBase> queryNodeParam) : _queryNode(queryNodeParam)
             {
             }
 
-            void forSelection()
+            virtual void forSelection()
             {
-                Handle<Selection<Object,Object>> queryAsSelection =
-                        unsafeCast<Selection<Object,Object> ,QueryBase>(_query);
-
-                shared_ptr<SelectionIr> selection = makeSelection(queryAsSelection);
-                shared_ptr<ProjectionIr> projection = makeProjection(selection, queryAsSelection);
-
-                shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes
-                        = make_shared<vector<shared_ptr<SetExpressionIr>>>();
-
-                sinkNodes->push_back(projection);
-
-                output = QueryGraphIr(sinkNodes);
+                output = makeProjection(unsafeCast<Selection<Object,Object> ,QueryBase>(_queryNode));
             }
 
-            void forSet()
+            virtual void forSet()
             {
-                shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes
-                        = make_shared<vector<shared_ptr<SetExpressionIr>>>();
+                Handle<Set<Object>> set = unsafeCast<Set<Object>,QueryBase>(_queryNode);
+                int numInputs = set->getNumInputs();
 
-                shared_ptr<SetExpressionIr> set = makeSetExpression(_query);
-                sinkNodes->push_back(set);
+                string dbName = set->getDBName();
+                string setName = set->getSetName();
 
-                output = QueryGraphIr(sinkNodes);
+                if(numInputs == 0)
+                {
+                    output = make_shared<SourceSetNameIr>(dbName, setName);
+                }
+                else
+                {
+                    Handle<QueryBase> setInput = set->getIthInput(0);
+
+                    output = makeSetExpression(setInput);
+
+                    output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
+                }
             }
 
-            QueryGraphIr output;
+            shared_ptr<SetExpressionIr> output;
 
         private:
 
-            Handle<QueryBase> _query;
+            Handle<QueryBase> _queryNode;
 
-        } algo(query);
+        } algo(queryNode);
 
-        query->execute(algo);
+        queryNode->execute(algo);
 
         return algo.output;
+    }
+
+    QueryGraphIr buildIr(Handle<QueryBase> querySink)
+    {
+        shared_ptr<SetExpressionIr> transSink = makeSetExpression(querySink);
+
+        shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes = make_shared<vector<shared_ptr<SetExpressionIr>>>();
+        sinkNodes->push_back(transSink);
+
+        return QueryGraphIr(sinkNodes);
     }
 
 

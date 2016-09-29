@@ -57,8 +57,9 @@ namespace pdb_detail
         /**
          * @return the name of the set.
          */
-        string getName();
+        string getSetName();
 
+        string getName() override;
 
 
     private:

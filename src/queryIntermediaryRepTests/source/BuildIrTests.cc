@@ -22,6 +22,7 @@
 #include "ConsumableNodeIr.h"
 #include "CheckEmployees.h"
 #include "IrBuilder.h"
+#include "MaterializationModeAlgo.h"
 #include "QueryNodeIr.h"
 #include "Selection.h"
 #include "SelectionIr.h"
@@ -47,6 +48,9 @@ using pdb::Set;
 using pdb::unsafeCast;
 
 using pdb_detail::buildIr;
+using pdb_detail::MaterializationModeAlgo;
+using pdb_detail::MaterializationModeNone;
+using pdb_detail::MaterializationModeNamedSet;
 using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
@@ -89,9 +93,12 @@ namespace pdb_tests
 
         Handle<MySelectionType> selection = makeObject<MySelectionType>();
         {
-            Handle<Set<Object>> selectionInput = makeObject<Set<Object>>("databasename", "setname");
+            Handle<Set<Object>> selectionInput = makeObject<Set<Object>>("inputDatabaseName", "inputSetName");
             selection->setInput(selectionInput);
         }
+
+        selection->setDBName("outputDatabaseName");
+        selection->setSetName("outputSetName");
 
         /**
          * Translate MySelection to QueryNodeIr.
@@ -100,10 +107,39 @@ namespace pdb_tests
 
 
         /**
-         * Test that projection is the only sink node
+         * Test that projection is the only sink node.
          */
         QUNIT_IS_EQUAL(1, queryGraph.getSinkNodeCount());
         shared_ptr<SetExpressionIr> querySink = queryGraph.getSinkNode(0);
+
+        QUNIT_IS_FALSE(querySink->getMaterializationMode()->isNone());
+
+        class NamedSetExtractor : public MaterializationModeAlgo
+        {
+        public:
+
+            void forNone(MaterializationModeNone &mode)
+            {
+
+            }
+
+            void forNamedSet(MaterializationModeNamedSet &mode)
+            {
+                outDatabaseName = mode.getDatabaseName();
+                outSetName = mode.getSetName();
+
+            }
+
+            string outDatabaseName;
+
+            string outSetName;
+        } outSetExtractor;
+
+        querySink->getMaterializationMode()->execute(outSetExtractor);
+
+        QUNIT_IS_EQUAL("outputDatabaseName", outSetExtractor.outDatabaseName);
+        QUNIT_IS_EQUAL("outputSetName", outSetExtractor.outSetName);
+
 
         class IsProjection : public SetExpressionIrAlgo
         {
@@ -135,6 +171,7 @@ namespace pdb_tests
         Handle<Object> placeHolder1;
         Lambda<Handle<Object>> proj = projectionIr->getProjector()->toLambda(placeHolder1);
         QUNIT_IS_TRUE(projector == proj);
+
 
 
         /**
@@ -206,8 +243,8 @@ namespace pdb_tests
 
         shared_ptr<SourceSetNameIr> selectionSetName = dynamic_pointer_cast<SourceSetNameIr>(selectionInput);
 
-        QUNIT_IS_EQUAL("databasename", selectionSetName->getDatabaseName());
-        QUNIT_IS_EQUAL("setname", selectionSetName->getName());
+        QUNIT_IS_EQUAL("inputDatabaseName", selectionSetName->getDatabaseName());
+        QUNIT_IS_EQUAL("inputSetName", selectionSetName->getName());
 
     }
 
