@@ -106,7 +106,7 @@ std::cout << "Filling filtering page" << std::endl;
                         }
                         projProc->finalize();
                         projProc->fillNextOutputPage();
-                        
+                        projProc->clearInputPage(); 
                         filterProc->clearOutputPage();
                         free(tempPage);
                         tempPage = malloc(1024*256);

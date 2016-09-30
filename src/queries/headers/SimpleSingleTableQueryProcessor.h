@@ -52,6 +52,9 @@ public:
         // must be called before free the data in output page
         virtual void clearOutputPage() = 0;
 
+        // must be called before free the data in input page
+        virtual void clearInputPage() = 0;
+
 };
 
 }

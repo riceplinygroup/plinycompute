@@ -91,7 +91,7 @@ bool ProjectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
 		std :: cout << "Vector Size: " << std::to_string(vecSize) << std::endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
-		std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;
+		//std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;
 			myOutVec.push_back (projectionFunc ());	
 		}	
 
@@ -117,6 +117,11 @@ void ProjectionQueryProcessor <Output, Input> :: clearOutputPage () {
         blockPtr = nullptr;
 }
 
+template <class Output, class Input>
+void ProjectionQueryProcessor <Output, Input> :: clearInputPage () {
+        inputVec = nullptr;
+        inputObject = nullptr;
+}
 
 }
 
