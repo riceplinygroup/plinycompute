@@ -34,6 +34,8 @@ using std::make_shared;
 
 using pdb::Lambda;
 using pdb::ProjectionQueryProcessor;
+using pdb::QueryBase;
+using pdb::Selection;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
@@ -47,8 +49,8 @@ namespace pdb_detail
         {
         }
 
-        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordProjectionIr> projector)
-                : _inputSet(inputSet),  _projector(projector)
+        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection)
+                : _inputSet(inputSet),  _originalSelection(originalSelection)
         {
         }
 
@@ -62,10 +64,6 @@ namespace pdb_detail
             algo.forProjection(*this);
         }
 
-        virtual shared_ptr<RecordProjectionIr> getProjector()
-        {
-            return _projector;
-        }
 
         virtual shared_ptr<SetExpressionIr> getInputSet()
         {
@@ -73,10 +71,9 @@ namespace pdb_detail
         }
 
         template <class Output, class Input>
-        SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> &inputPlaceholder)
+        SimpleSingleTableQueryProcessorPtr makeProcessor()
         {
-            Lambda<Handle<Output>> lambdaProjection = _projector->toLambda(inputPlaceholder);
-            return make_shared<ProjectionQueryProcessor<Output,Input>>(lambdaProjection);
+            return make_shared<ProjectionQueryProcessor<Output,Input>>(_originalSelection);
         };
 
 
@@ -87,7 +84,7 @@ namespace pdb_detail
          */
         shared_ptr<SetExpressionIr> _inputSet;
 
-        shared_ptr<RecordProjectionIr> _projector;
+        Handle<QueryBase> _originalSelection;
     };
 }
 

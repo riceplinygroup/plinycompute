@@ -27,6 +27,7 @@ using std::make_shared;
 
 using pdb::FilterQueryProcessor;
 using pdb::makeObject;
+using pdb::Selection;
 
 namespace pdb_detail
 {
@@ -35,9 +36,8 @@ namespace pdb_detail
     {
     }
 
-    SelectionIr::SelectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordPredicateIr> condition,
-                             SimpleSingleTableQueryProcessorPtr pageProcessor)
-            : _inputSet(inputSet), _condition(condition)
+    SelectionIr::SelectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection)
+            : _inputSet(inputSet), _originalSelection(originalSelection)
     {
     }
 
@@ -56,16 +56,10 @@ namespace pdb_detail
        return _inputSet;
     }
 
-    shared_ptr<RecordPredicateIr> SelectionIr::getCondition()
-    {
-        return _condition;
-    }
-
     template <class Output, class Input>
-    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor(Handle<Input> &inputPlaceholder)
+    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor()
     {
-        Lambda<bool> lambdaCondition = _condition->toLambda(inputPlaceholder);
-        return make_shared<FilterQueryProcessor<Output,Input>>(lambdaCondition);
+        return make_shared<FilterQueryProcessor<Output,Input>>(_originalSelection);
     }
 
 }

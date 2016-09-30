@@ -33,6 +33,8 @@ namespace pdb
         virtual void forSelection() = 0;
 
         virtual void forSet() = 0;
+
+        virtual void forQueryOutput() = 0;
     };
 }
 

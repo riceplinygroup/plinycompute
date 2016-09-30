@@ -33,7 +33,7 @@ using pdb_tests::runQueryIrTests;
 
 int main()
 {
-    makeObjectAllocatorBlock (2048, true);
+    makeObjectAllocatorBlock (1024 * 4, true);
 
     UnitTest qunit(std::cerr, QUnit::normal);
 

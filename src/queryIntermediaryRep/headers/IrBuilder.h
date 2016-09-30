@@ -18,12 +18,14 @@
 #ifndef PDB_QUERYINTERMEDIARYREP_IRBUILDER_H
 #define PDB_QUERYINTERMEDIARYREP_IRBUILDER_H
 
+#include <list>
 #include <memory>
 
 #include "Handle.h"
 #include "QueryBase.h"
 #include "QueryGraphIr.h"
 
+using std::list;
 using std::shared_ptr;
 
 using pdb::Handle;
@@ -32,6 +34,8 @@ using pdb::QueryBase;
 namespace pdb_detail
 {
     QueryGraphIr buildIr(Handle<QueryBase> querySink);
+
+    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H

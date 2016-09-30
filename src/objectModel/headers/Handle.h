@@ -187,6 +187,8 @@ public:
 	ObjType *operator -> () const;
 	ObjType &operator * () const;
 
+	bool operator<(const  Handle<ObjType> &other) const;
+
 	// get/set the offset
 	void setOffset (int64_t toMe);
 	int64_t getOffset ();

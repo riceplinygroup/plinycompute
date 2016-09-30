@@ -60,12 +60,10 @@ namespace pdb_tests
         } algo;
 
         shared_ptr<SetExpressionIr> nullInputSet;
-        shared_ptr<RecordPredicateIr> nullCondition;
-        SimpleSingleTableQueryProcessorPtr pageProcessor;
+       // shared_ptr<RecordPredicateIr> nullCondition;
+        Handle<Selection<Object,Object>> nullSelection;
 
-        SelectionIr selection(nullInputSet, nullCondition, pageProcessor);
-
-       // QUNIT_IS_TRUE(selection.getProcessor() == pageProcessor);
+        SelectionIr selection(nullInputSet, nullSelection);
 
         selection.execute(algo);
 
