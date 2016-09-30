@@ -22,7 +22,6 @@
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
 #include "MyDB_Catalog.h"
-#include "PDBCatalog.h"
 
 namespace pdb {
 
@@ -68,36 +67,9 @@ public:
 	
 	// adds a new object type... return -1 on failure
 	int16_t addObjectType (vector <char> &soFile, string &errMsg);
+
 	
-	// print the content of the catalog metadata
-	string printCatalog (string item);
-
-	// registers metadata about a node in the cluster
-	bool addNodeMetadata (std :: string nodeIP, int port,
-            std :: string nodeName, std :: string nodeType,
-            int status, std :: string &errMsg);
-
 private:
-
-	// new catalog metadata containers
-    //TODO new temp containers for metadata,
-    Handle<Vector <CatalogNodeMetadata> > _allNodesInCluster = makeObject<Vector<CatalogNodeMetadata>>();
-    Handle<Vector <CatalogSetMetadata> > _setTypes = makeObject<Vector<CatalogSetMetadata>>();;
-    Handle<Vector <CatalogDatabaseMetadata> > _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
-    Handle<Vector <CatalogUserTypeMetadata> > _udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
-
-    Handle<Vector<Handle<CatalogNodeMetadata>>> resultItemsNodes = makeObject<Vector<Handle<CatalogNodeMetadata>>>();
-    Handle<Vector<Handle<CatalogSetMetadata>>> resultItemsSets = makeObject<Vector<Handle<CatalogSetMetadata>>>();
-    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItemsDBs = makeObject<Vector<Handle<CatalogDatabaseMetadata>>>();
-    Handle<Vector<Handle<CatalogUserTypeMetadata>>> resultItemsUdfs = makeObject<Vector<Handle<CatalogUserTypeMetadata>>>();
-
-    map<string, CatalogNodeMetadata> mapNodes;
-    map<string, CatalogSetMetadata> mapSets;
-    map<string, CatalogDatabaseMetadata> mapDBs;
-    map<string, CatalogUserTypeMetadata> mapUdfs;
-
-
-    // **end
 
 	// map from type name string to int, and vice/versa
 	map <string, int16_t> allTypeNames;
@@ -106,17 +78,11 @@ private:
 	// map from database name to list of sets
 	map <string, vector <string>> allDatabases; 
 		
-	// vector of nodes in the cluster
-	vector <string> allNodesInCluster;
-
-    // map from database/set pair to type of set
-    map <pair <string, string>, int16_t> setTypes;
+	// map from database/set pair to type of set
+	map <pair <string, string>, int16_t> setTypes;
 
 	// interface to a text file that allows us to save/retreive all of this stuff
 	MyDB_CatalogPtr myCatalog;
-
-    // interface to a persistent catalog storage for storing and retrieving PDB metadata
-    PDBCatalogPtr pdbCatalog;
 
 	// where the catalog is located
 	std :: string catalogDirectory;
