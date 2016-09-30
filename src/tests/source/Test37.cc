@@ -42,6 +42,10 @@ int main () {
 		cout << "Registered type.\n";
 	}
 
+	//to register selection type
+	temp.registerType ("libraries/libChrisSelection.so", errMsg);
+	temp.registerType ("libraries/libStringSelection.so", errMsg);
+
 	// now, create a new database
 	if (!temp.createDatabase ("chris_db", errMsg)) {
 		cout << "Not able to create database: " + errMsg;
@@ -83,13 +87,6 @@ int main () {
 		}
 		free (storage);
 	//}
-
-        //to register selection type 
-        temp.registerType ("libraries/libChrisSelection.so", errMsg);
-        temp.registerType ("libraries/libStringSelection.so", errMsg);
-
-
-
 
 	// and shut down the server
 	if (!temp.shutDownServer (errMsg))
