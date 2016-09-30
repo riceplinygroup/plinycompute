@@ -44,8 +44,16 @@ public:
 	}
 
 	Handle <OutType> &operator * () const {
-		return ((*data)[pos]);
+		    return ((*data)[pos]);
 	} 
+
+        int getSize()  {
+                return size;
+        }
+        
+        int getPos() {
+                return pos;
+        }
 	
 	void operator ++ () {
 		if (pos == size - 1) {
@@ -92,7 +100,12 @@ public:
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
 			size = data->size ();
-			pos = 0;
+                        if (size > 0) {
+			     pos = 0;
+                        } else {
+                             connection = nullptr;
+                             return;
+                       }
 
 		} else {
 			pos++;

@@ -125,22 +125,20 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
                 logger->writeInt(destPage->getPageID());
                 destPageHandle = make_shared<PageHandle>(proxy, destPage);
                 projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
-           }
-           projProc->finalize();
-           projProc->fillNextOutputPage();
-           projProc->clearOutputPage();
-           projProc->clearInputPage();
-           destPageHandle->unpin();
-           destPage = nullptr;
+            }
+            projProc->finalize();
+            projProc->fillNextOutputPage();
+            projProc->clearOutputPage();
+            projProc->clearInputPage();
+            destPageHandle->unpin();
+            destPage = nullptr;
 
-           filterProc->clearInputPage();
+            filterProc->clearInputPage();
             proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
             logger->writeLn("BackendSelectionWork: send out unpinPage for source page with pageID:");
             logger->writeInt(page->getPageID());
-           filterProc->clearOutputPage();
-           free(tempPage);
-
-
+            filterProc->clearOutputPage();
+            free(tempPage);
         }
     }
 
