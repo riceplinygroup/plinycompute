@@ -79,9 +79,7 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	// get the file size
 	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
 	size_t fileLen = in.tellg();
-	cout << "file " << fileContainingSharedLib << endl;
-	cout << "size " << fileLen << endl;
-	
+
 	std::cout << "Registering type " << fileContainingSharedLib << std::endl;
 
 	// this makes a an empty vector with fileLen slots
@@ -217,67 +215,6 @@ bool CatalogClient :: createDatabase (std :: string databaseName, std :: string 
 			return false;},
 		databaseName);
 }
-
-//TODO review these catalog-related methods
-bool CatalogClient :: registerDatabaseMetadata (std :: string databaseName, std :: string &errMsg) {
-    cout << "inside registerDatabaseMetadata" << endl;
-
-    return simpleRequest <CatalogDatabaseMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-        [&] (Handle <SimpleRequestResult> result) {
-            if (result != nullptr) {
-                if (!result->getRes ().first) {
-                    errMsg = "Error registering database metadata: " + result->getRes ().second;
-                    myLogger->error ("Error registering database metadata: " + result->getRes ().second);
-                    return false;
-                }
-                return true;
-            }
-            errMsg = "Error getting type name: got nothing back from catalog";
-            return false;}
-        );
-}
-
-bool CatalogClient :: registerNodeMetadata (std :: string nodeIP, int nodePort, std :: string nodeName,
-                                            std :: string nodeType, int status, std :: string &errMsg) {
-
-    cout << "inside registerNodeMetadata" << endl;
-
-    return simpleRequest <CatalogNodeMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-        [&] (Handle <SimpleRequestResult> result) {
-            if (result != nullptr) {
-                if (!result->getRes ().first) {
-                    errMsg = "Error registering node metadata: " + result->getRes ().second;
-                    myLogger->error ("Error registering node metadata: " + result->getRes ().second);
-                    return false;
-                }
-                return true;
-            }
-            errMsg = "Error registering node metadata in the catalog";
-            return false;},
-            String(nodeIP), String(nodeIP), nodePort, String(nodeName), String(nodeType), status
-        );
-}
-
-
-// List metadata
-bool CatalogClient :: printCatalogMetadata (std :: string databaseName, std :: string &errMsg) {
-
-    return simpleRequest <CatalogPrintMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-        [&] (Handle <SimpleRequestResult> result) {
-            if (result != nullptr) {
-                if (!result->getRes ().first) {
-                    errMsg = "Error printing catalog metadata: " + result->getRes ().second;
-                    myLogger->error ("Error printing catalog metadata: " + result->getRes ().second);
-                    return false;
-                }
-                return true;
-            }
-            errMsg = "Error printing catalog metadata.";
-            return false;},
-            databaseName
-    );
-}
-
 
 }
 #endif

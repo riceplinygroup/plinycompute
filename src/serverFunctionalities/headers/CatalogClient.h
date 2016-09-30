@@ -28,8 +28,6 @@ class CatalogClient;
 #include "ServerFunctionality.h"
 #include "PDBLogger.h"
 #include "PDBServer.h"
-#include "CatalogDatabaseMetadata.h"
-#include "CatalogPrintMetadata.h"
 
 namespace pdb {
 
@@ -66,13 +64,6 @@ public:
 	// returns true on success, false on fail
 	bool createDatabase (std :: string databaseName, std :: string &errMsg);
 
-	// registers metadata about a database
-	bool registerDatabaseMetadata (std :: string databaseName, std :: string &errMsg);
-
-    // registers metadata about a node in the cluster
-    bool registerNodeMetadata (std :: string nodeIP, int nodePort, std :: string nodeName,
-                               std :: string nodeType, int status, std :: string &errMsg);
-
 	// this creates a new set in a given database... returns true on success
 	// returns true on success, false on fail
 	template <class DataType>
@@ -80,8 +71,6 @@ public:
 
 	// same as above, but here we use the type code
 	bool createSet (int16_t identifier, std :: string databaseName, std :: string setName, std :: string &errMsg);
-
-    bool printCatalogMetadata (std :: string databaseName, std :: string &errMsg);
 
 private:
 
