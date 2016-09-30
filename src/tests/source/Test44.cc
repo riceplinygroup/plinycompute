@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_18_H
-#define TEST_18_H
+#ifndef TEST_44_H
+#define TEST_44_H
 
 #include "Join.h"
 #include "PDBString.h"
@@ -72,6 +72,7 @@ int main () {
 	mySecondSelect->setInput (myFirstSelect);
 	Handle <QueryOutput <String>> outputOne = makeObject <QueryOutput <String>> ("chris_db", "output_set1", myFirstSelect);
 	Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
+
         std :: list <Handle<QueryBase>> queries;
         queries.push_back(outputOne);
         queries.push_back(outputTwo);
@@ -86,12 +87,7 @@ int main () {
          std :: cout << internalNode1Typed->getName() << std :: endl;
          shared_ptr<pdb_detail::SetExpressionIr> internalNode2 = internalNode1Typed->getInputSet();
          std :: cout << internalNode2->getName() << std :: endl;
-         shared_ptr<pdb_detail::ProjectionIr> internalNode2Typed = dynamic_pointer_cast<pdb_detail::ProjectionIr>(internalNode2);
-         std :: cout << internalNode2Typed->getName() << std :: endl;
-         shared_ptr<pdb_detail::SetExpressionIr> internalNode3 = internalNode2Typed->getInputSet();
-         std :: cout << internalNode3->getName() << std :: endl;
-         shared_ptr<pdb_detail::SelectionIr> internalNode3Typed = dynamic_pointer_cast<pdb_detail::SelectionIr>(internalNode3);
-         std :: cout << internalNode3Typed->getName() << std :: endl;
+         shared_ptr<pdb_detail::SourceSetNameIr> internalNode2Typed = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(internalNode2);
 
 /*	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
