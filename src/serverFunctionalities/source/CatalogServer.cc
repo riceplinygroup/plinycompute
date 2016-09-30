@@ -41,6 +41,8 @@
 #include "CatCreateDatabaseRequest.h"
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
+#include "CatalogDatabaseMetadata.h"
+#include "CatalogPrintMetadata.h"
 #include "StorageServer.h"
 #include "PangeaStorageServer.h"
 namespace pdb {
@@ -60,6 +62,72 @@ int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) 
 }
 
 void CatalogServer :: registerHandlers (PDBServer &forMe) {
+
+    //TODO change this test
+    // handle a request to add metadata for a new Database in the catalog
+    forMe.registerHandler (CatalogNodeMetadata_TYPEID, make_shared <SimpleRequestHandler <CatalogNodeMetadata>> (
+        [&] (Handle <CatalogNodeMetadata> request, PDBCommunicatorPtr sendUsingMe) {
+
+            // ask the catalog server for the type ID and then the name of the type
+            std :: string errMsg;
+            cout << "--->Testing PDBCatalog register node" << endl;
+//            nodeIP, nodeIP, port, nodeName, nodeType, status
+
+            bool res = getFunctionality <CatalogServer> ().addNodeMetadata (request->getNodeIP (), request->getNodePort (),
+                                                                            request->getItemName (), request->getNodeType (),
+                                                                            request->getNodeStatus (), errMsg);
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
+    // handle a request to add metadata for a new Database in the catalog
+    forMe.registerHandler (CatalogDatabaseMetadata_TYPEID, make_shared <SimpleRequestHandler <CatalogDatabaseMetadata>> (
+        [&] (Handle <CatalogDatabaseMetadata> request, PDBCommunicatorPtr sendUsingMe) {
+
+            // ask the catalog server for the type ID and then the name of the type
+            std :: string errMsg;
+//            bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
+            cout << "--->Testing PDBCatalog handler" << endl;
+            bool res = true;
+
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
+
+    // Handle to print metadata from the Catalog
+    forMe.registerHandler (CatalogPrintMetadata_TYPEID, make_shared <SimpleRequestHandler <CatalogPrintMetadata>> (
+        [&] (Handle <CatalogPrintMetadata> request, PDBCommunicatorPtr sendUsingMe) {
+
+            // ask the catalog server for the type ID and then the name of the type
+            std :: string errMsg;
+            string item = request->getItemName();
+            cout << "--->Testing CatalogPrintMetadata handler with item id " << item << endl;
+            bool res = true;
+
+            cout << "before calling " << endl;
+
+            printCatalog(item);
+
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
 
 	// handle a request for an object type name search
 	forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
@@ -233,26 +301,28 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 }
 
 size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) { 
-	int numPages;
-	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
-		return -1;
-	} else {
-		return numPages;
-	}
+//	int numPages;
+//	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
+//		return -1;
+//	} else {
+//		return numPages;
+//	}
+	return 0;
 }
 
 size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName) {
-	int numPages;
-	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
-		myCatalog->putInt (dbName + "." + setName + ".fileSize", 1);
-		myCatalog->save ();
-		return 0;
-	} else {
-		numPages++;
-		myCatalog->putInt (dbName + "." + setName + ".fileSize", numPages);
-		myCatalog->save ();
-		return numPages - 1;
-	}
+//	int numPages;
+//	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
+//		myCatalog->putInt (dbName + "." + setName + ".fileSize", 1);
+//		myCatalog->save ();
+//		return 0;
+//	} else {
+//		numPages++;
+//		myCatalog->putInt (dbName + "." + setName + ".fileSize", numPages);
+//		myCatalog->save ();
+//		return numPages - 1;
+//	}
+    return 0;
 }
 
 bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg) {
@@ -312,10 +382,13 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 	typedef char *getObjectTypeNameFunc ();
 	getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
 
+   cout << "getObjectTypeName= " << getName << endl;
 	if ((dlsym_error = dlerror())) {
 		errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
+		cout << errMsg << endl;
 		return -1;
 	}
+    cout << "all ok" << endl;
 
 	// now, get the type name and write the appropriate file
 	string typeName (myFunc ());
@@ -326,25 +399,36 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
 	// add the new type name, if we don't already have it
 	if (allTypeNames.count (typeName) == 0) {
-		int16_t typeCode = 8192 + allTypeNames.size ();
-		allTypeNames [typeName] = typeCode;
-		allTypeCodes [typeCode] = typeName;
-	
-		// and update the catalog file
-		vector <string> typeNames;
-		vector <int> typeCodes;
-	
-		// get the two vectors to add
-		for (auto &pair : allTypeNames) {
-			typeNames.push_back (pair.first);
-			typeCodes.push_back (pair.second);
-		}
-	
-		// and add them
-		myCatalog->putStringList ("typeNames", typeNames);
-		myCatalog->putIntList ("typeCodes", typeCodes);
-		myCatalog->save ();
-		return typeCode;
+	int16_t typeCode = 8192 + allTypeNames.size ();
+	allTypeNames [typeName] = typeCode;
+	allTypeCodes [typeCode] = typeName;
+
+	// and update the catalog file
+	vector <string> typeNames;
+	vector <int> typeCodes;
+
+	// get the two vectors to add
+	for (auto &pair : allTypeNames) {
+		typeNames.push_back (pair.first);
+		typeCodes.push_back (pair.second);
+	}
+
+	// and add them
+//	myCatalog->putStringList ("typeNames", typeNames);
+//	myCatalog->putIntList ("typeCodes", typeCodes);
+//	myCatalog->save ();
+
+	cout << "before creating object" << endl;
+    //allocates 128Mb to register .so libraries
+    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+
+	Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
+    cout << "before calling " << endl;
+
+	pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/" + typeName + ".so", "data_types", errMsg);
+
+	cout << "AFTEEEEEEEEEEEEEEEEEEEEEEER " << typeName << " = " << pdbCatalog->getUserDefinedTypesList()[typeName].getObjectID().c_str() << endl;
+	return typeCode;
 	} else 
 		return allTypeNames [typeName];
 }
@@ -364,7 +448,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 			setList.erase (setList.begin () + i);
 			foundIt = true;
 			break;
-		}
+        }
 	}
 
 	if (!foundIt) {
@@ -373,12 +457,12 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 	}
 
 	// write back the changed list
-	myCatalog->putStringList (databaseName + ".sets", setList);
-	
-	// delete the type code info
-	myCatalog->deleteKey (databaseName + "." + setName + ".code");
-	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
-	myCatalog->save ();
+//	myCatalog->putStringList (databaseName + ".sets", setList);
+//
+//	// delete the type code info
+//	myCatalog->deleteKey (databaseName + "." + setName + ".code");
+//	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
+//	myCatalog->save ();
 
 	// delete the file from the storage
         if (usePangea == false) {
@@ -422,12 +506,73 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
 	// add the set
 	setList.push_back (setName);
-	myCatalog->putStringList (databaseName + ".sets", setList);
+//	myCatalog->putStringList (databaseName + ".sets", setList);
+//
+//	// and add the set's type
+//	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
+//	myCatalog->putInt (databaseName + "." + setName + ".code", typeIdentifier);
+//	myCatalog->save ();
 
-	// and add the set's type
-	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
-	myCatalog->putInt (databaseName + "." + setName + ".code", typeIdentifier);
-	myCatalog->save ();
+    //TODO this might change depending on what metadata
+    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
+    Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
+
+    // creates Strings
+    String setKeyCatalog = String(databaseName + "." + setName);
+    String setNameCatalog = String(setName);
+    String dbName(databaseName);
+    String typeName(allTypeCodes[typeIdentifier]);
+
+    // populates object metadata
+    metadataObject->setItemKey(setKeyCatalog);
+    metadataObject->setItemName(setNameCatalog);
+    metadataObject->setDBName(dbName);
+    metadataObject->setTypeName(typeName);
+
+    // adds metadata to catalog
+    pdbCatalog->addMetadataToCatalog(metadataObject, catalogType, errMsg);
+
+    // prepares data for the DB metadata
+    catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+    Handle<CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
+
+    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItems = makeObject<Vector<Handle<CatalogDatabaseMetadata>>>();
+    Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
+    map<string, CatalogDatabaseMetadata> mapRes;
+
+    if(pdbCatalog->getMetadataFromCatalog(databaseName,resultItems,vectorResultItems,mapRes,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+    for (int i=0; i < (*vectorResultItems).size(); i++){
+        if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
+    }
+
+    (*dbMetadataObject).addSet(setKeyCatalog);
+    (*dbMetadataObject).addType(typeName);
+
+    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
+    else cout << "Error: " << errMsg << endl;
+
+    //TODO add set to DB.catalog vector and update in catalog
+    //TODO
+    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItems2 = makeObject<Vector<Handle<CatalogDatabaseMetadata>>>();
+    Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems2 = makeObject<Vector<CatalogDatabaseMetadata>>();
+    map<string, CatalogDatabaseMetadata> mapRes2;
+
+    if(pdbCatalog->getMetadataFromCatalog(databaseName,resultItems2,vectorResultItems2,mapRes2,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+//    for (int i=0; i< (*vectorResultItems2).size(); i++){
+//        cout << "**********************"<< (*vectorResultItems2)[i].getItemKey().c_str() << "***************************" << endl;
+//        cout << (*vectorResultItems2)[i] << endl;
+//        cout << "short print " << (*vectorResultItems2)[i].printShort() << endl;
+//        cout << "**********************in server call***************************" << endl;
+//
+//    }
+
+    // TODO, remove it, just used for debugging
+    printCatalog("");
+
 	return true;
 }
 
@@ -450,9 +595,20 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 	for (auto &entry : allDatabases) {
 		databaseNames.push_back (entry.first);
 	}	
-	myCatalog->putStringList ("databaseNames", databaseNames);
-	myCatalog->putStringList (databaseName + ".sets", empty); 
-	myCatalog->save ();
+//	myCatalog->putStringList ("databaseNames", databaseNames);
+//	myCatalog->putStringList (databaseName + ".sets", empty);
+//	myCatalog->save ();
+
+    //allocates 24Mb to process metadata info
+    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
+
+	//TODO this might change depending on what metadata
+	int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+	Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
+	String dbName = String(databaseName);
+	metadataObject->setItemName(dbName);
+	pdbCatalog->addMetadataToCatalog(metadataObject, catalogType, errMsg);
+	//TODO
 	return true;
 }
 
@@ -465,43 +621,172 @@ CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool usePangea
 	catalogDirectory = catalogDirectoryIn;
         this->usePangea = usePangea;
 
-	myCatalog = make_shared <MyDB_Catalog> (catalogDirectory + "/catalog");
+    PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
+
+    // original Chris' catalog, will be replaced by sqlite
+//	myCatalog = make_shared <MyDB_Catalog> (catalogDirectory + "/catalog");
+
+	// creates instance of catalog
+    pdbCatalog = make_shared <PDBCatalog> (catalogLogger, catalogDirectory + "/pdbCatalog");
+    // retrieves catalog from an sqlite db and loads metadata into memory
+    pdbCatalog->open();
 
 	// set up the mutex
 	pthread_mutex_init(&workingMutex, nullptr);
 
 	// first, get the list of type names and type codes
-	vector <string> typeNames;
-	if (myCatalog->getStringList ("typeNames", typeNames)) {
+//	vector <string> typeNames;
+//	if (myCatalog->getStringList ("typeNames", typeNames)) {
+//
+//		vector <int> typeCodes;
+//		myCatalog->getIntList ("typeCodes", typeCodes);
+//
+//		for (int i = 0; i < typeCodes.size (); i++) {
+////			allTypeNames[typeNames[i]] = typeCodes[i];
+////			allTypeCodes[typeCodes[i]] = typeNames[i];
+//			cout << "ID= " << typeCodes[i] << " type " << typeNames[i];
+//		}
+//	}
 
-		vector <int> typeCodes;
-		myCatalog->getIntList ("typeCodes", typeCodes);
+	//NewCatalog way to load metadata udfs
+	cout << "JUST TESTING ----->" << endl;
+    int catalogType = PDBCatalogMsgType::CatalogPDBRegisteredObject;
+    string errMsg;
+    Handle<CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
 
-		for (int i = 0; i < typeCodes.size (); i++) {
-			allTypeNames[typeNames[i]] = typeCodes[i]; 			
-			allTypeCodes[typeCodes[i]] = typeNames[i]; 			
-		}	
-	}
+    //    Handle<Vector<Handle<CatalogNodeMetadata>>> resultItemsNodes = makeObject<Vector<Handle<CatalogNodeMetadata>>>();
+    //    Handle<Vector<Handle<CatalogSetMetadata>>> resultItemsSets = makeObject<Vector<Handle<CatalogSetMetadata>>>();
+    //    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItemsDBs = makeObject<Vector<Handle<CatalogDatabaseMetadata>>>();
+    //    Handle<Vector<Handle<CatalogUserTypeMetadata>>> resultItemsUdfs = makeObject<Vector<Handle<CatalogUserTypeMetadata>>>();
+
+//    Handle<Vector <CatalogNodeMetadata> > _allNodesInCluster = makeObject<Vector<CatalogNodeMetadata>>();
+//    Handle<Vector <CatalogSetMetadata> > _setTypes = makeObject<Vector<CatalogSetMetadata>>();;
+//    Handle<Vector <CatalogDatabaseMetadata> > _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
+//    Handle<Vector <CatalogUserTypeMetadata> > _udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
+//
+//    map<string, CatalogNodeMetadata> mapNodes;
+//    map<string, CatalogSetMetadata> mapSets;
+//    map<string, CatalogDatabaseMetadata> mapDBs;
+//    map<string, CatalogUserTypeMetadata> mapUdfs;
+    string emptyString("");
+    // populates types metadata
+    if(pdbCatalog->getMetadataFromCatalog(emptyString,resultItemsUdfs,_udfsValues,mapUdfs,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+    for (int i=0; i < (*_udfsValues).size(); i++){
+        string _typeName = (*_udfsValues)[i].getItemKey().c_str();
+        int16_t _typeId = (int16_t)atoi((*_udfsValues)[i].getObjectID().c_str());
+
+        allTypeNames[_typeName] = _typeId;
+        allTypeCodes[_typeId] = _typeName;
+
+        cout << (*_udfsValues)[i].getItemKey().c_str() << " | " << (*_udfsValues)[i].getObjectID().c_str() << endl;
+    }
+
+    catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+
+    if(pdbCatalog->getMetadataFromCatalog(emptyString,resultItemsDBs,_allDatabases,mapDBs,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+    // get the list of databases
+    vector <string> databaseNames;
+//
+//    vector <string> setNames;
+
+    for (int i=0; i < (*_allDatabases).size(); i++){
+        string _dbName = (*_allDatabases)[i].getItemKey().c_str();
+        string _setName;
+        string _typeName;
+        cout << _dbName << " | " << (*_allDatabases)[i].getItemId().c_str() << endl;
+        databaseNames.push_back(_dbName);
+        for (int j=0; j < (*(*_allDatabases)[i].getListOfSets()).size(); j++){
+            _setName = (*(*_allDatabases)[i].getListOfSets())[j].c_str();
+            _typeName = (*(*_allDatabases)[i].getListOfTypes())[j].c_str();
+
+            cout << "Database " << _dbName << " has set " << _setName << " and type " << _typeName << endl;
+            allDatabases [_dbName].push_back(_setName);
+            setTypes [make_pair (_dbName, _setName)] = (int16_t)std::atoi(pdbCatalog->getUserDefinedTypesList()[_typeName].getObjectID().c_str());
+
+        }
+    }
+
+    cout << "from containers" << endl;
+    for (auto &item : setTypes){
+        cout << " DB: " << item.first.first << endl;
+        cout << " Set: " << item.first.second << endl;
+        cout << " Type Id: " << setTypes[make_pair(item.first.first, item.first.second)] << endl;
+        cout << " Type Name: " << allTypeCodes[item.second]  << endl;
+    }
+    cout << "from containers" << endl;
+
+    cout << "JUST TESTING ----->" << endl;
+
+//    for (int i = 0; i < pdbCatalog->get.size (); i++) {
+//        allTypeNames[typeNames[i]] = typeCodes[i];
+//        allTypeCodes[typeCodes[i]] = typeNames[i];
+//    }
+
+	//end
 
 	// get the list of databases
-	vector <string> databaseNames;
-	if (myCatalog->getStringList ("databaseNames", databaseNames)) {
-		
-		// get the sets in this database
-		vector <string> setNames;
-		for (string s : databaseNames) {
-			myCatalog->getStringList (s + ".sets", setNames);
-			allDatabases [s] = setNames;
-
-			// for each set, record the type code
-			int myCode;
-			for (string setName : setNames) {
-				myCatalog->getInt (s + "." + setName + ".code", myCode);
-				setTypes [make_pair (s, setName)] = myCode;
-			}
-		}
-	}
+//	vector <string> databaseNames;
+//	if (myCatalog->getStringList ("databaseNames", databaseNames)) {
+//
+//		// get the sets in this database
+//		vector <string> setNames;
+//		for (string s : databaseNames) {
+//			myCatalog->getStringList (s + ".sets", setNames);
+//			allDatabases [s] = setNames;
+//
+//			// for each set, record the type code
+//			int myCode;
+//			for (string setName : setNames) {
+//				myCatalog->getInt (s + "." + setName + " | ", myCode);
+//				cout << " Adding " << s << "." << setName << " | " << myCode << endl;
+//				setTypes [make_pair (s, setName)] = myCode;
+//			}
+//		}
+//	}
         
 }
+
+//TODO review and debug/clean these new catalog-related methods
+string CatalogServer :: printCatalog (string item) {
+
+    string catalogContents;
+
+    pdbCatalog->printsAllCatalogMetadata();
+
+    return catalogContents;
+}
+
+bool CatalogServer :: addNodeMetadata (std :: string nodeIP, int port,
+                                       std :: string nodeName, std :: string nodeType,
+                                       int status, std :: string &errMsg) {
+
+    // adds the port to the node IP address
+    nodeIP.append(":").append(to_string(port));
+
+    // don't add a node that is alredy registered
+    if(std::find(allNodesInCluster.begin(), allNodesInCluster.end(), nodeIP) != allNodesInCluster.end()){
+        errMsg = "Node " + nodeIP.append(to_string(port)) + " is already registered.\n";
+        return false;
+    }
+
+    // add the node info
+    allNodesInCluster.push_back (nodeIP);
+
+    //allocates 24Mb to process metadata info
+    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
+
+    //TODO this might change depending on what metadata
+    int catalogType = PDBCatalogMsgType::CatalogPDBNode;
+    Handle<CatalogNodeMetadata> metadataObject = makeObject<CatalogNodeMetadata>(String(nodeIP), String(nodeIP), port, String(nodeName), String(nodeType), status);
+
+    pdbCatalog->addMetadataToCatalog(metadataObject, catalogType, errMsg);
+    //TODO
+    return true;
+}
+
 
 }
