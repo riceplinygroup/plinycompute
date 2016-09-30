@@ -61,13 +61,11 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
         //page still can be nullptr, so we MUST check nullptr here.
         if (page != nullptr) {
             //tempPageSize = page->getSize();
-            if (tempPage == 0) {
-                // we never did any query work before in this thread.
-                tempPage = calloc(tempPageSize, 1);
-                filterProc->initialize();
-                filterProc->loadOutputPage(tempPage, tempPageSize);
+            // we never did any query work before in this thread.
+            tempPage = calloc(tempPageSize, 1);
+            filterProc->initialize();
+            filterProc->loadOutputPage(tempPage, tempPageSize);
 
-            }
 
             // load input page
             std :: cout << "processing page with pageId=" << page->getPageID() << std :: endl;
@@ -77,12 +75,10 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
                 // now tempPage is the input page for projection
                 // the tempPage was filled, use it as input for projection
                 projProc->loadInputPage(tempPage);
-                if (destPage == nullptr) {
-                    proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
-                    destPageHandle = make_shared<PageHandle>(proxy, destPage); 
-                    projProc->initialize ();
-                    projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());   
-                }
+                proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
+                destPageHandle = make_shared<PageHandle>(proxy, destPage); 
+                projProc->initialize ();
+                projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());   
                 
                 
                 while (projProc->fillNextOutputPage()) {
@@ -98,6 +94,7 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
                 projProc->finalize();
                 projProc->fillNextOutputPage();
                 projProc->clearOutputPage();
+                projProc->clearInputPage();
                 destPageHandle->unpin();
                 destPage = nullptr;    
 
@@ -113,33 +110,13 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
 
             }
 
-            //clean the page;
-            if (proxy->unpinUserPage(nodeId, page->getDbID(),
-                    page->getTypeID(), page->getSetID(), page) == false) {
-                logger->writeLn("BackendSelectionWork: cannot unpin finished page.");
-                destPageHandle->unpin();
-                filterProc->clearOutputPage();
-                free(tempPage);
-                callerBuzzer->buzz(PDBAlarm::QueryError);
-                return;
-            }
-            logger->writeLn("BackendSelectionWork: send out unpinPage for source page with pageID:");
-            logger->writeInt(page->getPageID());
-        }
-    }
-
-    if (tempPage != 0) {
-        // we have actually ran something at the very least
-
-        filterProc->finalize();
-        while (filterProc->fillNextOutputPage()) {
-            // the tempPage was filled, use it as input for projection
-            if (destPage == nullptr) {
-                proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
-                destPageHandle = make_shared<PageHandle>(proxy, destPage);
-                projProc->initialize ();
-                projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
-            }
+            
+            filterProc->finalize();
+            filterProc->fillNextOutputPage();
+            proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
+            destPageHandle = make_shared<PageHandle>(proxy, destPage);
+            projProc->initialize ();
+            projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
             projProc->loadInputPage(tempPage);
             while (projProc->fillNextOutputPage()) {
                 destPageHandle->unpin();
@@ -148,44 +125,25 @@ void BackendSelectionWork::execute(PDBBuzzerPtr callerBuzzer) {
                 logger->writeInt(destPage->getPageID());
                 destPageHandle = make_shared<PageHandle>(proxy, destPage);
                 projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
-            }
+           }
+           projProc->finalize();
+           projProc->fillNextOutputPage();
+           projProc->clearOutputPage();
+           projProc->clearInputPage();
+           destPageHandle->unpin();
+           destPage = nullptr;
 
-            projProc->finalize();
-            projProc->fillNextOutputPage();
-            projProc->clearOutputPage();
-            destPageHandle->unpin();
-            destPage = nullptr;
+           filterProc->clearInputPage();
+            proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+            logger->writeLn("BackendSelectionWork: send out unpinPage for source page with pageID:");
+            logger->writeInt(page->getPageID());
+           filterProc->clearOutputPage();
+           free(tempPage);
 
-            filterProc->clearOutputPage();
-            // finished processing tempPage, load a new one.
-            free(tempPage);
-            tempPage = calloc(tempPageSize, 1);
-            filterProc->loadOutputPage(tempPage, tempPageSize);
-        }
 
-        // finally, finish the projection on leftover records.
-        if (destPage == nullptr) {
-            proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
-            destPageHandle = make_shared<PageHandle>(proxy, destPage);
-            projProc->initialize ();
-            projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
         }
-        projProc->loadInputPage(tempPage);
-        while (projProc->fillNextOutputPage ()) {
-            destPageHandle->unpin();
-            proxy->addUserPage(destDatabaseId, destTypeId, destSetId, destPage);
-            logger->writeLn("BackendSelectionWork: proxy pinned a new page with pageId=");
-            logger->writeInt(destPage->getPageID());
-            destPageHandle = make_shared<PageHandle>(proxy, destPage);
-            projProc->loadOutputPage (destPage->getBytes(), destPage->getSize());
-        }
-        projProc->finalize();
-        projProc->fillNextOutputPage ();
-        projProc->clearOutputPage();
-        //destPageHandle->unpin();
-        filterProc->clearOutputPage();
-        //free(tempPage);
     }
+
     callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
     return;
 }

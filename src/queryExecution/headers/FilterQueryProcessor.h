@@ -68,6 +68,7 @@ public:
         bool fillNextOutputPage () override;
         void finalize () override;
         void clearOutputPage () override;
+        void clearInputPage () override;
 };
 
 }

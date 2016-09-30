@@ -99,7 +99,7 @@ bool FilterQueryProcessor <Output, Input> :: fillNextOutputPage () {
 	} catch (NotEnoughSpace &n) {
 		//std::cout << "Got not enough space " << std::endl;
 		getRecord (outputVec);
-		blockPtr = nullptr;
+		//blockPtr = nullptr;
 		return true;
 	}
 }
@@ -115,10 +115,14 @@ template <class Output, class Input>
 void FilterQueryProcessor <Output, Input> :: clearOutputPage () {
         outputVec = nullptr;
         blockPtr = nullptr;
-
 }
 
-
+// must be called before freeing the memory in input page
+template <class Output, class Input>
+void FilterQueryProcessor <Output, Input> :: clearInputPage () {
+        inputVec = nullptr;
+        inputObject = nullptr;
+}
 }
 
 #endif
