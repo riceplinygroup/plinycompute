@@ -66,11 +66,15 @@ int main () {
 	SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	std :: cout << "First set of query results: ";
 	for (auto a : result) 
-		std :: cout << (*a) << "; ";
+        {
+		     std :: cout << (*a) << "; ";
+        }
 	std :: cout << "\n\nSecond set of query results: ";
 	result = myClient.getSetIterator <String> ("chris_db", "output_set2");
-	for (auto a : result) 
-		std :: cout << (*a) << "; ";
+	for (auto a : result)
+        {
+		    std :: cout << (*a) << "; ";
+        }
 	std :: cout << "\n";
 	
 	// and delete the sets
