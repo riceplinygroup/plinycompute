@@ -28,7 +28,8 @@ using QUnit::UnitTest;
 
 namespace pdb_tests
 {
-    void testBuildIrSelection(UnitTest &qunit);
+    void testBuildIrSelection1(UnitTest &qunit);
+    void testBuildIrSelection2(UnitTest &qunit);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREPTESTS_BUILDIRTESTS_H

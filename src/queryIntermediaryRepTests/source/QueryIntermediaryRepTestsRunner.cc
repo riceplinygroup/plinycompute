@@ -27,7 +27,8 @@ namespace pdb_tests
     void runQueryIrTests(UnitTest &qunit)
     {
         testDotBuilderSelection(qunit);
-        testBuildIrSelection(qunit);
+        testBuildIrSelection1(qunit);
+        testBuildIrSelection2(qunit);
         testProjectionIrExecute(qunit);
         testSelectionIrExecute(qunit);
     }

@@ -60,8 +60,10 @@ namespace pdb_tests
         } algo;
 
         shared_ptr<SetExpressionIr> nullInputSet;
-        shared_ptr<RecordProjectionIr> nullProjector;
-        ProjectionIr projection(nullInputSet, nullProjector);
+
+        Handle<Selection<Object,Object>> nullSelection;
+
+        ProjectionIr projection(nullInputSet, nullSelection);
 
         projection.execute(algo);
 

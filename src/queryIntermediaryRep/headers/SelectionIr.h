@@ -20,6 +20,7 @@
 
 #include "Handle.h"
 #include "RecordPredicateIr.h"
+#include "Selection.h"
 #include "SetExpressionIr.h"
 #include "SimpleSingleTableQueryProcessor.h"
 
@@ -27,6 +28,8 @@ using std::function;
 using std::shared_ptr;
 
 using pdb::Handle;
+using pdb::QueryBase;
+using pdb::Selection;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
@@ -51,8 +54,7 @@ namespace pdb_detail
          * @param the page processor originally associated with user query node
          * @return the selection
          */
-        SelectionIr(shared_ptr<SetExpressionIr> inputSet, shared_ptr<RecordPredicateIr> condition,
-                    SimpleSingleTableQueryProcessorPtr processor);
+        SelectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection);
 
         // contract from super
         virtual void execute(SetExpressionIrAlgo &algo) override;
@@ -63,15 +65,10 @@ namespace pdb_detail
         virtual shared_ptr<SetExpressionIr> getInputSet();
 
         /**
-         * @return the filter applied to each record of the input set to determine membership in the subset.
-         */
-        virtual shared_ptr<RecordPredicateIr> getCondition();
-
-        /**
          * @return gets a processor capable of applying this node type to input pages to produce output pages.
          */
         template <class Output, class Input>
-        SimpleSingleTableQueryProcessorPtr makeProcessor(Handle<Input> &inputPlaceholder);
+        SimpleSingleTableQueryProcessorPtr makeProcessor();
 
         string getName() override;
 
@@ -85,9 +82,9 @@ namespace pdb_detail
         /**
          * Records filter.
          */
-        shared_ptr<RecordPredicateIr> _condition;
+        // TODO: generalize this to RecordPredicateIr
+        Handle<QueryBase> _originalSelection;
 
-        //function<Handle<I>,SimpleSingleTableQueryProcessorPtr> _processor;
     };
 }
 

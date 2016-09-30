@@ -16,6 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <map>
+
 #include "Handle.h"
 #include "IrBuilder.h"
 
@@ -25,6 +27,7 @@
 #include "Selection.h"
 #include "SelectionIr.h"
 #include "Query.h"
+#include "QueryOutput.h"
 #include "QueryBase.h"
 #include "Set.h"
 #include "SourceSetNameIr.h"
@@ -32,10 +35,13 @@
 
 #include "Employee.h"
 
+using std::map;
+
 using pdb::Handle;
 using pdb::Query;
 using pdb::QueryAlgo;
 using pdb::QueryBase;
+using pdb::QueryOutput;
 using pdb::Selection;
 using pdb::Object;
 using pdb::Set;
@@ -44,38 +50,20 @@ using pdb::unsafeCast;
 using pdb::Vector;
 
 
+
+
 namespace pdb_detail
 {
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode);
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated);
 
-    shared_ptr<SelectionIr> makeSelection(Handle<Selection<Object,Object>> selectAndProject)
+    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
     {
-        class RecordPredicateFromSelection : public RecordPredicateIr
-        {
-        public:
-
-            RecordPredicateFromSelection(Handle<Selection<Object,Object>> originalSelection)
-                    : _originalSelection(originalSelection)
-            {
-            }
-
-            Lambda<bool> toLambda(Handle<Object>& inputRecordPlaceholder) //override
-            {
-                return _originalSelection->getSelection(inputRecordPlaceholder);
-            }
-
-        private:
-
-            Handle<Selection<Object,Object>> _originalSelection;
-
-        };
-
 
         shared_ptr<SetExpressionIr> selectionInputIr;
         {
             if(selectAndProject->hasInput())
             {
-                selectionInputIr = makeSetExpression(selectAndProject->getIthInput(0));
+                selectionInputIr = makeSetExpression(selectAndProject->getIthInput(0), alreadyTranslated);
             }
             else
             {
@@ -83,44 +71,17 @@ namespace pdb_detail
             }
         }
 
-
-        shared_ptr<RecordPredicateFromSelection> predicate =
-                make_shared<RecordPredicateFromSelection>(selectAndProject);
-
-        return make_shared<SelectionIr>(selectionInputIr, predicate, selectAndProject->getFilterProcessor());
+        return make_shared<SelectionIr>(selectionInputIr, selectAndProject);
     }
 
 
-    shared_ptr<ProjectionIr> makeProjection(Handle<Selection<Object,Object>> selectAndProject)
+    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
     {
-        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject);
+        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject, alreadyTranslated);
 
-        class RecordProjectionFromSelection : public RecordProjectionIr
-        {
-        public:
+        shared_ptr<ProjectionIr> projection =  make_shared<ProjectionIr>(inputSet, selectAndProject);
 
-            RecordProjectionFromSelection(Handle<Selection<Object,Object>> selection) : _selection(selection)
-            {
-
-            }
-
-            Lambda<Handle<Object>> toLambda(Handle<Object> &inputRecordPlaceholder) //override
-            {
-                return _selection->getProjection(inputRecordPlaceholder);
-            }
-
-        private:
-
-            Handle<Selection<Object,Object>> _selection;
-
-        };
-
-        shared_ptr<RecordProjectionFromSelection> predicate =
-                make_shared<RecordProjectionFromSelection>(selectAndProject);
-
-        shared_ptr<ProjectionIr> projection =  make_shared<ProjectionIr>(inputSet, predicate);
-
-        if(selectAndProject->getDBName() != "")
+        if(selectAndProject->getDBName().length() > 0)
         {
             string dbName = selectAndProject->getDBName();
             string setName = selectAndProject->getSetName();
@@ -130,31 +91,44 @@ namespace pdb_detail
         return projection;
     }
 
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode)
+
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
+                                                  shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &isPreexistingNode)
     {
+
         if(queryNode.isNullPtr())
             return shared_ptr<SetExpressionIr>();
+
+        if(alreadyTranslated.count(queryNode) > 0)
+        {
+            isPreexistingNode = false;
+            return alreadyTranslated[queryNode];
+        }
+        else
+        {
+            isPreexistingNode = true;
+        }
 
         class Algo : public QueryAlgo
         {
         public:
 
-            Algo(Handle<QueryBase> queryNodeParam) : _queryNode(queryNodeParam)
+            Algo(Handle<QueryBase> queryNodeParam, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
+                    : _queryNode(queryNodeParam), _alreadyTranslated(alreadyTranslated)
             {
             }
 
-            virtual void forSelection()
+            void forSelection() override
             {
-                output = makeProjection(unsafeCast<Selection<Object,Object> ,QueryBase>(_queryNode));
+                output = makeProjection(_queryNode, _alreadyTranslated);
             }
 
-            virtual void forSet()
+            void forSet() override
             {
-                Handle<Set<Object>> set = unsafeCast<Set<Object>,QueryBase>(_queryNode);
-                int numInputs = set->getNumInputs();
+                int numInputs = _queryNode->getNumInputs();
 
-                string dbName = set->getDBName();
-                string setName = set->getSetName();
+                string dbName = _queryNode->getDBName();
+                string setName = _queryNode->getSetName();
 
                 if(numInputs == 0)
                 {
@@ -162,35 +136,75 @@ namespace pdb_detail
                 }
                 else
                 {
-                    Handle<QueryBase> setInput = set->getIthInput(0);
+                    Handle<QueryBase> setInput = _queryNode->getIthInput(0);
 
-                    output = makeSetExpression(setInput);
+                    output = makeSetExpression(setInput, _alreadyTranslated);
 
                     output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
                 }
+            }
+
+            void forQueryOutput() override
+            {
+
+                string dbName = _queryNode->getDBName();
+                string setName = _queryNode->getSetName();
+
+                Handle<QueryBase> outputInput = _queryNode->getIthInput(0);
+
+                output = makeSetExpression(outputInput, _alreadyTranslated);
+
+                output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
             }
 
             shared_ptr<SetExpressionIr> output;
 
         private:
 
+            map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &_alreadyTranslated;
+
             Handle<QueryBase> _queryNode;
 
-        } algo(queryNode);
+        } algo(queryNode, alreadyTranslated);
 
         queryNode->execute(algo);
+
+        alreadyTranslated[queryNode] = algo.output;
 
         return algo.output;
     }
 
-    QueryGraphIr buildIr(Handle<QueryBase> querySink)
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
+            shared_ptr<SetExpressionIr>> &alreadyTranslated)
     {
-        shared_ptr<SetExpressionIr> transSink = makeSetExpression(querySink);
+        bool forget;
+        return makeSetExpression(queryNode, alreadyTranslated, forget);
+    }
 
+    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks)
+    {
         shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes = make_shared<vector<shared_ptr<SetExpressionIr>>>();
-        sinkNodes->push_back(transSink);
+
+        map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> alreadyTranslated;
+
+        for (list<Handle<QueryBase>>::const_iterator i = querySinks.begin(); i != querySinks.end(); ++i)
+        {
+            bool isNewNode;
+            shared_ptr<SetExpressionIr> se = makeSetExpression(*i, alreadyTranslated, isNewNode);
+            if(isNewNode)
+                sinkNodes->push_back(se);
+
+        }
+
 
         return QueryGraphIr(sinkNodes);
+    }
+
+    QueryGraphIr buildIr(Handle<QueryBase> querySink)
+    {
+        list<Handle<QueryBase>> sinks = { querySink };
+
+        return buildIr(sinks);
     }
 
 

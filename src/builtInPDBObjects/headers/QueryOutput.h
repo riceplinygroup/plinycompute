@@ -73,7 +73,10 @@ public:
 		return "localoutput";
 	}
 
-	void execute (QueryAlgo&) override {}
+	void execute (QueryAlgo& algo) override
+	{
+		algo.forQueryOutput();
+	}
 
 private:
 

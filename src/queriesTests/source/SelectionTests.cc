@@ -93,6 +93,10 @@ namespace pdb_tests
             {
             }
 
+            void forQueryOutput() override
+            {
+            }
+
             bool isSelection = false;
 
         };
