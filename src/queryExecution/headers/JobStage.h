@@ -18,12 +18,15 @@
 #ifndef JOBSTAGE_H
 #define JOBSTAGE_H
 
+//by Jia, Oct 1st
+
 #include "Object.h"
 #include "DataTypes.h"
 #include "Handle.h"
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "SetIdentifier.h"
+#include "SetExpressionIr.h"
 
 // PRELOAD %JobStage%
 
@@ -36,8 +39,7 @@ namespace pdb {
             JobStage () {}
             ~JobStage () {}
  
-            JobStage (Handle<Vector<Handle<SetIdentifier>>> inputs, Handle<Vector<Handle<SetIdentifier>>> outputs, bool aggregationOrNot, bool finalOrNot) : inputs(inputs), outputs(outputs), aggregationOrNot(aggregationOrNot), finalOrNot(finalOrNot) {}
-
+            JobStage (Handle<Vector<Handle<SetIdentifier>>> inputs, Handle<Vector<Handle<SetIdentifier>>> outputs, Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> operators, bool aggregationOrNot, bool finalOrNot) : inputs(inputs), outputs(outputs), operators(operators), aggregationOrNot(aggregationOrNot), finalOrNot(finalOrNot) {}
 
 
             //to return a vector of input set identifiers
@@ -48,6 +50,11 @@ namespace pdb {
             //to return a vector of output set identifiers
             Handle<Vector<Handle<SetIdentifier>>> getOutputs() {
                 return this->outputs;
+            }
+
+            //to return a vector of operators for this JobStage
+            Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> getOperators() {
+                return this->operators;
             }
 
             //to return whether this stage is an aggregation stage
@@ -65,13 +72,14 @@ namespace pdb {
 
     private:
 
-
-
             //Input set information
             Handle<Vector<Handle<SetIdentifier>>> inputs;
 
             //Output set information
             Handle<Vector<Handle<SetIdentifier>>> outputs;
+
+            //operator information
+            Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> operators;
 
             //Is this stage an aggregation stage?
             bool aggregationOrNot;
@@ -79,10 +87,7 @@ namespace pdb {
             //Does this stage produces final output?
             bool finalOrNot;
 
-
-
    };
-
 
 }
 
