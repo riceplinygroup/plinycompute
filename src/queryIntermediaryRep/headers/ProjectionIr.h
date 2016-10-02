@@ -21,8 +21,10 @@
 #include <memory>
 
 #include "InterfaceFunctions.h"
+#include "ProcessorFactoryProjectionQueryProcessor.h"
 #include "RecordProjectionIr.h"
 #include "Lambda.h"
+#include "ProcessorFactory.h"
 #include "Selection.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "QueryNodeIr.h"
@@ -32,7 +34,10 @@
 using std::shared_ptr;
 using std::make_shared;
 
+using pdb::makeObject;
 using pdb::Lambda;
+using pdb::ProcessorFactory;
+using pdb::ProcessorFactoryProjectionQueryProcessor;
 using pdb::ProjectionQueryProcessor;
 using pdb::QueryBase;
 using pdb::Selection;
@@ -75,6 +80,11 @@ namespace pdb_detail
         {
             return make_shared<ProjectionQueryProcessor<Output,Input>>(_originalSelection);
         };
+
+        Handle<ProcessorFactory> makeProcessorFactory()
+        {
+            return makeObject<ProcessorFactoryProjectionQueryProcessor>(_originalSelection);
+        }
 
 
     private:

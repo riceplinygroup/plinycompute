@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "ProcessorFactoryFilterQueryProcessor.h"
 #include "SelectionIr.h"
 
 #include "Selection.h"
@@ -27,6 +28,7 @@ using std::make_shared;
 
 using pdb::FilterQueryProcessor;
 using pdb::makeObject;
+using pdb::ProcessorFactoryFilterQueryProcessor;
 using pdb::Selection;
 
 namespace pdb_detail
@@ -56,10 +58,14 @@ namespace pdb_detail
        return _inputSet;
     }
 
-    template <class Output, class Input>
+    Handle<ProcessorFactory> SelectionIr::makeProcessorFactory()
+    {
+        return makeObject<ProcessorFactoryFilterQueryProcessor>(_originalSelection);
+    }
+
     SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor()
     {
-        return make_shared<FilterQueryProcessor<Output,Input>>(_originalSelection);
+        return make_shared<FilterQueryProcessor<Object,Object>>(_originalSelection);
     }
 
 }
