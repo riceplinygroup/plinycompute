@@ -19,6 +19,7 @@
 #define PDB_QUERYINTERMEDIARYREP_SELECTION_H
 
 #include "Handle.h"
+#include "ProcessorFactory.h"
 #include "RecordPredicateIr.h"
 #include "Selection.h"
 #include "SetExpressionIr.h"
@@ -28,6 +29,7 @@ using std::function;
 using std::shared_ptr;
 
 using pdb::Handle;
+using pdb::ProcessorFactory;
 using pdb::QueryBase;
 using pdb::Selection;
 using pdb::SimpleSingleTableQueryProcessorPtr;
@@ -64,10 +66,11 @@ namespace pdb_detail
          */
         virtual shared_ptr<SetExpressionIr> getInputSet();
 
+        Handle<ProcessorFactory> makeProcessorFactory();
+
         /**
          * @return gets a processor capable of applying this node type to input pages to produce output pages.
          */
-        template <class Output, class Input>
         SimpleSingleTableQueryProcessorPtr makeProcessor();
 
         string getName() override;
