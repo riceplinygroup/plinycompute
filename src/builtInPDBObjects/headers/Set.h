@@ -50,7 +50,7 @@ public:
 	}
 
 	void execute(QueryAlgo& algo) override {
-		algo.forSet();
+		algo.forSet(*this);
 	}
 
 	// gets the number of inputs

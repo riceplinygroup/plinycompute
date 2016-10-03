@@ -84,16 +84,16 @@ namespace pdb_tests
         {
         public:
 
-            void forSelection() override
+            void forSelection(Object&) override
             {
                 isSelection = true;
             }
 
-            void forSet() override
+            void forSet(Object&) override
             {
             }
 
-            void forQueryOutput() override
+            void forQueryOutput(Object&) override
             {
             }
 

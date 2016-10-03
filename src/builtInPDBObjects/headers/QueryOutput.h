@@ -75,7 +75,7 @@ public:
 
 	void execute (QueryAlgo& algo) override
 	{
-		algo.forQueryOutput();
+		algo.forQueryOutput(*this);
 	}
 
 private:

@@ -17,6 +17,8 @@
  *****************************************************************************/
 #include "MaterializationMode.h"
 
+#include <iostream>
+
 using std::string;
 
 namespace pdb_detail
