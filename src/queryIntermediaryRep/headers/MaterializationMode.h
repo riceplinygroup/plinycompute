@@ -37,6 +37,16 @@ namespace pdb_detail
         virtual bool isNone() = 0;
 
         virtual void execute(MaterializationModeAlgo &algo) = 0;
+
+        /**
+         * returns the name of the database to materialize into, or noneValue if no materialization is to be done.
+         */
+        virtual string tryGetDatabaseName(string &noneValue) = 0;
+
+        /**
+         * returns the name of the set to materialize into, or noneValue if no materialization is to be done.
+         */
+        virtual string tryGetSetName(string &noneValue) = 0;
     };
 
     class MaterializationModeNone : public MaterializationMode
@@ -44,6 +54,16 @@ namespace pdb_detail
         bool isNone() override;
 
         void execute(MaterializationModeAlgo &algo) override ;
+
+        string tryGetDatabaseName(string &defaultValue) override
+        {
+           return defaultValue;
+        }
+
+        string tryGetSetName(string &defaultValue) override
+        {
+            return defaultValue;
+        }
 
     };
 
@@ -61,6 +81,16 @@ namespace pdb_detail
         string getDatabaseName();
 
         string getSetName();
+
+        string tryGetDatabaseName(string &defaultValue) override
+        {
+            return getDatabaseName();
+        }
+
+        string tryGetSetName(string &defaultValue) override
+        {
+            return getSetName();
+        }
 
     private:
 
