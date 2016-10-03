@@ -16,67 +16,45 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+#ifndef BLOCK_QUERY_PROCESSOR_H
+#define BLOCK_QUERY_PROCESSOR_H
 
-//by Jia, Oct 2016
-
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
+#include <memory>
+#include "GenericBlock.h"
 
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+class BlockQueryProcessor;
+typedef std :: shared_ptr <BlockQueryProcessor> BlockQueryProcessorPtr;
+
+// this pure virtual class is spit out by a simple query class (like the Selection class)... it is then
+// used by the system to process queries
+//
+class BlockQueryProcessor {
 
 public:
 
-	SetIdentifier () {}
-	~SetIdentifier () {}
+	// must be called before the query processor is asked to do anything
+	virtual void initialize () = 0;
 
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
+	// loads up another input block to read input data
+	virtual void loadInputBlock (Handle<GenericBlock> block) = 0;
 
-	std :: string getDatabase () {
-		return dataBase;
-	}
+	// load up another output block to write output data
+	virtual Handle<GenericBlock> loadOutputBlock (size_t batchSize) = 0;
 
-	std :: string getSetName () {
-		return setName;
-	}
+	// attempts to fill the next output block with data.  Returns true if it can.  If it
+	// cannot, returns false, and the next call to loadInputBlock should be made
+	virtual bool fillNextOutputBlock () = 0;
 
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
+	// must be called after all of the input pages have been sent in
+	virtual void finalize () = 0;
 
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
+        // must be called before free the data in output page
+        virtual void clearOutputBlock() = 0;
 
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
-
-private:
-
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
+        // must be called before free the data in input page
+        virtual void clearInputBlock() = 0;
 
 };
 

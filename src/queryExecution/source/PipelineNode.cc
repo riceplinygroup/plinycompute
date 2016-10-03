@@ -39,6 +39,7 @@ PipelineNode :: PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool
     this->outputSet = outputSet;
     this->operatorId = operatorId;
     this->children = new std :: vector<PipelineNodePtr>();
+    this->context = nullptr;
 }
 
 
@@ -69,6 +70,15 @@ OperatorID PipelineNode :: getOperatorId() {
 void PipelineNode :: addChild(PipelineNodePtr node) {
     this->children->push_back(node);
 }
+
+void PipelineNode :: setContext(PipelineContextPtr context) {
+    this->context = context;
+}
+
+PipelineContextPtr getContext() {
+    return this->context;
+}
+
 
 
 bool PipelineNode :: run(DataProxyPtr proxy, void * inputBatch, int batchSize) {

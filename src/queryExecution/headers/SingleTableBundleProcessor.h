@@ -16,67 +16,56 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+#ifndef SINGLE_TABLE_BUNDLE_PROCESSOR_H
+#define SINGLE_TABLE_BUNDLE_PROCESSOR_H
 
-//by Jia, Oct 2016
-
-#include "Object.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "InterfaceFunctions.h"
+#include "PDBVector.h"
+#include "Selection.h"
 #include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
+#include "GenericBlock.h"
+#include "PipelineContext.h"
 
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
-
-public:
-
-	SetIdentifier () {}
-	~SetIdentifier () {}
-
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
-
-	std :: string getDatabase () {
-		return dataBase;
-	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
+class SingleTableBundleProcessor  {
 
 private:
 
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
+	// this is the list of input objects
+	Handle <Vector <Handle <Object>>> inputVec;
+
+	// this is where we are in the input
+	size_t posInInput;
+
+	// this is where the output objects are put
+	Handle<GenericBlock> outputBlock;
+
+	// tells whether we have been finalized
+	bool finalized;
+
+        // size of objects in the output GenericBlock
+        size_t batchSize;
+
+        // pipeline context
+        PipelineContextPtr context;
+
+
+public:
+
+        ~SingleTableBundleProcessor ();
+	SingleTableBundleProcessor ();
+	void initialize ();
+        void loadInputPage (void *pageToProcess);
+        Handle<GenericBlock> loadOutputBlock (size_t batchSize);
+        bool fillNextOutputBlock ();
+        void finalize ();
+        void clearOutputBlock ();
+        void clearInputPage ();
+        void setContext (PipelineContextPtr context);
+        PipelineContextPtr getContext ();
+
 
 };
 

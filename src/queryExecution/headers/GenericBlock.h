@@ -15,71 +15,41 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef GENERIC_BLOCK_H
+#define GENERIC_BLOCK_H
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+//by Jia, Oct, 2016
 
-//by Jia, Oct 2016
-
+#include "PDBVector.h"
 #include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
 
-namespace pdb {
+using namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+//this class encapsulates a block of tuples/objects
+//a page in user set can be transformed into a vector of generic blocks
+//a generic block will be the basic unit of execution in pipeline
+//most processors are based on generic block, except two: bundle processor and unbundle processor
+//a bundle processor converts several pages into a vector of generic blocks;
+//an unbundle processor converts a vector of generic blocks into several pages;
 
-public:
-
-	SetIdentifier () {}
-	~SetIdentifier () {}
-
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
-
-	std :: string getDatabase () {
-		return dataBase;
-	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
+class GenericBlock : public Object {
 
 private:
 
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
+    Vector<Handle<Object>> block;
+
+public:
+
+    ~GenericBlock() {}
+
+    GenericBlock() {}
+
+    Vector<Handle<Object>> getBlock() {
+        return block;
+    }
 
 };
 
 }
 
-#endif
+#end

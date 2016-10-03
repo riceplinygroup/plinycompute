@@ -21,13 +21,14 @@
 
 //by Jia, Sept 2016
 
-#include <vector>
 #include "SimpleSingleTableQueryProcessor.h"
 #include "DataTypes.h"
 #include "SetIdentifier.h"
 #include "RefCountedOnHeapSmallPage.h"
-#include <memory>
 #include "DataProxy.h"
+#include "PipelineContext.h"
+#include <memory>
+#include <vector>
 
 typdef std :: shared_ptr<PipelineNode> PipelineNodePtr;
 
@@ -61,6 +62,9 @@ private:
     // operator Id
     OperatorID id;    
 
+    // pointer to the pipeline context which stores global variables
+    PipelineContextPtr context;    
+
    
 public:
 
@@ -93,6 +97,12 @@ public:
 
     // running the pipeline
     bool run (DataProxyPtr proxy, void * inputBatch, int batchSize);
+
+    // set context
+    void setContext(PipelineContextPtr context);
+
+    // get context
+    PipelineContextPtr getContext();
       
 };
 
