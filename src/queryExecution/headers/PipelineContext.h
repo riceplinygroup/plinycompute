@@ -15,71 +15,62 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+#ifndef PIPELINE_CONTEXT_H
+#define PIPELINE_CONTEXT_H
 
 //by Jia, Oct 2016
 
-#include "Object.h"
 #include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
+#include "PDBVector.h"
+#include "Object.h"
+#include <memory>
 
-namespace pdb {
+typedef shared_ptr<PipelineContext> PipelineContextPtr;
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+using namespace pdb {
 
-public:
 
-	SetIdentifier () {}
-	~SetIdentifier () {}
+//this class encapsulates the global state that is shared by pipeline nodes in the same pipeline network
+class PipelineContext {
 
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){}
+    private:
 
-	std :: string getDatabase () {
-		return dataBase;
-	}
+    //the final output vector that needs to invoke getRecord() on
+    Handle<Vector<Handle<Object>> outputVec;
 
-	std :: string getSetName () {
-		return setName;
-	}
+    //the number of GenericBlocks allocated in the output page that hasn't been read
+    int numUnreadGenericBlocks;
 
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
+    public:
 
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
+    PipelineContext (Handle<Vector<Handle<Object>>> outputVec) {
+        this->outputVec = outputVec;
+        int numUnreadGenericBlocks = 0;
+    }
 
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
+    Handle<Vector<Handle<Object>>> getOutputVec() {
+        return this->outputVec;
+    }
 
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
+    void incNumUnreadGenericBlocks() {
+        numUnreadGenericBlocks ++;
+    }
 
-        SetID getSetId() {
-                return setId;
-        }
+    void decNumUnreadGenericBlocks() {
+        numUnreadGenericBlocks --;
+    }
 
-private:
-
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
-
-};
+    void clearOutputPage() {
+        outputVec = nullptr;
+    }
 
 }
+
+
+
+}
+
+
+
 
 #endif
