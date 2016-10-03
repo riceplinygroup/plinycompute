@@ -80,6 +80,11 @@ namespace pdb_detail
         {
             return make_shared<ProjectionQueryProcessor<Output,Input>>(_originalSelection);
         };
+        
+        //added for temporary use in physical planning
+        Handle<QueryBase> getQueryBase() {
+            return _originalSelection;
+        }
 
         Handle<ProcessorFactory> makeProcessorFactory()
         {

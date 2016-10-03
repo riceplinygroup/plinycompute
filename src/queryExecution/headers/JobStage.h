@@ -26,7 +26,7 @@
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "SetIdentifier.h"
-#include "SetExpressionIr.h"
+#include "ExecutionOperator.h"
 
 // PRELOAD %JobStage%
 
@@ -37,34 +37,71 @@ namespace pdb {
     public:
 
             JobStage () {}
-            ~JobStage () {}
- 
-            JobStage (Handle<Vector<Handle<SetIdentifier>>> inputs, Handle<Vector<Handle<SetIdentifier>>> outputs, Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> operators, bool aggregationOrNot, bool finalOrNot) : inputs(inputs), outputs(outputs), operators(operators), aggregationOrNot(aggregationOrNot), finalOrNot(finalOrNot) {}
 
-
-            //to return a vector of input set identifiers
-            Handle<Vector<Handle<SetIdentifier>>> getInputs() {
-                return this->inputs;
+            JobStage (JobStageID stageId) {
+                this->id = stageId;
             }
 
+            ~JobStage () {}
+ 
+
+            void setInput( Handle<SetIdentifier> input ) {
+                this->input = input;
+            }
+
+            //to return input set identifier
+            Handle<SetIdentifier> getInput() {
+                return this->input;
+            }
+
+            void setOutput( Handle<SetIdentifier> output ) {
+                this->output = output;
+            }
+
+
             //to return a vector of output set identifiers
-            Handle<Vector<Handle<SetIdentifier>>> getOutputs() {
-                return this->outputs;
+            Handle<SetIdentifier> getOutput() {
+                return this->output;
+            }
+
+            void addOperator( Handle<ExecutionOperator> executionOperator ) {
+                operators.push_back(executionOperator);
             }
 
             //to return a vector of operators for this JobStage
-            Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> getOperators() {
+            Vector<Handle<ExecutionOperator>> getOperators() {
                 return this->operators;
             }
+
+            void setAggregation (bool aggregationOrNot) {
+                this->aggregationOrNot = aggregationOrNot;
+            }            
 
             //to return whether this stage is an aggregation stage
             bool isAggregation() {
                 return this->aggregationOrNot;
             }
 
+            void setFinal( bool finalOrNot ) {
+                this->finalOrNot = finalOrNot;
+            }
+
+
             //to return whether this stage produces final outputs
             bool isFinal() {
                 return this->finalOrNot;
+            }
+
+            Vector<Handle<JobStage>> getChildrenStages() {
+                return this->childrenStages;
+            }
+
+            void appendStage(Handle<JobStage> childStage) {
+                this->childrenStages.push_back(childStage);
+            }	
+
+            JobStageID getStageId() {
+                return this->id;
             }
 
             ENABLE_DEEP_COPY
@@ -73,13 +110,13 @@ namespace pdb {
     private:
 
             //Input set information
-            Handle<Vector<Handle<SetIdentifier>>> inputs;
+            Handle<SetIdentifier> input;
 
             //Output set information
-            Handle<Vector<Handle<SetIdentifier>>> outputs;
+            Handle<SetIdentifier> output;
 
             //operator information
-            Handle<Vector<Handle<pdb_detail::SetExpressionIr>>> operators;
+            Vector<Handle<ExecutionOperator>> operators;
 
             //Is this stage an aggregation stage?
             bool aggregationOrNot;
@@ -87,6 +124,10 @@ namespace pdb {
             //Does this stage produces final output?
             bool finalOrNot;
 
+            //children nodes
+            Vector<Handle<JobStage>> childrenStages;
+
+            JobStageID id;
    };
 
 }

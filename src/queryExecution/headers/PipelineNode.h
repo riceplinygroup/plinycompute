@@ -53,7 +53,10 @@ private:
     bool amISink;
 
     // the identifier of the set as the input data of this node
-    SetIdentifier set;
+    Handle<SetIdentifier> inputSet;
+
+    // the identifier of the set as the output data of this node
+    Handle<SetIdentifier> outputSet;
 
     // operator Id
     OperatorID id;    
@@ -65,10 +68,10 @@ public:
     ~PipelineNode ();
 
     // constructor
-    PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, SetIdentifier set);
+    PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
 
     // return all children
-    std :: vector<PipelineNodePtr> getChildren();
+    std :: vector<PipelineNodePtr> * getChildren();
 
     // return whether I am the source node
     bool isSource();
@@ -77,7 +80,10 @@ public:
     bool isSink();
 
     // return the set identifier as the input data of this node
-    SetIdentifier getSet();
+    Handle<SetIdentifier> getInputSet();
+
+    // return the set idenifier as the output data of this node
+    Handle<SetIdentifier> getOutputSet();
 
     // return the operator Id
     OperatorID getOperatorId();

@@ -34,17 +34,74 @@ PipelineNetwork :: ~PipelineNetwork () {
     delete allNodes;
 }
 
-PipelineNetwork :: PipelineNetwork (SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, JobStageID id, size_t batchSize, int numThreads) {
+PipelineNetwork :: PipelineNetwork (SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads) {
     sourceNodes = new std :: vector<PipelineNodePtr> ();
     allNodes = new std :: unordered_map<OperatorID, PipelineNodePtr>();
-    stageId = id;
     this->batchSize = batchSize;
     this->numThreads = numThreads;
     this->nodeId = nodeId;
     this->logger = logger;
     this->conf = conf;
     this->shm = shm;
+    this->id = 0;
 }
+
+void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage> stage) {
+    if(parentNode == nullptr) {
+        this->stageId = stage->getStageId(); 
+    }
+    Handle<JobStage> curStage = stage;
+    if (curStage != nullptr) {   
+        PipelineNodePtr nextParentNode = nullptr;
+        Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
+        Handle<ExecutionOperator> sourceOperator = operators[0];
+        SimpleSingleTableQueryProcessorPtr processor = sourceOperator->getProcessor();
+        bool isSink;
+        Handle<SetIdentifier> outputSet = nullptr;
+        if (operators->size() == 1) {
+            isSink = true;
+            outputSet = stage->getOutput();
+        } else {
+            isSink = false;
+        }
+        PipelineNodePtr node = nullptr;
+        if (parentNode == nullptr) {
+            Handle<SetIdentifier> inputSet = stage->getInput();
+            node = make_shared<PipelineNode>(processor, true, isSink, inputSet, outputSet, id);
+            appendSourceNode (node);
+        } else {
+            node = make_shared<PipelineNode>(processor, false, isSink, nullptr, outputSet, id);
+            appendNode(parentNode->getOperatorId(), node);
+        }
+        if (isSink == true) {
+            nextParentNode = node;
+        }
+        id ++;
+        for (int i = 1; i < operators.size(); i++) {
+            Handle<ExecutionOperator> curOperator = operators[i];
+            SimpleSingleTableQueryProcessorPtr curProcessor = curOperator->getProcessor();
+            bool isSource = false;
+            Handle<SetIdentifier> inputSet = nullptr;
+            bool isSink = false;
+            Handle<SetIdentifier> outputSet = nullptr;
+            if(i == operators.size()-1) {
+                isSink = true;
+                outputSet = stage->getOutput();
+            }
+            PipelineNodePtr node = make_shared<PipelineNode>(curProcessor, isSource, isSink, inputSet, outputSet, id);
+            appendNode(id - 1, node);
+            id ++;
+            if (isSink == true) {
+                nextParentNode = node;
+            }
+        }
+        Vector<Handle<JobStage>> childrenStage = stage->getChildrenStages();
+        for (int i = 0; i < childrenStage.size(); i ++) {
+            initialize(nextParentNode, childrenStage[i]);
+        }
+    }
+}
+
 
 JobStageID PipelineNetwork :: getStageId () {
     return stageId;

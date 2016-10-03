@@ -76,19 +76,23 @@ int main () {
         std :: list <Handle<QueryBase>> queries;
         queries.push_back(outputOne);
         queries.push_back(outputTwo);
-         pdb_detail::QueryGraphIr queryGraph = buildIr(queries);
-         shared_ptr<pdb_detail::SetExpressionIr> sinkNode0 = queryGraph.getSinkNode(0);
-         std :: cout << sinkNode0->getName() << std :: endl;
-         shared_ptr<pdb_detail::ProjectionIr> sinkNode0Typed = dynamic_pointer_cast<pdb_detail::ProjectionIr>(sinkNode0);
-         std :: cout << sinkNode0Typed->getName() << std :: endl;
-         shared_ptr<pdb_detail::SetExpressionIr> internalNode1 = sinkNode0Typed->getInputSet();
-         std :: cout << internalNode1->getName() << std :: endl;
-         shared_ptr<pdb_detail::SelectionIr> internalNode1Typed = dynamic_pointer_cast<pdb_detail::SelectionIr>(internalNode1);
-         std :: cout << internalNode1Typed->getName() << std :: endl;
-         shared_ptr<pdb_detail::SetExpressionIr> internalNode2 = internalNode1Typed->getInputSet();
-         std :: cout << internalNode2->getName() << std :: endl;
-         shared_ptr<pdb_detail::SourceSetNameIr> internalNode2Typed = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(internalNode2);
-
+        pdb_detail::QueryGraphIr queryGraph = buildIr(queries);
+        shared_ptr <pdb_detail::SetExpressionIr> curNode;
+        for (int i = 0; i < queryGraph.getSinkNodeCount(); i ++) {
+            curNode = queryGraph.getSinkNode(i);
+            std :: cout << "the " << i << "-th sink:" << std :: endl;
+            std :: cout << curNode->getName() << std :: endl;
+            while (curNode->getName() != "SourceSetNameIr") {
+                if(curNode->getName() == "SelectionIr") {
+                    shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
+                    curNode = selectionNode->getInputSet();
+                } else if (curNode->getName() == "ProjectionIr") {
+                    shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
+                    curNode = projectionNode->getInputSet();
+                }
+                std :: cout << curNode->getName() << std :: endl;
+            }
+       }
 /*	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";

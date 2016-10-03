@@ -55,10 +55,32 @@ namespace pdb_detail
             return _materializationMode;
         }
 
+        //added for converting logical plan into physical plan
+
+        void setTraversed (bool traversed, int traversalId) {
+            _traversed = traversed;
+            _traversalId = traversalId;
+        }
+
+        bool isTraversed() {
+            return _traversed;
+        }
+
+        int getTraversalId() {
+            return _traversalId;
+        }
+
+
+
     private:
 
         shared_ptr<MaterializationMode> _materializationMode =  make_shared<MaterializationModeNone>();
 
+        //added for converting logical plan into physical plan
+
+        bool _traversed = false;
+
+        int _traversalId = -1;
     };
 }
 

@@ -26,6 +26,7 @@
 #include "PDBLogger.h"
 #include "Configuration.h"
 #include "SharedMem.h"
+#include "JobStage.h"
 
 namespace pdb {
 
@@ -61,13 +62,19 @@ private:
     // shared memory
     SharedMemPtr shm;
 
+    // operator id
+    OperatorID id;
+
 public:
 
     //destructor
     ~PipelineNetwork();
 
     //constructor
-    PipelineNetwork(SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, JobStageID id, size_t batchSize, int numThreads);
+    PipelineNetwork(SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads);
+
+    //initialize from a job stage
+    void initialize (PipelineNodePtr node, Handle<JobStage> stage);
 
     //return the job stage id
     JobStageID getStageId();

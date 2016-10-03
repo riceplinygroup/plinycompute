@@ -75,6 +75,10 @@ namespace pdb_detail
 
         string getName() override;
 
+        //added for temporary use in physical planning
+        Handle<QueryBase> getQueryBase();
+
+
     private:
 
         /**
