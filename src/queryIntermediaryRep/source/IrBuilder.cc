@@ -16,6 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <cstdint>
 #include <map>
 
 #include "Handle.h"
@@ -54,16 +55,16 @@ using pdb::Vector;
 
 namespace pdb_detail
 {
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated);
+    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode);
 
-    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
+    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
     {
 
         shared_ptr<SetExpressionIr> selectionInputIr;
         {
             if(selectAndProject->hasInput())
             {
-                selectionInputIr = makeSetExpression(selectAndProject->getIthInput(0), alreadyTranslated);
+                selectionInputIr = makeSetExpressionHelp(selectAndProject->getIthInput(0), alreadyTranslated, madeNewNode);
             }
             else
             {
@@ -71,15 +72,17 @@ namespace pdb_detail
             }
         }
 
+        madeNewNode = true;
         return make_shared<SelectionIr>(selectionInputIr, selectAndProject);
     }
 
 
-    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
+    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
     {
-        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject, alreadyTranslated);
+        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject, alreadyTranslated, madeNewNode);
 
         shared_ptr<ProjectionIr> projection =  make_shared<ProjectionIr>(inputSet, selectAndProject);
+        madeNewNode = true;
 
         if(selectAndProject->getDBName().length() > 0)
         {
@@ -92,38 +95,34 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
-                                                  shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &isPreexistingNode)
+    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
+                                                  shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
     {
-
         if(queryNode.isNullPtr())
             return shared_ptr<SetExpressionIr>();
 
         if(alreadyTranslated.count(queryNode) > 0)
         {
-            isPreexistingNode = false;
             return alreadyTranslated[queryNode];
-        }
-        else
-        {
-            isPreexistingNode = true;
         }
 
         class Algo : public QueryAlgo
         {
         public:
 
-            Algo(Handle<QueryBase> queryNodeParam, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated)
-                    : _queryNode(queryNodeParam), _alreadyTranslated(alreadyTranslated)
+            Algo(Handle<QueryBase> queryNodeParam,
+                 map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated,
+                 bool &madeNewNode)
+                    : _queryNode(queryNodeParam), _alreadyTranslated(alreadyTranslated), _madeNewNode(madeNewNode)
             {
             }
 
-            void forSelection() override
+            void forSelection(Object&) override
             {
-                output = makeProjection(_queryNode, _alreadyTranslated);
+                output = makeProjection(_queryNode, _alreadyTranslated, _madeNewNode);
             }
 
-            void forSet() override
+            void forSet(Object&) override
             {
                 int numInputs = _queryNode->getNumInputs();
 
@@ -138,13 +137,13 @@ namespace pdb_detail
                 {
                     Handle<QueryBase> setInput = _queryNode->getIthInput(0);
 
-                    output = makeSetExpression(setInput, _alreadyTranslated);
+                    output = makeSetExpressionHelp(setInput, _alreadyTranslated, _madeNewNode);
 
                     output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
                 }
             }
 
-            void forQueryOutput() override
+            void forQueryOutput(Object&) override
             {
 
                 string dbName = _queryNode->getDBName();
@@ -152,7 +151,7 @@ namespace pdb_detail
 
                 Handle<QueryBase> outputInput = _queryNode->getIthInput(0);
 
-                output = makeSetExpression(outputInput, _alreadyTranslated);
+                output = makeSetExpressionHelp(outputInput, _alreadyTranslated, _madeNewNode);
 
                 output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
             }
@@ -163,9 +162,11 @@ namespace pdb_detail
 
             map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &_alreadyTranslated;
 
+            bool &_madeNewNode;
+
             Handle<QueryBase> _queryNode;
 
-        } algo(queryNode, alreadyTranslated);
+        } algo(queryNode, alreadyTranslated, madeNewNode);
 
         queryNode->execute(algo);
 
@@ -175,36 +176,77 @@ namespace pdb_detail
     }
 
     shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
-            shared_ptr<SetExpressionIr>> &alreadyTranslated)
+            shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
     {
-        bool forget;
-        return makeSetExpression(queryNode, alreadyTranslated, forget);
+        madeNewNode = false;
+        return makeSetExpressionHelp(queryNode, alreadyTranslated, madeNewNode);
     }
 
-    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks)
+
+    QueryGraphIr buildIr(function<bool()> hasNext, function<Handle<QueryBase>()> getNextElement)
     {
         shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes = make_shared<vector<shared_ptr<SetExpressionIr>>>();
 
         map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> alreadyTranslated;
 
-        for (list<Handle<QueryBase>>::const_iterator i = querySinks.begin(); i != querySinks.end(); ++i)
+        while(hasNext())
         {
+            Handle<QueryBase> querySink = getNextElement();
+
             bool isNewNode;
-            shared_ptr<SetExpressionIr> se = makeSetExpression(*i, alreadyTranslated, isNewNode);
+            shared_ptr<SetExpressionIr> se = makeSetExpression(querySink, alreadyTranslated, isNewNode);
             if(isNewNode)
                 sinkNodes->push_back(se);
-
         }
 
 
         return QueryGraphIr(sinkNodes);
     }
 
-    QueryGraphIr buildIr(Handle<QueryBase> querySink)
+    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks)
     {
-        list<Handle<QueryBase>> sinks = { querySink };
+        list<Handle<QueryBase>>::const_iterator i = querySinks.begin();
 
-        return buildIr(sinks);
+        function<bool()> hasNext = [&]() { return i != querySinks.end(); };
+        function<Handle<QueryBase>()> getNextElement = [&]
+        {
+            Handle<QueryBase> toReturn = *i;
+            i++;
+            return toReturn;
+        };
+
+        return buildIr(hasNext, getNextElement);
+
+    }
+
+    QueryGraphIr buildIr(Handle<Vector<Handle<QueryBase>>> querySinks)
+    {
+        uint32_t i = 0;
+        function<bool()> hasNext = [&]() { return i < querySinks->size(); };
+        function<Handle<QueryBase>()> getNextElement = [&]
+        {
+            Handle<QueryBase> toReturn = querySinks->operator[](i);
+            i++;
+            return toReturn;
+        };
+
+        return buildIr(hasNext, getNextElement);
+    }
+
+    QueryGraphIr buildIrSingle(Handle<QueryBase> querySink)
+    {
+        bool nextEverCalled = false;
+
+        function<bool()> hasNext = [&]() { return !nextEverCalled; };
+        function<Handle<QueryBase>()> getNextElement = [&]
+        {
+            nextEverCalled = true;
+            Handle<QueryBase> toReturn = querySink;
+            querySink = nullptr;
+            return toReturn;
+        };
+
+        return buildIr(hasNext, getNextElement);
     }
 
 

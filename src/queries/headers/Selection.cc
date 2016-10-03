@@ -50,7 +50,7 @@ SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProjectionProcessor
 	template <typename In, typename Out>
 	void Selection<In, Out>::execute(QueryAlgo& algo)
 	{
-		algo.forSelection();
+		algo.forSelection(*this);
 	};
 
 }

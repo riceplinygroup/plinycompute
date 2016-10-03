@@ -21,6 +21,7 @@
 #include <list>
 #include <memory>
 
+#include "PDBVector.h"
 #include "Handle.h"
 #include "QueryBase.h"
 #include "QueryGraphIr.h"
@@ -30,12 +31,15 @@ using std::shared_ptr;
 
 using pdb::Handle;
 using pdb::QueryBase;
+using pdb::Vector;
 
 namespace pdb_detail
 {
-    QueryGraphIr buildIr(Handle<QueryBase> querySink);
+    QueryGraphIr buildIrSingle(Handle<QueryBase> querySink);
 
     QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks);
+
+    QueryGraphIr buildIr(Handle<Vector<Handle<QueryBase>>> querySinks);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H

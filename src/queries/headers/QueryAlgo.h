@@ -30,11 +30,11 @@ namespace pdb
     {
     public:
 
-        virtual void forSelection() = 0;
+        virtual void forSelection(Object &selection) = 0;
 
-        virtual void forSet() = 0;
+        virtual void forSet(Object &set) = 0;
 
-        virtual void forQueryOutput() = 0;
+        virtual void forQueryOutput(Object &output) = 0;
     };
 }
 

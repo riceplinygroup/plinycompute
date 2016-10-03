@@ -52,6 +52,7 @@ using pdb::Set;
 using pdb::unsafeCast;
 
 using pdb_detail::buildIr;
+using pdb_detail::buildIrSingle;
 using pdb_detail::MaterializationModeAlgo;
 using pdb_detail::MaterializationModeNone;
 using pdb_detail::MaterializationModeNamedSet;
@@ -207,11 +208,12 @@ namespace pdb_tests
         selection->setDBName("outputDatabaseName");
         selection->setSetName("outputSetName");
 
+
         /**
          * Translate MySelection to QueryNodeIr.
          *
          */
-        QueryGraphIr queryGraph = buildIr(selection);
+        QueryGraphIr queryGraph = buildIrSingle(selection);
 
 
         /**
@@ -303,9 +305,11 @@ namespace pdb_tests
         Handle<MySelectionType> selection2 = makeObject<MySelectionType>();
         selection2->setInput(selection1);
 
-        Handle<QueryBase> outputSet1 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName1", selection1);
+        Handle<QueryOutput<Zebra>> outputSet1 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName1", selection1);
 
-        Handle<QueryBase> outputSet2 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName2", selection2);
+
+        Handle<QueryOutput<Zebra>> outputSet2 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName2", selection2);
+
 
         /**
          * Test translation of the user query graph with sinks outputSet1 and outputSet2 to a logical graph.
@@ -327,10 +331,13 @@ namespace pdb_tests
          *
          * sourceNode: type = SourceSetNameIr, materialization? = no
          */
-        list<Handle<QueryBase>> sinks = { outputSet2, outputSet1 };
+        Handle<Vector<Handle<QueryBase>>> sinks = makeObject<Vector<Handle<QueryBase>>>();
+        sinks->push_back(outputSet2);
+        sinks->push_back(outputSet1);
+
         QueryGraphIr queryGraph = buildIr(sinks);
 
-        QUNIT_IS_EQUAL(2, queryGraph.getSinkNodeCount());
+        QUNIT_IS_EQUAL(1, queryGraph.getSinkNodeCount());
         shared_ptr<SetExpressionIr> sinkNode0 = queryGraph.getSinkNode(0);
 
         // querySink checks
@@ -384,9 +391,7 @@ namespace pdb_tests
 
         QUNIT_IS_EQUAL("somedb", sourceNodeTyped->getDatabaseName());
         QUNIT_IS_EQUAL("inputSetName", sourceNodeTyped->getSetName());
-
-
-
+        
     }
 
 

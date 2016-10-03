@@ -15,17 +15,17 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+////
+//// Created by barnett on 9/1/16.
+////
 //
-// Created by barnett on 9/1/16.
+//#ifndef PDB_QUERYINTERMEDIARYREP_H
+//#define PDB_QUERYINTERMEDIARYREP_H
 //
-
-#ifndef PDB_QUERYINTERMEDIARYREP_H
-#define PDB_QUERYINTERMEDIARYREP_H
-
-#include <string>
-
-namespace pdb_detail
-{
-    string buildDot(QueryIr query);
-}
-#endif //PDB_DOTBUILDER_H_H
+//#include <string>
+//
+//namespace pdb_detail
+//{
+//    string buildDot(QueryIr query);
+//}
+//#endif //PDB_DOTBUILDER_H_H
