@@ -15,61 +15,43 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef FILTER_OPERATOR_H
+#define FILTER_OPERATOR_H
 
-#include <memory>
+//by Jia, Sept 2016
 
-#include "ProcessorFactoryFilterQueryProcessor.h"
-#include "SelectionIr.h"
-
+#include "QueryBase.h"
 #include "Selection.h"
-#include "InterfaceFunctions.h"
+#include "SimpleSingleTableQueryProcessor.h"
 
-using std::make_shared;
+namespace pdb {
 
-using pdb::FilterQueryProcessor;
-using pdb::makeObject;
-using pdb::ProcessorFactoryFilterQueryProcessor;
-using pdb::Selection;
+/*
+ * this class encapsulates a FilterOperator that runs in backend.
+ */
 
-namespace pdb_detail
-{
+class FilterOperator : public ExecutionOperator {
 
-    SelectionIr::SelectionIr()
-    {
-    }
+    public:
 
-    SelectionIr::SelectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection)
-            : _inputSet(inputSet), _originalSelection(originalSelection)
-    {
-    }
+       FilterOperator(Handle<QueryBase> selection) {
+            this->selection = selection;           
+       }
 
-    string SelectionIr::getName()
-    {
-        return "SelectionIr";
-    }
+       std :: string getName() override {
+            return "FilterOperator";
+       }
 
-    void SelectionIr::execute(SetExpressionIrAlgo &algo)
-    {
-        algo.forSelection(*this);
-    }
+       SimpleSingleTableQueryProcessorPtr getProcessor() override {
+            return (unsafeCast<Selection<Object, Object>>(selection))->getFilterProcessor();
+       }
 
-    shared_ptr<SetExpressionIr> SelectionIr::getInputSet()
-    {
-       return _inputSet;
-    }
+    private:
+       Handle<QueryBase> selection;
+       
 
-    Handle<ProcessorFactory> SelectionIr::makeProcessorFactory()
-    {
-        return makeObject<ProcessorFactoryFilterQueryProcessor>(_originalSelection);
-    }
-
-    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor()
-    {
-        return make_shared<FilterQueryProcessor<Object,Object>>(_originalSelection);
-    }
-
-    Handle<QueryBase> SelectionIr::getQueryBase() {
-       return _originalSelection;
-    }
+};
 
 }
+
+#endif

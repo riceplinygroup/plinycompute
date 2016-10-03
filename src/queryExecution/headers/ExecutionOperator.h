@@ -15,61 +15,30 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef EXECUTION_OPERATOR_H
+#define EXECUTION_OPERATOR_H
 
-#include <memory>
+//by Jia, Sept 2016
+#include "SimpleSingleTableQueryProcessor.h"
+#include "Object.h"
+#include <string>
 
-#include "ProcessorFactoryFilterQueryProcessor.h"
-#include "SelectionIr.h"
+namespace pdb {
 
-#include "Selection.h"
-#include "InterfaceFunctions.h"
+/*
+ * this class encapsulates an Operator that can run in backend, now we support following operators:
+ * Selection/Filtering
+ * Projection
+ */
 
-using std::make_shared;
+class ExecutionOperator : public Object {
 
-using pdb::FilterQueryProcessor;
-using pdb::makeObject;
-using pdb::ProcessorFactoryFilterQueryProcessor;
-using pdb::Selection;
+    public:
 
-namespace pdb_detail
-{
-
-    SelectionIr::SelectionIr()
-    {
-    }
-
-    SelectionIr::SelectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection)
-            : _inputSet(inputSet), _originalSelection(originalSelection)
-    {
-    }
-
-    string SelectionIr::getName()
-    {
-        return "SelectionIr";
-    }
-
-    void SelectionIr::execute(SetExpressionIrAlgo &algo)
-    {
-        algo.forSelection(*this);
-    }
-
-    shared_ptr<SetExpressionIr> SelectionIr::getInputSet()
-    {
-       return _inputSet;
-    }
-
-    Handle<ProcessorFactory> SelectionIr::makeProcessorFactory()
-    {
-        return makeObject<ProcessorFactoryFilterQueryProcessor>(_originalSelection);
-    }
-
-    SimpleSingleTableQueryProcessorPtr SelectionIr::makeProcessor()
-    {
-        return make_shared<FilterQueryProcessor<Object,Object>>(_originalSelection);
-    }
-
-    Handle<QueryBase> SelectionIr::getQueryBase() {
-       return _originalSelection;
-    }
+       virtual string getName() = 0;
+       virtual SimpleSingleTableQueryProcessorPtr getProcessor() = 0;
+};
 
 }
+
+#endif

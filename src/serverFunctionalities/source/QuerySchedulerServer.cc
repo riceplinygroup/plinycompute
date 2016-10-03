@@ -35,6 +35,12 @@
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
 #include "GenericWork.h"
+#include "SetExpressionIr.h"
+#include "SelectionIr.h"
+#include "ProjectionIr.h"
+#include "SourceSetNameIr.h"
+#include "ProjectionOperator.h"
+#include "FilterOperator.h"
 #include <vector>
 #include <string>
 
@@ -45,23 +51,93 @@ QuerySchedulerServer :: ~QuerySchedulerServer () {
 
 void QuerySchedulerServer ::cleanup() {
 
-    this->currentPlan = nullptr;
     this->resources = nullptr;
 
 }
 
-QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger) {
+QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork) {
 
      this->resourceManagerIp = resourceManagerIp;
      this->port = port;
-     this->currentPlan = nullptr;
      this->resources = nullptr;
      this->logger = logger;
+     this->usePipelineNetwork = usePipelineNetwork;
 }
 
 
-Handle<Vector<Handle<JobStage>>> QuerySchedulerServer :: parseOptimizedQuery (pdb :: Object interfaceTBD) { 
-    return nullptr;
+void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIr queryGraph) { 
+
+     //current logical planning only supports selection and projection
+     //start from the first sink:
+     //  ---if current node hasn't been traversed, we push it to this sink's pipeline
+     //  ---if current node has been traversed, we append it to the other sink's pipeline
+     //if a node's parent is source, we stop here for this sink, and start from the next sink.
+
+     const UseTemporaryAllocationBlock tempBlock {1024*1024};
+
+     std :: shared_ptr <pdb_detail::SetExpressionIr> curNode;
+     for (int i = 0; i < queryGraph.getSinkNodeCount(); i ++) {
+
+            curNode = queryGraph.getSinkNode(i);
+            std :: cout << "the " << i << "-th sink:" << std :: endl;
+            std :: cout << curNode->getName() << std :: endl;
+            shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
+            if (materializationMode->isNone() == false) {
+                std :: cout << "Error: sink node output must be materialized." << std :: endl;
+                continue;
+            } 
+            //TODO: Matt's code is a little over-complicated, so waiting some time for it gets improved.
+            Handle<SetIdentifier> output = makeObject<SetIdentifier>(); 
+            Handle<JobStage> stage = makeObject<JobStage>(i);
+            stage->setOutput(output);
+
+            while (curNode->getName() != "SourceSetNameIr") {
+                shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
+
+                if(curNode->isTraversed() == false) {
+                    // a new operator
+                    if(curNode->getName() == "SelectionIr") {
+                        shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
+                        Handle<FilterOperator> filterOp = makeObject<FilterOperator> (selectionNode->getQueryBase()); 
+                        stage->addOperator(filterOp);
+                        curNode = selectionNode->getInputSet();
+                    } else if (curNode->getName() == "ProjectionIr") {
+                        shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
+                        Handle<ProjectionOperator> projectionOp = makeObject<ProjectionOperator> (projectionNode->getQueryBase());
+                        stage->addOperator(projectionOp);
+                        curNode = projectionNode->getInputSet();
+                    } else {
+                        std :: cout << "We only support Selection and Projection right now" << std :: endl;
+                    }
+
+                    curNode->setTraversed (true, i);   
+
+                } else {
+                    // get the stage that generates the input
+                    Handle<JobStage> parentStage;
+                    JobStageID parentStageId = curNode->getTraversalId();
+                    for (int j = 0; j < currentPlan.size(); j++) {
+                        if( currentPlan[j]->getStageId() == parentStageId) {
+                            parentStage = currentPlan[j];
+                            break;
+                        }
+                    }
+                    // append this stage to that stage and finishes loop for this sink
+                    Handle<SetIdentifier> input = parentStage->getOutput();
+                    stage->setInput(input);
+                    parentStage->appendStage(stage);
+                    break;
+                }
+                std :: cout << curNode->getName() << std :: endl;
+            }
+            
+            if (curNode->getName() == "SourceSetNameIr") {
+                shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
+                Handle<SetIdentifier> input = makeObject<SetIdentifier> (sourceNode->getDatabaseName(), sourceNode->getSetName());
+                stage->setInput(input);
+                this->currentPlan.push_back(stage);
+            }
+       }
 }
 
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
@@ -151,40 +227,44 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                             return;
                        }
 
-                       std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
-                       {
-                           const UseTemporaryAllocationBlock block{1024};
-                           Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
-                           success = communicator->sendObject<ExecuteQuery>(newRequest, errMsg);
+                       if(usePipelineNetwork == false) {
+                           std :: cout << "to send the query object to the " << i << "-th node" << std :: endl;
+                           {
+                               const UseTemporaryAllocationBlock block{1024};
+                               Handle<ExecuteQuery> newRequest = makeObject<ExecuteQuery>();
+                               success = communicator->sendObject<ExecuteQuery>(newRequest, errMsg);
+                               if (!success) {
+                                   std :: cout << errMsg << std :: endl;
+                                   callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                                   return;
+                               }
+                           }
+
+                           Handle <Vector <Handle<QueryBase>>> newUserQuery = makeObject<Vector <Handle<QueryBase>>>();
+                           *newUserQuery = *userQuery;
+
+                           success = communicator->sendObject<Vector<Handle<QueryBase>>>(newUserQuery, errMsg);
                            if (!success) {
                                std :: cout << errMsg << std :: endl;
                                callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                                return;
                            }
-                       }
 
-                       Handle <Vector <Handle<QueryBase>>> newUserQuery = makeObject<Vector <Handle<QueryBase>>>();
-                       *newUserQuery = *userQuery;
-
-                       success = communicator->sendObject<Vector<Handle<QueryBase>>>(newUserQuery, errMsg);
-                       if (!success) {
-                           std :: cout << errMsg << std :: endl;
-                           callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
-                           return;
-                       }
-
-                       std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
-                       const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
-                       Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
-                       if (result != nullptr) {
-                           for (int j = 0; j < result->size(); j++) {
-                               std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+                           std :: cout << "to receive query response from the " << i << "-th node" << std :: endl;
+                           const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
+                           Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+                           if (result != nullptr) {
+                               for (int j = 0; j < result->size(); j++) {
+                                   std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+                               }
                            }
-                      }
-                      else {
-                         std :: cout << "Query execute failure: can't get results" << std :: endl;
-                         callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
-                         return;
+                           else {
+                              std :: cout << "Query execute failure: can't get results" << std :: endl;
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                           }
+                      } else {
+
                       }
                       callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
                  }

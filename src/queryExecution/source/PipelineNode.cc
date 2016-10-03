@@ -28,19 +28,21 @@ PipelineNode :: ~PipelineNode () {
 
 }
 
-PipelineNode :: PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, SetIdentifier set, OperatorID operatorId) {
+PipelineNode :: PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, 
+        Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId) {
 
     this->children = new std :: vector<PipelineNodePtr>();
     this->processor = processor;
     this->amISource = amISource;
     this->amISink = amISink;
-    this->set = set;
+    this->inputSet = inputSet;
+    this->outputSet = outputSet;
     this->operatorId = operatorId;
-    this->processor->initialize();
+    this->children = new std :: vector<PipelineNodePtr>();
 }
 
 
-std :: vector<PipelineNode *> PipelineNode :: getChildren() {
+std :: vector<PipelineNodePtr> PipelineNode :: getChildren() {
     return this->children;
 }
 
@@ -52,8 +54,12 @@ bool PipelineNode :: isSink() {
     return this->amISink;
 }
 
-SetIdentifier PipelineNode :: getSet() {
-    return this->set;
+Handle<SetIdentifier> PipelineNode :: getInputSet() {
+    return this->inputSet;
+}
+
+Handle<SetIdentifier> PipelineNode :: getOutputSet() {
+    return this->outputSet;
 }
 
 OperatorID PipelineNode :: getOperatorId() {

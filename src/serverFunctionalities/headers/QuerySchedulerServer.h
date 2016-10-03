@@ -28,6 +28,7 @@
 #include "JobStage.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
+#include "QueryGraphIr.h"
 #include <vector>
 
 namespace pdb {
@@ -40,10 +41,10 @@ public:
        ~QuerySchedulerServer ();
 
        //constructor, initialize from catalog
-       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger);
+       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
        //to execute optimized client query into a physical plan
-       Handle<Vector<Handle<JobStage>>> parseOptimizedQuery(pdb::Object interfaceTBD );
+       void parseOptimizedQuery(pdb_detail::QueryGraphIr queryGraph);
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
@@ -64,12 +65,13 @@ protected:
 
 
        // physical plan
-       Handle<Vector<Handle<JobStage>>> currentPlan;
+       std :: vector<Handle<JobStage>> currentPlan;
 
        // logger
        PDBLoggerPtr logger;
 
-       //TODO: status report
+
+       bool usePipelineNetwork;
 
 };
 
