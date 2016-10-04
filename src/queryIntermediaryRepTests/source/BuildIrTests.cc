@@ -391,7 +391,7 @@ namespace pdb_tests
 
         QUNIT_IS_EQUAL("somedb", sourceNodeTyped->getDatabaseName());
         QUNIT_IS_EQUAL("inputSetName", sourceNodeTyped->getSetName());
-        
+
     }
 
 

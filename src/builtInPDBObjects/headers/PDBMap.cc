@@ -106,7 +106,7 @@ ValueType &Map <KeyType, ValueType> :: operator [] (KeyType &which) {
 
 template <class KeyType, class ValueType>
 int Map <KeyType, ValueType> :: count (KeyType &which) {
-	return myArray->count ();
+	return myArray->count (which);
 }
 
 template <class KeyType, class ValueType>
