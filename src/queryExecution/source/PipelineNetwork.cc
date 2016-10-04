@@ -254,8 +254,8 @@ void PipelineNetwork :: runSource (int sourceNode) {
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
                           bundler->loadInputPage(page->getBytes());
-                          Handle<GenericBlock> outputBlock = loadOutputBlock(batchSize);
-                          while(fillNextOutputBlock()) {
+                          Handle<GenericBlock> outputBlock = bundler->loadOutputBlock(batchSize);
+                          while(bundler->fillNextOutputBlock()) {
                               //TODO: we need to unpin the previous output page
                               if (context->isOutputFull()) {
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
