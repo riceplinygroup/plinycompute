@@ -23,7 +23,10 @@
 #include "SelectionQueryProcessor.h"
 #include "FilterQueryProcessor.h"
 #include "ProjectionQueryProcessor.h"
+#include "FilterBlockQueryProcessor.h"
+#include "ProjectionBlockQueryProcessor.h"
 #include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 #include <memory>
 
 namespace pdb {
@@ -44,7 +47,16 @@ SimpleSingleTableQueryProcessorPtr Selection <Out, In> :: getProjectionProcessor
         return std :: make_shared <ProjectionQueryProcessor <Out, In>> (*this);
 }
 
+template <typename Out, typename In>
+BlockQueryProcessorPtr Selection <Out, In> :: getFilterBlockProcessor () {
+        return std :: make_shared <FilterBlockQueryProcessor <Out, In>> (*this);
+}
 
+
+template <typename Out, typename In>
+BlockQueryProcessorPtr Selection <Out, In> :: getProjectionBlockProcessor () {
+        return std :: make_shared <ProjectionBlockQueryProcessor <Out, In>> (*this);
+}
 
 
 	template <typename In, typename Out>

@@ -19,7 +19,7 @@
 #define EXECUTION_OPERATOR_H
 
 //by Jia, Sept 2016
-#include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 #include "Object.h"
 #include <string>
 
@@ -36,7 +36,7 @@ class ExecutionOperator : public Object {
     public:
 
        virtual string getName() = 0;
-       virtual SimpleSingleTableQueryProcessorPtr getProcessor() = 0;
+       virtual BlockQueryProcessorPtr getProcessor() = 0;
 };
 
 }

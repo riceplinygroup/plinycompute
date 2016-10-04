@@ -26,6 +26,7 @@
 #include "SetOperation.h"
 #include "QueryAlgo.h"
 #include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 
 namespace pdb {
 
@@ -53,6 +54,13 @@ public:
 
         // get an object that is able to process projection of this type
         SimpleSingleTableQueryProcessorPtr getProjectionProcessor ();
+
+        // get an object that is able to process filtering of this type
+        BlockQueryProcessorPtr getFilterBlockProcessor ();
+
+        // get an object that is able to process projection of this type
+        BlockQueryProcessorPtr getProjectionBlockProcessor ();
+
 
 	// gets the number of inputs
 	virtual int getNumInputs () override {return 1;}

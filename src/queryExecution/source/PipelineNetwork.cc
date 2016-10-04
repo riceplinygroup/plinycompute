@@ -26,6 +26,8 @@
 #include "HermesExecutionServer.h"
 #include "PageScanner.h"
 #include "PageCircularBufferIterator.h"
+#include "BlockQueryProcessor.h"
+#include "
 
 namespace pdb {
 
@@ -46,16 +48,50 @@ PipelineNetwork :: PipelineNetwork (SharedMemPtr shm, PDBLoggerPtr logger, Confi
     this->id = 0;
 }
 
+//initialize a linear pipeline network
+void PipelineNetwork :: initialize (Handle<JobStage> stage) {
+    this->jobStage = stage;
+    Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
+    bool isSource;
+    bool isSink;
+    Handle<SetIdentifier> input;
+    Handle<SetIdentifier> output;
+    PipelineNodePtr parentNode = nullptr;
+    for (int i = 0; i < operators.size(); i ++) {
+        isSource = false;
+        isSink = false;
+        input = nullptr;
+        output = nullptr;
+        if (i == 0) {
+            isSource = true;
+            input = stage->getInput();
+        }
+        if (i == operators.size()-1) {
+            isSink = true;
+            output = stage->getOutput();
+        } 
+        PipelineNodePtr node = make_shared<PipelineNode>(operators[i], isSource, isSink, input, output, id);
+        id ++; 
+        if (i == 0) {
+            appendSourceNode (node);
+        } else {
+            appendNode (parentNode->getOperatorId(), node);
+        }
+        parentNode = node;
+    }
+}
+
+
+//initialize a tree pipeline network
 void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage> stage) {
     if(parentNode == nullptr) {
-        this->stageId = stage->getStageId(); 
+        this->jobStage = stage; 
     }
     Handle<JobStage> curStage = stage;
     if (curStage != nullptr) {   
         PipelineNodePtr nextParentNode = nullptr;
         Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
         Handle<ExecutionOperator> sourceOperator = operators[0];
-        SimpleSingleTableQueryProcessorPtr processor = sourceOperator->getProcessor();
         bool isSink;
         Handle<SetIdentifier> outputSet = nullptr;
         if (operators->size() == 1) {
@@ -67,10 +103,10 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
         PipelineNodePtr node = nullptr;
         if (parentNode == nullptr) {
             Handle<SetIdentifier> inputSet = stage->getInput();
-            node = make_shared<PipelineNode>(processor, true, isSink, inputSet, outputSet, id);
+            node = make_shared<PipelineNode>(operators[0], true, isSink, inputSet, outputSet, id);
             appendSourceNode (node);
         } else {
-            node = make_shared<PipelineNode>(processor, false, isSink, nullptr, outputSet, id);
+            node = make_shared<PipelineNode>(operators[0], false, isSink, nullptr, outputSet, id);
             appendNode(parentNode->getOperatorId(), node);
         }
         if (isSink == true) {
@@ -79,7 +115,6 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
         id ++;
         for (int i = 1; i < operators.size(); i++) {
             Handle<ExecutionOperator> curOperator = operators[i];
-            SimpleSingleTableQueryProcessorPtr curProcessor = curOperator->getProcessor();
             bool isSource = false;
             Handle<SetIdentifier> inputSet = nullptr;
             bool isSink = false;
@@ -88,7 +123,7 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
                 isSink = true;
                 outputSet = stage->getOutput();
             }
-            PipelineNodePtr node = make_shared<PipelineNode>(curProcessor, isSource, isSink, inputSet, outputSet, id);
+            PipelineNodePtr node = make_shared<PipelineNode>(curOperator, isSource, isSink, inputSet, outputSet, id);
             appendNode(id - 1, node);
             id ++;
             if (isSink == true) {
@@ -103,8 +138,8 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
 }
 
 
-JobStageID PipelineNetwork :: getStageId () {
-    return stageId;
+Handle<JobStage> PipelineNetwork :: getJobStage () {
+    return jobStage;
 }
 
 std :: vector<PipelineNodePtr> PipelineNetwork :: getSourceNodes() {
@@ -160,11 +195,12 @@ void PipelineNetwork :: runSource (int sourceNode) {
         return;
     }
 
-    //get set information
-    SetIdentifier set = source->getSet();
+    //get input set information
+    SetIdentifier inputSet = source->getInputSet();
 
     //get iterators
-    std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, set->getDatabaseId(), set->getTypeId(), set->getSetId());
+    //TODO: we should get iterators using only databaseName and setName
+    std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, inputSet->getDatabaseId(), inputSet->getTypeId(), inputSet->getSetId());
 
     int numIteratorsReturned = iterators.size();
     if (numIteratorsReturned != numThreads) {
@@ -173,6 +209,11 @@ void PipelineNetwork :: runSource (int sourceNode) {
          std :: cout << errMsg << std :: endl;
          return;
     }   
+
+    //get output set information
+    //now due to limitation in object model, we only support one output for a pipeline network
+    Handle<SetIdentifier> outputSet = this->jobStage->getOutputSet();
+
 
     //create a buzzer and counter
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
@@ -193,11 +234,40 @@ void PipelineNetwork :: runSource (int sourceNode) {
                   PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
                   anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
                   DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+
+                  //setup an output page to store intermediate results and final output
+                  PDBPagePtr output;
+                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                  Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
+             
+                  //setup pipeline context
+                  PipelineContextPtr context = make_shared<PipelineContext>(outputVec, proxy, outputSet);
+ 
+                  //create a bundle processor
+                  SingleTableBundleProcessorPtr bundler = make_shared<SingleTableBundleProcessor>();
+                  bundler->setContext(context);
+                  bundler->initialize();
+
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
                   while (iter->hasNext()) {
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
-                          source->run(proxy, page->getBytes(), batchSize);
+                          bundler->loadInputPage(page->getBytes());
+                          Handle<GenericBlock> outputBlock = loadOutputBlock(batchSize);
+                          while(fillNextOutputBlock()) {
+                              //TODO: we need to unpin the previous output page
+                              if (context->isOutputFull()) {
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                                  outputVec = makeObject<Vector<Handle<Object>>>();
+                                  context->setOutputVec(outputVec);
+                              }
+                              source->run(outputBlock);
+                              outputBlock = loadOutputBlock(batchSize);
+                          }
+                          bundler->clearOutputBlock();
+                          bundler->clearInputPage();
                           proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);  
                       }
                   }

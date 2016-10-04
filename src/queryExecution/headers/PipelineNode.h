@@ -21,12 +21,15 @@
 
 //by Jia, Sept 2016
 
-#include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 #include "DataTypes.h"
 #include "SetIdentifier.h"
 #include "RefCountedOnHeapSmallPage.h"
 #include "DataProxy.h"
 #include "PipelineContext.h"
+#include "ExecutionOperator.h"
+#include "BlockQueryProcessor.h"
+#include "GenericBlock.h"
 #include <memory>
 #include <vector>
 
@@ -45,7 +48,7 @@ private:
     std :: vector<PipelineNodePtr> * children;
 
     // the processor of this node
-    SimpleSingleTableQueryProcessorPtr processor;
+    Handle<ExecutionOperator> executionOperator;
 
     // a flag to indicate whether I am the source node
     bool amISource;
@@ -62,9 +65,6 @@ private:
     // operator Id
     OperatorID id;    
 
-    // pointer to the pipeline context which stores global variables
-    PipelineContextPtr context;    
-
    
 public:
 
@@ -72,7 +72,7 @@ public:
     ~PipelineNode ();
 
     // constructor
-    PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
+    PipelineNode (Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
 
     // return all children
     std :: vector<PipelineNodePtr> * getChildren();
@@ -96,13 +96,12 @@ public:
     void addChild(PipelineNodePtr node);
 
     // running the pipeline
-    bool run (DataProxyPtr proxy, void * inputBatch, int batchSize);
+    bool run (Handle<GenericBlock> inputBatch, size_t batchSize);
 
-    // set context
-    void setContext(PipelineContextPtr context);
+    // get a processor
+    BlockQueryProcessorPtr getProcessor(PipelineContextPtr context);
 
-    // get context
-    PipelineContextPtr getContext();
+   
       
 };
 

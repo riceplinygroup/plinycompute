@@ -52,7 +52,7 @@ template <class Output, class Input>
 void FilterBlockQueryProcessor <Output, Input> :: loadInputBlock (Handle<GenericBlock> inputBlock)
 {
         this->inputBlock = inputBlock;
-        this->batchSize = this->inputBlock->getBlock().size();
+        this->batchSize = this->inputBlock->getBlock()->size();
 	posInInput = 0;
 }
 
@@ -61,15 +61,15 @@ template <class Output, class Input>
 Handle<GenericBlock> FilterBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
 
 	// and here's where we write the ouput to
-	this->outputBlock = makeObject <GenericBlock> (batchSize);
+	this->outputBlock = makeObject <GenericBlock> ();
         return this->outputBlock;
 }
 
 template <class Output, class Input>
 bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		
-	Vector <Handle <Input>> &myInVec = inputBlock->getBlock();
-	Vector <Handle <Input>> &myOutVec = outputBlock->getBlock();
+	Vector <Handle <Input>> &myInVec = (*inputBlock->getBlock());
+	Vector <Handle <Input>> &myOutVec = (*outputBlock->getBlock());
 
 	// if we are finalized, see if there are some left over records
 	if (finalized) {
@@ -89,7 +89,8 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 
 	} catch (NotEnoughSpace &n) {
                 if (this->context != nullptr) {
-		       getRecord (this->context->getOutputVec());
+                       PipelineContextPtr context = this->context;
+		       getRecord (context->outputVec);
                 }
 		return true;
 	}

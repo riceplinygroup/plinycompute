@@ -23,33 +23,59 @@
 #include "Handle.h"
 #include "PDBVector.h"
 #include "Object.h"
+#include "DataProxy.h"
+#include "SetIdentifier.h"
 #include <memory>
 
-typedef shared_ptr<PipelineContext> PipelineContextPtr;
 
-using namespace pdb {
+namespace pdb {
 
+class PipelineContext;
+typedef std::shared_ptr<PipelineContext> PipelineContextPtr;
 
 //this class encapsulates the global state that is shared by pipeline nodes in the same pipeline network
 class PipelineContext {
 
-    private:
-
+    public:
+    //temporarily make this public for getRecord()
     //the final output vector that needs to invoke getRecord() on
-    Handle<Vector<Handle<Object>> outputVec;
+    Handle<Vector<Handle<Object>>> outputVec;
 
+    private:
     //the number of GenericBlocks allocated in the output page that hasn't been read
     int numUnreadGenericBlocks;
 
+    //the proxy to pin/unpin output page
+    DataProxyPtr proxy;
+
+    //the output set identifier
+    Handle<SetIdentifier> outputSet;
+
+    //whether output page is full
+    bool outputPageFull;
+
+
     public:
 
-    PipelineContext (Handle<Vector<Handle<Object>>> outputVec) {
+    PipelineContext (Handle<Vector<Handle<Object>>> outputVec, DataProxyPtr proxy, Handle<SetIdentifier> outputSet) {
         this->outputVec = outputVec;
-        int numUnreadGenericBlocks = 0;
+        this->numUnreadGenericBlocks = 0;
+        this->proxy = proxy;
+        this->outputSet = outputSet;
+        outputPageFull = false;
     }
 
     Handle<Vector<Handle<Object>>> getOutputVec() {
         return this->outputVec;
+    }
+
+    void setOutputVec(Handle<Vector<Handle<Object>>> outputVec) {
+        this->outputVec = outputVec;
+
+    }
+
+    int getNumUnreadGenericBlocks() {
+        return numUnreadGenericBlocks;
     }
 
     void incNumUnreadGenericBlocks() {
@@ -64,7 +90,22 @@ class PipelineContext {
         outputVec = nullptr;
     }
 
-}
+    DataProxyPtr getProxy() {
+        return this->proxy;
+    } 
+
+    Handle<SetIdentifier> getOutputSet() {
+        return this->outputSet;
+    }
+
+    void setOutputFull(bool fullOrNot) {
+        this->outputPageFull = fullOrNot;
+    }
+
+    bool isOutputFull () {
+        return this->outputPageFull;
+    }
+};
 
 
 
