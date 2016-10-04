@@ -35,10 +35,34 @@ using pdb::Vector;
 
 namespace pdb_detail
 {
+    /**
+     * Translates the given usery query graph into an equivalent logical query plan graph.
+     *
+     * Expects the given graph to have only a single sink identified by the querySink parameter.
+     *
+     * @param querySink The user query graph as identified by its single sink.
+     * @return a corresponding logical query plan
+     */
     QueryGraphIr buildIrSingle(Handle<QueryBase> querySink);
 
+    /**
+     * Translates the given usery query graph into an equivalent logical query plan graph.
+     *
+     * Expects the given graph to have only a sinks identified by the querySink parameter.
+     *
+     * @param querySinks The user query graph as identified by its sinks.
+     * @return a corresponding logical query plan
+     */
     QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks);
 
+    /**
+     * Translates the given usery query graph into an equivalent logical query plan graph.
+     *
+     * Expects the given graph to have only a sinks identified by the querySink parameter.
+     *
+     * @param querySinks The user query graph as identified by its sinks.
+     * @return a corresponding logical query plan
+     */
     QueryGraphIr buildIr(Handle<Vector<Handle<QueryBase>>> querySinks);
 }
 

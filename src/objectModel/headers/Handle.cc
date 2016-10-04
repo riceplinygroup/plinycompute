@@ -621,11 +621,7 @@ ObjType &Handle <ObjType> :: operator * () const {
 	return *(getTarget ()->getObject ());
 }
 
-template <class ObjType>
-bool Handle <ObjType> ::operator<(const Handle<ObjType> &other) const
-{
-	return getTarget() < other.getTarget();
-}
+
 
 // gets a pointer to the target object
 template <class ObjType>

@@ -17,11 +17,10 @@
  *****************************************************************************/
 
 #include <cstdint>
-#include <map>
 
 #include "Handle.h"
 #include "IrBuilder.h"
-
+#include "PDBMap.h"
 #include "PDBVector.h"
 #include "ProjectionIr.h"
 #include "RecordPredicateIr.h"
@@ -36,9 +35,10 @@
 
 #include "Employee.h"
 
-using std::map;
 
 using pdb::Handle;
+using pdb::makeObject;
+using pdb::Map;
 using pdb::Query;
 using pdb::QueryAlgo;
 using pdb::QueryBase;
@@ -55,9 +55,10 @@ using pdb::Vector;
 
 namespace pdb_detail
 {
-    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode);
+    
+    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode);
 
-    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
+    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
     {
 
         shared_ptr<SetExpressionIr> selectionInputIr;
@@ -77,7 +78,7 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
+    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
     {
         shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject, alreadyTranslated, madeNewNode);
 
@@ -95,23 +96,21 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
-                                                  shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
+    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
     {
         if(queryNode.isNullPtr())
             return shared_ptr<SetExpressionIr>();
 
-        if(alreadyTranslated.count(queryNode) > 0)
+        if(alreadyTranslated->count(queryNode) > 0)
         {
-            return alreadyTranslated[queryNode];
+            return alreadyTranslated->operator[](queryNode);
         }
 
         class Algo : public QueryAlgo
         {
         public:
 
-            Algo(Handle<QueryBase> queryNodeParam,
-                 map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &alreadyTranslated,
+            Algo(Handle<QueryBase> queryNodeParam, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated,
                  bool &madeNewNode)
                     : _queryNode(queryNodeParam), _alreadyTranslated(alreadyTranslated), _madeNewNode(madeNewNode)
             {
@@ -160,7 +159,7 @@ namespace pdb_detail
 
         private:
 
-            map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> &_alreadyTranslated;
+            Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> _alreadyTranslated;
 
             bool &_madeNewNode;
 
@@ -170,13 +169,12 @@ namespace pdb_detail
 
         queryNode->execute(algo);
 
-        alreadyTranslated[queryNode] = algo.output;
+        alreadyTranslated->operator[](queryNode) = algo.output;
 
         return algo.output;
     }
 
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, map<Handle<QueryBase>,
-            shared_ptr<SetExpressionIr>> &alreadyTranslated, bool &madeNewNode)
+    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
     {
         madeNewNode = false;
         return makeSetExpressionHelp(queryNode, alreadyTranslated, madeNewNode);
@@ -187,7 +185,7 @@ namespace pdb_detail
     {
         shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes = make_shared<vector<shared_ptr<SetExpressionIr>>>();
 
-        map<Handle<QueryBase>, shared_ptr<SetExpressionIr>> alreadyTranslated;
+        Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated = makeObject<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>>();
 
         while(hasNext())
         {

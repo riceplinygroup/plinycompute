@@ -36,6 +36,11 @@ public:
 		whichDB = "";
 	}
 
+	size_t hash () const
+	{
+        return (size_t)this;
+	}
+
 	void print () {
 		std :: cout << whichDB << "." << whichSet << ": " << getQueryType () << "(" << getOutputType () << ")\n";
 		for (int i = 0; i < getNumInputs (); i++) {
@@ -150,6 +155,11 @@ public:
 
                 return false;
         }
+
+    virtual bool operator == (const QueryBase &other)
+    {
+        return this == &other;
+    }
 
 private:
 
