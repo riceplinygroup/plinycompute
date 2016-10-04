@@ -40,6 +40,7 @@ namespace pdb {
 
             JobStage (JobStageID stageId) {
                 this->id = stageId;
+                this->parentStage = nullptr;
             }
 
             ~JobStage () {}
@@ -96,9 +97,14 @@ namespace pdb {
                 return this->childrenStages;
             }
 
-            void appendStage(Handle<JobStage> childStage) {
+            void appendChildStage(Handle<JobStage> childStage) {
                 this->childrenStages.push_back(childStage);
             }	
+
+            void setParentStage(Handle<JobStage> parentStage) {
+                this->parentStage = parentStage;
+            }
+
 
             JobStageID getStageId() {
                 return this->id;
@@ -127,7 +133,12 @@ namespace pdb {
             //children nodes
             Vector<Handle<JobStage>> childrenStages;
 
+            //the id to identify this job stage
             JobStageID id;
+
+            //parent stage
+            Handle<JobStage> parentStage;
+            
    };
 
 }
