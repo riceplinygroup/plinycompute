@@ -76,10 +76,10 @@ int main () {
         std :: list <Handle<QueryBase>> queries;
         queries.push_back(outputOne);
         queries.push_back(outputTwo);
-        pdb_detail::QueryGraphIr queryGraph = buildIr(queries);
+        pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
         shared_ptr <pdb_detail::SetExpressionIr> curNode;
-        for (int i = 0; i < queryGraph.getSinkNodeCount(); i ++) {
-            curNode = queryGraph.getSinkNode(i);
+        for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
+            curNode = queryGraph->getSinkNode(i);
             std :: cout << "the " << i << "-th sink:" << std :: endl;
             std :: cout << curNode->getName() << std :: endl;
             while (curNode->getName() != "SourceSetNameIr") {

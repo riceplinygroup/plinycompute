@@ -93,6 +93,8 @@ namespace pdb_detail
         Handle<QueryBase> _originalSelection;
 
     };
+
+    typedef shared_ptr<SelectionIr> SelectionIrPtr;
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_SELECTION_H

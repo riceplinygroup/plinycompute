@@ -21,7 +21,6 @@
 
 #include "BuildIrTests.h"
 #include "ConsumableNodeIr.h"
-#include "CheckEmployees.h"
 #include "IrBuilder.h"
 #include "MaterializationModeAlgo.h"
 #include "QueryNodeIr.h"
@@ -40,7 +39,6 @@ using std::list;
 using std::function;
 using std::string;
 
-using pdb::CheckEmployee;
 using pdb::Handle;
 using pdb::Lambda;
 using pdb::makeObject;
@@ -56,7 +54,7 @@ using pdb_detail::buildIrSingle;
 using pdb_detail::MaterializationModeAlgo;
 using pdb_detail::MaterializationModeNone;
 using pdb_detail::MaterializationModeNamedSet;
-using pdb_detail::QueryGraphIr;
+using pdb_detail::QueryGraphIrPtr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
 using pdb_detail::RecordProjectionIr;
@@ -213,14 +211,14 @@ namespace pdb_tests
          * Translate MySelection to QueryNodeIr.
          *
          */
-        QueryGraphIr queryGraph = buildIrSingle(selection);
+        QueryGraphIrPtr queryGraph = buildIrSingle(selection);
 
 
         /**
          * Test that projection is the only sink node.
          */
-        QUNIT_IS_EQUAL(1, queryGraph.getSinkNodeCount());
-        shared_ptr<SetExpressionIr> querySink = queryGraph.getSinkNode(0);
+        QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
+        shared_ptr<SetExpressionIr> querySink = queryGraph->getSinkNode(0);
 
         QUNIT_IS_FALSE(querySink->getMaterializationMode()->isNone());
 
@@ -335,10 +333,10 @@ namespace pdb_tests
         sinks->push_back(outputSet2);
         sinks->push_back(outputSet1);
 
-        QueryGraphIr queryGraph = buildIr(sinks);
+        QueryGraphIrPtr queryGraph = buildIr(sinks);
 
-        QUNIT_IS_EQUAL(1, queryGraph.getSinkNodeCount());
-        shared_ptr<SetExpressionIr> sinkNode0 = queryGraph.getSinkNode(0);
+        QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
+        shared_ptr<SetExpressionIr> sinkNode0 = queryGraph->getSinkNode(0);
 
         // querySink checks
         QUNIT_IS_FALSE(sinkNode0->getMaterializationMode()->isNone());

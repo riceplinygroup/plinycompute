@@ -30,7 +30,7 @@ using std::list;
 using std::shared_ptr;
 
 using pdb::Handle;
-using pdb::QueryBase;
+using pdb::QueryBaseHdl;
 using pdb::Vector;
 
 namespace pdb_detail
@@ -41,29 +41,29 @@ namespace pdb_detail
      * Expects the given graph to have only a single sink identified by the querySink parameter.
      *
      * @param querySink The user query graph as identified by its single sink.
-     * @return a corresponding logical query plan
+     * @return a corresponding logical query plan, or nullptr if there is a translation error
      */
-    QueryGraphIr buildIrSingle(Handle<QueryBase> querySink);
+    QueryGraphIrPtr buildIrSingle(QueryBaseHdl querySink);
 
     /**
      * Translates the given usery query graph into an equivalent logical query plan graph.
      *
-     * Expects the given graph to have only a sinks identified by the querySink parameter.
+     * Expects the given graph to have all sinks identified by the querySink parameter.
      *
      * @param querySinks The user query graph as identified by its sinks.
-     * @return a corresponding logical query plan
+     * @return a corresponding logical query plan, or nullptr if there is a translation error
      */
-    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks);
+    QueryGraphIrPtr buildIr(list<QueryBaseHdl> &querySinks);
 
     /**
      * Translates the given usery query graph into an equivalent logical query plan graph.
      *
-     * Expects the given graph to have only a sinks identified by the querySink parameter.
+     * Expects the given graph to have all sinks identified by the querySink parameter.
      *
      * @param querySinks The user query graph as identified by its sinks.
-     * @return a corresponding logical query plan
+     * @return a corresponding logical query plan, or nullptr if there is a translation error
      */
-    QueryGraphIr buildIr(Handle<Vector<Handle<QueryBase>>> querySinks);
+    QueryGraphIrPtr buildIr(Handle<Vector<QueryBaseHdl>> querySinks);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_IRBUILDER_H
