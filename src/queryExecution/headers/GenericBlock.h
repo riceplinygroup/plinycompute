@@ -23,7 +23,7 @@
 #include "PDBVector.h"
 #include "Object.h"
 
-using namespace pdb {
+namespace pdb {
 
 //this class encapsulates a block of tuples/objects
 //a page in user set can be transformed into a vector of generic blocks
@@ -44,12 +44,12 @@ public:
 
     GenericBlock() {}
 
-    Vector<Handle<Object>> getBlock() {
-        return block;
+    Vector<Handle<Object>> * getBlock() {
+        return &block;
     }
 
 };
 
 }
 
-#end
+#endif

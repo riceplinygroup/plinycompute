@@ -30,7 +30,7 @@
 namespace pdb {
 
 template <class Output, class Input> 
-class ProjectionQueryProcessor : public BlockQueryProcessor {
+class ProjectionBlockQueryProcessor : public BlockQueryProcessor {
 
 private:
 
@@ -60,12 +60,12 @@ private:
 
 public:
 
-	ProjectionQueryProcessor (Selection <Output, Input> &forMe);
-        ProjectionQueryProcessor (Lambda <Handle<Output>> projection);
+	ProjectionBlockQueryProcessor (Selection <Output, Input> &forMe);
+        ProjectionBlockQueryProcessor (Lambda <Handle<Output>> projection);
 	// the standard interface functions
 	void initialize () override;
         void loadInputBlock (Handle<GenericBlock> block) override;
-        Handle<GenericBlock> loadOutputPage () override;
+        Handle<GenericBlock> loadOutputBlock () override;
         bool fillNextOutputBlock () override;
         void finalize () override;
         void clearOutputBlock () override;

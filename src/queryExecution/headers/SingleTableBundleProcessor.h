@@ -19,6 +19,9 @@
 #ifndef SINGLE_TABLE_BUNDLE_PROCESSOR_H
 #define SINGLE_TABLE_BUNDLE_PROCESSOR_H
 
+//by Jia, Oct 2016
+
+
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBVector.h"
@@ -26,6 +29,9 @@
 #include "Handle.h"
 #include "GenericBlock.h"
 #include "PipelineContext.h"
+#include <memory>
+
+typedef shared_ptr<SingleTableBundleProcessor> SingleTableBundleProcessorPtr;
 
 namespace pdb {
 

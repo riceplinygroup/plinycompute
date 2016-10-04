@@ -28,11 +28,11 @@ PipelineNode :: ~PipelineNode () {
 
 }
 
-PipelineNode :: PipelineNode (SimpleSingleTableQueryProcessorPtr processor, bool amISource, bool amISink, 
+PipelineNode :: PipelineNode (Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, 
         Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId) {
 
     this->children = new std :: vector<PipelineNodePtr>();
-    this->processor = processor;
+    this->executionOperator = executionOperator;
     this->amISource = amISource;
     this->amISink = amISink;
     this->inputSet = inputSet;
@@ -71,37 +71,30 @@ void PipelineNode :: addChild(PipelineNodePtr node) {
     this->children->push_back(node);
 }
 
-void PipelineNode :: setContext(PipelineContextPtr context) {
-    this->context = context;
+
+BlockQueryProcessorPtr PipelineNode::getProcessor(PipelineContextPtr context) {
+    BlockQueryProcessorPtr processor = this->executionOperator->getProcessor();
+    processor->setContext(context);
+    return processor;
 }
 
-PipelineContextPtr getContext() {
-    return this->context;
-}
-
-
-
-bool PipelineNode :: run(DataProxyPtr proxy, void * inputBatch, int batchSize) {
-    // TODO
-
-    if (this->amISink == false) {
-         RefCountedOnHeapSmallPagePtr smallPage = make_shared<RefCountedOnHeapSmallPage>(batchSize);
-         this->processor->loadOutputPage(smallPage->getData(), smallPage->getSize());
-    } else {
-         //get the page from the set specified by the set identifier
-         
-    }
-    this->processor->loadInputPage(smallPage->getData());
-    
-    while (this->processor->fillNextOutputPage()) {
-        for (int i = 0; i < this->children->size(); i ++ ) {
-            this->children->at(i)->run(smallPage->getData(), batchSize);
+bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputBatch, int batchSize) {
+    BlockQueryProcessorPtr processor = this->getProcessor(context);
+    processor->initialize();
+    processor->loadInputBlock(inputBatch);
+    Handle<GenericBlock> outputBlock = loadOutputBlock();
+    while (fillNextOutputBlock()) {
+        //TODO: we need to unpin the previous output page
+        if (context->isOUtputFull()) {
+             PDBPagePtr output;
+             context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
+                       context->getOutputSet()->getSetId(), output);
+             makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
+             context->setOutputVec(outputVec);
         }
-        if (this->amISink == false) {
-            smallPage = make_shared<RefCountedOnHeapSmallPage>(batchSize);
-            this->processor->loadOutputPage(smallPage->getData(), smallPage->getSize());
-        } else {
-            //get the page from the set specified by the set identifier
+        for (i = 0; i < this->children->size(); i ++) {
+             children->at(i)->run(context, outputBlock, batchSize);
         }
     }
 

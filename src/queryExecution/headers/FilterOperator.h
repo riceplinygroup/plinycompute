@@ -22,7 +22,7 @@
 
 #include "QueryBase.h"
 #include "Selection.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 
 namespace pdb {
 
@@ -42,8 +42,8 @@ class FilterOperator : public ExecutionOperator {
             return "FilterOperator";
        }
 
-       SimpleSingleTableQueryProcessorPtr getProcessor() override {
-            return (unsafeCast<Selection<Object, Object>>(selection))->getFilterProcessor();
+       BlockQueryProcessorPtr getProcessor() override {
+            return (unsafeCast<Selection<Object, Object>>(selection))->getFilterBlockProcessor();
        }
 
     private:

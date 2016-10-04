@@ -55,22 +55,22 @@ template <class Output, class Input>
 void ProjectionBlockQueryProcessor <Output, Input> :: loadInputBlock (Handle<GenericBlock> inputBlock)
 {
         this->inputBlock = inputBlock;
-        this->batchSize = this->inputBlock->getBlock().size();
+        this->batchSize = this->inputBlock->getBlock()->size();
 	posInInput = 0;
 }
 
 // load up another output page to process
 template <class Output, class Input>
 Handle<GenericBlock> ProjectionBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
-        this->outputBlock = makeObject <GenericBlock> (batchSize);
+        this->outputBlock = makeObject <GenericBlock> ();
         return this->outputBlock; 
 }
 
 template <class Output, class Input>
 bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		
-	Vector <Handle <Input>> &myInVec = inputBlock->getBlock();
-	Vector <Handle <Output>> &myOutVec = outputBlock->getBlock();
+	Vector <Handle <Input>> &myInVec = (*inputBlock->getBlock());
+	Vector <Handle <Output>> &myOutVec = (*outputBlock->getBlock());
 
 	// if we are finalized, see if there are some left over records
 	if (finalized) {
@@ -89,7 +89,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 
 	} catch (NotEnoughSpace &n) {
 	        if (this->context != nullptr) {	
-		        getRecord (this->context->getOutputVec());
+		        getRecord (this->context->outputVec);
                 }
 		return true;
 	}
@@ -103,15 +103,13 @@ void ProjectionBlockQueryProcessor <Output, Input> :: finalize () {
 
 // must be called before freeing the memory in output page
 template <class Output, class Input>
-void ProjectionBlockQueryProcessor <Output, Input> :: clearOutputPage () {
-        outputVec = nullptr;
-        blockPtr = nullptr;
+void ProjectionBlockQueryProcessor <Output, Input> :: clearOutputBlock () {
+        outputBlock = nullptr;
 }
 
 template <class Output, class Input>
-void ProjectionBlockQueryProcessor <Output, Input> :: clearInputPage () {
-        inputVec = nullptr;
-        inputObject = nullptr;
+void ProjectionBlockQueryProcessor <Output, Input> :: clearInputBlock () {
+        inputBlock = nullptr;
 }
 
 }

@@ -42,7 +42,7 @@ private:
     std :: unordered_map<OperatorID, PipelineNodePtr> * allNodes;
 
     // Job stage id
-    JobStageID stageId;
+    Handle<JobStage> jobStage;
 
     // batch size
     size_t batchSize;
@@ -73,11 +73,14 @@ public:
     //constructor
     PipelineNetwork(SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads);
 
-    //initialize from a job stage
+    //initialize from a single job stage
+    void initialize (Handle<JobStage> stage);
+
+    //initialize from a graph of job stages
     void initialize (PipelineNodePtr node, Handle<JobStage> stage);
 
-    //return the job stage id
-    JobStageID getStageId();
+    //return the root job stage corresponding to the pipeline 
+    Handle<JobStage> getJobStage(); 
 
     //return all source nodes
     std :: vector<PipelineNodePtr> getSourceNodes();

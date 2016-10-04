@@ -22,7 +22,7 @@
 
 #include "QueryBase.h"
 #include "Selection.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "BlockQueryProcessor.h"
 
 namespace pdb {
 
@@ -42,8 +42,8 @@ class ProjectionOperator : public ExecutionOperator {
             return "ProjectionOperator";
        }
 
-       SimpleSingleTableQueryProcessorPtr getProcessor() override {
-            return (unsafeCast<Selection<Object, Object>>(selection))->getProjectionProcessor();
+       BlockQueryProcessorPtr getProcessor() override {
+            return (unsafeCast<Selection<Object, Object>>(selection))->getProjectionBlockProcessor();
        }
 
     private:

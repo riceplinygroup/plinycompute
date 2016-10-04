@@ -71,8 +71,11 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     try {
         int vecSize = myInputVec.size();
         posToFinish = posInInput + batchSize;
-        for (; posInInput < posToFinish; posInInput++) {
+        for (; posInInput < vecSize; posInInput++) {
             myOutputVec.push_back(myInputVec[posInInput]);
+            if(posInInput == posToFinish) {
+               return true;
+            }
         }
         //an output block is finished.
         return false;
@@ -80,6 +83,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
             getRecord(this->context->getOutputVec());
+            context->setOutputFull(true);
         }
         return true; 
     }
