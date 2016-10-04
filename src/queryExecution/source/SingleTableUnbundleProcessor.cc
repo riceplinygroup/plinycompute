@@ -71,7 +71,7 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
             myOutputVec.push_back(myInputVec[posInInput]);
         }
         //an output block is finished.
-        return true;
+        return false;
     } catch (NotEnoughSpace &n) {
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
