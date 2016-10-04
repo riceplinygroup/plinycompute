@@ -82,8 +82,8 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
     BlockQueryProcessorPtr processor = this->getProcessor(context);
     processor->initialize();
     processor->loadInputBlock(inputBatch);
-    Handle<GenericBlock> outputBlock = loadOutputBlock();
-    while (fillNextOutputBlock()) {
+    Handle<GenericBlock> outputBlock = processor->loadOutputBlock();
+    while (processor->fillNextOutputBlock()) {
         //TODO: we need to unpin the previous output page
         if (context->isOUtputFull()) {
              PDBPagePtr output;
