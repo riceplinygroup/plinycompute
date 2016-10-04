@@ -43,6 +43,7 @@
 #include "FilterOperator.h"
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 namespace pdb {
 
@@ -69,76 +70,108 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIr query
 
      //current logical planning only supports selection and projection
      //start from the first sink:
-     //  ---if current node hasn't been traversed, we push it to this sink's pipeline
-     //  ---if current node has been traversed, we append it to the other sink's pipeline
+     //  ---we push node to this sink's pipeline until we meet a source node, a materialized node or a traversed node;
+     //  ------if we meet a source node, we set input for the pipeline, and start a new pipeline stage for a new sink
+     //  ------if we meet a materialized node, we set input for the pipeline, and start a new pipeline stage for the materialization node
+     //  ------if we meet a traversed node, which is a materialized node, we set input for the pipeline, and start a new pipeline stage for a new sink
+     //  ------if we meet a traversed node, we set the node's set as input of this pipline stage
      //if a node's parent is source, we stop here for this sink, and start from the next sink.
 
      const UseTemporaryAllocationBlock tempBlock {1024*1024};
-
+     int stageOperatorCounter = 0;
+     int jobStageId = 0;
      std :: shared_ptr <pdb_detail::SetExpressionIr> curNode;
+     std :: unordered_map<int, Handle<JobStage>> stageMap; 
      for (int i = 0; i < queryGraph.getSinkNodeCount(); i ++) {
 
+            stageOperatorCounter = 0;
             curNode = queryGraph.getSinkNode(i);
             std :: cout << "the " << i << "-th sink:" << std :: endl;
             std :: cout << curNode->getName() << std :: endl;
+
+            //the sink node must be a materialized node
             shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
-            if (materializationMode->isNone() == false) {
+            if (materializationMode->isNone() == true) {
                 std :: cout << "Error: sink node output must be materialized." << std :: endl;
                 continue;
             } 
-            //TODO: Matt's code is a little over-complicated, so waiting some time for it gets improved.
-            Handle<SetIdentifier> output = makeObject<SetIdentifier>(); 
-            Handle<JobStage> stage = makeObject<JobStage>(i);
+            string name = "";
+            Handle<SetIdentifier> output = makeObject<SetIdentifier>(materializationMode->tryGetDatabaseName( name ), materializationMode->tryGetSetName( name )); 
+            Handle<JobStage> stage = makeObject<JobStage>(jobStageId);
+            jobStageId ++;
             stage->setOutput(output);
-
             while (curNode->getName() != "SourceSetNameIr") {
-                shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
-
                 if(curNode->isTraversed() == false) {
+                    if (stageOperatorCounter > 0) {
+                        materializationMode = curNode->getMaterializationMode();
+                        if (materializationMode->isNone() == false) {
+
+                            //we meet a materialized node, we need stop this stage, set the materialized results as the input of this stage
+                            //if in future, we remove the one output restriction from the pipeline, we can go on
+                            Handle<SetIdentifier> input = makeObject<SetIdentifier> (materializationMode->tryGetDatabaseName( name ), materializationMode->tryGetSetName( name ));
+                            stage->setInput(input);
+
+                            //we start a new stage, which is the parent of the stopping stage
+                            Handle<JobStage> newStage = makeObject<JobStage>(jobStageId);
+                            jobStageId ++;
+                            newStage->setOutput(input);
+                            stage->setParentStage(newStage);
+                            //this->currentPlan.push_back(stage);
+                            stageMap[stage->getStageId()] = stage;
+                            newStage->appendChildStage(stage);
+                            stage = newStage;
+                        }
+                    }
                     // a new operator
                     if(curNode->getName() == "SelectionIr") {
                         shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
                         Handle<FilterOperator> filterOp = makeObject<FilterOperator> (selectionNode->getQueryBase()); 
                         stage->addOperator(filterOp);
+                        stageOperatorCounter ++;
+                        curNode->setTraversed (true, jobStageId);   
                         curNode = selectionNode->getInputSet();
                     } else if (curNode->getName() == "ProjectionIr") {
                         shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
                         Handle<ProjectionOperator> projectionOp = makeObject<ProjectionOperator> (projectionNode->getQueryBase());
                         stage->addOperator(projectionOp);
+                        stageOperatorCounter ++;
+                        curNode->setTraversed (true, jobStageId);   
                         curNode = projectionNode->getInputSet();
                     } else {
                         std :: cout << "We only support Selection and Projection right now" << std :: endl;
                     }
 
-                    curNode->setTraversed (true, i);   
 
                 } else {
+                    // TODO: we need check that this node's result must be materialized
                     // get the stage that generates the input
                     Handle<JobStage> parentStage;
                     JobStageID parentStageId = curNode->getTraversalId();
-                    for (int j = 0; j < currentPlan.size(); j++) {
-                        if( currentPlan[j]->getStageId() == parentStageId) {
-                            parentStage = currentPlan[j];
-                            break;
-                        }
-                    }
+                    parentStage = stageMap[parentStageId];
+
                     // append this stage to that stage and finishes loop for this sink
                     Handle<SetIdentifier> input = parentStage->getOutput();
                     stage->setInput(input);
-                    parentStage->appendStage(stage);
+                    parentStage->appendChildStage(stage);
+                    stage->setParentStage(parentStage);
+                    stageMap[stage->getStageId()] = stage;
                     break;
                 }
                 std :: cout << curNode->getName() << std :: endl;
+
             }
             
             if (curNode->getName() == "SourceSetNameIr") {
                 shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
                 Handle<SetIdentifier> input = makeObject<SetIdentifier> (sourceNode->getDatabaseName(), sourceNode->getSetName());
                 stage->setInput(input);
+                stageMap[stage->getStageId()] = stage;
                 this->currentPlan.push_back(stage);
             }
        }
 }
+
+
 
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
     //handler to request to schedule a query

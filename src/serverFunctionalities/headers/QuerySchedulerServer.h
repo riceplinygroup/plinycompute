@@ -43,7 +43,8 @@ public:
        //constructor, initialize from catalog
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
-       //to execute optimized client query into a physical plan
+       //to transform optimized client query into a physical plan
+       //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIr queryGraph);
 
        //from the serverFunctionality interface... register the resource manager handlers
