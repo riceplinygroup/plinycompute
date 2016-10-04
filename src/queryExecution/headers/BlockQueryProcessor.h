@@ -21,6 +21,7 @@
 
 #include <memory>
 #include "GenericBlock.h"
+#include "PipelineContext.h"
 
 namespace pdb {
 
@@ -41,7 +42,7 @@ public:
 	virtual void loadInputBlock (Handle<GenericBlock> block) = 0;
 
 	// load up another output block to write output data
-	virtual Handle<GenericBlock> loadOutputBlock (size_t batchSize) = 0;
+	virtual Handle<GenericBlock> loadOutputBlock () = 0;
 
 	// attempts to fill the next output block with data.  Returns true if it can.  If it
 	// cannot, returns false, and the next call to loadInputBlock should be made
@@ -55,6 +56,21 @@ public:
 
         // must be called before free the data in input page
         virtual void clearInputBlock() = 0;
+
+        // set pipeline context
+        virtual void setContext (PipelineContextPtr context) {
+            this->context = context;
+        }
+
+        // get pipeline context
+        PipelineContextPtr getContext() {
+            return this->context;
+       }
+
+protected:
+
+       PipelineContextPtr context;
+
 
 };
 
