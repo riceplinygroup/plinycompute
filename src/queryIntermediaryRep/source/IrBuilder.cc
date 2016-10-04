@@ -15,80 +15,96 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#include <cstdint>
-
-#include "Handle.h"
 #include "IrBuilder.h"
+
 #include "PDBMap.h"
-#include "PDBVector.h"
 #include "ProjectionIr.h"
-#include "RecordPredicateIr.h"
-#include "Selection.h"
 #include "SelectionIr.h"
-#include "Query.h"
-#include "QueryOutput.h"
-#include "QueryBase.h"
-#include "Set.h"
+#include "QueryAlgo.h"
 #include "SourceSetNameIr.h"
 
-
-#include "Employee.h"
-
-
-using pdb::Handle;
-using pdb::makeObject;
 using pdb::Map;
-using pdb::Query;
 using pdb::QueryAlgo;
-using pdb::QueryBase;
-using pdb::QueryOutput;
-using pdb::Selection;
-using pdb::Object;
-using pdb::Set;
-using pdb::String;
-using pdb::unsafeCast;
-using pdb::Vector;
-
-
-
 
 namespace pdb_detail
 {
-    
-    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode);
+    /**
+     * A pdb::Map of QueryBase onto SetExpressionIr.
+     */
+    typedef Handle<Map<QueryBaseHdl, SetExpressionIrPtr>> AlreadyTransMapHdl;
 
-    shared_ptr<SelectionIr> makeSelection(Handle<QueryBase> selectAndProject, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
+    // forward declaration. See other declaration for contract.
+    SetExpressionIrPtr makeOrReuseSetExpressionHelp(QueryBaseHdl queryNode, AlreadyTransMapHdl alreadyTranslated,
+                                             bool &madeNewNode);
+
+    /**
+     * Translates the given user query node (assumed to be a Selection<?,?>) to a SelectionIr.
+     * The returned SelectionIr's input will be a translated form of the given selection's input.
+     *
+     * Returns nullptr if the given selection does not have an input. madeNewNode will not me modified
+     * in this case, and set to true in all other cases.
+     *
+     * If a SelectionIr is retruned (i.e. not the null pointer) an entry will be placed in alreadyTranslated
+     * mapping the given selection to the returned SelectionIr.
+     *
+     * @param selection a Selection<?,?> user query selection.
+     * @param alreadyTranslated a mapping of QueryBase onto SetExpressionIr that is to be updated if this method
+     *                          creates a new SelectionIrPtr to correspond to selection.
+     * @param madeNewNode true if selection had an input and thus a SelectionIr was returned, otherwise unmodified.
+     * @return a new SelectionIr or the null pointer.
+     */
+    SelectionIrPtr makeSelection(QueryBaseHdl selection, AlreadyTransMapHdl &alreadyTranslated, bool &madeNewNode)
     {
+        if(!selection->hasInput())
+            return nullptr; // n.b.: exceptions forbidden in pdb codebase
 
-        shared_ptr<SetExpressionIr> selectionInputIr;
-        {
-            if(selectAndProject->hasInput())
-            {
-                selectionInputIr = makeSetExpressionHelp(selectAndProject->getIthInput(0), alreadyTranslated, madeNewNode);
-            }
-            else
-            {
-                selectionInputIr = make_shared<SourceSetNameIr>("", "");
-            }
-        }
+        SetExpressionIrPtr selectionInputIr
+                = makeOrReuseSetExpressionHelp(selection->getIthInput(0), alreadyTranslated, madeNewNode);
 
+        SelectionIrPtr selectionIr = make_shared<SelectionIr>(selectionInputIr, selection);
         madeNewNode = true;
-        return make_shared<SelectionIr>(selectionInputIr, selectAndProject);
+
+        alreadyTranslated->operator[](selection) = selectionIr;
+
+        return selectionIr;
     }
 
 
-    shared_ptr<ProjectionIr> makeProjection(Handle<QueryBase> selectAndProject, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
+    /**
+     * Translates the given user query node (assumed to be a Selection<?,?>) to a ProjectionIr and SelectionIr
+     * pair.  The created ProjectionIr is returned and its input is the created SelectionIr.
+     *
+     * Returns nullptr if the given selection does not have an input. madeNewNode will not me modified
+     * in this case, and set to true in all other cases.
+     *
+     * If a ProjectionIr is returned (i.e. not the null pointer) an entry will be placed in alreadyTranslated
+     * mapping the given selection to the returned ProjectionIr.
+     *
+     * If the given selection's DbName and SetName string are both 1 character or longer, this method
+     * sets the materialization mode of the returned ProjectionIr to MaterializationModeNamedSet with those
+     * values.
+     *
+     * @param selection a Selection<?,?> user query selection.
+     * @param alreadyTranslated a mapping of QueryBase onto SetExpressionIr that is to be updated if this method
+     *                          creates a new ProjectionIr to correspond to selection.
+     * @param madeNewNode true if selection had an input and thus a ProjectionIr was returned, otherwise unmodified.
+     * @return a new ProjectionIr or the null pointer.
+     */
+    ProjectionIrPtr makeProjection(QueryBaseHdl selection, AlreadyTransMapHdl alreadyTranslated, bool &madeNewNode)
     {
-        shared_ptr<SelectionIr> inputSet = makeSelection(selectAndProject, alreadyTranslated, madeNewNode);
+        if(!selection->hasInput())
+            return nullptr; // n.b.: exceptions forbidden in pdb codebase
 
-        shared_ptr<ProjectionIr> projection =  make_shared<ProjectionIr>(inputSet, selectAndProject);
+        SetExpressionIrPtr projectionInput = makeSelection(selection, alreadyTranslated, madeNewNode);
+
+        ProjectionIrPtr projection =  make_shared<ProjectionIr>(projectionInput, selection);
         madeNewNode = true;
+        alreadyTranslated->operator[](selection) = projection; // overwrite selection -> inputSet
 
-        if(selectAndProject->getDBName().length() > 0)
+        if(selection->getDBName().length() > 0 && selection->getSetName().length() > 0)
         {
-            string dbName = selectAndProject->getDBName();
-            string setName = selectAndProject->getSetName();
+            string dbName = selection->getDBName();
+            string setName = selection->getSetName();
             projection->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
         }
 
@@ -96,116 +112,175 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<SetExpressionIr> makeSetExpressionHelp(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
+    /**
+     * Given a user query graph node, translate it and all its reachable ancestors (following inputs recursivly)
+     * into a logical query plan nodes.
+     *
+     * If sink.isNullPtr(), return nullptr.
+     *
+     * If alreadyTranslated contains the key node, just return AlreadyTransMapHdl[node].
+     *
+     * Otherwise, create a new SetExpressionIr corresponding to node (recursing the path of reachable nodes, possibly
+     * using values in alreadyTranslated if ancestors of node have been previously seen via previous explorations
+     * of sinks stored in alreadyTranslated) and return it.
+     *
+     * @param node the node to translate
+     * @param alreadyTranslated a mapping of QueryBase onto SetExpressionIr that is to be updated if this method
+     *                          creates a new ProjectionIr to correspond to selection. Also a source of "to
+     *                          be reused" nodes during translation if a QueryBase has been previously observed.
+     * @param madeNewNode set to true if during translation any new nodes are created, else unmodified
+     * @return a translation of node (and hence subraph starting at node)
+     */
+    SetExpressionIrPtr makeOrReuseSetExpressionHelp(QueryBaseHdl node, AlreadyTransMapHdl alreadyTranslated,
+                                                    bool &madeNewNode)
     {
-        if(queryNode.isNullPtr())
-            return shared_ptr<SetExpressionIr>();
+        if(node.isNullPtr())
+            return nullptr;
 
-        if(alreadyTranslated->count(queryNode) > 0)
-        {
-            return alreadyTranslated->operator[](queryNode);
-        }
+        if(alreadyTranslated->count(node) > 0)
+            return alreadyTranslated->operator[](node);
 
-        class Algo : public QueryAlgo
+        /**
+         * Return a different translated sink node depending on what type of user query node sink is.
+         */
+        class TranslateNode : public QueryAlgo
         {
         public:
 
-            Algo(Handle<QueryBase> queryNodeParam, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated,
-                 bool &madeNewNode)
-                    : _queryNode(queryNodeParam), _alreadyTranslated(alreadyTranslated), _madeNewNode(madeNewNode)
+            TranslateNode(Handle<QueryBase> queryNodeParam, AlreadyTransMapHdl alreadyTranslated, bool &madeNewNode)
+                    : _node(queryNodeParam), _alreadyTranslated(alreadyTranslated), _madeNewNode(madeNewNode)
             {
             }
 
-            void forSelection(Object&) override
+            void forSelection(Object&) override  // node is a Selection<?,?>
             {
-                output = makeProjection(_queryNode, _alreadyTranslated, _madeNewNode);
+                // user query graph's selection is our projection/selection pair.
+                // makeProjection here is not a mistake.
+                output = makeProjection(_node, _alreadyTranslated, _madeNewNode);
             }
 
-            void forSet(Object&) override
+            void forSet(Object&) override // node is a Set<?> which is a user query graph root
             {
-                int numInputs = _queryNode->getNumInputs();
+                int numInputs = _node->getNumInputs();
 
-                string dbName = _queryNode->getDBName();
-                string setName = _queryNode->getSetName();
+                string dbName = _node->getDBName();
+                string setName = _node->getSetName();
 
-                if(numInputs == 0)
-                {
-                    output = make_shared<SourceSetNameIr>(dbName, setName);
-                }
-                else
-                {
-                    Handle<QueryBase> setInput = _queryNode->getIthInput(0);
-
-                    output = makeSetExpressionHelp(setInput, _alreadyTranslated, _madeNewNode);
-
-                    output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
-                }
+                output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
             }
 
-            void forQueryOutput(Object&) override
+            void forQueryOutput(Object&) override // node is a QueryOutput<?> which represents a sink
             {
+                // Our model doesn't split output sets into their own node in a graph.
+                // So instead translate the node that is to write to user query graph's given set node
+                // and change its materialization mode.
 
-                string dbName = _queryNode->getDBName();
-                string setName = _queryNode->getSetName();
+                // user query: (destination=["db","x"]) <-- (selection node) <-- ...
+                // logical:   (selection node w/ materialization mode =["db","x"]) <-- ...
 
-                Handle<QueryBase> outputInput = _queryNode->getIthInput(0);
+                string dbName = _node->getDBName();
+                string setName = _node->getSetName();
 
-                output = makeSetExpressionHelp(outputInput, _alreadyTranslated, _madeNewNode);
+                Handle<QueryBase> nodeInput = _node->getIthInput(0); // QueryOutput has one (and only one) input,
+                                                                     // contractually
 
+                output = makeOrReuseSetExpressionHelp(nodeInput, _alreadyTranslated, _madeNewNode);
                 output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
             }
 
-            shared_ptr<SetExpressionIr> output;
+            SetExpressionIrPtr output; // store the translation of _node
 
         private:
 
-            Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> _alreadyTranslated;
+            AlreadyTransMapHdl _alreadyTranslated; // function's alreadyTranslated param
 
-            bool &_madeNewNode;
+            bool &_madeNewNode; // function's madeNewNode param
 
-            Handle<QueryBase> _queryNode;
+            Handle<QueryBase> _node; // function's node param
 
-        } algo(queryNode, alreadyTranslated, madeNewNode);
+        } trans(node, alreadyTranslated, madeNewNode);
 
-        queryNode->execute(algo);
+        node->execute(trans);
 
-        alreadyTranslated->operator[](queryNode) = algo.output;
-
-        return algo.output;
+        return trans.output;
     }
 
-    shared_ptr<SetExpressionIr> makeSetExpression(Handle<QueryBase> queryNode, Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated, bool &madeNewNode)
+    /**
+     * Given a user query graph node, translate it and all its reachable ancestors (following inputs recursivly)
+     * into a logical query plan nodes.
+     *
+     * If sink.isNullPtr(), return nullptr.
+     *
+     * If alreadyTranslated contains the key node, just return AlreadyTransMapHdl[node].
+     *
+     * Otherwise, create a new SetExpressionIr corresponding to node (recursing the path of reachable nodes, possibly
+     * using values in alreadyTranslated if ancestors of node have been previously seen via previous explorations
+     * of sinks stored in alreadyTranslated) and return it.
+     *
+     * @param node the node to translate
+     * @param alreadyTranslated a mapping of QueryBase onto SetExpressionIr that is to be updated if this method
+     *                          creates a new ProjectionIr to correspond to selection. Also a source of "to
+     *                          be reused" nodes during translation if a QueryBase has been previously observed.
+     * @param madeNewNode set to true if during translation any new nodes are created, else set to false.
+     * @return a translation of node (and hence subraph starting at node)
+     */
+    SetExpressionIrPtr makeOrReuseSetExpression(QueryBaseHdl sink, AlreadyTransMapHdl alreadyTranslated,
+                                                bool &madeNewNode)
     {
         madeNewNode = false;
-        return makeSetExpressionHelp(queryNode, alreadyTranslated, madeNewNode);
+        return makeOrReuseSetExpressionHelp(sink, alreadyTranslated, madeNewNode);
     }
 
-
-    QueryGraphIr buildIr(function<bool()> hasNext, function<Handle<QueryBase>()> getNextElement)
+    /**
+     * Translates the given usery query graph into an equivalent logical query plan graph.
+     *
+     * Expects the given graph to have all sinks returned by a series of calls to getNextElement()
+     * while hasNext() is true.
+     *
+     * @param hasNext tests if calling getNextElement() will return the next unseen sink.
+     * @param getNextElement returns a sink and advances the iterator.
+     * @return a corresponding logical query plan
+     */
+    QueryGraphIrPtr buildIr(function<bool()> hasNext, function<QueryBaseHdl()> getNextElement)
     {
-        shared_ptr<vector<shared_ptr<SetExpressionIr>>> sinkNodes = make_shared<vector<shared_ptr<SetExpressionIr>>>();
+        // TODO: should be a set collection structure once that exists
+        shared_ptr<vector<SetExpressionIrPtr>> transSinkNodesAccum = make_shared<vector<SetExpressionIrPtr>>();
 
-        Handle<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>> alreadyTranslated = makeObject<Map<Handle<QueryBase>, shared_ptr<SetExpressionIr>>>();
+        // accumulate all seen QueryBases and the node they were translated to
+        AlreadyTransMapHdl alreadyTranslatedAccum = makeObject<Map<QueryBaseHdl, SetExpressionIrPtr>>();
 
+        /**
+         * Consume all given sinks, translating each one.
+         */
         while(hasNext())
         {
             Handle<QueryBase> querySink = getNextElement();
 
-            bool isNewNode;
-            shared_ptr<SetExpressionIr> se = makeSetExpression(querySink, alreadyTranslated, isNewNode);
-            if(isNewNode)
-                sinkNodes->push_back(se);
-        }
+            bool isNewNode; // will be set either way by makeOrReuseSetExpression
+            SetExpressionIrPtr transSink = makeOrReuseSetExpression(querySink, alreadyTranslatedAccum, isNewNode);
+
+            if(transSink == nullptr)
+                return nullptr;
+
+            if(isNewNode) // if a new node was created it must have been attached to an existing node (or empty graph)
+                transSinkNodesAccum->push_back(transSink); // either way, it is a new sink.
+                                                      // otherwise transSink is an existing sink prior to invoke
+        }                                             // and thus already in transSinkNodes
 
 
-        return QueryGraphIr(sinkNodes);
+        return make_shared<QueryGraphIr>(transSinkNodesAccum);
     }
 
-    QueryGraphIr buildIr(list<Handle<QueryBase>> &querySinks)
+    // contract in .h
+    QueryGraphIrPtr buildIr(list<QueryBaseHdl> &querySinks)
     {
+        /**
+         * Create iterator functions over querySinks
+         */
         list<Handle<QueryBase>>::const_iterator i = querySinks.begin();
 
-        function<bool()> hasNext = [&]() { return i != querySinks.end(); };
+        function<bool()> hasNext = [&] { return i != querySinks.end(); };
+
         function<Handle<QueryBase>()> getNextElement = [&]
         {
             Handle<QueryBase> toReturn = *i;
@@ -213,14 +288,22 @@ namespace pdb_detail
             return toReturn;
         };
 
+        /**
+         * Build and return.
+         */
         return buildIr(hasNext, getNextElement);
 
     }
 
-    QueryGraphIr buildIr(Handle<Vector<Handle<QueryBase>>> querySinks)
+    // contract in .h
+    QueryGraphIrPtr buildIr(Handle<Vector<QueryBaseHdl>> querySinks)
     {
+        /**
+          * Create iterator functions over querySinks
+          */
         uint32_t i = 0;
-        function<bool()> hasNext = [&]() { return i < querySinks->size(); };
+        function<bool()> hasNext = [&] { return i < querySinks->size(); };
+
         function<Handle<QueryBase>()> getNextElement = [&]
         {
             Handle<QueryBase> toReturn = querySinks->operator[](i);
@@ -228,11 +311,18 @@ namespace pdb_detail
             return toReturn;
         };
 
+        /**
+         * Build and return.
+         */
         return buildIr(hasNext, getNextElement);
     }
 
-    QueryGraphIr buildIrSingle(Handle<QueryBase> querySink)
+    // contract in .h
+    QueryGraphIrPtr buildIrSingle(QueryBaseHdl querySink)
     {
+        /**
+         * Create iterator functions the single element querySink
+         */
         bool nextEverCalled = false;
 
         function<bool()> hasNext = [&]() { return !nextEverCalled; };
@@ -244,6 +334,9 @@ namespace pdb_detail
             return toReturn;
         };
 
+        /**
+         * Build and return.
+         */
         return buildIr(hasNext, getNextElement);
     }
 

@@ -101,6 +101,8 @@ namespace pdb_detail
 
         Handle<QueryBase> _originalSelection;
     };
+
+    typedef shared_ptr<ProjectionIr> ProjectionIrPtr;
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_PROJECTION_H

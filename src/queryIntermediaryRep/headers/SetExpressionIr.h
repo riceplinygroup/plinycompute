@@ -82,6 +82,8 @@ namespace pdb_detail
 
         int _traversalId = -1;
     };
+
+    typedef shared_ptr<SetExpressionIr> SetExpressionIrPtr;
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H

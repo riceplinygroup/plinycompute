@@ -56,6 +56,8 @@ namespace pdb_detail
         shared_ptr<vector<shared_ptr<SetExpressionIr>>> _sinkNodes;
 
     };
+
+    typedef shared_ptr<QueryGraphIr> QueryGraphIrPtr;
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_QUERYGRAPHIR_H

@@ -174,6 +174,8 @@ private:
 	Handle <Vector <Handle <QueryBase>>> inputs;
 };
 
+    typedef Handle<QueryBase> QueryBaseHdl;
+
 }
 
 #endif

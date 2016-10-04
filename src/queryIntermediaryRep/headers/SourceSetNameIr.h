@@ -74,6 +74,8 @@ namespace pdb_detail
          */
         string _setName;
     };
+
+    typedef shared_ptr<SourceSetNameIr> SourceSetNameIrPt;
 }
 
 #endif //PDB_QUERYINTERMEDIARYREP_SETNAMEIR_H

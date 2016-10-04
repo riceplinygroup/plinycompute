@@ -12,6 +12,7 @@ include_directories(
         ../../../src/conf/headers
         ../../../src/communication/headers
         ../../../src/dispatcher/headers
+        ../../../src/memory/headers
         ../../../src/mocking/headers
         ../../../src/objectModel/headers
         ../../../src/pdbServer/headers
@@ -23,6 +24,7 @@ include_directories(
         ../../../src/queryIntermediaryRep/headers
         ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
+        ../../../src/storage/headers
         ../../../src/work/headers)
 
 set(SOURCE_FILES
