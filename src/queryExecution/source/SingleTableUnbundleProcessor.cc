@@ -15,52 +15,49 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SINGLE_TABLE_BUNDLE_PROCESSOR_CC
-#define SINGLE_TABLE_BUNDLE_PROCESSOR_CC
+#ifndef SINGLE_TABLE_UNBUNDLE_PROCESSOR_CC
+#define SINGLE_TABLE_UNBUNDLE_PROCESSOR_CC
 
-#include "SingleTableBundleProcessor.h"
+#include "SingleTableUnbundleProcessor.h"
 
 namespace pdb {
 
-SingleTableBundleProcessor :: ~SingleTableBundleProcessor() {
+SingleTableUnbundleProcessor :: ~SingleTableUnbundleProcessor() {
 
-    this->clearInputPage();
-    this->clearOutputBlock();
+    this->clearInputBlock();
+    this->clearOutputVec();
 
 }
 
-SingleTableBundleProcessor :: SingleTableBundleProcessor () {
+SingleTableUnbundleProcessor :: SingleTableUnbundleProcessor () {
 
     this->batchSize = 100;
     this->context = nullptr;
 } 
 
-void SingleTableBundleProcessor :: initialize () {
+void SingleTableUnbundleProcessor :: initialize () {
 
     finalized = false;   
 
 }
 
-void SingleTableBundleProcessor :: loadInputPage (void * pageToProcess) {
+void SingleTableUnbundleProcessor :: loadInputBlock (Handle<GenericBlock> inputBlock) {
 
-    Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) pageToProcess;
-    inputVec = myRec->getRootObject ();
+    this->inputBlock = inputBlock;
     posInInput = 0;
 
 }
 
-Handle<GenericBlock> SingleTableBundleProcessor :: loadOutputBlock ( size_t batchSize) {
+void SingleTableUnbundleProcessor :: loadOutputVector () {
 
-    this->clearOutputBlock();
-    this->outputBlock = makeObject<GenericBlock> ();
-    this->batchSize = batchSize;
-    return this->outputBlock;
+    this->clearOutputVec();
+    this->outputVec = this->context->getOutputVec();
 }
 
-bool SingleTableBundleProcessor :: fillNextOutputBlock () {
+bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
 
-    Vector<Handle<Object>> &myInputVec = *(inputVec);
-    Vector<Handle<Object>> &myOutputVec = this->outputBlock->getBlock();
+    Vector<Handle<Object>> &myInputVec = this->inputBlock->getBlock();
+    Vector<Handle<Object>> &myOutputVec = *outputVec;
 
     // we are finalized in processing the input page
     if (finalized) {
@@ -70,8 +67,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
-        posToFinish = posInInput + batchSize;
-        for (; posInInput < posToFinish; posInInput++) {
+        for (; posInInput < vecSize; posInInput++) {
             myOutputVec.push_back(myInputVec[posInInput]);
         }
         //an output block is finished.
@@ -86,31 +82,31 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
 
 }
 
-void SingleTableBundleProcessor :: finalize () {
+void SingleTableUnbundleProcessor :: finalize () {
 
    finalized = true;
 
 }
 
-void SingleTableBundleProcessor :: clearOutputBlock () {
+void SingleTableUnbundleProcessor :: clearOutputVec () {
 
-    this->outputBlock = nullptr;
-
-}
-
-void SingleTableBundleProcessor :: clearInputPage () {
-
-    this->inputVec = nullptr;
+    this->outputVec = nullptr;
 
 }
 
-void SingleTableBundleProcessor :: setContext (PipelineContextPtr context) {
+void SingleTableUnbundleProcessor :: clearInputBlock () {
+
+    this->inputBlock = nullptr;
+
+}
+
+void SingleTableUnbundleProcessor :: setContext (PipelineContextPtr context) {
 
     this->context = context;
 
 }
 
-PipelineContextPtr SingleTableBundleProcessor :: getContext() {
+PipelineContextPtr SingleTableUnbundleProcessor :: getContext() {
 
     return this->context;
 
