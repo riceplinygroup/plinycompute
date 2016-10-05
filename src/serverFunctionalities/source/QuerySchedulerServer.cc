@@ -41,6 +41,7 @@
 #include "SourceSetNameIr.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
+#include "IrBuilder.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -66,7 +67,7 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
 }
 
 
-void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIr queryGraph) { 
+void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
 
      //current logical planning only supports selection and projection
      //start from the first sink:
@@ -82,10 +83,10 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIr query
      int jobStageId = 0;
      std :: shared_ptr <pdb_detail::SetExpressionIr> curNode;
      std :: unordered_map<int, Handle<JobStage>> stageMap; 
-     for (int i = 0; i < queryGraph.getSinkNodeCount(); i ++) {
+     for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
 
             stageOperatorCounter = 0;
-            curNode = queryGraph.getSinkNode(i);
+            curNode = queryGraph->getSinkNode(i);
             std :: cout << "the " << i << "-th sink:" << std :: endl;
             std :: cout << curNode->getName() << std :: endl;
 
@@ -192,6 +193,16 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                  return std :: make_pair (false, errMsg);
          }
          
+         std :: cout << "To transform the ExecuteQuery object into a logicalGraph" << std :: endl;
+         pdb_detail::QueryGraphIrPtr queryGraph = pdb_detail::buildIr(userQuery);
+
+         std :: cout << "To transform the logicalGraph into a physical plan" << std :: endl;
+         parseOptimizedQuery(queryGraph); 
+
+         for (int i = 0; i < this->currentPlan.size(); i++) {
+                 std :: cout << "#########The "<< i << "-th Plan#############"<< std :: endl;
+                 currentPlan[i]->print();
+         }
 
          std :: cout << "To get the resource object from the resource manager" << std :: endl;
          this->resources = getFunctionality<ResourceManagerServer>().getAllResources();

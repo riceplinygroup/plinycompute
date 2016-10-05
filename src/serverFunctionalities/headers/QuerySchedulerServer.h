@@ -45,7 +45,7 @@ public:
 
        //to transform optimized client query into a physical plan
        //each pipeline can have more than one output
-       void parseOptimizedQuery(pdb_detail::QueryGraphIr queryGraph);
+       void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
