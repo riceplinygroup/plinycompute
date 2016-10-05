@@ -13,10 +13,6 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-
-PDB_HOME="PDBServer"
-echo "PDB_HOME is $PDB_HOME";
-
-cd $PDB_HOME;
+echo "Start up pdbServer using screen command"; 
 
 screen -d -m ./bin/pdbServer $@;
