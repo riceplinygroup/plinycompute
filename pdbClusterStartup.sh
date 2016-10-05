@@ -16,12 +16,12 @@
 
 PDB_CLUSTER_CONFIG_FILE="pdbCluster.config"
 PEM_FILE=$1
-PDB_HOME="PDBServer/"
+PDB_HOME="PDBServer"
 PDB_COMMAND="pdbServer"
 PDB_STARTUP="pdbStartup.sh"
-PDB_DIRS1="bin/"
-PDB_DIRS2="libraries/"
-PDB_DIRS3="conf/"
+PDB_DIRS1="bin"
+PDB_DIRS2="libraries"
+PDB_DIRS3="conf"
 
 
 
@@ -30,6 +30,11 @@ readClusterConfigAndCopy() {
 
 old_IFS=$IFS  # save the field separator
 IFS=$'\n'     # new field separator, the end of line
+
+echo "Creating the tar.gz file to copy to cluster nodes... "; 
+
+tar cvfz $3.tar.gz  $4 $5 $6 ; 
+
 
 for line in $(cat "$1")
 do
@@ -40,8 +45,14 @@ IFS='#' read -ra ADDR <<< "$line"
 # first create the director - if exists remove and make it
 ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf $3 && mkdir -p $3" ;
 
+
+
+
 # now copy files
-scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
+# scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
+
+scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $3.tar.gz  ${ADDR[0]}":" ;
+ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz" ;
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
 
 done
@@ -94,5 +105,3 @@ echo "Now start up the cluster nodes!" ;
 
 readClusterConfigAndRun $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_COMMAND ;
 
-
-# scp  -i /home/kia/kiaRicekey.pem -oStrictHostKeyChecking=no  -r $PDB_DIRS   ubuntu@10.134.96.142:~pdb/
