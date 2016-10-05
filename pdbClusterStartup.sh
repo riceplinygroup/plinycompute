@@ -50,9 +50,11 @@ ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0
 
 # now copy files
 # scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
-
+# Copy tar file over
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $3.tar.gz  ${ADDR[0]}":" ;
-ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz  -C $3" ;
+# SSH to the machine and untar and remove file
+ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz  -C $3 && rm -f $3.tar.gz " ;
+# now, copy the startup script over to the home 
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
 
 done
