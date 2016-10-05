@@ -223,7 +223,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
          });
     
     int counter = 0;
-    int batchSize = 4096;
+    int batchSize = 100;
     for (int i = 0; i < numThreads; i++) {
          PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
          //std :: cout << "to run the " << i << "-th work..." << std :: endl;
@@ -243,6 +243,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
              
                   //setup pipeline context
                   PipelineContextPtr context = make_shared<PipelineContext>(outputVec, proxy, outputSet);
+                  context->setPageToUnpin(output);
  
                   //create a bundle processor
                   SingleTableBundleProcessorPtr bundler = make_shared<SingleTableBundleProcessor>();
@@ -256,21 +257,42 @@ void PipelineNetwork :: runSource (int sourceNode) {
                           bundler->loadInputPage(page->getBytes());
                           Handle<GenericBlock> outputBlock = bundler->loadOutputBlock(batchSize);
                           while(bundler->fillNextOutputBlock()) {
-                              //TODO: we need to unpin the previous output page
+
                               if (context->isOutputFull()) {
+                                  context->setNeedUnpin(true);
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
+                                  context->setOutputFull(false);
                               }
-                              source->run(outputBlock);
+
+                              //we assume a run of pipeline will not consume all memory that has just allocated
+                              source->run(context, outputBlock, batchSize);
+                              bundler->clearOutputBlock();
+
+                              //now we can unpin the previous page
+                              if (context->shallWeUnpin()) {
+                                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(), 
+                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                                  context->setPageToUnpin(output);
+                                  context->setNeedUnpin(false);
+                              }
                               outputBlock = loadOutputBlock(batchSize);
+
                           }
+
                           bundler->clearOutputBlock();
                           bundler->clearInputPage();
                           proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);  
                       }
                   }
+                  getRecord(outputVec);
+                  bundler->clearOutputBlock();
+                  bundler->clearInputPage();
+                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                  context->setPageToUnpin(nullptr);
 
              }
 

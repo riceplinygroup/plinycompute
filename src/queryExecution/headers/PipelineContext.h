@@ -54,6 +54,12 @@ class PipelineContext {
     //whether output page is full
     bool outputPageFull;
 
+    //page to unpin
+    PDBPagePtr pageToUnpin;
+
+    //whether a page should be unpinned after this round of processing
+    bool needUnpin;
+
 
     public:
 
@@ -62,7 +68,8 @@ class PipelineContext {
         this->numUnreadGenericBlocks = 0;
         this->proxy = proxy;
         this->outputSet = outputSet;
-        outputPageFull = false;
+        this->outputPageFull = false;
+        this->pageToUnpin = nullptr;
     }
 
     Handle<Vector<Handle<Object>>> getOutputVec() {
@@ -105,6 +112,23 @@ class PipelineContext {
     bool isOutputFull () {
         return this->outputPageFull;
     }
+
+    void setPageToUnpin (PDBPagePtr page) {
+        this->pageToUnpin = page;
+    }
+
+    PDBPagePtr getPageToUnpin () {
+        return this->pageToUnpin;
+    }
+
+    void setNeedUnpin(bool needUnpin) {
+        this->needUnpin = needUnpin;
+    }
+
+    bool shallWeUnpin() {
+        return needUnpin;
+    }
+
 };
 
 

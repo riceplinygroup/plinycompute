@@ -90,6 +90,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	} catch (NotEnoughSpace &n) {
 	        if (this->context != nullptr) {	
 		        getRecord (this->context->outputVec);
+                        context->setOutputFull(true);
                 }
 		return true;
 	}

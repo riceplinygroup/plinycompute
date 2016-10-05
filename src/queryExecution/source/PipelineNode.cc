@@ -78,6 +78,29 @@ BlockQueryProcessorPtr PipelineNode::getProcessor(PipelineContextPtr context) {
     return processor;
 }
 
+bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> inputBatch) {
+    SingleTableUnbundleProcessorPtr unbundler = std :: make_shared<SingleTableUnbundleProcessor>();
+    unbundler->setContext(context);
+    unbundler->initialize();
+    unbundler->loadOutput();
+    unbundler->loadInputBlock(inputBatch);
+    while (processor->fillNextOutputVector()) {
+             proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+             PDBPagePtr output;
+             context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
+                       context->getOutputSet()->getSetId(), output);
+             makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+             context->setOutputFull(false);
+             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
+             context->setOutputVec(outputVec);
+             context->setPageToUnpin(output);
+    }
+    unbundler->clearOutputVec();
+    unbundler->clearInputBlock();
+
+}
+
 bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputBatch, int batchSize) {
     BlockQueryProcessorPtr processor = this->getProcessor(context);
     processor->initialize();
@@ -85,19 +108,39 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
     Handle<GenericBlock> outputBlock = processor->loadOutputBlock();
     while (processor->fillNextOutputBlock()) {
         //TODO: we need to unpin the previous output page
-        if (context->isOUtputFull()) {
+        if (context->isOutputFull()) {
+             context->setNeedUnpin(true);
              PDBPagePtr output;
              context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
                        context->getOutputSet()->getSetId(), output);
              makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+             context->setOutputFull(false);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);
+             context->setOutputFull(false);
         }
+
+        //we assume a run of pipeline will not consume all memory that has just been allocated
         for (i = 0; i < this->children->size(); i ++) {
              children->at(i)->run(context, outputBlock, batchSize);
         }
+        if (children->size() == 0) {
+             //I am a sink node, run unbundling
+             unbundle(context, outputBlock);
+             
+        }
+        
+        //now we can unpin the previous page
+        if (context->shallWeUnpin()) {
+            proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+            context->setPageToUnpin(output);
+            context->setNeedUnpin(false);
+        }
+        outputBlock = processor->loadOutputBlock();
     }
-
+    processor->clearOutputBlock();
+    processor->clearInputBlock();
 }
 
 

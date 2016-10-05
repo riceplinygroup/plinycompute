@@ -91,6 +91,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
                 if (this->context != nullptr) {
                        PipelineContextPtr context = this->context;
 		       getRecord (context->outputVec);
+                       context->setOutputFull(true);
                 }
 		return true;
 	}

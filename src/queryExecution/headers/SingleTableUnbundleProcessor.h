@@ -26,8 +26,14 @@
 #include "Handle.h"
 #include "GenericBlock.h"
 #include "PipelineContext.h"
+#include <memory>
 
 namespace pdb {
+
+class SingleTableUnbundleProcessor;
+
+typedef std :: shared_ptr<SingleTableUnbundleProcessor> SingleTableUnbundleProcessorPtr;
+
 
 class SingleTableUnbundleProcessor  {
 
