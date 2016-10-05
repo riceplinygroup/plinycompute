@@ -43,7 +43,7 @@ do
 IFS='#' read -ra ADDR <<< "$line"
 
 # first create the director - if exists remove and make it
-ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf conf libraries bin  $3 && mkdir -p $3" ;
+ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf $3 && mkdir -p $3" ;
 
 
 
