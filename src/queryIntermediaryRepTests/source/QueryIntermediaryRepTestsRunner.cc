@@ -29,6 +29,7 @@ namespace pdb_tests
         testDotBuilderSelection(qunit);
         testBuildIrSelection1(qunit);
         testBuildIrSelection2(qunit);
+        testBuildIrSelection3(qunit);
         testProjectionIrExecute(qunit);
         testSelectionIrExecute(qunit);
     }

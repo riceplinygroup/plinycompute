@@ -19,15 +19,19 @@
 #include <list>
 #include <memory>
 
+
 #include "BuildIrTests.h"
 #include "ConsumableNodeIr.h"
+#include "ChrisSelection.h"
 #include "IrBuilder.h"
 #include "MaterializationModeAlgo.h"
+#include "SharedEmployee.h"
 #include "QueryNodeIr.h"
 #include "Selection.h"
 #include "SelectionIr.h"
 #include "Set.h"
 #include "SetExpressionIrAlgo.h"
+#include "StringSelection.h"
 #include "SourceSetNameIr.h"
 #include "Supervisor.h"
 #include "ProjectionIr.h"
@@ -389,6 +393,112 @@ namespace pdb_tests
 
         QUNIT_IS_EQUAL("somedb", sourceNodeTyped->getDatabaseName());
         QUNIT_IS_EQUAL("inputSetName", sourceNodeTyped->getSetName());
+
+    }
+
+    void testBuildIrSelection3(UnitTest &qunit)
+    {
+
+        /**
+         * Setup a user query graph that looks like:
+         *
+         * (outputSet2)<--(selection2)<--(selection1)<--(inputSet)
+         *                               |
+         *                (outputSet1)<---
+         *
+         */
+        Handle <Set <SharedEmployee>> myInputSet = makeObject<Set<SharedEmployee>>("chris_db", "chris_set");
+        Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
+        myFirstSelect->setInput (myInputSet);
+        Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
+        mySecondSelect->setInput (myFirstSelect);
+        Handle <QueryOutput <String>> outputOne = makeObject <QueryOutput <String>> ("chris_db", "output_set1", myFirstSelect);
+        Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
+        Handle<Vector <Handle<QueryBase>>> queries = makeObject<Vector<Handle<QueryBase>>>();
+        queries->push_back(outputOne);
+        queries->push_back(outputTwo);
+
+
+        /**
+         * Test translation of the user query graph with sinks outputSet1 and outputSet2 to a logical graph.
+         *
+         * The logical graph should have the form:
+         *
+         * (querySink) <- (internalNode1) <- (internalNode2) <- (internalNode3) <- (sourceNode)
+         *
+         *
+         * With some following details:
+         *
+         * querySink: type = ProjectionIr, materialization? = yes (outputSetName2)
+         *
+         * internalNode1: type = SelectionIr, materialization? = no
+         *
+         * internalNode2: type = ProjectionIr, materialization? = yes (outputSetName1)
+         *
+         * internalNode3: type = SelectionIr, materialization? = no
+         *
+         * sourceNode: type = SourceSetNameIr, materialization? = no
+         */
+        Handle<Vector<Handle<QueryBase>>> sinks = makeObject<Vector<Handle<QueryBase>>>();
+        sinks->push_back(outputTwo);
+        sinks->push_back(outputOne);
+
+        QueryGraphIrPtr queryGraph = buildIr(sinks);
+
+        QUNIT_IS_EQUAL(1, queryGraph->getSinkNodeCount());
+        shared_ptr<SetExpressionIr> sinkNode0 = queryGraph->getSinkNode(0);
+
+        // querySink checks
+        QUNIT_IS_FALSE(sinkNode0->getMaterializationMode()->isNone());
+
+        NamedSetExtractor outSetExtractor;
+        sinkNode0->getMaterializationMode()->execute(outSetExtractor);
+        QUNIT_IS_EQUAL("chris_db", outSetExtractor.outDatabaseName);
+        QUNIT_IS_EQUAL("output_set2", outSetExtractor.outSetName);
+
+        QUNIT_IS_TRUE(isProjection(sinkNode0));
+
+        shared_ptr<ProjectionIr> sinkNode0Typed = dynamic_pointer_cast<ProjectionIr>(sinkNode0);
+
+        // internalNode1 checks
+        shared_ptr<SetExpressionIr> internalNode1 = sinkNode0Typed->getInputSet();
+
+        QUNIT_IS_TRUE(internalNode1->getMaterializationMode()->isNone());
+        QUNIT_IS_TRUE(isSelection(internalNode1));
+
+        shared_ptr<SelectionIr> internalNode1Typed = dynamic_pointer_cast<SelectionIr>(internalNode1);
+
+        // internalNode2 checks
+        shared_ptr<SetExpressionIr> internalNode2 = internalNode1Typed->getInputSet();
+
+        QUNIT_IS_FALSE(internalNode2->getMaterializationMode()->isNone());
+
+        internalNode2->getMaterializationMode()->execute(outSetExtractor);
+        QUNIT_IS_EQUAL("chris_db", outSetExtractor.outDatabaseName);
+        QUNIT_IS_EQUAL("output_set1", outSetExtractor.outSetName);
+
+        QUNIT_IS_TRUE(isProjection(internalNode2));
+
+        shared_ptr<ProjectionIr> internalNode2Typed = dynamic_pointer_cast<ProjectionIr>(internalNode2);
+
+        // internalNode3 checks
+        shared_ptr<SetExpressionIr> internalNode3 = internalNode2Typed->getInputSet();
+
+        QUNIT_IS_TRUE(internalNode3->getMaterializationMode()->isNone());
+        QUNIT_IS_TRUE(isSelection(internalNode3));
+
+        shared_ptr<SelectionIr> internalNode3Typed = dynamic_pointer_cast<SelectionIr>(internalNode3);
+
+        // sourceNode checks
+        shared_ptr<SetExpressionIr> sourceNode = internalNode3Typed->getInputSet();
+
+        QUNIT_IS_TRUE(isSourceSetName(sourceNode));
+        QUNIT_IS_TRUE(sourceNode->getMaterializationMode()->isNone());
+
+        shared_ptr<SourceSetNameIr> sourceNodeTyped = dynamic_pointer_cast<SourceSetNameIr>(sourceNode);
+
+        QUNIT_IS_EQUAL("chris_db", sourceNodeTyped->getDatabaseName());
+        QUNIT_IS_EQUAL("chris_set", sourceNodeTyped->getSetName());
 
     }
 
