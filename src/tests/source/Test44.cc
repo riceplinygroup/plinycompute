@@ -40,6 +40,7 @@
 #include "QueryGraphIr.h"
 #include "QueryOutput.h"
 #include "IrBuilder.h"
+#include "QuerySchedulerServer.h"
 using namespace pdb;
 using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
@@ -52,7 +53,7 @@ using pdb_detail::buildIr;
 int main () {
 
 	// for allocations
-	const UseTemporaryAllocationBlock tempBlock {1024 * 128};
+	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
 	// register this query class
 	string errMsg;
@@ -73,16 +74,32 @@ int main () {
 	Handle <QueryOutput <String>> outputOne = makeObject <QueryOutput <String>> ("chris_db", "output_set1", myFirstSelect);
 	Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
 
-        std :: list <Handle<QueryBase>> queries;
-        queries.push_back(outputOne);
-        queries.push_back(outputTwo);
+        Handle<Vector <Handle<QueryBase>>> queries = makeObject<Vector<Handle<QueryBase>>>();
+        queries->push_back(outputOne);
+        queries->push_back(outputTwo);
         pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
+
+        QuerySchedulerServer server;
+        server.parseOptimizedQuery(queryGraph);
+        server.printCurrentPlan();
+        queryGraph = buildIr(queries);
         shared_ptr <pdb_detail::SetExpressionIr> curNode;
         for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
             curNode = queryGraph->getSinkNode(i);
             std :: cout << "the " << i << "-th sink:" << std :: endl;
-            std :: cout << curNode->getName() << std :: endl;
             while (curNode->getName() != "SourceSetNameIr") {
+                std :: cout << "current node is " << curNode->getName() << std :: endl;
+                if (curNode->isTraversed() == false) {
+                    curNode->setTraversed(true, i);
+                } else {
+                    std :: cout << "We have traversed this node!" << std :: endl;
+                }
+                shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
+                if(materializationMode->isNone() == false) {
+                     std :: string name("");
+                     std :: cout << "this is a materialization node with databaseName=" << materializationMode->tryGetDatabaseName( name )
+                           << " and setName=" << materializationMode->tryGetSetName( name ) << std :: endl;
+                }
                 if(curNode->getName() == "SelectionIr") {
                     shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
                     curNode = selectionNode->getInputSet();
@@ -90,9 +107,12 @@ int main () {
                     shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
                     curNode = projectionNode->getInputSet();
                 }
-                std :: cout << curNode->getName() << std :: endl;
             }
-       }
+            std :: cout << "current node is " << curNode->getName() << std :: endl;
+            shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
+            std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
+            
+        }
 /*	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";

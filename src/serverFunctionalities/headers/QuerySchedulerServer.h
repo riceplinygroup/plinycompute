@@ -40,12 +40,18 @@ public:
        //destructor
        ~QuerySchedulerServer ();
 
+       QuerySchedulerServer();
+
        //constructor, initialize from catalog
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
        //to transform optimized client query into a physical plan
        //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
+
+       //to print parsed physical execution plan
+       void printCurrentPlan();
+
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
