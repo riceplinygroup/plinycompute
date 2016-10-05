@@ -18,6 +18,8 @@ PDB_CLUSTER_CONFIG_FILE="pdbCluster.config"
 PEM_FILE=$1
 PDB_HOME="PDBServer"
 PDB_COMMAND="pdbServer"
+PDB_FOLDERS_TO_COPY="bin libraries conf pdbStartup.sh"
+
 PDB_STARTUP="pdbStartup.sh"
 PDB_DIRS1="bin"
 PDB_DIRS2="libraries"
@@ -33,7 +35,7 @@ IFS=$'\n'     # new field separator, the end of line
 
 echo "Creating the tar.gz file to copy to cluster nodes... "; 
 
-tar cvfz $3.tar.gz  $4 $5 $6 ; 
+tar cvfz $3.tar.gz  $@; 
 
 
 for line in $(cat "$1")
@@ -45,17 +47,11 @@ IFS='#' read -ra ADDR <<< "$line"
 # first create the director - if exists remove and make it
 ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf $3 && mkdir -p $3" ;
 
-
-
-
-# now copy files
-# scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
 # Copy tar file over
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $3.tar.gz  ${ADDR[0]}":" ;
 # SSH to the machine and untar and remove file
 ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz  -C $3 && rm -f $3.tar.gz " ;
-# now, copy the startup script over to the home 
-scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
+
 
 done
 IFS=$old_IFS     # restore default field separator
@@ -77,10 +73,7 @@ IFS='#' read -ra ADDR <<< "$line"
 
 
 # Now SSH to each machine and start up the pdbServer
-# echo "ssh -i $2 ${ADDR[0]} \"cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & \"  ";
-
-# ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 && screen -d -m ./pdbServer  ${ADDR[1]}  "' ;
-ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]}  "./pdbStartup.sh  ${ADDR[1]} " ;
+ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]}  "cd $3 && ./pdbStartup.sh  ${ADDR[1]} " ;
 
 done
 IFS=$old_IFS     # restore default field separator
@@ -98,12 +91,20 @@ IFS=$old_IFS     # restore default field separator
 read -p "Do you wish to copy PDB to all cluster nodes?[y/n]" yn
 
 case $yn in
-   [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_DIRS1 $PDB_DIRS2 $PDB_DIRS3  $PDB_STARTUP;;
+   [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME $PDB_FOLDERS_TO_COPY;;
    [Nn]* ) echo "Not Copying only starting cluster" ;;
        * ) echo "Please answer yes or no.";;
 esac
 
 echo "Now start up the cluster nodes!" ; 
 
-readClusterConfigAndRun $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME  $PDB_COMMAND ;
+readClusterConfigAndRun $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME;
+
+
+## OLD Commands - Maybe needed in future ... 
+# echo "ssh -i $2 ${ADDR[0]} \"cd $3 && nohub $4 ${ADDR[1]} > /dev/null 2>&1 & \"  ";
+# ssh  -i $2  -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} 'bash -c "cd $3 && screen -d -m ./pdbServer  ${ADDR[1]}  "' ;
+# scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
+# scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
+
 

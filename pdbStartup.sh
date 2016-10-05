@@ -13,10 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-
-PDB_HOME="PDBServer"
-echo "PDB_HOME is $PDB_HOME";
-
-cd $PDB_HOME;
+echo "Start up pdbServer using screen command"; 
 
 screen -d -m ./bin/pdbServer $@;

@@ -13,17 +13,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-DATA_DIRS="pdbRoot catalog"
+DATA_DIRS="pdbRoot"
+CALALOG_DIAR="catalog"
 
 echo "Removing old folders and killing PDB processes. "
 
 
-echo "Removing old files ..."
-
 # remove old files 
 if [ "$1" = "y" ]; then 
 
-rm -rf $DATA_DIRS ; 
+echo "Removing old files ..."
+rm -rf $DATA_DIRS $CALALOG_DIAR; 
 
 fi;
 
