@@ -30,6 +30,7 @@ namespace pdb_tests
 {
     void testBuildIrSelection1(UnitTest &qunit);
     void testBuildIrSelection2(UnitTest &qunit);
+    void testBuildIrSelection3(UnitTest &qunit);
 }
 
 #endif //PDB_QUERYINTERMEDIARYREPTESTS_BUILDIRTESTS_H

@@ -3,6 +3,9 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../../../src">
       <sourceFolder url="file://$MODULE_DIR$/../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorkerQueue.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBBuzzer.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorker.cc" isTestSource="false" />
@@ -19,16 +22,13 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SelectionIr.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SetName.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Page.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_BufferManager.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Page.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Table.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/pdbServer/source/PDBLogger.cc" isTestSource="false" />
     </content>
     <content url="file://$MODULE_DIR$">
@@ -38,13 +38,13 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file:///usr/include" />
           <root url="file:///usr/lib/llvm-3.8/lib/clang/3.8.0/include" />
+          <root url="file:///usr/include" />
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file:///usr/include" />
           <root url="file:///usr/lib/llvm-3.8/lib/clang/3.8.0/include" />
+          <root url="file:///usr/include" />
           <root url="file:///usr/local/include" />
         </SOURCES>
       </library>

@@ -16,6 +16,7 @@ include_directories(
         ../../../src/mocking/headers
         ../../../src/objectModel/headers
         ../../../src/pdbServer/headers
+        ../../../src/sharedLibraries/headers
         ../../../src/queries/headers
         ../../../src/queriesTests/headers
         ../../../src/queryExecution/headers
