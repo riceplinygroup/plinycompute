@@ -33,48 +33,40 @@
       <file leaf-file-name="IrBuilder.cc" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="358">
-              <caret line="245" column="31" selection-start-line="245" selection-start-column="31" selection-end-line="245" selection-end-column="31" />
+            <state relative-caret-position="224">
+              <caret line="303" column="20" selection-start-line="303" selection-start-column="20" selection-end-line="303" selection-end-column="20" />
               <folding>
                 <element signature="e#0#22#0" expanded="true" />
-                <marker date="1475623609976" expanded="true" signature="208:13705" ph="{...}" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="true">
+      <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
+            <state relative-caret-position="-95">
               <caret line="14" column="27" selection-start-line="14" selection-start-column="27" selection-end-line="14" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="QueryGraphIr.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/QueryGraphIr.h">
+      <file leaf-file-name="ConsumableNodeIr.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/ConsumableNodeIr.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="14" column="10" selection-start-line="14" selection-start-column="10" selection-end-line="14" selection-end-column="10" />
-              <folding>
-                <marker date="1475623609892" expanded="true" signature="256:846" ph="{...}" />
-                <marker date="1475623609892" expanded="true" signature="285:788" ph="{...}" />
-                <marker date="1475623609892" expanded="true" signature="331:342" ph="{...}" />
-                <marker date="1475623609892" expanded="true" signature="456:467" ph="{...}" />
-                <marker date="1475623609892" expanded="true" signature="513:563" ph="{...}" />
-                <marker date="1475623609892" expanded="true" signature="637:698" ph="{...}" />
-              </folding>
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="QueryOutput.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/builtInPDBObjects/headers/QueryOutput.h">
+      <file leaf-file-name="DotBuilder.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/DotBuilder.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-60">
-              <caret line="14" column="6" selection-start-line="14" selection-start-column="6" selection-end-line="14" selection-end-column="6" />
+            <state relative-caret-position="210">
+              <caret line="14" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -113,8 +105,8 @@
       <file leaf-file-name="IrBuilder.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/IrBuilder.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="478">
-              <caret line="48" column="20" selection-start-line="48" selection-start-column="20" selection-end-line="48" selection-end-column="20" />
+            <state relative-caret-position="420">
+              <caret line="28" column="20" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
               <folding>
                 <element signature="e#91#106#0" expanded="true" />
               </folding>
@@ -122,35 +114,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="QueryBase.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/queries/headers/QueryBase.h">
+      <file leaf-file-name="MaterializationMode.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationMode.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="477">
-              <caret line="159" column="30" selection-start-line="159" selection-start-column="30" selection-end-line="159" selection-end-column="30" />
+            <state relative-caret-position="165">
+              <caret line="80" column="8" selection-start-line="80" selection-start-column="8" selection-end-line="80" selection-end-column="8" />
               <folding>
-                <marker date="1475611072482" expanded="true" signature="148:4273" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="222:4224" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="248:285" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1330:1352" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1407:1429" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1469:1492" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1512:1534" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1564:1586" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1617:1640" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1776:1817" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1836:1876" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="1954:1987" ph="{...}" />
-                <marker date="1475611072482" expanded="true" signature="2181:3838" ph="{...}" />
+                <element signature="e#111#128#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Set.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/builtInPDBObjects/headers/Set.h">
+      <file leaf-file-name="MaterializationMode.cc" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="355">
-              <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+            <state relative-caret-position="-332">
+              <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -181,7 +161,6 @@
         <option value="$PROJECT_DIR$/../../../src/queryExecution/headers/FilterQueryProcessor.cc" />
         <option value="$PROJECT_DIR$/../../../src/queryExecution/headers/FilterQueryProcessor.h" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/DotBuilder.cc" />
-        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationMode.h" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationModeAlgo.h" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/SetName.cc" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" />
@@ -197,7 +176,6 @@
         <option value="$PROJECT_DIR$/../../../src/queries/headers/Selection.cc" />
         <option value="$PROJECT_DIR$/../../../src/queriesTests/source/SelectionTests.cc" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/PrintAllOutputNodes.h" />
-        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc" />
         <option value="$PROJECT_DIR$/../../../src/builtInPDBObjects/headers/PDBMap.cc" />
         <option value="$PROJECT_DIR$/../../../src/objectModel/headers/Handle.cc" />
         <option value="$PROJECT_DIR$/../../../src/objectModel/headers/Handle.h" />
@@ -212,6 +190,8 @@
         <option value="$PROJECT_DIR$/../../../src/tests/source/Test44.cc" />
         <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationMode.h" />
+        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc" />
       </list>
     </option>
   </component>
@@ -289,7 +269,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="storage" />
+              <option name="myItemId" value="queryIntermediaryRep" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -307,7 +287,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="storage" />
+              <option name="myItemId" value="queryIntermediaryRep" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -545,12 +525,12 @@
       <workItem from="1474913562184" duration="12626000" />
       <workItem from="1475009511888" duration="25020000" />
       <workItem from="1475113162229" duration="42000" />
-      <workItem from="1475113266037" duration="58797000" />
+      <workItem from="1475113266037" duration="60744000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="260892000" />
+    <option name="totallyTimeSpent" value="262839000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1077" y="1048" width="1855" height="1056" extended-state="6" />
@@ -558,7 +538,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21888646" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31458333" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31458333" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -567,7 +547,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28229168" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28229168" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -761,16 +741,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="21" column="5" selection-start-line="21" selection-start-column="5" selection-end-line="21" selection-end-column="5" />
-          <folding>
-            <element signature="e#0#32#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/c++/5/bits/shared_ptr_base.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="181">
@@ -819,14 +789,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationMode.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="10" selection-start-line="15" selection-start-column="10" selection-end-line="15" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../src/builtInPDBObjects/headers/PDBMap.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
@@ -866,22 +828,6 @@
           <folding>
             <element signature="e#2084#2116#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/ConsumableNodeIr.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/DotBuilder.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -999,27 +945,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/IrBuilder.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="478">
-          <caret line="48" column="20" selection-start-line="48" selection-start-column="20" selection-end-line="48" selection-end-column="20" />
-          <folding>
-            <element signature="e#91#106#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="358">
-          <caret line="245" column="31" selection-start-line="245" selection-start-column="31" selection-end-line="245" selection-end-column="31" />
-          <folding>
-            <element signature="e#0#22#0" expanded="true" />
-            <marker date="1475623609976" expanded="true" signature="208:13705" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../src/tests/source/Test44.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="284">
@@ -1046,8 +971,62 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
+        <state relative-caret-position="-95">
           <caret line="14" column="27" selection-start-line="14" selection-start-column="27" selection-end-line="14" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/ConsumableNodeIr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/DotBuilder.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="224">
+          <caret line="303" column="20" selection-start-line="303" selection-start-column="20" selection-end-line="303" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/IrBuilder.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="28" column="20" selection-start-line="28" selection-start-column="20" selection-end-line="28" selection-end-column="20" />
+          <folding>
+            <element signature="e#91#106#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/headers/MaterializationMode.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="80" column="8" selection-start-line="80" selection-start-column="8" selection-end-line="80" selection-end-column="8" />
+          <folding>
+            <element signature="e#111#128#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/MaterializationMode.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-332">
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
           <folding />
         </state>
       </provider>

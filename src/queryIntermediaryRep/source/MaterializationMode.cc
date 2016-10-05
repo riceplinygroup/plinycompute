@@ -17,10 +17,6 @@
  *****************************************************************************/
 #include "MaterializationMode.h"
 
-#include <iostream>
-
-using std::string;
-
 namespace pdb_detail
 {
     bool MaterializationModeNone::isNone()
@@ -33,6 +29,15 @@ namespace pdb_detail
         algo.forNone(*this);
     }
 
+    string MaterializationModeNone::tryGetDatabaseName(const string &noneValue)
+    {
+        return noneValue;
+    }
+
+    string MaterializationModeNone::tryGetSetName(const string &noneValue)
+    {
+        return noneValue;
+    }
 
     MaterializationModeNamedSet::MaterializationModeNamedSet(string databaseName, string setName)
             : _databaseName(databaseName), _setName(setName)
@@ -49,6 +54,16 @@ namespace pdb_detail
         return false;
     }
 
+    string MaterializationModeNamedSet::tryGetDatabaseName(const string &defaultValue)
+    {
+        return getDatabaseName();
+    }
+
+    string MaterializationModeNamedSet::tryGetSetName(const string &defaultValue)
+    {
+        return getSetName();
+    }
+
     string MaterializationModeNamedSet::getDatabaseName()
     {
         return _databaseName;
@@ -58,6 +73,5 @@ namespace pdb_detail
     {
         return _setName;
     }
-
 
 }

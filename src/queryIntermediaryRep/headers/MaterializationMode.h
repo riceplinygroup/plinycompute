@@ -15,10 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by barnett on 9/27/16.
-//
-
 #ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
 #define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
 
@@ -30,67 +26,106 @@ using std::string;
 
 namespace pdb_detail
 {
+    /**
+     * Models possible materilization options.
+     *
+     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
+     */
     class MaterializationMode
     {
+
     public:
 
+        /**
+         * @return true if materialization is not to be performed.
+         */
         virtual bool isNone() = 0;
 
+        /**
+         * Visitation hook.
+         */
         virtual void execute(MaterializationModeAlgo &algo) = 0;
 
         /**
-         * returns the name of the database to materialize into, or noneValue if no materialization is to be done.
+         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
          */
-        virtual string tryGetDatabaseName(string &noneValue) = 0;
+        virtual string tryGetDatabaseName(const string &noneValue) = 0;
 
         /**
-         * returns the name of the set to materialize into, or noneValue if no materialization is to be done.
+         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
          */
-        virtual string tryGetSetName(string &noneValue) = 0;
+        virtual string tryGetSetName(const string &noneValue) = 0;
     };
 
+    /**
+     * Signifies no materilization is to be done.
+     */
     class MaterializationModeNone : public MaterializationMode
     {
+
+    public:
+
+        /**
+         * @return true
+         */
         bool isNone() override;
 
-        void execute(MaterializationModeAlgo &algo) override ;
+        // contract from super
+        void execute(MaterializationModeAlgo &algo) override;
 
-        string tryGetDatabaseName(string &defaultValue) override
-        {
-           return defaultValue;
-        }
+        // contract from super
+        string tryGetDatabaseName(const string &noneValue) override;
 
-        string tryGetSetName(string &defaultValue) override
-        {
-            return defaultValue;
-        }
-
+        // contract from super
+        string tryGetSetName(const string &noneValue) override;
     };
 
+    /**
+     * Signifies that materilization is to be performed to a specific database name and set name.
+     */
     class MaterializationModeNamedSet : public MaterializationMode
     {
 
     public:
 
+        /**
+         * Creates a new MaterializationModeNamedSet.
+         *
+         * @param databaseName he database name of the materilization destination
+         * @param setName the set name of the materilization destination
+         * @return a new MaterializationModeNamedSet
+         */
         MaterializationModeNamedSet(string databaseName, string setName);
 
+        /**
+         * @return false
+         */
         bool isNone() override;
 
+        // contract from super
         void execute(MaterializationModeAlgo &algo) override ;
 
+        /**
+         * @return the database name of the materilization destination
+         */
         string getDatabaseName();
 
+        /**
+         * @return the set name of the materilization destination
+         */
         string getSetName();
 
-        string tryGetDatabaseName(string &defaultValue) override
-        {
-            return getDatabaseName();
-        }
+        /**
+         * @param noneValue ignored
+         * @return the database name of the materilization destination
+         */
+        string tryGetDatabaseName(const string &noneValue) override;
 
-        string tryGetSetName(string &defaultValue) override
-        {
-            return getSetName();
-        }
+        /**
+         * @param noneValue ignored
+         * @return the set name of the materilization destination
+         */
+        string tryGetSetName(const string &noneValue) override;
 
     private:
 
