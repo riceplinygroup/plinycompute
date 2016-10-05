@@ -43,7 +43,7 @@ do
 IFS='#' read -ra ADDR <<< "$line"
 
 # first create the director - if exists remove and make it
-ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf $3 && mkdir -p $3" ;
+ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "rm -rf conf libraries bin  $3 && mkdir -p $3" ;
 
 
 
@@ -52,7 +52,7 @@ ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0
 # scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $4 $5 $6  ${ADDR[0]}":"$3 ;
 
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $3.tar.gz  ${ADDR[0]}":" ;
-ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz" ;
+ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]} "tar xvfz  $3.tar.gz  -C $3" ;
 scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $7  ${ADDR[0]}":" ;
 
 done
