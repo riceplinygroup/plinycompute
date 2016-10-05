@@ -19,4 +19,4 @@ echo "PDB_HOME is $PDB_HOME";
 
 cd $PDB_HOME;
 
-screen -d -m ./pdbServer $@;
+screen -d -m ./bin/pdbServer $@;
