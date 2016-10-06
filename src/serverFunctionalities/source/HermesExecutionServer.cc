@@ -39,6 +39,7 @@
 #include "DataProxy.h"
 #include "Selection.h"
 #include "QueryBase.h"
+#include "JobStage.h"
 #include <vector>
 
 
@@ -242,6 +243,28 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              }
              ));
+
+    //register a handler to process the JobStage message
+    forMe.registerHandler (JobStage_TYPEID, make_shared<SimpleRequestHandler<JobStage>> (
+            [&] (Handle<JobStage> request, PDBCommunicatorPtr sendUsingMe) {
+            std :: cout << "Backend got JobStage message with Id=" << request->getStageId() << std :: endl;
+            request->print();
+            bool res = true;
+            std :: string errMsg;
+            std :: cout << "Making response object.\n";
+            const UseTemporaryAllocationBlock block{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            //std :: cout << "Sending response object.\n";
+            return make_pair(res, errMsg);
+
+
+            }
+            ));
+
+
 
     //register a handler to process the BackendTestSetScan message
     forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetCopy>> (

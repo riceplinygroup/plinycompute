@@ -70,6 +70,8 @@ public:
                 return setId;
         }
 
+        ENABLE_DEEP_COPY
+
 private:
 
 	String dataBase;

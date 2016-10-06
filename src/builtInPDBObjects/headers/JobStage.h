@@ -93,7 +93,7 @@ namespace pdb {
                 return this->finalOrNot;
             }
 
-            Vector<Handle<JobStage>> getChildrenStages() {
+            Vector<Handle<JobStage>>& getChildrenStages() {
                 return this->childrenStages;
             }
 
@@ -112,8 +112,9 @@ namespace pdb {
 
             void print() {
                 std::cout << "[ID] id=" << id << std :: endl;
-                std::cout << "[INPUT] databaseName=" << input->getDatabase()<<", setName=" << input->getSetName()<< std::endl;
-                std::cout << "[OUTPUT] databaseName=" << output->getDatabase()<<", setName=" << output->getSetName()<< std::endl;
+                std::cout << "[INPUT] databaseName=" << input->getDatabase()<<", setName=" << input->getSetName()<< std :: endl;
+                std::cout << "[OUTPUT] databaseName=" << output->getDatabase()<<", setName=" << output->getSetName()<< std :: endl;
+                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
                 std::cout << "[OPERATORS] number=" << operators.size() << std :: endl;
                 std::cout << "[CHILDREN] number=" << childrenStages.size() << std :: endl;
                 for (int i = 0; i < childrenStages.size(); i++) {
@@ -122,6 +123,13 @@ namespace pdb {
                 }
             }
 
+            std :: string getOutputTypeName () {
+                return this->outputTypeName;
+            }
+
+            void setOutputTypeName (std :: string outputTypeName) {
+                this->outputTypeName = outputTypeName;
+            }
 
             ENABLE_DEEP_COPY
 
@@ -133,6 +141,9 @@ namespace pdb {
 
             //Output set information
             Handle<SetIdentifier> output;
+
+            //Output type name
+            std :: string outputTypeName;
 
             //operator information
             Vector<Handle<ExecutionOperator>> operators;
