@@ -71,6 +71,47 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
 }
 
 
+void QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger) {
+     
+    std :: cout << "to connect to the remote node" << std :: endl;
+    PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+    std :: cout << "port:" << port << std :: endl;
+    std :: cout << "ip:" << ip << std :: endl;
+
+    string errMsg;
+    bool success;
+    if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
+        success = false;
+        std :: cout << errMsg << std :: endl;
+        return;
+    }
+
+    for (int i = 0; i < this->currentPlan.size(); i++) {
+        Handle<JobStage> stage = currentPlan[i];
+        std :: cout << "to send the job stage to the remote node" << std :: endl;
+        success = communicator->sendObject<JobStage>(stage, errMsg);
+        if (!success) {
+            std :: cout << errMsg << std :: endl;
+            return;
+        }
+        std :: cout << "to receive query response from the remote node" << std :: endl;
+        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        if (result != nullptr) {
+            for (int j = 0; j < result->size(); j++) {
+                std :: cout << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+            }
+        }
+        else {
+            std :: cout << "Query execute failure: can't get results" << std :: endl;
+            return;
+        }
+    }
+
+}
+
+
+
 void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
 
      //current logical planning only supports selection and projection
