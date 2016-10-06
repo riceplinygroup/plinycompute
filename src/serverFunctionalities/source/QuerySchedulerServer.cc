@@ -234,6 +234,41 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          std :: cout << "To transform the logicalGraph into a physical plan" << std :: endl;
          parseOptimizedQuery(queryGraph); 
          printCurrentPlan();
+
+        queryGraph = pdb_detail::buildIr(userQuery);
+        shared_ptr <pdb_detail::SetExpressionIr> curNode;
+        for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
+            curNode = queryGraph->getSinkNode(i);
+            std :: cout << "the " << i << "-th sink:" << std :: endl;
+            while (curNode->getName() != "SourceSetNameIr") {
+                std :: cout << "current node is " << curNode->getName() << std :: endl;
+                if (curNode->isTraversed() == false) {
+                    curNode->setTraversed(true, i);
+                } else {
+                    std :: cout << "We have traversed this node!" << std :: endl;
+                }
+                shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
+                if(materializationMode->isNone() == false) {
+                     std :: string name("");
+                     std :: cout << "this is a materialization node with databaseName=" << materializationMode->tryGetDatabaseName( name )
+                           << " and setName=" << materializationMode->tryGetSetName( name ) << std :: endl;
+                }
+                if(curNode->getName() == "SelectionIr") {
+                    shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
+                    curNode = selectionNode->getInputSet();
+                } else if (curNode->getName() == "ProjectionIr") {
+                    shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
+                    curNode = projectionNode->getInputSet();
+                }
+            }
+            std :: cout << "current node is " << curNode->getName() << std :: endl;
+            shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
+            std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
+
+        }
+
+
+
 /*
          for (int i = 0; i < this->currentPlan.size(); i++) {
                  std :: cout << "#########The "<< i << "-th Plan#############"<< std :: endl;
