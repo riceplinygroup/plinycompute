@@ -82,6 +82,8 @@ int main () {
         QuerySchedulerServer server;
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();
+   
+
         queryGraph = buildIr(queries);
         shared_ptr <pdb_detail::SetExpressionIr> curNode;
         for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
@@ -109,9 +111,10 @@ int main () {
                 }
             }
             std :: cout << "current node is " << curNode->getName() << std :: endl;
-            shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
-            std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
-            
+            if (curNode->getName() == "SourceSetNameIr") {
+                 shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
+                 std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
+           }
         }
 /*	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
