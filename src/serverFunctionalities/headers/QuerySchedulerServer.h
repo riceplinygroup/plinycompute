@@ -52,6 +52,8 @@ public:
        //to print parsed physical execution plan
        void printCurrentPlan();
 
+       //to schedule a stage
+       void schedule(std :: string ip, int port, PDBLoggerPtr logger);
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
