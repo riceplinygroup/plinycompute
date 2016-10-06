@@ -43,12 +43,102 @@
 #include "KeepGoing.h"
 #include "DoneWithResult.h"
 #include "PangeaStorageServer.h"
+#include "JobStage.h"
+
 
 namespace pdb {
 
 FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
+
+       // handle a request to execute a job stage
+       forMe.registerHandler (JobStage_TYPEID, make_shared <SimpleRequestHandler <JobStage>> (
+               [&] (Handle <JobStage> request, PDBCommunicatorPtr sendUsingMe) {
+
+                std :: string errMsg;
+                bool success;
+                std :: cout << "Frontend got a request for JobStage" << std :: endl;
+                request->print();
+                const UseTemporaryAllocationBlock tempBlock {128*1024*1024};
+                PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                    std :: cout << errMsg << std :: endl;
+                    exit(1);
+                }
+                std :: cout << "Frontend connected to backend" << std :: endl;
+                Handle<JobStage> newRequest = makeObject<JobStage>(request->getStageId());
+                
+                //restructure the input information  
+                std :: string inDatabaseName = request->getInput()->getDatabase();
+                std :: string inSetName = request->getInput()->getSetName();
+                Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                
+                SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));               
+                input->setDatabaseId(inputSet->getDbID());
+                input->setTypeId(inputSet->getTypeID());
+                input->setSetId(inputSet->getSetID());
+                newRequest->setInput(input);
+
+
+                std :: string outDatabaseName = request->getOutput()->getDatabase();
+                std :: string outSetName = request->getOutput()->getSetName();
+
+                // add the output set
+                //TODO: check whether output set exists
+                std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
+                getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
+                SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+
+                // create the output set in the storage manager and in the catalog
+                int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getOutputTypeName ());
+                if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
+                        //std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";
+                        exit (1);
+                }
+
+                //restructure the output information
+                Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                output->setDatabaseId(outputSet->getDbID());
+                output->setTypeId(outputSet->getTypeID());
+                output->setSetId(outputSet->getSetID());
+                newRequest->setOutput(output);
+                newRequest->setOutputTypeName(request->getOutputTypeName());
+         
+
+                newRequest->print();
+
+
+
+                if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                    std :: cout << errMsg << std :: endl;
+                    exit(1);
+                }
+                std :: cout << "Frontend sent request to backend" << std :: endl;
+                // wait for backend to finish.
+                communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                if (!success) {
+                    std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                    exit(1);
+                }
+
+                // now, we send back the result
+                Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                result->push_back (request->getOutput()->getSetName());
+                std :: cout << "Query is done. " << std :: endl;
+                // return the results
+                if (!sendUsingMe->sendObject (result, errMsg)) {
+                     return std :: make_pair (false, errMsg);
+                }
+
+                return std :: make_pair (true, std :: string("execution complete")); 
+ 
+
+             } ));
+
+
+
+
 	
 	// handle a request to execute a query
 	forMe.registerHandler (ExecuteQuery_TYPEID, make_shared <SimpleRequestHandler <ExecuteQuery>> (

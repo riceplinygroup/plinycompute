@@ -82,8 +82,9 @@ int main () {
         QuerySchedulerServer server;
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();
-   
+        server.schedule("localhost", 8108, myLogger); 
 
+/*
         queryGraph = buildIr(queries);
         shared_ptr <pdb_detail::SetExpressionIr> curNode;
         for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
@@ -116,6 +117,7 @@ int main () {
                  std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
            }
         }
+*/
 /*	
 	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
 		std :: cout << "Query failed.  Message was: " << errMsg << "\n";

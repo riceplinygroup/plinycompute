@@ -21,6 +21,7 @@
 //by Jia, Sept 2016
 
 
+#include "InterfaceFunctions.h"
 #include "QuerySchedulerServer.h"
 #include "ResourceInfo.h"
 #include "ResourceManagerServer.h"
@@ -58,6 +59,7 @@ QuerySchedulerServer :: QuerySchedulerServer() {}
 void QuerySchedulerServer ::cleanup() {
 
     this->resources = nullptr;
+    this->currentPlan.clear();
 
 }
 
@@ -89,7 +91,17 @@ void QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
     for (int i = 0; i < this->currentPlan.size(); i++) {
         Handle<JobStage> stage = currentPlan[i];
-        std :: cout << "to send the job stage to the remote node" << std :: endl;
+        schedule (stage, communicator);
+    }
+
+}
+
+void QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator) {
+
+        bool success;
+        std :: string errMsg;
+
+        std :: cout << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
         success = communicator->sendObject<JobStage>(stage, errMsg);
         if (!success) {
             std :: cout << errMsg << std :: endl;
@@ -106,11 +118,12 @@ void QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
             std :: cout << "Query execute failure: can't get results" << std :: endl;
             return;
         }
-    }
 
+        Vector<Handle<JobStage>> childrenStages = stage->getChildrenStages();
+        for (int i = 0; i < childrenStages.size(); i ++) {
+            schedule (childrenStages[i], communicator);
+        }
 }
-
-
 
 void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
 
@@ -146,6 +159,7 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
             jobStageId ++;
             Handle<JobStage> stage = makeObject<JobStage>(jobStageId);
             stage->setOutput(output);
+            bool isNodeMaterializable = true;
             while (curNode->getName() != "SourceSetNameIr") {
                 if(curNode->isTraversed() == false) {
                    if(stageOperatorCounter > 0) {
@@ -171,6 +185,7 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                             newStage->appendChildStage(stage);
                             stage = newStage;
                             stageOperatorCounter =0;
+                            isNodeMaterializable = true;
                         }
                     }
                     // a new operator
@@ -190,6 +205,12 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                     } else if (curNode->getName() == "ProjectionIr") {
                         std :: cout << "We meet a projection node" << std :: endl;
                         shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
+                        if(isNodeMaterializable) {
+                            Handle<QueryBase> base = projectionNode->getQueryBase();
+                            Handle<Selection<Object, Object>> userQuery = unsafeCast<Selection<Object, Object>>(base);
+                            stage->setOutputTypeName(userQuery->getOutputType());
+                            isNodeMaterializable = false;
+                        }
                         Handle<ProjectionOperator> projectionOp = makeObject<ProjectionOperator> (projectionNode->getQueryBase());
                         stage->addOperator(projectionOp);
                         stageOperatorCounter ++;
