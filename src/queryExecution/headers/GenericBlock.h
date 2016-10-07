@@ -40,6 +40,8 @@ private:
 
 public:
 
+    ENABLE_DEEP_COPY
+
     ~GenericBlock() {}
 
     GenericBlock() {}
