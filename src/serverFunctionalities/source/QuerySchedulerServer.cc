@@ -192,7 +192,7 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                     if(curNode->getName() == "SelectionIr") {
                         std :: cout << "We meet a selection node" << std :: endl;
                         shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
-                        Handle<FilterOperator> filterOp = makeObject<FilterOperator> (selectionNode->getQueryBase()); 
+                        Handle<ExecutionOperator> filterOp = makeObject<FilterOperator> (selectionNode->getQueryBase()); 
                         stage->addOperator(filterOp);
                         stageOperatorCounter ++;
                         curNode->setTraversed (true, jobStageId); 
@@ -211,7 +211,7 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                             stage->setOutputTypeName(userQuery->getOutputType());
                             isNodeMaterializable = false;
                         }
-                        Handle<ProjectionOperator> projectionOp = makeObject<ProjectionOperator> (projectionNode->getQueryBase());
+                        Handle<ExecutionOperator> projectionOp = makeObject<ProjectionOperator> (projectionNode->getQueryBase());
                         stage->addOperator(projectionOp);
                         stageOperatorCounter ++;
                         curNode->setTraversed (true, jobStageId); 

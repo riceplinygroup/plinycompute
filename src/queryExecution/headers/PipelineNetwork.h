@@ -20,15 +20,22 @@
 
 //by Jia, Sept 2016
 
-#include <vector>
 #include "PipelineNode.h"
 #include "DataTypes.h"
 #include "PDBLogger.h"
 #include "Configuration.h"
 #include "SharedMem.h"
 #include "JobStage.h"
+#include "HermesExecutionServer.h"
+#include <vector>
+#include <memory>
+#include <unordered_map>
 
 namespace pdb {
+
+class PipelineNetwork;
+typedef std::shared_ptr<PipelineNetwork> PipelineNetworkPtr;
+
 
 // this class encapsulates the pipeline network
 class PipelineNetwork {
@@ -80,10 +87,10 @@ public:
     void initialize (PipelineNodePtr node, Handle<JobStage> stage);
 
     //return the root job stage corresponding to the pipeline 
-    Handle<JobStage> getJobStage(); 
+    Handle<JobStage> & getJobStage(); 
 
     //return all source nodes
-    std :: vector<PipelineNodePtr> getSourceNodes();
+    std :: vector<PipelineNodePtr> * getSourceNodes();
 
     //append a node to the pipeline network
     bool appendNode(OperatorID parentId, PipelineNodePtr node);
@@ -102,7 +109,7 @@ public:
 
     //running the i-the source (in one thread)
     //so you can multiple sources in different threads
-    void runSource (int i);
+    void runSource (int i, HermesExecutionServer * server);
 
 };
 

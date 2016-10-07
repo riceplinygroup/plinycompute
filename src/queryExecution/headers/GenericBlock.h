@@ -44,8 +44,8 @@ public:
 
     GenericBlock() {}
 
-    Vector<Handle<Object>> * getBlock() {
-        return &block;
+    Vector<Handle<Object>> & getBlock() {
+        return block;
     }
 
 };

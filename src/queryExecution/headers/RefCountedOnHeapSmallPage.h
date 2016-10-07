@@ -21,9 +21,12 @@
 //by Jia, Sept 2016
 
 #include <memory>
-typedef std :: shared_ptr<RefCountedOnHeapSmallPage> RefCountedOnHeapSmallPagePtr;
+
 
 namespace pdb {
+
+class RefCountedOnHeapSmallPage;
+typedef std :: shared_ptr<RefCountedOnHeapSmallPage> RefCountedOnHeapSmallPagePtr;
 
 // this is a helper class for storing intermediate data between nodes in a pipeline
 

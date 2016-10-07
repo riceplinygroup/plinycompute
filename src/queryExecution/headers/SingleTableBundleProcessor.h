@@ -31,9 +31,11 @@
 #include "PipelineContext.h"
 #include <memory>
 
-typedef shared_ptr<SingleTableBundleProcessor> SingleTableBundleProcessorPtr;
 
 namespace pdb {
+class SingleTableBundleProcessor;
+typedef shared_ptr<SingleTableBundleProcessor> SingleTableBundleProcessorPtr;
+
 
 class SingleTableBundleProcessor  {
 

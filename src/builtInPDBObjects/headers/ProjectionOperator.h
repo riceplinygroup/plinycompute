@@ -15,40 +15,49 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef FILTER_OPERATOR_H
-#define FILTER_OPERATOR_H
+#ifndef PROJECTION_OPERATOR_H
+#define PROJECTION_OPERATOR_H
 
 //by Jia, Sept 2016
 
 #include "QueryBase.h"
 #include "Selection.h"
 #include "BlockQueryProcessor.h"
+#include "ExecutionOperator.h"
+
+// PRELOAD %ProjectionOperator%
 
 namespace pdb {
 
 /*
- * this class encapsulates a FilterOperator that runs in backend.
+ * this class encapsulates a ProjectionOperator that runs in backend.
  */
 
-class FilterOperator : public ExecutionOperator {
+class ProjectionOperator : public ExecutionOperator {
 
     public:
 
-       FilterOperator(Handle<QueryBase> selection) {
+       ENABLE_DEEP_COPY
+       ProjectionOperator() {selection = nullptr;}
+
+
+       ProjectionOperator(Handle<QueryBase> selection) {
             this->selection = selection;           
        }
 
        std :: string getName() override {
-            return "FilterOperator";
+            return "ProjectionOperator";
        }
 
        BlockQueryProcessorPtr getProcessor() override {
-            return (unsafeCast<Selection<Object, Object>>(selection))->getFilterBlockProcessor();
+            if (selection == nullptr) {
+                return nullptr;
+            }
+            return (unsafeCast<Selection<Object, Object>>(selection))->getProjectionBlockProcessor();
        }
 
     private:
        Handle<QueryBase> selection;
-       
 
 };
 

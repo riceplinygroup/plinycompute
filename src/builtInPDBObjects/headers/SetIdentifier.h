@@ -26,12 +26,16 @@
 #include "PDBString.h"
 #include "DataTypes.h"
 
+// PRELOAD %SetIdentifier%
+
 namespace pdb {
 
 // encapsulates a request to add a set in storage
 class SetIdentifier  : public Object {
 
 public:
+
+        ENABLE_DEEP_COPY
 
 	SetIdentifier () {}
 	~SetIdentifier () {}
@@ -70,7 +74,6 @@ public:
                 return setId;
         }
 
-        ENABLE_DEEP_COPY
 
 private:
 

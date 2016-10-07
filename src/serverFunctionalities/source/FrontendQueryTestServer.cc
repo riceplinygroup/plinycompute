@@ -104,11 +104,14 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 output->setSetId(outputSet->getSetID());
                 newRequest->setOutput(output);
                 newRequest->setOutputTypeName(request->getOutputTypeName());
-         
-
+                
+                //copy operators
+                Vector<Handle<ExecutionOperator>> operators = request->getOperators();
+                for (int i=0; i < operators.size(); i++) {
+                     newRequest->addOperator(operators[i]);
+                }              
+ 
                 newRequest->print();
-
-
 
                 if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
                     std :: cout << errMsg << std :: endl;
