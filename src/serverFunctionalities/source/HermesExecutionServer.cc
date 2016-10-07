@@ -40,6 +40,7 @@
 #include "Selection.h"
 #include "QueryBase.h"
 #include "JobStage.h"
+#include "PipelineNetwork.h"
 #include <vector>
 
 
@@ -249,6 +250,20 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             [&] (Handle<JobStage> request, PDBCommunicatorPtr sendUsingMe) {
             std :: cout << "Backend got JobStage message with Id=" << request->getStageId() << std :: endl;
             request->print();
+            
+            //initialize a pipeline network
+            //int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
+            NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+            pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+            SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
+            ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
+            PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, 1);
+            network->initialize(request);
+            network->runSource(0, this);
+            
+
+
+
             bool res = true;
             std :: string errMsg;
             std :: cout << "Making response object.\n";

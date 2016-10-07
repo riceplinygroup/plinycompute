@@ -23,15 +23,18 @@
 #include "PipelineNetwork.h"
 #include "PageCircularBufferIterator.h"
 #include "DataProxy.h"
-#include "HermesExecutionServer.h"
 #include "PageScanner.h"
 #include "PageCircularBufferIterator.h"
 #include "BlockQueryProcessor.h"
-#include "
+#include "InterfaceFunctions.h"
+#include "HermesExecutionServer.h"
+#include "GenericWork.h"
+#include "SingleTableBundleProcessor.h"
 
 namespace pdb {
 
 PipelineNetwork :: ~PipelineNetwork () {
+    this->jobStage = nullptr;
     delete sourceNodes;
     delete allNodes;
 }
@@ -70,7 +73,7 @@ void PipelineNetwork :: initialize (Handle<JobStage> stage) {
             isSink = true;
             output = stage->getOutput();
         } 
-        PipelineNodePtr node = make_shared<PipelineNode>(operators[i], isSource, isSink, input, output, id);
+        PipelineNodePtr node = make_shared<PipelineNode>(this->nodeId, operators[i], isSource, isSink, input, output, id);
         id ++; 
         if (i == 0) {
             appendSourceNode (node);
@@ -94,7 +97,7 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
         Handle<ExecutionOperator> sourceOperator = operators[0];
         bool isSink;
         Handle<SetIdentifier> outputSet = nullptr;
-        if (operators->size() == 1) {
+        if (operators.size() == 1) {
             isSink = true;
             outputSet = stage->getOutput();
         } else {
@@ -103,10 +106,10 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
         PipelineNodePtr node = nullptr;
         if (parentNode == nullptr) {
             Handle<SetIdentifier> inputSet = stage->getInput();
-            node = make_shared<PipelineNode>(operators[0], true, isSink, inputSet, outputSet, id);
+            node = make_shared<PipelineNode>(this->nodeId, operators[0], true, isSink, inputSet, outputSet, id);
             appendSourceNode (node);
         } else {
-            node = make_shared<PipelineNode>(operators[0], false, isSink, nullptr, outputSet, id);
+            node = make_shared<PipelineNode>(this->nodeId, operators[0], false, isSink, nullptr, outputSet, id);
             appendNode(parentNode->getOperatorId(), node);
         }
         if (isSink == true) {
@@ -123,7 +126,7 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
                 isSink = true;
                 outputSet = stage->getOutput();
             }
-            PipelineNodePtr node = make_shared<PipelineNode>(curOperator, isSource, isSink, inputSet, outputSet, id);
+            PipelineNodePtr node = make_shared<PipelineNode>(this->nodeId, curOperator, isSource, isSink, inputSet, outputSet, id);
             appendNode(id - 1, node);
             id ++;
             if (isSink == true) {
@@ -138,11 +141,11 @@ void PipelineNetwork :: initialize (PipelineNodePtr parentNode, Handle<JobStage>
 }
 
 
-Handle<JobStage> PipelineNetwork :: getJobStage () {
+Handle<JobStage> & PipelineNetwork :: getJobStage () {
     return jobStage;
 }
 
-std :: vector<PipelineNodePtr> PipelineNetwork :: getSourceNodes() {
+std :: vector<PipelineNodePtr> * PipelineNetwork :: getSourceNodes() {
     return this->sourceNodes;
 }
 
@@ -169,7 +172,7 @@ int PipelineNetwork :: getNumThreads () {
 
 }
 
-int PipelineNetwork :: getNumsources () {
+int PipelineNetwork :: getNumSources () {
      return this->sourceNodes->size();
 } 
 
@@ -177,7 +180,7 @@ void PipelineNetwork :: runAllSources() {
      //TODO
 }
 
-void PipelineNetwork :: runSource (int sourceNode) {
+void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * server) {
     bool success;
     std :: string errMsg;
     PipelineNodePtr source = this->sourceNodes->at(sourceNode);
@@ -188,7 +191,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
     //getScanner
     int backendCircularBufferSize = 3;
     PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId); 
-    if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+    if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
         success = false;
         errMsg = "Error: A job is already running!";
         std :: cout << errMsg << std :: endl;
@@ -196,7 +199,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
     }
 
     //get input set information
-    SetIdentifier inputSet = source->getInputSet();
+    Handle<SetIdentifier> inputSet = source->getInputSet();
 
     //get iterators
     //TODO: we should get iterators using only databaseName and setName
@@ -212,7 +215,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
 
     //get output set information
     //now due to limitation in object model, we only support one output for a pipeline network
-    Handle<SetIdentifier> outputSet = this->jobStage->getOutputSet();
+    Handle<SetIdentifier> outputSet = this->jobStage->getOutput();
 
 
     //create a buzzer and counter
@@ -225,7 +228,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
     int counter = 0;
     int batchSize = 100;
     for (int i = 0; i < numThreads; i++) {
-         PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+         PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
          //std :: cout << "to run the " << i << "-th work..." << std :: endl;
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
@@ -278,7 +281,7 @@ void PipelineNetwork :: runSource (int sourceNode) {
                                   context->setPageToUnpin(output);
                                   context->setNeedUnpin(false);
                               }
-                              outputBlock = loadOutputBlock(batchSize);
+                              outputBlock = bundler->loadOutputBlock(batchSize);
 
                           }
 

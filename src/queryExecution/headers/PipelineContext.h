@@ -72,7 +72,7 @@ class PipelineContext {
         this->pageToUnpin = nullptr;
     }
 
-    Handle<Vector<Handle<Object>>> getOutputVec() {
+    Handle<Vector<Handle<Object>>> & getOutputVec() {
         return this->outputVec;
     }
 
@@ -101,7 +101,7 @@ class PipelineContext {
         return this->proxy;
     } 
 
-    Handle<SetIdentifier> getOutputSet() {
+    Handle<SetIdentifier> & getOutputSet() {
         return this->outputSet;
     }
 

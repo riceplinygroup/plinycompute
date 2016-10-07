@@ -19,6 +19,7 @@
 #define SINGLE_TABLE_UNBUNDLE_PROCESSOR_CC
 
 #include "SingleTableUnbundleProcessor.h"
+#include "InterfaceFunctions.h"
 
 namespace pdb {
 
@@ -31,7 +32,6 @@ SingleTableUnbundleProcessor :: ~SingleTableUnbundleProcessor() {
 
 SingleTableUnbundleProcessor :: SingleTableUnbundleProcessor () {
 
-    this->batchSize = 100;
     this->context = nullptr;
 } 
 

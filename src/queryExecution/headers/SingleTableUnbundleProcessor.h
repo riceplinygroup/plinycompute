@@ -54,7 +54,6 @@ private:
         // pipeline context
         PipelineContextPtr context;
 
-
 public:
 
         ~SingleTableUnbundleProcessor ();

@@ -65,12 +65,12 @@ namespace pdb {
                 return this->output;
             }
 
-            void addOperator( Handle<ExecutionOperator> executionOperator ) {
+            void addOperator( Handle<ExecutionOperator>& executionOperator ) {
                 operators.push_back(executionOperator);
             }
 
             //to return a vector of operators for this JobStage
-            Vector<Handle<ExecutionOperator>> getOperators() {
+            Vector<Handle<ExecutionOperator>>& getOperators() {
                 return this->operators;
             }
 

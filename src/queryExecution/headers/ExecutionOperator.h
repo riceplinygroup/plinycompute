@@ -23,6 +23,8 @@
 #include "Object.h"
 #include <string>
 
+// PRELOAD %ExecutionOperator%
+
 namespace pdb {
 
 /*
@@ -34,6 +36,7 @@ namespace pdb {
 class ExecutionOperator : public Object {
 
     public:
+
 
        virtual string getName() = 0;
        virtual BlockQueryProcessorPtr getProcessor() = 0;

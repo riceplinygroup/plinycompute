@@ -70,7 +70,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
-        posToFinish = posInInput + batchSize;
+        int posToFinish = posInInput + batchSize;
         for (; posInInput < vecSize; posInInput++) {
             myOutputVec.push_back(myInputVec[posInInput]);
             if(posInInput == posToFinish) {

@@ -33,9 +33,11 @@
 #include <memory>
 #include <vector>
 
-typdef std :: shared_ptr<PipelineNode> PipelineNodePtr;
 
 namespace pdb {
+
+class PipelineNode;
+typedef std :: shared_ptr<PipelineNode> PipelineNodePtr;
 
 //this class encapsulates a pipeline node in the pipeline network
 
@@ -65,6 +67,8 @@ private:
     // operator Id
     OperatorID id;    
 
+    // node id
+    NodeID nodeId;
    
 public:
 
@@ -72,7 +76,10 @@ public:
     ~PipelineNode ();
 
     // constructor
-    PipelineNode (Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
+    PipelineNode (NodeID nodeId, Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
+
+    // get nodeId
+    NodeID getNodeId();
 
     // return all children
     std :: vector<PipelineNodePtr> * getChildren();
@@ -84,10 +91,10 @@ public:
     bool isSink();
 
     // return the set identifier as the input data of this node
-    Handle<SetIdentifier> getInputSet();
+    Handle<SetIdentifier> & getInputSet();
 
     // return the set idenifier as the output data of this node
-    Handle<SetIdentifier> getOutputSet();
+    Handle<SetIdentifier> & getOutputSet();
 
     // return the operator Id
     OperatorID getOperatorId();
@@ -96,12 +103,15 @@ public:
     void addChild(PipelineNodePtr node);
 
     // running the pipeline
-    bool run (Handle<GenericBlock> inputBatch, size_t batchSize);
+    bool run (PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize);
+
+    // unbundle a block to output vector
+    bool unbundle(PipelineContextPtr context, Handle<GenericBlock> inputBatch);
 
     // get a processor
     BlockQueryProcessorPtr getProcessor(PipelineContextPtr context);
 
-   
+    
       
 };
 

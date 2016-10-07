@@ -77,13 +77,13 @@ int main () {
         Handle<Vector <Handle<QueryBase>>> queries = makeObject<Vector<Handle<QueryBase>>>();
         queries->push_back(outputOne);
         queries->push_back(outputTwo);
-        pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
+/*        pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
 
         QuerySchedulerServer server;
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();
         server.schedule("localhost", 8108, myLogger); 
-
+*/
 /*
         queryGraph = buildIr(queries);
         shared_ptr <pdb_detail::SetExpressionIr> curNode;
@@ -138,12 +138,12 @@ int main () {
 		    std :: cout << (*a) << "; ";
         }
 	std :: cout << "\n";
-	
+*/	
 	// and delete the sets
 	myClient.deleteSet ("chris_db", "output_set1");
 	myClient.deleteSet ("chris_db", "output_set2");
         system ("scripts/cleanupSoFiles.sh");
-*/        
+        
 }
 
 #endif

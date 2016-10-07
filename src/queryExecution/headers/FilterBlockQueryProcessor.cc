@@ -52,7 +52,7 @@ template <class Output, class Input>
 void FilterBlockQueryProcessor <Output, Input> :: loadInputBlock (Handle<GenericBlock> inputBlock)
 {
         this->inputBlock = inputBlock;
-        this->batchSize = this->inputBlock->getBlock()->size();
+        this->batchSize = this->inputBlock->getBlock().size();
 	posInInput = 0;
 }
 
@@ -68,8 +68,8 @@ Handle<GenericBlock> FilterBlockQueryProcessor <Output, Input> :: loadOutputBloc
 template <class Output, class Input>
 bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		
-	Vector <Handle <Input>> &myInVec = (*inputBlock->getBlock());
-	Vector <Handle <Input>> &myOutVec = (*outputBlock->getBlock());
+	Vector <Handle <Input>> &myInVec = (inputBlock->getBlock());
+	Vector <Handle <Input>> &myOutVec = (outputBlock->getBlock());
 
 	// if we are finalized, see if there are some left over records
 	if (finalized) {
