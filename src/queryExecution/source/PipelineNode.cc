@@ -25,7 +25,11 @@
 
 namespace pdb {
 PipelineNode :: ~PipelineNode () {
-
+    std :: cout << "PipelineNode with id=" << id << " is running" << std :: endl;
+    executionOperator = nullptr;
+    inputSet = nullptr;
+    outputSet = nullptr;
+    children->clear();
     delete children;
 
 }
@@ -41,7 +45,6 @@ PipelineNode :: PipelineNode (NodeID nodeId, Handle<ExecutionOperator> execution
     this->inputSet = inputSet;
     this->outputSet = outputSet;
     this->id = operatorId;
-    this->children = new std :: vector<PipelineNodePtr>();
 }
 
 
@@ -99,6 +102,7 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              PDBPagePtr output;
              context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
+             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
              makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
              context->setOutputFull(false);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
@@ -128,6 +132,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         context->setNeedUnpin(true);
         proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
+        std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
         makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         context->setOutputVec(outputVec);
@@ -141,6 +146,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              context->setNeedUnpin(true);
              proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
                        context->getOutputSet()->getSetId(), output);
+             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
              makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);

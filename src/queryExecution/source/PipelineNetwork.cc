@@ -34,9 +34,12 @@
 namespace pdb {
 
 PipelineNetwork :: ~PipelineNetwork () {
-    this->jobStage = nullptr;
+    std :: cout << "PipelineNetwork destructor is running" << std :: endl;
+    sourceNodes->clear();
     delete sourceNodes;
+    allNodes->clear();
     delete allNodes;
+    this->jobStage = nullptr;
 }
 
 PipelineNetwork :: PipelineNetwork (SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads) {
@@ -245,6 +248,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //setup an output page to store intermediate results and final output
                   PDBPagePtr output;
                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                   Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              
@@ -262,7 +266,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                       std :: cout << "got a page!" << std :: endl;
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
-                          std :: cout << "page is not null!" << std :: endl;
+                          std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           bundler->loadInputPage(page->getBytes());
                           std :: cout << "load an allocate block for output" << std :: endl;
                           Handle<GenericBlock> outputBlock;
@@ -278,7 +282,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               if (context->isOutputFull()) {
                                   std :: cout << "this page is full!" << std :: endl;
                                   context->setNeedUnpin(true);
-                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output, false);
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
@@ -305,10 +310,11 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               catch (NotEnoughSpace &n) {
                                   std :: cout << "we need to unpin the full page" << std :: endl;
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
+                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
                                   context->setPageToUnpin(output);
                                   std :: cout << "we need to pin a new page" << std :: endl;
-                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output, false);
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
@@ -329,12 +335,12 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   }
                   std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   getRecord(outputVec);
-
+                  outputVec = nullptr;
                   //interestingly, if we comment following three lines, the root object can't be read later if vector size = 0
                   Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
                   Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
                   std :: cout << "after getRecord: outputVec size =" << inputVec->size() << std :: endl;
-
+                  inputVec = nullptr;
                   bundler->clearOutputBlock();
                   bundler->clearInputPage();
                   std :: cout << "unpin the output page" << std :: endl;

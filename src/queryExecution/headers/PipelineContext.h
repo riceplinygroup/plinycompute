@@ -64,6 +64,7 @@ class PipelineContext {
     public:
     ~PipelineContext() {
         this->outputVec = nullptr;
+        this->outputSet = nullptr;
     }
 
 
