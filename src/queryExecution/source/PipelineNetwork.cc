@@ -335,18 +335,16 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   }
                   std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   getRecord(outputVec);
-                  outputVec = nullptr;
                   //interestingly, if we comment following three lines, the root object can't be read later if vector size = 0
                   Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
                   Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-                  std :: cout << "after getRecord: outputVec size =" << inputVec->size() << std :: endl;
-                  inputVec = nullptr;
-                  bundler->clearOutputBlock();
-                  bundler->clearInputPage();
+                  int vecSize = inputVec->size();
+                  std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
                   std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
+                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
                   context->setPageToUnpin(nullptr);
+                  std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }
