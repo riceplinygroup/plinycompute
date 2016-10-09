@@ -105,7 +105,7 @@ inline Allocator :: ~Allocator () {
 
 	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
 		if (getNumObjectsInCurrentAllocatorBlock () != 0) {
-			//std :: cout << "This is bad.  Current allocation block has " << getNumObjectsInCurrentAllocatorBlock () << " references.\n";
+			std :: cout << "This is bad.  Current allocation block has " << getNumObjectsInCurrentAllocatorBlock () << " references.\n";
 		}
 		free (myState.activeRAM);
 	}
@@ -358,7 +358,7 @@ void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
 
 	// see if this guy is from the active block
 	if (contains (here)) {
-		std :: cout << "getAllocationBlock: object offset =" << CHAR_PTR (here) - CHAR_PTR (myState.activeRAM) << std :: endl;
+		//std :: cout << "getAllocationBlock: object offset =" << CHAR_PTR (here) - CHAR_PTR (myState.activeRAM) << std :: endl;
 		// set up the pointer to the object
 		OFFSET_TO_OBJECT = CHAR_PTR (here) - CHAR_PTR (myState.activeRAM);
 		return myState.activeRAM;
