@@ -93,11 +93,11 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
                 std :: cout << "input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
-                        std :: cout << "posInInput=" << posInInput << std :: endl;
+                        //std :: cout << "posInInput=" << posInInput << std :: endl;
 			if (filterFunc ()) {
-                                std :: cout << "to push back posInInput=" << posInInput << std :: endl;
+                                //std :: cout << "to push back posInInput=" << posInInput << std :: endl;
 				myOutVec.push_back (inputObject);
-                                std :: cout << "push back posInInput=" << posInInput << std :: endl;
+                                //std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
 		}
                 std :: cout << "Filter processor processed an input block" << std :: endl;	
