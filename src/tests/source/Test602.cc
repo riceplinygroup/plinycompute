@@ -80,7 +80,6 @@ int main () {
 				std :: cout << "stored the data!!\n";
 			}
 		}
-		free (storage);
 	//}
 
 	// and shut down the server
@@ -88,6 +87,7 @@ int main () {
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
 	
+        free (storage);
 }
 
 #endif
