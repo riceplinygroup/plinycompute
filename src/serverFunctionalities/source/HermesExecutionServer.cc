@@ -258,10 +258,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
             ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
             PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, 1);
+            std :: cout << "initialize the pipeline network" << std :: endl;
             network->initialize(request);
+            std :: cout << "running source node" << std :: endl;
             network->runSource(0, this);
             
-
+            std :: cout << "to send back reply" << std :: endl;
 
 
             bool res = true;

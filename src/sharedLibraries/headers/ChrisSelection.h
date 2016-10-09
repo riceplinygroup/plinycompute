@@ -43,6 +43,16 @@ public:
 		});
 	}
 
+
+        Lambda <bool> getProjectionSelection (Handle<String> &checkMe) override {
+                return makeLambda (checkMe, [&] () {
+                        //std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
+                        return ((*checkMe) != "Joe Johnson48");
+                });
+        }
+
+
+
 	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] {
 			//std :: cout << *(checkMe->getName ()) << std :: endl;

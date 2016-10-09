@@ -74,6 +74,7 @@ OperatorID PipelineNode :: getOperatorId() {
 }
 
 void PipelineNode :: addChild(PipelineNodePtr node) {
+    std::cout << "add child node " << node->getOperatorId() << " to node " << id << std::endl;
     this->children->push_back(node);
 }
 
@@ -92,6 +93,7 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
     unbundler->loadInputBlock(inputBatch);
     DataProxyPtr proxy = context->getProxy();
     while (unbundler->fillNextOutputVector()) {
+             std :: cout << "page is full" << std :: endl;
              proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
              PDBPagePtr output;
@@ -103,26 +105,43 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              context->setOutputVec(outputVec);
              context->setPageToUnpin(output);
     }
+    std :: cout << "unbundled an input block!" << std :: endl;
     unbundler->clearOutputVec();
     unbundler->clearInputBlock();
     return true;
 }
 
 bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize) {
+    std :: cout << "running pipeline node with id=" << id << std :: endl;
     BlockQueryProcessorPtr processor = this->getProcessor(context);
+    std :: cout << "got processor" << std :: endl;
     processor->initialize();
     processor->loadInputBlock(inputBatch);
-    Handle<GenericBlock> outputBlock = processor->loadOutputBlock();
+    std :: cout << "to load output block" << std :: endl;
     DataProxyPtr proxy = context->getProxy();
     PDBPagePtr output = nullptr;
+    Handle<GenericBlock> outputBlock = nullptr;
+    try {
+        outputBlock = processor->loadOutputBlock();
+    } catch (NotEnoughSpace &n) {
+        std :: cout << "page is full" << std :: endl;
+        context->setNeedUnpin(true);
+        proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
+                       context->getOutputSet()->getSetId(), output);
+        makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+        Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
+        context->setOutputVec(outputVec);
+        outputBlock = processor->loadOutputBlock();
+    }
+    std :: cout << "loaded an output block" << std :: endl;
     while (processor->fillNextOutputBlock()) {
-        //TODO: we need to unpin the previous output page
+        std :: cout << id << ":written to a block" << std :: endl;
         if (context->isOutputFull()) {
+             std :: cout << "page is full" << std :: endl;
              context->setNeedUnpin(true);
-             context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
+             proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
                        context->getOutputSet()->getSetId(), output);
              makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
-             context->setOutputFull(false);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);
              context->setOutputFull(false);
@@ -130,27 +149,53 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
 
         //we assume a run of pipeline will not consume all memory that has just been allocated
         for (int i = 0; i < this->children->size(); i ++) {
+             std :: cout << id << ": run " << i << "-th child" << std :: endl;
              children->at(i)->run(context, outputBlock, batchSize);
+
         }
         if (children->size() == 0) {
              //I am a sink node, run unbundling
-             unbundle(context, outputBlock);
-             
+             std :: cout << id << ": I'm a sink node" << std :: endl;
+             //unbundle(context, outputBlock);
         }
         
         //now we can unpin the previous page
         if (context->shallWeUnpin()) {
+            std :: cout << "page is to be unpinned" << std :: endl;
             proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
             context->setPageToUnpin(output);
             context->setNeedUnpin(false);
         }
         outputBlock = processor->loadOutputBlock();
     }
-    processor->clearOutputBlock();
+    std :: cout << id << ": we processed the input block" << std :: endl;
     processor->clearInputBlock();
 
-    return true;
+    //we assume a run of pipeline will not consume all memory that has just been allocated
+    for (int i = 0; i < this->children->size(); i ++) {
+        std :: cout << id << ": run " << i << "-th child" << std :: endl;
+        children->at(i)->run(context, outputBlock, batchSize);
+    }
+
+    if (children->size() == 0) {
+        //I am a sink node, run unbundling
+        std :: cout << id << ": I'm a sink node" << std :: endl;
+        //unbundle(context, outputBlock);
+   }
+
+   //now we can unpin the previous page
+   if (context->shallWeUnpin()) {
+        std :: cout << "page is to be unpinned" << std :: endl;
+        proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
+        context->setPageToUnpin(output);
+        context->setNeedUnpin(false);
+   }
+
+   processor->clearOutputBlock();
+
+   return true;
 
 }
 }

@@ -21,14 +21,25 @@
 
 #include "InterfaceFunctions.h"
 #include "FilterBlockQueryProcessor.h"
+#include "SharedEmployee.h"
 
 namespace pdb {
+
+template <class Output, class Input>
+FilterBlockQueryProcessor <Output, Input> :: ~FilterBlockQueryProcessor () {
+       std :: cout << "running FilterBlockQueryProcessor destructor" << std :: endl;
+       this->inputBlock = nullptr;
+       this->outputBlock = nullptr;
+       this->context = nullptr;
+       this->inputObject = nullptr;
+}
+
 
 template <class Output, class Input>
 FilterBlockQueryProcessor <Output, Input> :: FilterBlockQueryProcessor (Selection <Output, Input> &forMe) {
 
 	// get a copy of the lambdas for query processing
-	filterPred = forMe.getSelection (inputObject);
+	filterPred = forMe.getProjectionSelection (inputObject);
 	finalized = false;
 }
 
@@ -58,7 +69,7 @@ void FilterBlockQueryProcessor <Output, Input> :: loadInputBlock (Handle<Generic
 
 // load up another output page to process
 template <class Output, class Input>
-Handle<GenericBlock> FilterBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
+Handle<GenericBlock> & FilterBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
 
 	// and here's where we write the ouput to
 	this->outputBlock = makeObject <GenericBlock> ();
@@ -67,9 +78,9 @@ Handle<GenericBlock> FilterBlockQueryProcessor <Output, Input> :: loadOutputBloc
 
 template <class Output, class Input>
 bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
-		
-	Vector <Handle <Input>> &myInVec = (inputBlock->getBlock());
-	Vector <Handle <Input>> &myOutVec = (outputBlock->getBlock());
+        std :: cout << "Filter processor is running" << std :: endl;		
+	Vector <Handle <Output>> &myInVec = (inputBlock->getBlock());
+	Vector <Handle <Output>> &myOutVec = (outputBlock->getBlock());
 
 	// if we are finalized, see if there are some left over records
 	if (finalized) {
@@ -79,15 +90,21 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
+                std :: cout << "input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
+                        std :: cout << "posInInput=" << posInInput << std :: endl;
 			if (filterFunc ()) {
+                                std :: cout << "to push back posInInput=" << posInInput << std :: endl;
 				myOutVec.push_back (inputObject);
+                                std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
-		}	
+		}
+                std :: cout << "Filter processor processed an input block" << std :: endl;	
 		return false;
 
 	} catch (NotEnoughSpace &n) {
+                std :: cout << "Filter processor consumed current page" << std :: endl;
                 if (this->context != nullptr) {
                        PipelineContextPtr context = this->context;
 		       getRecord (context->outputVec);
@@ -113,6 +130,7 @@ void FilterBlockQueryProcessor <Output, Input> :: clearOutputBlock () {
 template <class Output, class Input>
 void FilterBlockQueryProcessor <Output, Input> :: clearInputBlock () {
         inputBlock = nullptr;
+        inputObject = nullptr;
 }
 }
 

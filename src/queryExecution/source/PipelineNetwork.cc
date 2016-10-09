@@ -74,12 +74,14 @@ void PipelineNetwork :: initialize (Handle<JobStage> stage) {
             output = stage->getOutput();
         } 
         PipelineNodePtr node = make_shared<PipelineNode>(this->nodeId, operators[i], isSource, isSink, input, output, id);
-        id ++; 
         if (i == 0) {
+            std :: cout << "to append source node with id=" << id << std :: endl;
             appendSourceNode (node);
         } else {
+            std :: cout << "to append child node with id=" << id << " to parent with id=" << parentNode->getOperatorId() << std :: endl;
             appendNode (parentNode->getOperatorId(), node);
         }
+        id ++;
         parentNode = node;
     }
 }
@@ -263,13 +265,20 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                           std :: cout << "page is not null!" << std :: endl;
                           bundler->loadInputPage(page->getBytes());
                           std :: cout << "load an allocate block for output" << std :: endl;
-                          Handle<GenericBlock> outputBlock = bundler->loadOutputBlock(batchSize);
+                          Handle<GenericBlock> outputBlock;
+                          try {
+                              outputBlock = bundler->loadOutputBlock(batchSize);
+                          }
+                          catch (NotEnoughSpace &n) {
+                              std :: cout << "Page should be larger than block structure size" << std :: endl;
+                              exit(-1);
+                          }
                           while(bundler->fillNextOutputBlock()) {
                               std :: cout << "written one block!" << std :: endl;
                               if (context->isOutputFull()) {
                                   std :: cout << "this page is full!" << std :: endl;
                                   context->setNeedUnpin(true);
-                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output, false);
                                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
@@ -285,27 +294,45 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               if (context->shallWeUnpin()) {
                                   std :: cout << "we need to unpin the full page" << std :: endl;
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(), 
-                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
                                   context->setPageToUnpin(output);
                                   context->setNeedUnpin(false);
                               }
                               std :: cout << "now we allocate a new block" << std :: endl;
-                              outputBlock = bundler->loadOutputBlock(batchSize);
-
+                              try {
+                                  outputBlock = bundler->loadOutputBlock(batchSize);
+                              }
+                              catch (NotEnoughSpace &n) {
+                                  std :: cout << "we need to unpin the full page" << std :: endl;
+                                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
+                                  context->setPageToUnpin(output);
+                                  std :: cout << "we need to pin a new page" << std :: endl;
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output, false);
+                                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                                  outputVec = makeObject<Vector<Handle<Object>>>();
+                                  context->setOutputVec(outputVec);
+                                  context->setOutputFull(false);
+                                  outputBlock = bundler->loadOutputBlock(batchSize); 
+                              }
                           }
+                          std :: cout << "the input page has been processed" << std :: endl;
+                          std :: cout << "run the pipeline on this block" << std :: endl;
+                          source->run(context, outputBlock, batchSize);
 
                           bundler->clearOutputBlock();
                           bundler->clearInputPage();
                
                           std :: cout << "now we unpin the page" << std :: endl;
-                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);  
+                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page, false);  
+                          callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
                       }
                   }
                   getRecord(outputVec);
                   bundler->clearOutputBlock();
                   bundler->clearInputPage();
                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
                   context->setPageToUnpin(nullptr);
 
              }
@@ -317,6 +344,16 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     while (counter < numThreads) {
          tempBuzzer->wait();
     }
+
+    if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
+        success = false;
+        errMsg = "Error: No job is running!";
+        std :: cout << errMsg << std :: endl;
+        return;
+    }
+
+
+
 
     return;
     

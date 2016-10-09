@@ -26,7 +26,7 @@ SingleTableBundleProcessor :: ~SingleTableBundleProcessor() {
 
     this->clearInputPage();
     this->clearOutputBlock();
-
+    this->context = nullptr;
 }
 
 SingleTableBundleProcessor :: SingleTableBundleProcessor () {
@@ -74,6 +74,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
         std :: cout << "posInInput=" << posInInput << std :: endl;
         std :: cout << "posToFinish=" << posToFinish << std :: endl;
         for (; ((posInInput < vecSize) && (posInInput < posToFinish)); posInInput++) {
+            std :: cout << "posInInput=" << posInInput << std :: endl;
             myOutputVec.push_back(myInputVec[posInInput]);
         }
         std :: cout << "posInInput=" << posInInput << std :: endl;

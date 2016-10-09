@@ -62,6 +62,10 @@ class PipelineContext {
 
 
     public:
+    ~PipelineContext() {
+        this->outputVec = nullptr;
+    }
+
 
     PipelineContext (Handle<Vector<Handle<Object>>> outputVec, DataProxyPtr proxy, Handle<SetIdentifier> outputSet) {
         this->outputVec = outputVec;

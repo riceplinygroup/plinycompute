@@ -39,6 +39,10 @@ public:
 
 	// over-ridden by the user so they can supply the actual selection predicate
 	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+        
+        // over-ridden by the user so they can supply the selection on projection
+        // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
+        virtual Lambda <bool> getProjectionSelection (Handle <Out> &in) = 0;
 
 	// over-ridden by the user so they can supple the actual projection
 	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
