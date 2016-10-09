@@ -156,7 +156,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         if (children->size() == 0) {
              //I am a sink node, run unbundling
              std :: cout << id << ": I'm a sink node" << std :: endl;
-             //unbundle(context, outputBlock);
+             unbundle(context, outputBlock);
         }
         
         //now we can unpin the previous page
@@ -181,7 +181,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
     if (children->size() == 0) {
         //I am a sink node, run unbundling
         std :: cout << id << ": I'm a sink node" << std :: endl;
-        //unbundle(context, outputBlock);
+        unbundle(context, outputBlock);
    }
 
    //now we can unpin the previous page

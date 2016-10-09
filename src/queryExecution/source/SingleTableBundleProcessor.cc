@@ -45,6 +45,8 @@ void SingleTableBundleProcessor :: loadInputPage (void * pageToProcess) {
 
     Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) pageToProcess;
     inputVec = myRec->getRootObject ();
+    int vecSize = inputVec->size();
+    std :: cout << "vecSize=" << vecSize << std :: endl;
     posInInput = 0;
 
 }
@@ -70,6 +72,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
+        std :: cout << "vecSize =" << vecSize << std :: endl;
         int posToFinish = posInInput + batchSize;
         std :: cout << "posInInput=" << posInInput << std :: endl;
         std :: cout << "posToFinish=" << posToFinish << std :: endl;
