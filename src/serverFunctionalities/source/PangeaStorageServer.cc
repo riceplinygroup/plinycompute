@@ -679,8 +679,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
 
-
-
                        //std :: cout << "Making response object.\n";
                        const UseTemporaryAllocationBlock block{1024};
                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
