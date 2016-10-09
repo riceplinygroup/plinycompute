@@ -325,15 +325,23 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                
                           std :: cout << "now we unpin the page" << std :: endl;
                           proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page, false);  
-                          callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
                       }
                   }
+                  std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   getRecord(outputVec);
+
+                  //interestingly, if we comment following three lines, the root object can't be read later if vector size = 0
+                  Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
+                  Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                  std :: cout << "after getRecord: outputVec size =" << inputVec->size() << std :: endl;
+
                   bundler->clearOutputBlock();
                   bundler->clearInputPage();
+                  std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
                   context->setPageToUnpin(nullptr);
+                  callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }
 
@@ -351,8 +359,6 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         std :: cout << errMsg << std :: endl;
         return;
     }
-
-
 
 
     return;
