@@ -342,7 +342,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
                   std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
+                  getRecord(outputVec);
                   context->setPageToUnpin(nullptr);
                   std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
