@@ -143,7 +143,7 @@ namespace pdb {
             Handle<SetIdentifier> output;
 
             //Output type name
-            std :: string outputTypeName;
+            String outputTypeName;
 
             //operator information
             Vector<Handle<ExecutionOperator>> operators;
