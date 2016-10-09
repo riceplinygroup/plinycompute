@@ -668,7 +668,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                        bool res;
                        std :: string errMsg;
-          
+                       getFunctionality<PangeaStorageServer>().getCache()->flushPageWithoutEviction(key);          
                        if(getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
                                 res = false;
                                 errMsg = "Fatal Error: Page doesn't exist for unpinning page.";
@@ -678,6 +678,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 res = true;
                                 //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
+
+
 
                        //std :: cout << "Making response object.\n";
                        const UseTemporaryAllocationBlock block{1024};
