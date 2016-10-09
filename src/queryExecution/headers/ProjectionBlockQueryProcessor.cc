@@ -27,6 +27,15 @@
 namespace pdb {
 
 template <class Output, class Input>
+ProjectionBlockQueryProcessor <Output, Input> :: ~ProjectionBlockQueryProcessor() {
+       std :: cout << "running ProjectionBlockQueryProcessor destructor" << std :: endl;
+       this->inputBlock = nullptr;
+       this->outputBlock = nullptr;       
+       this->context = nullptr;
+       this->inputObject = nullptr;
+}
+
+template <class Output, class Input>
 ProjectionBlockQueryProcessor <Output, Input> :: ProjectionBlockQueryProcessor (Selection <Output, Input> &forMe) {
 
 	// get a copy of the lambdas for query processing
@@ -61,14 +70,15 @@ void ProjectionBlockQueryProcessor <Output, Input> :: loadInputBlock (Handle<Gen
 
 // load up another output page to process
 template <class Output, class Input>
-Handle<GenericBlock> ProjectionBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
+Handle<GenericBlock> & ProjectionBlockQueryProcessor <Output, Input> :: loadOutputBlock () {
         this->outputBlock = makeObject <GenericBlock> ();
         return this->outputBlock; 
 }
 
 template <class Output, class Input>
 bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
-		
+
+        std :: cout << "Projection processor is running" << std :: endl;		
 	Vector <Handle <Input>> &myInVec = (inputBlock->getBlock());
 	Vector <Handle <Output>> &myOutVec = (outputBlock->getBlock());
 
@@ -80,14 +90,16 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
+                std :: cout << "input object num=" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 			myOutVec.push_back (projectionFunc ());	
 		}	
-
+                std :: cout << "Projection processor processed one input block" << std :: endl;
 		return false;
 
 	} catch (NotEnoughSpace &n) {
+                std :: cout << "Projection processor consumed the page" << std :: endl;
 	        if (this->context != nullptr) {	
 		        getRecord (this->context->outputVec);
                         context->setOutputFull(true);
@@ -111,6 +123,7 @@ void ProjectionBlockQueryProcessor <Output, Input> :: clearOutputBlock () {
 template <class Output, class Input>
 void ProjectionBlockQueryProcessor <Output, Input> :: clearInputBlock () {
         inputBlock = nullptr;
+        inputObject = nullptr;
 }
 
 }

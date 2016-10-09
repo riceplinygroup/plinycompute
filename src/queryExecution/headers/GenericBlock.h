@@ -42,7 +42,8 @@ public:
 
     ENABLE_DEEP_COPY
 
-    ~GenericBlock() {}
+    ~GenericBlock() { 
+        std :: cout << "running GenericBlock destructor" << std :: endl; }
 
     GenericBlock() {}
 

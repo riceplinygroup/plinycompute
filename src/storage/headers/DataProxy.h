@@ -51,13 +51,13 @@ public:
      * The storage system will allocate SetID to the temporary set.
      * If successful, return true, otherwise (like setName exists), return false.
      */
-    bool addTempSet(string setName, SetID &setId);
+    bool addTempSet(string setName, SetID &setId, bool needMem = true);
 
     /**
      * Remove a temp set with the specified SetID.
      * If successful, return true, otherwise (like setId doesn't exists), return false.
      */
-    bool removeTempSet(SetID setId);
+    bool removeTempSet(SetID setId, bool needMem = true);
 
     /**
      * Add a page to the temporary set specified by the given SetID.
@@ -65,7 +65,7 @@ public:
      * If successful, return true, otherwise (like setId doesn't exists), return false.
      * Immediately, the page will be pinned at storage, and is ready for read/write in memory.
      */
-    bool addTempPage(SetID setId, PDBPagePtr &page);
+    bool addTempPage(SetID setId, PDBPagePtr &page, bool needMem = true);
 
     /**
      * Add a page to the set specified by the given DbId, TypeId, and SetID.
@@ -73,21 +73,21 @@ public:
      * If successful, return true, otherwise (like setId doesn't exists), return false.
      * Immediately, the page will be pinned at storage, and is ready for read/write in memory.
      */
-    bool addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page);
+    bool addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem = true);
 
     /**
      * Pin a page in the temporary set specified by the given SetID and PageID to the storage,
      * so that it can get ready for read/write in memory.
      * If successful, return true, otherwise (like setId or pageId does not exist), return false.
      */
-    bool pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page);
+    bool pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool needMem = true);
 
     /**
      * UnPin a page in the temporary set specified by the given SetID and PageID from memory,
      * so that it can be flushed to disk if it is in input buffer, or can be evicted if it is in cache.
      * If successful, return true, otherwise (like setId or pageId does not exist), return false.
      */
-    bool unpinTempPage(SetID setId, PDBPagePtr page);
+    bool unpinTempPage(SetID setId, PDBPagePtr page, bool needMem = true);
 
     /**
      * Pin a page in the user set specified by the given DatabaseID, UserTypeID, SetID and PageID to the storage,
@@ -95,7 +95,7 @@ public:
      * If successful, return true, otherwise (like dbId, typeId, setId or pageId does not exist), return false.
      */
     bool pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PageID pageId, PDBPagePtr &page);
+        PageID pageId, PDBPagePtr &page, bool needMem = true);
 
     /**
      * UnPin a page in the user set specified by the given DatabaseID, UserTypeID, SetID and PageID from memory,
@@ -103,7 +103,7 @@ public:
      * If successful, return true, otherwise (like dbId, typeId, setId or pageId does not exist), return false.
      */
     bool unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PDBPagePtr page);
+        PDBPagePtr page, bool needMem = true);
 
     /**
      * Create a PageScanner instance given the specified thread number.

@@ -42,7 +42,7 @@ public:
 	virtual void loadInputBlock (Handle<GenericBlock> block) = 0;
 
 	// load up another output block to write output data
-	virtual Handle<GenericBlock> loadOutputBlock () = 0;
+	virtual Handle<GenericBlock>& loadOutputBlock () = 0;
 
 	// attempts to fill the next output block with data.  Returns true if it can.  If it
 	// cannot, returns false, and the next call to loadInputBlock should be made

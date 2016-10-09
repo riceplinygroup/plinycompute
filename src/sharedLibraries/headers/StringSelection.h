@@ -38,6 +38,13 @@ public:
 		});
 	}
 
+        Lambda <bool> getProjectionSelection (Handle <String> &checkMe) override {
+                return makeLambda (checkMe, [&] () {
+                        return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
+                });
+        }
+
+
 	Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
 			return checkMe;

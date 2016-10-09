@@ -51,11 +51,13 @@ DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, Shar
 DataProxy::~DataProxy() {
 }
 
-bool DataProxy::addTempSet(string setName, SetID &setId) {
+bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
     string errMsg;
     //create an AddSet object
     {
-        const pdb::UseTemporaryAllocationBlock myBlock{1024};
+        if (needMem == true) {
+            const pdb::UseTemporaryAllocationBlock myBlock{1024};
+        }
         pdb::Handle<pdb :: StorageAddTempSet> msg = pdb::makeObject<pdb :: StorageAddTempSet>(setName);
         //we don't know the SetID to be added, the frontend will assign one.
         //send the message out
@@ -69,7 +71,9 @@ bool DataProxy::addTempSet(string setName, SetID &setId) {
 
     //receive the StorageAddSetResult message
     {
-        const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+        if (needMem == true) {
+            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+        }
         bool success;
         pdb :: Handle <pdb :: StorageAddTempSetResult> ack = 
 	    this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
@@ -83,12 +87,14 @@ bool DataProxy::addTempSet(string setName, SetID &setId) {
 }
 
 
-bool DataProxy::removeTempSet(SetID setId) {
+bool DataProxy::removeTempSet(SetID setId, bool needMem) {
     string errMsg;
     
     //create a RemoveSet object
     {
-         const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+         if (needMem == true) {
+              const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+         }
          pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>(setId);
 
          //send the message out
@@ -101,7 +107,9 @@ bool DataProxy::removeTempSet(SetID setId) {
     //receive the SimpleRequestResult message
     {
          bool success;
-         const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+         if (needMem == true) {
+             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+         }
          pdb :: Handle <pdb :: SimpleRequestResult> ack =
 	     this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
          return success&&(ack->getRes().first);
@@ -109,15 +117,17 @@ bool DataProxy::removeTempSet(SetID setId) {
 }
 
 //page will be pinned at Storage Server
-bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page) {
-    return addUserPage(0,0,setId, page);
+bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page, bool needMem) {
+    return addUserPage(0,0,setId, page, needMem);
 }
 
-bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page) {
+bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem) {
     string errMsg;
     //create a PinPage object
     {
-        const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+        if (needMem == true) {
+            const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+        }
         pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
         //We reserve Database 0 and Type 0 as temp data
         msg->setNodeID(this->nodeId);
@@ -134,7 +144,9 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
         
     //receive the PagePinned object
     {
-        const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+        if (needMem == true) {
+            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+        }
         bool success;
         pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
@@ -152,12 +164,12 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
 }
 
     
-bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page) {
-    return pinUserPage(this->nodeId, 0, 0, setId, pageId, page);
+bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool needMem) {
+    return pinUserPage(this->nodeId, 0, 0, setId, pageId, page, needMem);
 }
 
 bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PageID pageId, PDBPagePtr &page) {
+        PageID pageId, PDBPagePtr &page, bool needMem) {
 
     if(nodeId != this->nodeId) {
         this->logger->writeLn("DataProxy: We do not support to load pages from "
@@ -168,7 +180,9 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
     string errMsg;
     //create a PinPage object
     {
-         const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+         if (needMem == true) {
+             const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+         }
          pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
          msg->setNodeID(nodeId);
          msg->setDatabaseID(dbId);
@@ -186,7 +200,9 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
 
     //receive the PagePinned object
     {
-        const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+        if (needMem == true) {
+             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+        }
         bool success;
         pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
@@ -200,17 +216,19 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
 }
 
 
-bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page) {
-    return unpinUserPage(this->nodeId, 0,0,setId,page);
+bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
+    return unpinUserPage(this->nodeId, 0,0,setId,page, needMem);
 }
 
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PDBPagePtr page) {
+        PDBPagePtr page, bool needMem) {
 
     string errMsg;
     //create a UnpinPage object
     {
-        pdb :: UseTemporaryAllocationBlock myBlock{1024};
+        if (needMem == true) {
+            pdb :: UseTemporaryAllocationBlock myBlock{1024};
+        }
         pdb::Handle<pdb :: StorageUnpinPage> msg = pdb::makeObject<pdb :: StorageUnpinPage>();
 
         msg->setNodeID(nodeId);
@@ -239,7 +257,9 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
     //receive the Ack object
     {
         //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
-        pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+        if (needMem == true) {
+            pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+        }
         bool success;
         pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);

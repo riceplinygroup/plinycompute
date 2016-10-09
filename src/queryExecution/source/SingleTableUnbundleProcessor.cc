@@ -27,7 +27,7 @@ SingleTableUnbundleProcessor :: ~SingleTableUnbundleProcessor() {
 
     this->clearInputBlock();
     this->clearOutputVec();
-
+    this->context = nullptr;
 }
 
 SingleTableUnbundleProcessor :: SingleTableUnbundleProcessor () {
@@ -71,8 +71,10 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
             myOutputVec.push_back(myInputVec[posInInput]);
         }
         //an output block is finished.
+        std :: cout << "the unbundle processor unbundled a block" << std :: endl;
         return false;
     } catch (NotEnoughSpace &n) {
+        std :: cout << "the unbundle processor consumed the page" << std :: endl;
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
             getRecord(this->context->getOutputVec());

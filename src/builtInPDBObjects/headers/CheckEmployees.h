@@ -61,6 +61,22 @@ public:
 		});
 	}
 
+
+
+        Lambda <bool> getProjectionSelection (Handle <Vector<Handle<Employee>>> &checkMe) override {
+                return makeLambda (checkMe, [&] () -> bool {
+                        int numEmployees = checkMe->size();
+                        for (int i = 0; i < numEmployees; i++) {
+                                if ((*(*checkMe)[i]->getName ()) != nameToExclude) {
+                                        return true;
+                                }
+                        }
+                        return false;
+                });
+        }
+
+
+
 	Lambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
 		return makeLambda (checkMe, [&] {
 			Handle <Vector <Handle <Employee>>> returnVal = makeObject <Vector <Handle <Employee>>> (10);

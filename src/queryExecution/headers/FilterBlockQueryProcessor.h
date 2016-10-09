@@ -38,7 +38,7 @@ private:
 
 
 	// this is where the input objects are put
-	Handle <Input> inputObject;
+	Handle <Output> inputObject;
 
 	// this is the list of input objects
 	Handle <GenericBlock> inputBlock;
@@ -63,12 +63,13 @@ private:
 
 public:
 
+        ~FilterBlockQueryProcessor ();
 	FilterBlockQueryProcessor (Selection <Output, Input> &forMe);
         FilterBlockQueryProcessor (Lambda <bool> filterPred);
 	// the standard interface functions
 	void initialize () override;
         void loadInputBlock (Handle<GenericBlock> block) override;
-        Handle<GenericBlock> loadOutputBlock () override;
+        Handle<GenericBlock>& loadOutputBlock () override;
         bool fillNextOutputBlock () override;
         void finalize () override;
         void clearOutputBlock () override;
