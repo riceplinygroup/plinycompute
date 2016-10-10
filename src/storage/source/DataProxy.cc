@@ -53,37 +53,61 @@ DataProxy::~DataProxy() {
 
 bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
     string errMsg;
-    //create an AddSet object
-    {
-        if (needMem == true) {
-            const pdb::UseTemporaryAllocationBlock myBlock{1024};
-        }
-        pdb::Handle<pdb :: StorageAddTempSet> msg = pdb::makeObject<pdb :: StorageAddTempSet>(setName);
-        //we don't know the SetID to be added, the frontend will assign one.
-        //send the message out
-        if (!this->communicator->sendObject<pdb :: StorageAddTempSet> (msg, errMsg))   { 
-            //We reserve Database 0 and Type 0 as temp data
-            cout << "Sending object failure: " << errMsg <<"\n";
-	    return false;
-        }
-    }
-    //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
 
-    //receive the StorageAddSetResult message
-    {
-        if (needMem == true) {
-            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+    if (needMem == true) {
+        //create an AddSet object
+        {
+            const pdb::UseTemporaryAllocationBlock myBlock{1024};
+            pdb::Handle<pdb :: StorageAddTempSet> msg = pdb::makeObject<pdb :: StorageAddTempSet>(setName);
+            //we don't know the SetID to be added, the frontend will assign one.
+            //send the message out
+            if (!this->communicator->sendObject<pdb :: StorageAddTempSet> (msg, errMsg))   { 
+               //We reserve Database 0 and Type 0 as temp data
+               cout << "Sending object failure: " << errMsg <<"\n";
+	       return false;
+           }
         }
-        bool success;
-        pdb :: Handle <pdb :: StorageAddTempSetResult> ack = 
-	    this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
-        if(success == true) {
-	    setId = ack->getTempSetID();
-            //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
-        }     
-        return success;
+        //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
+
+        //receive the StorageAddSetResult message
+        {
+            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+            bool success;
+            pdb :: Handle <pdb :: StorageAddTempSetResult> ack = 
+	        this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
+            if(success == true) {
+	        setId = ack->getTempSetID();
+                //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
+            }     
+            return success;
+        }
+    } else {
+
+         {
+             pdb::Handle<pdb :: StorageAddTempSet> msg = pdb::makeObject<pdb :: StorageAddTempSet>(setName);
+             //we don't know the SetID to be added, the frontend will assign one.
+             //send the message out
+             if (!this->communicator->sendObject<pdb :: StorageAddTempSet> (msg, errMsg))   {
+                //We reserve Database 0 and Type 0 as temp data
+                cout << "Sending object failure: " << errMsg <<"\n";
+                return false;
+             }
+         }
+         //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
+
+         //receive the StorageAddSetResult message
+         {
+             bool success;
+             pdb :: Handle <pdb :: StorageAddTempSetResult> ack =
+                  this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
+             if(success == true) {
+                  setId = ack->getTempSetID();
+                  //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
+             }
+             return success;
+         }
+
     }
-    
 }
 
 
@@ -91,28 +115,47 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
     string errMsg;
     
     //create a RemoveSet object
-    {
-         if (needMem == true) {
-              const pdb :: UseTemporaryAllocationBlock myBlock{1024};
-         }
-         pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>(setId);
 
-         //send the message out
-         if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
-              cout << "Sending object failure: " << errMsg <<"\n";
-	      return false;
+    if (needMem == true) {
+         {
+             const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+             pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>(setId);
+
+             //send the message out
+             if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
+                  cout << "Sending object failure: " << errMsg <<"\n";
+	          return false;
+             }
+         }
+
+         //receive the SimpleRequestResult message
+         {
+             bool success;
+             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+             pdb :: Handle <pdb :: SimpleRequestResult> ack =
+	           this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
+             return success&&(ack->getRes().first);
          }
     }
+    else {
+         {
+             pdb :: Handle<pdb :: StorageRemoveTempSet> msg = pdb::makeObject<pdb :: StorageRemoveTempSet>(setId);
 
-    //receive the SimpleRequestResult message
-    {
-         bool success;
-         if (needMem == true) {
-             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
-         }
-         pdb :: Handle <pdb :: SimpleRequestResult> ack =
-	     this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
-         return success&&(ack->getRes().first);
+             //send the message out
+             if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
+                 cout << "Sending object failure: " << errMsg <<"\n";
+                 return false;
+             }
+          }
+
+         //receive the SimpleRequestResult message
+         {
+              bool success;
+              pdb :: Handle <pdb :: SimpleRequestResult> ack =
+                  this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
+              return success&&(ack->getRes().first);
+          }
+
     }
 }
 
@@ -123,44 +166,78 @@ bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page, bool needMem) {
 
 bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem) {
     string errMsg;
-    //create a PinPage object
-    {
-        if (needMem == true) {
+    if (needMem == true) {
+        //create a PinPage object
+        {
             const pdb :: UseTemporaryAllocationBlock myBlock{1024};
-        }
-        pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
-        //We reserve Database 0 and Type 0 as temp data
-        msg->setNodeID(this->nodeId);
-        msg->setDatabaseID(dbId);
-        msg->setUserTypeID(typeId);
-        msg->setSetID(setId);
-        msg->setWasNewPage(true);
-        //send the message out
-        if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
+            pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
+            //We reserve Database 0 and Type 0 as temp data
+            msg->setNodeID(this->nodeId);
+            msg->setDatabaseID(dbId);
+            msg->setUserTypeID(typeId);
+            msg->setSetID(setId);
+            msg->setWasNewPage(true);
+            //send the message out
+            if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
                 cout << "Sending object failure: " << errMsg <<"\n";
                 return false;
+            }
         }
-    }
         
-    //receive the PagePinned object
-    {
-        if (needMem == true) {
+        //receive the PagePinned object
+       {
             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
-        }
-        bool success;
-        pdb :: Handle <pdb :: StoragePagePinned> ack =
+            bool success;
+            pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
-        char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-        page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
+            char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
+            page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-        //cout << "ack->SetID()=" << ack->getSetID() << "\n";
-        //cout << "page->SetID()=" << page->getSetID() << "\n";
-        //cout << "ack->PageID()=" << ack->getPageID() << "\n";
-        //cout << "page->PageID()=" << page->getPageID() << "\n";
-        page->setPinned(true);
-        page->setDirty(true);
-        return success;
+            //cout << "ack->SetID()=" << ack->getSetID() << "\n";
+            //cout << "page->SetID()=" << page->getSetID() << "\n";
+            //cout << "ack->PageID()=" << ack->getPageID() << "\n";
+            //cout << "page->PageID()=" << page->getPageID() << "\n";
+            page->setPinned(true);
+            page->setDirty(true);
+            return success;
+       }
     }
+    else {
+
+        //create a PinPage object
+        {
+            pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
+            //We reserve Database 0 and Type 0 as temp data
+            msg->setNodeID(this->nodeId);
+            msg->setDatabaseID(dbId);
+            msg->setUserTypeID(typeId);
+            msg->setSetID(setId);
+            msg->setWasNewPage(true);
+            //send the message out
+            if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
+                cout << "Sending object failure: " << errMsg <<"\n";
+                return false;
+            }
+        }
+
+        //receive the PagePinned object
+        {
+            bool success;
+            pdb :: Handle <pdb :: StoragePagePinned> ack =
+                this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
+            char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
+            page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
+            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
+            //cout << "ack->SetID()=" << ack->getSetID() << "\n";
+            //cout << "page->SetID()=" << page->getSetID() << "\n";
+            //cout << "ack->PageID()=" << ack->getPageID() << "\n";
+            //cout << "page->PageID()=" << page->getPageID() << "\n";
+            page->setPinned(true);
+            page->setDirty(true);
+            return success;
+        }
+
+   }
 }
 
     
@@ -178,40 +255,69 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
     }
 
     string errMsg;
-    //create a PinPage object
-    {
-         if (needMem == true) {
+    if (needMem == true) {
+        //create a PinPage object
+        {
              const pdb :: UseTemporaryAllocationBlock myBlock{1024};
-         }
-         pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
-         msg->setNodeID(nodeId);
-         msg->setDatabaseID(dbId);
-         msg->setUserTypeID(typeId);
-         msg->setSetID(setId);
-         msg->setPageID(pageId);
-         msg->setWasNewPage(false);
+             pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
+             msg->setNodeID(nodeId);
+             msg->setDatabaseID(dbId);
+             msg->setUserTypeID(typeId);
+             msg->setSetID(setId);
+             msg->setPageID(pageId);
+             msg->setWasNewPage(false);
 
-         //send the message out
-        if (!this->communicator->sendObject<pdb :: StoragePinPage> (msg, errMsg)) {
+             //send the message out
+             if (!this->communicator->sendObject<pdb :: StoragePinPage> (msg, errMsg)) {
                 cout << "Sending object failure: " << errMsg <<"\n";
                 return false;
+             }
         }
-    }
 
-    //receive the PagePinned object
-    {
-        if (needMem == true) {
+        //receive the PagePinned object
+        {
              const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
-        }
-        bool success;
-        pdb :: Handle <pdb :: StoragePagePinned> ack =
+             bool success;
+             pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
-        char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-        page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
+             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
+             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-        page->setPinned(true);
-        page->setDirty(false);
-        return success;
+            page->setPinned(true);
+            page->setDirty(false);
+            return success;
+        }
+    } else {
+        //create a PinPage object
+        {
+             pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
+             msg->setNodeID(nodeId);
+             msg->setDatabaseID(dbId);
+             msg->setUserTypeID(typeId);
+             msg->setSetID(setId);
+             msg->setPageID(pageId);
+             msg->setWasNewPage(false);
+
+             //send the message out
+             if (!this->communicator->sendObject<pdb :: StoragePinPage> (msg, errMsg)) {
+                cout << "Sending object failure: " << errMsg <<"\n";
+                return false;
+             }
+        }
+
+        //receive the PagePinned object
+        {
+             bool success;
+             pdb :: Handle <pdb :: StoragePagePinned> ack =
+                this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
+             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
+             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
+            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
+            page->setPinned(true);
+            page->setDirty(false);
+            return success;
+        }
+
     }
 }
 
@@ -224,47 +330,84 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
         PDBPagePtr page, bool needMem) {
 
     string errMsg;
-    //create a UnpinPage object
-    {
-        if (needMem == true) {
-            pdb :: UseTemporaryAllocationBlock myBlock{1024};
-        }
-        pdb::Handle<pdb :: StorageUnpinPage> msg = pdb::makeObject<pdb :: StorageUnpinPage>();
+    if (needMem == true) {
+        //create a UnpinPage object
+        {
+           pdb :: UseTemporaryAllocationBlock myBlock{1024};
 
-        msg->setNodeID(nodeId);
-        msg->setDatabaseID(dbId);
-        msg->setUserTypeID(typeId);
-        msg->setSetID(setId);
-        msg->setPageID(page->getPageID());
+           pdb::Handle<pdb :: StorageUnpinPage> msg = pdb::makeObject<pdb :: StorageUnpinPage>();
 
-       if(page->isDirty() == true) {
-          msg->setWasDirty(true);
-       } else {
-          msg->setWasDirty(false);
-       }
+           msg->setNodeID(nodeId);
+           msg->setDatabaseID(dbId);
+           msg->setUserTypeID(typeId);
+           msg->setSetID(setId);
+           msg->setPageID(page->getPageID());
+
+          if(page->isDirty() == true) {
+              msg->setWasDirty(true);
+          } else {
+             msg->setWasDirty(false);
+          }
        
-       //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
-       //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
+          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
+          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
 
-       //send the message out
-       if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
-          std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
-	  return false;
+          //send the message out
+          if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
+              std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
+	      return false;
+          }
+          //std :: cout << "StorageUnpinPage sent.\n";  
        }
-       //std :: cout << "StorageUnpinPage sent.\n";  
-    }
 
-    //receive the Ack object
-    {
-        //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
-        if (needMem == true) {
-            pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
-        }
-        bool success;
-        pdb :: Handle <pdb :: SimpleRequestResult> ack =
+       //receive the Ack object
+       {
+           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
+           pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+           bool success;
+           pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
-        //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
-        return success&&(ack->getRes().first);
+           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
+           return success&&(ack->getRes().first);
+       }
+    } else {
+        //create a UnpinPage object
+        {
+           pdb::Handle<pdb :: StorageUnpinPage> msg = pdb::makeObject<pdb :: StorageUnpinPage>();
+
+           msg->setNodeID(nodeId);
+           msg->setDatabaseID(dbId);
+           msg->setUserTypeID(typeId);
+           msg->setSetID(setId);
+           msg->setPageID(page->getPageID());
+
+          if(page->isDirty() == true) {
+              msg->setWasDirty(true);
+          } else {
+             msg->setWasDirty(false);
+          }
+
+          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
+          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
+
+          //send the message out
+          if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
+              std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
+              return false;
+          }
+          //std :: cout << "StorageUnpinPage sent.\n";
+       }
+
+       //receive the Ack object
+       {
+           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;
+           bool success;
+           pdb :: Handle <pdb :: SimpleRequestResult> ack =
+                this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
+           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
+           return success&&(ack->getRes().first);
+       }
+
     }
 }
 
