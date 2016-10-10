@@ -664,11 +664,12 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                        key.setId = setId;
                        key.pageId = pageId;
 
-                       //std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
+                       std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
 
                        bool res;
                        std :: string errMsg;
                        getFunctionality<PangeaStorageServer>().getCache()->flushPageWithoutEviction(key);          
+                       std :: cout << "page added to flush buffer" << std :: endl;
                        if(getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
                                 res = false;
                                 errMsg = "Fatal Error: Page doesn't exist for unpinning page.";
@@ -676,10 +677,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 std :: cout << errMsg << std :: endl;
                        } else {
                                 res = true;
-                                //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
+                                std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
 
-                       //std :: cout << "Making response object.\n";
+                       std :: cout << "Making response object.\n";
                        const UseTemporaryAllocationBlock block{1024};
                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 

@@ -311,10 +311,10 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   std :: cout << "we need to unpin the full page" << std :: endl;
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
-                                  context->setPageToUnpin(output);
                                   std :: cout << "we need to pin a new page" << std :: endl;
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                                  context->setPageToUnpin(output);
                                   makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
@@ -335,15 +335,14 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   }
                   std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   getRecord(outputVec);
-                  //interestingly, if we comment following three lines, the root object can't be read later if vector size = 0
-                  Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
-                  Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-                  int vecSize = inputVec->size();
-                  std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
+                  //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
+                  //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                  //int vecSize = inputVec->size();
+                  //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
                   std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
-                  getRecord(outputVec);
+                  std :: cout << "output page is unpinned" << std :: endl;
                   context->setPageToUnpin(nullptr);
                   std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);

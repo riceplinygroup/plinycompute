@@ -349,25 +349,25 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
              msg->setWasDirty(false);
           }
        
-          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
-          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
+          std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
+          dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
 
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
 	      return false;
           }
-          //std :: cout << "StorageUnpinPage sent.\n";  
+          std :: cout << "StorageUnpinPage sent.\n";  
        }
 
        //receive the Ack object
        {
-           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
+           std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
            pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
-           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
+           std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
     } else {
