@@ -27,7 +27,7 @@ namespace pdb {
 
 template <class Output, class Input>
 FilterBlockQueryProcessor <Output, Input> :: ~FilterBlockQueryProcessor () {
-       std :: cout << "running FilterBlockQueryProcessor destructor" << std :: endl;
+       //std :: cout << "running FilterBlockQueryProcessor destructor" << std :: endl;
        this->inputBlock = nullptr;
        this->outputBlock = nullptr;
        this->context = nullptr;
@@ -78,7 +78,7 @@ Handle<GenericBlock> & FilterBlockQueryProcessor <Output, Input> :: loadOutputBl
 
 template <class Output, class Input>
 bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
-        std :: cout << "Filter processor is running" << std :: endl;		
+        //std :: cout << "Filter processor is running" << std :: endl;		
 	Vector <Handle <Output>> &myInVec = (inputBlock->getBlock());
 	Vector <Handle <Output>> &myOutVec = (outputBlock->getBlock());
 
@@ -90,7 +90,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                std :: cout << "input object num =" << vecSize << std :: endl;
+                //std :: cout << "input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
                         //std :: cout << "posInInput=" << posInInput << std :: endl;
@@ -100,13 +100,12 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
                                 //std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
 		}
-                std :: cout << "Filter processor processed an input block" << std :: endl;	
+                //std :: cout << "Filter processor processed an input block" << std :: endl;	
 		return false;
 
 	} catch (NotEnoughSpace &n) {
                 std :: cout << "Filter processor consumed current page" << std :: endl;
                 if (this->context != nullptr) {
-                       PipelineContextPtr context = this->context;
 		       getRecord (context->outputVec);
                        context->setOutputFull(true);
                 }

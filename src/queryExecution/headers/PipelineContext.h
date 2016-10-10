@@ -75,6 +75,7 @@ class PipelineContext {
         this->outputSet = outputSet;
         this->outputPageFull = false;
         this->pageToUnpin = nullptr;
+        this->needUnpin = false;
     }
 
     Handle<Vector<Handle<Object>>> & getOutputVec() {

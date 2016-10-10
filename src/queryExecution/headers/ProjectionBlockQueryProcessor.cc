@@ -28,7 +28,7 @@ namespace pdb {
 
 template <class Output, class Input>
 ProjectionBlockQueryProcessor <Output, Input> :: ~ProjectionBlockQueryProcessor() {
-       std :: cout << "running ProjectionBlockQueryProcessor destructor" << std :: endl;
+       //std :: cout << "running ProjectionBlockQueryProcessor destructor" << std :: endl;
        this->inputBlock = nullptr;
        this->outputBlock = nullptr;       
        this->context = nullptr;
@@ -78,7 +78,7 @@ Handle<GenericBlock> & ProjectionBlockQueryProcessor <Output, Input> :: loadOutp
 template <class Output, class Input>
 bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 
-        std :: cout << "Projection processor is running" << std :: endl;		
+        //std :: cout << "Projection processor is running" << std :: endl;		
 	Vector <Handle <Input>> &myInVec = (inputBlock->getBlock());
 	Vector <Handle <Output>> &myOutVec = (outputBlock->getBlock());
 
@@ -90,12 +90,12 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                std :: cout << "input object num=" << vecSize << std :: endl;
+                //std :: cout << "input object num=" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 			myOutVec.push_back (projectionFunc ());	
 		}	
-                std :: cout << "Projection processor processed one input block" << std :: endl;
+                //std :: cout << "Projection processor processed one input block" << std :: endl;
 		return false;
 
 	} catch (NotEnoughSpace &n) {

@@ -71,7 +71,7 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
             myOutputVec.push_back(myInputVec[posInInput]);
         }
         //an output block is finished.
-        std :: cout << "the unbundle processor unbundled a block" << std :: endl;
+        //std :: cout << "the unbundle processor unbundled a block" << std :: endl;
         return false;
     } catch (NotEnoughSpace &n) {
         std :: cout << "the unbundle processor consumed the page" << std :: endl;

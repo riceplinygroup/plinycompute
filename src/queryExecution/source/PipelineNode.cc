@@ -109,19 +109,19 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              context->setOutputVec(outputVec);
              context->setPageToUnpin(output);
     }
-    std :: cout << "unbundled an input block!" << std :: endl;
+    //std :: cout << "unbundled an input block!" << std :: endl;
     unbundler->clearOutputVec();
     unbundler->clearInputBlock();
     return true;
 }
 
 bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize) {
-    std :: cout << "running pipeline node with id=" << id << std :: endl;
+    //std :: cout << "running pipeline node with id=" << id << std :: endl;
     BlockQueryProcessorPtr processor = this->getProcessor(context);
-    std :: cout << "got processor" << std :: endl;
+    //std :: cout << "got processor" << std :: endl;
     processor->initialize();
     processor->loadInputBlock(inputBatch);
-    std :: cout << "to load output block" << std :: endl;
+    //std :: cout << "to load output block" << std :: endl;
     DataProxyPtr proxy = context->getProxy();
     PDBPagePtr output = nullptr;
     Handle<GenericBlock> outputBlock = nullptr;
@@ -138,9 +138,9 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         context->setOutputVec(outputVec);
         outputBlock = processor->loadOutputBlock();
     }
-    std :: cout << "loaded an output block" << std :: endl;
+    //std :: cout << "loaded an output block" << std :: endl;
     while (processor->fillNextOutputBlock()) {
-        std :: cout << id << ":written to a block" << std :: endl;
+        //std :: cout << id << ":written to a block" << std :: endl;
         if (context->isOutputFull()) {
              std :: cout << "page is full" << std :: endl;
              context->setNeedUnpin(true);
@@ -155,13 +155,13 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
 
         //we assume a run of pipeline will not consume all memory that has just been allocated
         for (int i = 0; i < this->children->size(); i ++) {
-             std :: cout << id << ": run " << i << "-th child" << std :: endl;
+             //std :: cout << id << ": run " << i << "-th child" << std :: endl;
              children->at(i)->run(context, outputBlock, batchSize);
 
         }
         if (children->size() == 0) {
              //I am a sink node, run unbundling
-             std :: cout << id << ": I'm a sink node" << std :: endl;
+             //std :: cout << id << ": I'm a sink node" << std :: endl;
              unbundle(context, outputBlock);
         }
         
@@ -175,18 +175,18 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         }
         outputBlock = processor->loadOutputBlock();
     }
-    std :: cout << id << ": we processed the input block" << std :: endl;
+    //std :: cout << id << ": we processed the input block" << std :: endl;
     processor->clearInputBlock();
 
     //we assume a run of pipeline will not consume all memory that has just been allocated
     for (int i = 0; i < this->children->size(); i ++) {
-        std :: cout << id << ": run " << i << "-th child" << std :: endl;
+        //std :: cout << id << ": run " << i << "-th child" << std :: endl;
         children->at(i)->run(context, outputBlock, batchSize);
     }
 
     if (children->size() == 0) {
         //I am a sink node, run unbundling
-        std :: cout << id << ": I'm a sink node" << std :: endl;
+        //std :: cout << id << ": I'm a sink node" << std :: endl;
         unbundle(context, outputBlock);
    }
 
