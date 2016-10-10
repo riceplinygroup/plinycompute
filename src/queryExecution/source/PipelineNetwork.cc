@@ -278,7 +278,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               exit(-1);
                           }
                           while(bundler->fillNextOutputBlock()) {
-                              std :: cout << "written one block!" << std :: endl;
+                              //std :: cout << "written one block!" << std :: endl;
                               if (context->isOutputFull()) {
                                   std :: cout << "this page is full!" << std :: endl;
                                   context->setNeedUnpin(true);
@@ -291,7 +291,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               }
 
                               //we assume a run of pipeline will not consume all memory that has just allocated
-                              std :: cout << "run the pipeline on this block" << std :: endl;
+                              //std :: cout << "run the pipeline on this block" << std :: endl;
                               source->run(context, outputBlock, batchSize);
                               bundler->clearOutputBlock();
 
@@ -303,7 +303,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   context->setPageToUnpin(output);
                                   context->setNeedUnpin(false);
                               }
-                              std :: cout << "now we allocate a new block" << std :: endl;
+                              //std :: cout << "now we allocate a new block" << std :: endl;
                               try {
                                   outputBlock = bundler->loadOutputBlock(batchSize);
                               }
@@ -340,8 +340,13 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //int vecSize = inputVec->size();
                   //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
                   std :: cout << "unpin the output page" << std :: endl;
-                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
+                  PDBPagePtr outputToUnpin = context->getPageToUnpin();
+                  if (outputToUnpin == nullptr) {
+                       std :: cout << "Error : output page is null in context" << std :: endl;
+                       exit(-1);
+                  }
+                  proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
+                      outputToUnpin->getSetID(), outputToUnpin, true);
                   std :: cout << "output page is unpinned" << std :: endl;
                   context->setPageToUnpin(nullptr);
                   std :: cout << "buzz the buzzer" << std :: endl;

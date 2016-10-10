@@ -328,9 +328,10 @@ bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
 
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PDBPagePtr page, bool needMem) {
-
+    std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
     string errMsg;
     if (needMem == true) {
+        std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
         //create a UnpinPage object
         {
            pdb :: UseTemporaryAllocationBlock myBlock{1024};
