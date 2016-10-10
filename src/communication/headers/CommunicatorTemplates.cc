@@ -168,6 +168,10 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
     // read in the object
     void *mem = malloc (msgSize);
     //std :: cout << "msgSize = " << msgSize << std :: endl;
+    if (mem == nullptr) {
+        std :: cout << "memory is failed to allocate for getNextObject()" << std :: endl;
+        exit(-1);
+    }
     Handle <ObjType> temp = getNextObject <ObjType> (mem, success, errMsg);
 
     // if we were successful, then copy it to the current allocation block
