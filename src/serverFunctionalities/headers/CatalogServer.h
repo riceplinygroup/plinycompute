@@ -127,9 +127,6 @@ private:
     // map from database/set pair to type of set
     map <pair <string, string>, int16_t> setTypes;
 
-	// interface to a text file that allows us to save/retreive all of this stuff
-	MyDB_CatalogPtr myCatalog;
-
     // interface to a persistent catalog storage for storing and retrieving PDB metadata
     PDBCatalogPtr pdbCatalog;
 
