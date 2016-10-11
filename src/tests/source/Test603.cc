@@ -52,7 +52,7 @@ int main () {
                } else {
                    //I'm the frontend server
                    pdb :: PDBServer frontEnd (8108, 100, logger);
-                   frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
+                   frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
                    frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", logger);
                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();

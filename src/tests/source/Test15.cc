@@ -24,13 +24,14 @@
 #include "StorageServer.h"
 #include "CatalogClient.h"
 #include "QueryServer.h"
+#include "PangeaStorageServer.h"
 
 int main () {
 
        std :: cout << "Starting up a catalog/storage server!!\n";
        pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        pdb :: PDBServer frontEnd (8108, 10, myLogger);
-       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
+       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
        frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
        frontEnd.addFunctionality <pdb :: StorageServer> ("StorageDir", 1024 * 128, 128);
        frontEnd.addFunctionality <pdb :: QueryServer> (1);

@@ -310,16 +310,19 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
                         std :: string errMsg;
-                     
+                     cout << "Pangea StorageAddDatabase" << endl;
                         //add a database in local
                         bool res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
                         if (res == false) {
                                  errMsg = "Database already exists\n";
                         } else {
-                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+//                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                                     //TODO check this, added by Carlos, calls the CatalogServer to register metadata
+                                     // regardless of whether or not it's stand alone or distributed storage.
+
                                          res = getFunctionality<CatalogServer> ().addDatabase (request->getDatabase(), errMsg);
+//                                 }
                                  }
-                        }
                         
                         //make response
                         const UseTemporaryAllocationBlock tempBlock{1024};
@@ -341,7 +344,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          if (res == false) {
                                  errMsg = "Set already exists\n";
                          } else {
-                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                             //TODO check this, added by Carlos, calls the CatalogServer to register metadata
+                             // regardless of whether or not it's stand alone or distributed storage.
+
+//                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
                                           int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
                                           std :: cout << "TypeID ="<< typeID << std :: endl;
                                           if (typeID == -1) {
@@ -351,8 +357,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                     res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
 
                                           }
+//                                 }
                                  }
-                         }
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);

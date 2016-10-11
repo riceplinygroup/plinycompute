@@ -41,9 +41,11 @@ int main () {
 	// register this query class
 	string errMsg;
 	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
-	StorageClient temp (8108, "localhost", myLogger);
-	temp.registerType ("libraries/libChrisSelection.so", errMsg);	
-	temp.registerType ("libraries/libStringSelection.so", errMsg);	
+	bool usePangea = true;
+	StorageClient temp (8108, "localhost", myLogger, usePangea);
+
+	temp.registerType ("libraries/libChrisSelection.so", errMsg);
+	temp.registerType ("libraries/libStringSelection.so", errMsg);
 
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", myLogger);

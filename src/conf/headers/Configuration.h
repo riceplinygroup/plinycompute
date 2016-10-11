@@ -50,6 +50,9 @@ class Configuration {
 private:
 	NodeID nodeId;
 	string serverName;
+    string serverAddress;
+    bool isMasterCatalogServer;
+    bool usePangea;
 	int port;
 	int maxConnections;
 	string ipcFile;
@@ -78,6 +81,9 @@ public:
 		//set default values.
 		this->nodeId = 0;
 		serverName = "testServer";
+		serverAddress = "localhost";
+		isMasterCatalogServer = false;
+		usePangea = true;
 		port = 8108;
 		maxConnections = DEFAULT_MAX_CONNECTIONS;
 		logFile = "serverLog";
@@ -277,12 +283,38 @@ public:
 		this->logLevel = logLevel;
 	}
 
+    void setMasterCatalogServer(bool isMasterCatalogServer) {
+        this->isMasterCatalogServer = isMasterCatalogServer;
+    }
+
+    bool getMasterCatalogServer() {
+        return this->isMasterCatalogServer;
+    }
+
+    void setServerAddress(string serverAddress) {
+        this->serverAddress = serverAddress;
+    }
+
+    string getServerAddress() {
+        return this->serverAddress;
+    }
+
+    void setUsePangea(bool usePangea) {
+        this->usePangea = usePangea;
+    }
+
+    bool getUsePangea() {
+        return this->usePangea;
+    }
+
 
 
 	void printOut(){
 		cout<< "nodeID: "  << nodeId<<endl;
 		cout<< "serverName: "  << serverName<<endl;
-//		cout<< "serverAddress: "  << serverAddress<<endl;
+		cout<< "serverAddress: "  << serverAddress<<endl;
+		cout<< "isMasterCatalogServer: "  << isMasterCatalogServer<<endl;
+        cout<< "usePangea: "  << usePangea<<endl;
 		cout<< "port: "  << port<<endl;
 		cout<< "maxConnections: "  << maxConnections<<endl;
 //		cout<< "recvBufferSize: "  << recvBufferSize<<endl;

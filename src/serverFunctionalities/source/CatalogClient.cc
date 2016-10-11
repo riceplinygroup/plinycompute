@@ -59,7 +59,7 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 
 CatalogClient :: ~CatalogClient () {
 
-    std::cout << "Catalog being destroyed " << port << ":" << address << std::endl;
+    std::cout << "Catalog being destroyed " << address << ":" << port << std::endl;
 
     // Clean up the VTable catalog ptr if it is using this CatalogClient
     if (theVTable->getCatalogClient() == this) {
@@ -78,8 +78,14 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	// first, load up the shared library file
 	// get the file size
 	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
+	if (in.fail()){
+	    errMsg = "The file " + fileContainingSharedLib + " doesn't exist or cannot be opened.\n";
+	    return false;
+	}
 	size_t fileLen = in.tellg();
-
+	cout << "file " << fileContainingSharedLib << endl;
+	cout << "size " << fileLen << endl;
+	
 	std::cout << "Registering type " << fileContainingSharedLib << std::endl;
 
 	// this makes a an empty vector with fileLen slots
@@ -215,6 +221,94 @@ bool CatalogClient :: createDatabase (std :: string databaseName, std :: string 
 			return false;},
 		databaseName);
 }
+
+//TODO review these catalog-related methods
+bool CatalogClient :: registerDatabaseMetadata (std :: string itemToSearch, std :: string &errMsg) {
+    cout << "inside registerDatabaseMetadata" << endl;
+
+    return simpleRequest <CatalogDatabaseMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error registering database metadata: " + result->getRes ().second;
+                    myLogger->error ("Error registering database metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;}
+        );
+}
+
+bool CatalogClient :: registerNodeMetadata (pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData, std :: string &errMsg) {
+
+    cout << "registerNodeMetadata for item: " << (*nodeData) << endl;
+
+    return simpleRequest <CatalogNodeMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error registering node metadata: " + result->getRes ().second;
+                    myLogger->error ("Error registering node metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error registering node metadata in the catalog";
+            return false;},
+            nodeData
+        );
+}
+
+
+// List metadata
+bool CatalogClient :: printCatalogMetadata (std :: string timeStamp, std :: string &errMsg) {
+
+    cout << "print greater than " << timeStamp << endl;
+    return simpleRequest <CatalogPrintMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error printing catalog metadata: " + result->getRes ().second;
+                    myLogger->error ("Error printing catalog metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error printing catalog metadata.";
+            return false;},
+            timeStamp
+    );
+}
+
+
+template <class Type>
+bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg) {
+
+    cout << "Register Metadata for item: " << (*metadataItem) << endl;
+
+    return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error registering node metadata: " + result->getRes ().second;
+                    myLogger->error ("Error registering node metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error registering node metadata in the catalog";
+            return false;},
+            metadataItem
+        );
+}
+
+// implicit instantiation
+template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem, string &errMsg);
+template bool CatalogClient :: registerGenericMetadata<CatalogDatabaseMetadata> (Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
+template bool CatalogClient :: registerGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
+
 
 }
 #endif

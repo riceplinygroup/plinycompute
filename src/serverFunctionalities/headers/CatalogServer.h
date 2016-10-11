@@ -22,6 +22,8 @@
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
 #include "MyDB_Catalog.h"
+#include "PDBCatalog.h"
+#include "CatalogClient.h"
 
 namespace pdb {
 
@@ -33,7 +35,7 @@ public:
 	~CatalogServer ();
 
 	// these give us the port and the address of the catalog
-	CatalogServer (std :: string catalogDirectory, bool usePangea=false);
+	CatalogServer (std :: string catalogDirectory, bool usePangea=false, bool isMasterCatalogServer=false);
 
 	// from the ServerFunctionality interface
 	void registerHandlers (PDBServer &forMe) override;
@@ -67,9 +69,51 @@ public:
 	
 	// adds a new object type... return -1 on failure
 	int16_t addObjectType (vector <char> &soFile, string &errMsg);
-
 	
+	// print the content of the catalog metadata
+	bool printCatalog (string item);
+
+	// registers metadata about a node in the cluster
+	bool addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata, std :: string &errMsg);
+
+    // registers metadata about a database in the cluster
+    bool addDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMetadata, std :: string &errMsg);
+
+    // registers metadata about a set in the cluster
+    bool addSetMetadata (Handle<CatalogSetMetadata> &setMetadata, std :: string &errMsg);
+
+	// returns whether or not this is the master catalog server
+	bool getIsMasterCatalogServer();
+
+	// sets the type of Catalog Server
+	void setIsMasterCatalogServer(bool isMasterCatalogServerIn);
+
+	// broadcast a piece of metadata to all available nodes in a cluster
+	// returns a map with the results from updating each node in the cluster
+	template<class Type>
+	bool broadcastCatalogUpdate (Handle<Type> metadataToSend, map <string, pair<bool, string>> &broadcastResults,
+	                             string &errMsg);
+
 private:
+	// new catalog metadata containers
+    //TODO some containers will be removed, here for testing purposes
+    Handle<Vector <CatalogNodeMetadata> > _allNodesInCluster;
+    Handle<Vector <CatalogSetMetadata> > _setTypes;
+    Handle<Vector <CatalogDatabaseMetadata> > _allDatabases;
+    Handle<Vector <CatalogUserTypeMetadata> > _udfsValues;
+
+    Handle<Vector<Handle<CatalogNodeMetadata>>> resultItemsNodes;
+    Handle<Vector<Handle<CatalogSetMetadata>>> resultItemsSets;
+    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItemsDBs;
+    Handle<Vector<Handle<CatalogUserTypeMetadata>>> resultItemsUdfs;
+
+    map<string, CatalogNodeMetadata> mapNodes;
+    map<string, CatalogSetMetadata> mapSets;
+    map<string, CatalogDatabaseMetadata> mapDBs;
+    map<string, CatalogUserTypeMetadata> mapUdfs;
+
+
+    // **end
 
 	// map from type name string to int, and vice/versa
 	map <string, int16_t> allTypeNames;
@@ -78,11 +122,17 @@ private:
 	// map from database name to list of sets
 	map <string, vector <string>> allDatabases; 
 		
-	// map from database/set pair to type of set
-	map <pair <string, string>, int16_t> setTypes;
+	// vector of nodes in the cluster
+	vector <string> allNodesInCluster;
+
+    // map from database/set pair to type of set
+    map <pair <string, string>, int16_t> setTypes;
 
 	// interface to a text file that allows us to save/retreive all of this stuff
 	MyDB_CatalogPtr myCatalog;
+
+    // interface to a persistent catalog storage for storing and retrieving PDB metadata
+    PDBCatalogPtr pdbCatalog;
 
 	// where the catalog is located
 	std :: string catalogDirectory;
@@ -90,8 +140,26 @@ private:
 	// serialize access
 	pthread_mutex_t workingMutex;
 
-        //use Pangea Storage Server or not?
-        bool usePangea;
+    //use Pangea Storage Server or not?
+    bool usePangea;
+
+    // whether or not this is the master catalog server
+    //
+    // if this is the master catalog server, it will receive a metadata registration
+    // request and perform the following operations:
+    //
+    //   1) update metadata in the local master catalog database
+    //   2) iterate over all registered nodes in the cluster and send the metadata object
+    //   3) update catalog version
+
+    // if this is the a worker catalog instance, it will receive a metadata registration
+    // request from the master catalog server and perform the following operations:
+    //
+    //   1) update metadata in the local catalog database
+    //   2) update catalog version
+    //   3) send ack to master catalog server
+
+    bool isMasterCatalogServer;
 
 };
 
