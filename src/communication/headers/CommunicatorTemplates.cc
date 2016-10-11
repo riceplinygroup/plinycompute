@@ -167,8 +167,9 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
 
     // read in the object
     void *mem = malloc (msgSize);
-    //std :: cout << "msgSize = " << msgSize << std :: endl;
     if (mem == nullptr) {
+        std :: cout << "nextTypeId = " << nextTypeID << std :: endl;
+        std :: cout << "msgSize = " << msgSize << std :: endl;
         std :: cout << "memory is failed to allocate for getNextObject()" << std :: endl;
         exit(-1);
     }

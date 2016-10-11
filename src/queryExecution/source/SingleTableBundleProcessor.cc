@@ -88,7 +88,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
         std :: cout << "got exception, the page is full" << std :: endl;
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
-            getRecord(this->context->outputVec);
+            //getRecord(this->context->outputVec);
             context->setOutputFull(true);
         }
         return true; 

@@ -106,7 +106,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	} catch (NotEnoughSpace &n) {
                 std :: cout << "Filter processor consumed current page" << std :: endl;
                 if (this->context != nullptr) {
-		       getRecord (context->outputVec);
+		       //getRecord (context->outputVec);
                        context->setOutputFull(true);
                 }
 		return true;
