@@ -21,7 +21,6 @@
 
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
-#include "MyDB_Catalog.h"
 #include "PDBCatalog.h"
 #include "CatalogClient.h"
 
