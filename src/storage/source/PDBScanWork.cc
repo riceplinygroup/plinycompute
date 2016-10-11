@@ -93,11 +93,20 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
     logger->writeLn("PDBScanWork: connect to backend...");
     //create a new connection to backend server
     pdb :: PDBCommunicatorPtr communicatorToBackEnd = make_shared<pdb :: PDBCommunicator>();
-    if (communicatorToBackEnd->connectToLocalServer(logger, storage->getPathToBackEndServer(), errMsg)) {
-    	errMsg = "PDBScanWowrk: can not connect to local server.";
-    	cout << errMsg <<"\n";
-    	callerBuzzer->buzz(PDBAlarm::GenericError);
-        return;
+    int retry = 0;
+    while (communicatorToBackEnd->connectToLocalServer(logger, storage->getPathToBackEndServer(), errMsg)&&(retry < 10)) {
+        retry ++;
+        if (retry >= 10) {
+    	    errMsg = "PDBScanWowrk: can not connect to local server.";
+    	    cout << errMsg <<"\n";
+    	    callerBuzzer->buzz(PDBAlarm::GenericError);
+            return;
+        }
+        std :: cout << "PDBScanWork: Connect to local server failed, wait a while and retry..." << std :: endl;
+        sleep (1);
+    }
+    if (retry > 0) {
+        std :: cout << "PDBScanWork: Connected to local server" << std :: endl;
     }
 
     logger->writeLn("PDBScanWork: pin pages...");

@@ -169,7 +169,7 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
     if (needMem == true) {
         //create a PinPage object
         {
-            const pdb :: UseTemporaryAllocationBlock myBlock{1024};
+            const pdb :: UseTemporaryAllocationBlock myBlock{2048};
             pdb::Handle<pdb :: StoragePinPage> msg = pdb::makeObject<pdb :: StoragePinPage>();
             //We reserve Database 0 and Type 0 as temp data
             msg->setNodeID(this->nodeId);
@@ -179,7 +179,7 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             msg->setWasNewPage(true);
             //send the message out
             if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
-                cout << "Sending object failure: " << errMsg <<"\n";
+                cout << "DataProxy.AddUserPage(): Sending object failure: " << errMsg <<"\n";
                 return false;
             }
         }

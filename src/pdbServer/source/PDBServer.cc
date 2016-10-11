@@ -92,6 +92,13 @@ void PDBServer::listen() {
 
         // wait for an internet socket
         sockFD = socket(AF_INET, SOCK_STREAM, 0);
+
+        // added by Jia to avoid TimeWait state for old sockets
+        int optval = 1;
+        setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+
+
         if (sockFD < 0) {
             myLogger->error("PDBServer: could not get FD to internet socket");
             myLogger->error(strerror(errno));
@@ -138,6 +145,10 @@ void PDBServer::listen() {
 
         myLogger->trace("PDBServer: getting socket to file");
         sockFD = socket(PF_UNIX, SOCK_STREAM, 0);
+        // added by Jia to avoid TimeWait state for old sockets
+        int optval = 1;
+        setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
         if (sockFD < 0) {
             myLogger->error("PDBServer: could not get FD to local socket");
             myLogger->error(strerror(errno));
@@ -264,7 +275,8 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
         // kill the FD and let everyone know we are done
         allDone = true;
-        //close(sockFD); //should this be handled by the PDBCommunicator destructor??
+        //close(sockFD); //we can't simply close socket like this, because there are still incoming messages in accepted connections
+                         //use reuse address option instead 
         return false;
 
     } 
