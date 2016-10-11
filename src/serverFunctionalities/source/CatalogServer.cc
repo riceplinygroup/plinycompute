@@ -697,9 +697,6 @@ CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool usePangea
 
     PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
 
-    // original Chris' catalog, will be replaced by sqlite
-//	myCatalog = make_shared <MyDB_Catalog> (catalogDirectory + "/catalog");
-
 	// creates instance of catalog
     pdbCatalog = make_shared <PDBCatalog> (catalogLogger, catalogDirectory + "/pdbCatalog");
     // retrieves catalog from an sqlite db and loads metadata into memory
