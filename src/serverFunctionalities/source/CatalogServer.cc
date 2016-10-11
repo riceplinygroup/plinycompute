@@ -597,7 +597,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     }
 
     // TODO, remove it, just used for debugging
-    printCatalog("");
+//    printCatalog("");
 
 	return true;
 }
