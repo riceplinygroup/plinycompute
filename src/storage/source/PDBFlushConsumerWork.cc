@@ -54,16 +54,17 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                         //this->server->getLogger()->writeInt(page->getPageID());
                         //this->server->getLogger()->writeLn("PartitionId=");
                         //this->server->getLogger()->writeInt(this->partitionId);
-			cout <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
-                        cout << "page dbId=" << page->getDbID()<<"\n";
-                        cout << "page typeId=" << page->getTypeID()<<"\n";
-                        cout << "page setId=" << page->getSetID()<<"\n";
+			//cout <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
+                        //cout << "page dbId=" << page->getDbID()<<"\n";
+                        //cout << "page typeId=" << page->getTypeID()<<"\n";
+                        //cout << "page setId=" << page->getSetID()<<"\n";
                         bool isTempSet = false;
                         if((page->getDbID()==0)&&(page->getTypeID()== 0)){
                             set = this->server->getTempSet(page->getSetID());
                             isTempSet = true;
                         } else {
 			    set = this->server->getSet(page->getDbID(), page->getTypeID(), page->getSetID());
+                            isTempSet = false;
                         }
                         CacheKey key;
                         key.dbId = page->getDbID();
@@ -85,9 +86,6 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
 				int ret = set->getFile()->appendPage(this->partitionId, page);
                                 //auto end = std::chrono::high_resolution_clock::now();
                                 //std::cout << "append page latency:"<< std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-                                if(isTempSet == false) {
-                                     set->getFile()->writeMeta();
-                                }
                                 if (ret < 0) {
                                     cout << "Can't write page with below info:\n";
                                     cout <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
@@ -96,11 +94,17 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                                     cout << "page setId=" << page->getSetID()<<"\n";
 
                                 }
-                                set->lockDirtyPageSet();                
+                                //std :: cout << "lockDirtyPageSet() for set with id=" << set->getSetID() << std :: endl;
+                                set->lockDirtyPageSet(); 
+                                if(isTempSet == false) {
+                                     std :: cout << "to write meta" << std :: endl;
+                                     set->getFile()->writeMeta();
+                                }               
                                 set->removePageFromDirtyPageSet(page->getPageID(), this->partitionId, ret);
                                 set->unlockDirtyPageSet();
+                                //std :: cout << "unlockDirtyPageSet() for set with id=" << set->getSetID() << std :: endl;
                                 //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for lockDirtyPageSet()...");
-				cout<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
+				//cout<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
                          }
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
                              //remove the page from cache!

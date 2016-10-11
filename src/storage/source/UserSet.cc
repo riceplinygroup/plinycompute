@@ -164,11 +164,13 @@ int UserSet::getNumPages () {
  */
 vector<PageIteratorPtr> * UserSet::getIterators() {
 
-        this->cleanDirtyPageSet();   
+        this->cleanDirtyPageSet();
+        //std :: cout << "lockDirtyPageSet() for set with id=" << this->getSetID() << std :: endl;
         this->lockDirtyPageSet(); 
 	vector<PageIteratorPtr> * retVec = new vector<PageIteratorPtr>();
 	PageIteratorPtr iterator = nullptr;
         if( dirtyPagesInPageCache->size() > 0 ) {
+            std :: cout << "dirtyPages size=" << dirtyPagesInPageCache->size() << std :: endl;
 	    iterator = make_shared<SetCachePageIterator>(this->pageCache, this);
 	    if (iterator != nullptr) {
 		retVec->push_back(iterator);
@@ -187,6 +189,7 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
 		int i = 0;
 		for (i = 0; i < numPartitions; i++) {
 			if(partitionedFile->getMetaData()->getPartition(i)->getNumPages() > 0) {
+                                std :: cout << "numpages in partition:"<<i <<" ="<< partitionedFile->getMetaData()->getPartition(i)->getNumPages()<< std :: endl;
 				iterator = make_shared<PartitionPageIterator>(this->pageCache, file,
 					(FilePartitionID) i, this);
 				retVec->push_back(iterator);
@@ -194,6 +197,7 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
 		}
 	}
         this->unlockDirtyPageSet();
+        //std :: cout << "unlockDirtyPageSet() for set with id=" << this->getSetID() << std :: endl;
 	return retVec;
 }
 
@@ -247,7 +251,7 @@ void UserSet::flushDirtyPages() {
             key.pageId = iter->first;
             this->pageCache->flushPageWithoutEviction(key);
             //cout << "page flushed and to erase it \n";
-            iter = this->getDirtyPageSet()->erase(iter);                        
+            //iter = this->getDirtyPageSet()->erase(iter);                        
         } else {
             iter ++;
         }
