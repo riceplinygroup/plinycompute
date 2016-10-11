@@ -60,7 +60,6 @@ class PipelineContext {
     //whether a page should be unpinned after this round of processing
     bool needUnpin;
 
-
     public:
     ~PipelineContext() {
         this->outputVec = nullptr;

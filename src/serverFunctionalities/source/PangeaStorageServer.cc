@@ -674,7 +674,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                        bool res;
                        std :: string errMsg;
-                       //getFunctionality<PangeaStorageServer>().getCache()->flushPageWithoutEviction(key);          
                        //std :: cout << "page added to flush buffer" << std :: endl;
                        if(getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
                                 res = false;

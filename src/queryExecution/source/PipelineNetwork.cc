@@ -189,6 +189,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     std :: cout << "Pipeline network is running" << std :: endl;
     bool success;
     std :: string errMsg;
+
     PipelineNodePtr source = this->sourceNodes->at(sourceNode);
     //initialize the data proxy, scanner and set iterators
     PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>(); 
@@ -223,7 +224,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     //get output set information
     //now due to limitation in object model, we only support one output for a pipeline network
     Handle<SetIdentifier> outputSet = this->jobStage->getOutput();
-
+    
+    
 
     //create a buzzer and counter
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
@@ -249,7 +251,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   PDBPagePtr output;
                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                   std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                  makeObjectAllocatorBlock (output->getSize(), true);
                   Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              
                   //setup pipeline context
@@ -274,17 +276,19 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               outputBlock = bundler->loadOutputBlock(batchSize);
                           }
                           catch (NotEnoughSpace &n) {
-                              std :: cout << "Page should be larger than block structure size" << std :: endl;
+                              std :: cout << "Error: allocator block size should be larger than vector initilaization size" << std :: endl;
                               exit(-1);
                           }
                           while(bundler->fillNextOutputBlock()) {
                               //std :: cout << "written one block!" << std :: endl;
                               if (context->isOutputFull()) {
-                                  std :: cout << "this page is full!" << std :: endl;
+                                  std :: cout << "current block is full, copy to output page!" << std :: endl;
+                                  Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                                  memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
                                   context->setNeedUnpin(true);
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-                                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                                  makeObjectAllocatorBlock (output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
                                   context->setOutputFull(false);
@@ -308,6 +312,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   outputBlock = bundler->loadOutputBlock(batchSize);
                               }
                               catch (NotEnoughSpace &n) {
+                                  std :: cout << "current block is full, copy to output page!" << std :: endl;
+                                  Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                                  memcpy(output->getBytes(), myBytes, myBytes->numBytes());
                                   std :: cout << "we need to unpin the full page" << std :: endl;
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
@@ -315,7 +322,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   context->setPageToUnpin(output);
-                                  makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+                                  makeObjectAllocatorBlock (output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
                                   context->setOutputFull(false);
@@ -334,21 +341,23 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                       }
                   }
                   std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
-                  getRecord(outputVec);
-                  //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
-                  //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-                  //int vecSize = inputVec->size();
-                  //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
-                  std :: cout << "unpin the output page" << std :: endl;
+                  Record<Vector<Handle<Object>>> * myBytes = getRecord(outputVec);
                   PDBPagePtr outputToUnpin = context->getPageToUnpin();
                   if (outputToUnpin == nullptr) {
                        std :: cout << "Error : output page is null in context" << std :: endl;
                        exit(-1);
                   }
+                  memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
+                  //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
+                  //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                  //int vecSize = inputVec->size();
+                  //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
+                  std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
                       outputToUnpin->getSetID(), outputToUnpin, true);
                   std :: cout << "output page is unpinned" << std :: endl;
                   context->setPageToUnpin(nullptr);
+                  outputVec = nullptr;
                   std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 

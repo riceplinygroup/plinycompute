@@ -23,6 +23,7 @@
 #include "PDBVector.h"
 #include "Object.h"
 
+//  PRELOAD %GenericBlock%
 namespace pdb {
 
 //this class encapsulates a block of tuples/objects
