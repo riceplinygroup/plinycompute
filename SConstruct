@@ -230,7 +230,6 @@ common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/Chr
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
 
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
-common_env.Program('bin/CatalogTests2', ['build/tests/CatalogTests2.cc'] + all)
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/test10cm', ['build/tests/Test10cm.cc'] + all)
 common_env.Program('bin/test14', ['build/tests/Test14.cc'] + all)
