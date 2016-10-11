@@ -253,9 +253,11 @@ public:
      */
     void removePageFromDirtyPageSet(PageID pageId, FilePartitionID partitionId, unsigned int pageSeqInPartition) {
        if(isPinned == false) {
+           std :: cout << "the set is not pinned" << std :: endl;
            dirtyPagesInPageCache->erase(pageId);
            return;
        }
+       std :: cout << "the set is pinned" << std :: endl;
        auto search = dirtyPagesInPageCache->find(pageId);
        if(search != dirtyPagesInPageCache->end()) {
            search->second.inCache = false;

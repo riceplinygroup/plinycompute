@@ -752,9 +752,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         //std :: cout << "Frontend to send NoMorePage message." << std :: endl;
                         set->setPinned(false);
 
-                        set->setPinned(true);
-                        set->flushDirtyPages();
-                        set->setPinned(false);
+                        //set->setPinned(true);
+                        //set->flushDirtyPages();
+                        //set->setPinned(false);
 
                         
                          

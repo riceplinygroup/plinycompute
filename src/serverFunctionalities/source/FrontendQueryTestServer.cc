@@ -243,7 +243,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 			// this is the number of pages
 			std :: string whichDatabase = request->getDatabase ();
 			std :: string whichSet = request->getSetName ();
-                        //std :: cout << "we are now iterating set:" << whichSet << std :: endl;
+                        std :: cout << "we are now iterating set:" << whichSet << std :: endl;
 			// and keep looping while someone wants to get the output
 			SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
 			loopingSet->setPinned(true);
@@ -251,14 +251,23 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 			// loop through all pages
 			int numIterators = pageIters->size();
 			std::cout << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
+                        std::cout << "Number of iterators" << numIterators << std :: endl;
 		    for (int i = 0; i < numIterators; i++) {
+                        std :: cout << "the " << i << "-th iterator" << std :: endl;
 		        PageIteratorPtr iter = pageIters->at(i);
 		        while (iter->hasNext()){
 		            PDBPagePtr nextPage = iter->next();
+                            std :: cout << "Got a page!" << std :: endl;
 		            // send the relevant page.
 		            if (nextPage != nullptr) {
-		            	std::cout << "Sending out next page!" << std::endl;
-						const UseTemporaryAllocationBlock tempBlock {1024};
+		            	std::cout << "Page is not null!! Sending out next page!" << std::endl;
+                                std :: cout << "check the page at server side" << std :: endl;
+                                Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
+                                Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                                int vecSize = inputVec->size();
+                                std :: cout << "in the page to sent: vector size =" << vecSize << std :: endl;
+                                          
+      						const UseTemporaryAllocationBlock tempBlock {1024};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
 						}
@@ -278,7 +287,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 						}
 
 		            } else {
-                        //std :: cout << "We've got a null page!!!" << std :: endl;
+                              std :: cout << "We've got a null page!!!" << std :: endl;
                     }
                     nextPage->unpin();
 
