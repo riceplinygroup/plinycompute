@@ -29,6 +29,9 @@
 namespace pdb {
 
 PDBLogger::PDBLogger(std :: string fName) {
+    bool folder = boost::filesystem::create_directories("logs");
+    if (folder==true) std :: cout << "logs folder created." << std :: endl;
+
     outputFile = fopen(std :: string("logs/"+fName).c_str(), "a");
     if (outputFile == nullptr) {
         std :: cout << "Unable to open logging file.\n";
