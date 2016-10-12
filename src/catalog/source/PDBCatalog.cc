@@ -504,7 +504,7 @@
         if (onlyModified == true) queryString.append(" where timeStamp > ").append(key).append("");
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
-        cout << queryString << endl;
+//        cout << queryString << endl;
         if(sqlite3_prepare_v2(sqliteDBHandlerInternal, queryString.c_str(), -1,
                               &statement, NULL) == SQLITE_OK)
         {
@@ -597,7 +597,7 @@
             string queryString("");
             queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
-            cout << "queryString " << queryString << endl;
+//            cout << "queryString " << queryString << endl;
 
             rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
             if (rc != SQLITE_OK) {
@@ -756,7 +756,7 @@
 //        string onlyFileName = fileName.substr(fileName.find_last_of("/\\")+1);
 
         string query = "SELECT itemID, itemInfo, soBytes FROM " + tableName + " where itemID = ?;";
-        cout << "query: " << query << " " << itemId << endl;
+//        cout << "query: " << query << " " << itemId << endl;
         if (sqlite3_prepare_v2(sqliteDBHandler, query.c_str(), -1, &pStmt, NULL) != SQLITE_OK){
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
@@ -871,7 +871,7 @@
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
         size_t numberOfBytes = metadataBytes->numBytes();
 
-        cout << sqlStatement << " with key= " << metadataKey << endl;
+//        cout << sqlStatement << " with key= " << metadataKey << endl;
 
         // Opens connection to db
         if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal,
@@ -924,13 +924,9 @@
 
         if (isSuccess == true) {
             cout << "Item stored in SQLite and loaded into Catalog memory:" << endl;
-            cout << "  Item Id ------> " << metadataValue->getItemId().c_str() << endl;
-            cout << "  Item Key -----> " << metadataValue->getItemKey().c_str() << endl;
-            cout << "  Item Name ----> " << metadataValue->getItemName().c_str() << endl;
+            cout << "Adding metadata\n" << metadataValue->printShort() << endl;
         }
         this->logger->writeLn(errorMessage);
-
-//        cout << "Adding " << (*metadataValue).printShort() << endl;
 
         return isSuccess;
 
@@ -942,13 +938,6 @@
                                              string &errorMessage){
 
         pthread_mutex_lock(&(registerMetadataMutex));
-
-        //TODO remove this couts, used for debugging only
-        cout << "Updating metadata" << endl;
-        cout << "   Item Index----> " << metadataValue->getItemId() << endl;
-        cout << "   Item Key -----> " << metadataValue->getItemKey().c_str() << endl;
-        cout << "   Item Value----> " << metadataValue->getItemName().c_str() << endl;
-        //        cout << *metadataValue << endl;
 
         // gets the key and index for this item in order to update the sqlite table and
         // update the container in memory
@@ -1001,18 +990,18 @@
         if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
             // if sqlite update goes well, updates container
             updateItemInVector(metadataIndex, metadataValue);
+            //TODO remove this couts, used for debugging only
+            cout << "Updating metadata\n" << metadataValue->printShort() << endl;
+
             isSuccess = true;
         }else{
             errorMessage = "Cannot update item in Catalog";
             this->logger->writeLn(errorMessage);
-            cout << "updateMetadataToCatalog-> " << errorMessage << endl;
         }
         this->logger->writeLn(errorMessage);
 
         sqlite3_finalize(stmt);
         sqlite3_close_v2(sqliteDBHandlerInternal);
-
-//        cout << "Updating " << (*metadataValue).printShort() << endl;
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
