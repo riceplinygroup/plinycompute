@@ -209,8 +209,8 @@ namespace pdb {
         string printShort(){
             string output;
             string spaces("\n                                               ");
-            output = "   DB Id: ";
-            output.append("\n").append(getItemId().c_str()).append(" | DB: ").append(getItemKey().c_str()).append(" | Sets(").append(to_string(getListOfSets()->size())).append("): [ ");
+            output = "   \nDB Id: ";
+            output.append(getItemId().c_str()).append(" | DB: ").append(getItemKey().c_str()).append(" | Sets(").append(to_string(getListOfSets()->size())).append("): [ ");
             for (int i=0; i < getListOfSets()->size(); i++){
                 if (i>0) output.append(", ").append(spaces).append((*getListOfSets())[i].c_str());
                 else output.append((*getListOfSets())[i].c_str());
