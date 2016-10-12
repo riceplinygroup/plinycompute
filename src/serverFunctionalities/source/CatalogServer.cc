@@ -317,7 +317,7 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 	return allTypeCodes[typeIdentifier];
 }
 
-size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) { 
+size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) {
 //	int numPages;
 //	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
 //		return -1;
@@ -430,11 +430,6 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 		typeCodes.push_back (pair.second);
 	}
 
-	// and add them
-//	myCatalog->putStringList ("typeNames", typeNames);
-//	myCatalog->putIntList ("typeCodes", typeCodes);
-//	myCatalog->save ();
-
 	cout << "before creating object" << endl;
     //allocates 128Mb to register .so libraries
     makeObjectAllocatorBlock (1024 * 1024 * 128, true);
@@ -476,13 +471,6 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 		return false;	
 	}
 
-	// write back the changed list
-//	myCatalog->putStringList (databaseName + ".sets", setList);
-//
-//	// delete the type code info
-//	myCatalog->deleteKey (databaseName + "." + setName + ".code");
-//	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
-//	myCatalog->save ();
     int catalogType = PDBCatalogMsgType::CatalogPDBSet;
     Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
 
@@ -588,12 +576,9 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
 	// add the set
 	setList.push_back (setName);
-//	myCatalog->putStringList (databaseName + ".sets", setList);
-//
-//	// and add the set's type
+
+	//	// and add the set's type
 	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
-//	myCatalog->putInt (databaseName + "." + setName + ".code", typeIdentifier);
-//	myCatalog->save ();
 
     //TODO this might change depending on what metadata
     int catalogType = PDBCatalogMsgType::CatalogPDBSet;
@@ -687,9 +672,6 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 	for (auto &entry : allDatabases) {
 		databaseNames.push_back (entry.first);
 	}	
-//	myCatalog->putStringList ("databaseNames", databaseNames);
-//	myCatalog->putStringList (databaseName + ".sets", empty);
-//	myCatalog->save ();
 
     //allocates 24Mb to process metadata info
     makeObjectAllocatorBlock (1024 * 1024 * 24, true);

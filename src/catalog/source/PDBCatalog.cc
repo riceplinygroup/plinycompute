@@ -285,7 +285,7 @@
     void PDBCatalog::getModifiedMetadata(string dateAsString){
         string errorMessage;
 
-        //TODO remove unused containers
+        //TODO remove unused containers!!
 
         Handle<pdb :: Vector < Handle< CatalogNodeMetadata > > > _listNodesInCluster = makeObject< Vector<Handle <CatalogNodeMetadata>>>();
 
@@ -433,44 +433,6 @@
         return success;
     }
 
-    // Executes a sqlite3 query on the catalog database given by a query string.
-    bool PDBCatalog::catalogSqlQuery(string queryString, sqlite3 *sqliteDBHandler){
-
-        sqlite3_stmt *statement = NULL;
-
-        if(sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement, NULL) == SQLITE_OK){
-            int result = 0;
-            result = sqlite3_step(statement);
-            sqlite3_finalize(statement);
-            return true;
-        }else{
-            string error = sqlite3_errmsg(sqliteDBHandler);
-            if(error != "not an error"){
-                this->logger->writeLn((string)queryString + " " + error);
-                return true;
-            }else{
-                return false;
-            }
-        }
-    }
-
-    // Executes a sqlite3 insert query on the catalog database given by a query string.
-    bool PDBCatalog::catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg){
-
-        int rc=0;
-        if((rc = sqlite3_step(stmt)) == SQLITE_DONE){
-            return true;
-        }else{
-            errorMsg = sqlite3_errmsg(sqliteDBHandler);
-            if(errorMsg != "not an error"){
-                this->logger->writeLn("Problem running sqlite statement: " + errorMsg);
-                return true;
-            }else{
-                return false;
-            }
-        }
-    }
-
     //TODO keep only the vector
     template<class CatalogMetadataType>
     bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
@@ -496,11 +458,9 @@
 
         sqlite3_stmt *statement = NULL;
 
-//        string queryString = "SELECT itemID, itemInfo, timeStamp, strftime('%Y-%m-%d %H:%M:%f', cast(timeStamp as text), 'unixepoch') from " + mapsPDBArrayOjbect2SQLiteTable[metadataCategory];
         string queryString = "SELECT itemID, itemInfo, timeStamp from " + mapsPDBArrayOjbect2SQLiteTable[metadataCategory];
         // if empty string then retrieves all items in the table, otherwise only the item with the
         // given key
-//        if (onlyModified == true) queryString.append(" where timeStamp > strftime('%s', '").append(key).append("', 'localtime')");
         if (onlyModified == true) queryString.append(" where timeStamp > ").append(key).append("");
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
@@ -520,7 +480,7 @@
                     Record <CatalogMetadataType> *recordBytes = (Record  <CatalogMetadataType> *) malloc (numBytes);
 
                     memcpy(recordBytes, sqlite3_column_blob(statement, 1), numBytes);
-                    cout << "retrieving " << key << " with timeStamp= " << sqlite3_column_int(statement, 2) << endl;
+                    //cout << "retrieving " << key << " with timeStamp= " << sqlite3_column_int(statement, 2) << endl;
 
                     // get the object
                     Handle<CatalogMetadataType> returnedObject = recordBytes->getRootObject ();
@@ -1017,11 +977,7 @@
         pthread_mutex_lock(&(registerMetadataMutex));
 
         //TODO remove this couts, used for debugging only
-        cout << "Deleting metadata" << endl;
-        cout << "   Item Index----> " << metadataValue->getItemId() << endl;
-        cout << "   Item Key -----> " << metadataValue->getItemKey().c_str() << endl;
-        cout << "   Item Value----> " << metadataValue->getItemName().c_str() << endl;
-        //        cout << *metadataValue << endl;
+        cout << "Deleting metadata" << metadataValue->printShort() << endl;
 
         // gets the key and index for this item in order to update the sqlite table and
         // update the container in memory
@@ -1031,7 +987,7 @@
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
 
-        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         sqlite3 *sqliteDBHandlerInternal = NULL;
 
@@ -1250,6 +1206,49 @@
         }
 
         return false;
+    }
+
+    /**
+     * SQLite-related methods
+     */
+
+    // Executes a sqlite3 query on the catalog database given by a query string.
+    bool PDBCatalog::catalogSqlQuery(string queryString, sqlite3 *sqliteDBHandler){
+
+        sqlite3_stmt *statement = NULL;
+
+        if(sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &statement, NULL) == SQLITE_OK){
+            int result = 0;
+            result = sqlite3_step(statement);
+            sqlite3_finalize(statement);
+            return true;
+        }else{
+            string error = sqlite3_errmsg(sqliteDBHandler);
+            if(error != "not an error"){
+                this->logger->writeLn((string)queryString + " " + error);
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    // Executes a sqlite3 statement query on the catalog database given by a query string
+    // works for inserts, updates and deletes
+    bool PDBCatalog::catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg){
+
+        int rc=0;
+        if((rc = sqlite3_step(stmt)) == SQLITE_DONE){
+            return true;
+        }else{
+            errorMsg = sqlite3_errmsg(sqliteDBHandler);
+            if(errorMsg != "not an error"){
+                this->logger->writeLn("Problem running sqlite statement: " + errorMsg);
+                return true;
+            }else{
+                return false;
+            }
+        }
     }
 
     //TODO remove these implicit instantiations and add and include at the bottom of the h file
