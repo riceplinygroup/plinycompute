@@ -116,9 +116,36 @@ namespace pdb {
             listOfSets->push_back(setIn);
         }
 
+        void addSetToMap(String &key, String &value){
+            (*mapOfSets)[key] = value;
+        }
+
         void addType(pdb::String &typeIn){
             listOfTypes->push_back(typeIn);
         }
+
+        void replaceListOfSets(Handle< Vector <pdb::String>> &newList){
+            listOfSets = newList;
+        }
+
+
+        void deleteSet(pdb :: String whichSet){
+            // creates a temp vector
+            pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
+
+            for (int i=0; i < (*getListOfSets()).size(); i++){
+                String itemValue = (*getListOfSets())[i];
+                if (itemValue!=whichSet){
+                    tempListOfSets->push_back(itemValue);
+                }
+            }
+            replaceListOfSets(tempListOfSets);
+        }
+
+        void deleteType(void *typeIn){
+            (*listOfTypes).deleteObject(typeIn);
+        }
+
 
 
 //        pdb :: Handle <pdb:: Vector < pdb :: Handle<String> > > getListOfNodes(){
@@ -223,6 +250,9 @@ namespace pdb {
         pdb::String userCreator;
         pdb::String createdOn;
         pdb::String lastModified;
+
+        Handle <Map <String, String>> mapOfSets = makeObject <Map <String, String>> ();
+
 
         // Contains information about nodes in the cluster with data for a given database
         pdb :: Handle <pdb:: Vector < String>  > listOfNodes = makeObject< Vector<String>>();

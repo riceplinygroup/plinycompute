@@ -29,7 +29,7 @@
 namespace pdb {
 
 PDBLogger::PDBLogger(std :: string fName) {
-    outputFile = fopen(fName.c_str(), "a");
+    outputFile = fopen(std :: string("logs/"+fName).c_str(), "a");
     if (outputFile == nullptr) {
         std :: cout << "Unable to open logging file.\n";
         perror(nullptr);

@@ -103,6 +103,22 @@
         if (folder==true) this->logger->writeLn("Libraries temporary folder: " + tempPath + " created.");
         else this->logger->writeLn("Error creating libraries temporary folder: " + tempPath + ".");
 
+        // TODO remove unused containers!!
+        // allocates memory for catalog metadata
+        listNodesInCluster = makeObject< Vector<Handle <CatalogNodeMetadata>>>();
+        listSetsInCluster = makeObject< Vector<Handle<CatalogSetMetadata>>>();
+        listDataBasesInCluster = makeObject< Vector<Handle<CatalogDatabaseMetadata>>>();
+
+        listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
+        listUserDefinedTypes = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
+
+        nodesValues = makeObject<Vector<CatalogNodeMetadata>>();
+        setValues = makeObject<Vector<CatalogSetMetadata>>();;
+        dbsValues = makeObject<Vector<CatalogDatabaseMetadata>>();
+        udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
+
+
+
         // Populates a map to convert strings from PDBObject names to SQLite table names
         // in order to create query strings
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBNode,
@@ -439,7 +455,7 @@
     }
 
     // Executes a sqlite3 insert query on the catalog database given by a query string.
-    bool PDBCatalog::catalogSqlInsert(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg){
+    bool PDBCatalog::catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg){
 
         int rc=0;
         if((rc = sqlite3_step(stmt)) == SQLITE_DONE){
@@ -447,7 +463,7 @@
         }else{
             errorMsg = sqlite3_errmsg(sqliteDBHandler);
             if(errorMsg != "not an error"){
-                this->logger->writeLn("Problem updating values: " + errorMsg);
+                this->logger->writeLn("Problem running sqlite statement: " + errorMsg);
                 return true;
             }else{
                 return false;
@@ -891,7 +907,7 @@
         }
 
         // Runs the insert statement
-        if (catalogSqlInsert(sqliteDBHandlerInternal, stmt, errorMessage)) {
+        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)) {
             // Metadata item inserted in sqlite then add to pdb :: Vector  in memory
             addItemToVector(metadataValue, metadataCategory);
             isSuccess = true;
@@ -982,7 +998,7 @@
         this->logger->writeLn(errorMessage);
 
         // Runs the update statement
-        if (catalogSqlInsert(sqliteDBHandlerInternal, stmt, errorMessage)){
+        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
             // if sqlite update goes well, updates container
             updateItemInVector(metadataIndex, metadataValue);
             isSuccess = true;
@@ -990,6 +1006,77 @@
             errorMessage = "Cannot update item in Catalog";
             this->logger->writeLn(errorMessage);
             cout << "updateMetadataToCatalog-> " << errorMessage << endl;
+        }
+        this->logger->writeLn(errorMessage);
+
+        sqlite3_finalize(stmt);
+        sqlite3_close_v2(sqliteDBHandlerInternal);
+
+//        cout << "Updating " << (*metadataValue).printShort() << endl;
+
+        pthread_mutex_unlock(&(registerMetadataMutex));
+        return isSuccess;
+
+
+    }
+
+    template<class CatalogMetadataType>
+    bool PDBCatalog::deleteMetadataInCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
+                                             int &metadataCategory,
+                                             string &errorMessage){
+
+        pthread_mutex_lock(&(registerMetadataMutex));
+
+        //TODO remove this couts, used for debugging only
+        cout << "Deleting metadata" << endl;
+        cout << "   Item Index----> " << metadataValue->getItemId() << endl;
+        cout << "   Item Key -----> " << metadataValue->getItemKey().c_str() << endl;
+        cout << "   Item Value----> " << metadataValue->getItemName().c_str() << endl;
+        //        cout << *metadataValue << endl;
+
+        // gets the key and index for this item in order to update the sqlite table and
+        // update the container in memory
+        String metadataKey = metadataValue->getItemKey();
+        int metadataIndex = std::atoi(metadataValue->getItemId().c_str());
+
+        bool isSuccess = false;
+        sqlite3_stmt *stmt = NULL;
+        string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
+
+        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+
+        sqlite3 *sqliteDBHandlerInternal = NULL;
+
+        // Opens connection to db
+        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
+            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+            this->logger->writeLn(errorMessage);
+            isSuccess = false;
+        }
+        // Prepares statement
+        if ((sqlite3_prepare_v2(sqliteDBHandlerInternal,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
+            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+            this->logger->writeLn(errorMessage);
+            isSuccess = false;
+        }
+
+        // Binds key for this piece of metadata
+        if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK){
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            isSuccess = false;
+        }
+
+        this->logger->writeLn(errorMessage);
+
+        // Runs the update statement
+        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
+            // if sqlite update goes well, updates container
+//            updateItemInVector(metadataIndex, metadataValue);
+            isSuccess = true;
+
+        }else{
+            errorMessage = "Cannot delete item in Catalog";
+            this->logger->writeLn(errorMessage);
         }
         this->logger->writeLn(errorMessage);
 
@@ -1209,6 +1296,24 @@
     template bool PDBCatalog::updateMetadataInCatalog<CatalogUserTypeMetadata>(pdb :: Handle<CatalogUserTypeMetadata> metadataValue,
                                                  int &catalogType,
                                                  string &errorMessage);
+
+    // Add implicit instantiation of all possible metadata
+    template bool PDBCatalog::deleteMetadataInCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> metadataValue,
+                                                 int &catalogType,
+                                                 string &errorMessage);
+
+    template bool PDBCatalog::deleteMetadataInCatalog<CatalogSetMetadata>(pdb :: Handle<CatalogSetMetadata> metadataValue,
+                                                 int &catalogType,
+                                                 string &errorMessage);
+
+    template bool PDBCatalog::deleteMetadataInCatalog<CatalogDatabaseMetadata>(pdb :: Handle<CatalogDatabaseMetadata> metadataValue,
+                                                 int &catalogType,
+                                                 string &errorMessage);
+
+    template bool PDBCatalog::deleteMetadataInCatalog<CatalogUserTypeMetadata>(pdb :: Handle<CatalogUserTypeMetadata> metadataValue,
+                                                 int &catalogType,
+                                                 string &errorMessage);
+
 
     template bool PDBCatalog::addItemToVector(pdb :: Handle< pdb :: CatalogNodeMetadata > &item, int &key);
     template bool PDBCatalog::addItemToVector(pdb :: Handle< pdb :: CatalogSetMetadata > &item, int &key);

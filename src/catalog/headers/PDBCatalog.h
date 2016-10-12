@@ -166,6 +166,21 @@ using namespace pdb;
                                      string &errorMessage);
 
         /**
+         * deleteMetadataInCatalog deletes an existing Metadata item in Sqlite along with its content in memory
+         *
+         * @param metadataValue encapsulates the object with the metadata
+         * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
+         * @param errorMessage error message
+         * @return true on success
+         */
+        //TODO the itme maybe is not needed.
+        template<class CatalogMetadataType>
+        bool deleteMetadataInCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
+                                                 int &metadataCategory,
+                                                 string &errorMessage);
+
+
+        /**
          * updateItemInVector updates a registered Metadata item in memory so the changes
          * are visible to the CatalogServer
          *
@@ -324,20 +339,20 @@ using namespace pdb;
          * List unique metadata entries
          **/
         // list of nodes in the cluster
-        Handle<pdb :: Vector < Handle< CatalogNodeMetadata > > > listNodesInCluster = makeObject< Vector<Handle <CatalogNodeMetadata>>>();
+        Handle<pdb :: Vector < Handle< CatalogNodeMetadata > > > listNodesInCluster;
 
         // list of sets in cluster
-        Handle<pdb :: Vector < Handle < CatalogSetMetadata > >> listSetsInCluster = makeObject< Vector<Handle<CatalogSetMetadata>>>();
+        Handle<pdb :: Vector < Handle < CatalogSetMetadata > >> listSetsInCluster;
 
         // list of databases in the cluster
-        Handle<pdb :: Vector < Handle < CatalogDatabaseMetadata > > >listDataBasesInCluster = makeObject< Vector<Handle<CatalogDatabaseMetadata>>>();
+        Handle<pdb :: Vector < Handle < CatalogDatabaseMetadata > > >listDataBasesInCluster;
 
         vector<CatalogDatabaseMetadata> dbList;
         // list of users in the cluster
-        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > >> listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
+        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > >> listUsersInCluster;
 
         // list user-defined objects in the cluster
-        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > > >listUserDefinedTypes = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
+        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > > >listUserDefinedTypes;
 
         // Map of sets in the cluster, given the name of a database
         // as a string, lists all sets containing data
@@ -363,13 +378,13 @@ using namespace pdb;
 
         //TODO new temp containers for metadata,
         map <string, CatalogNodeMetadata> nodesResult;
-        Handle<Vector <CatalogNodeMetadata> > nodesValues = makeObject<Vector<CatalogNodeMetadata>>();
+        Handle<Vector <CatalogNodeMetadata> > nodesValues;
         map <string, CatalogSetMetadata> setsResult;
-        Handle<Vector <CatalogSetMetadata> > setValues = makeObject<Vector<CatalogSetMetadata>>();;
+        Handle<Vector <CatalogSetMetadata> > setValues;
         map <string, CatalogDatabaseMetadata> dbsResult;
-        Handle<Vector <CatalogDatabaseMetadata> > dbsValues = makeObject<Vector<CatalogDatabaseMetadata>>();
+        Handle<Vector <CatalogDatabaseMetadata> > dbsValues;
         map <string, CatalogUserTypeMetadata> udfsResult;
-        Handle<Vector <CatalogUserTypeMetadata> > udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
+        Handle<Vector <CatalogUserTypeMetadata> > udfsValues;
         //end of temp containers
 
 
@@ -396,8 +411,8 @@ using namespace pdb;
         // true if successful, false otherwise.
         bool catalogSqlQuery(string statement, sqlite3 *sqliteDBHandlerOpen);
 
-        // Executes an insert sql statement into sqlite3
-        bool catalogSqlInsert(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg);
+        // Executes an sql statement in sqlite3 (insert, update or delete)
+        bool catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg);
 
         // Retrieves a Registered Object from the sqlite database
         // returns 1 if success, 0 otherwise.

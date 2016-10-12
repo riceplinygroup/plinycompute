@@ -404,6 +404,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          if (res == false) {
                                  errMsg = "Set doesn't exist\n";
                          }
+
+                         // deletes set in catalog
+                         res = getFunctionality<CatalogServer>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
+
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);

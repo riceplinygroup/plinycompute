@@ -451,6 +451,10 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
 bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
+    // allocate memory temporarily
+    // TODO change this later
+    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+
 	if (allDatabases.count (databaseName) == 0) {
 		errMsg = "Database does not exist.\n";
 		return false;	
@@ -479,6 +483,68 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 //	myCatalog->deleteKey (databaseName + "." + setName + ".code");
 //	myCatalog->deleteKey (databaseName + "." + setName + ".fileSize");
 //	myCatalog->save ();
+    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
+    Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
+
+    // creates Strings
+    String setKeyCatalog = String(databaseName + "." + setName);
+    String setNameCatalog = String(setName);
+    String dbName(databaseName);
+
+    // populates object metadata
+    metadataObject->setItemKey(setKeyCatalog);
+    metadataObject->setItemName(setNameCatalog);
+    metadataObject->setDBName(dbName);
+
+    // deletes metadata in sqlite
+	pdbCatalog->deleteMetadataInCatalog( metadataObject, catalogType, errMsg);
+
+    // prepares object to update database entry in sqlite
+    catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+    Handle<CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
+
+    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItems = makeObject<Vector<Handle<CatalogDatabaseMetadata>>>();
+    Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
+    map<string, CatalogDatabaseMetadata> mapRes;
+
+    if(pdbCatalog->getMetadataFromCatalog(false, databaseName,resultItems,vectorResultItems,mapRes,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+    for (int i=0; i < (*vectorResultItems).size(); i++){
+        if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
+    }
+
+    (*dbMetadataObject).deleteSet(setNameCatalog);
+//    cout << "\n\nPrint modified metadata: " << (*dbMetadataObject).printShort() << endl;
+
+    // updates the corresponding database metadata
+    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
+    else{
+        cout << "Error: " << errMsg << endl;
+        return false;
+    }
+
+    // after it deletes the set metadata in the local catalog, iterate over all nodes,
+    // make connections and broadcast the objects
+    if (isMasterCatalogServer){
+        cout << "About to broadcast set registration to nodes in the cluster: " << endl;
+
+        // get the results of each broadcast
+        map<string, pair <bool, string>> updateResults;
+        errMsg = "";
+//        if (broadcastCatalogUpdate (metadataObject, updateResults, errMsg)){
+//            cout << " Broadcasting was Ok. " << endl;
+//        } else {
+//            cout << " Error broadcasting." << endl;
+//        }
+        for (auto &item : updateResults){
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+                 << item.second.second << endl;
+        }
+    }
+    else{
+        cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
+    }
 
 	// delete the file from the storage
         if (usePangea == false) {
