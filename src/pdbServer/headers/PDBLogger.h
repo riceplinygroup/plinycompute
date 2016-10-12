@@ -30,6 +30,7 @@
 #include "LogLevel.h"
 
 #include <pthread.h>
+#include <boost/filesystem.hpp>
 
 // used to log client and server activity to a text file
 

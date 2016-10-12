@@ -101,7 +101,7 @@
         // creates temp folder for extracting so_files (only if folder doesn't exist)
         bool folder = boost::filesystem::create_directories(tempPath);
         if (folder==true) this->logger->writeLn("Libraries temporary folder: " + tempPath + " created.");
-        else this->logger->writeLn("Error creating libraries temporary folder: " + tempPath + ".");
+        else this->logger->writeLn("Folder " + tempPath + " was not created, it already exists.");
 
         // TODO remove unused containers!!
         // allocates memory for catalog metadata
@@ -1037,7 +1037,6 @@
         // gets the key and index for this item in order to update the sqlite table and
         // update the container in memory
         String metadataKey = metadataValue->getItemKey();
-        int metadataIndex = std::atoi(metadataValue->getItemId().c_str());
 
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
