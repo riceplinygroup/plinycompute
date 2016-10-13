@@ -27,7 +27,6 @@
 #include <fcntl.h>
 #include <string>
 
-
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
@@ -42,16 +41,14 @@
 #include "InterfaceFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 
-
 namespace pdb {
 
 DistributionManagerServer::DistributionManagerServer(PDBDistributionManagerPtr distributionManagerIn) {
-	distributionManager=distributionManagerIn;
+	distributionManager = distributionManagerIn;
 }
 
 DistributionManagerServer::~DistributionManagerServer() {
-
-
+	this->logToMe = getWorker()->getLogger();
 }
 
 void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
@@ -83,42 +80,61 @@ void DistributionManagerServer::registerHandlers(PDBServer &forMe) {
 			return make_pair (wasError, errMsg);
 		}));
 
-
-
-
 	forMe.registerHandler(GetListOfNodes_TYPEID, make_shared<SimpleRequestHandler<GetListOfNodes>>([&] (Handle <GetListOfNodes> request, PDBCommunicatorPtr sendUsingMe) {
-			std :: string errMsg;
+		std :: string errMsg;
 
-			// get the pointer to the distribution manager instance
+		// get the pointer to the distribution manager instance
 			PDBDistributionManagerPtr myDM = getFunctionality <DistributionManagerServer>().getDistributionManager();
 			unordered_map<string, long> myList= myDM->getUpNodesOfCluster();
+			bool res;
 
-			// make the vector
-     		Handle <Vector <String>> hostNames;
-			makeObjectAllocatorBlock (1024 * 24, true);
-     		hostNames = makeObject <Vector <String>> ();
+			try {
+				// make the vector
+				makeObjectAllocatorBlock (1024 * 24, true);
 
+				Handle <Vector <String>> hostNames = makeObject <Vector <String>> ();
+				if(hostNames==nullptr) {
+					getLogger()->error("DistributionManagerServer::registerHandlers - CouldNotMakeObjectHostNames" );
+					errMsg+="CouldNotMakeObjectHostNames";
+					return  make_pair (false, errMsg);
+				}
 
-     		for(auto &ent1 : myList) {
-     		  // ent1.first is the first key
-     			string tmpHostName=ent1.first;
-     			hostNames->push_back(tmpHostName);
-     		}
+				for(auto &ent1 : myList) {
+					// ent1.first is the first key
+					string tmpHostName=ent1.first;
+					hostNames->push_back(tmpHostName);
+				}
 
-     		//  Make the list of nodes
-     		makeObjectAllocatorBlock(1024 * 48, true);
-     		Handle<ListOfNodes> response = makeObject<ListOfNodes>();
-     		response->setHostNames(hostNames);
+				//  Make the list of nodes
+				makeObjectAllocatorBlock(1024 * 48, true);
+				Handle<ListOfNodes> response = makeObject<ListOfNodes>();
 
-     		// return the result
-            bool res = sendUsingMe->sendObject (response, errMsg);
+				if(response==nullptr) {
+
+					getLogger()->error("DistributionManagerServer::registerHandlers - CouldNotMakeObjectListOfNodes" );
+					errMsg+="CouldNotMakeObjectListOfNodes";
+					return  make_pair (false, errMsg);
+				}
+
+				response->setHostNames(hostNames);
+				// return the result
+				res = sendUsingMe->sendObject (response, errMsg);
+
+			} catch (NotEnoughSpace &e) {
+
+				res=false;
+				errMsg+="NotEnoughSpace";
+				getLogger()->error("DistributionManagerServer::registerHandlers - NotEnoughSpace to make objects" );
+				return  make_pair (false, errMsg);
+			}
+
 			return make_pair (res, errMsg);
 		}));
 
 }
 
-void  DistributionManagerServer::setDistributionManager(PDBDistributionManagerPtr distributionManagerIn) {
-	distributionManager=distributionManagerIn;
+void DistributionManagerServer::setDistributionManager(PDBDistributionManagerPtr distributionManagerIn) {
+	distributionManager = distributionManagerIn;
 
 }
 
@@ -126,5 +142,7 @@ PDBDistributionManagerPtr DistributionManagerServer::getDistributionManager() {
 	return this->distributionManager;
 }
 
-
+PDBLoggerPtr DistributionManagerServer::getLogger() {
+	return this->logToMe;
+}
 }
