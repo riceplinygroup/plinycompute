@@ -24,6 +24,7 @@
 #include "Handle.h"
 #include "QueryBase.h"
 #include "PDBVector.h"
+#include "PDBLogger.h"
 
 namespace pdb {
 
@@ -45,10 +46,13 @@ public:
 	int addOrUpdateNodes(PDBLoggerPtr myLoggerIn, string& nodeID);
 
 	PDBDistributionManagerPtr getDistributionManager();
+
 	void  setDistributionManager(PDBDistributionManagerPtr distributionManagerIn);
+	PDBLoggerPtr getLogger();
 
 private:
 	PDBDistributionManagerPtr distributionManager;
+	PDBLoggerPtr logToMe;
 
 };
 
