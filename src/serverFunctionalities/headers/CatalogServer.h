@@ -45,12 +45,6 @@ public:
 	// this uses the identerifer for the object to find the corresponding type name
 	string searchForObjectTypeName (int16_t typeIdentifier);
 
-	// return the number of pages in the given file
-	size_t getNumPages (std :: string dbName, std :: string setName);
-
-	// returns one greater than the current length in pages of the given set, incremening the value
-	size_t getNewPage (std :: string dbName, std :: string setName);
-
 	// this downloads the shared libreary assoicated with the identifier, putting it at the specified location
 	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg);
 
