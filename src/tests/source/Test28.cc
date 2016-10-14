@@ -21,7 +21,6 @@
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
-#include "StorageServer.h"
 #include "CatalogClient.h"
 #include "StorageClient.h"
 #include "PangeaStorageServer.h"
