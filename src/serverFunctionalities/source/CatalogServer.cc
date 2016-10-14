@@ -43,7 +43,6 @@
 #include "CatCreateSetRequest.h"
 #include "CatalogDatabaseMetadata.h"
 #include "CatalogPrintMetadata.h"
-#include "StorageServer.h"
 #include "PangeaStorageServer.h"
 namespace pdb {
 
@@ -536,10 +535,10 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
 	// delete the file from the storage
         if (usePangea == false) {
-        	if (!getFunctionality <StorageServer> ().deleteSet (std :: make_pair (databaseName, setName))) {
-	        	errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
-         		return false;	
-        	}
+//        	if (!getFunctionality <StorageServer> ().deleteSet (std :: make_pair (databaseName, setName))) {
+//	        	errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
+//         		return false;
+//        	}
         } else {
               if (!getFunctionality <PangeaStorageServer> ().removeSet (databaseName, setName)) {
                         errMsg = "Deleted set from catalog, but problem deleting from storage server.\n";
