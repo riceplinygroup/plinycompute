@@ -83,7 +83,7 @@ inline char *String :: c_str () {
 	return data->c_ptr ();
 }
 
-inline size_t String :: size () {
+inline size_t String :: size () const {
 	return data->numUsedSlots () - 1;
 }
 

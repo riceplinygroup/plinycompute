@@ -44,7 +44,7 @@ public:
 	char &operator [] (int whichOne);
 	operator std :: string ();
 	char *c_str ();
-	size_t size ();
+	size_t size () const;
 	size_t hash () const;
 	friend std::ostream& operator<< (std::ostream& stream, const String &printMe);
 	bool operator == (const String &toMe);
