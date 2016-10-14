@@ -53,6 +53,9 @@ public:
 	// access the value at "which"; if this is undefined, define it and return a reference
 	ValueType &operator [] (KeyType &which);
 
+	// returns the number of elements in the map
+	size_t size() const;
+	
 	// returns 0 if this entry is undefined; 1 if it is defined
 	int count (KeyType &which);
 

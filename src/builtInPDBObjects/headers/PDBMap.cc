@@ -110,6 +110,11 @@ int Map <KeyType, ValueType> :: count (KeyType &which) {
 }
 
 template <class KeyType, class ValueType>
+size_t Map <KeyType, ValueType> :: size () const {
+    return myArray->numUsedSlots();
+}
+
+template <class KeyType, class ValueType>
 PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: begin () {
 	PDBMapIterator <KeyType, ValueType> returnVal (myArray, true);
 	return returnVal;	
