@@ -52,7 +52,6 @@
 #include "PDBServer.h"
 #include "CatalogServer.h"
 #include "CatalogClient.h"
-#include "QueryServer.h"
 
 #include "DistributionManagerServer.h"
 #include "DistributionManagerClient.h"
