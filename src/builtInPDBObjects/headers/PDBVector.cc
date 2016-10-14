@@ -57,12 +57,17 @@ Vector <TypeContained> :: Vector () {
 }
 
 template <class TypeContained>
-uint32_t Vector <TypeContained> :: size () {
+size_t Vector <TypeContained> :: size () const {
 	return myArray->numUsedSlots ();
 }	
 
 template <class TypeContained>
 TypeContained &Vector <TypeContained> :: operator [] (uint32_t which) {
+	return myArray->getObj (which);
+}
+
+template <class TypeContained>
+TypeContained &Vector <TypeContained> :: operator [] (uint32_t which) const {
 	return myArray->getObj (which);
 }
 

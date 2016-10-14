@@ -60,8 +60,9 @@ public:
 	
 	// these operations all have the same semantics as in std :: vector
 	Vector ();
-	uint32_t size ();
+	size_t size () const;
 	TypeContained &operator [] (uint32_t which);
+	TypeContained &operator [] (uint32_t which) const;
 	void assign (uint32_t which, const TypeContained& val);
 	void push_back (const TypeContained& val);
 	void pop_back ();
