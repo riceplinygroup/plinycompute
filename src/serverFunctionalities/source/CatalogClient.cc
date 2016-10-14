@@ -51,7 +51,9 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 	myLogger = myLoggerIn;
 
 	// and let the v-table map know this information
-	theVTable->setCatalogClient (this);
+    if (!theVTable->getCatalogClient()) {
+        theVTable->setCatalogClient(this);
+    }
 
 	// set up the mutex
 	pthread_mutex_init(&workingMutex, nullptr);
