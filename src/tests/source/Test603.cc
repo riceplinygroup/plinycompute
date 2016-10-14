@@ -21,7 +21,6 @@
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
-#include "StorageServer.h"
 #include "CatalogClient.h"
 #include "StorageClient.h"
 #include "PangeaStorageServer.h"
@@ -35,6 +34,7 @@ int main () {
        pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        ConfigurationPtr conf = make_shared < Configuration > ();
        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
+       conf->printOut();
 
        if(shm != nullptr) {
                pid_t child_pid = fork();

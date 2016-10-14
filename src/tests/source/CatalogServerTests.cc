@@ -21,7 +21,6 @@
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
-#include "StorageServer.h"
 #include "CatalogClient.h"
 #include "QueryServer.h"
 #include "PangeaStorageServer.h"
@@ -39,7 +38,6 @@ int main () {
        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
        // for this test make the catalog a master server
        frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "127.0.0.1", myLogger);
-       //frontEnd.addFunctionality <pdb :: StorageServer> ("StorageDir", 1024 * 128, 128);
 
        ConfigurationPtr conf = make_shared < Configuration > ();
        pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());

@@ -37,6 +37,12 @@
 #include "PDBLogger.h"
 #include "SharedMem.h"
 #include "BuiltInObjectTypeIDs.h"
+#include "CatalogServer.h"
+#include "CatalogClient.h"
+#include "StorageClient.h"
+#include "PangeaStorageServer.h"
+#include "FrontendQueryTestServer.h"
+#include "HermesExecutionServer.h"
 
 #include "PDBLogger.h"
 #include "LogLevel.h"
@@ -45,7 +51,6 @@
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
-#include "StorageServer.h"
 #include "CatalogClient.h"
 #include "QueryServer.h"
 
@@ -215,7 +220,7 @@ int main(int numArgs, const char *args[]) {
 		maxConnections = vm["maxConnections"].as<int>();
 		cout << "maxConnections was set to " << maxConnections << ".\n";
 	}
-	conf->setMaxConnections(maxConnections);
+//	conf->setMaxConnections(maxConnections);
 
 	if (vm.count("recvBufferSize")) {
 		recvBufferSize = vm["recvBUfferSize"].as<int>();
@@ -288,7 +293,7 @@ int main(int numArgs, const char *args[]) {
 		pageSize = vm["pageSize"].as<size_t>();
 		cout << "pageSize was set to " << pageSize << ".\n";
 	}
-	conf->setPageSize(pageSize);
+//	conf->setPageSize(pageSize);
 
 	if (vm.count("miniPageSize")) {
 		miniPageSize = vm["miniPageSize"].as<size_t>();
@@ -300,13 +305,13 @@ int main(int numArgs, const char *args[]) {
 		sharedMemSize = vm["sharedMemSize"].as<size_t>();
 		cout << "sharedMemSize was set to " << sharedMemSize << ".\n";
 	}
-	conf->setShmSize(sharedMemSize);
+//	conf->setShmSize(sharedMemSize);
 
 	if (vm.count("numThreads")) {
 		numThreads = vm["numThreads"].as<int>();
 		cout << "numThreads was set to " << numThreads << ".\n";
 	}
-	conf->setNumThreads(numThreads);
+//	conf->setNumThreads(numThreads);
 
 	if (vm.count("memPerConnection")) {
 		memPerConnection = vm["memPerConnection"].as<size_t>();
@@ -325,7 +330,7 @@ int main(int numArgs, const char *args[]) {
 		cout << "logEnabled was set to " << logEnabled << ".\n";
 
 	}
-	conf->setLogEnabled(logEnabled);
+//	conf->setLogEnabled(logEnabled);
 
 	if (vm.count("useByteArray")) {
 		useByteArray = vm["useByteArray"].as<bool>();
@@ -406,62 +411,87 @@ int main(int numArgs, const char *args[]) {
 	cout << "#################################################" << endl;
 
 
-    pdb :: PDBServer frontEnd (port, maxConnections, logger);
-
+    // if storage is enabled, catalog has to be enabled too
     // CATALOG
-    if(enableCatalog){
-    	std :: cout << "Catalog Server is enabled. Adding a Catalog server!!\n\n";
-    	frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
-    	frontEnd.addFunctionality <pdb :: CatalogClient> (port, "localhost", logger);
-    }else{
-    	std :: cout << "Catalog Server is disabled!\n\n";
-    }
+//    if(enableCatalog){
+//    	std :: cout << "Catalog Server is enabled. Adding a Catalog server!!\n\n";
+//    	frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
+//    	frontEnd.addFunctionality <pdb :: CatalogClient> (port, "localhost", logger);
+//    }else{
+//    	std :: cout << "Catalog Server is disabled!\n\n";
+//    }
 
 
     //STORAGE
     if(enableStorage){
     	std :: cout << "Storage Server is enabled. Adding a Storage server!!\n\n";
-    	frontEnd.addFunctionality <pdb :: StorageServer> (dataDirs, pageSize, 128);
-    	frontEnd.addFunctionality <pdb :: QueryServer> (8);
+
+        if(shm != nullptr) {
+                pid_t child_pid = fork();
+                if(child_pid == 0) {
+                    //I'm the backend server
+                    pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("backendLogFile.log");
+                    pdb :: PDBServer backEnd (conf->getBackEndIpcFile(), 100, logger);
+                    backEnd.addFunctionality<pdb :: HermesExecutionServer>(shm, backEnd.getWorkerQueue(), logger, conf);
+                    bool usePangea = true;
+                    backEnd.addFunctionality<pdb :: StorageClient> (masterNodePort, masterNodeHostName, make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
+                    backEnd.startServer(nullptr);
+
+                } else if (child_pid == -1) {
+                    std :: cout << "Fatal Error: fork failed." << std :: endl;
+                } else {
+                    //I'm the frontend server
+                    pdb :: PDBServer frontEnd (masterNodePort, 100, logger);
+                    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
+                    frontEnd.addFunctionality <pdb :: CatalogClient> (masterNodePort, masterNodeHostName, logger);
+                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
+                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+                    frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>();
+
+                    // not sure if this is the right place to put the DM
+                    // Distribution Manager
+                    if(enableDM){
+                    std :: cout << "Distribution Manager server is enabled. Adding a  Distribution Manager server!!\n";
+
+
+                    if (!isMaster) {
+                        std::cout << "Distribution Manager is a Slave Node.\n" << std::endl;
+
+
+                        // TODO: find a way to not start the heart beat operation here.
+                        // Get the functionality back to start the heart beat.
+
+                        bool wasError;
+                        std::string errMsg;
+
+                        pdb::String hostname(myIP);
+                        frontEnd.addFunctionality <pdb :: DistributionManagerClient>(hostname, port , logger);
+                        pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
+                        myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, wasError, errMsg);
+                        std::cout << errMsg << std::endl;
+
+                    }else{
+                        PDBDistributionManagerPtr myDM=make_shared<PDBDistributionManager>();
+                        frontEnd.addFunctionality<pdb::DistributionManagerServer>(myDM);
+                        // make the distribution and set it to the distribution manager server.
+                //      frontEnd.getFunctionality<pdb::DistributionManagerServer>().setDistributionManager();
+                    }
+
+                    }else{
+                        std :: cout << "Distribution Manager Server is disabled!\n\n";
+                    }
+                    std :: cout << "Staring up all Server functionalities.\n";
+                    frontEnd.startServer (nullptr);
+
+                }
+
+        }
+        //old ones
+//    	frontEnd.addFunctionality <pdb :: StorageServer> (dataDirs, pageSize, 128);
+//    	frontEnd.addFunctionality <pdb :: QueryServer> (8);
     }else{
     	std :: cout << "Storage Server is disabled!\n\n";
     }
 
-    // Distribution Manager
-    if(enableDM){
-    std :: cout << "Distribution Manager server is enabled. Adding a  Distribution Manager server!!\n";
-
-
-	if (!isMaster) {
-		std::cout << "Distribution Manager is a Slave Node.\n" << std::endl;
-
-
-		// TODO: find a way to not start the heart beat operation here.
-		// Get the functionality back to start the heart beat.
-
-		bool wasError;
-		std::string errMsg;
-
-		pdb::String hostname(myIP);
-    	frontEnd.addFunctionality <pdb :: DistributionManagerClient>(hostname, port , logger);
-		pdb::DistributionManagerClient myDMClient = frontEnd.getFunctionality<pdb::DistributionManagerClient>();
-		myDMClient.sendHeartBeat(masterNodeHostName, masterNodePort, wasError, errMsg);
-		std::cout << errMsg << std::endl;
-
-	}else{
-		PDBDistributionManagerPtr myDM=make_shared<PDBDistributionManager>();
-		frontEnd.addFunctionality<pdb::DistributionManagerServer>(myDM);
-		// make the distribution and set it to the distribution manager server.
-//		frontEnd.getFunctionality<pdb::DistributionManagerServer>().setDistributionManager();
-	}
-
-    }else{
-    	std :: cout << "Distribution Manager Server is disabled!\n\n";
-    }
-
-
-
-	std :: cout << "Staring up all Server functionalities.\n";
-    frontEnd.startServer (nullptr);
 }
 

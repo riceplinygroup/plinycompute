@@ -24,7 +24,6 @@
 #include "QuerySchedulerServer.h"
 #include "CatalogServer.h"
 #include "CatalogClient.h"
-#include "StorageServer.h"
 #include "Configuration.h"
 #include "PangeaStorageServer.h"
 #include "SharedMem.h"
