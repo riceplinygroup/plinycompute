@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string>
+#include <cassert>
 
 using namespace pdb;
 
@@ -67,6 +68,7 @@ int main () {
 		Handle <Foo> temp = makeObject <Foo> ();
 		myMap[i] = temp;
 	}
+	assert (myMap.size() == 1000);
 
 	Handle <Map <int, Handle <int>>> anotherMap = makeObject <Map <int, Handle <int>>> ();
 	for (int i = 0; i < 1000; i++) {
@@ -74,6 +76,7 @@ int main () {
 		*temp = i;
 		(*anotherMap)[i] = temp;
 	}
+	assert (anotherMap->size() == 1000);
 
 	for (auto &a : *anotherMap) {
 		std :: cout << "(" << a.key << ", " << *(a.value) << ") ";
