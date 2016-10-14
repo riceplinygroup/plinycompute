@@ -316,31 +316,6 @@ std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) 
 	return allTypeCodes[typeIdentifier];
 }
 
-size_t CatalogServer :: getNumPages (std :: string dbName, std :: string setName) {
-//	int numPages;
-//	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
-//		return -1;
-//	} else {
-//		return numPages;
-//	}
-	return 0;
-}
-
-size_t CatalogServer :: getNewPage (std :: string dbName, std :: string setName) {
-//	int numPages;
-//	if (!myCatalog->getInt (dbName + "." + setName + ".fileSize", numPages)) {
-//		myCatalog->putInt (dbName + "." + setName + ".fileSize", 1);
-//		myCatalog->save ();
-//		return 0;
-//	} else {
-//		numPages++;
-//		myCatalog->putInt (dbName + "." + setName + ".fileSize", numPages);
-//		myCatalog->save ();
-//		return numPages - 1;
-//	}
-    return 0;
-}
-
 bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg) {
 
         //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
