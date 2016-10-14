@@ -22,7 +22,6 @@
 #include "PDBServer.h"
 #include "CatalogServer.h"
 #include "CatalogClient.h"
-#include "QueryServer.h"
 #include "PangeaStorageServer.h"
 
 int main () {
@@ -45,9 +44,6 @@ int main () {
        //pdb :: PDBWorkerQueuePtr workers = make_shared < pdb :: PDBWorkerQueue > (logger, conf->getMaxConnections());
        frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
        frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
-       frontEnd.startServer (nullptr);
-       frontEnd.addFunctionality <pdb :: QueryServer> (1);
-
        frontEnd.startServer (nullptr);
 }
 
