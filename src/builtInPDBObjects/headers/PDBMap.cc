@@ -126,18 +126,6 @@ PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () {
 	return returnVal;	
 }
 
-template <class KeyType, class ValueType>
-PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: begin () const {
-	PDBMapIterator <KeyType, ValueType> returnVal (myArray, true);
-	return returnVal;	
-}
-
-template <class KeyType, class ValueType>
-PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () const {
-	PDBMapIterator <KeyType, ValueType> returnVal (myArray);
-	return returnVal;	
-}
-
 }
 
 #endif
