@@ -94,7 +94,7 @@ Map <KeyType, ValueType> :: ~Map () {}
 
 
 template <class KeyType, class ValueType>
-ValueType &Map <KeyType, ValueType> :: operator [] (KeyType &which) {
+ValueType &Map <KeyType, ValueType> :: operator [] (const KeyType &which) {
 		
 	if (myArray->isOverFull ()) {
 		Handle <PairArray <KeyType, ValueType>> temp = myArray->doubleArray ();
@@ -126,6 +126,17 @@ PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () {
 	return returnVal;	
 }
 
+template <class KeyType, class ValueType>
+PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: begin () const {
+	PDBMapIterator <KeyType, ValueType> returnVal (myArray, true);
+	return returnVal;	
+}
+
+template <class KeyType, class ValueType>
+PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () const {
+	PDBMapIterator <KeyType, ValueType> returnVal (myArray);
+	return returnVal;	
+}
 
 }
 
