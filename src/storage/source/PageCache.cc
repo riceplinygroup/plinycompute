@@ -468,7 +468,7 @@ bool PageCache::decPageRefCount(CacheKey key) {
 	} else {
 		PDBPagePtr page = this->cache->at(key);
 		page->decRefCount();
-                //cout << "PageCache::decPageRefCount()=" << page->getRefCount() << "\n";
+                cout << "PageCache::decPageRefCount()=" << page->getRefCount() << "\n";
 		return true;
 	}
 }

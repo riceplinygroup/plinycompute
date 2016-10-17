@@ -24,6 +24,7 @@
 
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
+
 #include <memory>
 #include <string>
 #include <sys/types.h>
@@ -80,6 +81,7 @@ public:
 	Configuration() {
 		//set default values.
 		this->nodeId = 0;
+                this->logLevel = LogLevel::OFF; 
 		serverName = "testServer";
 		serverAddress = "localhost";
 		isMasterCatalogServer = false;

@@ -282,15 +282,19 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                           while(bundler->fillNextOutputBlock()) {
                               //std :: cout << "written one block!" << std :: endl;
                               if (context->isOutputFull()) {
-                                  std :: cout << "current block is full, copy to output page!" << std :: endl;
+                                  std :: cout << "PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                   memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
-                                  context->setNeedUnpin(true);
+
+                                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   makeObjectAllocatorBlock (output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
+                                  context->setPageToUnpin(output);
                                   context->setOutputFull(false);
                               }
 
@@ -299,20 +303,12 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               source->run(context, outputBlock, batchSize);
                               bundler->clearOutputBlock();
 
-                              //now we can unpin the previous page
-                              if (context->shallWeUnpin()) {
-                                  std :: cout << "we need to unpin the full page" << std :: endl;
-                                  proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(), 
-                                      context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), false);
-                                  context->setPageToUnpin(output);
-                                  context->setNeedUnpin(false);
-                              }
                               //std :: cout << "now we allocate a new block" << std :: endl;
                               try {
                                   outputBlock = bundler->loadOutputBlock(batchSize);
                               }
                               catch (NotEnoughSpace &n) {
-                                  std :: cout << "current block is full, copy to output page!" << std :: endl;
+                                  std :: cout << "PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!" << std :: endl;
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                   memcpy(output->getBytes(), myBytes, myBytes->numBytes());
                                   std :: cout << "we need to unpin the full page" << std :: endl;
@@ -330,7 +326,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               }
                           }
                           std :: cout << "the input page has been processed" << std :: endl;
-                          std :: cout << "run the pipeline on this block" << std :: endl;
+                          std :: cout << "run the pipeline on remaining block" << std :: endl;
                           source->run(context, outputBlock, batchSize);
 
                           bundler->clearOutputBlock();
