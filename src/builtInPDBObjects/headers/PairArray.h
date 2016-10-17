@@ -111,7 +111,7 @@ public:
 
 	// access the value at which; if this is undefined, define it and return a reference
 	// to a newly-creaated value
-	ValueType &operator [] (KeyType &which);
+	ValueType &operator [] (const KeyType &which);
 
 	// returns true if this has hit its max fill factor
 	bool isOverFull ();

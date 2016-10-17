@@ -51,7 +51,7 @@ public:
 	~Map ();
 
 	// access the value at "which"; if this is undefined, define it and return a reference
-	ValueType &operator [] (KeyType &which);
+	ValueType &operator [] (const KeyType &which);
 
 	// returns the number of elements in the map
 	size_t size() const;

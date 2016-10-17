@@ -75,7 +75,7 @@ inline char &String :: operator [] (int whichOne) {
 	return data->c_ptr ()[whichOne];
 }
 
-inline String :: operator std :: string () {
+inline String :: operator std :: string () const {
 	return std :: string (data->c_ptr ());
 }
 

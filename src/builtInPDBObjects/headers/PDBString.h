@@ -42,7 +42,7 @@ public:
 	String (const char* s, size_t n);
 	String (const std :: string &s);
 	char &operator [] (int whichOne);
-	operator std :: string ();
+	operator std :: string () const;
 	char *c_str ();
 	size_t size () const;
 	size_t hash () const;

@@ -72,7 +72,7 @@ class Hasher {
         }
 
 public:
-        static auto hash(KeyType &k) -> decltype(hash_impl(k, 0)) {
+        static auto hash(const KeyType &k) -> decltype(hash_impl(k, 0)) {
 		decltype(hash_impl(k, 0)) temp = hash_impl(k, 0);
 
 		// we can't allow the hash function to return UNUSED
@@ -209,7 +209,7 @@ int PairArray <KeyType, ValueType> :: count (KeyType &me) {
 }
 
 template <class KeyType, class ValueType> 
-ValueType &PairArray <KeyType, ValueType> :: operator [] (KeyType &me) {
+ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 	
 	// basically, if he is not there, we add him and return a reference to a newly-constructed
 	// ValueType... if he is there, we simply return a reference to a newly-constructed ValueType
