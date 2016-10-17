@@ -50,7 +50,18 @@ using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 using pdb_detail::SourceSetNameIr;
 using pdb_detail::buildIr;
-int main () {
+int main (int argc, char * argv[]) {
+
+       bool printResult = true;
+       if (argc > 1) {
+
+           printResult = false;
+           std :: cout << "You add any character as parameter to disable printing result." << std::endl;
+
+       } else {
+           std :: cout << "Will print result. If you don't want to print result, you can add any character as parameter to disable result printing." << std :: endl;
+       }
+
 
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
@@ -84,62 +95,24 @@ int main () {
         server.printCurrentPlan();
         server.schedule("localhost", 8108, myLogger); 
 
-/*
-        queryGraph = buildIr(queries);
-        shared_ptr <pdb_detail::SetExpressionIr> curNode;
-        for (int i = 0; i < queryGraph->getSinkNodeCount(); i ++) {
-            curNode = queryGraph->getSinkNode(i);
-            std :: cout << "the " << i << "-th sink:" << std :: endl;
-            while (curNode->getName() != "SourceSetNameIr") {
-                std :: cout << "current node is " << curNode->getName() << std :: endl;
-                if (curNode->isTraversed() == false) {
-                    curNode->setTraversed(true, i);
-                } else {
-                    std :: cout << "We have traversed this node!" << std :: endl;
-                }
-                shared_ptr<pdb_detail::MaterializationMode> materializationMode = curNode->getMaterializationMode();
-                if(materializationMode->isNone() == false) {
-                     std :: string name("");
-                     std :: cout << "this is a materialization node with databaseName=" << materializationMode->tryGetDatabaseName( name )
-                           << " and setName=" << materializationMode->tryGetSetName( name ) << std :: endl;
-                }
-                if(curNode->getName() == "SelectionIr") {
-                    shared_ptr<pdb_detail::SelectionIr> selectionNode = dynamic_pointer_cast<pdb_detail::SelectionIr>(curNode);
-                    curNode = selectionNode->getInputSet();
-                } else if (curNode->getName() == "ProjectionIr") {
-                    shared_ptr<pdb_detail::ProjectionIr> projectionNode = dynamic_pointer_cast<pdb_detail::ProjectionIr>(curNode);
-                    curNode = projectionNode->getInputSet();
-                }
-            }
-            std :: cout << "current node is " << curNode->getName() << std :: endl;
-            if (curNode->getName() == "SourceSetNameIr") {
-                 shared_ptr<pdb_detail::SourceSetNameIr> sourceNode = dynamic_pointer_cast<pdb_detail::SourceSetNameIr>(curNode);
-                 std :: cout << "this is SourceSetName node with databaseName =" << sourceNode->getDatabaseName() << " and setName=" << sourceNode->getSetName() << std :: endl;
-           }
-        }
-*/
-/*	
-	if (!myClient.execute (errMsg, outputOne, outputTwo)) {
-		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
-		return 0;
-	}
-*/
 	std::cout << std::endl;
 	// print the resuts
-	SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
-	std :: cout << "First set of query results: ";
-	for (auto a : result) 
-        {
+
+        if (printResult == true) {
+	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
+	    std :: cout << "First set of query results: ";
+	    for (auto a : result) 
+            {
 		     std :: cout << (*a) << "; ";
-        }
-	std :: cout << "\n\nSecond set of query results: ";
-	result = myClient.getSetIterator <String> ("chris_db", "output_set2");
-	for (auto a : result)
-        {
+            }
+	    std :: cout << "\n\nSecond set of query results: ";
+	    result = myClient.getSetIterator <String> ("chris_db", "output_set2");
+	    for (auto a : result)
+            {
 		    std :: cout << (*a) << "; ";
-        }
-	std :: cout << "\n";
-	
+            }
+	    std :: cout << "\n";
+	}
 	// and delete the sets
 	myClient.deleteSet ("chris_db", "output_set1");
 	myClient.deleteSet ("chris_db", "output_set2");
