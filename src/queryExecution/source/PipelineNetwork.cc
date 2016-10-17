@@ -34,7 +34,7 @@
 namespace pdb {
 
 PipelineNetwork :: ~PipelineNetwork () {
-    std :: cout << "PipelineNetwork destructor is running" << std :: endl;
+    //std :: cout << "PipelineNetwork destructor is running" << std :: endl;
     sourceNodes->clear();
     delete sourceNodes;
     allNodes->clear();
@@ -78,10 +78,10 @@ void PipelineNetwork :: initialize (Handle<JobStage> stage) {
         } 
         PipelineNodePtr node = make_shared<PipelineNode>(this->nodeId, operators[i], isSource, isSink, input, output, id);
         if (i == 0) {
-            std :: cout << "to append source node with id=" << id << std :: endl;
+            //std :: cout << "to append source node with id=" << id << std :: endl;
             appendSourceNode (node);
         } else {
-            std :: cout << "to append child node with id=" << id << " to parent with id=" << parentNode->getOperatorId() << std :: endl;
+            //std :: cout << "to append child node with id=" << id << " to parent with id=" << parentNode->getOperatorId() << std :: endl;
             appendNode (parentNode->getOperatorId(), node);
         }
         id ++;
@@ -186,7 +186,7 @@ void PipelineNetwork :: runAllSources() {
 }
 
 void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * server) {
-    std :: cout << "Pipeline network is running" << std :: endl;
+    //std :: cout << "Pipeline network is running" << std :: endl;
     bool success;
     std :: string errMsg;
 
@@ -210,9 +210,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
     //get iterators
     //TODO: we should get iterators using only databaseName and setName
-    std :: cout << "To send GetSetPages message" << std :: endl;
+    //std :: cout << "To send GetSetPages message" << std :: endl;
     std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, inputSet->getDatabaseId(), inputSet->getTypeId(), inputSet->getSetId());
-    std :: cout << "GetSetPages message is sent" << std :: endl;
+    //std :: cout << "GetSetPages message is sent" << std :: endl;
     int numIteratorsReturned = iterators.size();
     if (numIteratorsReturned != numThreads) {
          success = false;
@@ -231,7 +231,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
          [&] (PDBAlarm myAlarm, int & counter) {
              counter ++;
-             std :: cout << "counter = " << counter << std :: endl;
+             //std :: cout << "counter = " << counter << std :: endl;
          });
     
     int counter = 0;
@@ -250,7 +250,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //setup an output page to store intermediate results and final output
                   PDBPagePtr output;
                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                  //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                   makeObjectAllocatorBlock (output->getSize(), true);
                   Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              
@@ -265,12 +265,12 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
                   while (iter->hasNext()) {
-                      std :: cout << "got a page!" << std :: endl;
+                      //std :: cout << "got a page!" << std :: endl;
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
-                          std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
+                          //std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           bundler->loadInputPage(page->getBytes());
-                          std :: cout << "load an allocate block for output" << std :: endl;
+                          //std :: cout << "load an allocate block for output" << std :: endl;
                           Handle<GenericBlock> outputBlock;
                           try {
                               outputBlock = bundler->loadOutputBlock(batchSize);
@@ -290,7 +290,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
 
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                                  //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   makeObjectAllocatorBlock (output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
@@ -311,12 +311,12 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   std :: cout << "PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!" << std :: endl;
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                   memcpy(output->getBytes(), myBytes, myBytes->numBytes());
-                                  std :: cout << "we need to unpin the full page" << std :: endl;
+                                  //std :: cout << "we need to unpin the full page" << std :: endl;
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
-                                  std :: cout << "we need to pin a new page" << std :: endl;
+                                  //std :: cout << "we need to pin a new page" << std :: endl;
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                                  //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   context->setPageToUnpin(output);
                                   makeObjectAllocatorBlock (output->getSize(), true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
@@ -325,18 +325,18 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   outputBlock = bundler->loadOutputBlock(batchSize); 
                               }
                           }
-                          std :: cout << "the input page has been processed" << std :: endl;
-                          std :: cout << "run the pipeline on remaining block" << std :: endl;
+                          //std :: cout << "the input page has been processed" << std :: endl;
+                          //std :: cout << "run the pipeline on remaining block" << std :: endl;
                           source->run(context, outputBlock, batchSize);
 
                           bundler->clearOutputBlock();
                           bundler->clearInputPage();
                
-                          std :: cout << "now we unpin the page" << std :: endl;
-                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page, false);  
+                          //std :: cout << "now we unpin the page" << std :: endl;
+                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page, true);  
                       }
                   }
-                  std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
+                  //std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   Record<Vector<Handle<Object>>> * myBytes = getRecord(outputVec);
                   PDBPagePtr outputToUnpin = context->getPageToUnpin();
                   if (outputToUnpin == nullptr) {
@@ -348,13 +348,13 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
                   //int vecSize = inputVec->size();
                   //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
-                  std :: cout << "unpin the output page" << std :: endl;
+                  //std :: cout << "unpin the output page" << std :: endl;
                   proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
                       outputToUnpin->getSetID(), outputToUnpin, true);
-                  std :: cout << "output page is unpinned" << std :: endl;
+                  //std :: cout << "output page is unpinned" << std :: endl;
                   context->setPageToUnpin(nullptr);
                   outputVec = nullptr;
-                  std :: cout << "buzz the buzzer" << std :: endl;
+                  //std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }

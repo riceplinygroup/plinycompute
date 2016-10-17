@@ -27,12 +27,20 @@
 #include "FrontendQueryTestServer.h"
 #include "HermesExecutionServer.h"
 
-int main () {
+int main (int argc, char * argv[] ) {
 
-       std :: cout << "Starting up a frontend server!!\n";
-       std :: cout << "First run this, then run bin/test602 in another window, then run this again, then run bin/test18 in another window" << std :: endl;
+       std :: cout << "Starting up a PDB server!!\n";
+       std :: cout << "First run this, then run bin/test46 in another window, then run this again, then run bin/test44 in another window" << std :: endl;
+       std :: cout << "You can add one parameter as the thread num" << std :: endl;
+       int numThreads = 2;
+       if (argc > 1) {
+           numThreads = atoi(argv[1]);
+       }
+       std :: cout << "Thread number =" << numThreads << std :: endl;
+  
        pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        ConfigurationPtr conf = make_shared < Configuration > ();
+       conf->setNumThreads(numThreads);
        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
        conf->printOut();
 

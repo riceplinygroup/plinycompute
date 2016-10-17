@@ -363,12 +363,12 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 
        //receive the Ack object
        {
-           std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
+           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
            pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
-           std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
+           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
     } else {

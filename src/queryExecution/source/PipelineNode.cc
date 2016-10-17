@@ -25,7 +25,7 @@
 
 namespace pdb {
 PipelineNode :: ~PipelineNode () {
-    std :: cout << "PipelineNode with id=" << id << " is running" << std :: endl;
+    //std :: cout << "PipelineNode with id=" << id << " is running" << std :: endl;
     executionOperator = nullptr;
     inputSet = nullptr;
     outputSet = nullptr;
@@ -207,7 +207,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             //pin a new output page
             proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-            std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+            //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
             makeObjectAllocatorBlock (output->getSize(), true);
             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
             context->setOutputVec(outputVec);
