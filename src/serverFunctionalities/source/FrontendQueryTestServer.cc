@@ -266,25 +266,28 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                 Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
                                 int vecSize = inputVec->size();
                                 std :: cout << "in the page to sent: vector size =" << vecSize << std :: endl;
-                                          
+                                if (vecSize != 0) {          
       						const UseTemporaryAllocationBlock tempBlock {1024};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
 						}
-
+                                                std :: cout << "Page sent to client!" << std :: endl;
 						// see whether or not the client wants to see more results
 						bool success;
 						if (sendUsingMe->getObjectTypeID () != DoneWithResult_TYPEID) {
 							Handle <KeepGoing> temp = sendUsingMe->getNextObject <KeepGoing> (success, errMsg);
+                                                        std :: cout << "Keep going" << std :: endl;
 							if (!success)
 								return std :: make_pair (false, errMsg);
 						} else {
 							Handle <DoneWithResult> temp = sendUsingMe->getNextObject <DoneWithResult> (success, errMsg);
+                                                        std :: cout << "Done" << std :: endl;
 							if (!success)
 								return std :: make_pair (false, errMsg);
 							else
 								return std :: make_pair (true, std :: string ("everything OK!"));
 						}
+                               }
 
 		            } else {
                               std :: cout << "We've got a null page!!!" << std :: endl;
