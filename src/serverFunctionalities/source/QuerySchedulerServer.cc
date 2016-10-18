@@ -72,8 +72,27 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
      this->usePipelineNetwork = usePipelineNetwork;
 }
 
+void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 
-void QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger) {
+     std :: cout << "To get the resource object from the resource manager" << std :: endl;
+     if (isRMRunAsServer == true) { 
+         this->resources = getFunctionality<ResourceManagerServer>().getAllResources();
+     } else {
+         ResourceManagerServer rm("conf/serverlist", 8108);
+         this->resources = rm.getAllResources();
+     }
+
+     //print out the resources
+     for (int i = 0; i < this->resources->size(); i++) {
+
+         std :: cout << i << ": address=" << (*(this->resources))[i]->getAddress() << ", numCores=" << (*(this->resources))[i]->getNumCores() << ", memSize=" << (*(this->resources))[i]->getMemSize() << std :: endl;
+
+     }
+}
+
+
+
+bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger) {
      
     std :: cout << "to connect to the remote node" << std :: endl;
     PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
@@ -86,17 +105,21 @@ void QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
     if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
         success = false;
         std :: cout << errMsg << std :: endl;
-        return;
+        return success;
     }
 
     for (int i = 0; i < this->currentPlan.size(); i++) {
         Handle<JobStage> stage = currentPlan[i];
-        schedule (stage, communicator);
+        success = schedule (stage, communicator);
+        if (!success) {
+            return success;
+        }
     }
+    return true;
 
 }
 
-void QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator) {
+bool QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator) {
 
         bool success;
         std :: string errMsg;
@@ -105,7 +128,7 @@ void QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr
         success = communicator->sendObject<JobStage>(stage, errMsg);
         if (!success) {
             std :: cout << errMsg << std :: endl;
-            return;
+            return false;
         }
         std :: cout << "to receive query response from the remote node" << std :: endl;
         Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
@@ -116,13 +139,17 @@ void QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr
         }
         else {
             std :: cout << "Query execute failure: can't get results" << std :: endl;
-            return;
+            return false;
         }
 
         Vector<Handle<JobStage>> childrenStages = stage->getChildrenStages();
         for (int i = 0; i < childrenStages.size(); i ++) {
-            schedule (childrenStages[i], communicator);
+            success = schedule (childrenStages[i], communicator);
+            if (!success) {
+                return success;
+            }
         }
+        return true;
 }
 
 void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
@@ -270,6 +297,37 @@ void QuerySchedulerServer :: printCurrentPlan() {
 
 }
 
+void QuerySchedulerServer :: schedule() {
+
+         int counter = 0;
+         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
+                 [&] (PDBAlarm myAlarm, int &counter) {
+                       counter ++;
+                       std :: cout << "counter = " << counter << std :: endl;
+                 });
+         for (int i = 0; i < this->resources->size(); i++) {
+             PDBWorkerPtr myWorker = getWorker();
+             PDBWorkPtr myWork = make_shared <GenericWork> (
+                 [&, i] (PDBBuzzerPtr callerBuzzer) {
+                       std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
+                       std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
+                       std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
+                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger);
+                       if (!success) {
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                       }
+                       callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                 }
+             );
+             myWorker->execute(myWork, tempBuzzer);
+         }
+
+         while(counter < this->resources->size()) {
+            tempBuzzer->wait();
+         }
+
+}
 
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
     //handler to request to schedule a query

@@ -53,13 +53,23 @@ using pdb_detail::buildIr;
 int main (int argc, char * argv[]) {
 
        bool printResult = true;
+       bool clusterMode = false;
        if (argc > 1) {
 
            printResult = false;
-           std :: cout << "You add any character as parameter to disable printing result." << std::endl;
+           std :: cout << "You successfully disabled printing result." << std::endl;
 
        } else {
-           std :: cout << "Will print result. If you don't want to print result, you can add any character as parameter to disable result printing." << std :: endl;
+           std :: cout << "Will print result. If you don't want to print result, you can add any character as the first parameter to disable result printing." << std :: endl;
+       }
+
+       if (argc > 2) {
+       
+           clusterMode = true;
+           std :: cout << "You successfully set the test to run on cluster." << std :: endl;
+
+       } else {
+           std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
 
 
@@ -93,12 +103,17 @@ int main (int argc, char * argv[]) {
         QuerySchedulerServer server;
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();
-        server.schedule("localhost", 8108, myLogger); 
+        if (clusterMode == false) {
+            server.schedule("localhost", 8108, myLogger); 
+        } else {
+            server.initialize(false);
+            server.schedule();
+        }
 
 	std::cout << std::endl;
 	// print the resuts
 
-        if (printResult == true) {
+        if ((printResult == true) && (clusterMode == false)) {
 	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	    std :: cout << "First set of query results: ";
 	    for (auto a : result) 
@@ -113,9 +128,12 @@ int main (int argc, char * argv[]) {
             }
 	    std :: cout << "\n";
 	}
-	// and delete the sets
-	myClient.deleteSet ("chris_db", "output_set1");
-	myClient.deleteSet ("chris_db", "output_set2");
+
+        if (clusterMode == false) {
+	    // and delete the sets
+	    myClient.deleteSet ("chris_db", "output_set1");
+	    myClient.deleteSet ("chris_db", "output_set2");
+        }
         system ("scripts/cleanupSoFiles.sh");
         
 }
