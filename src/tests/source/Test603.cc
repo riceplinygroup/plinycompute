@@ -32,7 +32,7 @@ int main (int argc, char * argv[] ) {
        std :: cout << "Starting up a PDB server!!\n";
        std :: cout << "First run this, then run bin/test46 in another window, then run this again, then run bin/test44 in another window" << std :: endl;
        std :: cout << "You can add one parameter as the thread num" << std :: endl;
-       int numThreads = 2;
+       int numThreads = 1;
        if (argc > 1) {
            numThreads = atoi(argv[1]);
        }
