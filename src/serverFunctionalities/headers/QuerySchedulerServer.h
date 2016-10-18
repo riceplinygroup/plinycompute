@@ -45,6 +45,9 @@ public:
        //constructor, initialize from catalog
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
+       //initialization
+       void initialize(bool isRMRunAsServer);
+
        //to transform optimized client query into a physical plan
        //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
@@ -53,11 +56,13 @@ public:
        void printCurrentPlan();
 
        //to schedule the current job plan
-       void schedule(std :: string ip, int port, PDBLoggerPtr logger);
+       bool schedule(std :: string ip, int port, PDBLoggerPtr logger);
 
        //to schedule a job stage
-       void schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator);
+       bool schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator);
 
+       //to schedule the current job plan on all available resources
+       void schedule();
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
