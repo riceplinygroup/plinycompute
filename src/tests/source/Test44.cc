@@ -41,6 +41,13 @@
 #include "QueryOutput.h"
 #include "IrBuilder.h"
 #include "QuerySchedulerServer.h"
+#include <ctime>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <chrono>
+#include <fcntl.h>
+
 using namespace pdb;
 using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
@@ -51,6 +58,8 @@ using pdb_detail::SetExpressionIr;
 using pdb_detail::SourceSetNameIr;
 using pdb_detail::buildIr;
 int main (int argc, char * argv[]) {
+
+       auto begin = std :: chrono :: high_resolution_clock :: now();
 
        bool printResult = true;
        bool clusterMode = false;
@@ -109,6 +118,10 @@ int main (int argc, char * argv[]) {
             server.initialize(false);
             server.schedule();
         }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
 
 	std::cout << std::endl;
 	// print the resuts
