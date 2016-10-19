@@ -58,6 +58,10 @@ class FilterOperator : public ExecutionOperator {
             return (unsafeCast<Selection<Object, Object>>(selection))->getFilterBlockProcessor();
        }
 
+       Handle<QueryBase> getSelection() override {
+            return this->selection;
+       }
+
     private:
        Handle<QueryBase> selection;
        

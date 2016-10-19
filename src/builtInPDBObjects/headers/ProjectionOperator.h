@@ -55,6 +55,12 @@ class ProjectionOperator : public ExecutionOperator {
             }
             return (unsafeCast<Selection<Object, Object>>(selection))->getProjectionBlockProcessor();
        }
+      
+       Handle<QueryBase> getSelection() override {
+            return this->selection;
+       }        
+       
+
 
     private:
        Handle<QueryBase> selection;
