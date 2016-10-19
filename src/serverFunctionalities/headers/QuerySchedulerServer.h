@@ -40,7 +40,7 @@ public:
        //destructor
        ~QuerySchedulerServer ();
 
-       QuerySchedulerServer();
+       QuerySchedulerServer(PDBLoggerPtr logger);
 
        //constructor, initialize from catalog
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
@@ -59,7 +59,7 @@ public:
        bool schedule(std :: string ip, int port, PDBLoggerPtr logger);
 
        //to schedule a job stage
-       bool schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator);
+       bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator);
 
        //to schedule the current job plan on all available resources
        void schedule();

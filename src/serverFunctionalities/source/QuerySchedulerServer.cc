@@ -53,7 +53,9 @@ namespace pdb {
 QuerySchedulerServer :: ~QuerySchedulerServer () {
 }
 
-QuerySchedulerServer :: QuerySchedulerServer() {}
+QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger) {
+    this->logger = logger;
+}
 
 
 void QuerySchedulerServer ::cleanup() {
@@ -119,13 +121,17 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
 }
 
-bool QuerySchedulerServer :: schedule(Handle<JobStage> stage, PDBCommunicatorPtr communicator) {
+bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator) {
 
         bool success;
         std :: string errMsg;
 
         std :: cout << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
-        success = communicator->sendObject<JobStage>(stage, errMsg);
+
+        Handle<JobStage> stageToSend = makeObject<JobStage>();
+        * stageToSend = * stage;
+
+        success = communicator->sendObject<JobStage>(stageToSend, errMsg);
         if (!success) {
             std :: cout << errMsg << std :: endl;
             return false;
