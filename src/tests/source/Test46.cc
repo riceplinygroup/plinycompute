@@ -40,6 +40,14 @@ int main (int argc, char * argv[]) {
 
         std :: cout << "to add data with size: " << numOfMb << "MB" << std :: endl;
 
+        bool clusterMode = false;
+        if (argc > 2) {
+             clusterMode = true;
+             std :: cout << "We are running in cluster mode" << std :: endl;
+        }
+        else {
+             std :: cout << "We are not running in cluster mode, if you want to run in cluster mode, please provide any character as second parameter" << std :: endl;
+        }
 
 	// register the shared employee class
 	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), true);
@@ -50,6 +58,13 @@ int main (int argc, char * argv[]) {
 	} else {
 		cout << "Registered type.\n";
 	}
+
+        //to register selection type
+        if (clusterMode == true) {
+            temp.registerType ("libraries/libChrisSelection.so", errMsg);
+            temp.registerType ("libraries/libStringSelection.so", errMsg);
+        }
+
 
 	// now, create a new database
 	if (!temp.createDatabase ("chris_db", errMsg)) {
