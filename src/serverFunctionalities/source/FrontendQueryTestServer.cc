@@ -83,7 +83,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                 std :: string outDatabaseName = request->getOutput()->getDatabase();
                 std :: string outSetName = request->getOutput()->getSetName();
-
+       
                 // add the output set
                 //TODO: check whether output set exists
                 std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);

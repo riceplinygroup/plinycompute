@@ -21,6 +21,7 @@
 //by Jia, Sept 2016
 #include "BlockQueryProcessor.h"
 #include "Object.h"
+#include "QueryBase.h"
 #include <string>
 
 // PRELOAD %ExecutionOperator%
@@ -40,6 +41,7 @@ class ExecutionOperator : public Object {
 
        virtual string getName() = 0;
        virtual BlockQueryProcessorPtr getProcessor() = 0;
+       virtual Handle<QueryBase> getSelection() = 0;
 };
 
 }
