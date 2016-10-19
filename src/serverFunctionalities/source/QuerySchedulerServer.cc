@@ -128,8 +128,24 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
         std :: cout << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
 
-        Handle<JobStage> stageToSend = makeObject<JobStage>();
-        * stageToSend = * stage;
+        Handle<JobStage> stageToSend = makeObject<JobStage>(stage->getStageId());
+        std :: string inDatabaseName = stage->getInput()->getDatabase();
+        std :: string inSetName = stage->getInput()->getSetName();
+        Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+        stageToSend->setInput(input);
+
+        std :: string outDatabaseName = stage->getOutput()->getDatabase();
+        std :: string outSetName = stage->getOutput()->getSetName();
+        Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+        stageToSend->setOutput(output);
+        stageToSend->setOutputTypeName(stage->getOutputTypeName());
+
+        Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
+        for (int i = 0; i < operators.size(); i++) {
+             stageToSend->addOperator(operators[i]);
+        }
+        
+        stageToSend->print();
 
         success = communicator->sendObject<JobStage>(stageToSend, errMsg);
         if (!success) {
@@ -304,7 +320,7 @@ void QuerySchedulerServer :: printCurrentPlan() {
 }
 
 void QuerySchedulerServer :: schedule() {
-
+         
          int counter = 0;
          PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
                  [&] (PDBAlarm myAlarm, int &counter) {
@@ -315,6 +331,7 @@ void QuerySchedulerServer :: schedule() {
              PDBWorkerPtr myWorker = getWorker();
              PDBWorkPtr myWork = make_shared <GenericWork> (
                  [&, i] (PDBBuzzerPtr callerBuzzer) {
+                       makeObjectAllocatorBlock(24 * 1024 * 1024, true);
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
                        std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
                        std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
