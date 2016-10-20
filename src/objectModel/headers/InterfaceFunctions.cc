@@ -204,6 +204,14 @@ Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t n
 	return (Record <ObjType> *) res;
 }
 
+template <class TargetType> 
+Handle <TargetType> deepCopyToCurrentAllocationBlock (Handle <TargetType> &copyMe) {
+  Handle <Holder <TargetType>> temp = makeObject <Holder <TargetType>> ();
+  temp->child = copyMe; // since temp->child is physically located in the current allocation block, forces a deep copy
+  return temp->child;
+};
+
+
 }
 
 #endif

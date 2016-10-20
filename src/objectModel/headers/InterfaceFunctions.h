@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include "Object.h"
 
 namespace pdb {
 
@@ -248,6 +249,16 @@ int16_t getTypeID ();
 // So use this operation CAREFULLY!!
 template <class OutObjType, class InObjType>
 Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
+
+template <class TargetType>
+class Holder : public Object{
+    public:
+        Handle<TargetType> child;
+        ENABLE_DEEP_COPY
+};
+
+template <class TargetType>
+Handle <TargetType> deepCopyToCurrentAllocationBlock (Handle <TargetType> &copyMe); 
 
 }
 

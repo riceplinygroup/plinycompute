@@ -23,6 +23,7 @@
 
 #include "InterfaceFunctions.h"
 #include "QuerySchedulerServer.h"
+#include "QueryOutput.h"
 #include "ResourceInfo.h"
 #include "ResourceManagerServer.h"
 #include "SimpleSingleTableQueryProcessor.h"
@@ -142,7 +143,16 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
         Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
         for (int i = 0; i < operators.size(); i++) {
-             stageToSend->addOperator(operators[i]);
+             Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
+             Handle<ExecutionOperator> curOperator;
+             if( operators[i]->getName() == "ProjectionOperator") {
+                 curOperator = makeObject<ProjectionOperator>(newSelection);
+                 stageToSend->addOperator(curOperator);
+             } else if ( operators[i]->getName() == "FilterOperator") {
+                 curOperator = makeObject<FilterOperator>(newSelection);
+                 stageToSend->addOperator(curOperator);
+             }
+             std :: cout << curOperator->getName() << std :: endl;
         }
         
         stageToSend->print();
@@ -331,7 +341,7 @@ void QuerySchedulerServer :: schedule() {
              PDBWorkerPtr myWorker = getWorker();
              PDBWorkPtr myWork = make_shared <GenericWork> (
                  [&, i] (PDBBuzzerPtr callerBuzzer) {
-                       makeObjectAllocatorBlock(24 * 1024 * 1024, true);
+                       makeObjectAllocatorBlock(1 * 1024 * 1024, true);
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
                        std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
                        std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
