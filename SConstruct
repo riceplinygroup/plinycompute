@@ -25,7 +25,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
 	print 'Compiling on Linux'
 	common_env.Append(LIBS = ['libdl.so', 'uuid'])
-  	common_env.Append(CXXFLAGS = '-std=c++14 -W -Wall -g -O3 -ldl')
+  	common_env.Append(CXXFLAGS = '-std=c++14 -W -Wall -g -O0 -ldl')
 	common_env.Append(LINKFLAGS = '-pthread')
 	common_env.Replace(CXX = "clang++")
 

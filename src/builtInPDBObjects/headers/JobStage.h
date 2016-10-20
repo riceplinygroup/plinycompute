@@ -116,6 +116,9 @@ namespace pdb {
                 std::cout << "[OUTPUT] databaseName=" << output->getDatabase()<<", setName=" << output->getSetName()<< std :: endl;
                 std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
                 std::cout << "[OPERATORS] number=" << operators.size() << std :: endl;
+                for (int i = 0; i < operators.size(); i++) {
+                      std :: cout << i << "-th operator:" << operators[i]->getName() << std :: endl;
+                }
                 std::cout << "[CHILDREN] number=" << childrenStages.size() << std :: endl;
                 for (int i = 0; i < childrenStages.size(); i++) {
                      std :: cout << i << "-th child:" << std :: endl;
