@@ -41,7 +41,7 @@ class ProjectionOperator : public ExecutionOperator {
        ProjectionOperator() {selection = nullptr;}
 
 
-       ProjectionOperator(Handle<QueryBase> selection) {
+       ProjectionOperator(Handle<QueryBase>& selection) {
             this->selection = selection;           
        }
 
@@ -56,7 +56,7 @@ class ProjectionOperator : public ExecutionOperator {
             return (unsafeCast<Selection<Object, Object>>(selection))->getProjectionBlockProcessor();
        }
       
-       Handle<QueryBase> getSelection() override {
+       Handle<QueryBase> & getSelection() override {
             return this->selection;
        }        
        

@@ -43,7 +43,7 @@ class FilterOperator : public ExecutionOperator {
             selection = nullptr;
        }
 
-       FilterOperator(Handle<QueryBase> selection) {
+       FilterOperator(Handle<QueryBase>& selection) {
             this->selection = selection;           
        }
 
@@ -58,7 +58,7 @@ class FilterOperator : public ExecutionOperator {
             return (unsafeCast<Selection<Object, Object>>(selection))->getFilterBlockProcessor();
        }
 
-       Handle<QueryBase> getSelection() override {
+       Handle<QueryBase>& getSelection() override {
             return this->selection;
        }
 
