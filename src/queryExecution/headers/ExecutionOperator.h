@@ -41,7 +41,7 @@ class ExecutionOperator : public Object {
 
        virtual string getName() = 0;
        virtual BlockQueryProcessorPtr getProcessor() = 0;
-       virtual Handle<QueryBase> getSelection() = 0;
+       virtual Handle<QueryBase>& getSelection() = 0;
 };
 
 }
