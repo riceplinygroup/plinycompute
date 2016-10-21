@@ -60,7 +60,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 bool success;
                 std :: cout << "Frontend got a request for JobStage" << std :: endl;
                 request->print();
-                const UseTemporaryAllocationBlock tempBlock {128*1024*1024};
+                const UseTemporaryAllocationBlock tempBlock {24*1024*1024};
                 PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                 if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                     std :: cout << errMsg << std :: endl;
