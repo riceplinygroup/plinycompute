@@ -56,10 +56,10 @@ public:
        void printCurrentPlan();
 
        //to schedule the current job plan
-       bool schedule(std :: string ip, int port, PDBLoggerPtr logger);
+       bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
        //to schedule a job stage
-       bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator);
+       bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
 
        //to schedule the current job plan on all available resources
        void schedule();
