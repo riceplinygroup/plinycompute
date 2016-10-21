@@ -44,6 +44,7 @@
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
 #include "IrBuilder.h"
+#include "DataTypes.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -95,7 +96,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 
 
 
-bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger) {
+bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
      
     std :: cout << "to connect to the remote node" << std :: endl;
     PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
@@ -113,7 +114,7 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
     for (int i = 0; i < this->currentPlan.size(); i++) {
         Handle<JobStage> stage = currentPlan[i];
-        success = schedule (stage, communicator);
+        success = schedule (stage, communicator, mode);
         if (!success) {
             return success;
         }
@@ -122,45 +123,63 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
 }
 
-bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator) {
+bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
 
         bool success;
         std :: string errMsg;
 
         std :: cout << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
 
-        Handle<JobStage> stageToSend = makeObject<JobStage>(stage->getStageId());
-        std :: string inDatabaseName = stage->getInput()->getDatabase();
-        std :: string inSetName = stage->getInput()->getSetName();
-        Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
-        stageToSend->setInput(input);
+        if (mode == Direct) {
+            stage->print();
+            success = communicator->sendObject<JobStage>(stage, errMsg);
+            if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return false;
+            }
 
-        std :: string outDatabaseName = stage->getOutput()->getDatabase();
-        std :: string outSetName = stage->getOutput()->getSetName();
-        Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
-        stageToSend->setOutput(output);
-        stageToSend->setOutputTypeName(stage->getOutputTypeName());
+        } else if (mode == Recreation) {
+            Handle<JobStage> stageToSend = makeObject<JobStage>(stage->getStageId());
+            std :: string inDatabaseName = stage->getInput()->getDatabase();
+            std :: string inSetName = stage->getInput()->getSetName();
+            Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+            stageToSend->setInput(input);
 
-        Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
-        for (int i = 0; i < operators.size(); i++) {
-             Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
-             Handle<ExecutionOperator> curOperator;
-             if( operators[i]->getName() == "ProjectionOperator") {
-                 curOperator = makeObject<ProjectionOperator>(newSelection);
-                 stageToSend->addOperator(curOperator);
-             } else if ( operators[i]->getName() == "FilterOperator") {
-                 curOperator = makeObject<FilterOperator>(newSelection);
-                 stageToSend->addOperator(curOperator);
+            std :: string outDatabaseName = stage->getOutput()->getDatabase();
+            std :: string outSetName = stage->getOutput()->getSetName();
+            Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+            stageToSend->setOutput(output);
+            stageToSend->setOutputTypeName(stage->getOutputTypeName());
+ 
+            Vector<Handle<ExecutionOperator>> operators = stage->getOperators();
+            for (int i = 0; i < operators.size(); i++) {
+                Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
+                Handle<ExecutionOperator> curOperator;
+                if( operators[i]->getName() == "ProjectionOperator") {
+                    curOperator = makeObject<ProjectionOperator>(newSelection);
+                } else if ( operators[i]->getName() == "FilterOperator") {
+                    curOperator = makeObject<FilterOperator>(newSelection);
+                }
+                std :: cout << curOperator->getName() << std :: endl;
+                stageToSend->addOperator(curOperator);
              }
-             std :: cout << curOperator->getName() << std :: endl;
-        }
-        
-        stageToSend->print();
-
-        success = communicator->sendObject<JobStage>(stageToSend, errMsg);
-        if (!success) {
-            std :: cout << errMsg << std :: endl;
-            return false;
+             stageToSend->print();
+             success = communicator->sendObject<JobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             }
+        } else if (mode == DeepCopy) {
+             Handle<JobStage> stageToSend = deepCopyToCurrentAllocationBlock<JobStage> (stage);
+             stageToSend->print();
+             success = communicator->sendObject<JobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             }
+        } else {
+             std :: cout << "Error: No such object creation mode supported in scheduler" << std :: endl;
+             exit (-1);
         }
         std :: cout << "to receive query response from the remote node" << std :: endl;
         Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
@@ -176,7 +195,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
         Vector<Handle<JobStage>> childrenStages = stage->getChildrenStages();
         for (int i = 0; i < childrenStages.size(); i ++) {
-            success = schedule (childrenStages[i], communicator);
+            success = schedule (childrenStages[i], communicator, mode);
             if (!success) {
                 return success;
             }
@@ -345,7 +364,7 @@ void QuerySchedulerServer :: schedule() {
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
                        std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
                        std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
-                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger);
+                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger, Recreation);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;

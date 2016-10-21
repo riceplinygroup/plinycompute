@@ -95,6 +95,11 @@ typedef enum {
 	Persistent
 }PersistenceType;
 
+typedef enum {
+        Direct,
+        Recreation,
+        DeepCopy
+}ObjectCreationMode;
 
 typedef enum {
     SequenceFileType,

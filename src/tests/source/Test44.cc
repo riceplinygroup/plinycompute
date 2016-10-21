@@ -41,6 +41,7 @@
 #include "QueryOutput.h"
 #include "IrBuilder.h"
 #include "QuerySchedulerServer.h"
+#include "DataTypes.h"
 #include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
@@ -115,7 +116,7 @@ int main (int argc, char * argv[]) {
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();
         if (clusterMode == false) {
-            server.schedule("localhost", 8108, myLogger); 
+            server.schedule("localhost", 8108, myLogger, Direct); 
         } else {
             server.initialize(false);
             server.schedule();
