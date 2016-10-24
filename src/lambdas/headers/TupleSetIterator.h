@@ -16,69 +16,49 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
-
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
+#ifndef TUPLE_SET_ITER_H
+#define TUPLE_SET_ITER_H
 
 namespace pdb {
 
-class Supervisor : public Object {
+// this class iterates over an input pdb :: Vector, breaking it up into a series of TupleSet objects
+class TupleSetIterator {
+
+private:
+
+	Handle <Vector <Handle <Object>>> &iterateOverMe;
+	size_t chunkSize;
+	size_t pos;	
+	TupleSetPtr output;
 
 public:
 
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
+	TupleSetIterator (Handle <Vector <Handle <Object>>> &iterateOverMe, size_t chunkSize) : iterateOverMe (iterateOverMe), chunkSize (chunkSize) {
+		output = std :: make_shared <TupleSet> ();
+		std :: vector <Handle <Object>> *inputColumn = new std :: vector <Handle <Object>>;
+		output->addColumn (0, inputColumn, true); 
+		pos = 0;
 	}
 
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
+	// returns the next tuple set to process, or nullptr if there is not one to process
+	TupleSetPtr getNextTupleSet () {
+		if (pos == iterateOverMe->size ())
+			return nullptr;
 
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
+		int numSlotsToIterate = chunkSize;
+		if (numSlotsToIterate + pos > iterateOverMe->size ()) {
+			numSlotsToIterate = iterateOverMe->size () - pos;
 		}
-		return nullptr;
-	}
 
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
+		std :: vector <Handle <Object>> &inputColumn = output->getColumn <Handle <Object>> (0);
+		inputColumn.resize (numSlotsToIterate);
+		for (int i = 0; i < numSlotsToIterate; i++) {
+			inputColumn[i] = (*iterateOverMe)[pos];	
+			pos++;
 		}
-        }
 
+		return output;
+	}	
 };
 
 }

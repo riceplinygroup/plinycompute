@@ -15,72 +15,16 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef _PARSER_H_
+#define _PARSER_H_
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
+#include "Lexer.h"
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
+struct LogicalPlan;
 
-//  PRELOAD %Supervisor%
-
-namespace pdb {
-
-class Supervisor : public Object {
-
-public:
-
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
-	}
-
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
-
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
-		}
-		return nullptr;
-	}
-
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
-
-};
-
-}
-
+#ifdef __cplusplus
+extern "C"
 #endif
+int yyparse (yyscan_t, struct LogicalPlan **);
+
+#endif	

@@ -82,6 +82,16 @@ int main () {
 		std :: cout << "(" << a.key << ", " << *(a.value) << ") ";
 	}
 
+	Vector <Handle <Foo>> myVec;
+	for (int i = 0; i < 1000; i++) {	
+		Handle <Foo> temp = makeObject <Foo> ();
+		myMap.push_back (temp);
+	}
+
+	Vector <Handle <Foo> &> myVec2 (1000, 1000);
+	for (int i = 0; i < 1000; i++) {
+		myVec2 [i] = myVec [i];	
+	}
 }
 
 #endif

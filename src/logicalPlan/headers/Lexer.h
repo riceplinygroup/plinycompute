@@ -15,72 +15,34 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef _LEXER_H_
+#define _LEXER_H_
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
-
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
-
-namespace pdb {
-
-class Supervisor : public Object {
-
-public:
-
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
-	}
-
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
-
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
-		}
-		return nullptr;
-	}
-
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
-
-};
-
-}
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+	struct LexerExtra {
+		char errorMessage[500];
+	};	  
+
+	typedef void* yyscan_t;
+	int yylex_init_extra(struct LexerExtra *, yyscan_t *);
+	int yylex_destroy(yyscan_t);
+
+	typedef struct yy_buffer_state *YY_BUFFER_STATE;
+	YY_BUFFER_STATE yy_scan_string (const char *, yyscan_t);
+	void yy_delete_buffer (YY_BUFFER_STATE, yyscan_t);
+
+	struct LogicalPlan;
+	void yyerror(yyscan_t, struct LogicalPlan **myStatement, const char *);
+
+	union YYSTYPE;
+	int yylex(union YYSTYPE *, yyscan_t);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif	

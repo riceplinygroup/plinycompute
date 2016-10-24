@@ -167,6 +167,9 @@ public:
 	// get the number of currently-reachable objects in the current allocation block
 	unsigned getNumObjectsInCurrentAllocatorBlock ();
 
+	// get the number of objects in the block containing the given memory location
+	unsigned getNumObjectsInAllocatorBlock (void *forMe);
+
 	// get the number of bytes available in the current allocation block
 	size_t getBytesAvailableInCurrentAllocatorBlock ();
 

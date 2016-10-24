@@ -16,69 +16,58 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
+#ifndef FILTER_QUERY_EXEC_H
+#define FILTER_QUERY_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
+#include "QueryExecutor.h"
+#include "TupleSetMachine.h"
+#include "TupleSet.h"
+#include <vector>
 
 namespace pdb {
 
-class Supervisor : public Object {
+// runs a filter operation
+class FilterQueryExecutor : public QueryExecutor {
+
+private:
+
+	// this is the output TupleSet that we return
+	TupleSetPtr output;
+
+	// the attribute to operate on
+	int whichAtt;
+
+	// to setup the output tuple set
+	TupleSetSetupMachine <bool> myMachine;
 
 public:
 
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
+	FilterQueryExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) : 
+		myMachine (inputSchema, attsToIncludeInOutput) {
 
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
+		output = std :: make_shared <TupleSet> ();
+	
+		// this is the input attribute that we will process
+		std :: vector <int> matches = myMachine.match (attsToOperateOn);
+		whichAtt = matches[0];
 	}
 
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
+	TupleSetPtr process (TupleSetPtr input) override {
 
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
+		// set up the output tuple set
+		myMachine.setup (input, output);
+
+		// get the input column to use as a filter
+		std :: vector <bool> &inputColumn = input->getColumn <bool> (whichAtt);
+
+		// loop over the columns and filter
+		int numColumns = output->getNumColumns ();
+		for (int i = 0; i < numColumns; i++) {
+			output->filterColumn (i, inputColumn);
 		}
-		return nullptr;
+
+		return output;
 	}
-
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
-
 };
 
 }

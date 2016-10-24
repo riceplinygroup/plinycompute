@@ -16,68 +16,25 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
+#ifndef QUERY_EXEC_H
+#define QUERY_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
+#include "TupleSet.h"
 
 namespace pdb {
 
-class Supervisor : public Object {
+// a nice little typedef to shared_ptrs to QueryExecutor objects
+class QueryExecutor;
+typedef std :: shared_ptr <QueryExecutor> QueryExecutorPtr;
+
+// this is a QueryExecutor.  By definition, it has one method that takes an input a TupleSet, and
+// then somehow transofrms it to create a new TupleSet (a TupleSet is a column-oriented list of
+// tuples)
+class QueryExecutor {
 
 public:
 
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
-	}
-
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
-
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
-		}
-		return nullptr;
-	}
-
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
+	virtual TupleSetPtr process (TupleSetPtr input) = 0;
 
 };
 

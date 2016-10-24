@@ -16,69 +16,39 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
+#ifndef SIMPLE_QUERY_EXEC_H
+#define SIMPLE_QUERY_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
+#include "TupleSet.h"
+#include "QueryExecutor.h"
+#include <memory>
 
 namespace pdb {
 
-class Supervisor : public Object {
+class SimpleQueryExecutor;
+typedef std :: shared_ptr <SimpleQueryExecutor> SimpleQueryExecutorPtr;
+
+// this is a simple generic implementation of a QueryExecutor
+class SimpleQueryExecutor : public QueryExecutor {
+
+private:
+
+	// this is the output TupleSet that we return
+	TupleSetPtr output;
+
+	// this is a lambda that we'll call to process input
+	std :: function <TupleSetPtr (TupleSetPtr)> processInput;
 
 public:
 
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
+	SimpleQueryExecutor (TupleSetPtr outputIn, std :: function <TupleSetPtr (TupleSetPtr)> processInputIn) {
+		output = outputIn;
+		processInput = processInputIn;
 	}
 
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
-
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
-		}
-		return nullptr;
+	TupleSetPtr process (TupleSetPtr input) override {
+		return processInput (input);
 	}
-
-	Handle <Employee> &getMe () {
-		return me;
-	}
-
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
-
 };
 
 }

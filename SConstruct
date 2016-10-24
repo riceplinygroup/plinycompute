@@ -8,6 +8,8 @@ import platform
 import multiprocessing
 
 common_env = Environment(CXX = 'clang++')
+common_env.Append(YACCFLAGS='-d')
+common_env.Append(CFLAGS='-std=c11')
 
 # the following variables are used for output coloring to see errors and warnings better. 
 common_env = Environment(ENV = {'PATH' : os.environ['PATH'],
@@ -161,7 +163,7 @@ for src_subdir_path in src_root_subdir_paths:
 	common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)
 
 	# next, add all of the sources in
-	allSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and f2[-3:] == '.cc']
+	allSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-3:] == '.cc' or f2[-2:] == '.y' or f2[-2:] == '.l')]
 	component_dir_basename_to_cc_file_paths [src_subdir_basename] = allSources
 
 # second, map build output folders (on the left) to source folders (on the right) for .so libraries
@@ -169,9 +171,6 @@ common_env.VariantDir('build/libraries/', 'src/sharedLibraries/source/', duplica
 
 # List of folders with headers
 headerpaths = [abspath(join(join(SRC_ROOT, f), 'headers/')) for f in listdir(SRC_ROOT) if os.path.isdir (join(join(SRC_ROOT, f), 'headers/'))]
-
-
-
 
 #boost has its own folder structure, which is difficult to be converted to our headers/source structure --Jia
 # set BOOST_ROOT and BOOST_SRC_ROOT
@@ -267,6 +266,7 @@ common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
 common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
+common_env.Program('bin/test47', ['src/tests/source/Test47.cc'] + all + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
