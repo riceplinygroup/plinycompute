@@ -197,10 +197,10 @@ public:
 	// so we can perform a deep copy over handles
 	ENABLE_DEEP_COPY
 
-private:
-
 	// gets a pointer to the target object
 	RefCountedObject <ObjType> *getTarget () const;
+
+private:
 
 	template <class ObjTypeTwo> friend class Handle;
 	friend class Allocator;
@@ -211,13 +211,25 @@ private:
 
 // equality on handles checks for equality of the underlying objects... 
 template <class ObjTypeOne, class ObjTypeTwo>
-bool operator == (const Handle <ObjTypeOne> &lhs, const Handle <ObjTypeTwo> &rhs) {return *lhs == *rhs;}
+bool operator == (const Handle <ObjTypeOne> &lhs, const Handle <ObjTypeTwo> &rhs) {
+	if (lhs.isNullPtr () || rhs.isNullPtr ())
+		return false;
+	return *lhs == *rhs;
+}
 
 template <class ObjTypeOne, class ObjTypeTwo>
-bool operator == (const ObjTypeOne &lhs, const Handle <ObjTypeTwo> &rhs) {return lhs == *rhs;}
+bool operator == (const ObjTypeOne &lhs, const Handle <ObjTypeTwo> &rhs) {
+	if (rhs.isNullPtr ())
+		return false;
+	return lhs == *rhs;
+}
 
 template <class ObjTypeOne, class ObjTypeTwo>
-bool operator == (const Handle<ObjTypeOne> &lhs, const ObjTypeTwo &rhs) {return *lhs == rhs;}
+bool operator == (const Handle<ObjTypeOne> &lhs, const ObjTypeTwo &rhs) {
+	if (lhs.isNullPtr ())
+		return false;
+	return *lhs == rhs;
+}
 
 }
 

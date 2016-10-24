@@ -289,11 +289,8 @@ inline unsigned Allocator :: getNumObjectsInCurrentAllocatorBlock () {
 	return ALLOCATOR_REF_COUNT;
 }
 
-template <class ObjType>
-unsigned Allocator :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe) {
-
-	void *here = forMe.getTarget ();
-
+inline unsigned Allocator :: getNumObjectsInAllocatorBlock (void *here) {
+		
 	// see if this guy is from the active block
 	if (contains (here)) {
 		return ALLOCATOR_REF_COUNT;
@@ -312,13 +309,18 @@ unsigned Allocator :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe
 	return 0;
 }
 
+template <class ObjType>
+unsigned Allocator :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe) {
+
+	void *here = forMe.getTarget ();
+	return getNumObjectsInAllocatorBlock (here);
+}
+
 inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
 
 	// make sure that we are gonna be able to write the header
 	if (numBytesIn < HEADER_SIZE) {
 		std :: cerr << "You need to have an allocation block that is at least " << HEADER_SIZE << " bytes.\n";
-		int *foo = 0;
-		*foo = 24;
 		exit (1);
 	}
 

@@ -118,6 +118,10 @@ unsigned getNumObjectsInCurrentAllocatorBlock  ();
 template <class ObjType>
 unsigned getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe);
 
+// like the above, except that it finds the number of objects in the block
+// that contains the specified pointer
+unsigned getNumObjectsInAllocatorBlock (void *forMe);
+
 // creates and returns a RefCountedObject that is located in the current
 // allocation block.  This RefCountedObject can be converted into a handle
 // via an assignment to a Handle <ObjType>.  This function is used to get a handle

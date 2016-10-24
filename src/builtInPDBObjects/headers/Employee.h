@@ -56,6 +56,10 @@ public:
                 name = makeObject <String> (nameIn);
                 age = ageIn;
         }
+
+	bool operator == (Employee &me) const {
+		return name == me.name;
+	}
 };
 
 }

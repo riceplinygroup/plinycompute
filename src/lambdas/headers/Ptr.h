@@ -16,68 +16,49 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SUPERVISOR_H
-#define SUPERVISOR_H
-
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-#include "Employee.h"
-
-//  PRELOAD %Supervisor%
+#ifndef PTR_H
+#define PTR_H
 
 namespace pdb {
 
-class Supervisor : public Object {
+class PtrBase {};
+
+// this class wraps up a pointer, and provides implicity dereferencing...
+// it is used during query processing, whenever we want to store a pointer
+// to a data member.  This will also be used when we have a C++ lambda or
+// a method call that returns a reference; in this case, we store a pointer
+// to the value so that we can avoid a copy
+template <class BaseType> 
+class Ptr : public PtrBase {
+
+private:
+
+	BaseType *data;
 
 public:
 
-        Handle <Employee> me;
-        Vector <Handle <Employee>> myGuys;
-
-	ENABLE_DEEP_COPY
-
-        ~Supervisor () {}
-        Supervisor () {}
-
-        Supervisor (std :: string name, int age) {
-                me = makeObject <Employee> (name, age);
-        }
-
-        Handle <Employee> &getEmp (int who) {
-                return myGuys[who];
-        }
-
-	int getNumEmployees () {
-		return myGuys.size ();
+	Ptr () {
+		data = nullptr;
 	}
 
-        void addEmp (Handle <Employee> &addMe) {
-                myGuys.push_back (addMe);
-        }
+	Ptr (BaseType *fromMe) {
+		data = fromMe;
+	} 
 
-	Handle <Employee> getSteve () {
-		for (int i = 0; i < myGuys.size (); i++) {
-			if (myGuys[i]->getName () == "Steve Stevens")
-				return myGuys[i];
-		}
-		return nullptr;
+	Ptr &operator = (BaseType *fromMe) {
+		data = fromMe;
+		return *this;
 	}
 
-	Handle <Employee> &getMe () {
-		return me;
+	~Ptr () {}
+	
+	operator BaseType& () const {
+		return *data;
 	}
 
-        void print () {
-                me->print ();
-                std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
-			std :: cout << "\t (One is ";
-			myGuys[0]->print ();
-			std :: cout << ")\n";
-		}
-        }
+	operator BaseType * () const {
+		return data;
+	}
 
 };
 
