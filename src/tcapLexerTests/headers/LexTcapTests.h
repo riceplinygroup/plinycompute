@@ -15,17 +15,16 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-////
-//// Created by barnett on 9/1/16.
-////
-//
-//#ifndef PDB_QUERYINTERMEDIARYREP_H
-//#define PDB_QUERYINTERMEDIARYREP_H
-//
-//#include <string>
-//
-//namespace pdb_detail
-//{
-//    string buildDot(QueryIr query);
-//}
-//#endif //PDB_DOTBUILDER_H_H
+#ifndef PDB_TCAPLEXERTESTS_LEXTCAPTESTS_H
+#define PDB_TCAPLEXERTESTS_LEXTCAPTESTS_H
+
+#include "qunit.h"
+
+using QUnit::UnitTest;
+
+namespace pdb_tests
+{
+    void testLexTcap1(UnitTest &qunit);
+}
+
+#endif //PDB_TCAPLEXERTESTS_LEXTCAPTESTS_H

@@ -15,14 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by barnett on 9/28/16.
-//
-
 #ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODEALGO_H
 #define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODEALGO_H
-
-#include "MaterializationMode.h"
 
 namespace pdb_detail
 {
@@ -30,6 +24,9 @@ namespace pdb_detail
 
     class MaterializationModeNamedSet;
 
+    /**
+     * Enumerates each of the variants of MaterializationMode for the Visitor Pattern.
+     */
     class MaterializationModeAlgo
     {
 

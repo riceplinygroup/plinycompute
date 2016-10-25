@@ -7,6 +7,7 @@ set(CMAKE_CXX_COMPILER  /usr/bin/clang++)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 include_directories(
+        ../../../src/boost
         ../../../src/bufferMgr/headers
         ../../../src/builtInPDBObjects/headers
         ../../../src/conf/headers
@@ -26,9 +27,29 @@ include_directories(
         ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
         ../../../src/storage/headers
+        ../../../src/tcapLexer/headers
+        ../../../src/tcapLexerTests/headers
+        ../../../src/tcapParser/headers
+        ../../../src/tcapParserTests/headers
         ../../../src/work/headers)
 
 set(SOURCE_FILES
+        ../../../src/boost/libs/filesystem/src/operations.cpp
+        ../../../src/boost/libs/filesystem/src/path.cpp
+        ../../../src/boost/libs/program_options/src/options_description.cpp
+        ../../../src/boost/libs/program_options/src/variables_map.cpp
+        ../../../src/boost/libs/system/src/error_code.cpp
+        ../../../src/boost/libs/program_options/src/cmdline.cpp
+        ../../../src/boost/libs/program_options/src/config_file.cpp
+        ../../../src/boost/libs/program_options/src/convert.cpp
+        ../../../src/boost/libs/program_options/src/parsers.cpp
+        ../../../src/boost/libs/program_options/src/positional_options.cpp
+        ../../../src/boost/libs/program_options/src/split.cpp
+        ../../../src/boost/libs/program_options/src/utf8_codecvt_facet.cpp
+        ../../../src/boost/libs/program_options/src/value_semantic.cpp
+        ../../../src/boost/libs/program_options/src/winmain.cpp
+        ../../../src/boost/boost/program_options/config.hpp
+        ../../../src/boost/boost/program_options/errors.hpp
         ../../../src/bufferMgr/source/MyDB_BufferManager.cc
         ../../../src/bufferMgr/source/MyDB_Page.cc
         ../../../src/bufferMgr/source/MyDB_Table.cc
@@ -41,7 +62,9 @@ set(SOURCE_FILES
         ../../../src/queriesTests/source/QueriesTestsRunner.cc
         ../../../src/queryIntermediaryRep/source/IrBuilder.cc
         ../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc
-        ../../../src/queryIntermediaryRep/source/MaterializationMode.cc
+        ../../../src/queryIntermediaryRep/source/MaterializationModeNamedSet.cc
+        ../../../src/queryIntermediaryRep/source/MaterializationModeNone.cc
+        ../../../src/queryIntermediaryRep/source/ProjectionIr.cc
         ../../../src/queryIntermediaryRep/source/SelectionIr.cc
         ../../../src/queryIntermediaryRep/source/SetName.cc
         ../../../src/queryIntermediaryRep/source/UnarySetOperator.cc
@@ -52,13 +75,20 @@ set(SOURCE_FILES
         ../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc
 #        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
+        ../../../src/tcapLexer/source/Lexeme.cc
+        ../../../src/tcapLexer/source/TcapLexer.cc
+        ../../../src/tcapLexer/source/TokenStream.cc
+        ../../../src/tcapLexerTests/source/TcapTestsRunner.cc
+        ../../../src/tcapLexerTests/source/LexTcapTests.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc
         ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
         ../../../src/work/source/PDBWork.cc
-        ../../../src/work/source/PDBWorker.cc)
+        ../../../src/work/source/PDBWorker.cc ../../../src/tcapParserTests/source/ParseTcapTests.cc ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc)
+
+
 
 add_executable(pdb ${SOURCE_FILES})
 

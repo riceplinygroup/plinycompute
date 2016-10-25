@@ -15,48 +15,42 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-
-#include <string>
-
-#include "MaterializationModeAlgo.h"
-
-using std::string;
+#include <iostream>
+#include "TokenStream.h"
 
 namespace pdb_detail
 {
-    /**
-     * Models possible materilization options.
-     *
-     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
-     */
-    class MaterializationMode
+
+    TokenStream::TokenStream(shared_ptr<vector<Lexeme>>tokens) :_tokens(tokens)
     {
+    }
 
-    public:
+    bool TokenStream::hasNext()
+    {
+        return _readIndex < _tokens->size();
+    }
 
-        /**
-         * @return true if materialization is not to be performed.
-         */
-        virtual bool isNone() = 0;
+    Lexeme TokenStream::advance()
+    {
+        if(_readIndex>=_tokens->size())
+            return Lexeme("", Lexeme::UNKNOWN_TYPE);
 
-        /**
-         * Visitation hook.
-         */
-        virtual void execute(MaterializationModeAlgo &algo) = 0;
+        return _tokens->operator[](_readIndex++);
+    }
 
-        /**
-         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetDatabaseName(const string &noneValue) = 0;
+    Lexeme TokenStream::peek()
+    {
+        return _tokens->operator[](_readIndex);
+    }
 
-        /**
-         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetSetName(const string &noneValue) = 0;
-    };
+// useful for debugging.
+//
+//        void TokenStream::printTypes()
+//        {
+//            for(int i = _readIndex; i<_tokens->size(); i++)
+//            {
+//                std::cerr << _tokens->operator[](i).tokenType << "\n";
+//            }
+//        }
 
 }
-
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H

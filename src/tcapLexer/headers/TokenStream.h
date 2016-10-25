@@ -15,48 +15,59 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
 
-#include <string>
+#ifndef PDB_TCAPLEXER_TOKENSTREAM_H
+#define PDB_TCAPLEXER_TOKENSTREAM_H
 
-#include "MaterializationModeAlgo.h"
+#include <memory>
+#include <vector>
 
-using std::string;
+#include "Lexeme.h"
+
+using std::shared_ptr;
+using std::vector;
+
+using pdb_detail::Lexeme;
 
 namespace pdb_detail
 {
     /**
-     * Models possible materilization options.
-     *
-     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
+     * A sequence of tokens.
      */
-    class MaterializationMode
+    class TokenStream
     {
-
     public:
 
         /**
-         * @return true if materialization is not to be performed.
+         * Constructs a stream from the given tokens.
+         *
+         * @param tokens the tokens of the stream
+         * @return a new token stream
          */
-        virtual bool isNone() = 0;
+        TokenStream(shared_ptr<vector<Lexeme>> tokens);
 
         /**
-         * Visitation hook.
+         * @return true if any tokens remain, else false.
          */
-        virtual void execute(MaterializationModeAlgo &algo) = 0;
+        bool hasNext();
 
         /**
-         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
+         * @return
          */
-        virtual string tryGetDatabaseName(const string &noneValue) = 0;
+        Lexeme advance();
 
-        /**
-         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetSetName(const string &noneValue) = 0;
+        Lexeme peek();
+
+ //useful for debugging.
+ //       void printTypes();
+
+    private:
+
+        int _readIndex = 0;
+
+        shared_ptr<vector<Lexeme>> _tokens;
+
     };
-
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
+#endif //PDB_TCAPLEXER_TOKENSTREAM_H

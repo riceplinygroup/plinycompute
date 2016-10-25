@@ -32,6 +32,7 @@ using pdb_detail::RecordPredicateIr;
 using pdb_detail::RecordProjectionIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIrAlgo;
+using pdb_detail::SetExpressionIr;
 using pdb_detail::SourceSetNameIr;
 
 namespace pdb_tests

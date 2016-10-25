@@ -18,8 +18,8 @@
 #ifndef PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
 #define PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
 
-#include "ConsumableNodeIr.h"
 #include "MaterializationMode.h"
+#include "MaterializationModeNone.h"
 #include "SetExpressionIrAlgo.h"
 
 using std::make_shared;

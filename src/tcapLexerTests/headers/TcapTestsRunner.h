@@ -15,48 +15,16 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
+#ifndef PDB_RCAPLEXERTESTS_TCAPTESTSRUNNER_H
+#define PDB_RCAPLEXERTESTS_TCAPTESTSRUNNER_H
 
-#include <string>
+#include "qunit.h"
 
-#include "MaterializationModeAlgo.h"
+using QUnit::UnitTest;
 
-using std::string;
-
-namespace pdb_detail
+namespace pdb_tests
 {
-    /**
-     * Models possible materilization options.
-     *
-     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
-     */
-    class MaterializationMode
-    {
-
-    public:
-
-        /**
-         * @return true if materialization is not to be performed.
-         */
-        virtual bool isNone() = 0;
-
-        /**
-         * Visitation hook.
-         */
-        virtual void execute(MaterializationModeAlgo &algo) = 0;
-
-        /**
-         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetDatabaseName(const string &noneValue) = 0;
-
-        /**
-         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetSetName(const string &noneValue) = 0;
-    };
-
+    void runTcapTests(UnitTest &qunit);
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
+#endif //PDB_RCAPLEXERTESTS_TCAPTESTSRUNNER_H

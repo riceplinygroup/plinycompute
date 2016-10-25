@@ -15,63 +15,20 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "MaterializationMode.h"
+//
+// Created by barnett on 10/12/16.
+//
 
-namespace pdb_detail
+#ifndef PDB_TCAPPARSERTESTS_PARSETCAPTESTS_H
+#define PDB_TCAPPARSERTESTS_PARSETCAPTESTS_H
+
+#include "qunit.h"
+
+using QUnit::UnitTest;
+
+namespace pdb_tests
 {
-    bool MaterializationModeNone::isNone()
-    {
-        return true;
-    }
-
-    void MaterializationModeNone::execute(MaterializationModeAlgo &algo)
-    {
-        algo.forNone(*this);
-    }
-
-    string MaterializationModeNone::tryGetDatabaseName(const string &noneValue)
-    {
-        return noneValue;
-    }
-
-    string MaterializationModeNone::tryGetSetName(const string &noneValue)
-    {
-        return noneValue;
-    }
-
-    MaterializationModeNamedSet::MaterializationModeNamedSet(string databaseName, string setName)
-            : _databaseName(databaseName), _setName(setName)
-    {
-    }
-
-    void MaterializationModeNamedSet::execute(MaterializationModeAlgo &algo)
-    {
-        algo.forNamedSet(*this);
-    }
-
-    bool MaterializationModeNamedSet::isNone()
-    {
-        return false;
-    }
-
-    string MaterializationModeNamedSet::tryGetDatabaseName(const string &defaultValue)
-    {
-        return getDatabaseName();
-    }
-
-    string MaterializationModeNamedSet::tryGetSetName(const string &defaultValue)
-    {
-        return getSetName();
-    }
-
-    string MaterializationModeNamedSet::getDatabaseName()
-    {
-        return _databaseName;
-    }
-
-    string MaterializationModeNamedSet::getSetName()
-    {
-        return _setName;
-    }
-
+    void testParseTcap1(UnitTest &qunit);
 }
+
+#endif //PDB_TCAPPARSERTESTS_PARSETCAPTESTS_H

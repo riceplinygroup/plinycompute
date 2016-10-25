@@ -21,9 +21,9 @@
 
 
 #include "BuildIrTests.h"
-#include "ConsumableNodeIr.h"
 #include "ChrisSelection.h"
 #include "IrBuilder.h"
+#include "MaterializationModeNamedSet.h"
 #include "MaterializationModeAlgo.h"
 #include "SharedEmployee.h"
 #include "QueryNodeIr.h"
@@ -61,7 +61,7 @@ using pdb_detail::MaterializationModeNamedSet;
 using pdb_detail::QueryGraphIrPtr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
-using pdb_detail::RecordProjectionIr;
+//using pdb_detail::RecordProjectionIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 using pdb_detail::SetExpressionIrAlgo;
@@ -198,6 +198,14 @@ namespace pdb_tests
                 return Lambda<Handle<Object>>([]() { return nullptr; });
             }
 
+            // over-ridden by the user so they can supply the selection on projection
+            // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
+            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            {
+
+            }
+
+
             ENABLE_DEEP_COPY
         };
 
@@ -286,6 +294,14 @@ namespace pdb_tests
             {
                 return Lambda<Handle<Zebra>>([]() { return nullptr; });
             }
+
+            // over-ridden by the user so they can supply the selection on projection
+            // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
+            Lambda <bool> getProjectionSelection (Handle <Zebra> &in)
+            {
+
+            }
+
 
             ENABLE_DEEP_COPY
         };

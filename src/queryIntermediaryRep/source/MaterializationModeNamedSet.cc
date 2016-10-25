@@ -15,48 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-
-#include <string>
-
-#include "MaterializationModeAlgo.h"
-
-using std::string;
+#include "MaterializationModeNamedSet.h"
 
 namespace pdb_detail
 {
-    /**
-     * Models possible materilization options.
-     *
-     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
-     */
-    class MaterializationMode
+
+    MaterializationModeNamedSet::MaterializationModeNamedSet(string databaseName, string setName)
+            : _databaseName(databaseName), _setName(setName)
     {
+    }
 
-    public:
+    void MaterializationModeNamedSet::execute(MaterializationModeAlgo &algo)
+    {
+        algo.forNamedSet(*this);
+    }
 
-        /**
-         * @return true if materialization is not to be performed.
-         */
-        virtual bool isNone() = 0;
+    bool MaterializationModeNamedSet::isNone()
+    {
+        return false;
+    }
 
-        /**
-         * Visitation hook.
-         */
-        virtual void execute(MaterializationModeAlgo &algo) = 0;
+    string MaterializationModeNamedSet::tryGetDatabaseName(const string &defaultValue)
+    {
+        return getDatabaseName();
+    }
 
-        /**
-         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetDatabaseName(const string &noneValue) = 0;
+    string MaterializationModeNamedSet::tryGetSetName(const string &defaultValue)
+    {
+        return getSetName();
+    }
 
-        /**
-         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetSetName(const string &noneValue) = 0;
-    };
+    string MaterializationModeNamedSet::getDatabaseName()
+    {
+        return _databaseName;
+    }
+
+    string MaterializationModeNamedSet::getSetName()
+    {
+        return _setName;
+    }
 
 }
-
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
