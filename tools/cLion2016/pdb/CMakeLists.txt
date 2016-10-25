@@ -24,9 +24,11 @@ include_directories(
         ../../../src/queryIntermediaryRepTests/headers
         ../../../src/qunit/headers
         ../../../src/queryIntermediaryRep/headers
+        ../../../src/queryIntermediaryRepTests/headers
         ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
         ../../../src/storage/headers
+        ../../../src/tcapIntermediaryRep/headers
         ../../../src/tcapLexer/headers
         ../../../src/tcapLexerTests/headers
         ../../../src/tcapParser/headers
