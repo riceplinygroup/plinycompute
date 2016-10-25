@@ -15,48 +15,86 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
-#define PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
+#ifndef PDB_TCAPLEXER_LEXEME_H
+#define PDB_TCAPLEXER_LEXEME_H
 
 #include <string>
-
-#include "MaterializationModeAlgo.h"
 
 using std::string;
 
 namespace pdb_detail
 {
     /**
-     * Models possible materilization options.
-     *
-     * An enumeration of: MaterializationModeNone, MaterializationModeNamedSet
+     * A token and token type.
      */
-    class MaterializationMode
+    class Lexeme
     {
 
     public:
 
-        /**
-         * @return true if materialization is not to be performed.
-         */
-        virtual bool isNone() = 0;
+        static const int UNKNOWN_TYPE = 0;
 
-        /**
-         * Visitation hook.
-         */
-        virtual void execute(MaterializationModeAlgo &algo) = 0;
+        static const int MEMO_TYPE = 1;
 
-        /**
-         * @return the name of the database to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetDatabaseName(const string &noneValue) = 0;
+        static const int STRING_LITERAL_TYPE = 2;
 
-        /**
-         * return the name of the set to materialize into, or noneValue if no materialization is to be done.
-         */
-        virtual string tryGetSetName(const string &noneValue) = 0;
+        static const int IDENTIFIER_TYPE = 3;
+
+        static const int LPAREN_TYPE = 4;
+
+        static const int RPAREN_TYPE = 5;
+
+        static const int EQ_TYPE = 6;
+
+        static const int LOAD_TYPE = 7;
+
+        static const int APPLY_TYPE = 8;
+
+        static const int TO_TYPE = 9;
+
+        static const int LBRACKET_TYPE = 10;
+
+        static const int RBRACKET_TYPE = 11;
+
+        static const int RETAIN_TYPE = 12;
+
+        static const int ALL_TYPE = 13;
+
+        static const int COMMA_TYPE = 14;
+
+        static const int DOUBLE_GT_TYPE = 15;
+
+        static const int BY_TYPE = 16;
+
+        static const int STORE_TYPE = 17;
+
+        static const int FILTER_TYPE = 18;
+
+        static const int NONE_TYPE = 19;
+
+        static const int AT_SIGN_TYPE = 20;
+
+        static const int FUNC_TYPE = 21;
+
+        static const int METHOD_TYPE = 22;
+
+        static const int HOIST_TYPE = 23;
+
+        static const int FROM_TYPE = 24;
+
+        static const int GREATER_THAN_TYPE = 24;
+
+        const int tokenType;
+
+        Lexeme(string token, int tokenType);
+
+        string getToken();
+
+    private:
+
+        string _token;
     };
 
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODE_H
+#endif //PDB_TCAPLEXER_LEXEME_H

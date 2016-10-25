@@ -26,6 +26,8 @@
 
 #include "LogLevel.h"
 
+#include "boost/filesystem.hpp"
+
 namespace pdb {
 
 PDBLogger::PDBLogger(std :: string fName) {

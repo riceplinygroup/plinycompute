@@ -17,12 +17,14 @@
  *****************************************************************************/
 #include "IrBuilder.h"
 
+#include "MaterializationModeNamedSet.h"
 #include "PDBMap.h"
 #include "ProjectionIr.h"
 #include "SelectionIr.h"
 #include "QueryAlgo.h"
 #include "SourceSetNameIr.h"
 
+using pdb::makeObject;
 using pdb::Map;
 using pdb::QueryAlgo;
 

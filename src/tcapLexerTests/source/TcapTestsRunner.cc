@@ -15,23 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//#ifndef PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
-//#define PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
-//
-//#include "Handle.h"
-//#include "InterfaceFunctions.h"
-//#include "SetExpressionIr.h"
-//#include "QueryNodeIr.h"
-//
-//using pdb::Handle;
-//
-//
-//namespace pdb_detail
-//{
-//    class ConsumableNodeIr
-//    {
-//
-//    };
-//}
-//
-//#endif //PDB_PDB_QUERYINTERMEDIARYREP_CONSUMABLENODEIR_H
+#include "TcapTestsRunner.h"
+
+#include "LexTcapTests.h"
+
+namespace pdb_tests
+{
+    void runTcapTests(UnitTest &qunit)
+    {
+        testLexTcap1(qunit);
+    }
+}

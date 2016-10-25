@@ -20,85 +20,81 @@
 
 #include <memory>
 
-#include "InterfaceFunctions.h"
-#include "ProcessorFactoryProjectionQueryProcessor.h"
-#include "RecordProjectionIr.h"
-#include "Lambda.h"
 #include "ProcessorFactory.h"
-#include "Selection.h"
-#include "SimpleSingleTableQueryProcessor.h"
-#include "QueryNodeIr.h"
-#include "UnarySetOperator.h"
-
+#include "QueryBase.h"
+#include "Handle.h"
+#include "SetExpressionIr.h"
 
 using std::shared_ptr;
-using std::make_shared;
 
-using pdb::makeObject;
-using pdb::Lambda;
+using pdb::Handle;
 using pdb::ProcessorFactory;
-using pdb::ProcessorFactoryProjectionQueryProcessor;
-using pdb::ProjectionQueryProcessor;
 using pdb::QueryBase;
-using pdb::Selection;
-using pdb::SimpleSingleTableQueryProcessorPtr;
 
 namespace pdb_detail
 {
+    /**
+     * A set where each element is transformation of an input set element.
+     *
+     * I.e. if the input set is is { a, b, c } the projection set is { f(x), f(b), f(c) }.
+     *
+     * Note that for the purposes of PDB sets no two objects are ever equivalent. So if the input set
+     * has cardinality n the projection also has cardinatlity n because f(a) != f(a) for the purposes
+     * of building this set.
+     */
     class ProjectionIr : public SetExpressionIr
     {
+
     public:
 
+        /**
+         * Constructs a new ProjectionIr.
+         *
+         * @param inputSet the elements to be transformed by the projection
+         * @param originalSelection the original user query node representation of the projection
+         * @return a new ProjectionIr
+         */
+        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection);
 
-        ProjectionIr()
-        {
-        }
+        /**
+         * @return the constant PROJECTION_IR
+         */
+        string getName() override;
 
-        ProjectionIr(shared_ptr<SetExpressionIr> inputSet, Handle<QueryBase> originalSelection)
-                : _inputSet(inputSet),  _originalSelection(originalSelection)
-        {
-        }
+        /**
+         * Visitation hook in visitor pattern.
+         */
+        void execute(SetExpressionIrAlgo &algo) override;
 
-        string getName() override
-        {
-            return "ProjectionIr";
-        }
-
-        void execute(SetExpressionIrAlgo &algo) override
-        {
-            algo.forProjection(*this);
-        }
-
-
-        virtual shared_ptr<SetExpressionIr> getInputSet()
-        {
-            return _inputSet;
-        }
-
-        template <class Output, class Input>
-        SimpleSingleTableQueryProcessorPtr makeProcessor()
-        {
-            return make_shared<ProjectionQueryProcessor<Output,Input>>(_originalSelection);
-        };
+        /**
+         * @return the input set to the projection
+         */
+        shared_ptr<SetExpressionIr> getInputSet();
         
         //added for temporary use in physical planning
-        Handle<QueryBase> getQueryBase() {
-            return _originalSelection;
-        }
+        Handle<QueryBase> getQueryBase();
 
-        Handle<ProcessorFactory> makeProcessorFactory()
-        {
-            return makeObject<ProcessorFactoryProjectionQueryProcessor>(_originalSelection);
-        }
+        /**
+         * @return create a new factory capabily of producing a SimpleSingleTableQueryProcessorPtr for
+         * processing elements of the set.
+         */
+        Handle<ProcessorFactory> makeProcessorFactory();
 
+        /**
+         * The string "ProjectionIr"
+         */
+        static const string PROJECTION_IR;
 
     private:
 
         /**
-         * Records source.
+         * The input set to the projection.
          */
         shared_ptr<SetExpressionIr> _inputSet;
 
+        /**
+         * The original pdb::Selection<?,?> the projection mirrors.
+         */
         Handle<QueryBase> _originalSelection;
     };
 

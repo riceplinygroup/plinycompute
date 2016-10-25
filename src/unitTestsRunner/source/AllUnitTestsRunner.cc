@@ -21,6 +21,8 @@
 #include "InterfaceFunctions.h"
 #include "QueryItermediaryRepTestsRunner.h"
 #include "QueriesTestsRunner.h"
+#include "TcapTestsRunner.h"
+#include "TcapParsersTestsRunner.h"
 #include "qunit.h"
 
 
@@ -30,6 +32,8 @@ using pdb::makeObjectAllocatorBlock;
 
 using pdb_tests::runQueriesTests;
 using pdb_tests::runQueryIrTests;
+using pdb_tests::runTcapTests;
+using pdb_tests::runTcapParserTests;
 
 int main()
 {
@@ -39,6 +43,8 @@ int main()
 
     runQueriesTests(qunit);
     runQueryIrTests(qunit);
+    runTcapTests(qunit);
+    runTcapParserTests(qunit);
 
     return qunit.errors();
 }

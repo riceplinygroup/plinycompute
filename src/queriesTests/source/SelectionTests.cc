@@ -52,6 +52,14 @@ namespace pdb_tests
                 return Lambda<Handle<Object>>();
             }
 
+            // over-ridden by the user so they can supply the selection on projection
+            // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
+            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            {
+
+            }
+
+
         };
 
         Handle<Set<Object>> someSet = makeObject<Set<Object>>("A", "B");
@@ -77,6 +85,14 @@ namespace pdb_tests
             {
                 return Lambda<Handle<Object>>();
             }
+
+            // over-ridden by the user so they can supply the selection on projection
+            // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
+            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            {
+
+            }
+
 
         };
 
