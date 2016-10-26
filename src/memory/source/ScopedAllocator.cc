@@ -55,6 +55,7 @@ ScopedAllocator::ScopedAllocator(void * memPool, size_t memSize) {
     //cout << "int size="<< sizeof(int)<<"\n";
     //cout << "FRAG_OVERHEAD="<<FRAG_OVERHEAD<<"\n";
     if(this->initMalloc()<0) {
+        std :: cout << "Fatal Error: ScopedAllocator initialize failed" << std :: endl;
         exit(-1);
     }
 }

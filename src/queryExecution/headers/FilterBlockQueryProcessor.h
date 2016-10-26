@@ -50,7 +50,7 @@ private:
 	Handle <GenericBlock> outputBlock;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <bool> filterPred;
+	SimpleLambda <bool> filterPred;
 
 	// and here are the actual functions
 	std :: function <bool ()> filterFunc;
@@ -65,7 +65,7 @@ public:
 
         ~FilterBlockQueryProcessor ();
 	FilterBlockQueryProcessor (Selection <Output, Input> &forMe);
-        FilterBlockQueryProcessor (Lambda <bool> filterPred);
+        FilterBlockQueryProcessor (SimpleLambda <bool> filterPred);
 	// the standard interface functions
 	void initialize () override;
         void loadInputBlock (Handle<GenericBlock> block) override;

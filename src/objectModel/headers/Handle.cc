@@ -84,7 +84,7 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	Handle <ObjType> returnVal;
 
 	// get the space... allocate and set up the reference count before it
-	void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType));
+	void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
 
 	// see if there was not enough RAM
 	if (space == nullptr) {
@@ -158,7 +158,7 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjType));
+			sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -208,7 +208,7 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjTypeTwo));
+			sizeof (ObjTypeTwo)/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -255,7 +255,7 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -306,7 +306,7 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -361,8 +361,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjType));
-
+			sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
+                std :: cout << "typeInfo=" << typeInfo.getTypeCode() << std :: endl;
+                std :: cout << "typeSize=" << sizeof(ObjType) << std :: endl;
 		// see if there was not enough RAM
 		if (space == nullptr) {
 			DEC_OLD_REF_COUNT;
@@ -426,7 +427,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjTypeTwo));
+			sizeof (ObjTypeTwo)/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -486,8 +487,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                RefCountedObject <ObjType> * refCountedObject = fromMe.getTarget();
+                ObjType * object = refCountedObject->getObject();
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+			typeInfo.getSizeOfConstituentObject (/*fromMe.getTarget ()->getObject ()*/ (void *)object)/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -555,7 +558,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -580,6 +583,13 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
+
+                if (!getAllocator().contains(fromMe.getTarget()) && !getAllocator().contains(this)) {
+                     std :: cout << "#################################################" << std :: endl;
+                     std :: cout << "Both LHS and RHS are not in current block" << std :: endl;
+                     std :: cout << "RHS typeinfo =" << typeInfo.getTypeCode() << std :: endl;
+                     std :: cout << "#################################################" << std :: endl;
+                }
 
 		// set the offset
 		offset = CHAR_PTR (fromMe.getTarget ()) - CHAR_PTR (this);

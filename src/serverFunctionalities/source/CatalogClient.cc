@@ -53,6 +53,7 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 	// and let the v-table map know this information
     if (!theVTable->getCatalogClient()) {
         theVTable->setCatalogClient(this);
+        //theVTable->setLogger(this->myLogger);
     }
 
 	// set up the mutex
@@ -66,6 +67,7 @@ CatalogClient :: ~CatalogClient () {
     // Clean up the VTable catalog ptr if it is using this CatalogClient
     if (theVTable->getCatalogClient() == this) {
         theVTable->setCatalogClient(nullptr);
+        //theVTable->setLogger(nullptr);
     }
 
 	pthread_mutex_destroy (&workingMutex);
@@ -140,20 +142,25 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 
 	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024,
 		[&] (Handle <CatTypeSearchResult> result) {
-			if (result != nullptr)
+			if (result != nullptr){
+                                std :: cout << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl; 
 				return result->getTypeID ();
-			else
-				return (int16_t) -1;},
+                        }
+			else {
+                                std :: cout << "searchForObjectTypeName: error in getting typeId" << std :: endl;
+				return (int16_t) -1;}},
 		objectTypeName);
 }
 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 	
 	const LockGuard guard{workingMutex};
-        //std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
+        std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
+        myLogger->error(std :: string( "CatalogClient to fetch shared library for TypeID=") + std :: to_string(identifier));
 	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
 		[&] (Handle <Vector <char>> result) {
-	                //std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;	
+	                std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;	
+                        myLogger->debug("CatalogClient: To handle result of CatSharedLibraryRequest from CatalogServer...");
 			if (result == nullptr) {
 				myLogger->error ("Error getting shared library: null object returned.\n");
 				return false;
@@ -305,6 +312,12 @@ bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem,
             metadataItem
         );
 }
+
+
+PDBLoggerPtr CatalogClient :: getLogger() {
+    return myLogger;
+}
+
 
 // implicit instantiation
 template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem, string &errMsg);

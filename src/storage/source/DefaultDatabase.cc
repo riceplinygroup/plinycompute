@@ -234,7 +234,7 @@ void DefaultDatabase::addTypeByPartitionedFiles(string name, UserTypeID id, boos
     TypePtr type = make_shared<UserType>(this->nodeId, this->dbId, id, name,
             this->conf, this->logger, this->shm, string(metaTypeDir.c_str()), dataTypePaths, this->cache, this->flushBuffer);
     if (type == nullptr) {
-        this->logger->writeLn("DefaultDatabase: Out of Memory.");
+        this->logger->error("Fatal Error: DefaultDatabase: Out of Memory.");
         exit(1);
     }
     type->initializeFromMetaTypeDir(metaTypeDir);
@@ -297,7 +297,7 @@ void DefaultDatabase::addTypeBySequenceFiles(string name, UserTypeID id, boost::
     TypePtr type = make_shared<UserType>(this->nodeId, this->dbId, id, name,
             this->conf, this->logger, this->shm, "", dataTypePaths, this->cache, this->flushBuffer);
     if (type == nullptr) {
-        this->logger->writeLn("DefaultDatabase: Out of Memory.");
+        this->logger->writeLn("Fatal Error: DefaultDatabase: Out of Memory.");
         exit(1);
     }
     type->initializeFromTypeDir(typeDir);

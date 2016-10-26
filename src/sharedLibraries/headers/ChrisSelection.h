@@ -27,7 +27,6 @@
 #include "SharedEmployee.h"
 
 using namespace pdb;
-
 class ChrisSelection : public Selection <String, SharedEmployee> {
 
 public:
@@ -36,7 +35,7 @@ public:
 
 	ChrisSelection () {}
 
-	Lambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
+	SimpleLambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
 			//std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
 			return (*(checkMe->getName ()) != "Joe Johnson48");
@@ -44,7 +43,7 @@ public:
 	}
 
 
-        Lambda <bool> getProjectionSelection (Handle<String> &checkMe) override {
+        SimpleLambda <bool> getProjectionSelection (Handle<String> &checkMe) override {
                 return makeLambda (checkMe, [&] () {
                         //std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
                         return ((*checkMe) != "Joe Johnson48");
@@ -53,7 +52,7 @@ public:
 
 
 
-	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
+	SimpleLambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
 		return makeLambda (checkMe, [&] {
 			//std :: cout << *(checkMe->getName ()) << std :: endl;
 			return checkMe->getName ();

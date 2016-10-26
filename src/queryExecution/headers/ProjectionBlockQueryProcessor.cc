@@ -45,7 +45,7 @@ ProjectionBlockQueryProcessor <Output, Input> :: ProjectionBlockQueryProcessor (
 
 
 template <class Output, class Input>
-ProjectionBlockQueryProcessor <Output, Input> :: ProjectionBlockQueryProcessor (Lambda <Handle<Output>> projection) {
+ProjectionBlockQueryProcessor <Output, Input> :: ProjectionBlockQueryProcessor (SimpleLambda <Handle<Output>> projection) {
 
         // get a copy of the lambdas for query processing
         this->projection = projection;
@@ -90,7 +90,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                //std :: cout << "input object num=" << vecSize << std :: endl;
+                //std :: cout << "Projection processor: posInInput="<< posInInput <<", input object num=" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 			myOutVec.push_back (projectionFunc ());	

@@ -20,6 +20,7 @@
 #define PARSER_TYPES_H
 
 #include <iostream>
+#include <memory>
 #include <stdlib.h>
 #include <string>
 #include <utility>

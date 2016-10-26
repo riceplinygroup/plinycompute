@@ -53,7 +53,6 @@ using namespace pdb;
 using pdb_detail::QueryGraphIr;
 using pdb_detail::ProjectionIr;
 using pdb_detail::RecordPredicateIr;
-using pdb_detail::RecordProjectionIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 using pdb_detail::SourceSetNameIr;
@@ -90,6 +89,7 @@ int main (int argc, char * argv[]) {
 	string errMsg;
 	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
 	StorageClient temp (8108, "localhost", myLogger);
+        
 	temp.registerType ("libraries/libChrisSelection.so", errMsg);
 	temp.registerType ("libraries/libStringSelection.so", errMsg);
 

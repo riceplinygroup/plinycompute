@@ -49,7 +49,7 @@ public:
 		nameToExclude = nameToExcludeIn;
 	}
 	
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
+	SimpleLambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
 		return makeLambda (checkMe, [&] () -> bool {
 			int numEmployees = checkMe->getNumEmployees ();
 			for (int i = 0; i < numEmployees; i++) {
@@ -63,7 +63,7 @@ public:
 
 
 
-        Lambda <bool> getProjectionSelection (Handle <Vector<Handle<Employee>>> &checkMe) override {
+        SimpleLambda <bool> getProjectionSelection (Handle <Vector<Handle<Employee>>> &checkMe) override {
                 return makeLambda (checkMe, [&] () -> bool {
                         int numEmployees = checkMe->size();
                         for (int i = 0; i < numEmployees; i++) {
@@ -77,7 +77,7 @@ public:
 
 
 
-	Lambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
+	SimpleLambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
 		return makeLambda (checkMe, [&] {
 			Handle <Vector <Handle <Employee>>> returnVal = makeObject <Vector <Handle <Employee>>> (10);
 			int numEmployees = checkMe->getNumEmployees ();

@@ -268,7 +268,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
             bool res = true;
             std :: string errMsg;
-            std :: cout << "Making response object.\n";
+            //std :: cout << "Making response object.\n";
             const UseTemporaryAllocationBlock block{1024};
             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 

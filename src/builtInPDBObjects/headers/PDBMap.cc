@@ -71,7 +71,8 @@ template <class KeyType, class ValueType>
 Map <KeyType, ValueType> :: Map (uint32_t initSize) {
 
 	if (initSize == 0) {
-		std :: cout << initSize << " too small; must be at least one.\n";
+		std :: cout << "Fatal Error: Map initialization:" << initSize << " too small; must be at least one.\n";
+         
 		exit (0);
 	}
 

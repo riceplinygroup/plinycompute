@@ -267,7 +267,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                 int vecSize = inputVec->size();
                                 std :: cout << "in the page to sent: vector size =" << vecSize << std :: endl;
                                 if (vecSize != 0) {          
-      						const UseTemporaryAllocationBlock tempBlock {1024};
+      						const UseTemporaryAllocationBlock tempBlock {2048};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
 						}

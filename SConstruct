@@ -31,6 +31,8 @@ elif  common_env['PLATFORM'] == 'posix':
 	common_env.Append(LINKFLAGS = '-pthread')
 	common_env.Replace(CXX = "clang++")
 
+
+
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)

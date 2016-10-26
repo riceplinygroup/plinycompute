@@ -25,27 +25,26 @@
 #include "PDBString.h"
 
 using namespace pdb;
-
 class StringSelection : public Selection <String, String> {
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	Lambda <bool> getSelection (Handle <String> &checkMe) override {
+	SimpleLambda <bool> getSelection (Handle <String> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
 			return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
 		});
 	}
 
-        Lambda <bool> getProjectionSelection (Handle <String> &checkMe) override {
+        SimpleLambda <bool> getProjectionSelection (Handle <String> &checkMe) override {
                 return makeLambda (checkMe, [&] () {
                         return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
                 });
         }
 
 
-	Lambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
+	SimpleLambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
 			return checkMe;
 		});

@@ -71,7 +71,7 @@ class PipelineContext {
         this->outputVec = outputVec;
         this->numUnreadGenericBlocks = 0;
         this->proxy = proxy;
-        this->outputSet = outputSet;
+        this->outputSet = deepCopyToCurrentAllocationBlock(outputSet);
         this->outputPageFull = false;
         this->pageToUnpin = nullptr;
         this->needUnpin = false;

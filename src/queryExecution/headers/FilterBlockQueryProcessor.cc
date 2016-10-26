@@ -44,7 +44,7 @@ FilterBlockQueryProcessor <Output, Input> :: FilterBlockQueryProcessor (Selectio
 }
 
 template <class Output, class Input>
-FilterBlockQueryProcessor <Output, Input> :: FilterBlockQueryProcessor (Lambda <bool> filterPred) {
+FilterBlockQueryProcessor <Output, Input> :: FilterBlockQueryProcessor (SimpleLambda <bool> filterPred) {
 
         // get a copy of the lambdas for filter processing
         this->filterPred = filterPred;
@@ -90,7 +90,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                //std :: cout << "input object num =" << vecSize << std :: endl;
+                //std :: cout << "filterProcessor: posInInput=" << posInInput << ",input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
                         //std :: cout << "posInInput=" << posInInput << std :: endl;
@@ -104,13 +104,14 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-                std :: cout << "Filter processor consumed current page" << std :: endl;
+                //std :: cout << "Filter processor consumed current page" << std :: endl;
                 if (this->context != nullptr) {
 		       //getRecord (context->outputVec);
                        context->setOutputFull(true);
                 }
 		return true;
 	}
+        
 }
 
 // must be called repeately after all of the input pages have been sent in...

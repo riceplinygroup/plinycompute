@@ -56,6 +56,9 @@ public:
      */
     virtual bool hasNext() = 0;
 
+   
+
+
 };
 
 

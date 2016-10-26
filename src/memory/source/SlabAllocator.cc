@@ -181,6 +181,7 @@ void SlabAllocator::slabs_preallocate(const unsigned int maxslabs) {
             fprintf(stderr, "Error while preallocating slab memory!\n"
                 "If using -L or other prealloc options, max memory must be "
                 "at least %d megabytes.\n", power_largest);
+            std :: cout << "Fatal Error: SlabAllocator::slabs_preallocate()" << std :: endl;
             exit(1);
         }
     }

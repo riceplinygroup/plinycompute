@@ -49,7 +49,7 @@ private:
 	Handle <Vector <Handle <Output>>> outputVec;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <Handle <Output>> projection;
+	SimpleLambda <Handle <Output>> projection;
 
 	// and here are the actual functions
 	std :: function <Handle <Output> ()> projectionFunc;
@@ -60,7 +60,7 @@ private:
 public:
 
 	ProjectionQueryProcessor (Selection <Output, Input> &forMe);
-        ProjectionQueryProcessor (Lambda <Handle<Output>> projection);
+        ProjectionQueryProcessor (SimpleLambda <Handle<Output>> projection);
 	// the standard interface functions
 	void initialize () override;
         void loadInputPage (void *pageToProcess) override;

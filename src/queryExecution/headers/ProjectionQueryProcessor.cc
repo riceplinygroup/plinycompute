@@ -36,7 +36,7 @@ ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (Selection 
 
 
 template <class Output, class Input>
-ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (Lambda <Handle<Output>> projection) {
+ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (SimpleLambda <Handle<Output>> projection) {
 
         // get a copy of the lambdas for query processing
         this->projection = projection;

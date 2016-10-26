@@ -44,13 +44,16 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	// in ths case, we do not have the vTable pointer for this guy, so we will try to load it
 	if (theVTable->catalog == nullptr) { 
 		if (theVTable->logger != nullptr)
-			theVTable->logger->writeLn ("unable to obtain shared library file.");
+			theVTable->logger->error (std :: string("unable to obtain shared library file for typeId=")+std :: to_string(objectTypeID));
 		return nullptr;
 	}
 
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
 	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
-        //std :: cout << "sharedLibraryFile =" << sharedLibraryFile << std :: endl;
+        std :: cout << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
+        if (theVTable->logger != nullptr) {
+            theVTable->logger->debug(std :: string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
+        }
 	unlink (sharedLibraryFile.c_str ());
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	

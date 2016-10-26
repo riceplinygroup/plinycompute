@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include <unordered_map>
 
 namespace pdb {
 
@@ -90,6 +91,16 @@ public:
 
 	// free it if there are no more references
 	bool areNoReferences ();
+
+        // return the size
+        size_t numBytes();
+     
+        // return the starting pointer
+        void * getStart();
+
+        // return the ending pointr
+        void * getEnd();
+
 };
 
 // this class holds the current state of an alloctor
@@ -144,6 +155,8 @@ private:
 	// still contain some object...
 	std :: vector <InactiveAllocationBlock> allInactives;
 
+        //std :: unordered_map<void *, int16_t> remainingReferences; 
+
 public:
 
 	// return true if allocations should not fail due to not enough RAM...
@@ -183,10 +196,10 @@ public:
 
 	// returns some RAM... this can throw an exception if the request is too large
 	// to be handled because there is not enough RAM in the current allocation block
-	void *getRAM (size_t howMuch);
+	void *getRAM (size_t howMuch/*, int16_t typeId*/);
 
 	// free some RAM that was previous allocated via a call to getRAM
-	void freeRAM (void *here);
+	void freeRAM (void *here/*, int16_t typeId*/);
 
 	// make this RAM the current allocation block
 	void setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
@@ -222,6 +235,13 @@ public:
 	// allocation block; it is managed (reference counted) just like all
 	// of the others, and deleted as needed later on
 	void restoreAllocationBlockAndManageOldOne ();
+
+        // a print function added by Jia for debugging object model memory management
+        std::string printInactiveBlocks();
+
+        // Added by Jia
+        // this function should only be used for debugging purposes.
+        void cleanInactiveBlocks();
 
 private:
 

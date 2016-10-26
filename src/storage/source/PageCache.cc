@@ -106,14 +106,14 @@ char * PageCache::allocateBufferFromSharedMemoryBlocking(size_t size, int & alig
 	char* data = (char *) this->shm->mallocAlign(size, 512, alignOffset);
 	//Dangerous: dead loop
 	while (data == nullptr) {
-		this->logger->writeLn(
+		this->logger->info(
 				"LRUPageCache: out of memory in off-heap pool, start eviction.");
 		if (this->inEviction == false) {
 			this->evict();
                         //cout << "eviction done!\n";
 		} else {
 			//cout << "waiting for eviction work to evict at least one page.";
-			this->logger->writeLn(
+			this->logger->info(
 					"waiting for eviction work to evict at least one page.");
 			sched_yield();
 		}
@@ -183,7 +183,7 @@ PDBPagePtr PageCache::buildPageFromSharedMemoryData(PDBFilePtr file,
 			file->getDbId(), file->getTypeId(), file->getSetId(), pageId,
 			this->conf->getPageSize(), shm->computeOffset(pageData), internalOffset);
 	if (page == nullptr) {
-		this->logger->writeLn("PageCache: out of memory in heap.");
+		this->logger->error("Fatal Error: PageCache: out of memory in heap.");
 		exit(-1);
 	}
 	//page->setNumObjects(numObjects);
@@ -740,7 +740,7 @@ void PageCache::evict() {
             
         } else {
             this->evictionLock();
-             //this->logger->writeLn("PageCache::evict(): got the lock for evictionLock()...");
+            this->logger->debug("PageCache::evict(): got the lock for evictionLock()...");
 	    priority_queue<PDBPagePtr, vector<PDBPagePtr>, CompareCachedPagesMRU> * cachedPages =
 			new priority_queue<PDBPagePtr, vector<PDBPagePtr>,
 					CompareCachedPagesMRU>();
@@ -750,7 +750,7 @@ void PageCache::evict() {
 			cacheIter++) {
                 curPage = cacheIter->second;
                 if(curPage == nullptr) {
-                      //this->logger->writeLn( "got a null page, return!");
+                      this->logger->error( "PageCache::evict(): got a null page, return!");
                       delete cachedPages;
                       this->inEviction = false;
                       this->evictionUnlock();
@@ -759,7 +759,7 @@ void PageCache::evict() {
                       //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
                       return;
                 }
-                //this->logger->writeLn( "got a page, check whether it can be evicted...");
+                this->logger->debug( "PageCache::evict(): got a page, check whether it can be evicted...");
                 if((curPage->getRefCount()==0)&&((curPage->isDirty()==false) || ((curPage->isDirty()==true)&&(curPage->isInFlush()==false)))){
 		    cachedPages->push(curPage);
                     //this->logger->writeLn( "put a page to priority queue.");
@@ -771,13 +771,13 @@ void PageCache::evict() {
 	    while ((this->size > this->evictStopSize)&&(cachedPages->size() > 0)) {
 		page = cachedPages->top();
                 if(page == nullptr) {
-                    //cout << "nothing to evict, return!\n";
+                    cout << "PageCache: nothing to evict, return!\n";
+                    this->logger->debug("PageCache: nothing to evict, return!\n");
                     break;
                 }
 		if (this->evictPage(page) == true) {
-			//cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
-		//	this->logger->writeLn(
-					//"Storage server: evicting page from cache for pageID:");
+			cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
 		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();
 		} else {
@@ -789,8 +789,8 @@ void PageCache::evict() {
 	this->inEviction = false;
         pthread_mutex_unlock(&this->evictionMutex);
         //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
-        //cout << "Storage server: finished cache eviction!\n";
-
+        cout << "Storage server: finished cache eviction!\n";
+        logger->debug( "Storage server: finished cache eviction!\n");
 }
 
 void PageCache::getAndSetWarnSize(unsigned int numSets,

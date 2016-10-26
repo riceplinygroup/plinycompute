@@ -681,7 +681,7 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	 */
 	//Open meta partition for reading
 	if(this->openMeta() == false) {
-		this->logger->writeLn("PartitionedFile: Error: can't open meta partition.");
+		this->logger->error("Fatal Error: PartitionedFile: Error: can't open meta partition.");
 		exit(-1);
 	}
 	//get meta partition size;
@@ -696,7 +696,7 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	int sizeRead = fread((void *)buf, sizeof (char), size, this->metaFile);
         if(sizeRead < size) {
              cout << "Metadata corrupted, please remove storage folders and try again...\n";
-             this->logger->writeLn( "Metadata corrupted, please remove storage folders and try again...");
+             this->logger->error( "Fatal Error: Metadata corrupted, please remove storage folders and try again...");
              exit(-1);
         }
 
@@ -720,8 +720,8 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	//cout <<"pageSize on meta partition:"<<pageSize<<"\n";
 	//cout <<"pageSize on configuration:"<<this->pageSize<<"\n";
 	if(pageSize != this->pageSize) {
-		this->logger->writeLn("PartitionedFile: Error: inconsistent page size, exiting...");
-		//exit(-1);
+		this->logger->error("Fatal Error: PartitionedFile: Error: inconsistent page size, exiting...");
+		exit(-1);
 	}
 	//cout <<"pageSize:"<<pageSize<<"\n";
 	this->metaData->setPageSize(this->pageSize);

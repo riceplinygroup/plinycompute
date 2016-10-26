@@ -178,7 +178,8 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 			vector <char> * putResultHere = new vector<char>();
 			std :: string errMsg;
 			int16_t typeID = request->getTypeID ();
-                        //std :: cout << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << typeID << std :: endl;
+                        std :: cout << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << typeID << std :: endl;
+                        getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=") + std :: to_string(typeID));
 			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
 
 			if (!res) {
@@ -321,7 +322,9 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
         //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
 	// first, make sure we have this identifier
 	if (allTypeCodes.count (identifier) == 0) {
-		errMsg = "Error: didn't know the identifier you sent me";
+		errMsg = "CatalogServer::getSharedLibrary(): Error: didn't know the identifier you sent me";
+                std :: cout << errMsg << std :: endl;
+                getLogger()->error(errMsg);
 		return false;
 	}
 
@@ -343,7 +346,7 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 }
 
 int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: string setName) {
-	cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
+	//cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
 	if (setTypes.count (make_pair (databaseName, setName)) == 0)
 		return -1;
 

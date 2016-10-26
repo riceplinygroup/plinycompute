@@ -19,6 +19,7 @@
 #ifndef ALLOCATOR_CC
 #define ALLOCATOR_CC
 
+#include <sstream>
 #include <cstddef>
 #include <iostream>
 #include <vector>
@@ -81,6 +82,19 @@ inline bool InactiveAllocationBlock :: areNoReferences () {
 inline unsigned InactiveAllocationBlock :: getReferenceCount () {
 	return ALLOCATOR_REF_COUNT;
 }
+
+inline size_t InactiveAllocationBlock :: numBytes() {
+        return (char*)end-(char*)start;
+}
+
+inline void * InactiveAllocationBlock :: getStart() {
+        return start;
+}
+
+inline void * InactiveAllocationBlock :: getEnd() {
+        return end;
+}
+
 
 // These macros are used to manipulate the block of RAM that makes up an allocation block
 // The layout is | num bytes used | offset to root object | number active objects | data <--> |
@@ -155,7 +169,7 @@ inline bool Allocator :: contains (void *whereIn) {
 
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
-inline void *Allocator :: getRAM (size_t howMuch) {
+inline void *Allocator :: getRAM (size_t howMuch/*, int16_t typeId*/) {
 
 	unsigned bytesNeeded = (unsigned) (CHUNK_HEADER_SIZE + howMuch);
 	if ((bytesNeeded % 4) != 0) {
@@ -176,11 +190,19 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 				void *returnVal = myState.chunks[i][j];
 				myState.chunks[i].erase (myState.chunks[i].begin () + j);
 				ALLOCATOR_REF_COUNT++;
-				return CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
+                                void *retAddress= CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
+                                /*
+                                remainingReferences[retAddress]=typeId;
+                                std :: cout << "###################################"<< std :: endl;
+                                std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+                                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+                                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                                std :: cout << "###################################"<< std :: endl;
+                                */
+                                return retAddress;
 			}
-		}
-	}
-
+                 }
+        }
 	// if we got here, then we cannot fit, and we need to carve out a bit at the end
 	// if there is not enough RAM
 	if (LAST_USED + bytesNeeded > myState.numBytes) {
@@ -203,7 +225,16 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	LAST_USED += bytesNeeded;
 	GET_CHUNK_SIZE (res) = bytesNeeded;
 	ALLOCATOR_REF_COUNT++;
-	return CHAR_PTR (res) + CHUNK_HEADER_SIZE;
+	void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
+        /*
+        remainingReferences[retAddress]=typeId;
+        std :: cout << "###################################"<< std :: endl;
+        std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+        std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;                     
+        std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+        std :: cout << "###################################"<< std :: endl;
+        */
+        return retAddress;
 }
 
 inline bool Allocator :: isManaged (void *here) {
@@ -225,7 +256,7 @@ inline bool Allocator :: isManaged (void *here) {
 }
 
 // free some RAM
-inline void Allocator :: freeRAM (void *here) {
+inline void Allocator :: freeRAM (void *here/*, int16_t typeId*/) {
 
 	// see if this guy is from the active block
 	if (contains (here)) {
@@ -242,6 +273,14 @@ inline void Allocator :: freeRAM (void *here) {
 		myState.chunks[31 - leadingZeros].push_back (here);
 		
 		ALLOCATOR_REF_COUNT--;
+                
+                /*     
+                std :: cout << "###################################"<< std :: endl;
+                std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                std :: cout << "###################################"<< std :: endl;
+                */     
 		return;
 	}
 
@@ -253,6 +292,13 @@ inline void Allocator :: freeRAM (void *here) {
 
 		// we did, so dec reference count
 		i->decReferenceCount ();
+                /*     
+                std :: cout << "###################################"<< std :: endl;
+                std :: cout << "allocator block reference count--=" << i->getReferenceCount() << " with typeId=" << typeId << std :: endl;
+                std :: cout << "allocator block starting address=" << i->getStart() << std :: endl;
+                std :: cout << "allocator block size=" << i->numBytes() << std :: endl;
+                std :: cout << "###################################"<< std :: endl;
+                */     
 
 		// if he is done, delete him
 		if (i->areNoReferences ()) {
@@ -265,6 +311,11 @@ inline void Allocator :: freeRAM (void *here) {
 
 	// if we made it here, the object was allocated in some other way,
 	// so we can go ahead and forget about him
+        /*std :: cout << "###################################################################" << std :: endl;
+        std :: cout << "We can't free the object, it may be allocated by some other thread!" << std :: endl;
+        std :: cout << "typeId=" << typeId << std :: endl;
+        std :: cout << "###################################################################" << std :: endl;
+        */
 }
 
 inline void Allocator :: setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
@@ -318,11 +369,18 @@ unsigned Allocator :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe
 
 inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
 
+
 	// make sure that we are gonna be able to write the header
 	if (numBytesIn < HEADER_SIZE) {
 		std :: cerr << "You need to have an allocation block that is at least " << HEADER_SIZE << " bytes.\n";
 		exit (1);
 	}
+
+        //make sure that pointer to where is valid-- added by Jia
+        if (where == nullptr) {
+                std :: cerr << "Fatal Error in setupBlock(): The block doesn't have a valid address" << std :: endl;
+                exit(1);
+        }
 
 	// remember how to handle a failed allocate
 	myState.throwException = throwExceptionOnFail;
@@ -338,6 +396,8 @@ inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwE
 			free (myState.activeRAM);
 		}
 	}
+
+
 
 	// empty out the list of unused chunks of RAM in this block
 	for (auto &c : myState.chunks) {
@@ -357,20 +417,19 @@ void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
 
 	// try to find the allocation block
 	void *here = forMe.getTarget ();
+        // see if this guy is from the active block
+        if (contains (here)) {
+                //std :: cout << "getAllocationBlock: object offset =" << CHAR_PTR (here) - CHAR_PTR (myState.activeRAM) << std :: endl;
+                // set up the pointer to the object
+                OFFSET_TO_OBJECT = CHAR_PTR (here) - CHAR_PTR (myState.activeRAM);
+                return myState.activeRAM;
+        }
 
-	// see if this guy is from the active block
-	if (contains (here)) {
-		//std :: cout << "getAllocationBlock: object offset =" << CHAR_PTR (here) - CHAR_PTR (myState.activeRAM) << std :: endl;
-		// set up the pointer to the object
-		OFFSET_TO_OBJECT = CHAR_PTR (here) - CHAR_PTR (myState.activeRAM);
-		return myState.activeRAM;
-	}
+        // he's not, so see if he is from another block
+        auto i = std :: lower_bound (allInactives.begin (), allInactives.end (), here);
 
-	// he's not, so see if he is from another block
-	auto i = std :: lower_bound (allInactives.begin (), allInactives.end (), here);
-
-	// see if we found him
-	if (i != allInactives.end () && !(*i > here)) {
+        // see if we found him
+        if (i != allInactives.end () && !(*i > here)) {
 
 		// set up the pointer to the object
 		OFFSET_TO_OBJECT_RELATIVE (i->start) = CHAR_PTR (here) - CHAR_PTR (i->start);
@@ -414,6 +473,11 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t num
 	
 	// and set up the new block
 	void *putMeHere = malloc (numBytesAvailable);
+        // add malloc check by Jia
+        if (putMeHere == nullptr) {
+            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory" << std :: endl;
+            exit(-1);
+        }
 	setupBlock (putMeHere, numBytesAvailable, true);
 	return returnVal;
 }
@@ -449,6 +513,44 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 
 	// remove the phantom reference count for the old block
 	ALLOCATOR_REF_COUNT--;
+}
+
+//added by Jia to facilitate debugging
+inline std::string Allocator :: printInactiveBlocks() {
+
+        int i;
+        std :: string out = "Allocator: NumInactives=";
+        int numInactives = allInactives.size();
+        out = out + std :: to_string(numInactives);
+        out = out + std :: string("\n");
+         
+        for (i = 0; i < numInactives; i++) {
+             InactiveAllocationBlock curBlock = allInactives[i];
+             out = out + std :: to_string(i);
+             out = out + std :: string(":");
+             out = out + std :: to_string(curBlock.getReferenceCount());
+             out = out + std :: string(", size=");
+             out = out + std :: to_string(curBlock.numBytes());
+             out = out + std :: string(", start=");
+             std :: stringstream stream;
+             stream << curBlock.getStart();
+             out = out + stream.str();
+             out = out + std :: string("\n");
+             
+        }
+        
+        std :: cout << out << std :: endl;
+        return out;
+}
+
+// Added by Jia
+// this function should only be used for debugging purposes.
+inline void Allocator :: cleanInactiveBlocks() {
+        for (auto it = allInactives.begin(); it != allInactives.end(); ) {
+            it->freeBlock();
+            it = allInactives.erase (it);
+        }
+        return;
 }
 
 extern void *stackBase;

@@ -229,7 +229,7 @@ bool UserType::initializeFromMetaTypeDir(path metaTypeDir) {
 							partitionedFile, this->cache);
 					// add buffer to map
 					if (set == 0) {
-						this->logger->writeLn("UserType: out of memory.");
+						this->logger->error("Fatal Error: UserType: out of memory.");
 						exit(1);
 					}
 					this->sets->insert(
