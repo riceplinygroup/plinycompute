@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef _LEXER_H_
-#define _LEXER_H_
+#ifndef _LABCEXER_H_
+#define _LABCEXER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,8 +37,44 @@ extern "C" {
 	struct LogicalPlan;
 	void yyerror(yyscan_t, struct LogicalPlan **myStatement, const char *);
 
-	union YYSTYPE;
-	int yylex(union YYSTYPE *, yyscan_t);
+	//union YYSTYPE;
+        typedef union
+        #ifdef __cplusplus
+                YYSTYPE
+        #endif
+        {
+        char *myChar;
+        struct LogicalPlan *myPlan;
+        struct Output *myOutput;
+        struct OutputList *myOutputList;
+        struct InputList *myInputList;
+        struct Input *myInput;
+        struct ComputationList *myComputationList;
+        struct Computation *myComputation;
+        struct TupleSpec *myTupleSpec;
+        struct AttList *myAttList;
+
+        } YYSTYPE;
+
+        extern YYSTYPE yylval;
+
+        /* Token type.  */
+        #ifndef YYTOKENTYPE
+        # define YYTOKENTYPE
+        enum yytokentype
+        {
+           STRING = 258,
+           IDENTIFIER = 259,
+           FILTER = 260,
+           APPLY = 261,
+           GETS = 262,
+           INPUTS = 263,
+           OUTPUTS = 264,
+           COMPUTATIONS = 265
+       };
+       #endif
+
+	int yylex(YYSTYPE *, yyscan_t);
 
 
 #ifdef __cplusplus
