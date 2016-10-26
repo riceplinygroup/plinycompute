@@ -30,6 +30,7 @@
 #include "ExecutionOperator.h"
 #include "BlockQueryProcessor.h"
 #include "GenericBlock.h"
+#include "PDBLogger.h"
 #include <memory>
 #include <vector>
 
@@ -103,10 +104,10 @@ public:
     void addChild(PipelineNodePtr node);
 
     // running the pipeline
-    bool run (PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize);
+    bool run (PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize, PDBLoggerPtr logger);
 
     // unbundle a block to output vector
-    bool unbundle(PipelineContextPtr context, Handle<GenericBlock> inputBatch);
+    bool unbundle(PipelineContextPtr context, Handle<GenericBlock> inputBatch, PDBLoggerPtr logger);
 
     // get a processor
     BlockQueryProcessorPtr getProcessor(PipelineContextPtr context);

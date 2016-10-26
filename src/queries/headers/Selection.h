@@ -20,7 +20,7 @@
 #define SELECTION_H
 
 #include "Handle.h"
-#include "Lambda.h"
+#include "SimpleLambda.h"
 #include "Object.h"
 #include "Query.h"
 #include "SetOperation.h"
@@ -38,14 +38,14 @@ class Selection : public Query <Out> {
 public:
 
 	// over-ridden by the user so they can supply the actual selection predicate
-	virtual Lambda <bool> getSelection (Handle <In> &in) = 0;
+	virtual SimpleLambda <bool> getSelection (Handle <In> &in) = 0;
         
         // over-ridden by the user so they can supply the selection on projection
         // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-        virtual Lambda <bool> getProjectionSelection (Handle <Out> &in) = 0;
+        virtual SimpleLambda <bool> getProjectionSelection (Handle <Out> &in) = 0;
 
 	// over-ridden by the user so they can supple the actual projection
-	virtual Lambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
+	virtual SimpleLambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
 
         // internal use
         void execute(QueryAlgo& algo) override;

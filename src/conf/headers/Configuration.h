@@ -40,7 +40,7 @@ using namespace std;
 
 #define DEFAULT_PAGE_SIZE  64*1024*1024
 #define DEFAULT_MAX_CONNECTIONS 200
-#define DEFAULT_SHAREDMEM_SIZE (size_t)8*(size_t)1024*(size_t)1024*(size_t)1024
+#define DEFAULT_SHAREDMEM_SIZE (size_t)12*(size_t)1024*(size_t)1024*(size_t)1024
 #define DEFAULT_NUM_THREADS 2
 
 // create a smart pointer for Configuration objects
@@ -81,7 +81,7 @@ public:
 	Configuration() {
 		//set default values.
 		this->nodeId = 0;
-                this->logLevel = LogLevel::OFF; 
+                //this->logLevel = LogLevel::OFF; 
 		serverName = "testServer";
 		serverAddress = "localhost";
 		isMasterCatalogServer = false;
@@ -92,7 +92,7 @@ public:
 		pageSize = DEFAULT_PAGE_SIZE;
 		useUnixDomainSock = false;
 		shmSize = DEFAULT_SHAREDMEM_SIZE;
-		logEnabled = false;
+		logEnabled = true;
 		//temporarily added for unit tests
 		this->createDir("pdbRoot");
 //    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";

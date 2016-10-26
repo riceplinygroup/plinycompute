@@ -69,8 +69,12 @@ int PageCircularBuffer::initArray() {
 //in our case, more than one producer will add pages to the tail of the blocking queue
 int PageCircularBuffer::addPageToTail(PDBPagePtr page) {
     pthread_mutex_lock(&(this->addPageMutex));
+    int i = 0;
     while (this->isFull()) {
-        this->logger->writeLn("PageCircularBuffer: array is full.");
+        i ++;
+        if (i%100000==0) {
+            this->logger->info(std :: to_string(i) + std :: string(":PageCircularBuffer: array is full."));
+        }
         pthread_cond_signal(&(this->cond));
         sched_yield(); //TODO: consider to use another conditional variable
     }

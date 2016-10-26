@@ -61,12 +61,14 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
 
     // we are finalized in processing the input page
     if (finalized) {
+        
         return false;
     }
 
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
+        //std :: cout << "unbundler: posInInput=" << posInInput << ", vecSize=" << vecSize << std :: endl;
         for (; posInInput < vecSize; posInInput++) {
             myOutputVec.push_back(myInputVec[posInInput]);
         }

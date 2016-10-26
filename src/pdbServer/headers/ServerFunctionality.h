@@ -50,6 +50,11 @@ public:
 		return parent->getWorkerQueue ()->getWorker ();
 	}
 
+        PDBLoggerPtr getLogger () {
+                return parent->getLogger ();
+        }
+
+
 private:
 
 	PDBServer *parent;	

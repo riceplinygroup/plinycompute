@@ -204,7 +204,7 @@ int PairArray <KeyType, ValueType> :: count (KeyType &me) {
 	}
 
 	// we should never reach here
-	std :: cout << "Ran off the end of the hash table!!\n";
+	std :: cout << "Fatal Error: Ran off the end of the hash table!!\n";
 	exit (1);
 }
 
@@ -264,7 +264,7 @@ ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 	}
 
 	// we should never reach here
-	std :: cout << "Ran off the end of the hash table!!\n";
+	std :: cout << "Fatal Error: Ran off the end of the hash table!!\n";
 	exit (1);
 }
 
@@ -284,7 +284,7 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 
 	// if we are not a power of two, exit
 	if (!gotIt) {
-		std :: cout << "Bad: could not get the correct size for the array\n";
+		std :: cout << "Fatal Error: Bad: could not get the correct size for the array\n";
 		exit (1);
 	}
 

@@ -61,6 +61,7 @@ inline void PDBTemplateBase :: deleteConstituentObject (void *deleteMe) const {
 	if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
+                //std :: cout << "to getVTablePtr for deleteConsitituentObject" << info << std :: endl;
 		((Object *) &temp)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));
 
 		// now call the deleter for that object type
@@ -81,6 +82,7 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
+                //std :: cout << "to getVTablePtr for setUpAndCopyFromConsitituentObject" << info << std :: endl;
 		((Object *) &temp)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));
 
 		// now call the construct-and-copy operation for that object type
@@ -105,6 +107,7 @@ inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 	if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
+                //std :: cout << "to getVTablePtr for getSizeOfConsitituentObject" << info << std :: endl;
 		((Object *) &temp)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));
 
 		// now get the size

@@ -49,8 +49,8 @@ private:
 	Handle <Vector <Handle <Output>>> outputVec;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <bool> selectionPred;
-	Lambda <Handle <Output>> projection;
+	SimpleLambda <bool> selectionPred;
+	SimpleLambda <Handle <Output>> projection;
 
 	// and here are the actual functions
 	std :: function <bool ()> selectionFunc;

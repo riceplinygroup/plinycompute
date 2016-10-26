@@ -90,6 +90,8 @@ public:
 	// prints the content of the metadata in the catalog
     bool printCatalogMetadata (std :: string itemToSearch, std :: string &errMsg);
 
+    PDBLoggerPtr getLogger();
+
 private:
 
 	int port;

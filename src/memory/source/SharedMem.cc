@@ -43,6 +43,9 @@ SharedMem::SharedMem(size_t memSize, pdb :: PDBLoggerPtr logger) {
 //    cout << "shared memory size = "<<memSize<<"\n";
     this->memPool = nullptr;
     if (this->getMem() < 0) {
+        std :: cout << "Fatal error: initialize shared memory failed with size="
+<< memSize << std :: endl;
+        logger->error(std :: string("Fatal error: initialize shared memory failed with size=") + std :: to_string(memSize));
         exit(-1);
     } 
     this->allocator = make_shared<ScopedAllocator>(this->memPool, this->shmMemSize);

@@ -33,7 +33,7 @@ FilterQueryProcessor <Output, Input> :: FilterQueryProcessor (Selection <Output,
 }
 
 template <class Output, class Input>
-FilterQueryProcessor <Output, Input> :: FilterQueryProcessor (Lambda <bool> filterPred) {
+FilterQueryProcessor <Output, Input> :: FilterQueryProcessor (SimpleLambda <bool> filterPred) {
 
         // get a copy of the lambdas for filter processing
         this->filterPred = filterPred;

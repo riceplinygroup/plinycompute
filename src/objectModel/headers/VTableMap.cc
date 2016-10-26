@@ -199,6 +199,7 @@ inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 		return returnVal;
 	} else {
 		// if they have not gotten it for us, then go and get it
+                std :: cout << "VTableMap: to get VTablePtr using Catalog for objectTypeID=" << objectTypeID << std :: endl;
 		return getVTablePtrUsingCatalog (objectTypeID);
         }
 }

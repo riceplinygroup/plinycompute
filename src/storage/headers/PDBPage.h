@@ -31,6 +31,7 @@
 #include <memory>
 #include <pthread.h>
 #include <stdlib.h>
+#include <iostream>
 using namespace std;
 // create a smart pointer for PDBBufferPagePtr objects
 class PDBPage;
@@ -89,6 +90,7 @@ public:
             //there is a problem:
             //reference count should always >= 0
             pthread_mutex_unlock(&this->refCountMutex);
+            std :: cout << "Fatal Error: page reference count < 0" << std :: endl;
             exit(-1);
         } else if (this->refCount == 0) {
             this->setPinned(false);

@@ -47,7 +47,7 @@ private:
 	Handle <GenericBlock> outputBlock;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <Handle <Output>> projection;
+	SimpleLambda <Handle <Output>> projection;
 
 	// and here are the actual functions
 	std :: function <Handle <Output> ()> projectionFunc;
@@ -62,7 +62,7 @@ public:
 
         ~ProjectionBlockQueryProcessor();
 	ProjectionBlockQueryProcessor (Selection <Output, Input> &forMe);
-        ProjectionBlockQueryProcessor (Lambda <Handle<Output>> projection);
+        ProjectionBlockQueryProcessor (SimpleLambda <Handle<Output>> projection);
 	// the standard interface functions
 	void initialize () override;
         void loadInputBlock (Handle<GenericBlock> block) override;

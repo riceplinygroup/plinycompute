@@ -53,12 +53,13 @@ int main (int argc, char * argv[]) {
 	pdb :: StorageClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), true);
 
 	string errMsg;
+        
 	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg)) {
 		cout << "Not able to register type: " + errMsg;
 	} else {
 		cout << "Registered type.\n";
 	}
-
+        
         //to register selection type
         if (clusterMode == true) {
             temp.registerType ("libraries/libChrisSelection.so", errMsg);
@@ -84,7 +85,8 @@ int main (int argc, char * argv[]) {
 
 	for (int num = 0; num < numIterations; ++num) {
 		// now, create a bunch of data
-			pdb :: makeObjectAllocatorBlock (1024 * 1024 * 1, true);
+                        pdb :: makeObjectAllocatorBlock (1024 *1024, true);
+			//pdb :: makeObjectAllocatorBlock (1024 * 1024 * 1, true);
 			pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
 			int i;
 			try {
@@ -107,7 +109,7 @@ int main (int argc, char * argv[]) {
 	}
 
 	// and shut down the server
-	
+        	
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
 	

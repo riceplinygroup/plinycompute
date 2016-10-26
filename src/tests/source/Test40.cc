@@ -82,7 +82,7 @@ int main () {
 		std :: cout << "(" << a.key << ", " << *(a.value) << ") ";
 	}
 
-	Vector <Handle <Foo>> myVec;
+/*	Vector <Handle <Foo>> myVec;
 	for (int i = 0; i < 1000; i++) {	
 		Handle <Foo> temp = makeObject <Foo> ();
 		myMap.push_back (temp);
@@ -92,7 +92,11 @@ int main () {
 	for (int i = 0; i < 1000; i++) {
 		myVec2 [i] = myVec [i];	
 	}
-}
+*/
+
+    }
+
+
 
 #endif
 

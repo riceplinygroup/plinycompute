@@ -49,7 +49,7 @@ private:
 	Handle <Vector <Handle <Input>>> outputVec;
 
 	// and here are the lamda objects used to proces the input vector
-	Lambda <bool> filterPred;
+	SimpleLambda <bool> filterPred;
 
 	// and here are the actual functions
 	std :: function <bool ()> filterFunc;
@@ -60,7 +60,7 @@ private:
 public:
 
 	FilterQueryProcessor (Selection <Output, Input> &forMe);
-        FilterQueryProcessor (Lambda <bool> filterPred);
+        FilterQueryProcessor (SimpleLambda <bool> filterPred);
 	// the standard interface functions
 	void initialize () override;
         void loadInputPage (void *pageToProcess) override;

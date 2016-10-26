@@ -270,7 +270,6 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     } else {
     	  logToMe->trace("PDBCommunicator: size of next object is " + std :: to_string (msgSize));
     }
-
     readCurMsgSize = true;
     return msgSize;
 }

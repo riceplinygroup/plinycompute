@@ -253,14 +253,17 @@ int16_t getTypeID ();
 // So use this operation CAREFULLY!!
 template <class OutObjType, class InObjType>
 Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
-
+/*
 template <class TargetType>
 class Holder : public Object{
     public:
         Handle<TargetType> child;
         ENABLE_DEEP_COPY
 };
+*/
 
+//To facilitate deep copy, even in case copyMe is of an abstract class
+//added by Jia based on Chris' proposal
 template <class TargetType>
 Handle <TargetType> deepCopyToCurrentAllocationBlock (Handle <TargetType> &copyMe); 
 

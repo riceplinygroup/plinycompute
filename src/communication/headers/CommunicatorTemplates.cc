@@ -30,6 +30,7 @@
 #include "CloseConnection.h"
 #include "InterfaceFunctions.h"
 #include "PDBCommunicator.h"
+#include "UseTemporaryAllocationBlock.h"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -46,7 +47,8 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	// first, write the record type
 	int16_t recType = getTypeID <ObjType> ();
 	if (recType < 0) {
-		std :: cout << "BAD!  Trying to send a handle to a non-Object type.\n";
+		std :: cout << "Fatal Error: BAD!  Trying to send a handle to a non-Object type.\n";
+                logToMe->error("Fatal Error: BAD!  Trying to send a handle to a non-Object type.\n");
 		exit (1);
 	}
         //std :: cout << "recType = " << recType << std :: endl;
@@ -63,7 +65,8 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	if (record == nullptr) {
 		int *a = 0;
 		*a = 12;
-		std :: cout << "BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
+		std :: cout << "Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
+                logToMe->error("Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n");
 		exit (1);
 	}
         //std :: cout << "record size ="<<record->numBytes()<<"\n";
@@ -156,7 +159,7 @@ Handle <ObjType> PDBCommunicator :: getNextObject (void *readToHere, bool &succe
         logToMe->trace ("PDBCommunicator: read the object with no problem.");
         logToMe->trace ("PDBCommunicator: root offset is " + std :: to_string (((Record <ObjType> *) readToHere)->rootObjectOffset ()));
 	readCurMsgSize = false;
-        //std :: cout << "to get root object..." << std :: endl;
+        //std :: cout << "to get root object with typeId="<< nextTypeID  << std :: endl;
 	return ((Record <ObjType> *) readToHere)->getRootObject ();
 }
 
@@ -177,12 +180,13 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
         exit(-1);
     }
     Handle <ObjType> temp = getNextObject <ObjType> (mem, success, errMsg);
-
+    UseTemporaryAllocationBlock myBlock{msgSize+1024};
     // if we were successful, then copy it to the current allocation block
     if (success) {
         logToMe->trace ("PDBCommunicator: about to do the deep copy.");
-        //std :: cout << "to get handle" << std :: endl;
-	temp = getHandle (*temp);
+        //std :: cout << "to get handle by deep copy to current block" << std :: endl;
+	temp = deepCopyToCurrentAllocationBlock (temp);
+        //std :: cout << "got handle" << std :: endl;
         logToMe->trace ("PDBCommunicator: completed the deep copy.");
 	free (mem);
 	return temp;

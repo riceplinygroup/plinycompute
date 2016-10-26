@@ -34,6 +34,7 @@
 #include "RefCountMacros.h"
 #include "TypeName.h"
 #include "VTableMap.h"
+#include "Holder.h"
 
 namespace pdb {
 
@@ -59,7 +60,14 @@ int16_t getTypeID () {
 #define CHAR_PTR(c) ((char *) c)
 
 inline void makeObjectAllocatorBlock (size_t numBytesIn, bool throwExceptionOnFail) {
-	getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
+	//getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
+        //add malloc results check by Jia
+        void * space = malloc(numBytesIn);
+        if (space == nullptr) {
+             std :: cout << "Fatal Error in makeObjectAllocatorBlock(): out of memory" << std :: endl;
+             exit (-1);
+        }
+        getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
 }
 
 inline void makeObjectAllocatorBlock (void *spaceToUse, size_t numBytesIn, bool throwExceptionOnFail) {
@@ -99,7 +107,7 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 		// get the space... allocate and set up the reference count before it
 		PDBTemplateBase temp;
 		temp.template setup <ObjType> ();
-		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE);
+		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/);
 
 		// see if there was not enough RAM
 		if (space == nullptr) {
@@ -122,15 +130,26 @@ template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObject (Args&&... args) {
 
 	// create a new object
+        //PDBTemplateBase temp;
+        //temp.template setup <ObjType> ();
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+		(getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/));
 
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
 		return nullptr;
 
 	// call the placement new
-	new ((void *) returnVal->getObject ()) ObjType (args... );
+        try {
+	        new ((void *) returnVal->getObject ()) ObjType (args... );
+        } catch (NotEnoughSpace &n) {
+                //added by Jia based on Chris' proposal
+                //for reference counting correctness
+                //returnVal->setRefCount(0);
+                //Handle<ObjType> temp = returnVal;
+                getAllocator().freeRAM(returnVal);
+                throw n;
+        }
 
 	// set the reference count
 	returnVal->setRefCount (0);
@@ -143,15 +162,26 @@ template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... args) {
 
 	// create a new object
+        //PDBTemplateBase temp;
+        //temp.template setup <ObjType> ();
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/));
 
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
 		return nullptr;
 
 	// call the placement new
-	new ((void *) returnVal->getObject ()) ObjType (args... );
+        try {
+	    new ((void *) returnVal->getObject ()) ObjType (args... );
+        } catch (NotEnoughSpace &n) {
+             //added by Jia based on Chris' proposal
+             //for reference counting correctness
+             //returnVal->setRefCount(0);
+             //Handle<ObjType> temp = returnVal;
+             getAllocator().freeRAM(returnVal);
+             throw n;
+        }
 
 	// set the reference count
 	returnVal->setRefCount (0);
@@ -208,10 +238,14 @@ Record <ObjType> * getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t n
 	return (Record <ObjType> *) res;
 }
 
+//added by Jia based on Chris' proposal
 template <class TargetType> 
 Handle <TargetType> deepCopyToCurrentAllocationBlock (Handle <TargetType> &copyMe) {
+  //std :: cout << "create a handle for the Holder object" << std :: endl;
   Handle <Holder <TargetType>> temp = makeObject <Holder <TargetType>> ();
+  //std :: cout << "to do a deep copy" << std :: endl;
   temp->child = copyMe; // since temp->child is physically located in the current allocation block, forces a deep copy
+  //std :: cout << "deep copy done" << std :: endl;
   return temp->child;
 };
 

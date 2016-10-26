@@ -233,7 +233,7 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
     // if there was a request to close the connection, just get outta here
     if (requestID == CloseConnection_TYPEID) {
-	UseTemporaryAllocationBlock tempBlock {1024};
+	UseTemporaryAllocationBlock tempBlock {2048};
         Handle <CloseConnection> closeMsg = myCommunicator->getNextObject <CloseConnection> (success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
@@ -251,15 +251,14 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
     // if we are asked to shut down...
     if (requestID == ShutDown_TYPEID) {
-
-	UseTemporaryAllocationBlock tempBlock {1024};
+	UseTemporaryAllocationBlock tempBlock {2048};
         Handle <ShutDown> closeMsg = myCommunicator->getNextObject <ShutDown> (success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
         } else {
             myLogger->trace("PDBServer: close connection request");
         }
-
+        std :: cout << "Cleanup server functionalities" << std :: endl;
         // for each functionality, invoke its clean() method
         for (int i = 0; i < allFunctionalities.size(); i++) {
             allFunctionalities.at(i)->cleanup();
@@ -342,7 +341,7 @@ void PDBServer::startServer(PDBWorkPtr runMeAtStart) {
     // listen to the socket
     int return_code = pthread_create(&listenerThread, nullptr, callListen, this);
     if (return_code) {
-    	myLogger->trace("ERROR; return code from pthread_create () is " + to_string(return_code) );
+    	myLogger->error("ERROR; return code from pthread_create () is " + to_string(return_code) );
         exit(-1);
     }
 
