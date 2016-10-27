@@ -51,12 +51,11 @@ private:
     // Seed used for the PRNG. It is configurable so that we can deterministically test RandomPolicy's behavior.
     const int SEED = 0;
 
-    std::vector<Handle<NodeDispatcherData>> storageNodes;
-
-    Handle<NodeDispatcherData> updateExistingNode(Handle<NodeDispatcherData> newNodeData,
-                                                    Handle<NodeDispatcherData> oldNodeData);
-    Handle<NodeDispatcherData> updateNewNode(Handle<NodeDispatcherData> newNode);
-    Handle<NodeDispatcherData> handleDeadNode(Handle<NodeDispatcherData> deadNode);
+    std::vector<NodePartitionDataPtr> createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes);
+    NodePartitionDataPtr updateExistingNode(NodePartitionDataPtr newNodeData,
+                                                    NodePartitionDataPtr oldNodeData);
+    NodePartitionDataPtr updateNewNode(NodePartitionDataPtr newNode);
+    NodePartitionDataPtr handleDeadNode(NodePartitionDataPtr deadNode);
 };
 
 }

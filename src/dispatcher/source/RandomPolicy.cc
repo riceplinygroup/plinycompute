@@ -23,7 +23,7 @@
 namespace pdb {
 
 RandomPolicy :: RandomPolicy() {
-    this->storageNodes = std::vector<Handle<NodeDispatcherData>>();
+    this->storageNodes = std::vector<NodePartitionDataPtr>();
     srand(SEED);
 }
 
@@ -31,17 +31,18 @@ RandomPolicy :: ~RandomPolicy() {
 
 }
 
-void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> activeStorageNodes) {
+void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> activeStorageNodesRaw) {
 
     auto oldNodes = storageNodes;
-    storageNodes = std::vector<Handle<NodeDispatcherData>>();
+    auto activeStorageNodes = createNodePartitionData(activeStorageNodesRaw);
+    storageNodes = std::vector<NodePartitionDataPtr>();
 
-    for (int i = 0; i < activeStorageNodes->size(); i++) {
+    for (int i = 0; i < activeStorageNodes.size(); i++) {
         bool alreadyContains = false;
         for (int j = 0; j < oldNodes.size(); j++) {
-            if (* (* activeStorageNodes)[i] == (* oldNodes[j])) {
+            if ((* activeStorageNodes[i]) == (* oldNodes[j])) {
                 // Update the pre-existing node with the new information
-                Handle<NodeDispatcherData> updatedNode = updateExistingNode((* activeStorageNodes)[i], oldNodes[j]);
+                auto updatedNode = updateExistingNode(activeStorageNodes[i], oldNodes[j]);
                 storageNodes.push_back(updatedNode);
                 oldNodes.erase(oldNodes.begin() + j);
                 alreadyContains = true;
@@ -49,7 +50,7 @@ void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>
             }
         }
         if (!alreadyContains) {
-            storageNodes.push_back(updateNewNode((* activeStorageNodes)[i]));
+            storageNodes.push_back(updateNewNode(activeStorageNodes[i]));
         }
     }
     for (auto oldNode : oldNodes) {
@@ -57,17 +58,26 @@ void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>
     }
 }
 
-Handle<NodeDispatcherData> RandomPolicy :: updateExistingNode(Handle<NodeDispatcherData> newNode, Handle<NodeDispatcherData> oldNode) {
+std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) {
+    std::vector<NodePartitionDataPtr> newData = std::vector<NodePartitionDataPtr>();
+    for (int i = 0; i < storageNodes->size(); i++) {
+        auto nodeData = (* storageNodes)[i];
+        newData.push_back(std::make_shared<NodePartitionData>(nodeData, std::pair<std::string, std::string>("","")));
+    }
+    return newData;
+}
+
+NodePartitionDataPtr RandomPolicy :: updateExistingNode(NodePartitionDataPtr newNode, NodePartitionDataPtr oldNode) {
     std::cout << "Updating existing node " << oldNode->toString() << std::endl;
     return oldNode;
 }
 
-Handle<NodeDispatcherData> RandomPolicy :: updateNewNode(Handle<NodeDispatcherData> newNode) {
+NodePartitionDataPtr RandomPolicy :: updateNewNode(NodePartitionDataPtr newNode) {
     std::cout << "Updating new node " << newNode->toString() << std::endl;
     return newNode;
 }
 
-Handle<NodeDispatcherData> RandomPolicy :: handleDeadNode(Handle<NodeDispatcherData> deadNode) {
+NodePartitionDataPtr RandomPolicy :: handleDeadNode(NodePartitionDataPtr deadNode) {
     std::cout << "Deleting node " << deadNode->toString() << std::endl;
     return deadNode;
 }

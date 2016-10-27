@@ -15,58 +15,25 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by Joseph Hwang on 9/22/16.
-//
+#ifndef OBJECTQUERYMODEL_BROADCASTSERVER_CC
+#define OBJECTQUERYMODEL_BROADCASTSERVER_CC
 
-#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-#define OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-
-#include "ServerFunctionality.h"
-#include "Handle.h"
-#include "PDBVector.h"
-#include "PDBObject.h"
-#include "PartitionPolicy.h"
-
+#include "BroadcastServer.h"
 namespace pdb {
 
-class DispatcherClient : public ServerFunctionality {
-
-public:
-
-    DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn);
-    ~DispatcherClient();
-
-    /**
-     *
-     * @param forMe
-     */
-    void registerHandlers (PDBServer &forMe) override; // no-op
-
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    bool registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg);
-
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    template <class DataType>
-    bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
-
-private:
-
-    int port;
-    std :: string address;
-    PDBLoggerPtr logger;
-
-};
+BroadcastServer::BroadcastServer(PDBLoggerPtr logger) {
+    this->logger = logger;
 }
 
-#include "DispatcherClientTemplate.cc"
+BroadcastServer::~BroadcastServer() {
+    // no-op
+}
 
-#endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+void BroadcastServer::registerHandlers(PDBServer &forMe) {
+    // no-op
+}
+
+}
+
+#endif
+
