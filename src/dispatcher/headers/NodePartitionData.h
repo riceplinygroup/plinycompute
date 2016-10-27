@@ -15,58 +15,57 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by Joseph Hwang on 9/22/16.
-//
 
-#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-#define OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#ifndef OBJECTQUERYMODEL_NODEPARTITIONDATA_H
+#define OBJECTQUERYMODEL_NODEPARTITIONDATA_H
 
-#include "ServerFunctionality.h"
-#include "Handle.h"
-#include "PDBVector.h"
-#include "PDBObject.h"
-#include "PartitionPolicy.h"
+#include "DataTypes.h"
+#include "NodeDispatcherData.h"
+
+#include <string>
 
 namespace pdb {
 
-class DispatcherClient : public ServerFunctionality {
+class NodePartitionData;
+typedef std::shared_ptr<NodePartitionData> NodePartitionDataPtr;
 
+class NodePartitionData {
 public:
 
-    DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn);
-    ~DispatcherClient();
+    NodePartitionData(Handle<NodeDispatcherData> nodeData, std::pair<std::string, std::string> setAndDatabaseName);
 
-    /**
-     *
-     * @param forMe
-     */
-    void registerHandlers (PDBServer &forMe) override; // no-op
+    NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName);
 
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    bool registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg);
+    NodeID getNodeId() const;
+    int getPort() const;
+    std::string getAddress() const;
+    std::string getSetName() const;
+    std::string getDatabaseName() const;
+    size_t getTotalBytesSent() const;
 
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    template <class DataType>
-    bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
+    // TODO: Move this
+
+    bool operator==(const NodePartitionData& other) {
+        return this->port == other.getPort() && this->address == other.getAddress();
+    }
+
+    std::string toString() {
+        return std::to_string(this->port) + ":" + this->address;
+    }
+
 
 private:
 
+    NodeID nodeId;
     int port;
-    std :: string address;
-    PDBLoggerPtr logger;
+    std::string address;
+    std::string setName;
+    std::string databaseName;
 
+    size_t totalBytesSent;
 };
+
 }
 
-#include "DispatcherClientTemplate.cc"
 
-#endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#endif //OBJECTQUERYMODEL_NODEPARTITIONDATA_H

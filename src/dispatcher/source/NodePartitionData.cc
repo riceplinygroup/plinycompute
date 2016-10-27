@@ -15,58 +15,40 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by Joseph Hwang on 9/22/16.
-//
+#ifndef OBJECTQUERYMODEL_NODEPARTITIONDATA_CC
+#define OBJECTQUERYMODEL_NODEPARTITIONDATA_CC
 
-#ifndef OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-#define OBJECTQUERYMODEL_DISPATCHERCLIENT_H
-
-#include "ServerFunctionality.h"
-#include "Handle.h"
-#include "PDBVector.h"
-#include "PDBObject.h"
-#include "PartitionPolicy.h"
+#include "NodePartitionData.h"
 
 namespace pdb {
 
-class DispatcherClient : public ServerFunctionality {
+    NodePartitionData::NodePartitionData(Handle<NodeDispatcherData> nodeData, std::pair<std::string, std::string> setAndDatabaseName) {
+        NodePartitionData(nodeData->getNodeId(), nodeData->getPort(), nodeData->getAddress(), setAndDatabaseName);
+    }
 
-public:
+    NodePartitionData::NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName)
+            : nodeId(nodeId), port(port), address(address), setName(setAndDatabaseName.first), databaseName(setAndDatabaseName.second) {
+        this->totalBytesSent = 0;
+    }
 
-    DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn);
-    ~DispatcherClient();
-
-    /**
-     *
-     * @param forMe
-     */
-    void registerHandlers (PDBServer &forMe) override; // no-op
-
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    bool registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg);
-
-    /**
-     *
-     * @param setAndDatabase
-     * @return
-     */
-    template <class DataType>
-    bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
-
-private:
-
-    int port;
-    std :: string address;
-    PDBLoggerPtr logger;
-
-};
+    NodeID NodePartitionData::getNodeId() const {
+        return this->nodeId;
+    }
+    int NodePartitionData::getPort() const {
+        return this->port;
+    }
+    std::string NodePartitionData::getAddress() const {
+        return this->address;
+    }
+    std::string NodePartitionData::getSetName() const {
+        return this->setName;
+    }
+    std::string NodePartitionData::getDatabaseName() const {
+        return this->databaseName;
+    }
+    size_t NodePartitionData::getTotalBytesSent() const {
+        return this->totalBytesSent;
+    }
 }
 
-#include "DispatcherClientTemplate.cc"
-
-#endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#endif

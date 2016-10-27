@@ -15,10 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by Joseph Hwang on 9/12/16.
-//
-
 #ifndef OBJECTQUERYMODEL_PARTITIONPOLICY_H
 #define OBJECTQUERYMODEL_PARTITIONPOLICY_H
 
@@ -29,6 +25,7 @@
 #include "PDBVector.h"
 
 #include "NodeDispatcherData.h"
+#include "NodePartitionData.h"
 
 #include <unordered_map>
 
@@ -36,6 +33,8 @@ namespace pdb {
 
 class PartitionPolicy;
 typedef std::shared_ptr<PartitionPolicy> PartitionPolicyPtr;
+
+// TODO: The list of nodes should contain which databases/sets are located on each of them
 
 /**
  * An interface used by DispatcherServer to properly map PDB::Objects to
@@ -45,6 +44,8 @@ class PartitionPolicy {
 public:
 
     enum Policy {RANDOM, FAIR, DEFAULT};
+
+    std::vector<NodePartitionDataPtr> createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes);
 
     /**
      * Partitions a Vector of PDB data into a number of smaller Vectors all mapped to a respective Storage Node
@@ -61,6 +62,15 @@ public:
      * @param storageNodes a vector of the live storage nodes
      */
     virtual void updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) = 0;
+
+    virtual NodePartitionDataPtr updateExistingNode(NodePartitionDataPtr newNodeData,
+                                            NodePartitionDataPtr oldNodeData) = 0;
+
+    virtual NodePartitionDataPtr updateNewNode(NodePartitionDataPtr newNode) = 0;
+
+    virtual NodePartitionDataPtr handleDeadNode(NodePartitionDataPtr deadNode) = 0;
+
+    std::vector<NodePartitionDataPtr> storageNodes;
 
 };
 
