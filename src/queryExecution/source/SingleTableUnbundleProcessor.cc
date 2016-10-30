@@ -76,7 +76,7 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
         //std :: cout << "the unbundle processor unbundled a block" << std :: endl;
         return false;
     } catch (NotEnoughSpace &n) {
-        std :: cout << "the unbundle processor consumed the page" << std :: endl;
+        //std :: cout << "the unbundle processor consumed the page" << std :: endl;
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
             //getRecord(this->context->getOutputVec());
