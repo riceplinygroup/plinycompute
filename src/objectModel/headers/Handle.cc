@@ -106,8 +106,8 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	    typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
         } catch (NotEnoughSpace &n) {
             std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
-            returnVal.offset = -1;
             returnVal.getTarget()->decRefCount(typeInfo);
+            returnVal.offset = -1;
             throw n;
         }
 	// and reutrn him
@@ -189,8 +189,8 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjType>) in Handle.cc" << std :: endl;
-                    offset = -1;
                     getTarget()->decRefCount(typeInfo);
+                    offset = -1;
                     throw n;
                }
 
@@ -251,8 +251,8 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjTypeTwo>) in Handle.cc" << std :: endl;
-                    offset = -1;
                     getTarget()->decRefCount(typeInfo);
+                    offset = -1;
                     throw n;
                }
  
@@ -311,8 +311,8 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
 		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjType>) in Handle.cc" << std :: endl;
-                    offset = -1;
                     getTarget()->decRefCount(typeInfo);
+                    offset = -1;
                     throw n;
                }
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
@@ -372,8 +372,8 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjTypeTwo>) in Handle.cc" << std :: endl;
-                    offset = -1;
                     getTarget()->decRefCount(typeInfo);
+                    offset = -1;
                     throw n;
                }
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
@@ -442,8 +442,8 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
                     DEC_OLD_REF_COUNT;
-                    offset = -1;
                     getTarget()->decRefCount(typeInfo);
+                    offset = -1;
                     throw n;
                 }
 		DEC_OLD_REF_COUNT;
@@ -527,9 +527,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjTypeTwo>*) in Handle.cc" << std :: endl;
+                    getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
-                    getTarget()->decRefCount(typeInfo);
                     throw n;
                 }
 		DEC_OLD_REF_COUNT;
@@ -610,9 +610,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                    getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
-                    getTarget()->decRefCount(typeInfo);
                     throw n;
                 }
 
@@ -698,9 +698,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 		       typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
                        std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                       getTarget()->decRefCount(typeInfo);
                        DEC_OLD_REF_COUNT;
                        offset = -1;
-                       getTarget()->decRefCount(typeInfo);
                        throw n;
                 }
 
