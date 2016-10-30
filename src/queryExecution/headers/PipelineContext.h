@@ -24,7 +24,7 @@
 #include "PDBVector.h"
 #include "Object.h"
 #include "DataProxy.h"
-#include "SetIdentifier.h"
+#include "SetSpecifier.h"
 #include <memory>
 
 
@@ -42,14 +42,12 @@ class PipelineContext {
     Handle<Vector<Handle<Object>>> outputVec;
 
     private:
-    //the number of GenericBlocks allocated in the output page that hasn't been read
-    int numUnreadGenericBlocks;
 
     //the proxy to pin/unpin output page
     DataProxyPtr proxy;
 
     //the output set identifier
-    Handle<SetIdentifier> outputSet;
+    SetSpecifierPtr outputSet;
 
     //whether output page is full
     bool outputPageFull;
@@ -57,8 +55,6 @@ class PipelineContext {
     //page to unpin
     PDBPagePtr pageToUnpin;
 
-    //whether a page should be unpinned after this round of processing
-    bool needUnpin;
 
     public:
     ~PipelineContext() {
@@ -67,14 +63,12 @@ class PipelineContext {
     }
 
 
-    PipelineContext (Handle<Vector<Handle<Object>>> outputVec, DataProxyPtr proxy, Handle<SetIdentifier> outputSet) {
+    PipelineContext (Handle<Vector<Handle<Object>>> outputVec, DataProxyPtr proxy, SetSpecifierPtr outputSet) {
         this->outputVec = outputVec;
-        this->numUnreadGenericBlocks = 0;
         this->proxy = proxy;
-        this->outputSet = deepCopyToCurrentAllocationBlock(outputSet);
+        this->outputSet = outputSet;
         this->outputPageFull = false;
         this->pageToUnpin = nullptr;
-        this->needUnpin = false;
     }
 
     Handle<Vector<Handle<Object>>> & getOutputVec() {
@@ -86,18 +80,6 @@ class PipelineContext {
 
     }
 
-    int getNumUnreadGenericBlocks() {
-        return numUnreadGenericBlocks;
-    }
-
-    void incNumUnreadGenericBlocks() {
-        numUnreadGenericBlocks ++;
-    }
-
-    void decNumUnreadGenericBlocks() {
-        numUnreadGenericBlocks --;
-    }
-
     void clearOutputPage() {
         outputVec = nullptr;
     }
@@ -106,7 +88,7 @@ class PipelineContext {
         return this->proxy;
     } 
 
-    Handle<SetIdentifier> & getOutputSet() {
+    SetSpecifierPtr getOutputSet() {
         return this->outputSet;
     }
 
@@ -124,14 +106,6 @@ class PipelineContext {
 
     PDBPagePtr getPageToUnpin () {
         return this->pageToUnpin;
-    }
-
-    void setNeedUnpin(bool needUnpin) {
-        this->needUnpin = needUnpin;
-    }
-
-    bool shallWeUnpin() {
-        return needUnpin;
     }
 
 };

@@ -71,14 +71,14 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     try {
         int vecSize = myInputVec.size();
         int posToFinish = posInInput + batchSize;
-        //std :: cout << "posInInput=" << posInInput << std :: endl;
-        //std :: cout << "posToFinish=" << posToFinish << std :: endl;
+//        std :: cout << "posInInput=" << posInInput << std :: endl;
+//        std :: cout << "posToFinish=" << posToFinish << std :: endl;
         for (; ((posInInput < vecSize) && (posInInput < posToFinish)); posInInput++) {
-            //std :: cout << "posInInput=" << posInInput << std :: endl;
+//            std :: cout << "posInInput=" << posInInput << std :: endl;
             myOutputVec.push_back(myInputVec[posInInput]);
         }
-        //std :: cout << "posInInput=" << posInInput << std :: endl;
-        //std :: cout << "posToFinish=" << posToFinish << std :: endl;
+//        std :: cout << "posInInput=" << posInInput << std :: endl;
+//        std :: cout << "posToFinish=" << posToFinish << std :: endl;
         if (posInInput==vecSize) {
             return false;
         } else {

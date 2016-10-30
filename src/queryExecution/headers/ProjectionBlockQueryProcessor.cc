@@ -99,7 +99,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-                std :: cout << "Projection processor consumed the page" << std :: endl;
+                //std :: cout << "Projection processor consumed the page" << std :: endl;
 	        if (this->context != nullptr) {	
 		        //getRecord (this->context->outputVec);
                         context->setOutputFull(true);

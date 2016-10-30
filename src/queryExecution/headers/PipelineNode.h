@@ -59,12 +59,6 @@ private:
     // a flag to indicate whether I am the sink node
     bool amISink;
 
-    // the identifier of the set as the input data of this node
-    Handle<SetIdentifier> inputSet;
-
-    // the identifier of the set as the output data of this node
-    Handle<SetIdentifier> outputSet;
-
     // operator Id
     OperatorID id;    
 
@@ -77,7 +71,7 @@ public:
     ~PipelineNode ();
 
     // constructor
-    PipelineNode (NodeID nodeId, Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, Handle<SetIdentifier> inputSet, Handle<SetIdentifier> outputSet, OperatorID operatorId);
+    PipelineNode (NodeID nodeId, Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, OperatorID operatorId);
 
     // get nodeId
     NodeID getNodeId();
@@ -90,12 +84,6 @@ public:
 
     // return whether I am the sink node
     bool isSink();
-
-    // return the set identifier as the input data of this node
-    Handle<SetIdentifier> & getInputSet();
-
-    // return the set idenifier as the output data of this node
-    Handle<SetIdentifier> & getOutputSet();
 
     // return the operator Id
     OperatorID getOperatorId();

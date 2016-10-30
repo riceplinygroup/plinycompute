@@ -169,8 +169,11 @@ inline bool Allocator :: contains (void *whereIn) {
 
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
-inline void *Allocator :: getRAM (size_t howMuch/*, int16_t typeId*/) {
-
+#ifdef DEBUG_OBJECT_MODEL
+inline void *Allocator :: getRAM (size_t howMuch, int16_t typeId) {
+#else
+inline void *Allocator :: getRAM (size_t howMuch) {
+#endif
 	unsigned bytesNeeded = (unsigned) (CHUNK_HEADER_SIZE + howMuch);
 	if ((bytesNeeded % 4) != 0) {
 		bytesNeeded += (4 - (bytesNeeded % 4));
@@ -191,14 +194,13 @@ inline void *Allocator :: getRAM (size_t howMuch/*, int16_t typeId*/) {
 				myState.chunks[i].erase (myState.chunks[i].begin () + j);
 				ALLOCATOR_REF_COUNT++;
                                 void *retAddress= CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
-                                /*
-                                remainingReferences[retAddress]=typeId;
+      #ifdef DEBUG_OBJECT_MODEL                          
                                 std :: cout << "###################################"<< std :: endl;
                                 std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
                                 std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
                                 std :: cout << "###################################"<< std :: endl;
-                                */
+      #endif                          
                                 return retAddress;
 			}
                  }
@@ -226,14 +228,14 @@ inline void *Allocator :: getRAM (size_t howMuch/*, int16_t typeId*/) {
 	GET_CHUNK_SIZE (res) = bytesNeeded;
 	ALLOCATOR_REF_COUNT++;
 	void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
-        /*
-        remainingReferences[retAddress]=typeId;
+        
+        #ifdef DEBUG_OBJECT_MODEL
         std :: cout << "###################################"<< std :: endl;
         std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
         std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;                     
         std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
         std :: cout << "###################################"<< std :: endl;
-        */
+        #endif
         return retAddress;
 }
 
@@ -256,7 +258,11 @@ inline bool Allocator :: isManaged (void *here) {
 }
 
 // free some RAM
-inline void Allocator :: freeRAM (void *here/*, int16_t typeId*/) {
+#ifdef DEBUG_OBJECT_MODEL
+inline void Allocator :: freeRAM (void *here, int16_t typeId) {
+#else
+inline void Allocator :: freeRAM (void *here) {
+#endif
 
 	// see if this guy is from the active block
 	if (contains (here)) {
@@ -274,13 +280,13 @@ inline void Allocator :: freeRAM (void *here/*, int16_t typeId*/) {
 		
 		ALLOCATOR_REF_COUNT--;
                 
-                /*     
+                #ifdef DEBUG_OBJECT_MODEL      
                 std :: cout << "###################################"<< std :: endl;
                 std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
                 std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
                 std :: cout << "###################################"<< std :: endl;
-                */     
+                #endif     
 		return;
 	}
 
@@ -292,13 +298,13 @@ inline void Allocator :: freeRAM (void *here/*, int16_t typeId*/) {
 
 		// we did, so dec reference count
 		i->decReferenceCount ();
-                /*     
+                #ifdef DEBUG_OBJECT_MODEL     
                 std :: cout << "###################################"<< std :: endl;
                 std :: cout << "allocator block reference count--=" << i->getReferenceCount() << " with typeId=" << typeId << std :: endl;
                 std :: cout << "allocator block starting address=" << i->getStart() << std :: endl;
                 std :: cout << "allocator block size=" << i->numBytes() << std :: endl;
                 std :: cout << "###################################"<< std :: endl;
-                */     
+                #endif     
 
 		// if he is done, delete him
 		if (i->areNoReferences ()) {
@@ -311,11 +317,12 @@ inline void Allocator :: freeRAM (void *here/*, int16_t typeId*/) {
 
 	// if we made it here, the object was allocated in some other way,
 	// so we can go ahead and forget about him
-        /*std :: cout << "###################################################################" << std :: endl;
+        #ifdef DEBUG_OBJECT_MODEL
+        std :: cout << "###################################################################" << std :: endl;
         std :: cout << "We can't free the object, it may be allocated by some other thread!" << std :: endl;
         std :: cout << "typeId=" << typeId << std :: endl;
         std :: cout << "###################################################################" << std :: endl;
-        */
+        #endif
 }
 
 inline void Allocator :: setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
@@ -396,8 +403,6 @@ inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwE
 			free (myState.activeRAM);
 		}
 	}
-
-
 
 	// empty out the list of unused chunks of RAM in this block
 	for (auto &c : myState.chunks) {

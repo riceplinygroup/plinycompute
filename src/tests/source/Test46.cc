@@ -85,8 +85,8 @@ int main (int argc, char * argv[]) {
 
 	for (int num = 0; num < numIterations; ++num) {
 		// now, create a bunch of data
-                        pdb :: makeObjectAllocatorBlock (1024 *1024, true);
-			//pdb :: makeObjectAllocatorBlock (1024 * 1024 * 1, true);
+                        //pdb :: makeObjectAllocatorBlock ( 1024, true);
+			pdb :: makeObjectAllocatorBlock (1024 * 1024 * 1, true);
 			pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
 			int i;
 			try {

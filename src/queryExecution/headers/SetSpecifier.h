@@ -16,51 +16,72 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SHARED_EMPLOYEE_H
-#define SHARED_EMPLOYEE_H
+#ifndef SET_SPECIFIER_H
+#define SET_SPECIFIER_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
+//by Jia, Oct 2016
 
-class PrintableObject : public pdb :: Object {
+#include <string>
+#include "DataTypes.h"
+#include <memory>
+class SetSpecifier;
+typedef std :: shared_ptr<SetSpecifier> SetSpecifierPtr;
 
-public:
 
-	virtual void print () = 0;
-};
-
-class SharedEmployee : public PrintableObject {
-
-        int age;
+// encapsulates a request to add a set in storage
+class SetSpecifier  {
 
 public:
 
-        pdb :: Handle <pdb :: String> name;
 
-	ENABLE_DEEP_COPY
+	SetSpecifier () {}
+	~SetSpecifier () {}
 
-        ~SharedEmployee () { }
-        SharedEmployee () {}
+	SetSpecifier (std :: string dataBase, std :: string setName, DatabaseID dbId, UserTypeID typeId, SetID setId) : dataBase (dataBase), setName (setName), dbId(dbId), typeId(typeId), setId(setId) {}
 
-        void print () override {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	pdb :: Handle <pdb :: String> &getName () {
-		return name;
+	std :: string getDatabase () {
+		return dataBase;
 	}
 
-	bool isFrank () {
-		return (*name == "Frank");
+	std :: string getSetName () {
+		return setName;
 	}
 
-        SharedEmployee (std :: string nameIn, int ageIn) {
-                name = pdb :: makeObject <pdb :: String> (nameIn);
-                age = ageIn;
+        void setDatabaseId(DatabaseID dbId) {
+                this->dbId = dbId;
         }
+
+        void setTypeId (UserTypeID typeId) {
+                this->typeId = typeId;
+        }
+
+        void setSetId (SetID setId) {
+                this->setId = setId;
+        }
+
+        DatabaseID getDatabaseId() {
+                return dbId;
+        }
+       
+        UserTypeID getTypeId() {
+                return typeId;
+        }
+
+        SetID getSetId() {
+                return setId;
+        }
+
+
+private:
+
+	std :: string dataBase;
+	std :: string setName;
+        DatabaseID dbId;
+        UserTypeID typeId;
+        SetID setId;
+
 };
+
 
 
 #endif

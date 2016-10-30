@@ -84,12 +84,16 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	Handle <ObjType> returnVal;
 
 	// get the space... allocate and set up the reference count before it
-	void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
-
+        #ifdef DEBUG_OBJECT_MODEL
+	void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType), typeInfo.getTypeCode());
+        #else
+        void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + sizeof (ObjType));
+        #endif
 	// see if there was not enough RAM
 	if (space == nullptr) {
+                std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
 		returnVal.offset = -1;
-		return returnVal;
+		throw myException;
 	}
 
 	// point the new handle at the space
@@ -98,8 +102,14 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 
 	// copy over the object
 	returnVal.typeInfo = typeInfo;
-	typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
-
+        try {
+	    typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
+        } catch (NotEnoughSpace &n) {
+            std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
+            returnVal.offset = -1;
+            returnVal.getTarget()->decRefCount(typeInfo);
+            throw n;
+        }
 	// and reutrn him
 	return returnVal;
 }
@@ -155,15 +165,19 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
 	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
-
+                #ifdef DEBUG_OBJECT_MODEL
 		// get the space... allocate and set up the reference count before it
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
-
+			sizeof (ObjType), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        sizeof (ObjType));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: Not enough memory when invoking Handle (const RefCountedObject <ObjType>) in Handle.cc" << std :: endl;
 			offset = -1;
-			return;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -171,7 +185,14 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjType>) in Handle.cc" << std :: endl;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+               }
 
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
@@ -207,13 +228,18 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjTypeTwo)/*, typeInfo.getTypeCode()*/);
-
+			sizeof (ObjTypeTwo), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        sizeof (ObjTypeTwo));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: Not enough memory when invoking Handle (const RefCountedObject <ObjTypeTwo>) in Handle.cc" << std :: endl;
 			offset = -1;
-			return;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -221,8 +247,15 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
-
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjTypeTwo>) in Handle.cc" << std :: endl;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+               }
+ 
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
@@ -254,13 +287,18 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
 	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
-
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjType>) in Handle.cc" << std :: endl;
 			offset = -1;
-			return;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -269,8 +307,14 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
+                try {
 		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
-
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjType>) in Handle.cc" << std :: endl;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+               }
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
@@ -305,13 +349,18 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
-
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjTypeTwo>) in Handle.cc" << std :: endl;
 			offset = -1;
-			return;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -319,8 +368,14 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
-
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjTypeTwo>) in Handle.cc" << std :: endl;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+               }
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
@@ -350,6 +405,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	typeInfo.setup <ObjType> ();
 
 	if (fromMe == nullptr) {
+                std :: cout << "ERROR: not enough memory when invoking operator = (const RefCountedObject <ObjType>*) in Handle.cc" << std :: endl;
 		DEC_OLD_REF_COUNT;
 		offset = -1;
 		return *this;
@@ -360,15 +416,19 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjType)/*, typeInfo.getTypeCode()*/);
-                std :: cout << "typeInfo=" << typeInfo.getTypeCode() << std :: endl;
-                std :: cout << "typeSize=" << sizeof(ObjType) << std :: endl;
+			sizeof (ObjType), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        sizeof (ObjType));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: not enough memory when invoking operator = (const RefCountedObject <ObjType>*) in Handle.cc" << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
-			return *this;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -377,13 +437,29 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
-
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
+                    DEC_OLD_REF_COUNT;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+                }
 		DEC_OLD_REF_COUNT;
 
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
+               #ifdef DEBUG_OBJECT_MODEL
+               if (!getAllocator().contains((void *) fromMe) && !getAllocator().contains(this)) {
+                     std :: cout << "#################################################" << std :: endl;
+                     std :: cout << "Both LHS and RHS are not in current block" << std :: endl;
+                     std :: cout << "RHS typeinfo =" << typeInfo.getTypeCode() << std :: endl;
+                     std :: cout << "#################################################" << std :: endl;
+                }
+                #endif
+
 
 		// set the offset
 		offset = CHAR_PTR (fromMe) - CHAR_PTR (this);
@@ -426,14 +502,19 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	if (!getAllocator ().contains ((void *) fromMe) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE + 
-			sizeof (ObjTypeTwo)/*, typeInfo.getTypeCode()*/);
-
+			sizeof (ObjTypeTwo), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        sizeof (ObjTypeTwo));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjTypeTwo>*) in Handle.cc" << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
-			return *this;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -442,13 +523,28 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
-
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjTypeTwo>*) in Handle.cc" << std :: endl;
+                    DEC_OLD_REF_COUNT;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+                }
 		DEC_OLD_REF_COUNT;
 
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
+                #ifdef DEBUG_OBJECT_MODEL
+                if (!getAllocator().contains((void *) fromMe) && !getAllocator().contains(this)) {
+                     std :: cout << "#################################################" << std :: endl;
+                     std :: cout << "Both LHS and RHS are not in current block" << std :: endl;
+                     std :: cout << "RHS typeinfo =" << typeInfo.getTypeCode() << std :: endl;
+                     std :: cout << "#################################################" << std :: endl;
+                }
+                #endif
 
 		// set the offset
 		offset = CHAR_PTR (fromMe) - CHAR_PTR (this);
@@ -489,14 +585,19 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 		// get the space... allocate and set up the reference count before it
                 RefCountedObject <ObjType> * refCountedObject = fromMe.getTarget();
                 ObjType * object = refCountedObject->getObject();
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
-			typeInfo.getSizeOfConstituentObject (/*fromMe.getTarget ()->getObject ()*/ (void *)object)/*, typeInfo.getTypeCode()*/);
-
+			typeInfo.getSizeOfConstituentObject (/*fromMe.getTarget ()->getObject ()*/ (void *)object), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        typeInfo.getSizeOfConstituentObject (/*fromMe.getTarget ()->getObject ()*/ (void *)object));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
-			return *this;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -505,7 +606,15 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
+                try {
+		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
+                } catch (NotEnoughSpace &n) {
+                    std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                    DEC_OLD_REF_COUNT;
+                    offset = -1;
+                    getTarget()->decRefCount(typeInfo);
+                    throw n;
+                }
 
 		DEC_OLD_REF_COUNT;
 
@@ -515,7 +624,14 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
-
+                #ifdef DEBUG_OBJECT_MODEL
+                if (!getAllocator().contains(fromMe.getTarget()) && !getAllocator().contains(this)) {
+                     std :: cout << "#################################################" << std :: endl;
+                     std :: cout << "Both LHS and RHS are not in current block" << std :: endl;
+                     std :: cout << "RHS typeinfo =" << typeInfo.getTypeCode() << std :: endl;
+                     std :: cout << "#################################################" << std :: endl;
+                }
+                #endif
 		// set the offset
 		offset = CHAR_PTR (fromMe.getTarget ()) - CHAR_PTR (this);
 
@@ -557,14 +673,19 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {
 
 		// get the space... allocate and set up the reference count before it
+                #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
-			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ())/*, typeInfo.getTypeCode()*/);
-
+			typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()), typeInfo.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (REF_COUNT_PREAMBLE_SIZE +
+                        typeInfo.getSizeOfConstituentObject (fromMe.getTarget ()->getObject ()));
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
+                        std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
-			return *this;
+			throw myException;
 		}
 
 		offset = CHAR_PTR (space) - CHAR_PTR (this);
@@ -573,7 +694,15 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 		getTarget ()->setRefCount (1);	
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
-		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
+                try {
+		       typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
+                } catch (NotEnoughSpace &n) {
+                       std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                       DEC_OLD_REF_COUNT;
+                       offset = -1;
+                       getTarget()->decRefCount(typeInfo);
+                       throw n;
+                }
 
 		DEC_OLD_REF_COUNT;
 
@@ -583,14 +712,14 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 	// if the RHS is not in the current allocator or the LHS handle is not in the 
 	// current allocator, then we just do a shallow copy
 	} else {
-
+                #ifdef DEBUG_OBJECT_MODEL
                 if (!getAllocator().contains(fromMe.getTarget()) && !getAllocator().contains(this)) {
                      std :: cout << "#################################################" << std :: endl;
                      std :: cout << "Both LHS and RHS are not in current block" << std :: endl;
                      std :: cout << "RHS typeinfo =" << typeInfo.getTypeCode() << std :: endl;
                      std :: cout << "#################################################" << std :: endl;
                 }
-
+                #endif
 		// set the offset
 		offset = CHAR_PTR (fromMe.getTarget ()) - CHAR_PTR (this);
 

@@ -107,11 +107,14 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 		// get the space... allocate and set up the reference count before it
 		PDBTemplateBase temp;
 		temp.template setup <ObjType> ();
-		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/);
-
+                #ifdef DEBUG_OBJECT_MODEL
+		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE, temp.getTypeCode());
+                #else
+                void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE);
+                #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
-			return nullptr;
+			throw myException;
 		}
 
 		// allocate the new space
@@ -119,8 +122,16 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 
 		// set the ref count to zero
 		returnVal->setRefCount (0);
-		setUpAndCopyFromTemplate <ObjType> (returnVal->getObject (), &forMe, nullptr);
-
+                try {
+		   setUpAndCopyFromTemplate <ObjType> (returnVal->getObject (), &forMe, nullptr);
+                } catch (NotEnoughSpace &n) {
+                #ifdef DEBUG_OBJECT_MODEL
+                   getAllocator().freeRAM(returnVal, temp.getTypeCode());
+                #else
+                   getAllocator().freeRAM(returnVal);
+                #endif
+                   throw n;
+                }
 		// and get outta here
 		return returnVal;
 	}
@@ -128,12 +139,17 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 
 template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObject (Args&&... args) {
-
+#ifdef DEBUG_OBJECT_MODEL
+        PDBTemplateBase temp;
+        temp.template setup <ObjType> ();
+#endif
 	// create a new object
-        //PDBTemplateBase temp;
-        //temp.template setup <ObjType> ();
-	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/));
+	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *)
+#ifdef DEBUG_OBJECT_MODEL 
+		(getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE, temp.getTypeCode()));
+#else
+                (getAllocator ().getRAM (sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+#endif
 
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
@@ -143,11 +159,14 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
         try {
 	        new ((void *) returnVal->getObject ()) ObjType (args... );
         } catch (NotEnoughSpace &n) {
-                //added by Jia based on Chris' proposal
                 //for reference counting correctness
                 //returnVal->setRefCount(0);
                 //Handle<ObjType> temp = returnVal;
+#ifdef DEBUG_OBJECT_MODEL
+                getAllocator().freeRAM(returnVal, temp.getTypeCode());
+#else
                 getAllocator().freeRAM(returnVal);
+#endif
                 throw n;
         }
 
@@ -160,13 +179,17 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
 
 template <class ObjType, class... Args>
 RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... args) {
-
+#ifdef DEBUG_OBJECT_MODEL
+        PDBTemplateBase temp;
+        temp.template setup <ObjType> ();
+#endif
 	// create a new object
-        //PDBTemplateBase temp;
-        //temp.template setup <ObjType> ();
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
-		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE/*, temp.getTypeCode()*/));
-
+#ifdef DEBUG_OBJECT_MODEL
+		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE, temp.getTypeCode()));
+#else
+                (getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));
+#endif
 	// if we got a nullptr, get outta there
 	if (returnVal == nullptr)
 		return nullptr;
@@ -179,7 +202,11 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
              //for reference counting correctness
              //returnVal->setRefCount(0);
              //Handle<ObjType> temp = returnVal;
+#ifdef DEBUG_OBJECT_MODEL
+             getAllocator().freeRAM(returnVal, temp.getTypeCode());
+#else
              getAllocator().freeRAM(returnVal);
+#endif
              throw n;
         }
 

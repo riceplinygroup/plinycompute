@@ -196,10 +196,19 @@ public:
 
 	// returns some RAM... this can throw an exception if the request is too large
 	// to be handled because there is not enough RAM in the current allocation block
-	void *getRAM (size_t howMuch/*, int16_t typeId*/);
+        // JIA NOTE: enable DEBUG_OBJECT_MODEL will bring significant performance overhead, and should be used cautiously.
+        #ifdef DEBUG_OBJECT_MODEL
+	    void *getRAM (size_t howMuch, int16_t typeId);
+        #else
+            void *getRAM (size_t howMuch);
+        #endif
 
 	// free some RAM that was previous allocated via a call to getRAM
-	void freeRAM (void *here/*, int16_t typeId*/);
+        #ifdef DEBUG_OBJECT_MODEL
+            void freeRAM (void *here, int16_t typeId);
+        #else
+            void freeRAM (void *here);
+        #endif
 
 	// make this RAM the current allocation block
 	void setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
@@ -236,11 +245,10 @@ public:
 	// of the others, and deleted as needed later on
 	void restoreAllocationBlockAndManageOldOne ();
 
-        // a print function added by Jia for debugging object model memory management
+        // Jia Note: for debugging object model memory management
         std::string printInactiveBlocks();
 
-        // Added by Jia
-        // this function should only be used for debugging purposes.
+        // Jia Note: this function should only be used for debugging purposes.
         void cleanInactiveBlocks();
 
 private:
