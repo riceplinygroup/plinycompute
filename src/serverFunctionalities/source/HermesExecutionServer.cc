@@ -257,6 +257,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
             SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
             ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
+
+
             PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, conf->getNumThreads());
             std :: cout << "initialize the pipeline network" << std :: endl;
             network->initialize(request);

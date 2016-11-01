@@ -44,7 +44,8 @@
 #include "DoneWithResult.h"
 #include "PangeaStorageServer.h"
 #include "JobStage.h"
-
+#include "ProjectionOperator.h"
+#include "FilterOperator.h"
 
 namespace pdb {
 
@@ -52,34 +53,35 @@ FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
-       // handle a request to execute a job stage
+       // to handle a request to execute a job stage
        forMe.registerHandler (JobStage_TYPEID, make_shared <SimpleRequestHandler <JobStage>> (
                [&] (Handle <JobStage> request, PDBCommunicatorPtr sendUsingMe) {
-
+                getAllocator().printInactiveBlocks();
                 std :: string errMsg;
                 bool success;
                 std :: cout << "Frontend got a request for JobStage" << std :: endl;
                 request->print();
-                const UseTemporaryAllocationBlock tempBlock {24*1024*1024};
+                makeObjectAllocatorBlock(24*1024*1024, true);
                 PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                 if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                     std :: cout << errMsg << std :: endl;
                     exit(1);
                 }
                 std :: cout << "Frontend connected to backend" << std :: endl;
+
                 Handle<JobStage> newRequest = makeObject<JobStage>(request->getStageId());
-                
+                std :: cout << "Created JobStage object for forwarding" << std :: endl;
                 //restructure the input information  
                 std :: string inDatabaseName = request->getInput()->getDatabase();
                 std :: string inSetName = request->getInput()->getSetName();
                 Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
-                
+                std :: cout << "Created SetIdentifier object for input" << std :: endl;
                 SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));               
                 input->setDatabaseId(inputSet->getDbID());
                 input->setTypeId(inputSet->getTypeID());
                 input->setSetId(inputSet->getSetID());
                 newRequest->setInput(input);
-
+                std :: cout << "Input is set" << std :: endl;
 
                 std :: string outDatabaseName = request->getOutput()->getDatabase();
                 std :: string outSetName = request->getOutput()->getSetName();
@@ -89,26 +91,40 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                 getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
                 SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                std :: cout << "Output set is created in storage" << std :: endl;
 
                 // create the output set in the storage manager and in the catalog
                 int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getOutputTypeName ());
-                if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
-                        //std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";
+                    if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
+                        std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
                         exit (1);
-                }
-
+                    }
+                    std :: cout << "Output set is created in catalog" << std :: endl;
                 //restructure the output information
+                //makeObjectAllocatorBlock(24*1024*1024, true);
                 Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                std :: cout << "Created SetIdentifier object for output" << std :: endl;
                 output->setDatabaseId(outputSet->getDbID());
                 output->setTypeId(outputSet->getTypeID());
                 output->setSetId(outputSet->getSetID());
                 newRequest->setOutput(output);
                 newRequest->setOutputTypeName(request->getOutputTypeName());
+                std :: cout << "Output is set" << std :: endl;
                 
                 //copy operators
+                std :: cout << "get operator vector" << std :: endl;
                 Vector<Handle<ExecutionOperator>> operators = request->getOperators();
                 for (int i=0; i < operators.size(); i++) {
-                     newRequest->addOperator(operators[i]);
+                     Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
+                     Handle<ExecutionOperator> curOperator;
+                     if(operators[i]->getName() == "ProjectionOperator") {
+                         curOperator = makeObject<ProjectionOperator>(newSelection);
+                     } else if (operators[i]->getName() == "FilterOperator") {
+                         curOperator = makeObject<FilterOperator>(newSelection);
+                     }
+                     std :: cout << curOperator->getName() << std :: endl;
+                     newRequest->addOperator(curOperator);
+                     std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
                 }              
  
                 newRequest->print();
