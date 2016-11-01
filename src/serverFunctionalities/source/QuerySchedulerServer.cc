@@ -364,7 +364,7 @@ void QuerySchedulerServer :: schedule() {
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
                        std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
                        std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
-                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger, DeepCopy);
+                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger, Recreation);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
