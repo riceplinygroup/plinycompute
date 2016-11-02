@@ -113,7 +113,7 @@ int main () {
                        	supers->push_back (super);
                        	for (int j = 0; j < 10; j++) {
                                	Handle <Employee> temp;
-				if (j % 2 == 0)
+				if (i % 2 == 0)
 					temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29));
 				else
 					temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29));
@@ -129,11 +129,14 @@ int main () {
 		TupleSetIterator myIterator (tempVec, 128);
 		Pipeline myPipe (
 			[] () -> std :: pair <void *, size_t> {
+				std :: cout << "Asking for a new page.\n";
 				void *myPage = malloc (64 * 1024);
+				std :: cout << "Page was " << (size_t) myPage << "!!!\n";
 				return std :: make_pair (myPage, 64 * 1024);
 			},
 			[] (void *page, size_t pageSize) {
 				std :: cout << "Writing back page of size " << pageSize << "!!!\n";
+				std :: cout << "Page was " << (size_t) page << "!!!\n";
 				Handle <Vector <Handle <Employee>>> temp = ((Record <Vector <Handle <Employee>>> *) page)->getRootObject ();
 				std :: cout << "Found " << temp->size () << " objects.\n";
 				for (int i = 0; i < temp->size (); i++) {
@@ -143,6 +146,10 @@ int main () {
 				std :: cout << "\n";
 				free (page);
 			}, 
+			[] (void *page, size_t pageSize) {
+				std :: cout << "Freeing page of size " << pageSize << "!!!\n";
+				free (page);
+			},
 			myIterator);
 	
 		// create the pipeline
@@ -162,6 +169,9 @@ int main () {
 		ComputationPtr fifthOp = final->getComputations ().getProducingComputation ("F");
 		myPipe.addStage (fillMe ["methodCall_3"]->getExecutor (fourthOp->getOutput (), fifthOp->getInput (), fifthOp->getProjection ()));
 	
+		// kill all of the pointers, so the only links to the pipeline stages are in the pipeline itself
+		firstOp = secOp = thirdOp = fourthOp = fifthOp = nullptr;
+
 		// run the pipeline!!!
 		// the "1" indicates that we are writing out the column in position 1 (the second column) from the output tuples
 		myPipe.run (1);
@@ -170,5 +180,5 @@ int main () {
 	// clean everything up!!
 	supers = nullptr;
 	free (myPage);
-
+	delete final;
 }

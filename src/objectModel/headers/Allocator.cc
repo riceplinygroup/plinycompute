@@ -95,7 +95,6 @@ inline void * InactiveAllocationBlock :: getEnd() {
         return end;
 }
 
-
 // These macros are used to manipulate the block of RAM that makes up an allocation block
 // The layout is | num bytes used | offset to root object | number active objects | data <--> |
 #undef ALLOCATOR_REF_COUNT
@@ -255,6 +254,36 @@ inline bool Allocator :: isManaged (void *here) {
 	}
 
 	return false;
+}
+
+inline void Allocator :: emptyOutBlock (void *here) {
+
+	// if this is the active one, emty it out
+	if (contains (here)) {
+		// empty out the list of unused chunks of RAM in this block
+		for (auto &c : myState.chunks) {
+			c.clear ();
+		}
+
+		LAST_USED = HEADER_SIZE;	
+		ALLOCATOR_REF_COUNT = 0;
+
+		std :: cout << "Killed the current block.\n";
+		return;
+	}
+
+	// otherwise, he is not in the active block, so look for him
+	auto i = std :: lower_bound (allInactives.begin (), allInactives.end (), here);
+
+	// see if we found him
+	if (i != allInactives.end () && !(*i > here)) {
+
+		allInactives.erase (i);	
+		std :: cout << "Killed an old block block.\n";
+		return;
+	}
+
+	std :: cout << "This is kind of bad.  You asked me to empty out a block, and I cannot find it.\n";
 }
 
 // free some RAM
@@ -487,25 +516,21 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t num
 	return returnVal;
 }
 
-inline void Allocator :: restoreAllocationBlockAndManageOldOne (AllocatorState &useMe) {
-
-	// first, remember the current block
-	// don't remember a block with no objects
-	if (ALLOCATOR_REF_COUNT != 0) {
-		allInactives.emplace_back (myState.activeRAM, myState.numBytes);	
-		std :: sort (allInactives.begin (), allInactives.end ());
-	} else {
-		free (myState.activeRAM);
-	}
-
-	// now restore the old block
-	restoreAllocationBlock (useMe);
-}
-
 // goes back to the old allocation block.. this should only
 // by called after a call to temporarilyUseBlockForAllocations ()
 inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 
+	// if this guy was not user-allocated, then remember him
+	if (!myState.curBlockUserSupplied) {
+		if (ALLOCATOR_REF_COUNT != 0) {
+			allInactives.emplace_back (myState.activeRAM, myState.numBytes);	
+			std :: sort (allInactives.begin (), allInactives.end ());
+		} else {
+			free (myState.activeRAM);
+		}
+	}
+
+	// restore the old one
 	myState = useMe;
 	
 	// remove the old allocation block from the list of inactive ones

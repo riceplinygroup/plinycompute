@@ -20,7 +20,7 @@ SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is
 # OSX settings
 if common_env['PLATFORM'] == 'darwin':
 	print 'Compiling on OSX'
-  	common_env.Append(CXXFLAGS = '-std=c++1y -Wall -O0')
+  	common_env.Append(CXXFLAGS = '-std=c++1y -Wall -O0 -g')
 	common_env.Replace(CXX = "clang++")
 
 # Linux settings

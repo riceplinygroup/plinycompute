@@ -124,6 +124,15 @@ public:
 	// get the reference count for this Handle, if it exists (returns 99999999 if it does not)
 	unsigned getRefCount ();
 
+	// this finds the allocation block that contains this particular Handle and sets the reference count to zero,
+	// freeing the allocation block if necessary.  Then, this Handle is set to be a nullptr.  This is used at 
+	// various times by PDB systems programmers to prevent any sort of recursive deletions in a block when it RAM
+	// has already been written out... we just call emptyOutContainingBlock () and we are guatanteed that the block
+	// will be removed.  IMPORTANT: this should only be called if this Handle object is the ONLY reference into
+	// the block.  Otherwise, bad things will happen when one of those other references attempts to look at the
+	// allocation block
+	void emptyOutContainingBlock ();
+
 	// makes sure that the data pointed to by *this is located in the current 
 	// allocation block.  If it is, simply return a copy of *this.  If it is not,
 	// copy the item referenced by it to the current allocation block and return

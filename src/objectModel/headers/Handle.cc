@@ -67,6 +67,22 @@ unsigned Handle <ObjType> :: getRefCount () {
 }
 
 template <class ObjType>
+void Handle <ObjType> :: emptyOutContainingBlock () {
+
+	if (!isNullPtr ()) {
+
+		// go ahead and free his block
+		getAllocator ().emptyOutBlock (getTarget ());
+
+		// and set us so that we are a null pointer
+		offset = -1;
+	} else {
+		std :: cout << "This seems bad.  I don't think that you should be emptying the containing block for a nullptr.\n";
+	}
+}
+
+
+template <class ObjType>
 Handle <ObjType> :: Handle (const std :: nullptr_t rhs) {
 	typeInfo.setup <Nothing> ();
 	offset = -1;

@@ -151,11 +151,11 @@ Handle <Array <TypeContained>> Array <TypeContained> :: resize (uint32_t howMany
 	// copy everything over
 	TypeContained *newLoc = (TypeContained *) (tempArray->data);
 
-	int max = usedSlots;
+	uint32_t max = usedSlots;
 	if (max < howMany)
 		max = howMany;
 
-	int min = usedSlots;
+	uint32_t min = usedSlots;
 	if (min > howMany)
 		min = howMany;
 
