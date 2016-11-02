@@ -13,6 +13,9 @@ include_directories(
         ../../../src/conf/headers
         ../../../src/communication/headers
         ../../../src/dispatcher/headers
+        ../../../src/logicalPlan/headers
+        ../../../src/logicalPlanTests/headers
+        ../../../src/lambdas/headers
         ../../../src/memory/headers
         ../../../src/mocking/headers
         ../../../src/objectModel/headers
@@ -28,6 +31,7 @@ include_directories(
         ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
         ../../../src/storage/headers
+        ../../../src/tcapIntermediaryRepTests/headers
         ../../../src/tcapIntermediaryRep/headers
         ../../../src/tcapLexer/headers
         ../../../src/tcapLexerTests/headers
@@ -57,6 +61,9 @@ set(SOURCE_FILES
         ../../../src/bufferMgr/source/MyDB_Table.cc
         ../../../src/communication/headers/SimpleRequest.cc
         ../../../src/communication/source/PDBCommunicator.cc
+        ../../../src/logicalPlan/source/ParserHelperFunctions.cc
+        ../../../src/logicalPlan/source/LogicalPlanBuilder.cc
+        ../../../src/logicalPlanTests/source/LogicalPlanTestsRunner.cc
         ../../../src/objectModel/source/VTableMapConstructor.cc
         ../../../src/objectModel/source/VTableMapCatalogLookup.cc
         ../../../src/pdbServer/source/PDBLogger.cc
@@ -88,7 +95,14 @@ set(SOURCE_FILES
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
         ../../../src/work/source/PDBWork.cc
-        ../../../src/work/source/PDBWorker.cc ../../../src/tcapParserTests/source/ParseTcapTests.cc ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc)
+        ../../../src/work/source/PDBWorker.cc
+        ../../../src/tcapParserTests/source/ParseTcapTests.cc
+        ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc
+        ../../../src/tcapIntermediaryRepTests/source/TcapIrTestsRunner.cc
+        ../../../src/tcapParser/source/TcapParser.cc
+        ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
+        ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc)
 
 
 

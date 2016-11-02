@@ -15,43 +15,31 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef _LOGICALPLANBUILDER_H_
+#define _LOGICALPLANBUILDER_H_
 
-#include <iostream>
+#include <memory>
+#include <vector>
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
+#include "Instruction.h"
+#include "ParserTypes.h"
 
+using std::shared_ptr;
+using std::vector;
 
-using QUnit::UnitTest;
+using pdb_detail::InstructionPtr;
 
-using pdb::makeObjectAllocatorBlock;
+/**
+ * Translates each of the given instructions into an instance one of: Input, Output, Computation
+ * and agregates the results into the returned LogicalPlan.
+ *
+ * Load turns into Input
+ * Store turns into Output
+ * everything other instruction variant turns into a Computation.
+ *
+ * @param instructions the list of instructions to translate
+ * @return A LogicalPlan representation of the given instructions.
+ */
+shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions);
 
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
-{
-    makeObjectAllocatorBlock (1024 * 10, true);
-
-    UnitTest qunit(std::cerr, QUnit::normal);
-
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
-
-    return qunit.errors();
-}
-
+#endif

@@ -15,43 +15,38 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_TCAPINTERMEDIARYREP_LOAD_H
+#define PDB_TCAPINTERMEDIARYREP_LOAD_H
 
-#include <iostream>
+#include "ApplyFunction.h"
+#include "Instruction.h"
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
-
-
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_detail
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    class Load : public Instruction
+    {
+    public:
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+        const string outputTableId;
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+        const string outputColumnId;
 
-    return qunit.errors();
+        const string source;
+
+        Load(string outputTableId, string outputColumnId, string source)
+                :Instruction(InstructionType::load), outputColumnId(outputColumnId), outputTableId(outputTableId),
+                 source(source)
+        {
+        }
+
+        void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+                   function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
+                   function<void(Store&)> forStore) override
+        {
+            forLoad(*this);
+        }
+
+    };
 }
 
+#endif //PDB_TCAPINTERMEDIARYREP_LOAD_H

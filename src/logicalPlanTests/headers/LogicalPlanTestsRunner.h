@@ -16,42 +16,17 @@
  *                                                                           *
  *****************************************************************************/
 
-#include <iostream>
+#ifndef PDB_LOGICALPLANTESTS_LOGICALPLANTESTSRUNNER_H
+#define PDB_LOGICALPLANTESTS_LOGICALPLANTESTSRUNNER_H
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
 #include "qunit.h"
-
 
 using QUnit::UnitTest;
 
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_tests
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
-
-    UnitTest qunit(std::cerr, QUnit::normal);
-
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
-
-    return qunit.errors();
+    void runLogicalPlanTests(UnitTest &qunit);
 }
 
+
+#endif //PDB_LOGICALPLANTESTS_LOGICALPLANTESTSRUNNER_H

@@ -15,43 +15,55 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_TCAPINTERMEDIARYREP_TABLECOLUMNS_H
+#define PDB_TCAPINTERMEDIARYREP_TABLECOLUMNS_H
 
-#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
+using std::make_shared;
+using std::shared_ptr;
+using std::string;
+using std::vector;
 
-
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_detail
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    /**
+     * columnNames may not be empty.
+     */
+    class TableColumns
+    {
+    public:
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+        const string tableName;
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+        const shared_ptr<vector<string>> columnIds;
 
-    return qunit.errors();
+        TableColumns(string tableName, shared_ptr<vector<string>> columnIds)
+            : tableName(tableName), columnIds(columnIds)
+        {
+        }
+
+        TableColumns(string tableName, string columnId)
+                : tableName(tableName), columnIds(make_shared<vector<string>>())
+        {
+            columnIds->push_back(columnId);
+        }
+
+        TableColumns(string tableName, string columnId1, string columnId2)
+                : tableName(tableName), columnIds(make_shared<vector<string>>())
+        {
+            columnIds->push_back(columnId1);
+            columnIds->push_back(columnId2);
+        }
+
+        string operator[](vector<string>::size_type index) const
+        {
+            return columnIds->operator[](index);
+        }
+
+    };
 }
 
+#endif //PDB_TCAPINTERMEDIARYREP_TABLECOLUMNS_H

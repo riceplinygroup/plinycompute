@@ -44,7 +44,7 @@ using std::function;
 using std::string;
 
 using pdb::Handle;
-using pdb::Lambda;
+using pdb::SimpleLambda;
 using pdb::makeObject;
 using pdb::Object;
 using pdb::QueryOutput;
@@ -188,19 +188,19 @@ namespace pdb_tests
 
         public:
 
-            virtual Lambda<bool> getSelection(Handle<Object> &in) override
+            virtual SimpleLambda<bool> getSelection(Handle<Object> &in) override
             {
-                return Lambda<bool>([]() { return true; });
+                return SimpleLambda<bool>([]() { return true; });
             }
 
-            virtual Lambda<Handle<Object>> getProjection(Handle<Object> &in) override
+            virtual SimpleLambda<Handle<Object>> getProjection(Handle<Object> &in) override
             {
-                return Lambda<Handle<Object>>([]() { return nullptr; });
+                return SimpleLambda<Handle<Object>>([]() { return nullptr; });
             }
 
             // over-ridden by the user so they can supply the selection on projection
             // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            SimpleLambda <bool> getProjectionSelection (Handle <Object> &in)
             {
 
             }
@@ -285,19 +285,19 @@ namespace pdb_tests
 
         public:
 
-            Lambda<bool> getSelection(Handle<Zebra> &in) override
+            SimpleLambda<bool> getSelection(Handle<Zebra> &in) override
             {
-                return Lambda<bool>([]() { return true; });
+                return SimpleLambda<bool>([]() { return true; });
             }
 
-            Lambda<Handle<Zebra>> getProjection(Handle<Zebra> &in) override
+            SimpleLambda<Handle<Zebra>> getProjection(Handle<Zebra> &in) override
             {
-                return Lambda<Handle<Zebra>>([]() { return nullptr; });
+                return SimpleLambda<Handle<Zebra>>([]() { return nullptr; });
             }
 
             // over-ridden by the user so they can supply the selection on projection
             // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            Lambda <bool> getProjectionSelection (Handle <Zebra> &in)
+            SimpleLambda <bool> getProjectionSelection (Handle <Zebra> &in)
             {
 
             }

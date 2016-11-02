@@ -27,6 +27,8 @@
 #include <vector>
 #include <map>
 
+using std::string;
+
 /************************************************/
 /** HERE WE DEFINE ALL OF THE STRUCTS THAT ARE **/
 /** PASSED AROUND BY THE PARSER                **/
@@ -46,6 +48,10 @@ public:
 
 	void appendAttribute (char *appendMe) {
 		atts.push_back (std :: string (appendMe));
+	}
+
+	void appendAttribute (std :: string appendMe) {
+		atts.push_back (appendMe);
 	}
 	
 	std :: vector <std :: string> &getAtts () {
@@ -173,7 +179,7 @@ public:
 
 	~ApplyLambda () {}
 
-	ApplyLambda (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string lambdaNameIn) : 
+	ApplyLambda (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string lambdaNameIn) :
 		Computation (input, output, projection) {
 		lambdaName = lambdaNameIn;
 	}
@@ -285,6 +291,17 @@ public:
 		setName = setNameIn;
 	}
 
+    string getDbName()
+    {
+        return dbName;
+    }
+
+    string getSetName()
+    {
+        return setName;
+    }
+
+
 	friend std :: ostream& operator<<(std :: ostream& os, const Input& printMe);
 };
 
@@ -312,6 +329,16 @@ public:
 	void addInput (Input &addMe) {
 		inputs [addMe.getOutputName ()] = addMe;
 	}
+
+    Input& getInput(string outputName)
+    {
+        return inputs[outputName];
+    }
+
+    unsigned long size()
+    {
+        return inputs.size();
+    }
 
 	friend std :: ostream& operator<<(std :: ostream& os, const InputList& printMe);
 };

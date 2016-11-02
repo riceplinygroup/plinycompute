@@ -15,43 +15,31 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+//
+// Created by barnett on 10/25/16.
+//
 
-#include <iostream>
+#ifndef PDB_TCAPINTERMEDIARYREP_COLUMN_H
+#define PDB_TCAPINTERMEDIARYREP_COLUMN_H
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
+#include <string>
 
+using std::string;
 
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_detail
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    class Column
+    {
+    public:
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+        const string tableId;
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+        const string columnId;
 
-    return qunit.errors();
+        Column(string tableId, string columnId) : tableId(tableId), columnId(columnId)
+        {
+        }
+    };
 }
 
+#endif //PDB_TCAPINTERMEDIARYREP_COLUMN_H
