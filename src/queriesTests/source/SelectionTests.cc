@@ -21,7 +21,7 @@
 
 #include "Handle.h"
 #include "InterfaceFunctions.h"
-#include "Lambda.h"
+#include "SimpleLambda.h"
 #include "Object.h"
 #include "Selection.h"
 #include "Set.h"
@@ -29,7 +29,7 @@
 using std::make_shared;
 
 using pdb::Handle;
-using pdb::Lambda;
+using pdb::SimpleLambda;
 using pdb::Object;
 using pdb::makeObject;
 using pdb::Set;
@@ -42,19 +42,19 @@ namespace pdb_tests
     {
         class MySelection : public Selection<Object,Object>
         {
-            Lambda <bool> getSelection (Handle <Object> &in)
+            SimpleLambda <bool> getSelection (Handle <Object> &in)
             {
-                return Lambda<bool>();
+                return SimpleLambda<bool>();
             }
 
-            Lambda <Handle<Object>> getProjection (Handle <Object> &in)
+            SimpleLambda <Handle<Object>> getProjection (Handle <Object> &in)
             {
-                return Lambda<Handle<Object>>();
+                return SimpleLambda<Handle<Object>>();
             }
 
             // over-ridden by the user so they can supply the selection on projection
             // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            SimpleLambda <bool> getProjectionSelection (Handle <Object> &in)
             {
 
             }
@@ -76,19 +76,19 @@ namespace pdb_tests
     {
         class MySelection : public Selection<Object,Object>
         {
-            Lambda <bool> getSelection (Handle <Object> &in)
+            SimpleLambda <bool> getSelection (Handle <Object> &in)
             {
-                return Lambda<bool>();
+                return SimpleLambda<bool>();
             }
 
-            Lambda <Handle<Object>> getProjection (Handle <Object> &in)
+            SimpleLambda <Handle<Object>> getProjection (Handle <Object> &in)
             {
-                return Lambda<Handle<Object>>();
+                return SimpleLambda<Handle<Object>>();
             }
 
             // over-ridden by the user so they can supply the selection on projection
             // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            Lambda <bool> getProjectionSelection (Handle <Object> &in)
+            SimpleLambda <bool> getProjectionSelection (Handle <Object> &in)
             {
 
             }

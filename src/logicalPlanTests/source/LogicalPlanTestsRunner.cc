@@ -15,43 +15,22 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#include <iostream>
-
 #include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
 
+#include "BuildLogicalPlanTests.h"
 
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_tests
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    void runLogicalPlanTests(UnitTest &qunit)
+    {
+        testBuildLoad(qunit);
+        testBuildApplyFunction(qunit);
+        testBuildApplyMethod1(qunit);
+        testBuildApplyMethod2(qunit);
+        testBuildApplyMethod3(qunit);
+        testBuildApplyFilter(qunit);
+        testBuildStore(qunit);
 
-    UnitTest qunit(std::cerr, QUnit::normal);
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
-
-    return qunit.errors();
+    }
 }
-

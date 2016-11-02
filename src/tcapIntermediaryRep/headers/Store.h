@@ -15,43 +15,34 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_TCAPINTERMEDIARYREP_STORE_H
+#define PDB_TCAPINTERMEDIARYREP_STORE_H
 
-#include <iostream>
+#include "ApplyFunction.h"
+#include "Instruction.h"
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
-
-
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_detail
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    class Store : public Instruction
+    {
+    public:
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+        const string tableId;
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+        const string destination;
 
-    return qunit.errors();
+        Store(string tableId, string destination)
+                :Instruction(InstructionType::store), tableId(tableId), destination(destination)
+        {
+        }
+
+        void match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+                   function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
+                   function<void(Store&)> forStore)
+        {
+            forStore(*this);
+        }
+    };
 }
 
+#endif //PDB_TCAPINTERMEDIARYREP_STORE_H

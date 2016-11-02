@@ -76,10 +76,6 @@ namespace pdb_tests
         int statementNumber = 0;
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL(1, assignment.attributes->size());
@@ -123,10 +119,6 @@ namespace pdb_tests
                 });
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL("B", assignment.tableName.contents.get()->c_str())
@@ -174,10 +166,6 @@ namespace pdb_tests
                 });
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL("C", assignment.tableName.contents.get()->c_str())
@@ -225,10 +213,6 @@ namespace pdb_tests
                 });
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL("D", assignment.tableName.contents.get()->c_str())
@@ -275,10 +259,6 @@ namespace pdb_tests
                 });
 
                 parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL("E", assignment.tableName.contents.get()->c_str())
@@ -332,10 +312,6 @@ namespace pdb_tests
                 });
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_EQUAL("F", assignment.tableName.contents.get()->c_str())
@@ -382,10 +358,6 @@ namespace pdb_tests
                 });
 
         parseTree->statements->operator[](statementNumber++)->execute(
-                [&] (MemoStatement&)
-                {
-                    QUNIT_IS_TRUE(false);
-                },
                 [&] (TableAssignment& assignment)
                 {
                     QUNIT_IS_TRUE(false);

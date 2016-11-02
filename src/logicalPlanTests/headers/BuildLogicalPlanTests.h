@@ -15,43 +15,28 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_LOGICALPLANTESTS_BUILDLOGICALPLANTESTS_H
+#define PDB_LOGICALPLANTESTS_BUILDLOGICALPLANTESTS_H
 
-#include <iostream>
-
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
 #include "qunit.h"
-
 
 using QUnit::UnitTest;
 
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_tests
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    void testBuildLoad(UnitTest &qunit);
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+    void testBuildApplyFunction(UnitTest &qunit);
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+    void testBuildApplyMethod1(UnitTest &qunit);
 
-    return qunit.errors();
+    void testBuildApplyMethod2(UnitTest &qunit);
+
+    void testBuildApplyMethod3(UnitTest &qunit);
+
+    void testBuildApplyFilter(UnitTest &qunit);
+
+    void testBuildStore(UnitTest &qunit);
 }
 
+#endif //PDB_LOGICALPLANTESTS_BUILDLOGICALPLANTESTS_H

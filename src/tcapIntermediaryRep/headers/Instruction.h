@@ -15,43 +15,56 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef PDB_TCAPINTERMEDIARYREP_INSTRUCTION_H
+#define PDB_TCAPINTERMEDIARYREP_INSTRUCTION_H
 
-#include <iostream>
+#include <memory>
+#include <functional>
 
-#include "LogicalPlanTestsRunner.h"
-#include "InterfaceFunctions.h"
-#include "QueryItermediaryRepTestsRunner.h"
-#include "QueriesTestsRunner.h"
-#include "TcapTestsRunner.h"
-#include "TcapParsersTestsRunner.h"
-#include "TcapIrTestsRunner.h"
-#include "qunit.h"
+using std::function;
+using std::shared_ptr;
 
-
-using QUnit::UnitTest;
-
-using pdb::makeObjectAllocatorBlock;
-
-using pdb_tests::runQueriesTests;
-using pdb_tests::runQueryIrTests;
-using pdb_tests::runTcapTests;
-using pdb_tests::runTcapParserTests;
-using pdb_tests::runBuildTcapIrTests;
-using pdb_tests::runLogicalPlanTests;
-
-int main()
+namespace pdb_detail
 {
-    makeObjectAllocatorBlock (1024 * 10, true);
+    enum InstructionType
+    {
+        filter, load, apply_function, apply_method, hoist, greater_than, store
+    };
 
-    UnitTest qunit(std::cerr, QUnit::normal);
+    class Load;
 
-    runQueriesTests(qunit);
-    runQueryIrTests(qunit);
-    runTcapTests(qunit);
-    runTcapParserTests(qunit);
-    runBuildTcapIrTests(qunit);
-    runLogicalPlanTests(qunit);
+    class ApplyFunction;
 
-    return qunit.errors();
+    class ApplyMethod;
+
+    class Filter;
+
+    class Hoist;
+
+    class GreaterThan;
+
+    class Store;
+
+    class Instruction
+    {
+    public:
+
+        const InstructionType instructionType;
+
+        Instruction(InstructionType type) : instructionType(type)
+        {
+        }
+
+        virtual void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)> forApplyFunc,
+                           function<void(ApplyMethod&)> forApplyMethod, function<void(Filter&)> forFilter,
+                           function<void(Hoist&)> forHoist, function<void(GreaterThan&)> forGreaterThan,
+                           function<void(Store&)> forStore) = 0;
+
+
+
+    };
+
+    typedef shared_ptr<Instruction> InstructionPtr;
 }
 
+#endif //PDB_TCAPINTERMEDIARYREP_INSTRUCTION_H
