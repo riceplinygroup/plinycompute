@@ -158,7 +158,7 @@ private:
         //std :: unordered_map<void *, int16_t> remainingReferences; 
 
 public:
-
+	
 	// return true if allocations should not fail due to not enough RAM...
 	// in this case, a null pointer is returned on a bad allocate, and NOT
 	// an exception
@@ -172,6 +172,10 @@ public:
 
 	// give this guy the specified active RAM
 	Allocator (size_t numBytes);
+
+	// this finds the block contianing the indicated pointer and sets the number of references to
+	// zero, freeing the block if applicable
+	void emptyOutBlock (void *here);
 
 	// get the number of currently-reachable objects in this guy's block
 	template <class ObjType>
@@ -238,12 +242,6 @@ public:
 	// goes back to the old allocation block.. this should only
 	// by alled after a call to temporarilyUseBlockForAllocations ()
 	void restoreAllocationBlock (AllocatorState &restoreMe);
-	void restoreAllocationBlockAndManageOldOne (AllocatorState &restoreMe);
-
-	// like the above call, except that it does not erase the current
-	// allocation block; it is managed (reference counted) just like all
-	// of the others, and deleted as needed later on
-	void restoreAllocationBlockAndManageOldOne ();
 
         // Jia Note: for debugging object model memory management
         std::string printInactiveBlocks();

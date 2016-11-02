@@ -31,12 +31,10 @@ typedef std :: shared_ptr <UseTemporaryAllocationBlock> UseTemporaryAllocationBl
 class UseTemporaryAllocationBlock {
 
 	AllocatorState oldInfo;
-	bool myMemory = false;
 
 public:
 
 	explicit UseTemporaryAllocationBlock (void *memory, size_t size) {
-		myMemory = true;
 		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (memory, size);			
 	}
 
@@ -45,15 +43,7 @@ public:
 	}
 
 	~UseTemporaryAllocationBlock () {
-		
-		// if the outside world supplied the RAM
-		if (myMemory) {
-			// we don't need to free it when done; the caller is in charge
-			getAllocator ().restoreAllocationBlock (oldInfo);
-		} else {
-			// we do need to free it when done; the caller is not in charge
-			getAllocator ().restoreAllocationBlockAndManageOldOne (oldInfo);
-		}
+		getAllocator ().restoreAllocationBlock (oldInfo);
 	}
 
 	// forbidden, to avoid double frees
