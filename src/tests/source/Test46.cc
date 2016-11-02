@@ -109,10 +109,10 @@ int main (int argc, char * argv[]) {
 	}
 
 	// and shut down the server
-        	
+/*        	
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
-	
+*/	
 }
 
 #endif
