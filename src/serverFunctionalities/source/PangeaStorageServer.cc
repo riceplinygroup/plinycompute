@@ -1184,6 +1184,11 @@ bool PangeaStorageServer::removeType(std :: string typeName) {
 
 //to add a new and empty set
 bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, std :: string setName, SetID setId) {
+       SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
+       if (set != nullptr) {
+           //set exists
+           return false;
+       }
        if (this->name2id->count(dbName) == 0) {
            //database doesn't exist
            return false;
@@ -1194,9 +1199,10 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                //now we fetch the type id through catalog
                if(standalone == true) {
                    int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
-                   if(typeId < 0) {
+                   if((typeId <= 0) || (typeId == 8191)) {
                        std :: cout << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
                        typeName = "UnknownUserData";
+                       this->addType(typeName, (UserTypeID)-1);
                    } else {
                        std :: cout << "Pangea add new type when add set: typeName="<< typeName << std :: endl;
                        std :: cout << "Pangea add new type when add set: typeId="<< typeName << std :: endl; 
@@ -1206,7 +1212,6 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                    //in distributed mode
                    //TODO: we should work as a client to send a message to remote catalog server to figure it out
                    typeName = "UnknownUserData";
-                
                }
            }
        }         
@@ -1218,9 +1223,14 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                     //type hasn't been added to the database, so we need to add it first for creating hierarchical directory so that optimization like compression can be applied at type and database level.
                     db->addType(typeName, typeId);
                     type = db->getType(typeId);
+       } else {
+             set = type->getSet(setId);
+             if (set != nullptr) {
+                    return false;   
+             }
        } 
        type->addSet(setName, setId);
-       SetPtr set = type->getSet(setId);
+       set = type->getSet(setId);
        this->getCache()->pin(set, MRU, Write);
        pthread_mutex_lock(&this->usersetLock);
        this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
