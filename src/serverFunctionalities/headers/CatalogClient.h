@@ -79,6 +79,10 @@ public:
     template <class Type>
     bool registerGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg);
 
+    // a template for removing a piece of metadata from the catalog
+    template <class Type>
+    bool deleteGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg);
+
 	// this creates a new set in a given database... returns true on success
 	// returns true on success, false on fail
 	template <class DataType>
@@ -87,10 +91,33 @@ public:
 	// same as above, but here we use the type code
 	bool createSet (int16_t identifier, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
+    // this deletes a database... returns true on success
+    // returns true on success, false on fail
+    bool deleteDatabase (std :: string databaseName, std :: string &errMsg);
+
+    // this deletes a set... returns true on success
+    // returns true on success, false on fail
+    bool deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+    // this adds a node to a set... returns true on success
+    // returns true on success, false on fail
+    bool addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+    // this adds a node to a DB... returns true on success
+    // returns true on success, false on fail
+    bool addNodeToDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
+
+    // this adds a node to a set... returns true on success
+    // returns true on success, false on fail
+    bool removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+    // this adds a node to a DB... returns true on success
+    // returns true on success, false on fail
+    bool removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
+
+
 	// prints the content of the metadata in the catalog
     bool printCatalogMetadata (std :: string itemToSearch, std :: string &errMsg);
-
-    PDBLoggerPtr getLogger();
 
 private:
 

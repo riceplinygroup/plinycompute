@@ -310,19 +310,22 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
                         std :: string errMsg;
-                     cout << "Pangea StorageAddDatabase" << endl;
+                        bool res = false;
+
+                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true) {
+                            res = false;
+                            errMsg = "Database already exists\n";
+                        } else {
+
                         //add a database in local
-                        bool res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
-                        if (res == false) {
+                            if ((res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase())) == false) {
                                  errMsg = "Database already exists\n";
                         } else {
-//                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
-                                     //TODO check this, added by Carlos, calls the CatalogServer to register metadata
-                                     // regardless of whether or not it's stand alone or distributed storage.
 
+                                // register Metadata for created database in the catalog
                                          res = getFunctionality<CatalogServer> ().addDatabase (request->getDatabase(), errMsg);
-//                                 }
                                  }
+                        }
                         
                         //make response
                         const UseTemporaryAllocationBlock tempBlock{1024};
@@ -339,26 +342,45 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        forMe.registerHandler (StorageAddSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddSet>> (
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                          std :: string errMsg;
-                         //add a set in local
-                         bool res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
-                         if (res == false) {
-                                 errMsg = "Set already exists\n";
-                         } else {
-                             //TODO check this, added by Carlos, calls the CatalogServer to register metadata
-                             // regardless of whether or not it's stand alone or distributed storage.
+                         bool res = false;
+                         cout << "searching for db " << request->getDatabase() << endl;
 
-//                                 if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
+                         // first make sure the database is registered in the catalog
+                         if ((res = getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase()) == false)) {
+                             errMsg = "Database doesn't exist\n";
+                             cout << errMsg << endl;
+                         } else{
+                             // make sure the set is not registered in the catalog
+                             if ((getFunctionality<CatalogServer> ().isSetRegistered (request->getDatabase(), request->getSetName())) == true) {
+                                 res = false;
+                                 errMsg = "Set already exists\n";
+                                 cout << errMsg << endl;
+
+                             } else {
+                         //add a set in local
+                                 if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
+
+                                 errMsg = "Set already exists\n";
+                                         cout << errMsg << endl;
+
+                         } else {
                                           int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
                                           std :: cout << "TypeID ="<< typeID << std :: endl;
+                                      // make sure the type is registered in the catalog
                                           if (typeID == -1) {
                                                     errMsg = "Could not find type " + request->getTypeName();
+                                          cout << errMsg << endl;
+
                                                     res = false;
                                           } else {
+                                          // register metadata for created set in the Catalog
                                                     res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
 
                                           }
-//                                 }
                                  }
+                             }
+                         }
+
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -400,13 +422,18 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string databaseName = request->getDatabase();
                          std :: string typeName = request->getTypeName ();
                          std :: string setName = request->getSetName();
-                         bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
-                         if (res == false) {
+                         bool res = false;
+                         if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
+                             if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName)) == false) {
+                                 errMsg = "Error removing set!\n";
+                                 cout << errMsg << endl;
+                             }else{
+                                 // deletes set in catalog
+                                 res = getFunctionality<CatalogServer>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
+                             }
+                         } else {
                                  errMsg = "Set doesn't exist\n";
                          }
-
-                         // deletes set in catalog
-                         res = getFunctionality<CatalogServer>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
 
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
@@ -425,8 +452,14 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string errMsg;
                          std :: string databaseName = request->whichDatabase();
                          std :: string setName = request->whichSet();
-                         bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName);
-                         if (res == false) {
+                         bool res = false;
+                         if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
+                             if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
+                                 errMsg = "Error removing set!\n";
+                                 cout << errMsg << endl;
+                             }
+
+                         } else {
                                  errMsg = "Set doesn't exist\n";
                          }
                          // make the response

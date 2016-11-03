@@ -38,6 +38,12 @@
 #include "CatTypeNameSearchResult.h"
 #include "CatCreateDatabaseRequest.h"
 #include "CatCreateSetRequest.h"
+#include "CatDeleteDatabaseRequest.h"
+#include "CatDeleteSetRequest.h"
+#include "CatAddNodeToDatabaseRequest.h"
+#include "CatAddNodeToSetRequest.h"
+#include "CatRemoveNodeFromDatabaseRequest.h"
+#include "CatRemoveNodeFromSetRequest.h"
 #include "SimpleRequestResult.h"
 #include "SimpleRequest.h"
 
@@ -53,7 +59,6 @@ CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPt
 	// and let the v-table map know this information
     if (!theVTable->getCatalogClient()) {
         theVTable->setCatalogClient(this);
-        //theVTable->setLogger(this->myLogger);
     }
 
 	// set up the mutex
@@ -67,7 +72,6 @@ CatalogClient :: ~CatalogClient () {
     // Clean up the VTable catalog ptr if it is using this CatalogClient
     if (theVTable->getCatalogClient() == this) {
         theVTable->setCatalogClient(nullptr);
-        //theVTable->setLogger(nullptr);
     }
 
 	pthread_mutex_destroy (&workingMutex);
@@ -231,6 +235,112 @@ bool CatalogClient :: createDatabase (std :: string databaseName, std :: string 
 		databaseName);
 }
 
+bool CatalogClient :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+
+        return simpleRequest <CatDeleteSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error deleting set: " + result->getRes ().second;
+                                        myLogger->error ("Error deleting set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName);
+
+}
+
+bool CatalogClient :: deleteDatabase (std :: string databaseName, std :: string &errMsg) {
+
+    return simpleRequest <CatDeleteDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error deleting database: " + result->getRes ().second;
+                    myLogger->error ("Error deleting database: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;},
+        databaseName);
+}
+
+//GGGGG
+bool CatalogClient :: addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+
+        return simpleRequest <CatAddNodeToSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error creating set: " + result->getRes ().second;
+                                        myLogger->error ("Error creating set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName, nodeIP);
+
+}
+
+bool CatalogClient :: addNodeToDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg) {
+
+    return simpleRequest <CatAddNodeToDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error creating database: " + result->getRes ().second;
+                    myLogger->error ("Error creating database: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;},
+            databaseName, nodeIP);
+}
+
+bool CatalogClient :: removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+
+        return simpleRequest <CatRemoveNodeFromSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error deleting set: " + result->getRes ().second;
+                                        myLogger->error ("Error deleting set: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from catalog";
+                        return false;},
+                databaseName, setName, nodeIP);
+
+}
+
+bool CatalogClient :: removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg) {
+
+    return simpleRequest <CatRemoveNodeFromDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error deleting database: " + result->getRes ().second;
+                    myLogger->error ("Error deleting database: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;},
+        databaseName, nodeIP);
+}
+
 //TODO review these catalog-related methods
 bool CatalogClient :: registerDatabaseMetadata (std :: string itemToSearch, std :: string &errMsg) {
     cout << "inside registerDatabaseMetadata" << endl;
@@ -295,9 +405,10 @@ bool CatalogClient :: printCatalogMetadata (std :: string timeStamp, std :: stri
 template <class Type>
 bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg) {
 
-    cout << "Register Metadata for item: " << (*metadataItem) << endl;
-
-    return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+    cout << "invoking -----> CatalogClient :: registerGenericMetadata Register Metadata for item: " << (*metadataItem).printShort() << endl;
+    cout << "to address " << address << " | " << port << endl;
+    // TODO replace the hard-coded 1024 *1024 arg below
+    return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024 * 1024,
         [&] (Handle <SimpleRequestResult> result) {
             if (result != nullptr) {
                 if (!result->getRes ().first) {
@@ -313,17 +424,38 @@ bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem,
         );
 }
 
+template <class Type>
+bool CatalogClient :: deleteGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg) {
 
-PDBLoggerPtr CatalogClient :: getLogger() {
-    return myLogger;
+    cout << "invoking -----> CatalogClient :: deleteGenericMetadata Remove Metadata for item: " << endl;
+    cout << "to address " << address << " | " << port << endl;
+    // TODO replace the hard-coded 1024 *1024 arg below
+    return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024 * 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error removing node metadata: " + result->getRes ().second;
+                    myLogger->error ("Error removing node metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error removing node metadata in the catalog";
+            return false;},
+            metadataItem
+        );
 }
 
 
 // implicit instantiation
-template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem, string &errMsg);
+template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);
 template bool CatalogClient :: registerGenericMetadata<CatalogDatabaseMetadata> (Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
 template bool CatalogClient :: registerGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
 
+template bool CatalogClient :: deleteGenericMetadata<CatDeleteSetRequest> (Handle<CatDeleteSetRequest> metadataItem, string &errMsg);
+//TODO change these template type with correct type
+//template bool CatalogClient :: deleteGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);
+//template bool CatalogClient :: deleteGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
 
 }
 #endif

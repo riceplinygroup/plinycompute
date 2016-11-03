@@ -54,12 +54,31 @@ public:
 	// this creates a new database... returns true on success
 	bool addDatabase (string databaseName, string &errMsg);
 
+    // this deletes a database... returns true on success
+    bool deleteDatabase (string databaseName, string &errMsg);
+
 	// deletes a set from the database
 	bool deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
 	// this creates a new set in a given database... returns true on success
 	bool addSet (int16_t typeIdentifier, string databaseName, string setName, string &errMsg);
 	
+    // this adds a node to a set... returns true on success
+    // returns true on success, false on fail
+    bool addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+    // this adds a node to a DB... returns true on success
+    // returns true on success, false on fail
+    bool addNodeToDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
+
+    // this adds a node to a set... returns true on success
+    // returns true on success, false on fail
+    bool removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+    // this adds a node to a DB... returns true on success
+    // returns true on success, false on fail
+    bool removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
+
 	// adds a new object type... return -1 on failure
 	int16_t addObjectType (vector <char> &soFile, string &errMsg);
 	
@@ -71,6 +90,9 @@ public:
 
     // registers metadata about a database in the cluster
     bool addDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMetadata, std :: string &errMsg);
+
+    // updates metadata about a database in the cluster
+    bool updateDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMetadata, std :: string &errMsg);
 
     // registers metadata about a set in the cluster
     bool addSetMetadata (Handle<CatalogSetMetadata> &setMetadata, std :: string &errMsg);
@@ -84,8 +106,26 @@ public:
 	// broadcast a piece of metadata to all available nodes in a cluster
 	// returns a map with the results from updating each node in the cluster
 	template<class Type>
-	bool broadcastCatalogUpdate (Handle<Type> metadataToSend, map <string, pair<bool, string>> &broadcastResults,
+	bool broadcastCatalogUpdate (Handle<Type> metadataToSend,
+	                             map <string, pair<bool, string>> &broadcastResults,
 	                             string &errMsg);
+
+    // broadcast a piece of metadata to all available nodes in a cluster
+    // returns a map with the results from deleting that item on the
+	// catalog copy on each node in the cluster
+    template<class Type>
+    bool broadcastCatalogDelete (Handle<Type> metadataToSend,
+                                 map <string, pair<bool, string>> &broadcastResults,
+                                 string &errMsg);
+
+    // returns true if the database is already registered in the Catalog
+    bool isDatabaseRegistered(string dbName);
+
+    // returns true if the set for this database is already registered in the Catalog
+    bool isSetRegistered(string dbName, string setName);
+
+	// returns a reference to the catalog
+	PDBCatalogPtr getCatalog();
 
 private:
 	// new catalog metadata containers
@@ -95,25 +135,14 @@ private:
     Handle<Vector <CatalogDatabaseMetadata> > _allDatabases;
     Handle<Vector <CatalogUserTypeMetadata> > _udfsValues;
 
-    Handle<Vector<Handle<CatalogNodeMetadata>>> resultItemsNodes;
-    Handle<Vector<Handle<CatalogSetMetadata>>> resultItemsSets;
-    Handle<Vector<Handle<CatalogDatabaseMetadata>>> resultItemsDBs;
-    Handle<Vector<Handle<CatalogUserTypeMetadata>>> resultItemsUdfs;
-
-    map<string, CatalogNodeMetadata> mapNodes;
-    map<string, CatalogSetMetadata> mapSets;
-    map<string, CatalogDatabaseMetadata> mapDBs;
-    map<string, CatalogUserTypeMetadata> mapUdfs;
-
-
     // **end
 
 	// map from type name string to int, and vice/versa
 	map <string, int16_t> allTypeNames;
 	map <int16_t, string> allTypeCodes;
 
-	// map from database name to list of sets
-	map <string, vector <string>> allDatabases; 
+//	// map from database name to list of sets
+//	map <string, vector <string>> allDatabases;
 		
 	// vector of nodes in the cluster
 	vector <string> allNodesInCluster;

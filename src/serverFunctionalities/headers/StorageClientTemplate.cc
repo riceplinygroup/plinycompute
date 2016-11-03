@@ -83,7 +83,7 @@ bool StorageClient :: removeSet (std :: string databaseName, std :: string setNa
     if(this->usePangea == true) {
 
        std :: string typeName = getTypeName <DataType> ();
-       std :: cout << "typeName for set to create =" << typeName << std :: endl;
+       std :: cout << "typeName for set to remove =" << typeName << std :: endl;
        return simpleRequest <StorageRemoveUserSet, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
                 [&] (Handle <SimpleRequestResult> result) {
                        if (result != nullptr) {
