@@ -658,7 +658,7 @@
             string queryString("");
             queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
-            cout << "queryString " << queryString << endl;
+//            cout << "queryString " << queryString << endl;
 
             rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
             if (rc != SQLITE_OK) {
@@ -1010,7 +1010,7 @@
         string sqlStatement = "UPDATE " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
 //        string sqlStatement = "INSERT OR REPLACE INTO " + mapsPDBOjbect2SQLiteTable[catalogType] + " (itemInfo, itemId) values ( ?, ? )";
 
-        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
 
@@ -1089,7 +1089,7 @@
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
 
-        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         sqlite3 *sqliteDBHandlerInternal = NULL;
 
