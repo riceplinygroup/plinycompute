@@ -468,7 +468,7 @@ bool PageCache::decPageRefCount(CacheKey key) {
 	} else {
 		PDBPagePtr page = this->cache->at(key);
 		page->decRefCount();
-                cout << "PageCache::decPageRefCount()=" << page->getRefCount() << "\n";
+                //cout << "PageCache::decPageRefCount()=" << page->getRefCount() << "\n";
 		return true;
 	}
 }
@@ -771,12 +771,12 @@ void PageCache::evict() {
 	    while ((this->size > this->evictStopSize)&&(cachedPages->size() > 0)) {
 		page = cachedPages->top();
                 if(page == nullptr) {
-                    cout << "PageCache: nothing to evict, return!\n";
+                    //cout << "PageCache: nothing to evict, return!\n";
                     this->logger->debug("PageCache: nothing to evict, return!\n");
                     break;
                 }
 		if (this->evictPage(page) == true) {
-			cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+			//cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
 		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
 		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();
@@ -789,7 +789,7 @@ void PageCache::evict() {
 	this->inEviction = false;
         pthread_mutex_unlock(&this->evictionMutex);
         //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
-        cout << "Storage server: finished cache eviction!\n";
+        //cout << "Storage server: finished cache eviction!\n";
         logger->debug( "Storage server: finished cache eviction!\n");
 }
 
