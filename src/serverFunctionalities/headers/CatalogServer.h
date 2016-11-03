@@ -118,6 +118,9 @@ public:
                                  map <string, pair<bool, string>> &broadcastResults,
                                  string &errMsg);
 
+    // returns true if the node is already registered in the Catalog
+    bool isNodeRegistered(string nodeIP);
+
     // returns true if the database is already registered in the Catalog
     bool isDatabaseRegistered(string dbName);
 
