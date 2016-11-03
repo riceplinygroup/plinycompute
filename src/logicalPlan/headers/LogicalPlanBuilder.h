@@ -25,6 +25,7 @@
 #include "ParserTypes.h"
 
 using std::shared_ptr;
+using std::string;
 using std::vector;
 
 using pdb_detail::InstructionPtr;
@@ -41,5 +42,7 @@ using pdb_detail::InstructionPtr;
  * @return A LogicalPlan representation of the given instructions.
  */
 shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions);
+
+shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram);
 
 #endif

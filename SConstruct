@@ -11,7 +11,7 @@ common_env = Environment(CXX = 'clang++')
 common_env.Append(YACCFLAGS='-d')
 common_env.Append(CFLAGS='-std=c11')
 
-# the following variables are used for output coloring to see errors and warnings better. 
+# the following variables are used for output coloring to see errors and warnings better.
 common_env = Environment(ENV = {'PATH' : os.environ['PATH'],
                          'TERM' : os.environ['TERM'],
                          'HOME' : os.environ['HOME']})
@@ -224,6 +224,9 @@ all = ['build/sqlite/sqlite3.c',
        component_dir_basename_to_cc_file_paths['memory'],
        component_dir_basename_to_cc_file_paths['storage'],
        component_dir_basename_to_cc_file_paths['distributionManager'],
+       component_dir_basename_to_cc_file_paths['tcapLexer'],
+       component_dir_basename_to_cc_file_paths['tcapParser'],
+       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
        boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
