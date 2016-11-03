@@ -61,7 +61,7 @@ int main (int argc, char * argv[]) {
 
        std :: cout << "Starting up a catalog/storage server!!\n";
        pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
-       pdb :: PDBServer frontEnd (8108, 10, myLogger);
+       pdb :: PDBServer frontEnd (masterPort, 10, myLogger);
        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, isMasterCatalog);
        // for this test make the catalog a master server
        frontEnd.addFunctionality <pdb :: CatalogClient> (masterPort, masterIP, myLogger);
