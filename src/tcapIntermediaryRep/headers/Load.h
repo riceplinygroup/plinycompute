@@ -26,7 +26,7 @@ namespace pdb_detail
     class Load : public Instruction
     {
     public:
-        
+
         const string outputColumnId;
 
         const string outputTableId;

@@ -102,7 +102,7 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/TcapParser.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
         ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
-        ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc ../../../src/tcapIntermediaryRep/source/Load.cc ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc ../../../src/tcapIntermediaryRep/source/Hoist.cc ../../../src/tcapIntermediaryRep/source/GreaterThan.cc ../../../src/tcapIntermediaryRep/source/Filter.cc ../../../src/tcapIntermediaryRep/source/Store.cc)
+        ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc ../../../src/tcapIntermediaryRep/source/Load.cc ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc ../../../src/tcapIntermediaryRep/source/Hoist.cc ../../../src/tcapIntermediaryRep/source/GreaterThan.cc ../../../src/tcapIntermediaryRep/source/Filter.cc ../../../src/tcapIntermediaryRep/source/Store.cc ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc)
 
 
 

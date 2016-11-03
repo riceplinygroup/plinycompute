@@ -30,6 +30,9 @@
 #include "Instruction.h"
 #include "Store.h"
 #include "TableColumns.h"
+#include "TcapIrBuilder.h"
+#include "TcapParser.h"
+
 
 using std::istringstream;
 using std::istream_iterator;
@@ -37,12 +40,15 @@ using std::istream_iterator;
 using pdb_detail::ApplyBase;
 using pdb_detail::ApplyFunction;
 using pdb_detail::ApplyMethod;
+using pdb_detail::buildTcapIr;
 using pdb_detail::Filter;
 using pdb_detail::Load;
+using pdb_detail::parseTcap;
 using pdb_detail::GreaterThan;
 using pdb_detail::Hoist;
 using pdb_detail::Store;
 using pdb_detail::TableColumns;
+using pdb_detail::TranslationUnit;
 
 /**
  * @return an attribute list composed of each of the given column's id, in the same order as provided.
@@ -563,5 +569,14 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
     }
 
     return make_shared<LogicalPlan>(outputsAccum,inputsAccum,compListAccum);
+}
+
+// contract from .h
+shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram)
+{
+    shared_ptr<TranslationUnit> transUnit = parseTcap(tcapProgram);
+    shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
+    return buildLogicalPlan(instructions);
+
 }
 

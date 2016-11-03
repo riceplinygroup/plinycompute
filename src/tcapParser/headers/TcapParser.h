@@ -221,9 +221,9 @@ namespace pdb_detail
     {
     public:
 
-        shared_ptr<string> destination;
-
         Identifier outputTable;
+
+        shared_ptr<string> destination;
 
         StoreOperation(Identifier outputTable, shared_ptr<string> destination);
 

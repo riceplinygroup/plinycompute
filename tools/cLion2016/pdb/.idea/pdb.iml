@@ -36,6 +36,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/Load.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/Filter.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/ApplyMethod.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/ApplyFunction.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexerTests/source/TcapTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexerTests/source/LexTcapTests.cc" isTestSource="false" />

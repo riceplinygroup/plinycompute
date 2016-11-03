@@ -30,6 +30,10 @@ namespace pdb_detail
     class Lexeme
     {
 
+    private:
+
+        string _token;
+
     public:
 
         static const int UNKNOWN_TYPE = 0;
@@ -90,9 +94,6 @@ namespace pdb_detail
 
         string getToken();
 
-    private:
-
-        string _token;
     };
 
 }
