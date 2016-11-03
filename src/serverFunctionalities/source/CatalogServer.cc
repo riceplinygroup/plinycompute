@@ -573,48 +573,26 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
 bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-    cout << "inside deleteSet " << databaseName << "." << setName << endl;
     // allocate memory temporarily
     // TODO change this later
     makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+
+    string setUniqueId = databaseName + "." + setName;
+    cout << "Deleting set " << setUniqueId << endl;
 
     if (isDatabaseRegistered(databaseName) ==  false){
         errMsg = "Database does not exist.\n";
         cout << errMsg << endl;
         return false;
     }
-
-//	if (allDatabases.count (databaseName) == 0) {
-//		errMsg = "Database does not exist.\n";
-//		return false;
-//	}
 	
     // make sure that set exists
-    string setUniqueId = databaseName + "." + setName;
-    cout << "searching for set " << endl;
     if (isSetRegistered(databaseName, setName) ==  false){
         errMsg = "Set doesn't exist.\n";
         cout << errMsg << endl;
 
         return false;
     }
-
-
-	// delete the set from the map of sets
-//	bool foundIt = false;
-//	vector <string> &setList = allDatabases[databaseName];
-//	for (int i = 0; i < setList.size (); i++) {
-//		if (setList[i] == setName) {
-//			setList.erase (setList.begin () + i);
-//			foundIt = true;
-//			break;
-//        }
-//	}
-//
-//	if (!foundIt) {
-//		errMsg = "Database does not exist in set.\n";
-//		return false;
-//	}
 
     Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
 
@@ -650,27 +628,19 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
     (*dbMetadataObject).deleteSet(setNameCatalog);
     // TODO, not sure if here is where the list of nodes should be added???
     for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-        cout << "Iterating nodes, removing set from node: " << item.first << endl;
         String nodeID(item.first);
         (*dbMetadataObject).deleteSetFromMap(setNameCatalog, nodeID);
     }
 
-    //    cout << "\n\nPrint modified metadata: " << (*dbMetadataObject).printShort() << endl;
-
-        // updates the corresponding database metadata
-        if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
-        else{
-            cout << "Error: " << errMsg << endl;
-            return false;
-        }
-
-
-    //GGGGG
+    // updates the corresponding database metadata
+    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
+    else{
+        return false;
+    }
 
     // after it updated the database metadata in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
     if (isMasterCatalogServer){
-        cout << "About to broadcast set removel to nodes in the cluster: " << endl;
 
         // map to capture the results of broadcasting the Set insertion
         map<string, pair <bool, string>> updateResults;
@@ -678,13 +648,10 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
         // first, broadcasts the metadata of the removed set to all local copies of the catalog
         // in the cluster, inserting the new item
         Handle<CatDeleteSetRequest> setToRemove = makeObject<CatDeleteSetRequest>(databaseName, _setName);
-        if (broadcastCatalogDelete (setToRemove, updateResults, errMsg)){
-            cout << " Broadcasting set removal Ok. " << endl;
-        } else {
-            cout << " Error broadcasting set removal." << endl;
-        }
+        broadcastCatalogDelete (setToRemove, updateResults, errMsg);
+
         for (auto &item : updateResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -694,18 +661,14 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
         // second, broadcasts the metadata of the DB to which this set has been removed from,
         // updating all local copies of the catalog in the cluster
-        if (broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg)){
-            cout << " Broadcasting DB updated Ok. " << endl;
-        } else {
-            cout << " Error broadcasting DB update." << endl;
-        }
+        broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
+
         for (auto &item : updateSetResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
-
-    }
-    else{
+        cout << "******************* deleteSet step completed!!!!!!!" << endl;
+    } else {
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
 
@@ -714,7 +677,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
 bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-    cout << "invoking addSet for set " << databaseName  << "." << setName<< endl;
+    cout << "Invoking addSet for set " << databaseName  << "." << setName<< endl;
 
 	// make sure we are only adding to an existing database
     if (isDatabaseRegistered(databaseName) == false){
@@ -722,14 +685,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         cout << errMsg << endl;
         return false;
     }
-
-//	if (allDatabases.count (databaseName) == 0) {
-//		errMsg = "Database does not exist.\n";
-//		return false;
-//	}
-
-//	vector <string> &setList = allDatabases[databaseName];
-
 
 	// make sure that set does not exist
 	string setUniqueId = databaseName + "." + setName;
@@ -740,17 +695,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         return false;
 
     }
-//    if (isSetRegistered(databaseName, setName) ==  true){
-//        errMsg = "Set already exists.\n";
-//        return false;
-//
-//    }
-//	for (string s : setList) {
-//		if (s == setName) {
-//			errMsg = "Set already exists.\n";
-//			return false;
-//		}
-//	}
 
 	// make sure that type code exists, if we get one that is not built in
 	if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
@@ -759,8 +703,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 	}
 
 	cout << "...... Calling CatalogServer :: addSet" << endl;
-	// add the set
-//	setList.push_back (setName);
 
 	//	// and add the set's type
 	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
@@ -780,7 +722,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     String dbId = String(pdbCatalog->itemName2ItemId(catalogType, databaseName));
-    cout << "When adding set dbId=" << dbId.c_str() << endl;
+
     metadataObject->setDBId(dbId);
     metadataObject->setDBName(dbName);
 
@@ -793,10 +735,8 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
     // stores metadata in sqlite
     if (isSetRegistered(dbName, setName) ==  false){
-        cout << ".......... Invoking addMetadataToCatalog key: " << setName << endl;
        pdbCatalog->addMetadataToCatalog(metadataObject, catalogType, errMsg);
     }else{
-        cout << ".......... Invoking updateMetadataInCatalog key: " << setName << endl;
         pdbCatalog->updateMetadataInCatalog(metadataObject, catalogType, errMsg);
     }
 
@@ -814,12 +754,10 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
     }
 
-//    (*dbMetadataObject).addSet(setKeyCatalog);
     (*dbMetadataObject).addSet(setNameCatalog);
     (*dbMetadataObject).addType(typeName);
     // TODO, not sure if here is where the list of nodes should be added???
     for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-        cout << "Iterating nodes " << item.first << endl;
         String nodeID(item.first);
         (*dbMetadataObject).addSetToMap(setNameCatalog, nodeID);
     }
@@ -830,7 +768,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     // if database exists update its metadata
     if (isDatabaseRegistered(databaseName) == true){
-        cout << ".......... Invoking updateMetadataInCatalog key: " << databaseName << endl;
        if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "DB Update Set metadata OK" << endl;
        else{
            cout << "DB Update metadata Set Error: " << errMsg << endl;
@@ -844,20 +781,15 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     // after it registered the database metadata in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
     if (isMasterCatalogServer){
-        cout << "About to broadcast set registration to nodes in the cluster: " << endl;
-
         // map to capture the results of broadcasting the Set insertion
         map<string, pair <bool, string>> updateResults;
 
         // first, broadcasts the metadata of the new set to all local copies of the catalog
         // in the cluster, inserting the new item
-        if (broadcastCatalogUpdate (metadataObject, updateResults, errMsg)){
-            cout << " Broadcasting set insert Ok. " << endl;
-        } else {
-            cout << " Error broadcasting set insert." << endl;
-        }
+        broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
+
         for (auto &item : updateResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -866,18 +798,14 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
         // second, broadcasts the metadata of the DB to which this set has been added,
         // updating all local copies of the catalog in the cluster
-        if (broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg)){
-            cout << " Broadcasting DB updated Ok. " << endl;
-        } else {
-            cout << " Error broadcasting DB update." << endl;
-        }
+        broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
+
         for (auto &item : updateSetResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
-
-    }
-    else{
+        cout << "******************* addSet step completed!!!!!!!" << endl;
+    } else{
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
 

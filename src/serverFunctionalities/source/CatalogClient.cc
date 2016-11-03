@@ -405,8 +405,8 @@ bool CatalogClient :: printCatalogMetadata (std :: string timeStamp, std :: stri
 template <class Type>
 bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg) {
 
-    cout << "invoking -----> CatalogClient :: registerGenericMetadata Register Metadata for item: " << (*metadataItem).printShort() << endl;
-    cout << "to address " << address << " | " << port << endl;
+//    cout << "invoking -----> CatalogClient :: registerGenericMetadata Register Metadata for item: " << (*metadataItem).printShort() << endl;
+//    cout << "to address " << address << " | " << port << endl;
     // TODO replace the hard-coded 1024 *1024 arg below
     return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024 * 1024,
         [&] (Handle <SimpleRequestResult> result) {
@@ -427,8 +427,8 @@ bool CatalogClient :: registerGenericMetadata (pdb :: Handle<Type> metadataItem,
 template <class Type>
 bool CatalogClient :: deleteGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg) {
 
-    cout << "invoking -----> CatalogClient :: deleteGenericMetadata Remove Metadata for item: " << endl;
-    cout << "to address " << address << " | " << port << endl;
+//    cout << "invoking -----> CatalogClient :: deleteGenericMetadata Remove Metadata for item: " << endl;
+//    cout << "to address " << address << " | " << port << endl;
     // TODO replace the hard-coded 1024 *1024 arg below
     return simpleRequest <Type, SimpleRequestResult, bool> (myLogger, port, address, false, 1024 * 1024,
         [&] (Handle <SimpleRequestResult> result) {
