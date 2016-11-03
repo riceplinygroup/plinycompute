@@ -575,7 +575,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
     // allocate memory temporarily
     // TODO change this later
-    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+//    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
 
     string setUniqueId = databaseName + "." + setName;
     cout << "Deleting set " << setUniqueId << endl;
@@ -826,7 +826,7 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
     cout << "...... Calling CatalogServer :: addDatabase" << endl;
 
     //allocates 24Mb to process metadata info
-    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
+//    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
 	//TODO this might change depending on what metadata
 	int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -1002,10 +1002,12 @@ bool CatalogServer :: addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata
     string nodAddress = _nodeIP + ":" + to_string(nodeMetadata->getNodePort());
 
     // don't add a node that is already registered
-    if(std::find(allNodesInCluster.begin(), allNodesInCluster.end(), nodAddress) != allNodesInCluster.end()){
-        errMsg = "Node " + nodAddress + " is already registered.\n";
+//    if(std::find(allNodesInCluster.begin(), allNodesInCluster.end(), nodAddress) != allNodesInCluster.end()){
+    if (isNodeRegistered(_nodeIP) == true) {
+        errMsg = "Node " + _nodeIP + " is already registered.\n";
         return false;
     }
+
 
     // add the node info to container
     allNodesInCluster.push_back (nodAddress);
@@ -1422,6 +1424,13 @@ bool CatalogServer :: isSetRegistered(string dbName, string setName){
     string setUniqueId = dbName + "." + setName;
     return pdbCatalog->keyIsFound(catalogType, setUniqueId, result);
 
+}
+
+bool CatalogServer :: isNodeRegistered(string nodeIP){
+    int catalogType = PDBCatalogMsgType::CatalogPDBNode;
+    string result("");
+
+    return pdbCatalog->keyIsFound(catalogType, nodeIP, result);
 }
 
 
