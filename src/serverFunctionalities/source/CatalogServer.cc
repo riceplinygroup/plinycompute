@@ -1383,19 +1383,13 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
         int nodePort = item.second.getNodePort();
         bool res = false;
 
-        cout << "Create Catalog Client to connect to: " << nodeIP << " | " << nodePort << endl;
         CatalogClient clusterCatalogClient = CatalogClient(nodePort, nodeIP, catalogLogger);
 
         //TODO new mechanism for identifying the master node not based on the name!
-        cout << "Processing node: " << item.second.getNodeType().c_str() << endl;
         if (string(item.second.getNodeType().c_str()).compare("master") !=0){
 
             // sends the request to a node in the cluster
-            if ((res = clusterCatalogClient.deleteGenericMetadata (metadataToSend, errMsg)) == true){
-                cout << "broadcast call OK" << endl;
-            } else {
-                cout << "broadcast error " << errMsg << endl;
-            }
+            res = clusterCatalogClient.deleteGenericMetadata (metadataToSend, errMsg);
 
             // adds the result of the update
             broadcastResults.insert(make_pair(nodeIP, make_pair(res , errMsg)));
