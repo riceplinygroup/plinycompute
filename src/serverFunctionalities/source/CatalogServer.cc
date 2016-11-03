@@ -651,7 +651,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
         broadcastCatalogDelete (setToRemove, updateResults, errMsg);
 
         for (auto &item : updateResults){
-            cout << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -688,7 +688,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
 	// make sure that set does not exist
 	string setUniqueId = databaseName + "." + setName;
-	cout << "searching for set " << setUniqueId << endl;
     if (isSetRegistered(databaseName, setName) ==  true){
         errMsg = "Set already exists.\n";
         cout << errMsg << endl;
@@ -801,7 +800,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
         for (auto &item : updateSetResults){
-            cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
         cout << "******************* addSet step completed!!!!!!!" << endl;
@@ -869,7 +868,7 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 
         for (auto &item : updateResults){
             // adds node info to database metadata
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
         cout << "******************* addDatabase step completed!!!!!!!" << endl;
@@ -1023,8 +1022,6 @@ bool CatalogServer :: addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata
     // after it registered the node in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
     if (isMasterCatalogServer){
-        cout << "About to broadcast node registration to nodes in the cluster: " << endl;
-
         // get the results of each broadcast
         map<string, pair <bool, string>> updateResults;
         errMsg = "";
@@ -1073,7 +1070,7 @@ bool CatalogServer :: addDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMe
         broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
         for (auto &item : updateResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
     } else {
@@ -1106,7 +1103,7 @@ bool CatalogServer :: updateDatabaseMetadata (Handle<CatalogDatabaseMetadata> &d
         broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
         for (auto &item : updateResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
     } else {
@@ -1155,7 +1152,7 @@ bool CatalogServer :: addSetMetadata (Handle<CatalogSetMetadata> &setMetadata, s
 
         broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
         for (auto &item : updateResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
     } else {
@@ -1245,7 +1242,7 @@ bool CatalogServer :: addNodeToSet (std :: string nodeIP, std :: string database
             cout << " Error broadcasting DB update." << endl;
         }
         for (auto &item : updateSetResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -1319,7 +1316,7 @@ bool CatalogServer :: addNodeToDB (std :: string nodeIP, std :: string databaseN
             cout << " Error broadcasting DB update." << endl;
         }
         for (auto &item : updateSetResults){
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -1362,8 +1359,6 @@ bool CatalogServer :: broadcastCatalogUpdate (Handle<Type> metadataToSend,
         if (string(item.second.getNodeType().c_str()).compare("master") !=0){
 
             // sends the request to a node in the cluster
-            cout << "Broadcasting catalog update to node: " << nodeIP << endl;
-
             res = clusterCatalogClient.registerGenericMetadata (metadataToSend, errMsg);
 
             // adds the result of the update
@@ -1428,7 +1423,6 @@ bool CatalogServer :: isSetRegistered(string dbName, string setName){
     int catalogType = PDBCatalogMsgType::CatalogPDBSet;
     string result("");
     string setUniqueId = dbName + "." + setName;
-cout << "is set registered " << dbName << " " << setName << endl;
     return pdbCatalog->keyIsFound(catalogType, setUniqueId, result);
 
 }
