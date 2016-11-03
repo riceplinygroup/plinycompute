@@ -29,7 +29,6 @@
 
         dbsValues->push_back(*item);
         dbsResult.insert(make_pair(item->getItemKey().c_str(), *item));
-        mapDataBasesInCluster.insert(make_pair(item->getItemName().c_str(),*item));
         return true;
     }
 
@@ -46,7 +45,6 @@
 
         setValues->push_back(*item);
         setsResult.insert(make_pair(item->getItemKey().c_str(), *item));
-        mapSetsInCluster.insert(make_pair(item->getItemName().c_str(),*item));
         return true;
     }
 
@@ -81,10 +79,77 @@
         return true;
     }
 
-
     template<>
     bool PDBCatalog::updateItemInVector<CatalogUserTypeMetadata>(int &index, Handle<CatalogUserTypeMetadata> &item){
         (*udfsValues).assign(index, *item);
+        return true;
+    }
+
+    template<>
+    bool PDBCatalog::deleteItemInVector<CatalogSetMetadata>(int &index, Handle<CatalogSetMetadata> &item){
+        Handle<Vector<CatalogSetMetadata>> tempContainter = makeObject<Vector<CatalogSetMetadata>>();
+        for (int i=0; i< (*setValues).size(); i++){
+            if ((*item).getItemKey() != (*setValues)[i].getItemKey()){
+                tempContainter->push_back((*setValues)[i]);
+                cout << "Keeping Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
+            }else{
+                cout << "Deleting Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
+            }
+        }
+        (*setValues).clear();
+        (*setValues) = (*tempContainter);
+        setsResult.erase((*item).getItemKey().c_str());
+        return true;
+    }
+
+    template<>
+    bool PDBCatalog::deleteItemInVector<CatalogNodeMetadata>(int &index, Handle<CatalogNodeMetadata> &item){
+        Handle<Vector<CatalogNodeMetadata>> tempContainter = makeObject<Vector<CatalogNodeMetadata>>();
+        for (int i=0; i< (*nodesValues).size(); i++){
+            if ((*item).getItemKey() != (*nodesValues)[i].getItemKey()){
+                tempContainter->push_back((*nodesValues)[i]);
+                cout << "Deleting node in Vector " << (*item).getItemKey().c_str() << endl;
+            }else{
+                cout << "Keeping node in Vector " << (*item).getItemKey().c_str() << endl;
+            }
+        }
+        (*nodesValues).clear();
+        (*nodesValues) = (*tempContainter);
+        nodesResult.erase((*item).getItemKey().c_str());
+        return true;
+    }
+
+    template<>
+    bool PDBCatalog::deleteItemInVector<CatalogDatabaseMetadata>(int &index, Handle<CatalogDatabaseMetadata> &item){
+        Handle<Vector<CatalogDatabaseMetadata>> tempContainter = makeObject<Vector<CatalogDatabaseMetadata>>();
+        for (int i=0; i< (*dbsValues).size(); i++){
+            if ((*item).getItemKey() != (*dbsValues)[i].getItemKey()){
+                tempContainter->push_back((*dbsValues)[i]);
+                cout << "Deleting DB in Vector " << (*item).getItemKey().c_str() << endl;
+            }else{
+                cout << "Keeping DB in Vector " << (*item).getItemKey().c_str() << endl;
+            }
+        }
+        (*dbsValues).clear();
+        (*dbsValues) = (*tempContainter);
+        dbsResult.erase((*item).getItemKey().c_str());
+        return true;
+    }
+
+    template<>
+    bool PDBCatalog::deleteItemInVector<CatalogUserTypeMetadata>(int &index, Handle<CatalogUserTypeMetadata> &item){
+        Handle<Vector<CatalogUserTypeMetadata>> tempContainter = makeObject<Vector<CatalogUserTypeMetadata>>();
+        for (int i=0; i< (*udfsValues).size(); i++){
+            if ((*item).getItemKey() != (*udfsValues)[i].getItemKey()){
+                tempContainter->push_back((*udfsValues)[i]);
+                cout << "Deleting udf in Vector " << (*item).getItemKey().c_str() << endl;
+            }else{
+                cout << "Keeping udf in Vector " << (*item).getItemKey().c_str() << endl;
+            }
+        }
+        (*udfsValues).clear();
+        (*udfsValues) = (*tempContainter);
+        udfsResult.erase((*item).getItemKey().c_str());
         return true;
     }
 
@@ -105,18 +170,14 @@
 
         // TODO remove unused containers!!
         // allocates memory for catalog metadata
-        listNodesInCluster = makeObject< Vector<Handle <CatalogNodeMetadata>>>();
-        listSetsInCluster = makeObject< Vector<Handle<CatalogSetMetadata>>>();
-        listDataBasesInCluster = makeObject< Vector<Handle<CatalogDatabaseMetadata>>>();
-
         listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
-        listUserDefinedTypes = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
 
         nodesValues = makeObject<Vector<CatalogNodeMetadata>>();
         setValues = makeObject<Vector<CatalogSetMetadata>>();;
         dbsValues = makeObject<Vector<CatalogDatabaseMetadata>>();
         udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
 
+        catalogContents = makeObject<Map<String, Handle<Vector<Object>>>>();
 
 
         // Populates a map to convert strings from PDBObject names to SQLite table names
@@ -233,6 +294,10 @@
             this->logger->writeLn("Database catalog successfully open.");
             sqlite3_close_v2(sqliteDBHandler);
 
+            cout << " *********Print Metadata " << endl;
+            testCatalogPrint();
+            cout << " *********Print Metadata " << endl;
+
         }else{
             //cout << "EXISTS!!! " << endl;
         }
@@ -246,25 +311,47 @@
         string emptyString("");
 
         // retrieves metadata from the sqlite DB and populates containers
-        if (getMetadataFromCatalog(false, emptyString,listNodesInCluster, nodesValues,
-                                   nodesResult, errorMessage,
+        if (getMetadataFromCatalog(false, emptyString, nodesValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBNode) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(false, emptyString, listSetsInCluster, setValues,
-                                   setsResult, errorMessage,
+        (*catalogContents)[String("nodes")] = unsafeCast<Vector<Object>>(nodesValues);
+
+        if (getMetadataFromCatalog(false, emptyString, setValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBSet) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(false, emptyString, listDataBasesInCluster, dbsValues,
-                                   dbsResult, errorMessage,
+        (*catalogContents)[String("sets")] = unsafeCast<Vector<Object>>(setValues);
+
+        if (getMetadataFromCatalog(false, emptyString, dbsValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBDatabase) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(false, emptyString, listUserDefinedTypes, udfsValues,
-                                   udfsResult, errorMessage,
+        (*catalogContents)[String("dbs")] = unsafeCast<Vector<Object>>(dbsValues);
+
+        if (getMetadataFromCatalog(false, emptyString, udfsValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
+
+            (*catalogContents)[String("udfs")] = unsafeCast<Vector<Object>>(udfsValues);
+
             // TODO document this
-            // populates certain metadata
+            // populates maps
+            for (int i=0; i < (*dbsValues).size(); i++){
+                cout << "RETRIEVING db " << (*dbsValues)[i].getItemKey().c_str() << " | " << (*dbsValues)[i].getItemName().c_str() << endl;
+                dbsResult.insert(make_pair((*dbsValues)[i].getItemName().c_str(), (*dbsValues)[i]));
+
+            }
+            for (int i=0; i < (*setValues).size(); i++){
+                cout << "RETRIEVING set " << (*setValues)[i].getItemKey().c_str() << " | " << (*setValues)[i].getItemName().c_str() << endl;
+                setsResult.insert(make_pair((*setValues)[i].getItemKey().c_str(), (*setValues)[i]));
+            }
+            for (int i=0; i < (*nodesValues).size(); i++){
+                cout << "RETRIEVING node " << (*nodesValues)[i].getItemKey().c_str() << " | " << (*nodesValues)[i].getNodeIP().c_str() << endl;
+                nodesResult.insert(make_pair((*nodesValues)[i].getItemName().c_str(), (*nodesValues)[i]));
+            }
             for (int i=0; i < (*udfsValues).size(); i++){
-                cout << "RETRIEVING TYPE " << (*udfsValues)[i].getItemName().c_str() << " | " << (*udfsValues)[i].getObjectID().c_str() << endl;
+                cout << "RETRIEVING TYPE " << (*udfsValues)[i].getObjectID().c_str() << " | " << (*udfsValues)[i].getItemName().c_str() << endl;
                 udfsResult.insert(make_pair((*udfsValues)[i].getItemName().c_str(), (*udfsValues)[i]));
             }
 
@@ -282,50 +369,65 @@
 
     }
 
+    void PDBCatalog::testCatalogPrint(){
+        for (auto &a : *catalogContents) {
+            cout << "List of: " << a.key << endl;
+            if (string(a.key.c_str()).compare("nodes")==0){
+                Handle<Vector<CatalogNodeMetadata>> nodesMetadata;
+                nodesMetadata = unsafeCast<Vector<CatalogNodeMetadata>>(a.value);
+                for (int i=0; i < nodesMetadata->size(); i++) {
+                    cout << (*nodesMetadata)[i].printShort() << endl;
+                }
+            }
+            if (string(a.key.c_str()).compare("dbs")==0){
+                Handle<Vector<CatalogDatabaseMetadata>> dbMetadata;
+                dbMetadata = unsafeCast<Vector<CatalogDatabaseMetadata>>(a.value);
+                for (int i=0; i < dbMetadata->size(); i++) {
+                    cout << (*dbMetadata)[i].printShort() << endl;
+                }
+            }
+            if (string(a.key.c_str()).compare("sets")==0){
+                Handle<Vector<CatalogSetMetadata>> setMetadata;
+                setMetadata = unsafeCast<Vector<CatalogSetMetadata>>(a.value);
+                for (int i=0; i < setMetadata->size(); i++) {
+                    cout << (*setMetadata)[i].printShort() << endl;
+                }
+            }
+
+        }
+
+//        (*catalogContents)[String("nodes")] = unsafeCast<Vector<Object>>(nodesValues);
+//        (*catalogContents)[String("sets")] = unsafeCast<Vector<Object>>(setValues);
+//        (*catalogContents)[String("dbs")] = unsafeCast<Vector<Object>>(dbsValues);
+//        (*catalogContents)[String("udfs")] = unsafeCast<Vector<Object>>(udfsValues);
+    }
+
+
     void PDBCatalog::getModifiedMetadata(string dateAsString){
         string errorMessage;
 
-        //TODO remove unused containers!!
-
-        Handle<pdb :: Vector < Handle< CatalogNodeMetadata > > > _listNodesInCluster = makeObject< Vector<Handle <CatalogNodeMetadata>>>();
-
-        // list of sets in cluster
-        Handle<pdb :: Vector < Handle < CatalogSetMetadata > >> _listSetsInCluster = makeObject< Vector<Handle<CatalogSetMetadata>>>();
-
-        // list of databases in the cluster
-        Handle<pdb :: Vector < Handle < CatalogDatabaseMetadata > > > _listDataBasesInCluster = makeObject< Vector<Handle<CatalogDatabaseMetadata>>>();
-
         vector<CatalogDatabaseMetadata> dbList;
-        // list of users in the cluster
-        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > >> _listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
 
-        // list user-defined objects in the cluster
-        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > > > _listUserDefinedTypes = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
-
-        map <string, CatalogNodeMetadata> _nodesResult;
         Handle<Vector <CatalogNodeMetadata> > _nodesValues = makeObject<Vector<CatalogNodeMetadata>>();
-        map <string, CatalogSetMetadata> _setsResult;
         Handle<Vector <CatalogSetMetadata> > _setValues = makeObject<Vector<CatalogSetMetadata>>();;
-        map <string, CatalogDatabaseMetadata> _dbsResult;
         Handle<Vector <CatalogDatabaseMetadata> > _dbsValues = makeObject<Vector<CatalogDatabaseMetadata>>();
-        map <string, CatalogUserTypeMetadata> _udfsResult;
         Handle<Vector <CatalogUserTypeMetadata> > _udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();;
 
         // retrieves metadata from the sqlite DB and populates containers
-        if (getMetadataFromCatalog(true, dateAsString,_listNodesInCluster, _nodesValues,
-                                   _nodesResult, errorMessage,
+        if (getMetadataFromCatalog(true, dateAsString, _nodesValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBNode) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(true, dateAsString, _listSetsInCluster, _setValues,
-                                   _setsResult, errorMessage,
+        if (getMetadataFromCatalog(true, dateAsString, _setValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBSet) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(true, dateAsString, _listDataBasesInCluster, _dbsValues,
-                                   _dbsResult, errorMessage,
+        if (getMetadataFromCatalog(true, dateAsString, _dbsValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBDatabase) == false) cout << errorMessage << endl;
 
-        if (getMetadataFromCatalog(true, dateAsString, _listUserDefinedTypes, _udfsValues,
-                                   _udfsResult, errorMessage,
+        if (getMetadataFromCatalog(true, dateAsString, _udfsValues,
+                                   errorMessage,
                                    PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
             // TODO document this
             // populates certain metadata
@@ -437,9 +539,7 @@
     template<class CatalogMetadataType>
     bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
                                             string key,
-                                            Handle<pdb::Vector<Handle<CatalogMetadataType>>> &returnedValues,
                                             Handle<pdb::Vector<CatalogMetadataType>> &returnedItems,
-                                            map<string, CatalogMetadataType> & itemList,
                                             string &errorMessage,
                                             int metadataCategory){
 
@@ -489,8 +589,8 @@
 
                     //TODO keep only one container Handle<Vector<PDBCatalog>, the other two don't work
                     // maybe try with the new pdb::Map too!
-                    returnedValues->push_back(returnedObject);
-                    itemList.insert(make_pair(itemId,*returnedObject));
+//                    returnedValues->push_back(returnedObject);
+//                    itemList.insert(make_pair(itemId,*returnedObject));
                     returnedItems->push_back(*returnedObject);
 
                 }
@@ -500,6 +600,7 @@
             }
             sqlite3_finalize(statement);
             pthread_mutex_unlock(&(registerMetadataMutex));
+            sqlite3_close_v2(sqliteDBHandlerInternal);
 
             return true;
         }else{
@@ -557,7 +658,7 @@
             string queryString("");
             queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
 
-//            cout << "queryString " << queryString << endl;
+            cout << "queryString " << queryString << endl;
 
             rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
             if (rc != SQLITE_OK) {
@@ -624,7 +725,6 @@
                             errorMessage = "Query execution failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
                     }else{
                         udfsResult.insert(make_pair(typeName, *objectToRegister));
-                        listUserDefinedTypes->push_back(objectToRegister);
 
                         success = true;
                         this->logger->writeLn("Dynamic library successfully stored in catalog!");
@@ -809,7 +909,7 @@
     }
 
     template<class CatalogMetadataType>
-    bool PDBCatalog::addMetadataToCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
+    bool PDBCatalog::addMetadataToCatalog(pdb :: Handle<CatalogMetadataType> &metadataValue,
                                           int &metadataCategory,
                                           string &errorMessage){
 
@@ -821,6 +921,7 @@
 
         string sqlStatement = "INSERT INTO " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " (itemID, itemInfo, timeStamp) VALUES (?, ?, strftime('%s', 'now', 'localtime'))";
 
+
         // gets the size of the container for a given type of metadata and
         // uses it to assign the index of a metadata item in its container
         int newId = getLastId(metadataCategory);
@@ -831,7 +932,7 @@
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
         size_t numberOfBytes = metadataBytes->numBytes();
 
-//        cout << sqlStatement << " with key= " << metadataKey << endl;
+        cout << sqlStatement << " with key= " << metadataKey << endl;
 
         // Opens connection to db
         if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal,
@@ -893,7 +994,7 @@
     }
 
     template<class CatalogMetadataType>
-    bool PDBCatalog::updateMetadataInCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
+    bool PDBCatalog::updateMetadataInCatalog(pdb :: Handle<CatalogMetadataType> &metadataValue,
                                              int &metadataCategory,
                                              string &errorMessage){
 
@@ -909,7 +1010,7 @@
         string sqlStatement = "UPDATE " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
 //        string sqlStatement = "INSERT OR REPLACE INTO " + mapsPDBOjbect2SQLiteTable[catalogType] + " (itemInfo, itemId) values ( ?, ? )";
 
-//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
 
@@ -982,12 +1083,13 @@
         // gets the key and index for this item in order to update the sqlite table and
         // update the container in memory
         String metadataKey = metadataValue->getItemKey();
+        int metadataIndex = std::atoi(metadataValue->getItemId().c_str());
 
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
 
-//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         sqlite3 *sqliteDBHandlerInternal = NULL;
 
@@ -1015,7 +1117,7 @@
         // Runs the update statement
         if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
             // if sqlite update goes well, updates container
-//            updateItemInVector(metadataIndex, metadataValue);
+            deleteItemInVector(metadataIndex, metadataValue);
             isSuccess = true;
 
         }else{
@@ -1035,9 +1137,8 @@
 
     }
 
-    map<string, vector<CatalogNodeMetadata> > PDBCatalog::getNodesForADatabase (string const databaseName){
-        map<string, vector<CatalogNodeMetadata> > listOfNodes;
-        return listOfNodes;
+    map<string, CatalogNodeMetadata > PDBCatalog::getListOfNodesInCluster (){
+        return nodesResult;
     }
 
     string PDBCatalog::getMapsPDBOjbect2SQLiteTable(int typeOfObject){
@@ -1079,28 +1180,28 @@
         out << "--------------------------" << endl;
         out << "PDB Metadata Registered in the Catalog: " << endl;
 
-        out << "\n   Number of cluster nodes registered: " + std::to_string((int)catalog.listNodesInCluster->size()) << endl;
-        for (int i = 0 ; i < catalog.listNodesInCluster->size(); i ++){
-            out << "      Id: " << (*catalog.listNodesInCluster)[i]->getItemId().c_str()
-                 <<  " | Node name: " << (*catalog.listNodesInCluster)[i]->getItemName().c_str()
-                 << " | Node Address: " << (*catalog.listNodesInCluster)[i]->getItemKey().c_str()
-                 << ":" <<  (*catalog.listNodesInCluster)[i]->getNodePort()
+        out << "\n   Number of cluster nodes registered: " + std::to_string((int)catalog.nodesValues->size()) << endl;
+        for (int i = 0 ; i < catalog.nodesValues->size(); i ++){
+            out << "      Id: " << (*catalog.nodesValues)[i].getItemId().c_str()
+                 <<  " | Node name: " << (*catalog.nodesValues)[i].getItemName().c_str()
+                 << " | Node Address: " << (*catalog.nodesValues)[i].getItemKey().c_str()
+                 << ":" <<  (*catalog.nodesValues)[i].getNodePort()
                  << endl;
         }
 
-        out << "\n   Number of databases registered: " + std::to_string((int)catalog.listDataBasesInCluster->size()) << endl;
-        for (int i = 0 ; i < catalog.listDataBasesInCluster->size(); i ++){
-            out << "      Id: " << (*catalog.listDataBasesInCluster)[i]->getItemId().c_str()
-                 << " | Database: " << (*catalog.listDataBasesInCluster)[i]->getItemName().c_str()
+        out << "\n   Number of databases registered: " + std::to_string((int)catalog.dbsValues->size()) << endl;
+        for (int i = 0 ; i < catalog.dbsValues->size(); i ++){
+            out << "      Id: " << (*catalog.dbsValues)[i].getItemId().c_str()
+                 << " | Database: " << (*catalog.dbsValues)[i].getItemName().c_str()
                  << endl;
         }
 
-        out << "\n   Number of sets registered: " + std::to_string((int)catalog.listSetsInCluster->size()) << endl;
-        for (int i = 0 ; i < catalog.listSetsInCluster->size(); i ++){
-            out << "      Id: " << (*catalog.listSetsInCluster)[i]->getItemId().c_str()
-                 <<  " | Key: " << (*catalog.listSetsInCluster)[i]->getItemKey().c_str()
-                 << " | Database: " << (*catalog.listSetsInCluster)[i]->getDBName().c_str()
-                 << " | Set: " << (*catalog.listSetsInCluster)[i]->getItemName().c_str()
+        out << "\n   Number of sets registered: " + std::to_string((int)catalog.setValues->size()) << endl;
+        for (int i = 0 ; i < catalog.setValues->size(); i ++){
+            out << "      Id: " << (*catalog.setValues)[i].getItemId().c_str()
+                 <<  " | Key: " << (*catalog.setValues)[i].getItemKey().c_str()
+                 << " | Database: " << (*catalog.setValues)[i].getDBName().c_str()
+                 << " | Set: " << (*catalog.setValues)[i].getItemName().c_str()
                  << endl;
         }
 
@@ -1109,10 +1210,10 @@
             out << (*catalog.listUsersInCluster)[i]->getItemName() << endl;
         }
 
-        out << "\n   Number of user-defined types registered: " + std::to_string((int)catalog.listUserDefinedTypes->size()) << endl;
-        for (int i = 0 ; i < catalog.listUserDefinedTypes->size(); i ++){
-            out << "      Id: " << (*catalog.listUserDefinedTypes)[i]->getItemId().c_str()
-                 << " | Type Name: " << (*catalog.listUserDefinedTypes)[i]->getItemName().c_str()
+        out << "\n   Number of user-defined types registered: " + std::to_string((int)catalog.udfsValues->size()) << endl;
+        for (int i = 0 ; i < catalog.udfsValues->size(); i ++){
+            out << "      Id: " << (*catalog.udfsValues)[i].getItemId().c_str()
+                 << " | Type Name: " << (*catalog.udfsValues)[i].getItemName().c_str()
                  << endl;
         }
         out << "--------------------------" << endl;
@@ -1129,7 +1230,7 @@
 
             case  PDBCatalogMsgType::CatalogPDBDatabase :
             {
-                return dbsResult[key].getItemKey().c_str();
+                return dbsResult[key].getItemId().c_str();
                 break;
             }
 
@@ -1254,33 +1355,33 @@
     //TODO remove these implicit instantiations and add and include at the bottom of the h file
     // Add implicit instantiation of all possible types the method
     // will ever use.
-    template bool PDBCatalog::addMetadataToCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> metadataValue,
+    template bool PDBCatalog::addMetadataToCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> &metadataValue,
                                                    int &catalogType,
                                                    string &errorMessage);
 
-    template bool PDBCatalog::addMetadataToCatalog<CatalogSetMetadata>(pdb :: Handle<CatalogSetMetadata> metadataValue,
+    template bool PDBCatalog::addMetadataToCatalog<CatalogSetMetadata>(pdb :: Handle<CatalogSetMetadata> &metadataValue,
                                                    int &catalogType,
                                                    string &errorMessage);
 
-    template bool PDBCatalog::addMetadataToCatalog<CatalogDatabaseMetadata>(pdb :: Handle<CatalogDatabaseMetadata> metadataValue,
+    template bool PDBCatalog::addMetadataToCatalog<CatalogDatabaseMetadata>(pdb :: Handle<CatalogDatabaseMetadata> &metadataValue,
                                                    int &catalogType,
                                                    string &errorMessage);
 
     // Add implicit instantiation of all possible types the method
     // will ever use
-    template bool PDBCatalog::updateMetadataInCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> metadataValue,
+    template bool PDBCatalog::updateMetadataInCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> &metadataValue,
                                                  int &catalogType,
                                                  string &errorMessage);
 
-    template bool PDBCatalog::updateMetadataInCatalog<CatalogSetMetadata>(pdb :: Handle<CatalogSetMetadata> metadataValue,
+    template bool PDBCatalog::updateMetadataInCatalog<CatalogSetMetadata>(pdb :: Handle<CatalogSetMetadata> &metadataValue,
                                                  int &catalogType,
                                                  string &errorMessage);
 
-    template bool PDBCatalog::updateMetadataInCatalog<CatalogDatabaseMetadata>(pdb :: Handle<CatalogDatabaseMetadata> metadataValue,
+    template bool PDBCatalog::updateMetadataInCatalog<CatalogDatabaseMetadata>(pdb :: Handle<CatalogDatabaseMetadata> &metadataValue,
                                                  int &catalogType,
                                                  string &errorMessage);
 
-    template bool PDBCatalog::updateMetadataInCatalog<CatalogUserTypeMetadata>(pdb :: Handle<CatalogUserTypeMetadata> metadataValue,
+    template bool PDBCatalog::updateMetadataInCatalog<CatalogUserTypeMetadata>(pdb :: Handle<CatalogUserTypeMetadata> &metadataValue,
                                                  int &catalogType,
                                                  string &errorMessage);
 
@@ -1311,3 +1412,9 @@
     template bool PDBCatalog::updateItemInVector(int &index, pdb :: Handle< pdb :: CatalogSetMetadata > &item);
     template bool PDBCatalog::updateItemInVector(int &index, pdb :: Handle< pdb :: CatalogDatabaseMetadata > &item);
     template bool PDBCatalog::updateItemInVector(int &index, pdb :: Handle< pdb :: CatalogUserTypeMetadata > &item);
+
+    template bool PDBCatalog::deleteItemInVector(int &index, Handle<CatalogNodeMetadata> &item);
+    template bool PDBCatalog::deleteItemInVector(int &index, Handle<CatalogSetMetadata> &item);
+    template bool PDBCatalog::deleteItemInVector(int &index, Handle<CatalogDatabaseMetadata> &item);
+    template bool PDBCatalog::deleteItemInVector(int &index, Handle<CatalogUserTypeMetadata> &item);
+

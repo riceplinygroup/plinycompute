@@ -433,16 +433,19 @@ int main(int numArgs, const char *args[]) {
                     pdb :: PDBServer backEnd (conf->getBackEndIpcFile(), 100, logger);
                     backEnd.addFunctionality<pdb :: HermesExecutionServer>(shm, backEnd.getWorkerQueue(), logger, conf);
                     bool usePangea = true;
-                    backEnd.addFunctionality<pdb :: StorageClient> (masterNodePort, masterNodeHostName, make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
+                    backEnd.addFunctionality<pdb :: StorageClient> (port, myIP, make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
                     backEnd.startServer(nullptr);
 
                 } else if (child_pid == -1) {
                     std :: cout << "Fatal Error: fork failed." << std :: endl;
                 } else {
+                    // allocates memory
+                    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
+
                     //I'm the frontend server
                     pdb :: PDBServer frontEnd (masterNodePort, 100, logger);
-                    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
-                    frontEnd.addFunctionality <pdb :: CatalogClient> (masterNodePort, masterNodeHostName, logger);
+                    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, isMaster);
+                    frontEnd.addFunctionality <pdb :: CatalogClient> (port, myIP, logger);
                     frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
                     frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                     frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>();

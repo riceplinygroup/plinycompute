@@ -150,8 +150,8 @@ namespace pdb {
 
         string printShort(){
             string output;
-            output = "   \nSet name: ";
-            output.append(getItemKey().c_str()).append(" | in DB: ").append(getDBName().c_str()).append(" | for type: ").append(getObjectTypeName().c_str());
+            output = "   \nSet ";
+            output.append(getItemId()).append(":").append(getItemKey().c_str()).append(" | in DB ").append(getDBId()).append(":").append(getDBName().c_str()).append(" | for type ").append(getObjectTypeId()).append(":").append(getObjectTypeName().c_str());
             return output;
         }
 

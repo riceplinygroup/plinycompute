@@ -54,14 +54,12 @@ namespace pdb {
         }
 
         CatalogDatabaseMetadata(pdb :: String dbIdIn, pdb::String dbNameIn, pdb::String userCreatorIn,
-                                 pdb::String createdOnIn, pdb::String lastModifiedIn,
-                                 pdb :: Handle <pdb:: Vector < String> >  listOfNodesIn):
+                                 pdb::String createdOnIn, pdb::String lastModifiedIn):
                 dbId(dbIdIn),
                 dbName(dbNameIn),
                 userCreator(userCreatorIn),
                 createdOn(createdOnIn),
-                lastModified(lastModifiedIn),
-                listOfNodes(listOfNodesIn)
+                lastModified(lastModifiedIn)
         {
         }
 
@@ -74,6 +72,8 @@ namespace pdb {
             listOfNodes = pdbDatabaseToCopy.listOfNodes;
             listOfSets = pdbDatabaseToCopy.listOfSets;
             listOfTypes = pdbDatabaseToCopy.listOfTypes;
+            setsInDB = pdbDatabaseToCopy.setsInDB;
+            nodesInDB = pdbDatabaseToCopy.nodesInDB;
         }
 
         CatalogDatabaseMetadata(const Handle<CatalogDatabaseMetadata>& pdbDatabaseToCopy) {
@@ -85,6 +85,8 @@ namespace pdb {
             listOfNodes = pdbDatabaseToCopy->listOfNodes;
             listOfSets = pdbDatabaseToCopy->listOfSets;
             listOfTypes = pdbDatabaseToCopy->listOfTypes;
+            setsInDB = pdbDatabaseToCopy->setsInDB;
+            nodesInDB = pdbDatabaseToCopy->nodesInDB;
         }
 
 
@@ -108,25 +110,47 @@ namespace pdb {
         }
 
         void addNode(pdb::String &nodeIn){
-            cout << "Adding info about node " << nodeIn.c_str() << endl;
+            cout << "Adding node " << nodeIn.c_str() << endl;
             listOfNodes->push_back(nodeIn);
         }
 
         void addSet(pdb::String &setIn){
+            cout << "Adding node " << setIn.c_str() << endl;
             listOfSets->push_back(setIn);
         }
 
-        void addSetToMap(String &key, String &value){
-            (*mapOfSets)[key] = value;
+        void addSetToMap(String &setName, String &nodeIP){
+            cout << "key: " << setName.c_str() << " push_back node: " << nodeIP.c_str();
+            (*setsInDB)[setName].push_back(nodeIP);
         }
+
+        void addNodeToMap(String &nodeIP, String &setName){
+            cout << "key: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
+            (*nodesInDB)[nodeIP].push_back(setName);
+        }
+
 
         void addType(pdb::String &typeIn){
             listOfTypes->push_back(typeIn);
         }
 
+
         void replaceListOfSets(Handle< Vector <pdb::String>> &newList){
             listOfSets = newList;
         }
+
+        void replaceListOfNodes(Handle< Vector <pdb::String>> &newList){
+            listOfNodes = newList;
+        }
+
+        void replaceMapOfSets(Handle <Map <String, Vector<String>>> &newMap){
+            setsInDB = newMap;
+        }
+
+        void replaceMapOfNodes(Handle <Map <String, Vector<String>>> &newMap){
+            nodesInDB = newMap;
+        }
+
 
 
         void deleteSet(pdb :: String whichSet){
@@ -140,6 +164,39 @@ namespace pdb {
                 }
             }
             replaceListOfSets(tempListOfSets);
+        }
+
+        void deleteSetFromMap(String &setName, String &nodeIP){
+            // creates a temp vector
+            pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
+
+            for (int i=0; i < (*getListOfSets()).size(); i++){
+                String itemValue = (*getListOfSets())[i];
+                if (itemValue!=setName){
+                    tempListOfSets->push_back(itemValue);
+                }
+            }
+            replaceListOfSets(tempListOfSets);
+            Handle <Map <String, Vector<String>>> tempSetsInDB = makeObject<Map <String, Vector<String>>>();
+            for (auto &a : *getSetsInDB()) {
+                if (a.key!=setName){
+                    (*tempSetsInDB)[a.key] = a.value;
+                }
+            }
+            replaceMapOfSets(tempSetsInDB);
+        }
+
+        void deleteNodeFromMap(String &nodeIP, String &setName){
+            // creates a temp vector
+            pdb :: Handle <pdb:: Vector < String>  > tempListOfNodes = makeObject< Vector<String>>();
+
+            for (int i=0; i < (*getListOfNodes()).size(); i++){
+                String itemValue = (*getListOfNodes())[i];
+                if (itemValue!=setName){
+                    tempListOfNodes->push_back(itemValue);
+                }
+            }
+            replaceListOfNodes(tempListOfNodes);
         }
 
         void deleteType(void *typeIn){
@@ -206,16 +263,60 @@ namespace pdb {
             dbName = itemNameIn;
         }
 
+        Handle <Map <String, Vector<String>>> getSetsInDB(){
+            return setsInDB;
+        }
+
+        Handle <Map <String, Vector<String>>> getNodesInDB(){
+            return nodesInDB;
+        }
+
         string printShort(){
             string output;
-            string spaces("\n                                               ");
-            output = "   \nDB Id: ";
-            output.append(getItemId().c_str()).append(" | DB: ").append(getItemKey().c_str()).append(" | Sets(").append(to_string(getListOfSets()->size())).append("): [ ");
-            for (int i=0; i < getListOfSets()->size(); i++){
-                if (i>0) output.append(", ").append(spaces).append((*getListOfSets())[i].c_str());
-                else output.append((*getListOfSets())[i].c_str());
+//            string spaces("\n                                               ");
+            string spaces("");
+            output = "   \nDB ";
+            output.append(getItemId().c_str()).append(":").append(getItemKey().c_str());
+                    //.append(" has (").append(to_string(getListOfSets()->size())).append(") sets: [ ");
+//            for (int i=0; i < getListOfSets()->size(); i++){
+//                if (i>0) output.append(", ").append(spaces).append((*getListOfSets())[i].c_str());
+//                else output.append((*getListOfSets())[i].c_str());
+//            }
+//            output.append(" ]");
+//            for (auto &item : (*nodesInDB)){
+//                output.append("\n -Set: ").append(item.key.c_str()).append(" is stored in (").append(to_string(item.value.size())).append(") Nodes: [ ");
+//                for (int i=0; i < item.value.size(); i++){
+//                    if (i>0) output.append(", ").append(spaces).append(item.value[i].c_str());
+//                    else output.append(item.value[i].c_str());
+//                }
+//            }
+//            output.append(" ]");
+
+            int i = 0;
+            output.append("\n is stored in (").append(to_string((*nodesInDB).size())).append(")nodes: [ ");
+            for (auto &item : (*nodesInDB)){
+                if (i>0) output.append(", ").append(spaces).append(item.key.c_str());
+                else output.append(item.key.c_str());
+                i++;
+            }
+
+            output.append(" ]\n and has (").append(to_string((*setsInDB).size())).append(")sets: [ ");
+            i = 0;
+            for (auto &item : (*setsInDB)){
+                if (i>0) output.append(", ").append(spaces).append(item.key.c_str());
+                else output.append(item.key.c_str());
+                i++;
             }
             output.append(" ]");
+
+            for (auto &item : (*setsInDB)){
+                output.append("\n  * Set: ").append(item.key.c_str()).append(" is stored in (").append(to_string(item.value.size())).append(")nodes: [ ");
+                for (int i=0; i < item.value.size(); i++){
+                    if (i>0) output.append(", ").append(spaces).append(item.value[i].c_str());
+                    else output.append(item.value[i].c_str());
+                }
+                output.append(" ]");
+            }
 
             return output;
         }
@@ -253,6 +354,13 @@ namespace pdb {
 
         Handle <Map <String, String>> mapOfSets = makeObject <Map <String, String>> ();
 
+        // a map where the key is the name of a set and the value is a vector with
+        // all nodes where that set has information stored
+        Handle <Map <String, Vector<String>>> setsInDB = makeObject <Map <String, Vector<String>>> ();
+
+        // a map where the key is the IP of a node and the value is a vector with
+        // all sets in that node that contain data for this database
+        Handle <Map <String, Vector<String>>> nodesInDB = makeObject <Map <String, Vector<String>>> ();
 
         // Contains information about nodes in the cluster with data for a given database
         pdb :: Handle <pdb:: Vector < String>  > listOfNodes = makeObject< Vector<String>>();

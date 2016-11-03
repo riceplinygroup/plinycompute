@@ -211,6 +211,16 @@ int main (int numArgs, const char *args[]) {
         }
         cout << "Done.\n";
 
+    } else if (command.compare("remove-db") == 0) {
+        std::string databaseName = vm["db-name"].as<std::string>();
+
+//        if (!storageClient.removeDatabase (databaseName, errMsg)) {
+//            std :: cout << "Not able to create database: " + errMsg << std::endl;
+//        } else {
+//            std :: cout << "Database and its metadata successfully created.\n";
+//        }
+        cout << "Done.\n";
+
     } else if (command.compare("retrieve-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
@@ -248,6 +258,32 @@ int main (int numArgs, const char *args[]) {
                     std :: cout << "Could not create set due to error: " + errMsg << std :: endl;
             } else {
                     std :: cout << "Set and its metadata successfully created.\n";
+            }
+        } else{
+            std :: cout << "Error type " << typeName << " is not registered.\n";
+
+        }
+
+        cout << "Done.\n";
+
+    } else if (command.compare("remove-set") == 0) {
+
+        std::string databaseName = vm["db-name"].as<std::string>();
+        std::string typeName = vm["type-name"].as<std::string>();
+        std::string setName = vm["set-name"].as<std::string>();
+
+        cout << "***********Delete set from db" << endl;
+
+        std :: cout << "Deleting set: " << setName << std :: endl;
+        std :: cout << "     From db: " << databaseName << std :: endl;
+        std :: cout << " With type: " << setName << std :: endl;
+
+        // now the set from the database
+        if (typeName.compare("SharedEmployee")==0){
+            if (!storageClient.removeSet<SharedEmployee> (databaseName, setName, errMsg)) {
+                    std :: cout << "Could not delete set due to error: " + errMsg << std :: endl;
+            } else {
+                    std :: cout << "Set and its metadata successfully deleted.\n";
             }
         } else{
 

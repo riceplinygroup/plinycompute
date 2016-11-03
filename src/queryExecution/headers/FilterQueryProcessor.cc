@@ -43,7 +43,7 @@ FilterQueryProcessor <Output, Input> :: FilterQueryProcessor (SimpleLambda <bool
 // no need to do anything
 template <class Output, class Input>
 void FilterQueryProcessor <Output, Input> :: initialize () {
-	filterFunc = filterPred.getFunc ();
+//	filterFunc = filterPred.getFunc ();
 	finalized = false;
 }
 

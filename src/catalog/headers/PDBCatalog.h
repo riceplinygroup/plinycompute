@@ -138,7 +138,7 @@ using namespace pdb;
          * @return true on success
          */
         template<class CatalogMetadataType>
-        bool addMetadataToCatalog(Handle<CatalogMetadataType> metadataValue,
+        bool addMetadataToCatalog(Handle<CatalogMetadataType> &metadataValue,
                                   int &metadataCategory,
                                   string &errorMessage);
 
@@ -161,7 +161,7 @@ using namespace pdb;
          * @return true on success
          */
         template<class CatalogMetadataType>
-        bool updateMetadataInCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
+        bool updateMetadataInCatalog(pdb :: Handle<CatalogMetadataType> &metadataValue,
                                      int &metadataCategory,
                                      string &errorMessage);
 
@@ -191,8 +191,18 @@ using namespace pdb;
         template<class CatalogMetadataType>
         bool updateItemInVector(int &index, Handle<CatalogMetadataType> &item);
 
+        /**
+         * deleteItemInVector deletes a registered Metadata item in memory so the changes
+         * are visible to the CatalogServer
+         *
+         * @param index is the position in the container
+         * @param item is the new metadata content
+         * @return true on success
+         */
+        template<class CatalogMetadataType>
+        bool deleteItemInVector(int &index, Handle<CatalogMetadataType> &item);
 
-        map<string, vector<CatalogNodeMetadata> > getNodesForADatabase (string const databaseName);
+        map<string, CatalogNodeMetadata> getListOfNodesInCluster ();
 
         /**
          * getSerializedCatalog retrieves the bytes of the entire catalog, this could be used it one
@@ -233,9 +243,7 @@ using namespace pdb;
          * in a container
          *
          * @param key if blank returns all items in the category, otherwise, only the one matching the key
-         * @param returnedValues is a Vector of Handles of the Objects
-         * @param returnedEntries is a Vector of the Objects (this is buggy, maybe remove)
-         * @param itemList is a map of the <key, Object> (this is buggy, maybe remove)
+         * @param returnedEntries is a Vector of the Objects
          * @param errorMessage error message
          * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
          * @return true on success
@@ -243,9 +251,7 @@ using namespace pdb;
         template<class CatalogMetadataType>
         bool getMetadataFromCatalog(bool onlyModified,
                                     string key,
-                                    Handle<pdb::Vector<Handle<CatalogMetadataType>>> &returnedValues,
                                     Handle<pdb::Vector<CatalogMetadataType>> & returnedEntries,
-                                    map<string, CatalogMetadataType> & itemList,
                                     string &errorMessage,
                                     int metadataCategory);
 
@@ -299,6 +305,7 @@ using namespace pdb;
         // Loads a stored registered object in memory
         bool loadRegisteredObject(string typeName, string typeOfObject, string fileName, string &errorMessage);
 
+        void testCatalogPrint();
     private:
 
         /**
@@ -338,29 +345,9 @@ using namespace pdb;
         /**
          * List unique metadata entries
          **/
-        // list of nodes in the cluster
-        Handle<pdb :: Vector < Handle< CatalogNodeMetadata > > > listNodesInCluster;
-
-        // list of sets in cluster
-        Handle<pdb :: Vector < Handle < CatalogSetMetadata > >> listSetsInCluster;
-
-        // list of databases in the cluster
-        Handle<pdb :: Vector < Handle < CatalogDatabaseMetadata > > >listDataBasesInCluster;
-
         vector<CatalogDatabaseMetadata> dbList;
         // list of users in the cluster
         Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > >> listUsersInCluster;
-
-        // list user-defined objects in the cluster
-        Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > > >listUserDefinedTypes;
-
-        // Map of sets in the cluster, given the name of a database
-        // as a string, lists all sets containing data
-        multimap < string, CatalogSetMetadata > mapSetsInCluster;
-
-        // Map of databases, given the name of a type as a string,
-        // lists all databases containing that type.
-        multimap < string, CatalogDatabaseMetadata > mapDataBasesInCluster;
 
         // Map of users, given the name of a user as a string,
         // lists all databases belonging to that user.
@@ -379,16 +366,19 @@ using namespace pdb;
         //TODO new temp containers for metadata,
         map <string, CatalogNodeMetadata> nodesResult;
         Handle<Vector <CatalogNodeMetadata> > nodesValues;
+
         map <string, CatalogSetMetadata> setsResult;
         Handle<Vector <CatalogSetMetadata> > setValues;
+
         map <string, CatalogDatabaseMetadata> dbsResult;
         Handle<Vector <CatalogDatabaseMetadata> > dbsValues;
+
         map <string, CatalogUserTypeMetadata> udfsResult;
         Handle<Vector <CatalogUserTypeMetadata> > udfsValues;
         //end of temp containers
 
-
-        vector<string> mapOfObjectsID;
+        //Container for all metadata in the catalog
+        Handle<Map<String, Handle<Vector<Object> > > > catalogContents;
 
         // URI string that represents the location of the plinyCatalog.db
         // so it can be use for opening connnections to the catalog.

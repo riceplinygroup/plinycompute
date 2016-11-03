@@ -41,6 +41,8 @@
 #include "QueryOutput.h"
 #include "IrBuilder.h"
 #include "QuerySchedulerServer.h"
+#include "RecordPredicateIr.h"
+#include "RecordProjectionIr.h"
 #include "DataTypes.h"
 #include <ctime>
 #include <unistd.h>
