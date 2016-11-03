@@ -55,6 +55,7 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->logger = logger;
 	this->pageSize = pageSize;
         this->usingDirect = false;       
+        this->cleared = false;
 	//Initialize meta data;
 	this->metaData = make_shared<PartitionedFileMetaData>();
 	this->metaData->setPageSize(pageSize);
@@ -95,13 +96,16 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	//Initialize meta FILE instances;
 	this->metaFile = nullptr;
         this->usingDirect = false;
+        this->cleared = false;
 }
 
 /**
  * Destructor, it will NOT delete on-disk files.
  */
 PartitionedFile::~PartitionedFile() {
-	this->closeAll();
+        if (this->cleared == false) {
+	    this->closeAll();
+        } 
 }
 
 /**
@@ -231,6 +235,7 @@ void PartitionedFile::clear() {
 	for( i = 0; i < numPartitions; i++ ) {
 		remove(this->dataPartitionPaths.at(i).c_str());
 	}
+        this->cleared = true;
 }
 
 /**
