@@ -24,6 +24,7 @@
 #include "Column.h"
 #include "ApplyBase.h"
 
+using std::make_shared;
 using std::shared_ptr;
 using std::vector;
 
@@ -117,6 +118,11 @@ namespace pdb_detail
             forApplyFunc(*this);
         }
     };
+
+    typedef shared_ptr<ApplyFunction> ApplyFunctionPtr;
+
+    ApplyFunctionPtr makeApplyFunction(string executorId, string functionId, string outputTableId, string outputColumnId, TableColumns inputColumns,
+                                       shared_ptr<vector<Column>> columnsToCopyToOutputTable);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_APPLYFUNCTION_H

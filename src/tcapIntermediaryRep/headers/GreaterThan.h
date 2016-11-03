@@ -63,6 +63,11 @@ namespace pdb_detail
         }
 
     };
+
+    typedef shared_ptr<GreaterThan> GreaterThanPtr;
+
+    GreaterThanPtr makeGreaterThan(Column leftHandSide, Column rightHandSide, Column outputColumn,
+                                   shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_GREATERTHAN_H

@@ -15,43 +15,16 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPINTERMEDIARYREP_LOAD_H
-#define PDB_TCAPINTERMEDIARYREP_LOAD_H
+#include "Filter.h"
 
-#include "ApplyFunction.h"
-#include "Instruction.h"
+using std::make_shared;
 
 namespace pdb_detail
 {
-    class Load : public Instruction
+
+    FilterPtr makeFilter(string inputTableId, string filterColumnId, string outputTableId,
+                         shared_ptr<vector<Column>> columnsToCopyToOutputTable)
     {
-    public:
-        
-        const string outputColumnId;
-
-        const string outputTableId;
-
-        const string source;
-
-        Load(string outputTableId, string outputColumnId, string source)
-                :Instruction(InstructionType::load), outputColumnId(outputColumnId), outputTableId(outputTableId),
-                 source(source)
-        {
-        }
-
-        void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
-                   function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)> forStore) override
-        {
-            forLoad(*this);
-        }
-
-    };
-
-    typedef shared_ptr<Load> LoadPtr;
-
-    LoadPtr makeLoad(string outputTableId, string outputColumnId, string source);
-
+        return make_shared<Filter>(inputTableId, filterColumnId, outputTableId, columnsToCopyToOutputTable);
+    }
 }
-
-#endif //PDB_TCAPINTERMEDIARYREP_LOAD_H

@@ -43,6 +43,10 @@ namespace pdb_detail
             forStore(*this);
         }
     };
+
+    typedef shared_ptr<Store> StorePtr;
+
+    StorePtr makeStore(string tableId, string destination);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_STORE_H
