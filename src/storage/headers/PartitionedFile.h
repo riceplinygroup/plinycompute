@@ -372,6 +372,11 @@ private:
      */
     bool usingDirect;
 
+    /**
+     * whether the file is cleared
+     */
+    bool cleared;
+
 };
 
 
