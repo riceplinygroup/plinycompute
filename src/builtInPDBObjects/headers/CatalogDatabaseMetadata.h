@@ -110,22 +110,22 @@ namespace pdb {
         }
 
         void addNode(pdb::String &nodeIn){
-            cout << "Adding node " << nodeIn.c_str() << endl;
+//            cout << "Adding node " << nodeIn.c_str() << endl;
             listOfNodes->push_back(nodeIn);
         }
 
         void addSet(pdb::String &setIn){
-            cout << "Adding node " << setIn.c_str() << endl;
+//            cout << "Adding node " << setIn.c_str() << endl;
             listOfSets->push_back(setIn);
         }
 
         void addSetToMap(String &setName, String &nodeIP){
-            cout << "key: " << setName.c_str() << " push_back node: " << nodeIP.c_str();
+//            cout << "key: " << setName.c_str() << " push_back node: " << nodeIP.c_str();
             (*setsInDB)[setName].push_back(nodeIP);
         }
 
         void addNodeToMap(String &nodeIP, String &setName){
-            cout << "key: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
+//            cout << "key: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
             (*nodesInDB)[nodeIP].push_back(setName);
         }
 

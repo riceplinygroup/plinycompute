@@ -932,7 +932,7 @@
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
         size_t numberOfBytes = metadataBytes->numBytes();
 
-        cout << sqlStatement << " with key= " << metadataKey << endl;
+//        cout << sqlStatement << " with key= " << metadataKey << endl;
 
         // Opens connection to db
         if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal,
@@ -984,8 +984,8 @@
         pthread_mutex_unlock(&(registerMetadataMutex));
 
         if (isSuccess == true) {
-            cout << "Item stored in SQLite and loaded into Catalog memory:" << endl;
-            cout << "Adding metadata\n" << metadataValue->printShort() << endl;
+            cout << "The following item metadata was stored in SQLite and loaded into Catalog memory:" << endl;
+            cout << metadataValue->printShort() << endl;
         }
         this->logger->writeLn(errorMessage);
 
