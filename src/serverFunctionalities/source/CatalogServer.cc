@@ -896,21 +896,7 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
         return false;
     }
 
-//	if (allDatabases.count (databaseName) != 0) {
-//		errMsg = "Database name already exists.\n";
-//		return false;
-//	}
-
-	// add the database
 	vector <string> empty;
-//	allDatabases [databaseName] = empty;
-
-	// and update the catalog... add the database name
-//	vector <string> databaseNames;
-//	databaseNames.push_back (databaseName);
-//	for (auto &entry : allDatabases) {
-//		databaseNames.push_back (entry.first);
-//	}
 
     cout << "...... Calling CatalogServer :: addDatabase" << endl;
 
@@ -932,33 +918,27 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
         string nodeIP = item.second.getNodeIP().c_str();
 
         String nodeId = String(item.second.getNodeIP());
-        cout << "adding db in node IP " << nodeId.c_str() << endl;
+        cout << "  adding db info for node IP: " << nodeId.c_str() << endl;
         (*metadataObject).addNodeToMap(nodeId, dbName);
 
     }
 
     // stores metadata in sqlite
     if (isDatabaseRegistered(databaseName) == false){
-        cout << "....... Invoking addMetadataToCatalog key: " << databaseName << endl;
        pdbCatalog->addMetadataToCatalog(metadataObject, catalogType, errMsg);
     }else{
-        cout << "....... Invoking updateMetadataInCatalog key: " << databaseName << endl;
         pdbCatalog->updateMetadataInCatalog(metadataObject, catalogType, errMsg);
     }
 
     // after it registered the database metadata in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
     if (isMasterCatalogServer){
-        cout << "About to broadcast database registration to nodes in the cluster: " << endl;
-
         // get the results of each broadcast
         map<string, pair <bool, string>> updateResults;
         errMsg = "";
-        if (broadcastCatalogUpdate (metadataObject, updateResults, errMsg)){
-            cout << " Broadcasting was Ok. " << endl;
-        } else {
-            cout << " Error broadcasting." << endl;
-        }
+
+        broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
+
         for (auto &item : updateResults){
             // adds node info to database metadata
             cout << "Node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
@@ -1448,26 +1428,18 @@ bool CatalogServer :: broadcastCatalogUpdate (Handle<Type> metadataToSend,
         int nodePort = item.second.getNodePort();
         bool res = false;
 
-        cout << "Create Catalog Client to connect to: " << nodeIP << " | " << nodePort << endl;
         CatalogClient clusterCatalogClient = CatalogClient(nodePort, nodeIP, catalogLogger);
 
         //TODO new mechanism for identifying the master node not based on the name!
-        cout << "Processing node: " << item.second.getNodeType().c_str() << endl;
         if (string(item.second.getNodeType().c_str()).compare("master") !=0){
 
             // sends the request to a node in the cluster
-            if ((res = clusterCatalogClient.registerGenericMetadata (metadataToSend, errMsg)) == true){
-                cout << "broadcast call OK" << endl;
-            } else {
-                cout << "broadcast error " << errMsg << endl;
-            }
+            cout << "Broadcasting catalog update to node: " << nodeIP << endl;
+
+            res = clusterCatalogClient.registerGenericMetadata (metadataToSend, errMsg);
 
             // adds the result of the update
             broadcastResults.insert(make_pair(nodeIP, make_pair(res , errMsg)));
-
-        } else {
-
-            cout << "Don't broadcast to " << nodeAddress << " because it has the master catalog." << endl;
 
         }
 
