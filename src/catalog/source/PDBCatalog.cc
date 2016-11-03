@@ -91,9 +91,9 @@
         for (int i=0; i< (*setValues).size(); i++){
             if ((*item).getItemKey() != (*setValues)[i].getItemKey()){
                 tempContainter->push_back((*setValues)[i]);
-                cout << "Keeping Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
+//                cout << "Keeping Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
             }else{
-                cout << "Deleting Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
+//                cout << "Deleting Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
             }
         }
         (*setValues).clear();
@@ -108,9 +108,9 @@
         for (int i=0; i< (*nodesValues).size(); i++){
             if ((*item).getItemKey() != (*nodesValues)[i].getItemKey()){
                 tempContainter->push_back((*nodesValues)[i]);
-                cout << "Deleting node in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Deleting node in Vector " << (*item).getItemKey().c_str() << endl;
             }else{
-                cout << "Keeping node in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Keeping node in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*nodesValues).clear();
@@ -125,9 +125,9 @@
         for (int i=0; i< (*dbsValues).size(); i++){
             if ((*item).getItemKey() != (*dbsValues)[i].getItemKey()){
                 tempContainter->push_back((*dbsValues)[i]);
-                cout << "Deleting DB in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Deleting DB in Vector " << (*item).getItemKey().c_str() << endl;
             }else{
-                cout << "Keeping DB in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Keeping DB in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*dbsValues).clear();
@@ -142,9 +142,9 @@
         for (int i=0; i< (*udfsValues).size(); i++){
             if ((*item).getItemKey() != (*udfsValues)[i].getItemKey()){
                 tempContainter->push_back((*udfsValues)[i]);
-                cout << "Deleting udf in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Deleting udf in Vector " << (*item).getItemKey().c_str() << endl;
             }else{
-                cout << "Keeping udf in Vector " << (*item).getItemKey().c_str() << endl;
+//                cout << "Keeping udf in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*udfsValues).clear();
