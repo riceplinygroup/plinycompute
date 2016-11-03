@@ -1052,7 +1052,7 @@
             // if sqlite update goes well, updates container
             updateItemInVector(metadataIndex, metadataValue);
             //TODO remove this couts, used for debugging only
-            cout << "Updating metadata\n" << metadataValue->printShort() << endl;
+            cout << "Metadata for the following item has been updated:" << metadataValue->printShort() << endl;
 
             isSuccess = true;
         }else{

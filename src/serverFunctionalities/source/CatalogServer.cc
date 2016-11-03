@@ -677,8 +677,6 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
 bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-    cout << "Invoking addSet for set " << databaseName  << "." << setName<< endl;
-
 	// make sure we are only adding to an existing database
     if (isDatabaseRegistered(databaseName) == false){
         errMsg = "Database does not exist.\n";
@@ -788,7 +786,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
         for (auto &item : updateResults){
-            cout << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+            cout << "Set Metadata broadcasted to node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
 
@@ -800,7 +798,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
         broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
         for (auto &item : updateSetResults){
-            cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+            cout << "DB Metadata broadcasted to node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
         cout << "******************* addSet step completed!!!!!!!" << endl;
@@ -845,7 +843,6 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
         string nodeIP = item.second.getNodeIP().c_str();
 
         String nodeId = String(item.second.getNodeIP());
-        cout << "  adding db info for node IP: " << nodeId.c_str() << endl;
         (*metadataObject).addNodeToMap(nodeId, dbName);
 
     }
@@ -868,7 +865,7 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 
         for (auto &item : updateResults){
             // adds node info to database metadata
-            cout << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+            cout << "DB metadata broadcasted to node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
         cout << "******************* addDatabase step completed!!!!!!!" << endl;

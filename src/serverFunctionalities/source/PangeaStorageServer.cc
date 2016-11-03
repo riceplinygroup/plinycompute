@@ -343,7 +343,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                          std :: string errMsg;
                          bool res = false;
-                         cout << "searching for db " << request->getDatabase() << endl;
 
                          // first make sure the database is registered in the catalog
                          if ((res = getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase()) == false)) {
