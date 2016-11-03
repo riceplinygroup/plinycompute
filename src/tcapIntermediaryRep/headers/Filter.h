@@ -18,6 +18,25 @@
 #ifndef PDB_TCAPINTERMEDIARYREP_FILTER_H
 #define PDB_TCAPINTERMEDIARYREP_FILTER_H
 
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "ApplyFunction.h"
+#include "ApplyMethod.h"
+#include "Filter.h"
+#include "Hoist.h"
+#include "Column.h"
+#include "Load.h"
+
+using std::function;
+using std::shared_ptr;
+using std::string;
+using std::vector;
+
+using pdb_detail::Column;
+
 namespace pdb_detail
 {
     class Filter : public Instruction
@@ -62,6 +81,11 @@ namespace pdb_detail
             forFilter(*this);
         }
     };
+
+    typedef shared_ptr<Filter> FilterPtr;
+
+    FilterPtr makeFilter(string inputTableId, string filterColumnId, string outputTableId,
+                         shared_ptr<vector<Column>> columnsToCopyToOutputTable);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_COLUMN_H

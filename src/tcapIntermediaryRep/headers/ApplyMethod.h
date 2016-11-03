@@ -118,6 +118,11 @@ namespace pdb_detail
             forApplyMethod(*this);
         }
     };
+
+    typedef shared_ptr<ApplyMethod> ApplyMethodPtr;
+
+    ApplyMethodPtr makeApplyMethod(string executorId, string functionId, string outputTableId, string outputColumnId,
+                                   TableColumns inputColumns, shared_ptr<vector<Column>> columnsToCopyToOutputTable);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_APPLYFUNCTION_H

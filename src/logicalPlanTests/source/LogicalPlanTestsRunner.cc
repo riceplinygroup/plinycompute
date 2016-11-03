@@ -23,14 +23,13 @@ namespace pdb_tests
 {
     void runLogicalPlanTests(UnitTest &qunit)
     {
-        testBuildLoad(qunit);
-        testBuildApplyFunction(qunit);
-        testBuildApplyMethod1(qunit);
-        testBuildApplyMethod2(qunit);
-        testBuildApplyMethod3(qunit);
-        testBuildApplyFilter(qunit);
-        testBuildStore(qunit);
-
+        testBuildLogicalPlanFromLoad(qunit);
+        testBuildLogicalPlanFromApplyFunction(qunit);
+        testBuildLogicalPlanFromApplyMethod(qunit);
+        testBuildLogicalPlanFromHoist(qunit);
+        testBuildLogicalPlanFromGreaterThan(qunit);
+        testBuildLogicalPlanFromFilter(qunit);
+        testBuildLogicalPlanFromStore(qunit);
 
     }
 }

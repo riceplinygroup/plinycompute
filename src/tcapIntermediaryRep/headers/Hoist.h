@@ -44,12 +44,12 @@ namespace pdb_detail
 
         const Column outputColumn;
 
-        const string executorId;
-
         /**
          * Any option columns to copy into the output table during its contruction.
          */
         const shared_ptr<vector<Column>> columnsToCopyToOutputTable;
+
+        const string executorId;
 
         Hoist(string fieldId, Column inputColumn, Column outputColumn,
               shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
@@ -67,6 +67,11 @@ namespace pdb_detail
         }
 
     };
+
+    typedef shared_ptr<Hoist> HoistPtr;
+
+    HoistPtr makeHoist(string fieldId, Column inputColumn, Column outputColumn,
+                       shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_HOIST_H

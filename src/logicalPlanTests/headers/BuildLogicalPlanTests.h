@@ -24,19 +24,19 @@ using QUnit::UnitTest;
 
 namespace pdb_tests
 {
-    void testBuildLoad(UnitTest &qunit);
+    void testBuildLogicalPlanFromLoad(UnitTest &qunit);
 
-    void testBuildApplyFunction(UnitTest &qunit);
+    void testBuildLogicalPlanFromApplyFunction(UnitTest &qunit);
 
-    void testBuildApplyMethod1(UnitTest &qunit);
+    void testBuildLogicalPlanFromApplyMethod(UnitTest &qunit);
 
-    void testBuildApplyMethod2(UnitTest &qunit);
+    void testBuildLogicalPlanFromHoist(UnitTest &qunit);
 
-    void testBuildApplyMethod3(UnitTest &qunit);
+    void testBuildLogicalPlanFromGreaterThan(UnitTest &qunit);
 
-    void testBuildApplyFilter(UnitTest &qunit);
+    void testBuildLogicalPlanFromFilter(UnitTest &qunit);
 
-    void testBuildStore(UnitTest &qunit);
+    void testBuildLogicalPlanFromStore(UnitTest &qunit);
 }
 
 #endif //PDB_LOGICALPLANTESTS_BUILDLOGICALPLANTESTS_H
