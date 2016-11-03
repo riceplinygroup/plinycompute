@@ -193,10 +193,10 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-            cout << "ack->SetID()=" << ack->getSetID() << "\n";
-            cout << "page->SetID()=" << page->getSetID() << "\n";
-            cout << "ack->PageID()=" << ack->getPageID() << "\n";
-            cout << "page->PageID()=" << page->getPageID() << "\n";
+            //cout << "ack->SetID()=" << ack->getSetID() << "\n";
+            //cout << "page->SetID()=" << page->getSetID() << "\n";
+            //cout << "ack->PageID()=" << ack->getPageID() << "\n";
+            //cout << "page->PageID()=" << page->getPageID() << "\n";
             page->setPinned(true);
             page->setDirty(true);
             return success;
@@ -328,12 +328,12 @@ bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
 
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PDBPagePtr page, bool needMem) {
-    std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
+    //std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
     logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
 
     string errMsg;
     if (needMem == true) {
-        std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
+        //std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
         //create a UnpinPage object
         {
            pdb :: UseTemporaryAllocationBlock myBlock{2048};
@@ -352,8 +352,8 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
              msg->setWasDirty(false);
           }
        
-          std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
-          dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
+          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
+          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
           logger->debug("to send StorageUnpinPage object");
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
@@ -361,7 +361,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
               logger->error(std :: string("Sending StorageUnpinPage object failure:")+errMsg);
 	      return false;
           }
-          std :: cout << "StorageUnpinPage sent.\n";  
+          //std :: cout << "StorageUnpinPage sent.\n";  
           logger->debug("StorageUnpinPage sent.");
        }
 
