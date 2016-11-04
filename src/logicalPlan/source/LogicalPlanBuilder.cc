@@ -459,11 +459,11 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
  *
  * For example, if the given GreaterThan modeled the following TCAP statement:
  *
- *     store F "db set"
+ *     store F[a,b] "db set"
  *
  * the created Output would have the following form:
  *
- *     input:   ("F", [])
+ *     input:   ("F", ["a", "b"])
  *     dbName:  "db"
  *     setName: "set"
  *
@@ -485,8 +485,8 @@ Output makeOutputFromStore(const Store &store)
             throw "unrecognized source string " + store.destination;
     }
 
-    AttList empty;
-    TupleSpec toStore(store.tableId, empty);
+    AttList columnsToStore = makeAttributeList(store.columnsToStore);
+    TupleSpec toStore(store.columnsToStore.tableName, columnsToStore);
 
     Output out(toStore, destinationTokens[0], destinationTokens[1]);
 

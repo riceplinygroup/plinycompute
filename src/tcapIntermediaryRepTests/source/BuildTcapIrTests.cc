@@ -451,7 +451,11 @@ namespace pdb_tests
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
         {
-            unit->statements->push_back(make_shared<StoreOperation>(Identifier("A"), "\"desc\""));
+            shared_ptr<vector<Identifier>> columnsToStore = make_shared<vector<Identifier>>();
+            columnsToStore->push_back(Identifier("1"));
+            columnsToStore->push_back(Identifier("2"));
+
+            unit->statements->push_back(make_shared<StoreOperation>(Identifier("A"), columnsToStore, "\"desc\""));
         }
 
         shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(unit);
@@ -486,7 +490,10 @@ namespace pdb_tests
                 [&](Store& store)
                 {
                     QUNIT_IS_EQUAL("desc", store.destination);
-                    QUNIT_IS_EQUAL("A", store.tableId);
+                    QUNIT_IS_EQUAL("A", store.columnsToStore.tableName);
+                    QUNIT_IS_EQUAL(2, store.columnsToStore.columnIds->size());
+                    QUNIT_IS_EQUAL("1", store.columnsToStore.columnIds->operator[](0));
+                    QUNIT_IS_EQUAL("2", store.columnsToStore.columnIds->operator[](1));
                     QUNIT_IS_EQUAL(InstructionType::store, store.instructionType);
                 });
     }

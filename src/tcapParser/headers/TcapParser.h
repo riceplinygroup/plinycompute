@@ -223,11 +223,13 @@ namespace pdb_detail
 
         Identifier outputTable;
 
+        shared_ptr<vector<Identifier>> columnsToStore;
+
         shared_ptr<string> destination;
 
-        StoreOperation(Identifier outputTable, shared_ptr<string> destination);
+        StoreOperation(Identifier outputTable,  shared_ptr<vector<Identifier>> columnsToStore, shared_ptr<string> destination);
 
-        StoreOperation(Identifier outputTable, string destination);
+        StoreOperation(Identifier outputTable, shared_ptr<vector<Identifier>> columnsToStore, string destination);
 
         void execute(function<void(TableAssignment&)>, function<void(StoreOperation&)> forStore);
     };

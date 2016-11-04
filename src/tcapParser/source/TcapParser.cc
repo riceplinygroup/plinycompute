@@ -189,12 +189,14 @@ namespace pdb_detail
     }
 
 
-    StoreOperation::StoreOperation(Identifier outputTable, shared_ptr<string> destination) : outputTable(outputTable),  destination(destination)
+    StoreOperation::StoreOperation(Identifier outputTable, shared_ptr<vector<Identifier>> columnsToStore, shared_ptr<string> destination)
+            : outputTable(outputTable), columnsToStore(columnsToStore),  destination(destination)
     {
 
     }
 
-    StoreOperation::StoreOperation(Identifier outputTable, string destination) : outputTable(outputTable), destination(make_shared<string>(destination))
+    StoreOperation::StoreOperation(Identifier outputTable,  shared_ptr<vector<Identifier>> columnsToStore, string destination)
+            : outputTable(outputTable), columnsToStore(columnsToStore), destination(make_shared<string>(destination))
     {
 
     }
@@ -445,12 +447,28 @@ namespace pdb_detail
         if(outputTable == nullptr)
             return nullptr;
 
+        shared_ptr<Lexeme> lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+
+        if(lbracket == nullptr)
+            return nullptr;
+
+        shared_ptr<vector<Identifier>> columnsToStore = makeIdentList(tokens);
+
+        if(columnsToStore == nullptr)
+            return nullptr;
+
+        shared_ptr<Lexeme> rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+
+        if(rbracket == nullptr)
+            return nullptr;
+
+
         shared_ptr<Lexeme> externSourceString = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
 
         if(externSourceString == nullptr)
             return nullptr;
 
-        return make_shared<StoreOperation>(*outputTable.get(), externSourceString->getToken());
+        return make_shared<StoreOperation>(*outputTable.get(), columnsToStore, externSourceString->getToken());
 
     }
 

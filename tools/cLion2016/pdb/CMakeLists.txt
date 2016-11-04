@@ -61,6 +61,9 @@ set(SOURCE_FILES
         ../../../src/bufferMgr/source/MyDB_Table.cc
         ../../../src/communication/headers/SimpleRequest.cc
         ../../../src/communication/source/PDBCommunicator.cc
+        ../../../src/logicalPlan/source/Lexer.c
+        ../../../src/logicalPlan/source/Parser.c
+        ../../../src/logicalPlan/source/ParserHelperFunctions.cc
         ../../../src/logicalPlan/source/LogicalPlanBuilder.cc
         ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc
         ../../../src/logicalPlanTests/source/LogicalPlanTestsRunner.cc
