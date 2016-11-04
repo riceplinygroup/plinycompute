@@ -151,37 +151,14 @@ namespace pdb {
             nodesInDB = newMap;
         }
 
-        void deleteSet(pdb :: String whichSet){
-            // creates a temp vector
-            pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
-
-            for (int i=0; i < (*getListOfSets()).size(); i++){
-                String itemValue = (*getListOfSets())[i];
-                if (itemValue!=whichSet){
-                    tempListOfSets->push_back(itemValue);
-                }
-            }
-            replaceListOfSets(tempListOfSets);
-        }
-
-        void deleteSetFromMap(String &setName, String &nodeIP){
-            // creates a temp vector
-            pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
-
-            for (int i=0; i < (*getListOfSets()).size(); i++){
-                String itemValue = (*getListOfSets())[i];
-                if (itemValue!=setName){
-                    tempListOfSets->push_back(itemValue);
-                }
-            }
-            replaceListOfSets(tempListOfSets);
-            Handle <Map <String, Vector<String>>> tempSetsInDB = makeObject<Map <String, Vector<String>>>();
-            for (auto &a : *getSetsInDB()) {
-                if (a.key!=setName){
-                    (*tempSetsInDB)[a.key] = a.value;
-                }
-            }
-            replaceMapOfSets(tempSetsInDB);
+        /**
+         * Deletes a set from the listOfSets, along with the set->nodes map and the nodes->set map
+         * @param whichSet
+         */
+        void deleteSet(pdb :: String setName){
+            deleteSetFromSetList(setName);
+            deleteSetFromSetMap(setName);
+            deleteSetFromNodeMap(setName);
         }
 
         void deleteNodeFromMap(String &nodeIP, String &setName){
@@ -375,10 +352,46 @@ namespace pdb {
         // Contains information about types a given database
 //        Vector < PDBCatalogRegisteredObject> listOfTypes;
 
-
         // Contains all users' permissions for a given database
         pdb :: Handle <pdb:: Vector < CatalogPermissionsMetadata> >listOfPermissions = makeObject< Vector<CatalogPermissionsMetadata>>();
 
+        void deleteSetFromSetList(String &setName) {
+            // creates a temp vector
+            pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
+            for (int i=0; i < (*getListOfSets()).size(); i++){
+                String itemValue = (*getListOfSets())[i];
+                if (itemValue!=setName){
+                    tempListOfSets->push_back(itemValue);
+                }
+            }
+            replaceListOfSets(tempListOfSets);
+        }
+
+        void deleteSetFromSetMap(String &setName) {
+            // creates a temp vector
+            Handle <Map <String, Vector<String>>> tempSetsInDB = makeObject<Map <String, Vector<String>>>();
+            for (auto &a : *getSetsInDB()) {
+                if (a.key!=setName){
+                    (*tempSetsInDB)[a.key] = a.value;
+                }
+            }
+            replaceMapOfSets(tempSetsInDB);
+        }
+
+        void deleteSetFromNodeMap(String &setName) {
+            Handle <Map <String, Vector<String>>> tempNodesInDB = makeObject<Map <String, Vector<String>>>();
+            for (const auto &setsInNode : (* nodesInDB)){
+                auto node = setsInNode.key;
+                auto sets = setsInNode.value;
+                auto newSetsInNode = (* tempNodesInDB)[node];
+                for (int i = 0; i < sets.size(); i++) {
+                    if (sets[i] != setName) {
+                        newSetsInNode.push_back(sets[i]);
+                    }
+                }
+            }
+            replaceMapOfNodes(tempNodesInDB);
+        }
     };
 
 } /* namespace pdb */
