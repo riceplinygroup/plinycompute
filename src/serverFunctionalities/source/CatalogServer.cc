@@ -629,11 +629,6 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
     }
 
     (*dbMetadataObject).deleteSet(setNameCatalog);
-    // TODO: Fix this
-    for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-        String nodeID(item.first);
-        (*dbMetadataObject).deleteSetFromMap(setNameCatalog, nodeID);
-    }
 
     // updates the corresponding database metadata
     if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
