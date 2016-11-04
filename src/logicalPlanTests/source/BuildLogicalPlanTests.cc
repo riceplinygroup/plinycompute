@@ -30,6 +30,9 @@
 #include "Store.h"
 #include "TableColumns.h"
 
+#include "Lexer.h"
+#include "Parser.h"
+
 using std::dynamic_pointer_cast;
 using std::string;
 
@@ -306,13 +309,21 @@ namespace pdb_tests
     {
         shared_ptr<vector<InstructionPtr>> ops = make_shared<vector<InstructionPtr>>();
 
-        ops->push_back(makeStore("inputTable", "db set"));
+        shared_ptr<vector<string>> columnsToStore = make_shared<vector<string>>();
+        columnsToStore->push_back("1");
+        columnsToStore->push_back("2");
+
+        ops->push_back(makeStore(TableColumns("inputTable", columnsToStore), "db set"));
 
         shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
 
         OutputList outputs = logicalPlan->getOutputs();
         QUNIT_IS_EQUAL("db", outputs.getConsumers("inputTable").operator[](0).getdbName());
-        QUNIT_IS_EQUAL("set", outputs.getConsumers("inputTable").operator[](0).getSetName())
+        QUNIT_IS_EQUAL("set", outputs.getConsumers("inputTable").operator[](0).getSetName());
+        QUNIT_IS_EQUAL("inputTable", outputs.getConsumers("inputTable").operator[](0).getInputName());
+        QUNIT_IS_EQUAL(2, outputs.getConsumers("inputTable").operator[](0).getInput().getAtts().size());
+        QUNIT_IS_EQUAL("1", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[0]);
+        QUNIT_IS_EQUAL("2", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[1]);
 
     }
 
@@ -327,10 +338,49 @@ namespace pdb_tests
                          "D(a,b) = apply func \"someFunc\" to C[c,b] retain a\n"
                          "E(a) = filter D by b retain a\n"
                          "@exec \"methodCall_3\"\n"
-                         "F(b) = apply method \"someMethod\" to E[a] retain none\n"
-                         "store F \"myDB mySet\"";
+                         "F(a,b) = apply method \"someMethod\" to E[a] retain a\n"
+                         "store F[b] \"myDB mySet\"";
 
         shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(program);
+
+
+//  //       here is a hand compilation of the plan for the above selection
+//        std :: string myLogicalPlan =
+//
+//                "Outputs:                                       \n      \
+//                                                                \n      \
+//                 (\"myDB\", \"mySet\") <= F(b)                  \n      \
+//                                                                \n      \
+//                Inputs:                                         \n      \
+//                                                                \n      \
+//                A(a) <= (\"myDB\", \"mySet\")                   \n      \
+//                                                                \n      \
+//                Computations:                                   \n      \
+//                                                                \n      \
+//		        F (a, b) <= Apply (E (a), E (a), \"methodCall_3\")   	\n      \
+//                E (a) <=  Filter (D(b), D(a))                   	\n      \
+//                D (a, b) <= Apply (C(c, b), C(a), \"==_0\")  		\n      \
+//                C(a, b, c) <= Apply (B(a), B(a, b), \"methodCall_1\")  	\n      \
+//                B(a, b) <= Apply (A(a), A(a), \"attAccess_2\")";
+//
+//
+//       //  parse the logical plan
+//        myLogicalPlan.push_back ('\0');
+//        yyscan_t scanner;
+//        LexerExtra extra { "" };
+//        yylex_init_extra (&extra, &scanner);
+//        const YY_BUFFER_STATE buffer { yy_scan_string (myLogicalPlan.data(), scanner) };
+//        LogicalPlan *final = nullptr;
+//        const int parseFailed { yyparse (scanner, &final) };
+//        yy_delete_buffer (buffer, scanner);
+//        yylex_destroy (scanner);
+//
+//        if (parseFailed) {
+//            std :: cout << "Parse error: " << extra.errorMessage;
+//        }
+//
+//        LogicalPlan* logicalPlan = final;
+
 
         QUNIT_IS_EQUAL(1, logicalPlan->getInputs().size());
         Input input = logicalPlan->getInputs().getInput("A");
@@ -407,19 +457,22 @@ namespace pdb_tests
         apply = dynamic_pointer_cast<ApplyLambda> (computation);
         QUNIT_IS_EQUAL("methodCall_3", apply->getLambdaToApply());
         QUNIT_IS_EQUAL("F", apply->getOutputName());
-        QUNIT_IS_EQUAL("1", apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[0]);
+        QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
+        QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
+        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
         QUNIT_IS_EQUAL("E", apply->getInputName());
         QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
         QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
         QUNIT_IS_EQUAL("E", apply->getProjection().getSetName());
-        QUNIT_IS_EQUAL("0", apply->getProjection().getAtts().size());
+        QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
+        QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
 
         QUNIT_IS_EQUAL(1, logicalPlan->getOutputs().getConsumers("F").size());
         Output output = logicalPlan->getOutputs().getConsumers("F")[0];
         QUNIT_IS_EQUAL("myDB", output.getdbName());
         QUNIT_IS_EQUAL("mySet", output.getSetName());
         QUNIT_IS_EQUAL("F", output.getInputName());
-        QUNIT_IS_EQUAL(0, output.getInput().getAtts().size());
+        QUNIT_IS_EQUAL(1, output.getInput().getAtts().size());
+        QUNIT_IS_EQUAL("b", output.getInput().getAtts()[0]);
     }
 }

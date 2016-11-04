@@ -63,7 +63,7 @@ namespace pdb_tests
                "D(student, isExamGreater) = C[examAverage] > C[hwAverage] retain student\n"
                "E(student) = filter D by isExamGreater retain student\n"
                "F(name) = apply method \"getName\" to E[student] retain none"
-               "store F \"(databaseName, outputSetName)\"";
+               "store F[name] \"(databaseName, outputSetName)\"";
 
         shared_ptr<TranslationUnit> parseTree = parseTcap(program);
 

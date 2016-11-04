@@ -175,7 +175,15 @@ namespace pdb_detail
         string unquotedDest = *storeOperation.destination.get();
         unquotedDest = unquotedDest.substr(1, unquotedDest.size()-2); // remove surrounding quotes
 
-        return make_shared<Store>(*storeOperation.outputTable.contents.get(), unquotedDest);
+        shared_ptr<vector<string>> columnsToStore = make_shared<vector<string>>();
+        {
+            for(Identifier c : *storeOperation.columnsToStore.get())
+            {
+                columnsToStore->push_back(*c.contents.get());
+            }
+        }
+
+        return make_shared<Store>(TableColumns(*storeOperation.outputTable.contents.get(), columnsToStore), unquotedDest);
     }
 
     shared_ptr<Instruction> makeInstruction(shared_ptr<Statement> stmt)

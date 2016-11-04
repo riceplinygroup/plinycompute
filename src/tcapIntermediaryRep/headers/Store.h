@@ -27,12 +27,12 @@ namespace pdb_detail
     {
     public:
 
-        const string tableId;
+        const TableColumns columnsToStore;
 
         const string destination;
 
-        Store(string tableId, string destination)
-                :Instruction(InstructionType::store), tableId(tableId), destination(destination)
+        Store(TableColumns columnsToStore, string destination)
+                :Instruction(InstructionType::store), columnsToStore(columnsToStore), destination(destination)
         {
         }
 
@@ -46,7 +46,7 @@ namespace pdb_detail
 
     typedef shared_ptr<Store> StorePtr;
 
-    StorePtr makeStore(string tableId, string destination);
+    StorePtr makeStore(TableColumns columnsToStore, string destination);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_STORE_H

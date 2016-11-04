@@ -19,8 +19,8 @@
 
 namespace pdb_detail
 {
-    StorePtr makeStore(string tableId, string destination)
+    StorePtr makeStore(TableColumns columnsToStore, string destination)
     {
-        return make_shared<Store>(tableId, destination);
+        return make_shared<Store>(columnsToStore, destination);
     }
 }

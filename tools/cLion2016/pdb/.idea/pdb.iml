@@ -13,14 +13,14 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/utf8_codecvt_facet.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/variables_map.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/cmdline.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/options_description.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/positional_options.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/parsers.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/winmain.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/value_semantic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/split.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/config_file.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/options_description.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/convert.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/positional_options.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/system/src/error_code.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/filesystem/src/path.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/filesystem/src/operations.cpp" isTestSource="false" />
@@ -63,11 +63,14 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlanTests/source/LogicalPlanTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/Parser.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/LogicalPlanBuilder.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/Lexer.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/ParserHelperFunctions.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapConstructor.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapCatalogLookup.cc" isTestSource="false" />
     </content>
@@ -80,11 +83,15 @@
         <CLASSES>
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/llvm-3.8/lib/clang/3.8.0/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/5/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/llvm-3.8/lib/clang/3.8.0/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/5/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/5/include-fixed" />
           <root url="file:///usr/local/include" />
         </SOURCES>
       </library>
