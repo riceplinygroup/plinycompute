@@ -67,7 +67,7 @@ inline void makeObjectAllocatorBlock (size_t numBytesIn, bool throwExceptionOnFa
              std :: cout << "Fatal Error in makeObjectAllocatorBlock(): out of memory" << std :: endl;
              exit (-1);
         }
-        getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
+        getAllocator ().setupBlock (space, numBytesIn, throwExceptionOnFail);
 }
 
 inline void makeObjectAllocatorBlock (void *spaceToUse, size_t numBytesIn, bool throwExceptionOnFail) {
@@ -221,8 +221,9 @@ template <class ObjType>
 Record <ObjType> *getRecord (Handle <ObjType> &forMe) {
 
 	// get a pointer to the allocation block for this guy
+        std :: cout << "to get record..." << std :: endl;
 	void *res = getAllocator ().getAllocationBlock (forMe);
-			
+        std :: cout << "record size=" << (size_t)(*(size_t *)res) << std :: endl;			
 	// and return that
 	return (Record <ObjType> *) res;
 }
