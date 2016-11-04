@@ -86,26 +86,35 @@ void ResourceManagerServer :: initialize (std :: string pathToServerList) {
 
 void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
     std :: cout << serverlist << std :: endl;
+    std :: string inputLine;
     std :: string address;
+    int port;
     NodeID nodeId = 0;
     std :: ifstream nodeFile (serverlist);
     if (nodeFile.is_open()) {
-       while (! nodeFile.eof()) {
-           std :: getline (nodeFile, address);
-           if(address.find(".") != string::npos) {
-               //std :: cout << address << std :: endl;
-               const UseTemporaryAllocationBlock block (1024);
-               Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
-               this->nodes->push_back(node);
-               std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
-               nodeId ++;
-           }
-       } 
-       nodeFile.close();
+        while (! nodeFile.eof()) {
+            std :: getline (nodeFile, inputLine);
+            // if(inputLine.find(".") != string::npos) {
+            size_t pos = inputLine.find(":");
+            if (pos != string::npos) {
+                port = stoi(inputLine.substr(pos + 1, inputLine.size()));
+                address = inputLine.substr(0, pos);
+            } else {
+                port = 8108;
+                address = inputLine;
+            }
+            const UseTemporaryAllocationBlock block (1024);
+            Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
+            this->nodes->push_back(node);
+            std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
+            nodeId ++;
+            // }
+        }
+        nodeFile.close();
     }
     else {
-          std :: cout << "file can't be open" << std :: endl;
-    } 
+        std :: cout << "file can't be open" << std :: endl;
+    }
 }
 
 

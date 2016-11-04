@@ -1077,8 +1077,8 @@
 
         pthread_mutex_lock(&(registerMetadataMutex));
 
-        //TODO remove this couts, used for debugging only
-        cout << "Deleting metadata" << metadataValue->printShort() << endl;
+        // This cout causes the program to hang
+        // cout << "Deleting metadata" << metadataValue->printShort() << endl;
 
         // gets the key and index for this item in order to update the sqlite table and
         // update the container in memory

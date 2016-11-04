@@ -38,6 +38,7 @@
 #include "BackendTestSetCopy.h"
 #include "StorageAddTempSet.h"
 #include "StorageAddTempSetResult.h"
+#include "StorageRemoveDatabase.h"
 #include "StorageRemoveTempSet.h"
 #include "StorageRemoveUserSet.h"
 #include "PDBScanWork.h"
@@ -414,6 +415,28 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+        // this handler requests to add a temp set
+        forMe.registerHandler (StorageRemoveDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveDatabase>> (
+                [&] (Handle <StorageRemoveDatabase> request, PDBCommunicatorPtr sendUsingMe) {
+
+                    std :: string errMsg;
+                    std::string databaseName = request->getDatabase();
+
+                    std::cout << "Deleting database " << databaseName << std::endl;
+                    bool res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
+                    if (res == false) {
+                        errMsg = "Failed to delete database\n";
+                    }
+
+                    // make the response
+                    const UseTemporaryAllocationBlock tempBlock{1024};
+                    Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                    res = sendUsingMe->sendObject<SimpleRequestResult> (response, errMsg);
+                    return make_pair (res, errMsg);
+                }
+        ));
+
        // this handler requests to remove a user set
        forMe.registerHandler (StorageRemoveUserSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveUserSet>> (
                [&] (Handle <StorageRemoveUserSet> request, PDBCommunicatorPtr sendUsingMe) {
@@ -432,6 +455,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              }
                          } else {
                                  errMsg = "Set doesn't exist\n";
+                                 cout << errMsg << endl;
                          }
 
                          // make the response

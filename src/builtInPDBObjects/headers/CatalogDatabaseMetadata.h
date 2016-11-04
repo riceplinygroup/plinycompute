@@ -151,8 +151,6 @@ namespace pdb {
             nodesInDB = newMap;
         }
 
-
-
         void deleteSet(pdb :: String whichSet){
             // creates a temp vector
             pdb :: Handle <pdb:: Vector < String>  > tempListOfSets = makeObject< Vector<String>>();
