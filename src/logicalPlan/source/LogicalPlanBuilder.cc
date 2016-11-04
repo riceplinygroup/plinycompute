@@ -575,7 +575,13 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
 shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram)
 {
     shared_ptr<TranslationUnit> transUnit = parseTcap(tcapProgram);
+    if(transUnit == nullptr)
+        return nullptr;
+
     shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
+    if(instructions == nullptr)
+        return nullptr;
+
     return buildLogicalPlan(instructions);
 
 }

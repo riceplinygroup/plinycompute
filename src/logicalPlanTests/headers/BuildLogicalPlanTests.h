@@ -37,6 +37,8 @@ namespace pdb_tests
     void testBuildLogicalPlanFromFilter(UnitTest &qunit);
 
     void testBuildLogicalPlanFromStore(UnitTest &qunit);
+
+    void testBuildLogicalPlanFromStringTest47(UnitTest &qunit);
 }
 
 #endif //PDB_LOGICALPLANTESTS_BUILDLOGICALPLANTESTS_H

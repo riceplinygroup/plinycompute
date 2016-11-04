@@ -30,6 +30,7 @@ namespace pdb_tests
         testBuildLogicalPlanFromGreaterThan(qunit);
         testBuildLogicalPlanFromFilter(qunit);
         testBuildLogicalPlanFromStore(qunit);
+        testBuildLogicalPlanFromStringTest47(qunit);
 
     }
 }
