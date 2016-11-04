@@ -151,7 +151,9 @@ common_env.ExtactCode ([objectTargetDir + 'BuiltinPDBObjects.h', objectTargetDir
 #    'compB':[SRC_ROOT + "/compB/source/file3.cc", SRC_ROOT + "/compB/source/file3.cc"]}
 #
 # on a Linux system.
+component_dir_basename_to_lexer_c_file_paths = dict ()
 component_dir_basename_to_cc_file_paths = dict ()
+component_dir_basename_to_lexer_file_paths = dict ()
 src_root_subdir_paths = [path for path in  map(lambda s: join(SRC_ROOT, s), listdir(SRC_ROOT)) if isdir(path)]
 for src_subdir_path in src_root_subdir_paths:
 
@@ -162,11 +164,28 @@ for src_subdir_path in src_root_subdir_paths:
     src_subdir_basename = os.path.basename(src_subdir_path)
 
     # first, map build output folders (on the left) to source folders (on the right)
-    common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)
+    if src_subdir_basename == 'logicalPlan':
+        # maps .y and .l source files used by flex and bison
+        lexerSources = [abspath(join(join (source_folder),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-2:] == '.y' or f2[-2:] == '.l')]
+        component_dir_basename_to_lexer_file_paths [src_subdir_basename] = lexerSources
+        
+        # maps .cc source files
+        common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)        
+        ccSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-3:] == '.cc')]        
 
-    # next, add all of the sources in
-    allSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-3:] == '.cc' or f2[-2:] == '.y' or f2[-2:] == '.l')]
-    component_dir_basename_to_cc_file_paths [src_subdir_basename] = allSources
+        component_dir_basename_to_cc_file_paths [src_subdir_basename] = ccSources
+
+        # maps .c files        
+        cSources = [(abspath(join(join ('build/', src_subdir_basename),'Parser.c'))), (abspath(join(join ('build/', src_subdir_basename),'Lexer.c')))]
+        
+        #component_dir_basename_to_lexer_c_file_paths [src_subdir_basename] = cSources
+            
+    else:
+        common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)
+
+        # next, add all of the sources in
+        allSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-3:] == '.cc' or f2[-2:] == '.y' or f2[-2:] == '.l')]
+        component_dir_basename_to_cc_file_paths [src_subdir_basename] = allSources
 
 # second, map build output folders (on the left) to source folders (on the right) for .so libraries
 common_env.VariantDir('build/libraries/', 'src/sharedLibraries/source/', duplicate = 0)
@@ -270,7 +289,7 @@ common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
 common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
-common_env.Program('bin/test47', ['src/tests/source/Test47.cc'] + all + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
+common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
