@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TokenStream.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TcapLexer.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/Lexeme.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/Token.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/boost/program_options/config.hpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/boost/program_options/errors.hpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/utf8_codecvt_facet.cpp" isTestSource="false" />

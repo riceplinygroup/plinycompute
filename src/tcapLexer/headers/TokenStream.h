@@ -22,12 +22,12 @@
 #include <memory>
 #include <vector>
 
-#include "Lexeme.h"
+#include "Token.h"
 
 using std::shared_ptr;
 using std::vector;
 
-using pdb_detail::Lexeme;
+using pdb_detail::Token;
 
 namespace pdb_detail
 {
@@ -44,7 +44,7 @@ namespace pdb_detail
          * @param tokens the tokens of the stream
          * @return a new token stream
          */
-        TokenStream(shared_ptr<vector<Lexeme>> tokens);
+        TokenStream(shared_ptr<vector<Token>> tokens);
 
         /**
          * @return true if any tokens remain, else false.
@@ -54,9 +54,9 @@ namespace pdb_detail
         /**
          * @return
          */
-        Lexeme advance();
+        Token advance();
 
-        Lexeme peek();
+        Token peek();
 
  //useful for debugging.
  //       void printTypes();
@@ -65,7 +65,7 @@ namespace pdb_detail
 
         int _readIndex = 0;
 
-        shared_ptr<vector<Lexeme>> _tokens;
+        shared_ptr<vector<Token>> _tokens;
 
     };
 }
