@@ -41,9 +41,9 @@ using pdb_detail::lexTcap;
 
 namespace pdb_detail
 {
-    shared_ptr<Lexeme> consumeNext(TokenStream &tokenStream, int expectedType1, int expectedType2);
+    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType1, int expectedType2);
 
-    shared_ptr<Lexeme> consumeNext(TokenStream &tokenStream, int expectedType);
+    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType);
 
     class Identifier
     {

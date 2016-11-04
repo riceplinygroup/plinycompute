@@ -40,21 +40,21 @@ using pdb_detail::lexTcap;
 
 namespace pdb_detail
 {
-    shared_ptr<Lexeme> consumeNext(TokenStream &tokenStream, int expectedType1, int expectedType2)
+    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType1, int expectedType2)
     {
         if(!tokenStream.hasNext())
             return nullptr;
 
-        Lexeme next = tokenStream.advance();
+        Token next = tokenStream.advance();
 
         if(next.tokenType == expectedType1 || next.tokenType == expectedType2)
-            return make_shared<Lexeme>(next);
+            return make_shared<Token>(next);
 
         return nullptr;
 
     }
 
-    shared_ptr<Lexeme> consumeNext(TokenStream &tokenStream, int expectedType)
+    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType)
     {
         return consumeNext(tokenStream, expectedType, expectedType);
     }
@@ -223,12 +223,12 @@ namespace pdb_detail
 
     shared_ptr<Identifier> makeIdentifier(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> ident = consumeNext(tokens, Lexeme::IDENTIFIER_TYPE);
+        shared_ptr<Token> ident = consumeNext(tokens, TokenType::IDENTIFIER_TYPE);
 
         if(ident == nullptr)
             return nullptr;
 
-        return make_shared<Identifier>(ident->getToken());
+        return make_shared<Identifier>(ident->value);
     }
 
     shared_ptr<vector<Identifier>> makeIdentList(TokenStream &tokens)
@@ -243,7 +243,7 @@ namespace pdb_detail
         idents->push_back(*ident.get());
 
 
-        while(tokens.hasNext() && tokens.peek().tokenType == Lexeme::COMMA_TYPE)
+        while(tokens.hasNext() && tokens.peek().tokenType == TokenType::COMMA_TYPE)
         {
             tokens.advance();
 
@@ -274,18 +274,18 @@ namespace pdb_detail
 
     shared_ptr<RetainClause> makeRetainClause(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> retain = consumeNext(tokens, Lexeme::RETAIN_TYPE);
+        shared_ptr<Token> retain = consumeNext(tokens, TokenType::RETAIN_TYPE);
 
         if (retain == nullptr)
             return nullptr;
 
-        if (tokens.peek().tokenType == Lexeme::ALL_TYPE)
+        if (tokens.peek().tokenType == TokenType::ALL_TYPE)
         {
             tokens.advance();
             return make_shared<RetainAllClause>();
         }
 
-        if (tokens.peek().tokenType == Lexeme::NONE_TYPE)
+        if (tokens.peek().tokenType == TokenType::NONE_TYPE)
         {
             tokens.advance();
             return make_shared<RetainNoneClause>();
@@ -325,25 +325,25 @@ namespace pdb_detail
 
     shared_ptr<ApplyOperation> makeApplyOperation(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> apply = consumeNext(tokens, Lexeme::APPLY_TYPE);
+        shared_ptr<Token> apply = consumeNext(tokens, TokenType::APPLY_TYPE);
 
         if(apply == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> applyTargetType = consumeNext(tokens, Lexeme::FUNC_TYPE, Lexeme::METHOD_TYPE);
+        shared_ptr<Token> applyTargetType = consumeNext(tokens, TokenType::FUNC_TYPE, TokenType::METHOD_TYPE);
 
         if(applyTargetType == nullptr)
             return nullptr;
 
-        ApplyOperationType applyType = applyTargetType->tokenType == Lexeme::FUNC_TYPE ? ApplyOperationType::func : ApplyOperationType::method;
+        ApplyOperationType applyType = applyTargetType->tokenType == TokenType::FUNC_TYPE ? ApplyOperationType::func : ApplyOperationType::method;
 
 
-        shared_ptr<Lexeme> applyTarget = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
+        shared_ptr<Token> applyTarget = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
 
         if(applyTarget == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> to = consumeNext(tokens, Lexeme::TO_TYPE);
+        shared_ptr<Token> to = consumeNext(tokens, TokenType::TO_TYPE);
 
         if(to == nullptr)
             return nullptr;
@@ -353,7 +353,7 @@ namespace pdb_detail
         if(inputTableName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+        shared_ptr<Token> lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
 
         if(lbracket == nullptr)
             return nullptr;
@@ -363,31 +363,31 @@ namespace pdb_detail
         if(inputTableInputColumnNames == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+        shared_ptr<Token> rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
 
         if(rbracket == nullptr)
             return nullptr;
 
         shared_ptr<RetainClause> retainClause = makeRetainClause(tokens);
 
-        return make_shared<ApplyOperation>(applyTarget->getToken(), applyType, *inputTableName.get(), inputTableInputColumnNames, retainClause);
+        return make_shared<ApplyOperation>(applyTarget->value, applyType, *inputTableName.get(), inputTableInputColumnNames, retainClause);
 
 
     }
 
     shared_ptr<HoistOperation> makeHoistOperation(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> hoist = consumeNext(tokens, Lexeme::HOIST_TYPE);
+        shared_ptr<Token> hoist = consumeNext(tokens, TokenType::HOIST_TYPE);
 
         if(hoist == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> hoistTarget = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
+        shared_ptr<Token> hoistTarget = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
 
         if(hoistTarget == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> from = consumeNext(tokens, Lexeme::FROM_TYPE);
+        shared_ptr<Token> from = consumeNext(tokens, TokenType::FROM_TYPE);
 
         if(from == nullptr)
             return nullptr;
@@ -397,7 +397,7 @@ namespace pdb_detail
         if(inputTableName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+        shared_ptr<Token> lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
 
         if(lbracket == nullptr)
             return nullptr;
@@ -407,37 +407,37 @@ namespace pdb_detail
         if(inputTableInputColumnNames == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+        shared_ptr<Token> rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
 
         if(rbracket == nullptr)
             return nullptr;
 
         shared_ptr<RetainClause> retainClause = makeRetainClause(tokens);
 
-        return make_shared<HoistOperation>(hoistTarget->getToken(), *inputTableName.get(), inputTableInputColumnNames, retainClause);
+        return make_shared<HoistOperation>(hoistTarget->value, *inputTableName.get(), inputTableInputColumnNames, retainClause);
 
 
     }
 
     shared_ptr<LoadOperation> makeLoadOperation(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> load = consumeNext(tokens, Lexeme::LOAD_TYPE);
+        shared_ptr<Token> load = consumeNext(tokens, TokenType::LOAD_TYPE);
 
         if(load == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> externSourceString = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
+        shared_ptr<Token> externSourceString = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
 
         if(externSourceString == nullptr)
             return nullptr;
 
-        return make_shared<LoadOperation>(externSourceString->getToken());
+        return make_shared<LoadOperation>(externSourceString->value);
 
     }
 
     shared_ptr<StoreOperation> makeStoreOperation(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> store = consumeNext(tokens, Lexeme::STORE_TYPE);
+        shared_ptr<Token> store = consumeNext(tokens, TokenType::STORE_TYPE);
 
         if(store == nullptr)
             return nullptr;
@@ -447,7 +447,7 @@ namespace pdb_detail
         if(outputTable == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+        shared_ptr<Token> lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
 
         if(lbracket == nullptr)
             return nullptr;
@@ -457,24 +457,24 @@ namespace pdb_detail
         if(columnsToStore == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+        shared_ptr<Token> rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
 
         if(rbracket == nullptr)
             return nullptr;
 
 
-        shared_ptr<Lexeme> externSourceString = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
+        shared_ptr<Token> externSourceString = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
 
         if(externSourceString == nullptr)
             return nullptr;
 
-        return make_shared<StoreOperation>(*outputTable.get(), columnsToStore, externSourceString->getToken());
+        return make_shared<StoreOperation>(*outputTable.get(), columnsToStore, externSourceString->value);
 
     }
 
     shared_ptr<FilterOperation> makeFilterOperation(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> filter = consumeNext(tokens, Lexeme::FILTER_TYPE);
+        shared_ptr<Token> filter = consumeNext(tokens, TokenType::FILTER_TYPE);
 
         if(filter == nullptr)
             return nullptr;
@@ -484,7 +484,7 @@ namespace pdb_detail
         if(inputTableName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> by = consumeNext(tokens, Lexeme::BY_TYPE);
+        shared_ptr<Token> by = consumeNext(tokens, TokenType::BY_TYPE);
 
         if(by == nullptr)
             return nullptr;
@@ -533,7 +533,7 @@ namespace pdb_detail
         if(lhsTableName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+        shared_ptr<Token> lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
 
         if(lbracket == nullptr)
             return nullptr;
@@ -543,13 +543,13 @@ namespace pdb_detail
         if(lhsColumnName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+        shared_ptr<Token> rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
 
         if(rbracket == nullptr)
             return nullptr;
 
 
-        shared_ptr<Lexeme> op = consumeNext(tokens, Lexeme::GREATER_THAN_TYPE);
+        shared_ptr<Token> op = consumeNext(tokens, TokenType::GREATER_THAN_TYPE);
 
         if(op == nullptr)
             return nullptr;
@@ -559,7 +559,7 @@ namespace pdb_detail
         if(rhsTableName == nullptr)
             return nullptr;
 
-        lbracket = consumeNext(tokens, Lexeme::LBRACKET_TYPE);
+        lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
 
         if(lbracket == nullptr)
             return nullptr;
@@ -569,7 +569,7 @@ namespace pdb_detail
         if(rhsColumnName == nullptr)
             return nullptr;
 
-        rbracket = consumeNext(tokens, Lexeme::RBRACKET_TYPE);
+        rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
 
         if(rbracket == nullptr)
             return nullptr;
@@ -579,7 +579,7 @@ namespace pdb_detail
         if(retain == nullptr)
             return nullptr;
 
-        if(op->tokenType == Lexeme::GREATER_THAN_TYPE)
+        if(op->tokenType == TokenType::GREATER_THAN_TYPE)
             return make_shared<GreaterThanOp>(*lhsTableName.get(), *lhsColumnName.get(), *rhsTableName.get(), *rhsColumnName.get(), retain);
 
 
@@ -590,13 +590,13 @@ namespace pdb_detail
     {
         switch(tokens.peek().tokenType)
         {
-            case (Lexeme::APPLY_TYPE):
+            case (TokenType::APPLY_TYPE):
                 return makeApplyOperation(tokens);
-            case (Lexeme::HOIST_TYPE):
+            case (TokenType::HOIST_TYPE):
                 return makeHoistOperation(tokens);
-            case (Lexeme::LOAD_TYPE):
+            case (TokenType::LOAD_TYPE):
                 return makeLoadOperation(tokens);
-            case(Lexeme::FILTER_TYPE):
+            case(TokenType::FILTER_TYPE):
                 return makeFilterOperation(tokens);
             default:
                 return makeBinaryOperation(tokens);
@@ -611,7 +611,7 @@ namespace pdb_detail
         if(tableName == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> lparen = consumeNext(tokens, Lexeme::LPAREN_TYPE);
+        shared_ptr<Token> lparen = consumeNext(tokens, TokenType::LPAREN_TYPE);
 
         if(lparen == nullptr)
             return nullptr;
@@ -622,12 +622,12 @@ namespace pdb_detail
         if(columnNames == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> rparen = consumeNext(tokens, Lexeme::RPAREN_TYPE);
+        shared_ptr<Token> rparen = consumeNext(tokens, TokenType::RPAREN_TYPE);
 
         if(rparen == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> eq = consumeNext(tokens, Lexeme::EQ_TYPE);
+        shared_ptr<Token> eq = consumeNext(tokens, TokenType::EQ_TYPE);
 
         if(eq == nullptr)
             return nullptr;
@@ -642,7 +642,7 @@ namespace pdb_detail
 
     shared_ptr<Attribute> makeAttribute(TokenStream &tokens)
     {
-        shared_ptr<Lexeme> at = consumeNext(tokens, Lexeme::AT_SIGN_TYPE);
+        shared_ptr<Token> at = consumeNext(tokens, TokenType::AT_SIGN_TYPE);
 
         if(at == nullptr)
             return nullptr;
@@ -652,12 +652,12 @@ namespace pdb_detail
         if(name == nullptr)
             return nullptr;
 
-        shared_ptr<Lexeme> value = consumeNext(tokens, Lexeme::STRING_LITERAL_TYPE);
+        shared_ptr<Token> value = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
 
         if(value == nullptr)
             return nullptr;
 
-        return make_shared<Attribute>(*name.get(), make_shared<string>(value->getToken()));
+        return make_shared<Attribute>(*name.get(), make_shared<string>(value->value));
 
 
     }
@@ -666,7 +666,7 @@ namespace pdb_detail
     {
         shared_ptr<vector<Attribute>> attributes = make_shared<vector<Attribute>>();
 
-        while(tokens.hasNext() && tokens.peek().tokenType == Lexeme::AT_SIGN_TYPE)
+        while(tokens.hasNext() && tokens.peek().tokenType == TokenType::AT_SIGN_TYPE)
         {
             shared_ptr<Attribute> attribute = makeAttribute(tokens);
 
@@ -680,9 +680,9 @@ namespace pdb_detail
         switch (tokens.peek().tokenType)
         {
 
-            case Lexeme::UNKNOWN_TYPE:
+            case TokenType::UNKNOWN_TYPE:
                 return nullptr;
-            case Lexeme::STORE_TYPE:
+            case TokenType::STORE_TYPE:
                 stmt = makeStoreOperation(tokens);
                 break;
             default:
@@ -703,7 +703,6 @@ namespace pdb_detail
     shared_ptr<TranslationUnit> parseTcap(const string &source)
     {
         TokenStream tokens = lexTcap(source);
-        //tokens.printTypes();
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
         while(tokens.hasNext())

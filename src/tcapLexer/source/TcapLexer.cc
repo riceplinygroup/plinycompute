@@ -157,61 +157,61 @@ namespace pdb_detail
      * @param source the input string
      * @return the tokens found in source.
      */
-    shared_ptr<vector<Lexeme>> lexTcapHelp(const string &source)
+    shared_ptr<vector<Token>> lexTcapHelp(const string &source)
     {
         // tokenize the given source string and store the order of tokens and token types here
-        shared_ptr<vector<Lexeme>> lexemesAccum = make_shared<vector<Lexeme>>();
+        shared_ptr<vector<Token>> lexemesAccum = make_shared<vector<Token>>();
 
-        map<string,int> reservedTokenToTokenType;
-        reservedTokenToTokenType["("]      =  Lexeme::LPAREN_TYPE;
-        reservedTokenToTokenType[")"]      =  Lexeme::RPAREN_TYPE;
-        reservedTokenToTokenType["="]      =  Lexeme::EQ_TYPE;
-        reservedTokenToTokenType["load"]   =  Lexeme::LOAD_TYPE;
-        reservedTokenToTokenType["apply"]  =  Lexeme::APPLY_TYPE;
-        reservedTokenToTokenType["to"]     =  Lexeme::TO_TYPE;
-        reservedTokenToTokenType["["]      =  Lexeme::LBRACKET_TYPE;
-        reservedTokenToTokenType["]"]      =  Lexeme::RBRACKET_TYPE;
-        reservedTokenToTokenType["retain"] =  Lexeme::RETAIN_TYPE;
-        reservedTokenToTokenType["all"]    =  Lexeme::ALL_TYPE;
-        reservedTokenToTokenType[","]      =  Lexeme::COMMA_TYPE;
-        reservedTokenToTokenType[">_d"]    =  Lexeme::DOUBLE_GT_TYPE;
-        reservedTokenToTokenType["by"]     =  Lexeme::BY_TYPE;
-        reservedTokenToTokenType["store"]  =  Lexeme::STORE_TYPE;
-        reservedTokenToTokenType["filter"] =  Lexeme::FILTER_TYPE;
-        reservedTokenToTokenType["none"]   =  Lexeme::NONE_TYPE;
-        reservedTokenToTokenType["@"]      =  Lexeme::AT_SIGN_TYPE;
-        reservedTokenToTokenType["func"]   =  Lexeme::FUNC_TYPE;
-        reservedTokenToTokenType["method"] =  Lexeme::METHOD_TYPE;
-        reservedTokenToTokenType["hoist"]  =  Lexeme::HOIST_TYPE;
-        reservedTokenToTokenType["from"]   =  Lexeme::FROM_TYPE;
-        reservedTokenToTokenType[">"]      =  Lexeme::GREATER_THAN_TYPE;
+        map<string,TokenType> reservedLexemeToTokenType;
+        reservedLexemeToTokenType["("]      =  TokenType::LPAREN_TYPE;
+        reservedLexemeToTokenType[")"]      =  TokenType::RPAREN_TYPE;
+        reservedLexemeToTokenType["="]      =  TokenType::EQ_TYPE;
+        reservedLexemeToTokenType["load"]   =  TokenType::LOAD_TYPE;
+        reservedLexemeToTokenType["apply"]  =  TokenType::APPLY_TYPE;
+        reservedLexemeToTokenType["to"]     =  TokenType::TO_TYPE;
+        reservedLexemeToTokenType["["]      =  TokenType::LBRACKET_TYPE;
+        reservedLexemeToTokenType["]"]      =  TokenType::RBRACKET_TYPE;
+        reservedLexemeToTokenType["retain"] =  TokenType::RETAIN_TYPE;
+        reservedLexemeToTokenType["all"]    =  TokenType::ALL_TYPE;
+        reservedLexemeToTokenType[","]      =  TokenType::COMMA_TYPE;
+        reservedLexemeToTokenType["by"]     =  TokenType::BY_TYPE;
+        reservedLexemeToTokenType["store"]  =  TokenType::STORE_TYPE;
+        reservedLexemeToTokenType["filter"] =  TokenType::FILTER_TYPE;
+        reservedLexemeToTokenType["none"]   =  TokenType::NONE_TYPE;
+        reservedLexemeToTokenType["@"]      =  TokenType::AT_SIGN_TYPE;
+        reservedLexemeToTokenType["func"]   =  TokenType::FUNC_TYPE;
+        reservedLexemeToTokenType["method"] =  TokenType::METHOD_TYPE;
+        reservedLexemeToTokenType["hoist"]  =  TokenType::HOIST_TYPE;
+        reservedLexemeToTokenType["from"]   =  TokenType::FROM_TYPE;
+        reservedLexemeToTokenType[">"]      =  TokenType::GREATER_THAN_TYPE;
 
 
 
         string::size_type pos = 0; // the current read position in source
-        while(true) // each loop adds one (or zero if done) lexeme to lexemesAccum
-        {
+        while(true) // each loop adds one (or zero if done) lexeme to lexemesAccum and breaks when source
+        {           // is fully scanned
+
             outerLoop:
 
             // skip any whitespace at the current read position.
-            advanceThroughWhitespace(pos, source);  // no problems if we are already at end of source
+            advanceThroughWhitespace(pos, source);  // no problem if we are already at end of source
 
             if(pos>=source.length()) // end of input, done.
                 break;
 
-            string token; // store the next found token text here
+            string lexeme; // store the next found token text here
 
             if (source[pos] == '"') // if start of string literal
             {
-                token = consumeStringLiteral(pos, source);
+                lexeme = consumeStringLiteral(pos, source);
 
-                if (token != "") // if no errors consuming the string
+                if (lexeme != "") // if no errors consuming the string
                 {
-                    lexemesAccum->push_back(Lexeme(token, Lexeme::STRING_LITERAL_TYPE));
+                    lexemesAccum->push_back(Token(lexeme, TokenType::STRING_LITERAL_TYPE));
                 }
                 else
                 {
-                    lexemesAccum->push_back(Lexeme(token, Lexeme::UNKNOWN_TYPE));
+                    lexemesAccum->push_back(Token(lexeme, TokenType::UNKNOWN_TYPE));
                 }
 
                 continue; // read next token
@@ -220,31 +220,31 @@ namespace pdb_detail
             /*
              * Check if next token is a reserved token
              */
-            for(const auto& kv : reservedTokenToTokenType)
+            for(const auto& kv : reservedLexemeToTokenType)
             {
                 string reservedTokenSymbol = kv.first;
-                token = match(reservedTokenSymbol, pos, source);
+                lexeme = match(reservedTokenSymbol, pos, source);
 
-                if (token != "") // a match for some reserved token!
+                if (lexeme != "") // a match for some reserved token!
                 {
-                    int reservedType = kv.second;
-                    lexemesAccum->push_back(Lexeme(token, reservedType));
+                    TokenType reservedType = kv.second;
+                    lexemesAccum->push_back(Token(lexeme, reservedType));
                     goto outerLoop; // read next token
                 }
             }
 
             // if not a reserved token or a string literal, must be an identifier (or unknown if malformed)
 
-            token = consumeIdentifier(pos, source);
+            lexeme = consumeIdentifier(pos, source);
 
-            if(token != "") // if well formed identifier
+            if(lexeme != "") // if well formed identifier
             {
-                lexemesAccum->push_back(Lexeme(token, Lexeme::IDENTIFIER_TYPE));
+                lexemesAccum->push_back(Token(lexeme, TokenType::IDENTIFIER_TYPE));
             }
             else
             {
                 string token = source.substr(pos, 1); // malformed input. eat one char and keep going
-                lexemesAccum->push_back(Lexeme(token, Lexeme::UNKNOWN_TYPE));
+                lexemesAccum->push_back(Token(token, TokenType::UNKNOWN_TYPE));
                 pos++;
             }
         }
@@ -255,7 +255,7 @@ namespace pdb_detail
     // contract from .h
     TokenStream lexTcap(const string &source)
     {
-        shared_ptr<vector<Lexeme>> lexemesAccum = lexTcapHelp(source);
+        shared_ptr<vector<Token>> lexemesAccum = lexTcapHelp(source);
         return TokenStream(lexemesAccum);
     }
 

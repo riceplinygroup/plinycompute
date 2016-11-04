@@ -87,7 +87,7 @@ set(SOURCE_FILES
         ../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc
 #        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
-        ../../../src/tcapLexer/source/Lexeme.cc
+        ../../../src/tcapLexer/source/Token.cc
         ../../../src/tcapLexer/source/TcapLexer.cc
         ../../../src/tcapLexer/source/TokenStream.cc
         ../../../src/tcapLexerTests/source/TcapTestsRunner.cc

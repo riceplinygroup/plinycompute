@@ -15,42 +15,64 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
-#include "TokenStream.h"
-
-namespace pdb_detail
-{
-
-    TokenStream::TokenStream(shared_ptr<vector<Token>>tokens) :_tokens(tokens)
-    {
-    }
-
-    bool TokenStream::hasNext()
-    {
-        return _readIndex < _tokens->size();
-    }
-
-    Token TokenStream::advance()
-    {
-        if(_readIndex>=_tokens->size())
-            return Token("", TokenType::UNKNOWN_TYPE);
-
-        return _tokens->operator[](_readIndex++);
-    }
-
-    Token TokenStream::peek()
-    {
-        return _tokens->operator[](_readIndex);
-    }
-
-// useful for debugging.
 //
-//        void TokenStream::printTypes()
-//        {
-//            for(int i = _readIndex; i<_tokens->size(); i++)
-//            {
-//                std::cerr << _tokens->operator[](i).tokenType << "\n";
-//            }
-//        }
+// Created by barnett on 11/4/16.
+//
 
-}
+#ifndef PDB_TCAPLEXER_TOKENTYPE_H
+#define PDB_TCAPLEXER_TOKENTYPE_H
+
+enum TokenType
+{
+     UNKNOWN_TYPE,
+
+     MEMO_TYPE,
+
+     STRING_LITERAL_TYPE,
+
+     IDENTIFIER_TYPE,
+
+     LPAREN_TYPE,
+
+     RPAREN_TYPE,
+
+     EQ_TYPE,
+
+     LOAD_TYPE,
+
+     APPLY_TYPE,
+
+     TO_TYPE,
+
+     LBRACKET_TYPE,
+
+     RBRACKET_TYPE,
+
+     RETAIN_TYPE,
+
+     ALL_TYPE,
+
+     COMMA_TYPE,
+
+     BY_TYPE,
+
+     STORE_TYPE,
+
+     FILTER_TYPE,
+
+     NONE_TYPE,
+
+     AT_SIGN_TYPE,
+
+     FUNC_TYPE,
+
+     METHOD_TYPE,
+
+     HOIST_TYPE,
+
+     FROM_TYPE,
+
+     GREATER_THAN_TYPE
+};
+
+#endif //PDB_TCAPLEXER_TOKENTYPE_H

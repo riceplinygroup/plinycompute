@@ -15,42 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
-#include "TokenStream.h"
+#include "Token.h"
 
 namespace pdb_detail
 {
-
-    TokenStream::TokenStream(shared_ptr<vector<Token>>tokens) :_tokens(tokens)
+    Token::Token(string value, TokenType tokenType) : value(value), tokenType(tokenType)
     {
     }
-
-    bool TokenStream::hasNext()
-    {
-        return _readIndex < _tokens->size();
-    }
-
-    Token TokenStream::advance()
-    {
-        if(_readIndex>=_tokens->size())
-            return Token("", TokenType::UNKNOWN_TYPE);
-
-        return _tokens->operator[](_readIndex++);
-    }
-
-    Token TokenStream::peek()
-    {
-        return _tokens->operator[](_readIndex);
-    }
-
-// useful for debugging.
-//
-//        void TokenStream::printTypes()
-//        {
-//            for(int i = _readIndex; i<_tokens->size(); i++)
-//            {
-//                std::cerr << _tokens->operator[](i).tokenType << "\n";
-//            }
-//        }
 
 }
+
