@@ -85,9 +85,11 @@ namespace pdb_detail
         tableAssignment.value->execute(
                 [&](LoadOperation &load)
                 {
+                    string unquotedSource = *load.source.get();
+                    unquotedSource = unquotedSource.substr(1, unquotedSource.size()-2); // remove surrounding quotes
                     instruction = make_shared<Load>(assignmentLhsTableName,
                                                     *tableAssignment.columnNames->operator[](0).contents.get(),
-                                                    *load.source.get());
+                                                    unquotedSource);
                 },
                 [&](ApplyOperation  &applyOp)
                 {
@@ -170,7 +172,10 @@ namespace pdb_detail
 
     shared_ptr<Instruction> makeInstruction(StoreOperation& storeOperation)
     {
-        return make_shared<Store>(*storeOperation.outputTable.contents.get(), *storeOperation.destination.get());
+        string unquotedDest = *storeOperation.destination.get();
+        unquotedDest = unquotedDest.substr(1, unquotedDest.size()-2); // remove surrounding quotes
+
+        return make_shared<Store>(*storeOperation.outputTable.contents.get(), unquotedDest);
     }
 
     shared_ptr<Instruction> makeInstruction(shared_ptr<Statement> stmt)

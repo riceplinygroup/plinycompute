@@ -43,6 +43,12 @@ using pdb_detail::InstructionPtr;
  */
 shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions);
 
+/**
+ * Translates the given TCAP program into an equivalent LogicalPlan.
+ *
+ * @param tcapProgram the TCAP program to translate.
+ * @return The corresponding LogicalPlan or the null pointer if the program cannot be translated.
+ */
 shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram);
 
 #endif

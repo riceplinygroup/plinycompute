@@ -61,8 +61,8 @@ set(SOURCE_FILES
         ../../../src/bufferMgr/source/MyDB_Table.cc
         ../../../src/communication/headers/SimpleRequest.cc
         ../../../src/communication/source/PDBCommunicator.cc
-        ../../../src/logicalPlan/source/ParserHelperFunctions.cc
         ../../../src/logicalPlan/source/LogicalPlanBuilder.cc
+        ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc
         ../../../src/logicalPlanTests/source/LogicalPlanTestsRunner.cc
         ../../../src/objectModel/source/VTableMapConstructor.cc
         ../../../src/objectModel/source/VTableMapCatalogLookup.cc
@@ -100,9 +100,17 @@ set(SOURCE_FILES
         ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc
         ../../../src/tcapIntermediaryRepTests/source/TcapIrTestsRunner.cc
         ../../../src/tcapParser/source/TcapParser.cc
+        ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc
+        ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc
+        ../../../src/tcapIntermediaryRep/source/Filter.cc
+        ../../../src/tcapIntermediaryRep/source/GreaterThan.cc
+        ../../../src/tcapIntermediaryRep/source/Hoist.cc
+        ../../../src/tcapIntermediaryRep/source/Load.cc
+        ../../../src/tcapIntermediaryRep/source/Store.cc
+        ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
-        ../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc ../../../src/tcapIntermediaryRep/source/Load.cc ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc ../../../src/tcapIntermediaryRep/source/Hoist.cc ../../../src/tcapIntermediaryRep/source/GreaterThan.cc ../../../src/tcapIntermediaryRep/source/Filter.cc ../../../src/tcapIntermediaryRep/source/Store.cc ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc)
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc)
+    #    ../../../src/tests/source/Test47.cc)
 
 
 

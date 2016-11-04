@@ -57,7 +57,7 @@ namespace pdb_tests
             shared_ptr<vector<Identifier>> cols = make_shared<vector<Identifier>>();
             cols->push_back(Identifier("one"));
 
-            shared_ptr<TableExpression> load = make_shared<LoadOperation>("source");
+            shared_ptr<TableExpression> load = make_shared<LoadOperation>("\"source\"");
 
             loadAssignment = make_shared<TableAssignment>(Identifier("A"), cols, load);
         }
@@ -451,7 +451,7 @@ namespace pdb_tests
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
         {
-            unit->statements->push_back(make_shared<StoreOperation>(Identifier("A"), "desc"));
+            unit->statements->push_back(make_shared<StoreOperation>(Identifier("A"), "\"desc\""));
         }
 
         shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(unit);

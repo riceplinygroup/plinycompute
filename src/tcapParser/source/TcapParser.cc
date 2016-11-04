@@ -673,6 +673,9 @@ namespace pdb_detail
 
         }
 
+        if(stmt == nullptr)
+            return nullptr;
+
         stmt->attributes = attributes;
 
         return stmt;

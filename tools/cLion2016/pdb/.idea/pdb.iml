@@ -68,7 +68,6 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/LogicalPlanBuilder.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/ParserHelperFunctions.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapConstructor.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/objectModel/source/VTableMapCatalogLookup.cc" isTestSource="false" />
     </content>
