@@ -29,52 +29,53 @@ namespace pdb {
 
 template <class MsgType, class PayloadType, class ResponseType>
 void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Handle<PayloadType>>> broadcastData,
-        std::vector<std::pair<std::string, int>> receivers,
+        std::vector<std::string> receivers,
         std::function<void(Handle<ResponseType>, std::string)> callBack,
         std::function<void(std::string, std::string)> errorCallBack) {
-
-    if (receivers.size() == 0) {
-        const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
-        for (int i = 0; i < nodes->size(); i++) {
-            std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
-            int port = (*nodes)[i]->getPort();
-            receivers.push_back(std::pair<std::string, int>(address, port));
-        }
-    }
-
     int errors = 0;
     int success = 0;
     auto failures = make_shared<std::vector<std::pair<std::string, std::string>>>();
 
     PDBBuzzerPtr buzzer = make_shared<PDBBuzzer> (
-            [&] (PDBAlarm myAlarm, std::string serverName) {
-                lock.lock();
-                // Handle the error cases here
-                if (myAlarm == PDBAlarm::GenericError) {
-                    errors ++;
-                    std::cout << "Error broadcast " << errors << " to " << serverName << std::endl;
-                    lock.unlock();
-                } else {
-                    success++;
-                    std::cout << "Successful broadcast " << success << " to " << serverName << std::endl;
-                    lock.unlock();
-                }
-
-    });
+        [&] (PDBAlarm myAlarm, std::string serverName) {
+            lock.lock();
+            // Handle the error cases here
+            if (myAlarm == PDBAlarm::GenericError) {
+                errors ++;
+                std::cout << "Error broadcast " << errors << " to " << serverName << std::endl;
+                lock.unlock();
+            } else {
+                success++;
+                std::cout << "Successful broadcast " << success << " to " << serverName << std::endl;
+                lock.unlock();
+            }
+        }
+    );
 
     for (int i = 0; i < receivers.size(); i++) {
         PDBWorkerPtr myWorker = getWorker();
 
-        std::string serverName = receivers[i].first + ":" + std::to_string(receivers[i].second);
+        std::string serverName = receivers[i];
+        int port;
+        std::string address;
 
-        PDBWorkPtr myWork = make_shared <GenericWork> (
-            [&, i, serverName] (PDBBuzzerPtr callerBuzzer) {
+        std::cout << "Broadcasting to " << serverName << std::endl;
+
+        size_t pos = serverName.find(":");
+        if (pos != string::npos) {
+            port = stoi(serverName.substr(pos + 1, serverName.size()));
+            address = serverName.substr(0, pos);
+        } else {
+            port = 8108;
+            address = serverName;
+        }
+
+        PDBWorkPtr myWork = make_shared <GenericWork> ([&, i, serverName] (PDBBuzzerPtr callerBuzzer) {
 
             std::string errMsg;
-
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
-            if(communicator->connectToInternetServer(this->logger, receivers[i].second, receivers[i].first, errMsg)) {
+            if(communicator->connectToInternetServer(this->logger, port, address, errMsg)) {
                 errorCallBack(errMsg, serverName);
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;

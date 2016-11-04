@@ -595,21 +595,24 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
     }
 
     Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
+    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
+    // TODO: Why not just look up the metadata from the catalog?
     // creates Strings
     string _setName(databaseName + "." + setName);
     String setKeyCatalog = String(_setName);
     String setNameCatalog = String(setName);
     String dbName(databaseName);
+    String setId = String(pdbCatalog->itemName2ItemId(catalogType, _setName));
 
     // populates object metadata
+    metadataObject->setItemId(setId);
     metadataObject->setItemKey(setKeyCatalog);
     metadataObject->setItemName(setNameCatalog);
     metadataObject->setDBName(dbName);
 
     // deletes metadata in sqlite
 
-    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
 	pdbCatalog->deleteMetadataInCatalog( metadataObject, catalogType, errMsg);
 
     // prepares object to update database entry in sqlite
@@ -626,7 +629,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
     }
 
     (*dbMetadataObject).deleteSet(setNameCatalog);
-    // TODO, not sure if here is where the list of nodes should be added???
+    // TODO: Fix this
     for (auto &item : pdbCatalog->getListOfNodesInCluster()){
         String nodeID(item.first);
         (*dbMetadataObject).deleteSetFromMap(setNameCatalog, nodeID);
@@ -753,13 +756,6 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
     (*dbMetadataObject).addSet(setNameCatalog);
     (*dbMetadataObject).addType(typeName);
-    // TODO, not sure if here is where the list of nodes should be added???
-    for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-        String nodeID(item.first);
-        (*dbMetadataObject).addSetToMap(setNameCatalog, nodeID);
-    }
-
-
 
     // updates the corresponding database metadata
     catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -1172,8 +1168,8 @@ bool CatalogServer :: addNodeToSet (std :: string nodeIP, std :: string database
         return false;
     }
 
-    if (isSetRegistered(databaseName, setName) == true){
-        errMsg = "Set already exists.\n";
+    if (isSetRegistered(databaseName, setName) == false){
+        errMsg = "Set does not exists.\n";
         return false;
     }
 
@@ -1203,12 +1199,10 @@ bool CatalogServer :: addNodeToSet (std :: string nodeIP, std :: string database
     }
 
     String setNameCatalog(setName);
-    //TODO this is to simulate the nodes that will be added, this should be a vector
-    // sent by DSM
-    for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-        String nodeID(item.first);
-        (*dbMetadataObject).addSetToMap(setNameCatalog, nodeID);
-    }
+    String nodeID(nodeIP);
+
+    (*dbMetadataObject).addSetToMap(setNameCatalog, nodeID);
+
     // updates the corresponding database metadata
     catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
