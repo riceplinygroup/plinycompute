@@ -15,20 +15,22 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#include "StringLiteral.h"
 
 #include <memory>
-#include <string>
 
-#include "TranslationUnit.h"
-
+using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
+    StringLiteral::StringLiteral(string contents) : contents(make_shared<string>(contents))
+    {
+    }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    StringLiteral::StringLiteral(shared_ptr<string> contents) : contents(contents)
+    {
+
+    }
+
+}

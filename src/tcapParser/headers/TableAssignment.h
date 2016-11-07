@@ -15,20 +15,38 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#ifndef PDB_TCAPPARSER_TABLEASSIGNMENT_H
+#define PDB_TCAPPARSER_TABLEASSIGNMENT_H
 
 #include <memory>
-#include <string>
+#include <vector>
 
-#include "TranslationUnit.h"
+#include "TcapStatement.h"
+#include "TableAssignment.h"
+#include "TableExpression.h"
 
 using std::shared_ptr;
-using std::string;
+using std::vector;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    class TableAssignment : public TcapStatement
+    {
+    public:
+
+        TcapIdentifier tableName;
+
+        shared_ptr<vector<TcapIdentifier>> columnNames;
+
+        shared_ptr<TableExpression> value;
+
+        TableAssignment(TcapIdentifier tableName, shared_ptr<vector<TcapIdentifier>> columnNames,  shared_ptr<TableExpression> value);
+
+        virtual void match(function<void(TableAssignment &)> forTableAssignment,
+                           function<void(StoreOperation &)> forStore);
+
+    };
+
 }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+#endif //PDB_TCAPPARSER_TABLEASSIGNMENT_H

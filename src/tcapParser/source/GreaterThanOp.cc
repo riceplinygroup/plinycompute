@@ -15,20 +15,19 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
-
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+#include "GreaterThanOp.h"
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    GreaterThanOp::GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName, TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain)
+            : lhsTableName(lhsTableName), lhsColumnName(lhsColumnName), rhsTableName(rhsTableName), rhsColumnName(rhsColumnName), retain(retain)
+    {
+
+    }
+
+    void GreaterThanOp::execute(function<void(GreaterThanOp&)> forGreaterThan)
+    {
+        forGreaterThan(*this);
+    }
+}

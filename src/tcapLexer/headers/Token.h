@@ -34,11 +34,11 @@ namespace pdb_detail
 
     public:
 
-        const string value;
+        const string lexeme;
 
         const TokenType tokenType;
 
-        Token(string value, TokenType tokenType);
+        Token(string lexeme, TokenType tokenType);
 
     };
 

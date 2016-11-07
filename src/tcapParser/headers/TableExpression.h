@@ -15,20 +15,33 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#ifndef PDB_TCAPPARSER_TABLEEXPRESSION_H
+#define PDB_TCAPPARSER_TABLEEXPRESSION_H
 
 #include <memory>
-#include <string>
 
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+using std::function;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    class LoadOperation;
+
+    class ApplyOperation;
+
+    class FilterOperation;
+
+    class HoistOperation;
+
+    class BinaryOperation;
+
+    class TableExpression
+    {
+    public:
+
+        virtual void execute(function<void(LoadOperation&)> forLoad, function<void(ApplyOperation&)> forApply,
+                             function<void(FilterOperation&)> forFilter, function<void(HoistOperation&)> forHoist,
+                             function<void(BinaryOperation&)> forBinaryOp) = 0;
+    };
 }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+#endif //PDB_TCAPPARSER_TABLEEXPRESSION_H

@@ -15,20 +15,38 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#ifndef PDB_TCAPPARSER_RETAINEXPLICITCLAUSE_H
+#define PDB_TCAPPARSER_RETAINEXPLICITCLAUSE_H
 
 #include <memory>
-#include <string>
+#include <vector>
 
-#include "TranslationUnit.h"
+#include "RetainClause.h"
+#include "TcapIdentifier.h"
 
+using std::vector;
 using std::shared_ptr;
-using std::string;
+
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    class RetainExplicitClause : public RetainClause
+    {
+    public:
+
+        shared_ptr<vector<TcapIdentifier>> columns;
+
+        RetainExplicitClause(TcapIdentifier column);
+
+        RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns);
+
+        bool isAll();
+
+        bool isNone();
+
+        void match(function<void(RetainAllClause &)>, function<void(RetainExplicitClause &)> forExplicit,
+                   function<void(RetainNoneClause &)> forNone);
+    };
 }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+#endif //PDB_TCAPPARSER_RETAINEXPLICITCLAUSE_H

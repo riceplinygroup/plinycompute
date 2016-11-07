@@ -15,20 +15,32 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#ifndef PDB_TCAPPARSER_RETAINCLAUSE_H
+#define PDB_TCAPPARSER_RETAINCLAUSE_H
 
-#include <memory>
-#include <string>
+#include <functional>
 
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+using std::function;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    class RetainAllClause;
+
+    class RetainExplicitClause;
+
+    class RetainNoneClause;
+
+    class RetainClause
+    {
+    public:
+
+        virtual bool isAll() = 0;
+
+        virtual bool isNone() = 0;
+
+        virtual void match(function<void(RetainAllClause &)> forAll, function<void(RetainExplicitClause &)> forExplicit,
+                           function<void(RetainNoneClause &)> forNone) = 0;
+    };
 }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+#endif //PDB_TCAPPARSER_RETAINCLAUSE_H

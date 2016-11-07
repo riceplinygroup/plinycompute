@@ -25,7 +25,7 @@ namespace pdb_detail
     /**
      * Tokenize source into a token stream.
      *
-     * Unrecognized tokens will be reported as Lexeme::UNKNOWN_TYPE
+     * Unrecognized tokens will be reported as TokenType::UNKNOWN_TYPE
      *
      * @param source the input string
      * @return the tokenization of source

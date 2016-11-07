@@ -15,20 +15,29 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#include "HoistOperation.h"
 
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+using std::make_shared;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
+    HoistOperation::HoistOperation(string hoistTarget, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+                                   shared_ptr<RetainClause> retain)
+            : HoistOperation(make_shared<string>(hoistTarget), inputTable, inputTableColumnNames, retain)
+    {
+    }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    HoistOperation::HoistOperation(shared_ptr<string> hoistTarget, TcapIdentifier inputTable,
+                                   shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain)
+            : hoistTarget(hoistTarget), inputTable(inputTable), inputTableColumnNames(inputTableColumnNames),
+              retain(retain)
+    {
+    }
+
+    void HoistOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>, function<void(FilterOperation&)>,
+                                 function<void(HoistOperation&)> forHoist, function<void(BinaryOperation&)> forBinaryOp)
+    {
+        return forHoist(*this);
+    }
+
+}

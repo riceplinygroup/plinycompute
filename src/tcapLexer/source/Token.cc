@@ -19,7 +19,7 @@
 
 namespace pdb_detail
 {
-    Token::Token(string value, TokenType tokenType) : value(value), tokenType(tokenType)
+    Token::Token(string lexeme, TokenType tokenType) : lexeme(lexeme), tokenType(tokenType)
     {
     }
 

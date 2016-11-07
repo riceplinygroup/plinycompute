@@ -58,12 +58,9 @@ namespace pdb_detail
 
         Token peek();
 
- //useful for debugging.
- //       void printTypes();
-
     private:
 
-        int _readIndex = 0;
+        vector<Token>::size_type _readIndex = 0;
 
         shared_ptr<vector<Token>> _tokens;
 
