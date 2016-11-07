@@ -21,9 +21,19 @@
 
 #include "BuildTcapIrTests.h"
 
+#include "ApplyOperation.h"
 #include "ApplyMethod.h"
+#include "FilterOperation.h"
+#include "GreaterThanOp.h"
+#include "HoistOperation.h"
+#include "LoadOperation.h"
+#include "RetainExplicitClause.h"
+#include "RetainAllClause.h"
 #include "Store.h"
+#include "TableAssignment.h"
+#include "StoreOperation.h"
 #include "TcapParser.h"
+#include "TcapIdentifier.h"
 #include "TcapIrBuilder.h"
 
 using pdb_detail::buildTcapIr;
@@ -35,7 +45,7 @@ using pdb_detail::RetainAllClause;
 using pdb_detail::RetainExplicitClause;
 using pdb_detail::LoadOperation;
 using pdb_detail::TableAssignment;
-using pdb_detail::Identifier;
+using pdb_detail::TcapIdentifier;
 using pdb_detail::GreaterThan;
 using pdb_detail::GreaterThanOp;
 using pdb_detail::TableExpression;
@@ -44,7 +54,7 @@ using pdb_detail::Instruction;
 using pdb_detail::InstructionType;
 using pdb_detail::ApplyFunction;
 using pdb_detail::ApplyMethod;
-using pdb_detail::Attribute;
+using pdb_detail::TcapAttribute;
 using pdb_detail::StoreOperation;
 using pdb_detail::Store;
 
@@ -54,12 +64,12 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> loadAssignment;
         {
-            shared_ptr<vector<Identifier>> cols = make_shared<vector<Identifier>>();
-            cols->push_back(Identifier("one"));
+            shared_ptr<vector<TcapIdentifier>> cols = make_shared<vector<TcapIdentifier>>();
+            cols->push_back(TcapIdentifier("one"));
 
             shared_ptr<TableExpression> load = make_shared<LoadOperation>("\"source\"");
 
-            loadAssignment = make_shared<TableAssignment>(Identifier("A"), cols, load);
+            loadAssignment = make_shared<TableAssignment>(TcapIdentifier("A"), cols, load);
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -108,17 +118,17 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> applyAssignment;
         {
-            shared_ptr<vector<Identifier>> outputTableCols = make_shared<vector<Identifier>>();
-            outputTableCols->push_back(Identifier("student"));
-            outputTableCols->push_back(Identifier("examAverage"));
+            shared_ptr<vector<TcapIdentifier>> outputTableCols = make_shared<vector<TcapIdentifier>>();
+            outputTableCols->push_back(TcapIdentifier("student"));
+            outputTableCols->push_back(TcapIdentifier("examAverage"));
 
-            shared_ptr<vector<Identifier>> inputTableCols = make_shared<vector<Identifier>>();
-            inputTableCols->push_back(Identifier("student"));
+            shared_ptr<vector<TcapIdentifier>> inputTableCols = make_shared<vector<TcapIdentifier>>();
+            inputTableCols->push_back(TcapIdentifier("student"));
 
-            shared_ptr<TableExpression> apply = make_shared<ApplyOperation>("averageExams", ApplyOperationType::func, Identifier("A"), inputTableCols, make_shared<RetainAllClause> ());
+            shared_ptr<TableExpression> apply = make_shared<ApplyOperation>("averageExams", ApplyOperationType::func, TcapIdentifier("A"), inputTableCols, make_shared<RetainAllClause> ());
 
-            applyAssignment = make_shared<TableAssignment>(Identifier("B"), outputTableCols, apply);
-            applyAssignment->attributes->push_back(Attribute(Identifier("exec"), make_shared<string>("\"exec1\"")));
+            applyAssignment = make_shared<TableAssignment>(TcapIdentifier("B"), outputTableCols, apply);
+            applyAssignment->attributes->push_back(TcapAttribute(TcapIdentifier("exec"), make_shared<string>("\"exec1\"")));
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -178,17 +188,17 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> applyAssignment;
         {
-            shared_ptr<vector<Identifier>> outputTableCols = make_shared<vector<Identifier>>();
-            outputTableCols->push_back(Identifier("student"));
-            outputTableCols->push_back(Identifier("examAverage"));
+            shared_ptr<vector<TcapIdentifier>> outputTableCols = make_shared<vector<TcapIdentifier>>();
+            outputTableCols->push_back(TcapIdentifier("student"));
+            outputTableCols->push_back(TcapIdentifier("examAverage"));
 
-            shared_ptr<vector<Identifier>> inputTableCols = make_shared<vector<Identifier>>();
-            inputTableCols->push_back(Identifier("student"));
+            shared_ptr<vector<TcapIdentifier>> inputTableCols = make_shared<vector<TcapIdentifier>>();
+            inputTableCols->push_back(TcapIdentifier("student"));
 
-            shared_ptr<TableExpression> apply = make_shared<ApplyOperation>("averageExams", ApplyOperationType::method, Identifier("A"), inputTableCols, make_shared<RetainAllClause> ());
+            shared_ptr<TableExpression> apply = make_shared<ApplyOperation>("averageExams", ApplyOperationType::method, TcapIdentifier("A"), inputTableCols, make_shared<RetainAllClause> ());
 
-            applyAssignment = make_shared<TableAssignment>(Identifier("B"), outputTableCols, apply);
-            applyAssignment->attributes->push_back(Attribute(Identifier("exec"), make_shared<string>("\"exec1\"")));
+            applyAssignment = make_shared<TableAssignment>(TcapIdentifier("B"), outputTableCols, apply);
+            applyAssignment->attributes->push_back(TcapAttribute(TcapIdentifier("exec"), make_shared<string>("\"exec1\"")));
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -248,17 +258,17 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> filterAssignment;
         {
-            shared_ptr<vector<Identifier>> outputTableCols = make_shared<vector<Identifier>>();
-            outputTableCols->push_back(Identifier("student"));
+            shared_ptr<vector<TcapIdentifier>> outputTableCols = make_shared<vector<TcapIdentifier>>();
+            outputTableCols->push_back(TcapIdentifier("student"));
 
-            shared_ptr<vector<Identifier>> inputTableCols = make_shared<vector<Identifier>>();
-            inputTableCols->push_back(Identifier("isExamGreater"));
+            shared_ptr<vector<TcapIdentifier>> inputTableCols = make_shared<vector<TcapIdentifier>>();
+            inputTableCols->push_back(TcapIdentifier("isExamGreater"));
 
-            shared_ptr<TableExpression> filter = make_shared<FilterOperation>(Identifier("D"), Identifier("isExamGreater"),
-                                                                              make_shared<RetainExplicitClause> (Identifier("student")));
+            shared_ptr<TableExpression> filter = make_shared<FilterOperation>(TcapIdentifier("D"), TcapIdentifier("isExamGreater"),
+                                                                              make_shared<RetainExplicitClause> (TcapIdentifier("student")));
 
-            filterAssignment = make_shared<TableAssignment>(Identifier("E"), outputTableCols, filter);
-            filterAssignment->attributes->push_back(Attribute(Identifier("exec"), make_shared<string>("\"exec4\"")));
+            filterAssignment = make_shared<TableAssignment>(TcapIdentifier("E"), outputTableCols, filter);
+            filterAssignment->attributes->push_back(TcapAttribute(TcapIdentifier("exec"), make_shared<string>("\"exec4\"")));
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -313,17 +323,17 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> hoistAssignment;
         {
-            shared_ptr<vector<Identifier>> outputTableCols = make_shared<vector<Identifier>>();
-            outputTableCols->push_back(Identifier("student"));
+            shared_ptr<vector<TcapIdentifier>> outputTableCols = make_shared<vector<TcapIdentifier>>();
+            outputTableCols->push_back(TcapIdentifier("student"));
 
-            shared_ptr<vector<Identifier>> inputTableCols = make_shared<vector<Identifier>>();
-            inputTableCols->push_back(Identifier("student"));
+            shared_ptr<vector<TcapIdentifier>> inputTableCols = make_shared<vector<TcapIdentifier>>();
+            inputTableCols->push_back(TcapIdentifier("student"));
 
-            shared_ptr<TableExpression> hoist = make_shared<HoistOperation>("homeworkAverage", Identifier("B"),
+            shared_ptr<TableExpression> hoist = make_shared<HoistOperation>("homeworkAverage", TcapIdentifier("B"),
                                                                             inputTableCols, make_shared<RetainAllClause>());
 
-            hoistAssignment = make_shared<TableAssignment>(Identifier("E"), outputTableCols, hoist);
-            hoistAssignment->attributes->push_back(Attribute(Identifier("exec"), make_shared<string>("\"exec5\"")));
+            hoistAssignment = make_shared<TableAssignment>(TcapIdentifier("E"), outputTableCols, hoist);
+            hoistAssignment->attributes->push_back(TcapAttribute(TcapIdentifier("exec"), make_shared<string>("\"exec5\"")));
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -380,17 +390,17 @@ namespace pdb_tests
     {
         shared_ptr<TableAssignment> greaterThanAssignment;
         {
-            shared_ptr<vector<Identifier>> outputTableCols = make_shared<vector<Identifier>>();
-            outputTableCols->push_back(Identifier("student"));
-            outputTableCols->push_back(Identifier("isExamGreater"));
+            shared_ptr<vector<TcapIdentifier>> outputTableCols = make_shared<vector<TcapIdentifier>>();
+            outputTableCols->push_back(TcapIdentifier("student"));
+            outputTableCols->push_back(TcapIdentifier("isExamGreater"));
 
 
-            shared_ptr<TableExpression> gt = make_shared<GreaterThanOp>(Identifier("C"), Identifier("examAverage"),
-                                                                        Identifier("C"), Identifier("hwAverage"),
-                                                                        make_shared<RetainExplicitClause> (Identifier("student")));
+            shared_ptr<TableExpression> gt = make_shared<GreaterThanOp>(TcapIdentifier("C"), TcapIdentifier("examAverage"),
+                                                                        TcapIdentifier("C"), TcapIdentifier("hwAverage"),
+                                                                        make_shared<RetainExplicitClause> (TcapIdentifier("student")));
 
-            greaterThanAssignment = make_shared<TableAssignment>(Identifier("E"), outputTableCols, gt);
-            greaterThanAssignment->attributes->push_back(Attribute(Identifier("exec"), make_shared<string>("\"exec6\"")));
+            greaterThanAssignment = make_shared<TableAssignment>(TcapIdentifier("E"), outputTableCols, gt);
+            greaterThanAssignment->attributes->push_back(TcapAttribute(TcapIdentifier("exec"), make_shared<string>("\"exec6\"")));
         }
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
@@ -451,11 +461,11 @@ namespace pdb_tests
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
         {
-            shared_ptr<vector<Identifier>> columnsToStore = make_shared<vector<Identifier>>();
-            columnsToStore->push_back(Identifier("1"));
-            columnsToStore->push_back(Identifier("2"));
+            shared_ptr<vector<TcapIdentifier>> columnsToStore = make_shared<vector<TcapIdentifier>>();
+            columnsToStore->push_back(TcapIdentifier("1"));
+            columnsToStore->push_back(TcapIdentifier("2"));
 
-            unit->statements->push_back(make_shared<StoreOperation>(Identifier("A"), columnsToStore, "\"desc\""));
+            unit->statements->push_back(make_shared<StoreOperation>(TcapIdentifier("A"), columnsToStore, "\"desc\""));
         }
 
         shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(unit);

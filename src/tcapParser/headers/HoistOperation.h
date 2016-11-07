@@ -15,20 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#ifndef PDB_TCAPPARSER_HOISTOPERATION_H
+#define PDB_TCAPPARSER_HOISTOPERATION_H
 
 #include <memory>
 #include <string>
+#include <vector>
 
-#include "TranslationUnit.h"
+#include "RetainClause.h"
+#include "TableExpression.h"
+#include "TcapIdentifier.h"
 
 using std::shared_ptr;
 using std::string;
+using std::vector;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    class HoistOperation : public TableExpression
+    {
+    public:
+
+        shared_ptr<string> hoistTarget;
+
+        TcapIdentifier inputTable;
+
+        shared_ptr<vector<TcapIdentifier>> inputTableColumnNames;
+
+        shared_ptr<RetainClause> retain;
+
+        HoistOperation(string hoistTarget, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+                       shared_ptr<RetainClause> retain);
+
+        HoistOperation(shared_ptr<string> hoistTarget, TcapIdentifier inputTable,
+                       shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain);
+
+        void execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>, function<void(FilterOperation&)>,
+                     function<void(HoistOperation&)> forHoist, function<void(BinaryOperation&)> forBinaryOp);
+    };
 }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+#endif //PDB_TCAPPARSER_HOISTOPERATION_H

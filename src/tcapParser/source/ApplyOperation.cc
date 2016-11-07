@@ -15,20 +15,28 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#include "ApplyOperation.h"
 
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+using std::make_shared;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
+    ApplyOperation::ApplyOperation(string applyTarget, ApplyOperationType applyType, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+                                   shared_ptr<RetainClause> retain)
+            : ApplyOperation(make_shared<string>(applyTarget), applyType, inputTable, inputTableColumnNames, retain)
+    {
+    }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    ApplyOperation::ApplyOperation(shared_ptr<string> applyTarget, ApplyOperationType applyType, TcapIdentifier inputTable,
+                                   shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain)
+            : applyTarget(applyTarget), applyType(applyType),  inputTable(inputTable), inputTableColumnNames(inputTableColumnNames),
+              retain(retain)
+    {
+    }
+
+    void ApplyOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)> forApply, function<void(FilterOperation&)>,
+                                 function<void(HoistOperation&)>, function<void(BinaryOperation&)>)
+    {
+        forApply(*this);
+    }
+}

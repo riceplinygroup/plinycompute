@@ -40,274 +40,274 @@ namespace pdb_tests
 
         int tokenIndex = 0;
 
-        QUNIT_IS_EQUAL("@", result.peek().value);
+        QUNIT_IS_EQUAL("@", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::AT_SIGN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("exec", result.peek().value);
+        QUNIT_IS_EQUAL("exec", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"exec1\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"exec1\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("A", result.peek().value);
+        QUNIT_IS_EQUAL("A", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("load", result.peek().value);
+        QUNIT_IS_EQUAL("load", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LOAD_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"(databaseName, inputSetName)\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"(databaseName, inputSetName)\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("B", result.peek().value);
+        QUNIT_IS_EQUAL("B", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(",", result.peek().value);
+        QUNIT_IS_EQUAL(",", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::COMMA_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("examAverage", result.peek().value);
+        QUNIT_IS_EQUAL("examAverage", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("apply", result.peek().value);
+        QUNIT_IS_EQUAL("apply", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::APPLY_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"avgExams\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"avgExams\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("to", result.peek().value);
+        QUNIT_IS_EQUAL("to", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::TO_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("A", result.peek().value);
+        QUNIT_IS_EQUAL("A", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("[", result.peek().value);
+        QUNIT_IS_EQUAL("[", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("]", result.peek().value);
+        QUNIT_IS_EQUAL("]", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("retain", result.peek().value);
+        QUNIT_IS_EQUAL("retain", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RETAIN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("all", result.peek().value);
+        QUNIT_IS_EQUAL("all", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::ALL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("C", result.peek().value);
+        QUNIT_IS_EQUAL("C", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(",", result.peek().value);
+        QUNIT_IS_EQUAL(",", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::COMMA_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("examAverage", result.peek().value);
+        QUNIT_IS_EQUAL("examAverage", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(",", result.peek().value);
+        QUNIT_IS_EQUAL(",", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::COMMA_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("hwAverage", result.peek().value);
+        QUNIT_IS_EQUAL("hwAverage", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("apply", result.peek().value);
+        QUNIT_IS_EQUAL("apply", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::APPLY_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"getHwAvg\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"getHwAvg\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("to", result.peek().value);
+        QUNIT_IS_EQUAL("to", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::TO_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("B", result.peek().value);
+        QUNIT_IS_EQUAL("B", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("[", result.peek().value);
+        QUNIT_IS_EQUAL("[", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("]", result.peek().value);
+        QUNIT_IS_EQUAL("]", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("retain", result.peek().value);
+        QUNIT_IS_EQUAL("retain", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RETAIN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("all", result.peek().value);
+        QUNIT_IS_EQUAL("all", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::ALL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("D", result.peek().value);
+        QUNIT_IS_EQUAL("D", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(",", result.peek().value);
+        QUNIT_IS_EQUAL(",", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::COMMA_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("isExamGreater", result.peek().value);
+        QUNIT_IS_EQUAL("isExamGreater", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("C", result.peek().value);
+        QUNIT_IS_EQUAL("C", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("[", result.peek().value);
+        QUNIT_IS_EQUAL("[", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("examAverage", result.peek().value);
+        QUNIT_IS_EQUAL("examAverage", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("]", result.peek().value);
+        QUNIT_IS_EQUAL("]", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(">", result.peek().value);
+        QUNIT_IS_EQUAL(">", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::GREATER_THAN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("C", result.peek().value);
+        QUNIT_IS_EQUAL("C", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("[", result.peek().value);
+        QUNIT_IS_EQUAL("[", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("hwAverage", result.peek().value);
+        QUNIT_IS_EQUAL("hwAverage", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("]", result.peek().value);
+        QUNIT_IS_EQUAL("]", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("retain", result.peek().value);
+        QUNIT_IS_EQUAL("retain", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RETAIN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("E", result.peek().value);
+        QUNIT_IS_EQUAL("E", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("filter", result.peek().value);
+        QUNIT_IS_EQUAL("filter", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::FILTER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("D", result.peek().value);
+        QUNIT_IS_EQUAL("D", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("by", result.peek().value);
+        QUNIT_IS_EQUAL("by", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::BY_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("isExamGreater", result.peek().value);
+        QUNIT_IS_EQUAL("isExamGreater", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("retain", result.peek().value);
+        QUNIT_IS_EQUAL("retain", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RETAIN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("F", result.peek().value);
+        QUNIT_IS_EQUAL("F", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("(", result.peek().value);
+        QUNIT_IS_EQUAL("(", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("name", result.peek().value);
+        QUNIT_IS_EQUAL("name", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL(")", result.peek().value);
+        QUNIT_IS_EQUAL(")", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RPAREN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("=", result.peek().value);
+        QUNIT_IS_EQUAL("=", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::EQ_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("apply", result.peek().value);
+        QUNIT_IS_EQUAL("apply", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::APPLY_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"getName\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"getName\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("to", result.peek().value);
+        QUNIT_IS_EQUAL("to", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::TO_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("E", result.peek().value);
+        QUNIT_IS_EQUAL("E", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("[", result.peek().value);
+        QUNIT_IS_EQUAL("[", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::LBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("student", result.peek().value);
+        QUNIT_IS_EQUAL("student", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("]", result.peek().value);
+        QUNIT_IS_EQUAL("]", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RBRACKET_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("retain", result.peek().value);
+        QUNIT_IS_EQUAL("retain", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::RETAIN_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("none", result.peek().value);
+        QUNIT_IS_EQUAL("none", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::NONE_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("store", result.peek().value);
+        QUNIT_IS_EQUAL("store", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STORE_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("F", result.peek().value);
+        QUNIT_IS_EQUAL("F", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::IDENTIFIER_TYPE, result.advance().tokenType);
 
-        QUNIT_IS_EQUAL("\"(databaseName, outputSetName)\"", result.peek().value);
+        QUNIT_IS_EQUAL("\"(databaseName, outputSetName)\"", result.peek().lexeme);
         QUNIT_IS_EQUAL(TokenType::STRING_LITERAL_TYPE, result.advance().tokenType);
 
 

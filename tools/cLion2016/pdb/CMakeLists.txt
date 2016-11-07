@@ -92,6 +92,8 @@ set(SOURCE_FILES
         ../../../src/tcapLexer/source/TokenStream.cc
         ../../../src/tcapLexerTests/source/TcapTestsRunner.cc
         ../../../src/tcapLexerTests/source/LexTcapTests.cc
+        ../../../src/tcapParser/source/TcapAttribute.cc
+        ../../../src/tcapParser/source/TcapIdentifier.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc
         ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
@@ -112,7 +114,7 @@ set(SOURCE_FILES
         ../../../src/tcapIntermediaryRep/source/Store.cc
         ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc)
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/StringLiteral.cc ../../../src/tcapParser/source/ApplyOperation.cc ../../../src/tcapParser/source/BinaryOperation.cc ../../../src/tcapParser/source/FilterOperation.cc ../../../src/tcapParser/source/GreaterThanOp.cc ../../../src/tcapParser/source/HoistOperation.cc ../../../src/tcapParser/source/LoadOperation.cc ../../../src/tcapParser/source/RetainAllClause.cc ../../../src/tcapParser/source/RetainNoneClause.cc ../../../src/tcapParser/source/RetainExplicitClause.cc ../../../src/tcapParser/source/StoreOperation.cc ../../../src/tcapParser/source/TableAssignment.cc ../../../src/tcapParser/source/TcapStatement.cc)
     #    ../../../src/tests/source/Test47.cc)
 
 

@@ -5,21 +5,38 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TokenStream.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TcapLexer.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TokenStream.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/Token.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapAttribute.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/LoadOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/HoistOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/GreaterThanOp.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/ApplyOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapIdentifier.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/StringLiteral.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/StoreOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/RetainExplicitClause.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TranslationUnit.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/RetainAllClause.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapStatement.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/FilterOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/RetainNoneClause.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/BinaryOperation.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapParser.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TableAssignment.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/boost/program_options/config.hpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/boost/program_options/errors.hpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/utf8_codecvt_facet.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/variables_map.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/cmdline.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/positional_options.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/parsers.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/winmain.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/value_semantic.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/split.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/config_file.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/options_description.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/parsers.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/positional_options.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/split.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/winmain.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/config_file.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/value_semantic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/program_options/src/convert.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/system/src/error_code.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/boost/libs/filesystem/src/path.cpp" isTestSource="false" />
@@ -28,7 +45,6 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRepTests/source/TcapIrTestsRunner.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapParser.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/serverFunctionalities/source/CatalogClient.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/Hoist.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapIntermediaryRep/source/Store.cc" isTestSource="false" />
@@ -42,9 +58,9 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexerTests/source/LexTcapTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParserTests/source/ParseTcapTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParserTests/source/TcapParserTestsRunner.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_BufferManager.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Page.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_Table.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/bufferMgr/source/MyDB_BufferManager.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorkerQueue.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBBuzzer.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/work/source/PDBWorker.cc" isTestSource="false" />
@@ -53,9 +69,9 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SetName.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/RecordPredicateIr.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/MaterializationModeNamedSet.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/UnarySetOperator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/SelectionIr.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/MaterializationModeNamedSet.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRep/source/ProjectionIr.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/QueriesTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queriesTests/source/SelectionTests.cc" isTestSource="false" />
@@ -63,10 +79,10 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlanTests/source/BuildLogicalPlanTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlanTests/source/LogicalPlanTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/DotBuilderTests.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/BuildIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/SelectionIrTests.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/queryIntermediaryRepTests/source/ProjectionIrTests.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/Parser.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/LogicalPlanBuilder.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/logicalPlan/source/Lexer.c" isTestSource="false" />

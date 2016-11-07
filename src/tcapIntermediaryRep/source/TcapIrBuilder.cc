@@ -17,13 +17,20 @@
  *****************************************************************************/
 #include "TcapIrBuilder.h"
 
+#include "ApplyOperation.h"
+#include "FilterOperation.h"
+#include "GreaterThanOp.h"
+#include "LoadOperation.h"
+#include "HoistOperation.h"
 #include "Store.h"
+#include "StoreOperation.h"
+#include "TableAssignment.h"
 
 namespace pdb_detail
 {
-    string getAttributeValue(string name, shared_ptr<vector<Attribute>> attributes)
+    string getAttributeValue(string name, shared_ptr<vector<TcapAttribute>> attributes)
     {
-        for(Attribute a : *attributes.get())
+        for(TcapAttribute a : *attributes.get())
         {
             if(*a.name.contents.get() == name)
             {
@@ -47,7 +54,7 @@ namespace pdb_detail
         // make tableColumns
         shared_ptr<vector<string>> columnNames = make_shared<vector<string>>();
         {
-            for (Identifier i : *applyOp.inputTableColumnNames.get())
+            for (TcapIdentifier i : *applyOp.inputTableColumnNames.get())
             {
                 columnNames->push_back(*i.contents.get());
             }
@@ -177,7 +184,7 @@ namespace pdb_detail
 
         shared_ptr<vector<string>> columnsToStore = make_shared<vector<string>>();
         {
-            for(Identifier c : *storeOperation.columnsToStore.get())
+            for(TcapIdentifier c : *storeOperation.columnsToStore.get())
             {
                 columnsToStore->push_back(*c.contents.get());
             }
@@ -186,17 +193,17 @@ namespace pdb_detail
         return make_shared<Store>(TableColumns(*storeOperation.outputTable.contents.get(), columnsToStore), unquotedDest);
     }
 
-    shared_ptr<Instruction> makeInstruction(shared_ptr<Statement> stmt)
+    shared_ptr<Instruction> makeInstruction(shared_ptr<TcapStatement> stmt)
     {
         shared_ptr<Instruction> translated = nullptr;
-        stmt->execute([&](TableAssignment& tableAssignment)
-                      {
-                          translated = makeInstruction(tableAssignment);
-                      },
-                      [&](StoreOperation& storeOperation)
-                      {
-                          translated = makeInstruction(storeOperation);
-                      });
+        stmt->match([&](TableAssignment &tableAssignment)
+                    {
+                        translated = makeInstruction(tableAssignment);
+                    },
+                    [&](StoreOperation &storeOperation)
+                    {
+                        translated = makeInstruction(storeOperation);
+                    });
 
         return translated;
     }
@@ -206,7 +213,7 @@ namespace pdb_detail
     {
         shared_ptr<vector<shared_ptr<Instruction>>> instructions = make_shared<vector<shared_ptr<Instruction>>>();
 
-        for(shared_ptr<Statement> stmt : *unit->statements.get())
+        for(shared_ptr<TcapStatement> stmt : *unit->statements.get())
         {
             try
             {

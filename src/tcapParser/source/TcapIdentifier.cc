@@ -15,20 +15,18 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#include "TcapIdentifier.h"
 
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+using std::make_shared;
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
+    TcapIdentifier::TcapIdentifier(string contents) : contents(make_shared<string>(contents))
+    {
+    }
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    TcapIdentifier::TcapIdentifier(shared_ptr<string> contents) : contents(contents)
+    {
+
+    }
+}

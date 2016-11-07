@@ -15,20 +15,21 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
-
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
+#include "FilterOperation.h"
 
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    FilterOperation::FilterOperation(TcapIdentifier inputTableName, TcapIdentifier filterColumnName, shared_ptr<RetainClause> retain)
+            : inputTableName(inputTableName), filterColumnName(filterColumnName), retain(retain)
+    {
+
+    }
+
+    void FilterOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>,
+                                  function<void(FilterOperation&)> forFilter, function<void(HoistOperation&)> forHoist,
+                                  function<void(BinaryOperation&)> forBinaryOp)
+    {
+        return forFilter(*this);
+    }
+}

@@ -15,20 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPPARSER_TCAPPARSER_H
-#define PDB_TCAPPARSER_TCAPPARSER_H
+#include "TcapAttribute.h"
 
-#include <memory>
-#include <string>
-
-#include "TranslationUnit.h"
-
-using std::shared_ptr;
-using std::string;
-
-namespace pdb_detail
+namespace  pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
-}
+    TcapAttribute::TcapAttribute(TcapIdentifier name, shared_ptr <string> value) : name(name), value(value)
+    {
 
-#endif //PDB_TCAPPARSER_TCAPPARSER_H
+    }
+}
