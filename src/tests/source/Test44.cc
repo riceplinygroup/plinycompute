@@ -98,6 +98,10 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", myLogger);
 
+        PDBLoggerPtr logger = make_shared<PDBLogger> ("client44.log");
+        PDBServer fakeServerForScheduler (8109, 100, logger); //port doesn't matter, will not listen
+
+
 	// make the query graph
 	Handle <Set <SharedEmployee>> myInputSet = myClient.getSet <SharedEmployee> ("chris_db", "chris_set");
 	Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
@@ -111,8 +115,6 @@ int main (int argc, char * argv[]) {
         queries->push_back(outputOne);
         queries->push_back(outputTwo);
         pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
-        PDBLoggerPtr logger = make_shared<PDBLogger> ("client44.log");        
-        PDBServer fakeServerForScheduler (8109, 100, logger); //port doesn't matter, will not listen
         QuerySchedulerServer server (logger);
         server.recordServer(fakeServerForScheduler);//to enable worker queue for Scheduler
         server.parseOptimizedQuery(queryGraph);
