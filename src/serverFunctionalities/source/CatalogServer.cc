@@ -1320,7 +1320,42 @@ bool CatalogServer :: addNodeToDB (std :: string nodeIP, std :: string databaseN
 }
 
 bool CatalogServer :: removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg){
+
+    // TODO: Under construction, do not use
+    /*
+    string setUniqueId = databaseName + "." + setName;
+
+    if (isDatabaseRegistered(databaseName) ==  false){
+        errMsg = "Database does not exist.\n";
+        cout << errMsg << endl;
+        return false;
+    }
+
+    // make sure that set exists
+    if (isSetRegistered(databaseName, setName) ==  false){
+        errMsg = "Set doesn't exist.\n";
+        cout << errMsg << endl;
+        return false;
+    }
+
+    int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+    Handle<CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
+
+    Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
+
+    if(pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType) == false)
+        cout << errMsg<< endl;
+
+    for (int i=0; i < (*vectorResultItems).size(); i++){
+        if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
+    }
+
+    dbMetadataObject->removeNodeFromSet(nodeIP, setName);
+
     return true;
+     */
+    errMsg = "removeNodeFromSet not implemented, do not use";
+    return false;
 }
 
 bool CatalogServer :: removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg){

@@ -20,6 +20,7 @@
 #define CATALOG_TESTS_CC
 
 #include "StorageClient.h"
+#include "DistributedStorageManagerClient.h"
 #include "PDBVector.h"
 #include "InterfaceFunctions.h"
 #include "SharedEmployee.h"
@@ -145,6 +146,9 @@ int main (int numArgs, const char *args[]) {
     bool usePangea = conf->getUsePangea();
     pdb :: StorageClient storageClient (conf->getPort(), conf->getServerAddress(), make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
 
+    pdb::DistributedStorageManagerClient distributedStorageClient(conf->getPort(), conf->getServerAddress(),
+            make_shared <pdb :: PDBLogger> ("distributedStorageManager"));
+
     string errMsg;
 
     if (command.compare("register-type") == 0) {
@@ -204,7 +208,7 @@ int main (int numArgs, const char *args[]) {
     } else if (command.compare("register-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-        if (!storageClient.createDatabase (databaseName, errMsg)) {
+        if (!distributedStorageClient.createDatabase (databaseName, errMsg)) {
             std :: cout << "Not able to create database: " + errMsg << std::endl;
         } else {
             std :: cout << "Database and its metadata successfully created.\n";
@@ -214,11 +218,11 @@ int main (int numArgs, const char *args[]) {
     } else if (command.compare("remove-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-//        if (!storageClient.removeDatabase (databaseName, errMsg)) {
-//            std :: cout << "Not able to create database: " + errMsg << std::endl;
-//        } else {
-//            std :: cout << "Database and its metadata successfully created.\n";
-//        }
+        if (!distributedStorageClient.removeDatabase (databaseName, errMsg)) {
+            std :: cout << "Not able to remove database: " + errMsg << std::endl;
+        } else {
+            std :: cout << "Database and its metadata successfully removed.\n";
+        }
         cout << "Done.\n";
 
     } else if (command.compare("retrieve-db") == 0) {
@@ -254,7 +258,7 @@ int main (int numArgs, const char *args[]) {
 
         // now create a new set in that database
         if (typeName.compare("SharedEmployee")==0){
-            if (!storageClient.createSet<SharedEmployee> (databaseName, setName, errMsg)) {
+            if (!distributedStorageClient.createSet(databaseName, setName, typeName, errMsg)) {
                     std :: cout << "Could not create set due to error: " + errMsg << std :: endl;
             } else {
                     std :: cout << "Set and its metadata successfully created.\n";
@@ -280,7 +284,7 @@ int main (int numArgs, const char *args[]) {
 
         // now the set from the database
         if (typeName.compare("SharedEmployee")==0){
-            if (!storageClient.removeSet<SharedEmployee> (databaseName, setName, errMsg)) {
+            if (!distributedStorageClient.removeSet(databaseName, setName, errMsg)) {
                     std :: cout << "Could not delete set due to error: " + errMsg << std :: endl;
             } else {
                     std :: cout << "Set and its metadata successfully deleted.\n";

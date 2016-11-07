@@ -155,10 +155,15 @@ namespace pdb {
          * Deletes a set from the listOfSets, along with the set->nodes map and the nodes->set map
          * @param whichSet
          */
-        void deleteSet(pdb :: String setName){
+        void deleteSet(String setName){
             deleteSetFromSetList(setName);
             deleteSetFromSetMap(setName);
             deleteSetFromNodeMap(setName);
+        }
+
+        void removeNodeFromSet(String node, String set) {
+            deleteNodeFromSingleSet(node, set);
+            deleteSetFromSingleNode(set, node);
         }
 
         void deleteNodeFromMap(String &nodeIP, String &setName){
@@ -376,6 +381,41 @@ namespace pdb {
                 }
             }
             replaceMapOfSets(tempSetsInDB);
+        }
+
+        void deleteNodeFromSingleSet(String &node, String &setName) {
+            Handle <Map <String, Vector<String>>> tempSetsInDB = makeObject<Map <String, Vector<String>>>();
+            for (auto &a : *getSetsInDB()) {
+                if (a.key!=setName){
+                    (*tempSetsInDB)[a.key] = a.value;
+                } else {
+                    auto nodes = a.value;
+                    auto newNodes = (*tempSetsInDB)[a.key];
+                    for (int i = 0; i < nodes.size(); i++) {
+                        if (nodes[i] != node) {
+                            newNodes.push_back(nodes[i]);
+                        }
+                    }
+                }
+            }
+            replaceMapOfSets(tempSetsInDB);
+        }
+
+        void deleteSetFromSingleNode(String &setName, String &node) {
+            Handle <Map <String, Vector<String>>> tempNodesInDB = makeObject<Map <String, Vector<String>>>();
+            for (auto &a : *getNodesInDB()) {
+                if (a.key!=node){
+                    (*tempNodesInDB)[a.key] = a.value;
+                } else {
+                    auto sets = a.value;
+                    auto newSets = (*tempNodesInDB)[a.key];
+                    for (int i = 0; i < sets.size(); i++) {
+                        if (sets[i] != setName) {
+                            newSets.push_back(sets[i]);
+                        }
+                    }
+                }
+            }
         }
 
         void deleteSetFromNodeMap(String &setName) {
