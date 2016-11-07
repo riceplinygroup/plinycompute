@@ -279,17 +279,35 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 } else {
                     errMsg = "Failed to delete set on " + std::to_string(failureNodes.size()) +
                              " nodes. Skipping registering with catalog";
-                    std::cout << errMsg;
+                    std::cout << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
 
-                if (!getFunctionality<CatalogClient>().deleteSet(database, set, errMsg)) {
-                    std::cout << "Could not delete database, because: " << errMsg << std::endl;
-                    Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
-                    bool res = sendUsingMe->sendObject (response, errMsg);
-                    return make_pair (res, errMsg);
+                if (failureNodes.size() == 0) {
+                    // If all the nodes succeeded in removing the set then we can simply delete the set from the
+                    // catalog
+                    if (!getFunctionality<CatalogClient>().deleteSet(database, set, errMsg)) {
+                        std::cout << "Could not delete database, because: " << errMsg << std::endl;
+                        Handle <SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
+                        bool res = sendUsingMe->sendObject(response, errMsg);
+                        return make_pair(res, errMsg);
+                    }
+                } else {
+                    // If some nodes failed in removing the set remove these nodes from the set maps in the catalog
+                    // so that future calls to this function will only attempt to affect the unmodified storage nodes
+                    errMsg = "Nodes failed to remove set " + fullSetName + ": ";
+                    for (auto node : successfulNodes) {
+                        if (!getFunctionality<CatalogClient>().removeNodeFromSet(node, database, set, errMsg)) {
+                            errMsg += node + ", ";
+                            std::cout << errMsg << std::endl;
+                        }
+                    }
+                    bool res = false;
+                    Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                    sendUsingMe->sendObject (response, errMsg);
+                    return make_pair (false, errMsg);
                 }
 
                 bool res = true;
