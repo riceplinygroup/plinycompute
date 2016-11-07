@@ -63,7 +63,7 @@ int main (int argc, char * argv[] ) {
                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                    frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>();
-                   frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, false);
+                   frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false);
                    frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", logger);
                    frontEnd.startServer (nullptr);
                }

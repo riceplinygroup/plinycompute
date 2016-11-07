@@ -444,7 +444,7 @@ int main(int numArgs, const char *args[]) {
 
                     //I'm the frontend server
                     pdb :: PDBServer frontEnd (masterNodePort, 100, logger);
-                    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, isMaster);
+                    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", isMaster);
                     frontEnd.addFunctionality <pdb :: CatalogClient> (port, myIP, logger);
                     frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
                     frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();

@@ -34,7 +34,7 @@ public:
 	~CatalogServer ();
 
 	// these give us the port and the address of the catalog
-	CatalogServer (std :: string catalogDirectory, bool usePangea=false, bool isMasterCatalogServer=false);
+	CatalogServer (std :: string catalogDirectory, bool isMasterCatalogServer=false);
 
 	// from the ServerFunctionality interface
 	void registerHandlers (PDBServer &forMe) override;
@@ -161,9 +161,6 @@ private:
 
 	// serialize access
 	pthread_mutex_t workingMutex;
-
-    //use Pangea Storage Server or not?
-    bool usePangea;
 
     // whether or not this is the master catalog server
     //
