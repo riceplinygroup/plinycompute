@@ -36,16 +36,17 @@ int main (int argc, char * argv[]) {
     std::cout << "Starting up a distributed storage manager server\n";
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 10, myLogger);
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
     frontEnd.startServer(nullptr);
 
-
+    /*
     string nodeName = "master1";
     string nodeType = "master";
-    bool isMasterCatalog = false;
+
+    bool isMasterCatalog = true;
 
     pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(port)), String("localhost"), port, String(nodeName), String(nodeType), 1);
 
@@ -69,6 +70,7 @@ int main (int argc, char * argv[]) {
             std :: cout << "Node metadata successfully added.\n";
         }
     }
+     */
 }
 
 #endif

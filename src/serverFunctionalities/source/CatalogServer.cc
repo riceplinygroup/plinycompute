@@ -574,7 +574,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
     // allocate memory temporarily
     // TODO change this later
-//    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+    // makeObjectAllocatorBlock (1024 * 1024 * 128, true);
 
     string setUniqueId = databaseName + "." + setName;
     cout << "Deleting set " << setUniqueId << endl;
@@ -818,24 +818,10 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
     //allocates 24Mb to process metadata info
 //    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
-	//TODO this might change depending on what metadata
 	int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 	Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
 	String dbName = String(databaseName);
 	metadataObject->setItemName(dbName);
-
-	// iterates over node info and adds that to the db metadata
-	// TODO This has to be changed so that it comes as acks from all nodes in the cluster
-	// after storage has successfully added them!
-    for (auto &item : pdbCatalog->getListOfNodesInCluster()){
-
-        string nodeAddress = string(item.second.getNodeIP().c_str()) + ":" + to_string(item.second.getNodePort());
-        string nodeIP = item.second.getNodeIP().c_str();
-
-        String nodeId = String(item.second.getNodeIP());
-        (*metadataObject).addNodeToMap(nodeId, dbName);
-
-    }
 
     // stores metadata in sqlite
     if (isDatabaseRegistered(databaseName) == false){

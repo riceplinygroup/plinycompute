@@ -20,6 +20,8 @@
 #define DISPATCHER_SERVER_CC
 
 #include "DispatcherServer.h"
+#include "CatalogServer.h"
+
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
 #include "DispatcherAddData.h"
@@ -51,10 +53,18 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 std :: string errMsg;
                 bool res = true;
 
+                // Receive the data to send
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
-
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
+
+                // Check that the type of the data being stored matches what is known to the catalog
+                if (!validateTypes( request->getDatabaseName(), request->getSetName(), request->getTypeName(), errMsg)) {
+                    Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
+                    res = sendUsingMe->sendObject (response, errMsg);
+                    return make_pair(false, errMsg);
+                }
+
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
 
@@ -114,9 +124,7 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
         registerSet(setAndDatabase, PartitionPolicyFactory::buildDefaultPartitionPolicy());
         return dispatchData(setAndDatabase, type, toDispatch);
     } else {
-
         auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(toDispatch);
-
         for (auto const &pair : (* mappedPartitions)) {
             if (!sendData(setAndDatabase, type, findNode(pair.first), pair.second)) {
                 return false;
@@ -124,6 +132,31 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
         }
         return true;
     }
+}
+
+bool DispatcherServer :: validateTypes (const std::string& databaseName, const std::string& setName,
+        const std::string& typeName, std::string& errMsg) {
+
+    std::string fullSetName = databaseName + "." + setName;
+    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
+    Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
+
+    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
+            fullSetName, returnValues, errMsg, catalogType)) {
+        if (returnValues->size() == 0) {
+            errMsg = "Set " + fullSetName + " cannot be found in the catalog";
+            return false;
+        } else {
+            if ((* returnValues)[0].getObjectTypeName() == typeName) {
+                return true;
+            } else {
+                errMsg = "Dispatched type " + typeName + " does not match stored type " +
+                        (* returnValues)[0].getObjectTypeName().c_str();
+                return false;
+            }
+        }
+    }
+    return false;
 }
 
 bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDatabase, std::string type,

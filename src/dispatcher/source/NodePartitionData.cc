@@ -31,6 +31,10 @@ namespace pdb {
         this->totalBytesSent = 0;
     }
 
+    std::string NodePartitionData::toString() const {
+        return getAddress() + ":" + std::to_string(getPort());
+    }
+
     NodeID NodePartitionData::getNodeId() const {
         return this->nodeId;
     }

@@ -96,7 +96,6 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 );
 
                 bool res = true;
-
                 for (auto node : successfulNodes) {
                     if (!getFunctionality<CatalogClient>().addNodeToDB(node, request->getDatabase(), errMsg)) {
                         // TODO: Handle error
