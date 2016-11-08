@@ -42,12 +42,25 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-using pdb_detail::TcapTokenStream;
-using pdb_detail::lexTcap;
 
 namespace pdb_detail
 {
-    shared_ptr<TcapToken> consumeNext(TcapTokenStream &tokenStream, int expectedType1, int expectedType2)
+    /**
+     * Advances the given tokenStream one token and returns that token if it's type is either
+     * expectedType1 or expectedType2.
+     *
+     * If the token from the stream is not of type expectedType1 or expectedType2 a string
+     * exception is thrown.
+     *
+     * If the given tokenStream does not have a next token, a string exception is thrown.
+     *
+     * @param tokenStream
+     * @param expectedType1
+     * @param expectedType2
+     * @return
+     */
+    TcapTokenPtr consumeNext(TcapTokenStream &tokenStream, TcapTokenType expectedType1,
+                                      TcapTokenType expectedType2)
     {
         if(!tokenStream.hasNext())
             throw "token stream empty";
@@ -61,7 +74,7 @@ namespace pdb_detail
 
     }
 
-    shared_ptr<TcapToken> consumeNext(TcapTokenStream &tokenStream, int expectedType)
+    TcapTokenPtr consumeNext(TcapTokenStream &tokenStream, TcapTokenType expectedType)
     {
         return consumeNext(tokenStream, expectedType, expectedType);
     }
