@@ -23,7 +23,8 @@
 #include "CatalogClient.h"
 #include "ResourceManagerServer.h"
 #include "DistributedStorageManagerServer.h"
-
+#include "DispatcherServer.h"
+#include "QuerySchedulerServer.h"
 #include "StorageAddDatabase.h"
 #include "SharedEmployee.h"
 
@@ -40,6 +41,9 @@ int main (int argc, char * argv[]) {
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
+    auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
+    frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(myLogger);
     frontEnd.startServer(nullptr);
 
     /*
