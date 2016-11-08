@@ -42,6 +42,7 @@ int main (int argc, char * argv[]) {
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
+    frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
     frontEnd.addFunctionality<pdb::QuerySchedulerServer>(myLogger);
     frontEnd.startServer(nullptr);
