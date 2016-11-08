@@ -22,6 +22,7 @@
 #include "CatalogServer.h"
 #include "CatalogClient.h"
 #include "ResourceManagerServer.h"
+#include "PangeaStorageServer.h"
 #include "DistributedStorageManagerServer.h"
 #include "DispatcherServer.h"
 #include "QuerySchedulerServer.h"
@@ -36,14 +37,23 @@ int main (int argc, char * argv[]) {
 
     std::cout << "Starting up a distributed storage manager server\n";
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
-    pdb::PDBServer frontEnd(port, 10, myLogger);
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
+    pdb::PDBServer frontEnd(port, 100, myLogger);
+    
+       ConfigurationPtr conf = make_shared < Configuration > ();
+       SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), myLogger);
+       conf->printOut();
+       frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), myLogger, conf, true);
+       frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+    
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
+    /*
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
+    */
     frontEnd.addFunctionality<pdb::QuerySchedulerServer>(myLogger);
     frontEnd.startServer(nullptr);
 
