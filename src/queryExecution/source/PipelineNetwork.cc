@@ -293,18 +293,18 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
-                                  std :: cout << "to add user page for output" << std :: endl;
+                                  //std :: cout << "to add user page for output" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: to add user page for output"));
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                                  //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
                                   std :: string out = getAllocator().printInactiveBlocks();
                                   logger->info(out);
                                   makeObjectAllocatorBlock (output->getSize(), true);
-                                  std :: cout << "PipelineNetwork: used new allocator block." << std :: endl;
+                                  //std :: cout << "PipelineNetwork: used new allocator block." << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: used new allocator block."));
                                   outputVec = makeObject<Vector<Handle<Object>>>();
-                                  std :: cout << "PipelineNetwork: allocated new vector." << std :: endl;
+                                  //std :: cout << "PipelineNetwork: allocated new vector." << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: allocated new vector."));
                                   context->setOutputVec(outputVec);
                                   context->setPageToUnpin(output);
@@ -327,14 +327,14 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   logger->debug(std :: string("PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!"));
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                   memcpy(output->getBytes(), myBytes, myBytes->numBytes());
-                                  std :: cout << "we need to unpin the full page" << std :: endl;
+                                  //std :: cout << "we need to unpin the full page" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: we need to unpin the full page"));
                                   proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                       context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
-                                  std :: cout << "we need to pin a new page" << std :: endl;
+                                  //std :: cout << "we need to pin a new page" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: we need to pin a new page"));
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                  std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                                  //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
                                   context->setPageToUnpin(output);
                                   std :: string out = getAllocator().printInactiveBlocks();
@@ -356,14 +356,14 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                           bundler->clearOutputBlock();
                           bundler->clearInputPage();
                           outputBlock = nullptr; 
-                          std :: cout << "now we unpin the page" << std :: endl;
+                          //std :: cout << "now we unpin the page" << std :: endl;
                           logger->debug(std :: string("PipelineNetwork: now we unpin the input page"));
                           proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page, true);
                           logger->debug(std :: string("PipelineNetwork: input page is unpinned"));
-                          std :: cout << "input page is unpinned" << std :: endl;  
+                          //std :: cout << "input page is unpinned" << std :: endl;  
                       }
                   }
-                  std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
+                  //std :: cout << "outputVec size =" << outputVec->size() << std :: endl;
                   logger->info(std :: string("PipelineNetwork: the vector size=") + std :: to_string(outputVec->size()));
                   Record<Vector<Handle<Object>>> * myBytes = getRecord(outputVec);
                   PDBPagePtr outputToUnpin = context->getPageToUnpin();
@@ -377,11 +377,11 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
                   //int vecSize = inputVec->size();
                   //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
-                  std :: cout << "unpin the output page" << std :: endl;
+                  //std :: cout << "unpin the output page" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: unpin the output page"));
                   proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
                       outputToUnpin->getSetID(), outputToUnpin, true);
-                  std :: cout << "output page is unpinned" << std :: endl;
+                  //std :: cout << "output page is unpinned" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: output page is unpinned"));
                   context->setPageToUnpin(nullptr);
                   outputVec = nullptr;

@@ -438,7 +438,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
 
        ));
-
+/*
        // this handler requests to remove a user set
        forMe.registerHandler (DeleteSet_TYPEID, make_shared<SimpleRequestHandler<DeleteSet>> (
                [&] (Handle <DeleteSet> request, PDBCommunicatorPtr sendUsingMe) {
@@ -464,7 +464,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
 
        ));
-
+*/
 
 
 
@@ -555,12 +555,12 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 		 }
                  getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
 
-	         std :: cout << "Making response object.\n";
+	         //std :: cout << "Making response object.\n";
                  const UseTemporaryAllocationBlock block{1024};                        
 		 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
                  // return the result
-		 std :: cout << "Sending response object.\n";
+		 //std :: cout << "Sending response object.\n";
                  bool res = sendUsingMe->sendObject (response, errMsg);
                  return make_pair (res, errMsg);
              }
@@ -662,7 +662,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         }
                         
                         if(page != nullptr) {
-                                std :: cout << "Handling StoragePinPage: page is not null, we build the StoragePagePinned message" << std :: endl;
+                                //std :: cout << "Handling StoragePinPage: page is not null, we build the StoragePagePinned message" << std :: endl;
                                 logger->debug(std :: string("Handling StoragePinPage: page is not null, we build the StoragePagePinned message"));
                                 const UseTemporaryAllocationBlock myBlock{2048};
                                 Handle <StoragePagePinned> ack = makeObject<StoragePagePinned>();
@@ -673,10 +673,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 ack->setPageID(page->getPageID());
                                 ack->setPageSize(page->getRawSize());
                                 ack->setSharedMemOffset(page->getOffset());
-                                std :: cout << "Handling StoragePinPage: to send StoragePagePinned message" << std :: endl;
+                                //std :: cout << "Handling StoragePinPage: to send StoragePagePinned message" << std :: endl;
                                 logger->debug(std :: string("Handling StoragePinPage: to send StoragePagePinned message"));
                                 res = sendUsingMe->sendObject<StoragePagePinned>(ack, errMsg);
-                                std :: cout << "Handling StoragePinPage: sent StoragePagePinned message" << std :: endl;
+                                //std :: cout << "Handling StoragePinPage: sent StoragePagePinned message" << std :: endl;
                                 logger->debug(std :: string("Handling StoragePinPage: sent StoragePagePinned message"));
                         }
                         else {
@@ -710,7 +710,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                        key.setId = setId;
                        key.pageId = pageId;
 
-                       std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
+                       //std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId)+std :: string(", setId=")+std :: to_string(setId)+std :: string(", pageId=")+std :: to_string(pageId));
 
                        bool res;
@@ -725,19 +725,19 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 exit(-1);
                        } else {
                                 res = true;
-                                std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
+                                //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
 
-                       std :: cout << "Making response object.\n";
+                       //std :: cout << "Making response object.\n";
                        logger->debug(std :: string( "Making response object.\n"));
                        const UseTemporaryAllocationBlock block{1024};
                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 
                        // return the result
-                       std :: cout << "Sending response object.\n";
+                       //std :: cout << "Sending response object.\n";
                        logger->debug(std :: string("Sending response object.\n"));
                        res = sendUsingMe->sendObject (response, errMsg);
-                       std :: cout << "response sent for StorageUnpinPage.\n";
+                       //std :: cout << "response sent for StorageUnpinPage.\n";
                        logger->debug(std :: string("response sent for StorageUnpinPage.\n"));
 
                        return make_pair(res, errMsg);
@@ -876,7 +876,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                   
                              // return the result
-                            std :: cout << "Sending response object.\n";
+                            //std :: cout << "Sending response object.\n";
                             res = sendUsingMe->sendObject (response, errMsg);
                         }
                         //std :: cout << "All Done!" << std :: endl;

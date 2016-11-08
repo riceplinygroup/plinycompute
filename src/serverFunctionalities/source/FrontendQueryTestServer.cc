@@ -230,10 +230,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (DeleteSet_TYPEID, make_shared <SimpleRequestHandler <DeleteSet>> (
 		[&] (Handle <DeleteSet> request, PDBCommunicatorPtr sendUsingMe) {
 
-			const UseTemporaryAllocationBlock tempBlock {1024};
+			const UseTemporaryAllocationBlock tempBlock {1024*128};
 			{
 				std :: string errMsg;
-				if (!getFunctionality <CatalogServer> ().deleteSet (request->whichDatabase (), request->whichSet (), errMsg)) {
+				if ((!getFunctionality <CatalogServer> ().deleteSet (request->whichDatabase (), request->whichSet (), errMsg))||(!getFunctionality<PangeaStorageServer>().removeSet(request->whichDatabase(), request->whichSet()))) {               
 					Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> 
 						(false, std :: string ("error attempting to delete set: " + errMsg));
 					if (!sendUsingMe->sendObject (result, errMsg)) {
