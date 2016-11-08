@@ -77,6 +77,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
                 std :: cout << "Created SetIdentifier object for input" << std :: endl;
                 SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));               
+                if (inputSet == nullptr) {
+                    std :: cout << "FATAL ERROR: input set doesn't exist..." << std :: endl;
+                    exit (-1);
+                }
                 input->setDatabaseId(inputSet->getDbID());
                 input->setTypeId(inputSet->getTypeID());
                 input->setSetId(inputSet->getSetID());
