@@ -221,9 +221,9 @@ template <class ObjType>
 Record <ObjType> *getRecord (Handle <ObjType> &forMe) {
 
 	// get a pointer to the allocation block for this guy
-        std :: cout << "to get record..." << std :: endl;
+        //std :: cout << "to get record..." << std :: endl;
 	void *res = getAllocator ().getAllocationBlock (forMe);
-        std :: cout << "record size=" << (size_t)(*(size_t *)res) << std :: endl;			
+        //std :: cout << "record size=" << (size_t)(*(size_t *)res) << std :: endl;			
 	// and return that
 	return (Record <ObjType> *) res;
 }

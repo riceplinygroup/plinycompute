@@ -54,7 +54,7 @@ FilterBlockQueryProcessor <Output, Input> :: FilterBlockQueryProcessor (SimpleLa
 // no need to do anything
 template <class Output, class Input>
 void FilterBlockQueryProcessor <Output, Input> :: initialize () {
-//	filterFunc = filterPred.getFunc ();
+	filterFunc = filterPred.getFunc ();
 	finalized = false;
 }
 

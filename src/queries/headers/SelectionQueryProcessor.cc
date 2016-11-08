@@ -36,7 +36,7 @@ SelectionQueryProcessor <Output, Input> :: SelectionQueryProcessor (Selection <O
 // no need to do anything
 template <class Output, class Input>
 void SelectionQueryProcessor <Output, Input> :: initialize () {
-//	selectionFunc = selectionPred.getFunc ();
+	selectionFunc = selectionPred.getFunc ();
 	projectionFunc = projection.getFunc ();
 }
 

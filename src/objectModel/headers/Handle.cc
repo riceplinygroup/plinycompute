@@ -610,7 +610,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
                 #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
-                        std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                        std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
 			throw myException;
@@ -625,7 +625,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
                 try {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                    std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
@@ -698,7 +698,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
                 #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
-                        std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                        std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
 			throw myException;
@@ -713,7 +713,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
                 try {
 		       typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                       std :: cout << "FATAL ERROR: Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                       std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                        getTarget()->decRefCount(typeInfo);
                        DEC_OLD_REF_COUNT;
                        offset = -1;
