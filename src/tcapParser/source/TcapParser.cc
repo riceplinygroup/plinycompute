@@ -15,10 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by barnett on 10/25/16.
-//
-
 #include "TcapParser.h"
 
 #include <functional>
@@ -46,39 +42,39 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-using pdb_detail::TokenStream;
+using pdb_detail::TcapTokenStream;
 using pdb_detail::lexTcap;
 
 namespace pdb_detail
 {
-    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType1, int expectedType2)
+    shared_ptr<TcapToken> consumeNext(TcapTokenStream &tokenStream, int expectedType1, int expectedType2)
     {
         if(!tokenStream.hasNext())
             throw "token stream empty";
 
-        Token next = tokenStream.advance();
+        TcapToken next = tokenStream.advance();
 
         if(next.tokenType == expectedType1 || next.tokenType == expectedType2)
-            return make_shared<Token>(next);
+            return make_shared<TcapToken>(next);
 
         throw "neither type found";
 
     }
 
-    shared_ptr<Token> consumeNext(TokenStream &tokenStream, int expectedType)
+    shared_ptr<TcapToken> consumeNext(TcapTokenStream &tokenStream, int expectedType)
     {
         return consumeNext(tokenStream, expectedType, expectedType);
     }
 
 
-    shared_ptr<TcapIdentifier> makeIdentifier(TokenStream &tokens)
+    shared_ptr<TcapIdentifier> makeIdentifier(TcapTokenStream &tokens)
     {
-        shared_ptr<Token> ident = consumeNext(tokens, TokenType::IDENTIFIER_TYPE);
+        shared_ptr<TcapToken> ident = consumeNext(tokens, TcapTokenType::IDENTIFIER_TYPE);
 
         return make_shared<TcapIdentifier>(ident->lexeme);
     }
 
-    shared_ptr<vector<TcapIdentifier>> makeIdentList(TokenStream &tokens)
+    shared_ptr<vector<TcapIdentifier>> makeIdentList(TcapTokenStream &tokens)
     {
         shared_ptr<TcapIdentifier> ident = makeIdentifier(tokens);
 
@@ -86,7 +82,7 @@ namespace pdb_detail
 
         idents->push_back(*ident.get());
 
-        while(tokens.hasNext() && tokens.peek().tokenType == TokenType::COMMA_TYPE)
+        while(tokens.hasNext() && tokens.peek().tokenType == TcapTokenType::COMMA_TYPE)
         {
             tokens.advance();
 
@@ -98,17 +94,17 @@ namespace pdb_detail
         return idents;
     }
 
-    shared_ptr<RetainClause> makeRetainClause(TokenStream &tokens)
+    shared_ptr<RetainClause> makeRetainClause(TcapTokenStream &tokens)
     {
-        shared_ptr<Token> retain = consumeNext(tokens, TokenType::RETAIN_TYPE);
+        shared_ptr<TcapToken> retain = consumeNext(tokens, TcapTokenType::RETAIN_TYPE);
 
-        if (tokens.peek().tokenType == TokenType::ALL_TYPE)
+        if (tokens.peek().tokenType == TcapTokenType::ALL_TYPE)
         {
             tokens.advance();
             return make_shared<RetainAllClause>();
         }
 
-        if (tokens.peek().tokenType == TokenType::NONE_TYPE)
+        if (tokens.peek().tokenType == TcapTokenType::NONE_TYPE)
         {
             tokens.advance();
             return make_shared<RetainNoneClause>();
@@ -120,25 +116,25 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<ApplyOperation> makeApplyOperation(TokenStream &tokens)
+    shared_ptr<ApplyOperation> makeApplyOperation(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::APPLY_TYPE);
+        consumeNext(tokens, TcapTokenType::APPLY_TYPE);
 
-        shared_ptr<Token> applyTargetType = consumeNext(tokens, TokenType::FUNC_TYPE, TokenType::METHOD_TYPE);
+        shared_ptr<TcapToken> applyTargetType = consumeNext(tokens, TcapTokenType::FUNC_TYPE, TcapTokenType::METHOD_TYPE);
 
-        ApplyOperationType applyType = applyTargetType->tokenType == TokenType::FUNC_TYPE ? ApplyOperationType::func : ApplyOperationType::method;
+        ApplyOperationType applyType = applyTargetType->tokenType == TcapTokenType::FUNC_TYPE ? ApplyOperationType::func : ApplyOperationType::method;
 
-        shared_ptr<Token> applyTarget = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
+        shared_ptr<TcapToken> applyTarget = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
-        shared_ptr<Token> to = consumeNext(tokens, TokenType::TO_TYPE);
+        shared_ptr<TcapToken> to = consumeNext(tokens, TcapTokenType::TO_TYPE);
 
         shared_ptr<TcapIdentifier> inputTableName = makeIdentifier(tokens);
 
-        consumeNext(tokens, TokenType::LBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::LBRACKET_TYPE);
 
         shared_ptr<vector<TcapIdentifier>> inputTableInputColumnNames = makeIdentList(tokens);
 
-        consumeNext(tokens, TokenType::RBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::RBRACKET_TYPE);
 
         shared_ptr<RetainClause> retainClause = makeRetainClause(tokens);
 
@@ -147,21 +143,21 @@ namespace pdb_detail
 
     }
 
-    shared_ptr<HoistOperation> makeHoistOperation(TokenStream &tokens)
+    shared_ptr<HoistOperation> makeHoistOperation(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::HOIST_TYPE);
+        consumeNext(tokens, TcapTokenType::HOIST_TYPE);
 
-        shared_ptr<Token> hoistTarget = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
+        shared_ptr<TcapToken> hoistTarget = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
-        consumeNext(tokens, TokenType::FROM_TYPE);
+        consumeNext(tokens, TcapTokenType::FROM_TYPE);
 
         shared_ptr<TcapIdentifier> inputTableName = makeIdentifier(tokens);
 
-        consumeNext(tokens, TokenType::LBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::LBRACKET_TYPE);
 
         shared_ptr<vector<TcapIdentifier>> inputTableInputColumnNames = makeIdentList(tokens);
 
-        consumeNext(tokens, TokenType::RBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::RBRACKET_TYPE);
 
         shared_ptr<RetainClause> retainClause = makeRetainClause(tokens);
 
@@ -170,41 +166,41 @@ namespace pdb_detail
 
     }
 
-    shared_ptr<LoadOperation> makeLoadOperation(TokenStream &tokens)
+    shared_ptr<LoadOperation> makeLoadOperation(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::LOAD_TYPE);
+        consumeNext(tokens, TcapTokenType::LOAD_TYPE);
 
-        shared_ptr<Token> externSourceString = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
+        shared_ptr<TcapToken> externSourceString = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
         return make_shared<LoadOperation>(externSourceString->lexeme);
 
     }
 
-    shared_ptr<StoreOperation> makeStoreOperation(TokenStream &tokens)
+    shared_ptr<StoreOperation> makeStoreOperation(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::STORE_TYPE);
+        consumeNext(tokens, TcapTokenType::STORE_TYPE);
 
         shared_ptr<TcapIdentifier> outputTable = makeIdentifier(tokens);
 
-        consumeNext(tokens, TokenType::LBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::LBRACKET_TYPE);
 
         shared_ptr<vector<TcapIdentifier>> columnsToStore = makeIdentList(tokens);
 
-        consumeNext(tokens, TokenType::RBRACKET_TYPE);
+        consumeNext(tokens, TcapTokenType::RBRACKET_TYPE);
 
-        shared_ptr<Token> externSourceString = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
+        shared_ptr<TcapToken> externSourceString = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
         return make_shared<StoreOperation>(*outputTable.get(), columnsToStore, externSourceString->lexeme);
 
     }
 
-    shared_ptr<FilterOperation> makeFilterOperation(TokenStream &tokens)
+    shared_ptr<FilterOperation> makeFilterOperation(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::FILTER_TYPE);
+        consumeNext(tokens, TcapTokenType::FILTER_TYPE);
 
         shared_ptr<TcapIdentifier> inputTableName = makeIdentifier(tokens);
 
-        consumeNext(tokens, TokenType::BY_TYPE);
+        consumeNext(tokens, TcapTokenType::BY_TYPE);
 
         shared_ptr<TcapIdentifier> filterColumnName = makeIdentifier(tokens);
 
@@ -216,85 +212,85 @@ namespace pdb_detail
 
 
 
-    shared_ptr<TableExpression> makeBinaryOperation(TokenStream &tokens)
+    shared_ptr<TableExpression> makeBinaryOperation(TcapTokenStream &tokens)
     {
         shared_ptr<TcapIdentifier> lhsTableName = makeIdentifier(tokens);
 
-        shared_ptr<Token> lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
+        shared_ptr<TcapToken> lbracket = consumeNext(tokens, TcapTokenType::LBRACKET_TYPE);
 
         shared_ptr<TcapIdentifier> lhsColumnName = makeIdentifier(tokens);
 
-        shared_ptr<Token> rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
+        shared_ptr<TcapToken> rbracket = consumeNext(tokens, TcapTokenType::RBRACKET_TYPE);
 
-        shared_ptr<Token> op = consumeNext(tokens, TokenType::GREATER_THAN_TYPE);
+        shared_ptr<TcapToken> op = consumeNext(tokens, TcapTokenType::GREATER_THAN_TYPE);
 
         shared_ptr<TcapIdentifier> rhsTableName = makeIdentifier(tokens);
 
-        lbracket = consumeNext(tokens, TokenType::LBRACKET_TYPE);
+        lbracket = consumeNext(tokens, TcapTokenType::LBRACKET_TYPE);
 
         shared_ptr<TcapIdentifier> rhsColumnName = makeIdentifier(tokens);
 
-        rbracket = consumeNext(tokens, TokenType::RBRACKET_TYPE);
+        rbracket = consumeNext(tokens, TcapTokenType::RBRACKET_TYPE);
 
         shared_ptr<RetainClause> retain = makeRetainClause(tokens);
 
-        if(op->tokenType == TokenType::GREATER_THAN_TYPE)
+        if(op->tokenType == TcapTokenType::GREATER_THAN_TYPE)
             return make_shared<GreaterThanOp>(*lhsTableName.get(), *lhsColumnName.get(), *rhsTableName.get(), *rhsColumnName.get(), retain);
 
         throw "Unknown operator type";
     }
 
-    shared_ptr<TableExpression> makeTableExpression(TokenStream &tokens)
+    shared_ptr<TableExpression> makeTableExpression(TcapTokenStream &tokens)
     {
         switch(tokens.peek().tokenType)
         {
-            case (TokenType::APPLY_TYPE):
+            case (TcapTokenType::APPLY_TYPE):
                 return makeApplyOperation(tokens);
-            case (TokenType::HOIST_TYPE):
+            case (TcapTokenType::HOIST_TYPE):
                 return makeHoistOperation(tokens);
-            case (TokenType::LOAD_TYPE):
+            case (TcapTokenType::LOAD_TYPE):
                 return makeLoadOperation(tokens);
-            case(TokenType::FILTER_TYPE):
+            case(TcapTokenType::FILTER_TYPE):
                 return makeFilterOperation(tokens);
             default:
                 return makeBinaryOperation(tokens);
         }
     }
 
-    shared_ptr<TableAssignment> makeTableAssignment(TokenStream &tokens)
+    shared_ptr<TableAssignment> makeTableAssignment(TcapTokenStream &tokens)
     {
         shared_ptr<TcapIdentifier> tableName = makeIdentifier(tokens);
 
-        consumeNext(tokens, TokenType::LPAREN_TYPE);
+        consumeNext(tokens, TcapTokenType::LPAREN_TYPE);
 
         shared_ptr<vector<TcapIdentifier>> columnNames = makeIdentList(tokens);
 
-        consumeNext(tokens, TokenType::RPAREN_TYPE);
+        consumeNext(tokens, TcapTokenType::RPAREN_TYPE);
 
-        consumeNext(tokens, TokenType::EQ_TYPE);
+        consumeNext(tokens, TcapTokenType::EQ_TYPE);
 
         shared_ptr<TableExpression> tableExp = makeTableExpression(tokens);
 
         return make_shared<TableAssignment>(*tableName.get(), columnNames, tableExp);
     }
 
-    shared_ptr<TcapAttribute> makeAttribute(TokenStream &tokens)
+    shared_ptr<TcapAttribute> makeAttribute(TcapTokenStream &tokens)
     {
-        consumeNext(tokens, TokenType::AT_SIGN_TYPE);
+        consumeNext(tokens, TcapTokenType::AT_SIGN_TYPE);
 
         shared_ptr<TcapIdentifier> name = makeIdentifier(tokens);
 
-        shared_ptr<Token> value = consumeNext(tokens, TokenType::STRING_LITERAL_TYPE);
+        shared_ptr<TcapToken> value = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
         return make_shared<TcapAttribute>(*name.get(), make_shared<string>(value->lexeme));
 
     }
 
-    shared_ptr<TcapStatement> makeStatement(TokenStream &tokens)
+    shared_ptr<TcapStatement> makeStatement(TcapTokenStream &tokens)
     {
         shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
 
-        while(tokens.hasNext() && tokens.peek().tokenType == TokenType::AT_SIGN_TYPE)
+        while(tokens.hasNext() && tokens.peek().tokenType == TcapTokenType::AT_SIGN_TYPE)
         {
             shared_ptr<TcapAttribute> attribute = makeAttribute(tokens);
 
@@ -304,7 +300,7 @@ namespace pdb_detail
         shared_ptr<TcapStatement> stmt;
         switch (tokens.peek().tokenType)
         {
-            case TokenType::STORE_TYPE:
+            case TcapTokenType::STORE_TYPE:
                 stmt = makeStoreOperation(tokens);
                 break;
             default:
@@ -321,7 +317,7 @@ namespace pdb_detail
 
     shared_ptr<TranslationUnit> parseTcap(const string &source)
     {
-        TokenStream tokens = lexTcap(source);
+        TcapTokenStream tokens = lexTcap(source);
 
         shared_ptr<TranslationUnit> unit = make_shared<TranslationUnit>();
 

@@ -18,19 +18,19 @@
 #ifndef PDB_TCAPLEXER_TCAPLEXER_H
 #define PDB_TCAPLEXER_TCAPLEXER_H
 
-#include "TokenStream.h"
+#include "TcapTokenStream.h"
 
 namespace pdb_detail
 {
     /**
-     * Tokenize source into a token stream.
+     * Tokenize a string into a token stream.
      *
      * Unrecognized tokens will be reported as TokenType::UNKNOWN_TYPE
      *
      * @param source the input string
      * @return the tokenization of source
      */
-    TokenStream lexTcap(const string &source);
+    TcapTokenStream lexTcap(const string &source);
 }
 
 #endif //PDB_TCAPLEXER_TCAPLEXER_H

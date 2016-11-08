@@ -22,19 +22,19 @@
 #include <memory>
 #include <vector>
 
-#include "Token.h"
+#include "TcapToken.h"
 
 using std::shared_ptr;
 using std::vector;
 
-using pdb_detail::Token;
+using pdb_detail::TcapToken;
 
 namespace pdb_detail
 {
     /**
      * A sequence of tokens.
      */
-    class TokenStream
+    class TcapTokenStream
     {
     public:
 
@@ -44,7 +44,7 @@ namespace pdb_detail
          * @param tokens the tokens of the stream
          * @return a new token stream
          */
-        TokenStream(shared_ptr<vector<Token>> tokens);
+        TcapTokenStream(shared_ptr<vector<TcapToken>> tokens);
 
         /**
          * @return true if any tokens remain, else false.
@@ -52,17 +52,32 @@ namespace pdb_detail
         bool hasNext();
 
         /**
-         * @return
+         * Returns the current token and advances the stream to the next token.
+         *
+         * @return the next token in the stream or an empty string token with type UNKNOWN if all tokens have
+         * been consumed.
          */
-        Token advance();
+        TcapToken advance();
 
-        Token peek();
+        /**
+         * Returns the current token of the stream without advancing the stream.
+         *
+         * @return the next token in the stream or an empty string token with type UNKNOWN if all tokens have
+         * been consumed.
+         */
+        TcapToken peek();
 
     private:
 
-        vector<Token>::size_type _readIndex = 0;
+        /**
+         * The index of the current token of the stream in _tokens.
+         */
+        vector<TcapToken>::size_type _readIndex = 0;
 
-        shared_ptr<vector<Token>> _tokens;
+        /**
+         * The tokens of the stream.
+         */
+        shared_ptr<vector<TcapToken>> _tokens;
 
     };
 }
