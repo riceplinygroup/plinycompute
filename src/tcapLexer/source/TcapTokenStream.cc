@@ -15,64 +15,36 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by barnett on 11/4/16.
-//
+#include <iostream>
+#include "TcapTokenStream.h"
 
-#ifndef PDB_TCAPLEXER_TOKENTYPE_H
-#define PDB_TCAPLEXER_TOKENTYPE_H
-
-enum TokenType
+namespace pdb_detail
 {
-     UNKNOWN_TYPE,
 
-     MEMO_TYPE,
+    TcapTokenStream::TcapTokenStream(shared_ptr<vector<TcapToken>>tokens) :_tokens(tokens)
+    {
+    }
 
-     STRING_LITERAL_TYPE,
+    bool TcapTokenStream::hasNext()
+    {
+        return _readIndex < _tokens->size();
+    }
 
-     IDENTIFIER_TYPE,
+    TcapToken TcapTokenStream::advance()
+    {
+        if(_readIndex>=_tokens->size())
+            return TcapToken("", TcapTokenType::UNKNOWN_TYPE);
 
-     LPAREN_TYPE,
+        return _tokens->operator[](_readIndex++);
+    }
 
-     RPAREN_TYPE,
+    TcapToken TcapTokenStream::peek()
+    {
+        if(_readIndex>=_tokens->size())
+            return TcapToken("", TcapTokenType::UNKNOWN_TYPE);
 
-     EQ_TYPE,
+        return _tokens->operator[](_readIndex);
+    }
 
-     LOAD_TYPE,
 
-     APPLY_TYPE,
-
-     TO_TYPE,
-
-     LBRACKET_TYPE,
-
-     RBRACKET_TYPE,
-
-     RETAIN_TYPE,
-
-     ALL_TYPE,
-
-     COMMA_TYPE,
-
-     BY_TYPE,
-
-     STORE_TYPE,
-
-     FILTER_TYPE,
-
-     NONE_TYPE,
-
-     AT_SIGN_TYPE,
-
-     FUNC_TYPE,
-
-     METHOD_TYPE,
-
-     HOIST_TYPE,
-
-     FROM_TYPE,
-
-     GREATER_THAN_TYPE
-};
-
-#endif //PDB_TCAPLEXER_TOKENTYPE_H
+}

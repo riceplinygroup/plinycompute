@@ -78,7 +78,7 @@ namespace pdb_detail
         function<bool()> isAtIdChar = [&]
         {
             char c = source[pos];
-            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
         };
 
         string::size_type start = pos;
@@ -157,35 +157,33 @@ namespace pdb_detail
      * @param source the input string
      * @return the tokens found in source.
      */
-    shared_ptr<vector<Token>> lexTcapHelp(const string &source)
+    shared_ptr<vector<TcapToken>> lexTcapHelp(const string &source)
     {
         // tokenize the given source string and store the order of tokens and token types here
-        shared_ptr<vector<Token>> lexemesAccum = make_shared<vector<Token>>();
+        shared_ptr<vector<TcapToken>> tokens = make_shared<vector<TcapToken>>();
 
-        map<string,TokenType> reservedLexemeToTokenType;
-        reservedLexemeToTokenType["("]      =  TokenType::LPAREN_TYPE;
-        reservedLexemeToTokenType[")"]      =  TokenType::RPAREN_TYPE;
-        reservedLexemeToTokenType["="]      =  TokenType::EQ_TYPE;
-        reservedLexemeToTokenType["load"]   =  TokenType::LOAD_TYPE;
-        reservedLexemeToTokenType["apply"]  =  TokenType::APPLY_TYPE;
-        reservedLexemeToTokenType["to"]     =  TokenType::TO_TYPE;
-        reservedLexemeToTokenType["["]      =  TokenType::LBRACKET_TYPE;
-        reservedLexemeToTokenType["]"]      =  TokenType::RBRACKET_TYPE;
-        reservedLexemeToTokenType["retain"] =  TokenType::RETAIN_TYPE;
-        reservedLexemeToTokenType["all"]    =  TokenType::ALL_TYPE;
-        reservedLexemeToTokenType[","]      =  TokenType::COMMA_TYPE;
-        reservedLexemeToTokenType["by"]     =  TokenType::BY_TYPE;
-        reservedLexemeToTokenType["store"]  =  TokenType::STORE_TYPE;
-        reservedLexemeToTokenType["filter"] =  TokenType::FILTER_TYPE;
-        reservedLexemeToTokenType["none"]   =  TokenType::NONE_TYPE;
-        reservedLexemeToTokenType["@"]      =  TokenType::AT_SIGN_TYPE;
-        reservedLexemeToTokenType["func"]   =  TokenType::FUNC_TYPE;
-        reservedLexemeToTokenType["method"] =  TokenType::METHOD_TYPE;
-        reservedLexemeToTokenType["hoist"]  =  TokenType::HOIST_TYPE;
-        reservedLexemeToTokenType["from"]   =  TokenType::FROM_TYPE;
-        reservedLexemeToTokenType[">"]      =  TokenType::GREATER_THAN_TYPE;
-
-
+        map<string,TcapTokenType> reservedLexemeToTokenType;
+        reservedLexemeToTokenType["("]      =  TcapTokenType::LPAREN_TYPE;
+        reservedLexemeToTokenType[")"]      =  TcapTokenType::RPAREN_TYPE;
+        reservedLexemeToTokenType["="]      =  TcapTokenType::EQ_TYPE;
+        reservedLexemeToTokenType["load"]   =  TcapTokenType::LOAD_TYPE;
+        reservedLexemeToTokenType["apply"]  =  TcapTokenType::APPLY_TYPE;
+        reservedLexemeToTokenType["to"]     =  TcapTokenType::TO_TYPE;
+        reservedLexemeToTokenType["["]      =  TcapTokenType::LBRACKET_TYPE;
+        reservedLexemeToTokenType["]"]      =  TcapTokenType::RBRACKET_TYPE;
+        reservedLexemeToTokenType["retain"] =  TcapTokenType::RETAIN_TYPE;
+        reservedLexemeToTokenType["all"]    =  TcapTokenType::ALL_TYPE;
+        reservedLexemeToTokenType[","]      =  TcapTokenType::COMMA_TYPE;
+        reservedLexemeToTokenType["by"]     =  TcapTokenType::BY_TYPE;
+        reservedLexemeToTokenType["store"]  =  TcapTokenType::STORE_TYPE;
+        reservedLexemeToTokenType["filter"] =  TcapTokenType::FILTER_TYPE;
+        reservedLexemeToTokenType["none"]   =  TcapTokenType::NONE_TYPE;
+        reservedLexemeToTokenType["@"]      =  TcapTokenType::AT_SIGN_TYPE;
+        reservedLexemeToTokenType["func"]   =  TcapTokenType::FUNC_TYPE;
+        reservedLexemeToTokenType["method"] =  TcapTokenType::METHOD_TYPE;
+        reservedLexemeToTokenType["hoist"]  =  TcapTokenType::HOIST_TYPE;
+        reservedLexemeToTokenType["from"]   =  TcapTokenType::FROM_TYPE;
+        reservedLexemeToTokenType[">"]      =  TcapTokenType::GREATER_THAN_TYPE;
 
         string::size_type pos = 0; // the current read position in source
         while(true) // each loop adds one (or zero if done) lexeme to lexemesAccum and breaks when source
@@ -207,11 +205,11 @@ namespace pdb_detail
 
                 if (lexeme != "") // if no errors consuming the string
                 {
-                    lexemesAccum->push_back(Token(lexeme, TokenType::STRING_LITERAL_TYPE));
+                    tokens->push_back(TcapToken(lexeme, TcapTokenType::STRING_LITERAL_TYPE));
                 }
                 else
                 {
-                    lexemesAccum->push_back(Token(lexeme, TokenType::UNKNOWN_TYPE));
+                    tokens->push_back(TcapToken(lexeme, TcapTokenType::UNKNOWN_TYPE));
                 }
 
                 continue; // read next token
@@ -227,8 +225,8 @@ namespace pdb_detail
 
                 if (lexeme != "") // a match for some reserved token!
                 {
-                    TokenType reservedType = kv.second;
-                    lexemesAccum->push_back(Token(lexeme, reservedType));
+                    TcapTokenType reservedType = kv.second;
+                    tokens->push_back(TcapToken(lexeme, reservedType));
                     goto outerLoop; // read next token
                 }
             }
@@ -239,24 +237,24 @@ namespace pdb_detail
 
             if(lexeme != "") // if well formed identifier
             {
-                lexemesAccum->push_back(Token(lexeme, TokenType::IDENTIFIER_TYPE));
+                tokens->push_back(TcapToken(lexeme, TcapTokenType::IDENTIFIER_TYPE));
             }
             else
             {
                 string token = source.substr(pos, 1); // malformed input. eat one char and keep going
-                lexemesAccum->push_back(Token(token, TokenType::UNKNOWN_TYPE));
+                tokens->push_back(TcapToken(token, TcapTokenType::UNKNOWN_TYPE));
                 pos++;
             }
         }
 
-      return lexemesAccum;
+      return tokens;
     }
 
     // contract from .h
-    TokenStream lexTcap(const string &source)
+    TcapTokenStream lexTcap(const string &source)
     {
-        shared_ptr<vector<Token>> lexemesAccum = lexTcapHelp(source);
-        return TokenStream(lexemesAccum);
+        shared_ptr<vector<TcapToken>> tokens = lexTcapHelp(source);
+        return TcapTokenStream(tokens);
     }
 
 }

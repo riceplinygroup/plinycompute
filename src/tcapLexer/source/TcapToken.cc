@@ -15,33 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPLEXER_LEXEME_H
-#define PDB_TCAPLEXER_LEXEME_H
-
-#include <string>
-
-#include "TokenType.h"
-
-using std::string;
+#include "TcapToken.h"
 
 namespace pdb_detail
 {
-    /**
-     * A lexcial unit and its token type value.
-     */
-    class Token
+    TcapToken::TcapToken(string lexeme, TcapTokenType tokenType) : lexeme(lexeme), tokenType(tokenType)
     {
-
-    public:
-
-        const string lexeme;
-
-        const TokenType tokenType;
-
-        Token(string lexeme, TokenType tokenType);
-
-    };
+    }
 
 }
 
-#endif //PDB_TCAPLEXER_LEXEME_H

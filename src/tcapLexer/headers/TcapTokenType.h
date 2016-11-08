@@ -15,42 +15,63 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
-#include "TokenStream.h"
+#ifndef PDB_TCAPLEXER_TOKENTYPE_H
+#define PDB_TCAPLEXER_TOKENTYPE_H
 
-namespace pdb_detail
+/**
+ * The types of TCAP tokens.
+ */
+enum TcapTokenType
 {
+     UNKNOWN_TYPE,
 
-    TokenStream::TokenStream(shared_ptr<vector<Token>>tokens) :_tokens(tokens)
-    {
-    }
+     MEMO_TYPE,
 
-    bool TokenStream::hasNext()
-    {
-        return _readIndex < _tokens->size();
-    }
+     STRING_LITERAL_TYPE,
 
-    Token TokenStream::advance()
-    {
-        if(_readIndex>=_tokens->size())
-            return Token("", TokenType::UNKNOWN_TYPE);
+     IDENTIFIER_TYPE,
 
-        return _tokens->operator[](_readIndex++);
-    }
+     LPAREN_TYPE,
 
-    Token TokenStream::peek()
-    {
-        return _tokens->operator[](_readIndex);
-    }
+     RPAREN_TYPE,
 
-// useful for debugging.
-//
-//        void TokenStream::printTypes()
-//        {
-//            for(int i = _readIndex; i<_tokens->size(); i++)
-//            {
-//                std::cerr << _tokens->operator[](i).tokenType << "\n";
-//            }
-//        }
+     EQ_TYPE,
 
-}
+     LOAD_TYPE,
+
+     APPLY_TYPE,
+
+     TO_TYPE,
+
+     LBRACKET_TYPE,
+
+     RBRACKET_TYPE,
+
+     RETAIN_TYPE,
+
+     ALL_TYPE,
+
+     COMMA_TYPE,
+
+     BY_TYPE,
+
+     STORE_TYPE,
+
+     FILTER_TYPE,
+
+     NONE_TYPE,
+
+     AT_SIGN_TYPE,
+
+     FUNC_TYPE,
+
+     METHOD_TYPE,
+
+     HOIST_TYPE,
+
+     FROM_TYPE,
+
+     GREATER_THAN_TYPE
+};
+
+#endif //PDB_TCAPLEXER_TOKENTYPE_H

@@ -6,8 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/headers/SimpleRequest.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/communication/source/PDBCommunicator.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TcapLexer.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TokenStream.cc" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/Token.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TcapTokenStream.cc" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapLexer/source/TcapToken.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/TcapAttribute.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/LoadOperation.cc" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../../src/tcapParser/source/HoistOperation.cc" isTestSource="false" />
