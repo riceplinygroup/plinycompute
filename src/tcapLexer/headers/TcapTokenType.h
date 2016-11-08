@@ -23,55 +23,53 @@
  */
 enum TcapTokenType
 {
-     UNKNOWN_TYPE,
+     UNKNOWN_TYPE, // an unexpected lexeme in the string
 
-     MEMO_TYPE,
+     STRING_LITERAL_TYPE, // "\"*"
 
-     STRING_LITERAL_TYPE,
+     IDENTIFIER_TYPE, // (letter | digit)+   except a keyword
 
-     IDENTIFIER_TYPE,
+     LPAREN_TYPE, // (
 
-     LPAREN_TYPE,
+     RPAREN_TYPE, // )
 
-     RPAREN_TYPE,
+     EQ_TYPE, // =
 
-     EQ_TYPE,
+     LOAD_TYPE, // load
 
-     LOAD_TYPE,
+     APPLY_TYPE, // apply
 
-     APPLY_TYPE,
+     TO_TYPE, // to
 
-     TO_TYPE,
+     LBRACKET_TYPE, // [
 
-     LBRACKET_TYPE,
+     RBRACKET_TYPE, // ]
 
-     RBRACKET_TYPE,
+     RETAIN_TYPE, // retain
 
-     RETAIN_TYPE,
+     ALL_TYPE, // all
 
-     ALL_TYPE,
+     COMMA_TYPE, // ,
 
-     COMMA_TYPE,
+     BY_TYPE, // by
 
-     BY_TYPE,
+     STORE_TYPE, // store
 
-     STORE_TYPE,
+     FILTER_TYPE, // filter
 
-     FILTER_TYPE,
+     NONE_TYPE, // none
 
-     NONE_TYPE,
+     AT_SIGN_TYPE,  // @
 
-     AT_SIGN_TYPE,
+     FUNC_TYPE, // func
 
-     FUNC_TYPE,
+     METHOD_TYPE, // method
 
-     METHOD_TYPE,
+     HOIST_TYPE, // hoist
 
-     HOIST_TYPE,
+     FROM_TYPE, // from
 
-     FROM_TYPE,
-
-     GREATER_THAN_TYPE
+     GREATER_THAN_TYPE // >
 };
 
 #endif //PDB_TCAPLEXER_TOKENTYPE_H

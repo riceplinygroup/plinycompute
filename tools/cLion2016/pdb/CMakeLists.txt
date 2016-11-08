@@ -96,11 +96,24 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/TcapIdentifier.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc
-        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
+#        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
         ../../../src/work/source/PDBWork.cc
         ../../../src/work/source/PDBWorker.cc
+        ../../../src/tcapParser/source/ApplyOperation.cc
+        ../../../src/tcapParser/source/BinaryOperation.cc
+        ../../../src/tcapParser/source/FilterOperation.cc
+        ../../../src/tcapParser/source/GreaterThanOp.cc
+        ../../../src/tcapParser/source/HoistOperation.cc
+        ../../../src/tcapParser/source/LoadOperation.cc
+        ../../../src/tcapParser/source/RetainAllClause.cc
+        ../../../src/tcapParser/source/RetainExplicitClause.cc
+        ../../../src/tcapParser/source/RetainNoneClause.cc
+        ../../../src/tcapParser/source/StringLiteral.cc
+        ../../../src/tcapParser/source/StoreOperation.cc
+        ../../../src/tcapParser/source/TableAssignment.cc
+        ../../../src/tcapParser/source/TcapStatement.cc
         ../../../src/tcapParserTests/source/ParseTcapTests.cc
         ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc
         ../../../src/tcapIntermediaryRepTests/source/TcapIrTestsRunner.cc
@@ -114,8 +127,9 @@ set(SOURCE_FILES
         ../../../src/tcapIntermediaryRep/source/Store.cc
         ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/StringLiteral.cc ../../../src/tcapParser/source/ApplyOperation.cc ../../../src/tcapParser/source/BinaryOperation.cc ../../../src/tcapParser/source/FilterOperation.cc ../../../src/tcapParser/source/GreaterThanOp.cc ../../../src/tcapParser/source/HoistOperation.cc ../../../src/tcapParser/source/LoadOperation.cc ../../../src/tcapParser/source/RetainAllClause.cc ../../../src/tcapParser/source/RetainNoneClause.cc ../../../src/tcapParser/source/RetainExplicitClause.cc ../../../src/tcapParser/source/StoreOperation.cc ../../../src/tcapParser/source/TableAssignment.cc ../../../src/tcapParser/source/TcapStatement.cc)
-    #    ../../../src/tests/source/Test47.cc)
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
+
+        ../../../src/tests/source/Test47.cc)
 
 
 

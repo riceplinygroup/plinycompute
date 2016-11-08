@@ -16,16 +16,22 @@
  *                                                                           *
  *****************************************************************************/
 
+#include <memory>
+
 #include "Handle.h"
 #include "Lambda.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "FilterQueryExecutor.h"
+#include "LogicalPlanBuilder.h"
 #include "LambdaCreationFunctions.h"
 #include "Lexer.h"
 #include "Parser.h"
 #include "Pipeline.h"
 #include "TupleSetIterator.h"
+
+using std::shared_ptr;
+
 
 using namespace pdb;
 
@@ -65,40 +71,19 @@ int main () {
 		std :: cout << a.first << "\n";
 	}
 
-	// here is a hand compilation of the plan for the above selection
-        std :: string myLogicalPlan =
+	string program = "A(a) = load \"myDB mySet\"\n"
+			"@exec \"attAccess_2\"\n"
+			"B(a,b) = hoist \"someAtt\" from A[a] retain all\n"
+			"@exec \"methodCall_1\"\n"
+			"C(a,b,c) = apply method \"someMethod\" to B[a] retain all\n"
+			"@exec \"==_0\"\n"
+			"D(a,b) = apply func \"someFunc\" to C[c,b] retain a\n"
+			"E(a) = filter D by b retain a\n"
+			"@exec \"methodCall_3\"\n"
+			"F(a,b) = apply method \"someMethod\" to E[a] retain a\n"
+			"store F[b] \"myDB mySet\"";
 
-                "Outputs:                                       \n      \
-                                                                \n      \
-                 (\"myDB\", \"mySet\") <= F(b)                  \n      \
-                                                                \n      \
-                Inputs:                                         \n      \
-                                                                \n      \
-                A(a) <= (\"myDB\", \"mySet\")                   \n      \
-                                                                \n      \
-                Computations:                                   \n      \
-                                                                \n      \
-		F (a, b) <= Apply (E (a), E (a), \"methodCall_3\")   	\n      \
-                E (a) <=  Filter (D(b), D(a))                   	\n      \
-                D (a, b) <= Apply (C(c, b), C(a), \"==_0\")  		\n      \
-                C(a, b, c) <= Apply (B(a), B(a, b), \"methodCall_1\")  	\n      \
-                B(a, b) <= Apply (A(a), A(a), \"attAccess_2\")";
-
-
-	// parse the logical plan
-        myLogicalPlan.push_back ('\0');
-        yyscan_t scanner;
-        LexerExtra extra { "" };
-        yylex_init_extra (&extra, &scanner);
-        const YY_BUFFER_STATE buffer { yy_scan_string (myLogicalPlan.data(), scanner) };
-        LogicalPlan *final = nullptr;
-        const int parseFailed { yyparse (scanner, &final) };
-        yy_delete_buffer (buffer, scanner);
-        yylex_destroy (scanner);
-
-        if (parseFailed) {
-                std :: cout << "Parse error: " << extra.errorMessage;
-        }
+	shared_ptr<LogicalPlan> final = buildLogicalPlan(program);
 
 	// create a, loading with random data
 	void *myPage = malloc (1024 * 1024);
@@ -180,5 +165,5 @@ int main () {
 	// clean everything up!!
 	supers = nullptr;
 	free (myPage);
-	delete final;
+//	delete final;
 }
