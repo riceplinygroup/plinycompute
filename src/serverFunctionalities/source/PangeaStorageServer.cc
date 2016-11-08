@@ -311,7 +311,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
                         std :: string errMsg;
-                        bool res = false;
+                        bool res = true;
                         if (standalone == true) {
                             res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
                             if (res == false) {
@@ -345,7 +345,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        forMe.registerHandler (StorageAddSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddSet>> (
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                          std :: string errMsg;
-                         bool res = false;
+                         bool res = true;
                          if (standalone == true) {
                              bool res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
                              if (res == false) {
@@ -357,8 +357,13 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                     errMsg = "Could not find type " + request->getTypeName();
                                                     res = false;
                                           } else {
+                                                    std :: cout << "to add set in catalog" << std :: endl;
                                                     res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
-
+                                                    if (res == true) {
+                                                        std :: cout << "success" << std :: endl;
+                                                    } else {
+                                                        std :: cout << "failed" << std :: endl;
+                                                    }
                                           }
 
                              }
