@@ -258,6 +258,7 @@ common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/St
 
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
+common_env.Program('bin/MasterServerTest', ['build/tests/MasterServerTest.cc'] + all)
 common_env.Program('bin/test14', ['build/tests/Test14.cc'] + all)
 common_env.Program('bin/test16', ['build/tests/Test16.cc'] + all)
 common_env.Program('bin/test18', ['build/tests/Test18.cc'] + all)

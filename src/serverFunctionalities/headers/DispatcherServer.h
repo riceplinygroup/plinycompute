@@ -87,8 +87,15 @@ private:
     Handle<Vector<Handle<NodeDispatcherData>>> storageNodes;
     std::map<std::pair<std::string, std::string>, PartitionPolicyPtr> partitionPolicies;
 
+    /**
+     * Validates with the catalog that a request to store data is correct
+     * @return true if the type matches the known set
+     */
+    bool validateTypes(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string& errMsg);
+
     bool sendData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<NodeDispatcherData> destination,
                   Handle<Vector<Handle<Object>>> toSend);
+
     Handle<NodeDispatcherData> findNode(NodeID nodeId);
 
 };

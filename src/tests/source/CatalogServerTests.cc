@@ -74,7 +74,7 @@ int main (int argc, char * argv[]) {
        frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
 
        string errMsg = " ";
-       pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String(localIP + ":" + std::to_string(localPort)), String(localIP), masterPort, String(nodeName), String(nodeType), 1);
+       pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String(localIP + ":" + std::to_string(localPort)), String(localIP), localPort, String(nodeName), String(nodeType), 1);
 
        // if it's not the master catalog node, use a client to remotely register this node metadata
        if ( isMasterCatalog == false ) {

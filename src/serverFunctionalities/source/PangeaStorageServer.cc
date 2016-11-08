@@ -313,19 +313,14 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         std :: string errMsg;
                         bool res = false;
 
-                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true) {
+                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true
+                                && standalone) {
                             res = false;
                             errMsg = "Database already exists\n";
                         } else {
-
-                        //add a database in local
                             if ((res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase())) == false) {
                                  errMsg = "Database already exists\n";
-                        } else {
-
-                                // register Metadata for created database in the catalog
-                                         res = getFunctionality<CatalogServer> ().addDatabase (request->getDatabase(), errMsg);
-                                 }
+                            }
                         }
                         
                         //make response
@@ -345,40 +340,18 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string errMsg;
                          bool res = false;
 
-                         // first make sure the database is registered in the catalog
-                         if ((res = getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase()) == false)) {
-                             errMsg = "Database doesn't exist\n";
+                         if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
+                             errMsg = "Set already exists\n";
                              cout << errMsg << endl;
-                         } else{
-                             // make sure the set is not registered in the catalog
-                             if ((getFunctionality<CatalogServer> ().isSetRegistered (request->getDatabase(), request->getSetName())) == true) {
-                                 res = false;
-                                 errMsg = "Set already exists\n";
-                                 cout << errMsg << endl;
-
-                             } else {
-                         //add a set in local
-                                 if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
-
-                                 errMsg = "Set already exists\n";
-                                         cout << errMsg << endl;
-
                          } else {
-                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
-                                          std :: cout << "TypeID ="<< typeID << std :: endl;
-                                      // make sure the type is registered in the catalog
-                                          if (typeID == -1) {
-                                                    errMsg = "Could not find type " + request->getTypeName();
-                                          cout << errMsg << endl;
-
-                                                    res = false;
-                                          } else {
-                                          // register metadata for created set in the Catalog
-                                                    res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
-
-                                          }
-                                 }
-                             }
+                             int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                             std :: cout << "TypeID ="<< typeID << std :: endl;
+                             // make sure the type is registered in the catalog
+                             if (typeID == -1) {
+                                errMsg = "Could not find type " + request->getTypeName();
+                                cout << errMsg << endl;
+                                res = false;
+                              }
                          }
 
                          // make the response
@@ -446,12 +419,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string setName = request->getSetName();
                          bool res = false;
                          if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
-                             if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName)) == false) {
+                             if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
                                  errMsg = "Error removing set!\n";
                                  cout << errMsg << endl;
-                             }else{
-                                 // deletes set in catalog
-                                 res = getFunctionality<CatalogServer>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
                              }
                          } else {
                                  errMsg = "Set doesn't exist\n";
@@ -481,7 +451,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                  errMsg = "Error removing set!\n";
                                  cout << errMsg << endl;
                              }
-
                          } else {
                                  errMsg = "Set doesn't exist\n";
                          }

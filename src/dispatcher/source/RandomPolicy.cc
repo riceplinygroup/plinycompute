@@ -68,7 +68,7 @@ std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle
 }
 
 NodePartitionDataPtr RandomPolicy :: updateExistingNode(NodePartitionDataPtr newNode, NodePartitionDataPtr oldNode) {
-    std::cout << "Updating existing node " << oldNode->toString() << std::endl;
+    std::cout << "Updating existing node " << newNode->toString() << std::endl;
     return oldNode;
 }
 

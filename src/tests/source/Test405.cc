@@ -20,8 +20,10 @@
 
 #include "PDBServer.h"
 #include "DistributedStorageManagerClient.h"
+#include "DispatcherClient.h"
 #include "CatalogClient.h"
 
+#include "SharedEmployee.h"
 #include "StorageAddDatabase.h"
 
 int main (int argc, char * argv[]) {
@@ -32,8 +34,10 @@ int main (int argc, char * argv[]) {
     }
     port = atoi(argv[1]);
     pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
-    // pdb::CatalogClient catalogClient = pdb::CatalogClient(port, "localhost", logger);
     pdb::DistributedStorageManagerClient client = pdb::DistributedStorageManagerClient(port, "localhost", logger);
+
+    // Add this in so the dispatcher can build the correct type
+    pdb::CatalogClient catalogClient = pdb::CatalogClient(port, "localhost", logger);
 
     std::string err;
 
@@ -85,6 +89,38 @@ int main (int argc, char * argv[]) {
             std::cout << "Failure: " << err << std::endl;
             return 1;
         }
+    }
+
+    if (argv[2][0] == 'e') {
+
+        pdb::DispatcherClient dispatcherClient = pdb::DispatcherClient(port, "localhost", make_shared <pdb :: PDBLogger> ("Test405log"));
+        dispatcherClient.registerSet(std::pair<std::string, std::string>("joseph_set", "joseph_db"), pdb::PartitionPolicy::Policy::RANDOM, err);
+
+        void *storage = malloc (96 * 1024);
+        pdb :: makeObjectAllocatorBlock(storage, 1024 * 96, true);
+
+        {
+            pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
+                    pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
+            try {
+                for (int i = 0; i < 512; i++) {
+                    pdb :: Handle <SharedEmployee> myData =
+                            pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
+                    storeMe->push_back (myData);
+                    cout << myData.getTypeCode() << std::endl;
+                }
+            } catch (pdb :: NotEnoughSpace &n) {
+
+            }
+            for (int i = 0; i < 10; i++) {
+                std::cout << "Dispatching a vector of size " <<  storeMe->size() << std::endl;
+                if (!dispatcherClient.sendData<SharedEmployee>(std::pair<std::string, std::string>("joseph_set", "joseph_db"), storeMe, err)) {
+                    std::cout << "Failed to send data to dispatcher server" << std::endl;
+                    return 1;
+                }
+            }
+        }
+        free(storage);
     }
 }
 

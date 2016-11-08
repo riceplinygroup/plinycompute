@@ -36,6 +36,7 @@ public:
 
     NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName);
 
+    std::string toString() const;
     NodeID getNodeId() const;
     int getPort() const;
     std::string getAddress() const;
@@ -43,16 +44,9 @@ public:
     std::string getDatabaseName() const;
     size_t getTotalBytesSent() const;
 
-    // TODO: Move this
-
     bool operator==(const NodePartitionData& other) {
         return this->port == other.getPort() && this->address == other.getAddress();
     }
-
-    std::string toString() {
-        return std::to_string(this->port) + ":" + this->address;
-    }
-
 
 private:
 
