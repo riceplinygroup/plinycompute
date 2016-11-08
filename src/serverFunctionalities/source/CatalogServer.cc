@@ -232,7 +232,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 			// ask the catalog server for the type ID and then the name of the type
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
-
+                        std :: cout << "typeID = " << typeID << std :: endl;
 			// make the response
 			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <CatTypeNameSearchResult> response;
@@ -495,7 +495,7 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 }
 
 int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: string setName) {
-	//cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
+	cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
 	if (setTypes.count (make_pair (databaseName, setName)) == 0)
 		return -1;
 

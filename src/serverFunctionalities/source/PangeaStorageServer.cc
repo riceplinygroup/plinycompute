@@ -312,9 +312,16 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
                         std :: string errMsg;
                         bool res = false;
+                        if (standalone == true) {
+                            res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase());
+                            if (res == false) {
+                                 errMsg = "Database already exists\n";
+                            } else {
+                                res = getFunctionality<CatalogServer>().addDatabase (request->getDatabase(), errMsg);
+                            }
 
-                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true
-                                && standalone) {
+                        } else {
+                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true) {
                             res = false;
                             errMsg = "Database already exists\n";
                         } else {
@@ -322,7 +329,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                  errMsg = "Database already exists\n";
                             }
                         }
-                        
+                        }
                         //make response
                         const UseTemporaryAllocationBlock tempBlock{1024};
                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -339,7 +346,23 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                          std :: string errMsg;
                          bool res = false;
+                         if (standalone == true) {
+                             bool res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
+                             if (res == false) {
+                                 errMsg = "Set already exists\n";
+                             } else {
+                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                                          std :: cout << "TypeID ="<< typeID << std :: endl;
+                                          if (typeID == -1) {
+                                                    errMsg = "Could not find type " + request->getTypeName();
+                                                    res = false;
+                                          } else {
+                                                    res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
 
+                                          }
+
+                             }
+                         } else {
                          if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
                              errMsg = "Set already exists\n";
                              cout << errMsg << endl;
@@ -353,7 +376,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 res = false;
                               }
                          }
-
+                         }
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -391,16 +414,24 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
         // this handler requests to add a temp set
         forMe.registerHandler (StorageRemoveDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveDatabase>> (
                 [&] (Handle <StorageRemoveDatabase> request, PDBCommunicatorPtr sendUsingMe) {
-
+                    
                     std :: string errMsg;
                     std::string databaseName = request->getDatabase();
-
+                    bool res;
                     std::cout << "Deleting database " << databaseName << std::endl;
-                    bool res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
-                    if (res == false) {
-                        errMsg = "Failed to delete database\n";
+                    if (standalone == true) {
+                         res = getFunctionality<PangeaStorageServer>(). removeDatabase(databaseName);
+                         if (res == false) {
+                             errMsg = "Failed to delete database\n";
+                         } else {
+                             res = getFunctionality<CatalogServer>().deleteDatabase(databaseName, errMsg);
+                         }                      
+                    } else {
+                        res = getFunctionality<PangeaStorageServer>().removeDatabase(databaseName);
+                        if (res == false) {
+                            errMsg = "Failed to delete database\n";
+                         }
                     }
-
                     // make the response
                     const UseTemporaryAllocationBlock tempBlock{1024};
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -418,16 +449,27 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string typeName = request->getTypeName ();
                          std :: string setName = request->getSetName();
                          bool res = false;
-                         if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
-                             if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
-                                 errMsg = "Error removing set!\n";
-                                 cout << errMsg << endl;
+                         if (standalone == true) {
+                             bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
+                             if (res == false) {
+                                 errMsg = "Set doesn't exist\n";
                              }
+
+                             // deletes set in catalog
+                             res = getFunctionality<CatalogServer>().deleteSet(request->getDatabase(), request->getSetName(), errMsg);
+
+
                          } else {
+                             if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
+                                 if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
+                                     errMsg = "Error removing set!\n";
+                                     cout << errMsg << endl;
+                             }
+                     } else {
                                  errMsg = "Set doesn't exist\n";
                                  cout << errMsg << endl;
-                         }
-
+                            }
+                 }
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);

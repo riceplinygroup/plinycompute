@@ -82,7 +82,7 @@ int main (int argc, char * argv[] ) {
                } else {
                    //I'm the frontend server
                    pdb :: PDBServer frontEnd (8108, 100, logger);
-                   frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
+                   frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf, standalone);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                    frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>();
                    if (standalone == true) {
