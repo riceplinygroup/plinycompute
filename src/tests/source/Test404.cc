@@ -31,29 +31,45 @@
 
 int main (int argc, char * argv[]) {
     int port = 8108;
-    if (argc >= 2) {
-        port = atoi(argv[1]);
+    string masterIp;
+    if (argc >= 3) {
+        masterIp = argv[1];
+        port = atoi(argv[2]);
+    } else {
+        std :: cout << "[Usage] #masterIp #port" << std :: endl;
+        exit (-1);
     }
-
+  
     std::cout << "Starting up a distributed storage manager server\n";
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 100, myLogger);
     
-       ConfigurationPtr conf = make_shared < Configuration > ();
-       SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), myLogger);
-       conf->printOut();
-       frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), myLogger, conf, true);
-       frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+    ConfigurationPtr conf = make_shared < Configuration > ();
+    SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), myLogger);
+    conf->printOut();
     
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false);
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
+
+    // to register this node
+    string nodeName = "master";
+    string nodeType = "master";
+    pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(port)), String("localhost"), port, String(nodeName), String(nodeType), 1);
+    std :: string errMsg;
+    if (!frontEnd.getFunctionality<pdb::CatalogClient>().registerNodeMetadata (nodeData, errMsg)) {
+             std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
+             std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
+    } else {
+             std :: cout << "Node metadata successfully added. \n";
+    }
+
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
-    /*
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
+
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
-    */
+    
     frontEnd.addFunctionality<pdb::QuerySchedulerServer>(myLogger);
     frontEnd.startServer(nullptr);
 
