@@ -128,12 +128,17 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {
 		
 		// make sure no one is modifying the map
-		const LockGuard guard {theVTable->myLock};
-	
+		//const LockGuard guard {theVTable->myLock};
+//                std :: stringstream ss;
+//                ss << &(theVTable->myLock);
+//                std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
+	        pthread_mutex_lock(&theVTable->myLock);
+//                std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
 		// in this case, we do not have this object type, and we have never looked for it before
 		// so, go to the catalog and ask for it...
 		int16_t identifier = lookupTypeNameInCatalog (objectTypeName); 
-
+                pthread_mutex_unlock(&theVTable->myLock);
+//                std :: cout << "released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
 		// if the identifier is -1, then it means the catalog has never seen this type before
 		// so let the caller know, and remember that we have not seen it
 		if (identifier == -1) {
@@ -157,19 +162,41 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 }
 
 inline void VTableMap :: setCatalogClient (CatalogClient *catalogIn) {
-	const LockGuard guard {theVTable->myLock};
+	//const LockGuard guard {theVTable->myLock};
+//        std :: stringstream ss;
+//        ss << &(theVTable->myLock);
+//        std :: cout << "to get lock at " << ss.str() << "in setCatalogClient" << std :: endl;
+        pthread_mutex_lock(&theVTable->myLock);
+//        std :: cout << "got lock at " << ss.str() << " in setCatalogClient" << std :: endl;
+
 	theVTable->catalog = catalogIn;
+        pthread_mutex_unlock(&theVTable->myLock);
+//        std :: cout << "released lock at " << ss.str() << " in setCatalogClient" << std :: endl;
 }
 
 inline CatalogClient * VTableMap :: getCatalogClient () {
-	const LockGuard guard {theVTable->myLock};
-	return theVTable->catalog;
+	//const LockGuard guard {theVTable->myLock};
+//        std :: stringstream ss;
+//        ss << &(theVTable->myLock);
+//        std :: cout << "to get lock at " << ss.str() << "in getCatalogClient" << std :: endl;
+        pthread_mutex_lock(&theVTable->myLock);
+//        std :: cout << "got lock at " << ss.str() << " in getCatalogClient" << std :: endl;
+	CatalogClient * client = theVTable->catalog;
+        pthread_mutex_unlock(&theVTable->myLock);
+//        std :: cout << "released lock at " << ss.str() << " in getCatalogClient" << std :: endl;
+        return client;
 }
 
 extern bool inSharedLibrary;
 
 inline VTableMap :: ~VTableMap () {
-	const LockGuard guard {theVTable->myLock};
+	//const LockGuard guard {theVTable->myLock};
+//        std :: stringstream ss;
+//        ss << &(theVTable->myLock);
+//        std :: cout << "to get lock at " << ss.str() << "in destructor" << std :: endl;
+        pthread_mutex_lock(&theVTable->myLock);
+//        std :: cout << "got lock at " << ss.str() << " in destructor" << std :: endl;
+
 	if (!inSharedLibrary)
 		for (void *v : theVTable->so_handles) {
 			int res = dlclose (v);
@@ -178,6 +205,9 @@ inline VTableMap :: ~VTableMap () {
                         
 		} 
 	theVTable->so_handles.clear ();
+        pthread_mutex_unlock(&theVTable->myLock);
+//        std :: cout << "released lock at " << ss.str() << " in destructor" << std :: endl;
+
 }
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
@@ -190,11 +220,17 @@ inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 	}
 
 	// we do not, so get the lock...
-	const LockGuard guard {theVTable->myLock};
-
+	//const LockGuard guard {theVTable->myLock};
+//        std :: stringstream ss;
+//        ss << &(theVTable->myLock);
+//        std :: cout << "to get lock at " << ss.str() << "in getVTablePtr with typeId=" << objectTypeID << std :: endl;
+        pthread_mutex_lock(&theVTable->myLock);
+//        std :: cout << "got lock at " << ss.str() << " in getVTablePtr" << std :: endl;
 	// before we go out to the network for the v table pointer, just verify
 	// that another thread has not since gotten it for us
 	returnVal = theVTable->allVTables[objectTypeID];
+        pthread_mutex_unlock(&theVTable->myLock);
+//        std :: cout << "released lock at " << ss.str() << " in getVTablePtr" << std :: endl;
 	if (returnVal != nullptr) {
 		return returnVal;
 	} else {
