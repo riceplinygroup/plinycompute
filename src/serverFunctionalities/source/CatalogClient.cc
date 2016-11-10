@@ -143,7 +143,7 @@ bool CatalogClient :: shutDownServer (std :: string &errMsg) {
 }
 
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
-
+        std :: cout << "searchForObjectTypeName for " << objectTypeName << std :: endl;
 	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024,
 		[&] (Handle <CatTypeSearchResult> result) {
 			if (result != nullptr){
