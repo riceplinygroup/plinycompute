@@ -95,7 +95,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet ("chris_db", "chris_set", "Supervisor", errMsg)) {
+        if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
         } else {
                 cout << "Created set.\n";

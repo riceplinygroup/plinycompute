@@ -54,7 +54,7 @@ int main (int argc, char * argv[]) {
     // to register this node
     string nodeName = "master";
     string nodeType = "master";
-    pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(port)), String("localhost"), port, String(nodeName), String(nodeType), 1);
+/*    pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(port)), String("localhost"), port, String(nodeName), String(nodeType), 1);
     std :: string errMsg;
     if (!frontEnd.getFunctionality<pdb::CatalogClient>().registerNodeMetadata (nodeData, errMsg)) {
              std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
@@ -62,7 +62,7 @@ int main (int argc, char * argv[]) {
     } else {
              std :: cout << "Node metadata successfully added. \n";
     }
-
+*/
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
 
