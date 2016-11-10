@@ -452,10 +452,11 @@ template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Han
 template bool CatalogClient :: registerGenericMetadata<CatalogDatabaseMetadata> (Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
 template bool CatalogClient :: registerGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
 
+template bool CatalogClient :: deleteGenericMetadata<CatDeleteDatabaseRequest> (Handle<CatDeleteDatabaseRequest> metadataItem, string &errMsg);
 template bool CatalogClient :: deleteGenericMetadata<CatDeleteSetRequest> (Handle<CatDeleteSetRequest> metadataItem, string &errMsg);
+
 //TODO change these template type with correct type
 //template bool CatalogClient :: deleteGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);
-//template bool CatalogClient :: deleteGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
 
 }
 #endif

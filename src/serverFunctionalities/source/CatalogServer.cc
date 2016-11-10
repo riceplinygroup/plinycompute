@@ -857,8 +857,59 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
 
 bool CatalogServer :: deleteDatabase (std :: string databaseName, std :: string &errMsg) {
 
-    //TODO
-    return true;
+    if (isDatabaseRegistered(databaseName) == false) {
+        errMsg = "Database does not exist.\n";
+        cout << errMsg << endl;
+        return false;
+    }
+
+    int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+    Handle <CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
+    Handle <Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject < Vector < CatalogDatabaseMetadata >> ();
+
+    if (pdbCatalog->getMetadataFromCatalog(false, databaseName, vectorResultItems, errMsg, catalogType) == false) {
+        errMsg = "Database does not exist.\n";
+        cout << errMsg << endl;
+        return false;
+    }
+
+    if ((*vectorResultItems).size() == 0 ) {
+        errMsg = "Database does not exist.\n";
+        cout << errMsg << endl;
+        return false;
+    }
+    *dbMetadataObject = (*vectorResultItems)[0];
+
+    // Delete all the sets in the database
+    for (int i = 0; i < dbMetadataObject->getListOfSets()->size(); i++) {
+        if (!deleteSet(databaseName, (* dbMetadataObject->getListOfSets())[i], errMsg)) {
+            errMsg = "Failed to delete set ";
+            errMsg += (* dbMetadataObject->getListOfSets())[i].c_str();
+        }
+    }
+
+    // after it registered the database metadata in the local catalog, iterate over all nodes,
+    // make connections and broadcast the objects
+    if (isMasterCatalogServer){
+        // get the results of each broadcast
+        map<string, pair <bool, string>> updateResults;
+        errMsg = "";
+
+        Handle<CatDeleteDatabaseRequest> databaseToRemove = makeObject<CatDeleteDatabaseRequest>(databaseName);
+        broadcastCatalogDelete (databaseToRemove, updateResults, errMsg);
+
+        for (auto &item : updateResults){
+            // adds node info to database metadata
+            cout << "DB metadata broadcasted to node IP: " << item.first
+                    << ((item.second.first == true) ? " deleted correctly!" : " couldn't be deleted due to error: ")
+                    << item.second.second << endl;
+        }
+    }
+    else{
+        cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
+    }
+
+    return pdbCatalog->deleteMetadataInCatalog( dbMetadataObject, catalogType, errMsg);
 }
 
 
