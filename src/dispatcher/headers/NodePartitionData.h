@@ -32,8 +32,6 @@ typedef std::shared_ptr<NodePartitionData> NodePartitionDataPtr;
 class NodePartitionData {
 public:
 
-    NodePartitionData(Handle<NodeDispatcherData> nodeData, std::pair<std::string, std::string> setAndDatabaseName);
-
     NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName);
 
     std::string toString() const;

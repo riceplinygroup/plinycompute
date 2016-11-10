@@ -22,12 +22,16 @@
 
 namespace pdb {
 
-    NodePartitionData::NodePartitionData(Handle<NodeDispatcherData> nodeData, std::pair<std::string, std::string> setAndDatabaseName) {
-        NodePartitionData(nodeData->getNodeId(), nodeData->getPort(), nodeData->getAddress(), setAndDatabaseName);
-    }
-
     NodePartitionData::NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName)
             : nodeId(nodeId), port(port), address(address), setName(setAndDatabaseName.first), databaseName(setAndDatabaseName.second) {
+
+
+        std::cout << "Constructing " << port << " and " << address << std::endl;
+
+        std::cout << "Now is " << getPort() << " and " << getAddress() << std::endl;
+
+        std::cout << "Now getting " << toString() << std::endl;
+
         this->totalBytesSent = 0;
     }
 

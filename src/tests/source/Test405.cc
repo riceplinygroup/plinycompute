@@ -94,20 +94,23 @@ int main (int argc, char * argv[]) {
     if (argv[2][0] == 'e') {
 
         pdb::DispatcherClient dispatcherClient = pdb::DispatcherClient(port, "localhost", make_shared <pdb :: PDBLogger> ("Test405log"));
-        dispatcherClient.registerSet(std::pair<std::string, std::string>("joseph_set", "joseph_db"), pdb::PartitionPolicy::Policy::RANDOM, err);
+        // dispatcherClient.registerSet(std::pair<std::string, std::string>("joseph_set", "joseph_db"), pdb::PartitionPolicy::Policy::RANDOM, err);
 
-        void *storage = malloc (96 * 1024);
-        pdb :: makeObjectAllocatorBlock(storage, 1024 * 96, true);
+        void *storage = malloc (96 * 1024 * 1024);
+        pdb :: makeObjectAllocatorBlock(storage, 96 * 1024 * 1024, true);
+
+        pdb :: Handle <SharedEmployee> test =
+                pdb::makeObject <SharedEmployee> ("Joe Johnson1", 45);
+        std::cout << test.getTypeCode() << std::endl;
 
         {
             pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
                     pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
             try {
-                for (int i = 0; i < 512; i++) {
+                for (int i = 0; i < 50000; i++) {
                     pdb :: Handle <SharedEmployee> myData =
                             pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
                     storeMe->push_back (myData);
-                    cout << myData.getTypeCode() << std::endl;
                 }
             } catch (pdb :: NotEnoughSpace &n) {
 

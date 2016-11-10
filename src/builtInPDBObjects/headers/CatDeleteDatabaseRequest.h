@@ -35,6 +35,9 @@ public:
 	~CatDeleteDatabaseRequest () {}
 	CatDeleteDatabaseRequest () {}
 	CatDeleteDatabaseRequest (std :: string dbName) : dbName (dbName) {}
+	CatDeleteDatabaseRequest(const Handle<CatDeleteDatabaseRequest>& requestToCopy) {
+		dbName = requestToCopy->dbName;
+	}
 
 	std :: string dbToDelete () {
 		return dbName;

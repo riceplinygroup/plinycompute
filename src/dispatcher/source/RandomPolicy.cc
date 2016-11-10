@@ -62,7 +62,11 @@ std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle
     std::vector<NodePartitionDataPtr> newData = std::vector<NodePartitionDataPtr>();
     for (int i = 0; i < storageNodes->size(); i++) {
         auto nodeData = (* storageNodes)[i];
-        newData.push_back(std::make_shared<NodePartitionData>(nodeData, std::pair<std::string, std::string>("","")));
+        auto newNode = std::make_shared<NodePartitionData>(nodeData->getNodeId(), nodeData->getPort(),
+                nodeData->getAddress(), std::pair<std::string, std::string>("",""));
+        std::cout << newNode->toString() << std::endl;
+        newData.push_back(newNode);
+
     }
     return newData;
 }

@@ -321,14 +321,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                             }
 
                         } else {
-                        if ((getFunctionality<CatalogServer> ().isDatabaseRegistered (request->getDatabase())) == true) {
-                            res = false;
-                            errMsg = "Database already exists\n";
-                        } else {
                             if ((res = getFunctionality<PangeaStorageServer>().addDatabase(request->getDatabase())) == false) {
                                  errMsg = "Database already exists\n";
                             }
-                        }
                         }
                         //make response
                         const UseTemporaryAllocationBlock tempBlock{1024};
@@ -372,7 +367,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              errMsg = "Set already exists\n";
                              cout << errMsg << endl;
                          } else {
-                             int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                             int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
                              std :: cout << "TypeID ="<< typeID << std :: endl;
                              // make sure the type is registered in the catalog
                              if (typeID == -1) {
@@ -1438,13 +1433,6 @@ TempSetPtr PangeaStorageServer::getTempSet(SetID setId) {
         this->logger->writeInt(setId);
         return nullptr;
 }
-
-
-
-
-
-
-
 
 //returns a specified set
 SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID setId) {
