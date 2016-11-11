@@ -453,6 +453,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) {
 
+        std :: cout << "searchForObjectTypeName with typeIdentifier =" << typeIdentifier << std :: endl;
 	// first search for the type name in the vTable map (in case it is built in)
 	std :: string result = VTableMap :: lookupBuiltInType (typeIdentifier);
 	if (result != "")
@@ -495,7 +496,7 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 }
 
 int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: string setName) {
-	cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
+	//cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
 	if (setTypes.count (make_pair (databaseName, setName)) == 0)
 		return -1;
 
@@ -708,7 +709,20 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     String setKeyCatalog = String(setUniqueId);
     String setNameCatalog = String(setName);
     String dbName(databaseName);
-    String typeName(allTypeCodes[typeIdentifier]);
+
+    //JiaNote: commented below line, because allTypeCodes only contains registered type, but doesn't contain built-in type
+    //String typeName(allTypeCodes[typeIdentifier]);
+
+    //JiaNote: added below code to replace above line so that built-in type and registered type can both get translated
+    string typeNameStr = searchForObjectTypeName (typeIdentifier);
+    std :: cout << "Got typeName=" << typeNameStr << std :: endl;
+    if (typeNameStr == "") {
+        errMsg = "TypeName doesn not exist";
+        return false; 
+    }
+    String typeName(typeNameStr);
+
+
 
     // populates object metadata
     metadataObject->setItemKey(setKeyCatalog);
@@ -721,7 +735,13 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     metadataObject->setDBName(dbName);
 
     catalogType = PDBCatalogMsgType::CatalogPDBRegisteredObject;
-    String typeId = String(pdbCatalog->itemName2ItemId(catalogType, allTypeCodes[typeIdentifier]));
+
+    //Jia Note: commented below line to use the typeIdentifier passed in as parameter.
+    //std :: string itemId = pdbCatalog->itemName2ItemId(catalogType, allTypeCodes[typeIdentifier]);
+
+    //Jia Note: added below code to replace the above line
+    String typeId = String(std :: to_string(typeIdentifier));
+
     metadataObject->setTypeId(typeId);
     metadataObject->setTypeName(typeName);
 
