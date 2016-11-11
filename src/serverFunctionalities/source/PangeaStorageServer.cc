@@ -310,6 +310,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        // this handler accepts a request to add a database
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
+                        std :: cout << "received StorageAddDatabase" << std :: endl;
                         std :: string errMsg;
                         bool res = true;
                         if (standalone == true) {
