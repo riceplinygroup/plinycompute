@@ -736,10 +736,10 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
     catalogType = PDBCatalogMsgType::CatalogPDBRegisteredObject;
 
-    //Jia Note: commented below line to use the typeIdentifier passed in as parameter.
+    //JiaNote: commented below line to use the typeIdentifier passed in as parameter.
     //std :: string itemId = pdbCatalog->itemName2ItemId(catalogType, allTypeCodes[typeIdentifier]);
 
-    //Jia Note: added below code to replace the above line
+    //JiaNote: added below code to replace the above line
     String typeId = String(std :: to_string(typeIdentifier));
 
     metadataObject->setTypeId(typeId);

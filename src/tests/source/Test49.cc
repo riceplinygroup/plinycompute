@@ -124,7 +124,7 @@ int main (int argc, char * argv[]) {
                     //cout << myData.getTypeCode() << std::endl;
                 }
             } catch (pdb :: NotEnoughSpace &n) {
-                if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_db", "chris_set"), storeMe, errMsg)) {
+                if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
                     std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                     return -1;
                 }
