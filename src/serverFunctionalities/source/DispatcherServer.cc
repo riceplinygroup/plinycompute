@@ -52,9 +52,10 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
 
                 std :: string errMsg;
                 bool res = true;
-
+                std :: cout << "DispatcherAddData handler running" << std :: endl;
                 // Receive the data to send
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
+                std :: cout << "NumBytes = " << numBytes << std :: endl;
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
 
@@ -62,6 +63,7 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 if (!validateTypes( request->getDatabaseName(), request->getSetName(), request->getTypeName(), errMsg)) {
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     res = sendUsingMe->sendObject (response, errMsg);
+                    std :: cout << errMsg << std :: endl;
                     return make_pair(false, errMsg);
                 }
 
@@ -125,6 +127,7 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
         return dispatchData(setAndDatabase, type, toDispatch);
     } else {
         auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(toDispatch);
+        std :: cout << "mappedPartitions size = " << mappedPartitions->size() << std :: endl;
         for (auto const &pair : (* mappedPartitions)) {
             if (!sendData(setAndDatabase, type, findNode(pair.first), pair.second)) {
                 return false;
@@ -136,7 +139,7 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
 
 bool DispatcherServer :: validateTypes (const std::string& databaseName, const std::string& setName,
         const std::string& typeName, std::string& errMsg) {
-
+    std :: cout << "running validateTypes with typeName" << typeName << std :: endl;
     std::string fullSetName = databaseName + "." + setName;
     int catalogType = PDBCatalogMsgType::CatalogPDBSet;
     Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
@@ -145,17 +148,22 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
             fullSetName, returnValues, errMsg, catalogType)) {
         if (returnValues->size() == 0) {
             errMsg = "Set " + fullSetName + " cannot be found in the catalog";
+            std :: cout << errMsg << std :: endl;
             return false;
         } else {
             if ((* returnValues)[0].getObjectTypeName() == typeName) {
+                std :: cout << "validateTypes succeed" << std :: endl;
                 return true;
             } else {
                 errMsg = "Dispatched type " + typeName + " does not match stored type " +
                         (* returnValues)[0].getObjectTypeName().c_str();
+                std :: cout << errMsg << std :: endl;
                 return false;
             }
         }
     }
+    std :: cout << fullSetName << std :: endl;
+    std :: cout << errMsg << std :: endl;
     return false;
 }
 

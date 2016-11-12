@@ -70,7 +70,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             address = serverName;
         }
 
-        PDBWorkPtr myWork = make_shared <GenericWork> ([&, i, serverName] (PDBBuzzerPtr callerBuzzer) {
+        PDBWorkPtr myWork = make_shared <GenericWork> ([&, i, serverName, port, address] (PDBBuzzerPtr callerBuzzer) {
             std :: cout << "the " << i << "-th thread is started" << std :: endl;
             std::string errMsg;
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
