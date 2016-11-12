@@ -74,14 +74,17 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             std :: cout << "the " << i << "-th thread is started" << std :: endl;
             std::string errMsg;
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
-
+            std :: cout << i << ":port = " << port << std :: endl;
+            std :: cout << i << ":address = " << address << std :: endl; 
             if(communicator->connectToInternetServer(this->logger, port, address, errMsg)) {
+                std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
                 errorCallBack(errMsg, serverName);
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
             }
             Handle<MsgType> broadcastMsgCopy = deepCopy<MsgType>(broadcastMsg);
             if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
+                std :: cout << i << ":sendObject: " << errMsg << std :: endl;
                 errorCallBack(errMsg, serverName);
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
@@ -89,6 +92,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             if (broadcastData != nullptr) {
                 Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopy<Vector<Handle<PayloadType>>> (broadcastData);
                 if (!communicator->sendObject(payloadCopy, errMsg)) {
+                    std :: cout << i << ":sendBytes: " << errMsg << std :: endl;
                     errorCallBack(errMsg, serverName);
                     callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                     return;
