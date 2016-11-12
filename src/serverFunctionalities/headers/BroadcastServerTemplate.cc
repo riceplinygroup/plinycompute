@@ -71,7 +71,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
         }
 
         PDBWorkPtr myWork = make_shared <GenericWork> ([&, i, serverName] (PDBBuzzerPtr callerBuzzer) {
-
+            std :: cout << "the " << i << "-th thread is started" << std :: endl;
             std::string errMsg;
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
@@ -98,6 +98,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             bool err;
             Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);
             callBack(result, serverName);
+            std :: cout << "the " << i << "-th thread finished" << std :: endl;
             callerBuzzer->buzz(PDBAlarm :: WorkAllDone, serverName);
         });
         myWorker->execute(myWork, buzzer);
@@ -105,6 +106,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
     while(errors + success < receivers.size()) {
         buzzer->wait();
     }
+    std :: cout << "all broadcasting thread returns" << std :: endl;
 }
 
 template<class DataType>
