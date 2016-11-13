@@ -359,7 +359,7 @@ bool DistributedStorageManagerServer::findNodesForDatabase(const std::string& da
 bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::string& databaseName,
                                                                   std::vector<std::string>& nodesForDatabase,
                                                                   std::string& errMsg) {
-
+    std :: cout << "findNodesContainingDatabase:" << std :: endl;
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
@@ -372,6 +372,7 @@ bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::str
         } else {
             auto nodesInDB = (* returnValues)[0].getNodesInDB();
             for (auto const& node :  (* (* returnValues)[0].getNodesInDB())) {
+                std :: cout << "node: " << node.key << std :: endl;
                 nodesForDatabase.push_back(node.key);
             }
             return true;
@@ -385,6 +386,7 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
                                                       const std::string& setName,
                                                       std::vector<std::string>& nodesForSet,
                                                       std::string& errMsg ) {
+    std :: cout << "findNodesForSet:" << std :: endl;
     auto nodesInDatabase = std::vector<std::string>();
     if (!findNodesContainingDatabase(databaseName, nodesInDatabase, errMsg)) {
         return false;
@@ -397,6 +399,7 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
 
     for (auto node : nodesInDatabase) {
         if (std::find(nodesContainingSet.begin(), nodesContainingSet.end(), node) == nodesContainingSet.end()) {
+            std :: cout << "node: " << node << std :: endl;
             nodesForSet.push_back(node);
         }
     }
