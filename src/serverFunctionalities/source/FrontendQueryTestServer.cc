@@ -49,6 +49,20 @@
 
 namespace pdb {
 
+FrontendQueryTestServer :: FrontendQueryTestServer () {
+
+    isStandalone = true;
+    createOutputSet = true;
+
+}
+
+FrontendQueryTestServer :: FrontendQueryTestServer (bool isStandalone, bool createOutputSet) {
+
+     this->isStandalone = isStandalone;
+     this->createOutputSet = createOutputSet;
+
+}
+
 FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
@@ -93,17 +107,39 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 // add the output set
                 //TODO: check whether output set exists
                 std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
-                getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
                 SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                std :: cout << "Output set is created in storage" << std :: endl;
+                if (outputSet == nullptr) {
 
-                // create the output set in the storage manager and in the catalog
-                int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getOutputTypeName ());
-                    if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
-                        std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
-                        exit (1);
-                    }
-                    std :: cout << "Output set is created in catalog" << std :: endl;
+                     if(createOutputSet == true) {
+                         if(isStandalone == true) {
+                             getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
+                             outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                             std :: cout << "Output set is created in storage" << std :: endl;
+                             // create the output set in the storage manager and in the catalog
+                             int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getOutputTypeName ());
+                             if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
+                                 std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
+                                 exit (1);
+                             }
+                             std :: cout << "Output set is created in catalog" << std :: endl;
+                         } else {
+                             std :: cout << "FATAL ERROR: Now we do not support to create set in middle of distribued query processing" << std :: endl;
+                             exit (-1);
+                         }
+                     } else {
+                         std :: cout << "FATAL ERROR: Output set doesn't exist, please create it first" << std :: endl;
+                         exit (-1);
+                     }
+                                    
+
+                } else {
+   
+                     if (createOutputSet == true) {
+                         std :: cout << "FATAL ERROR: output set exists, please remove it first" << std :: endl;
+                         exit (-1);
+                     }
+                }
+
                 //restructure the output information
                 //makeObjectAllocatorBlock(24*1024*1024, true);
                 Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);

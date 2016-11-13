@@ -29,7 +29,9 @@ class FrontendQueryTestServer : public ServerFunctionality {
 
 public:
 
-	FrontendQueryTestServer () {}
+	FrontendQueryTestServer ();
+
+        FrontendQueryTestServer (bool isStandalone, bool createOutputSet);
 
 	void registerHandlers (PDBServer &forMe) override;
 
@@ -44,6 +46,10 @@ private:
 	void doSelection (std :: string setOutputName, Handle <QueryBase> &computeMe);
 
 	int tempSetName;
+
+        bool isStandalone;
+
+        bool createOutputSet;
 
 };
 

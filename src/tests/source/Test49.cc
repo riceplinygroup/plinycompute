@@ -90,6 +90,7 @@ int main (int argc, char * argv[]) {
         // now, create a new database
         if (!temp.createDatabase ("chris_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
+                exit (-1);
         } else {
                 cout << "Created database.\n";
         }
@@ -97,9 +98,19 @@ int main (int argc, char * argv[]) {
         // now, create a new set in that database
         if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
+                exit (-1);
         } else {
                 cout << "Created set.\n";
         }
+
+        // now, create a new set in that database
+        if (!temp.createSet ("chris_db", "output_set1", "pdb::Vector<pdb::Handle<pdb::Employee>>", errMsg)) {
+                cout << "Not able to create set: " + errMsg;
+                exit (-1);
+        } else {
+                cout << "Created set.\n";
+        }
+
 
         //Step 2. Add data
         DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
@@ -144,7 +155,7 @@ int main (int argc, char * argv[]) {
 	Handle <Set <pdb::Supervisor>> myInputSet = myClient.getSet <pdb::Supervisor> ("chris_db", "chris_set");
 	Handle <pdb::CheckEmployee> myQuery = makeObject <pdb::CheckEmployee> (std :: string ("Steve Stevens"));
 	myQuery->setInput (myInputSet);
-	Handle <QueryOutput <pdb::Employee>> outputOne = makeObject <QueryOutput <pdb::Employee>> ("chris_db", "output_set1", myQuery);
+	Handle <QueryOutput <Vector<Handle<pdb::Employee>>>> outputOne = makeObject <QueryOutput <Vector<Handle<pdb::Employee>>>> ("chris_db", "output_set1", myQuery);
 
         
         auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -165,16 +176,25 @@ int main (int argc, char * argv[]) {
         if ((printResult == true) && (clusterMode == false)) {
 	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	    std :: cout << "First set of query results: ";
+            int count = 0;
 	    for (auto a : result) 
             {
-		     std :: cout << (*a) << "; ";
+                     count ++;
+		     //std :: cout << (*a) << "; ";
             }
-	    std :: cout << "\n";
+	    std :: cout << "count:" << count << "\n";
 	}
 
         if (clusterMode == false) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
+        } else {
+            if (!temp.removeSet ("chris_db", "output_set1", errMsg)) {
+                cout << "Not able to remove set: " + errMsg;
+                exit (-1);
+            } else {
+                cout << "Removed set.\n";
+            }
         }
         system ("scripts/cleanupSoFiles.sh");
         
