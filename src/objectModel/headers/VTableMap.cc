@@ -128,12 +128,12 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {
 		
 		// make sure no one is modifying the map
-                //std :: stringstream ss;
-                //ss << &(theVTable->myLock);
-                //std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
+                std :: stringstream ss;
+                ss << &(theVTable->myLock);
+                std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
 	        //pthread_mutex_lock(&theVTable->myLock);
 		const LockGuard guard {theVTable->myLock};
-                //std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
+                std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
 		// in this case, we do not have this object type, and we have never looked for it before
 		// so, go to the catalog and ask for it...
 		int16_t identifier = lookupTypeNameInCatalog (objectTypeName); 
@@ -142,13 +142,13 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName) {
 		// so let the caller know, and remember that we have not seen it
 		if (identifier == -1) {
 			theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-                        //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
+                        std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
 			return TYPE_NOT_RECOGNIZED;
 
 		// otherwise, return the ID
 		} else {
 			theVTable->objectTypeNamesList[objectTypeName] = identifier;
-                        //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
+                        std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
 			return identifier;
 		}
 

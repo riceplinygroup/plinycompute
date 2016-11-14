@@ -40,6 +40,12 @@ namespace pdb {
         bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
                        std::string& errMsg);
 
+        // added by Jia
+        template <class DataType>
+        bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
+
+
+
         bool removeDatabase(const std::string& databaseName, std::string & errMsg);
 
         bool removeSet(const std::string& databaseName, const std::string& setName, std::string & errMsg);
@@ -56,5 +62,5 @@ namespace pdb {
 
 }
 
-
+#include "DistributedStorageManagerClientTemplate.cc"
 #endif //OBJECTQUERYMODEL_DISTRIBUTEDSTORAGEMANAGERCLIENT_H
