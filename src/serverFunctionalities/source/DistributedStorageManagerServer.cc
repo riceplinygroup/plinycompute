@@ -131,7 +131,9 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 } else {
                     std::cout << "Set " << fullSetName << " does not exist" << std::endl;
 
-                    int16_t typeId = getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
+                    //JiaNote: comment out below line because searchForObjectTypeName doesn't work for complex type like Vector<Handle<Foo>>
+                    //int16_t typeId = getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
+                    int16_t typeId = VTableMap::getIDByName(request->getTypeName());
                     // TODO: Check if type matches the known type
                     if (typeId == 0) {
                         return make_pair (false, "Could not identify type=" + request->getTypeName());

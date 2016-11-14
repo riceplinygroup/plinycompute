@@ -347,7 +347,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              if (res == false) {
                                  errMsg = "Set already exists\n";
                              } else {
-                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                                          //int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
+                                          int16_t typeID = VTableMap :: getIDByName (request->getTypeName());
                                           std :: cout << "TypeID ="<< typeID << std :: endl;
                                           if (typeID == -1) {
                                                     errMsg = "Could not find type " + request->getTypeName();
@@ -368,7 +369,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              errMsg = "Set already exists\n";
                              cout << errMsg << endl;
                          } else {
-                             int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
+                             //int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
+                             int16_t typeID = VTableMap :: getIDByName(request->getTypeName());
                              std :: cout << "TypeID ="<< typeID << std :: endl;
                              // make sure the type is registered in the catalog
                              if (typeID == -1) {
@@ -559,7 +561,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 everythingOK = false;
                         }
 				// if we made it here, the type is correct, as is the database and the set
-		        else if (typeID != getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+		        //else if (typeID != getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+                        else if (typeID != VTableMap :: getIDByName (request->getType())) {
                                 everythingOK = false;
                         }
                  }
@@ -628,7 +631,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                      res = sendUsingMe->sendObject (response, errMsg);
                                  }
                                  if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
-                                          int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getType());
+                                          //int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getType());
+                                          int16_t typeID = VTableMap :: getIDByName(request->getType());
                                           std :: cout << "TypeID ="<< typeID << std :: endl;
                                           if (typeID == -1) {
                                                     errMsg = "Could not find type " + request->getType();
@@ -1266,7 +1270,8 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                //type doesn't exist
                //now we fetch the type id through catalog
                if(standalone == true) {
-                   int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
+                   //int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
+                   int typeId = VTableMap :: getIDByName(typeName);
                    if((typeId <= 0) || (typeId == 8191)) {
                        std :: cout << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
                        typeName = "UnknownUserData";

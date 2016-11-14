@@ -59,6 +59,7 @@ PDBCatalogPtr CatalogServer :: getCatalog(){
 
 int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) {
 
+        
 	// first search for the type name in the vTable map (in case it is built in)
 	if (VTableMap :: lookupBuiltInType (objectTypeName) != -1)
 		return VTableMap :: lookupBuiltInType (objectTypeName);
@@ -69,6 +70,7 @@ int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) 
 	}
 
 	return allTypeNames[objectTypeName];
+        
 }
 
 void CatalogServer :: registerHandlers (PDBServer &forMe) {
@@ -172,12 +174,15 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
 		[&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
 
+                        std :: cout << "received CatTypeNameSearch message" << std :: endl;
 			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
 			const LockGuard guard{workingMutex};
+                        std :: cout << "got lock" << std :: endl;
+
 
 			// ask the catalog serer for the type ID 
 			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
-
+                        std :: cout << "searchForObjectTypeName=" << typeID << std :: endl;
 			// make the result
 			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
