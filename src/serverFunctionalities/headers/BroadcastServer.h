@@ -19,7 +19,7 @@
 #define OBJECTQUERYMODEL_BROADCASTSERVER_H
 
 #include "ServerFunctionality.h"
-
+#include "Configuration.h"
 #include <mutex>
 
 namespace pdb {
@@ -30,6 +30,9 @@ namespace pdb {
     class BroadcastServer : public ServerFunctionality {
 
     public:
+
+        //added by Jia to add a new constructor that requires a configuration parameter
+        BroadcastServer(PDBLoggerPtr logger, ConfigurationPtr conf);
 
         BroadcastServer(PDBLoggerPtr logger);
         ~BroadcastServer();
@@ -67,8 +70,12 @@ namespace pdb {
         template<class DataType>
         Handle<DataType> deepCopy(const Handle<DataType> & original);
 
-        PDBLoggerPtr logger;
         std::mutex lock;
+
+    //Jia added a configuration object as protected member
+    protected:
+        PDBLoggerPtr logger;
+        ConfigurationPtr conf;
     };
 }
 

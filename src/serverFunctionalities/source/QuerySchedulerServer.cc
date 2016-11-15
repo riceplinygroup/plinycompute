@@ -431,7 +431,6 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
       }));
     
-
 }
 
 

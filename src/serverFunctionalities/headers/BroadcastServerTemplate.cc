@@ -66,7 +66,11 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             port = stoi(serverName.substr(pos + 1, serverName.size()));
             address = serverName.substr(0, pos);
         } else {
-            port = 8108;
+            if (conf != nullptr) {
+                port = conf->getPort();
+            } else {
+                port = 8108;
+            }
             address = serverName;
         }
 

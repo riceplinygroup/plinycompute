@@ -293,21 +293,26 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (SetScan_TYPEID, make_shared <SimpleRequestHandler <SetScan>> (
 		[&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
                    
-			// for error handling
-			std :: string errMsg;
+		    // for error handling
+		    std :: string errMsg;
 
-			// this is the number of pages
-			std :: string whichDatabase = request->getDatabase ();
-			std :: string whichSet = request->getSetName ();
-                        std :: cout << "we are now iterating set:" << whichSet << std :: endl;
-			// and keep looping while someone wants to get the output
-			SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
-			loopingSet->setPinned(true);
-			vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
-			// loop through all pages
-			int numIterators = pageIters->size();
-			std::cout << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
-                        std::cout << "Number of iterators" << numIterators << std :: endl;
+		    // this is the number of pages
+		    std :: string whichDatabase = request->getDatabase ();
+		    std :: string whichSet = request->getSetName ();
+                    std :: cout << "we are now iterating set:" << whichSet << std :: endl;
+		    // and keep looping while someone wants to get the output
+		    SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
+                    if (loopingSet == nullptr) {
+                        errMsg = "FATAL ERROR in handling SetScan request: set doesn't exist" ;
+                        std :: cout << errMsg << std :: endl;
+                        return std :: make_pair (false, errMsg);
+                    }
+		    loopingSet->setPinned(true);
+		    vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
+		    // loop through all pages
+		    int numIterators = pageIters->size();
+		    std::cout << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
+                    std::cout << "Number of iterators" << numIterators << std :: endl;
 		    for (int i = 0; i < numIterators; i++) {
                         std :: cout << "the " << i << "-th iterator" << std :: endl;
 		        PageIteratorPtr iter = pageIters->at(i);
@@ -352,7 +357,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
 		        }
 			}
-            loopingSet->setPinned(false);
+                    loopingSet->setPinned(false);
 			// tell the caller we are done
 			const UseTemporaryAllocationBlock tempBlock {1024};
 			Handle <DoneWithResult> temp = makeObject <DoneWithResult> ();

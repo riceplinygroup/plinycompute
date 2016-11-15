@@ -51,19 +51,25 @@ int main (int argc, char * argv[]) {
        bool clusterMode = false;
        std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] masterIp" << std :: endl;        
        if (argc > 1) {
-
-           printResult = false;
-           std :: cout << "You successfully disabled printing result." << std::endl;
+           if (strcmp(argv[1],"N") == 0) {
+               printResult = false;
+               std :: cout << "You successfully disabled printing result." << std::endl;
+           } else {
+               printResult = true;
+               std :: cout << "Will print result." << std :: endl;
+           }
 
        } else {
-           std :: cout << "Will print result. If you don't want to print result, you can add any character as the first parameter to disable result printing." << std :: endl;
+           std :: cout << "Will print result. If you don't want to print result, you can add N as the first parameter to disable result printing." << std :: endl;
        }
 
        if (argc > 2) {
-       
-           clusterMode = true;
-           std :: cout << "You successfully set the test to run on cluster." << std :: endl;
-
+           if (strcmp(argv[2],"Y") == 0) {
+               clusterMode = true;
+               std :: cout << "You successfully set the test to run on cluster." << std :: endl;
+           } else {
+               clusterMode = false;
+           }
        } else {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
@@ -117,7 +123,7 @@ int main (int argc, char * argv[]) {
         //dispatcherClient.registerSet(std::pair<std::string, std::string>("chris_db", "chris_set"), pdb::PartitionPolicy::Policy::RANDOM, errMsg);
 
         int numIterations = numOfMb;
-       
+        int total = 0;       
         for (int num = 0; num < numIterations; num++) {
             pdb :: makeObjectAllocatorBlock(1024 * 1024, true);
             pdb::Handle<pdb::Vector<pdb::Handle<pdb::Supervisor>>> storeMe =
@@ -132,6 +138,7 @@ int main (int argc, char * argv[]) {
                          myData->addEmp(myEmp);
                     }
                     storeMe->push_back (myData);
+                    total++;
                     //cout << myData.getTypeCode() << std::endl;
                 }
             } catch (pdb :: NotEnoughSpace &n) {
@@ -142,7 +149,7 @@ int main (int argc, char * argv[]) {
             }
             std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
         }
-
+        std :: cout << "total=" << total << std :: endl;
         //Step 3. To execute a Query
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
@@ -172,9 +179,9 @@ int main (int argc, char * argv[]) {
 
 	std::cout << std::endl;
 	// print the resuts
-
-        if ((printResult == true) && (clusterMode == false)) {
-	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
+        std :: cout << "to print result..." << std :: endl;
+        if (printResult == true) {
+	    SetIterator <Vector<Handle<Employee>>> result = myClient.getSetIterator <Vector<Handle<Employee>>> ("chris_db", "output_set1");
 	    std :: cout << "First set of query results: ";
             int count = 0;
 	    for (auto a : result) 
@@ -185,7 +192,7 @@ int main (int argc, char * argv[]) {
 	    std :: cout << "count:" << count << "\n";
 	}
 
-        if (clusterMode == false) {
+/*        if (clusterMode == false) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
         } else {
@@ -195,7 +202,7 @@ int main (int argc, char * argv[]) {
             } else {
                 cout << "Removed set.\n";
             }
-        }
+        }*/
         system ("scripts/cleanupSoFiles.sh");
         
 }

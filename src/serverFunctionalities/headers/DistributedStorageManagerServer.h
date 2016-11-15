@@ -29,6 +29,10 @@ namespace pdb {
 
     public:
 
+        //A new constructor added by Jia to take a Configuration parameter
+        DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf);
+
+
         DistributedStorageManagerServer(PDBLoggerPtr logger);
         ~DistributedStorageManagerServer();
 
