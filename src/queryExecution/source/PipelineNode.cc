@@ -99,11 +99,11 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
 
              //pin a new output page
              PDBPagePtr output;
-             //std :: cout << "to add user page for output" << std :: endl;
+             std :: cout << "to add user page for output" << std :: endl;
              logger->debug(std :: string("PipelineNode: to add user page for output"));
              context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-             //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
              logger->debug(std :: string("pinned page in output set with id=") + std :: to_string(output->getPageID()));
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
@@ -184,11 +184,11 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
              //pin a new output page
-             //std :: cout << "to add user page for output" << std :: endl;
+             std :: cout << "to add user page for output" << std :: endl;
              logger->debug(std :: string("PipelineNode: to add user page for output"));
              proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
                        context->getOutputSet()->getSetId(), output);
-             //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
              logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
@@ -238,11 +238,11 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
             //pin a new output page
-            //std :: cout << "to add user page for output" << std :: endl;
+            std :: cout << "to add user page for output" << std :: endl;
             logger->debug(std :: string("PipelineNode: to add user page for output"));
             proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-            //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+            std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
             logger->debug(std :: string("PipelineNode: pinned page in output set with id=")+std :: to_string(output->getPageID()));
             std :: string out = getAllocator().printInactiveBlocks();
             logger->info(out);

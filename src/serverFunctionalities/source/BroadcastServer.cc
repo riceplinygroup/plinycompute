@@ -21,8 +21,15 @@
 #include "BroadcastServer.h"
 namespace pdb {
 
+BroadcastServer::BroadcastServer(PDBLoggerPtr logger, ConfigurationPtr conf) {
+   this->conf = conf;
+}
+
+
+
 BroadcastServer::BroadcastServer(PDBLoggerPtr logger) {
     this->logger = logger;
+    this->conf = nullptr;
 }
 
 BroadcastServer::~BroadcastServer() {

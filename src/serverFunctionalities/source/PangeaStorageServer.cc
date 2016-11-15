@@ -1269,7 +1269,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
            if (this->typename2id->count(typeName) == 0) {
                //type doesn't exist
                //now we fetch the type id through catalog
-               if(standalone == true) {
+               //if(standalone == true) {
                    //int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
                    int typeId = VTableMap :: getIDByName(typeName);
                    if((typeId <= 0) || (typeId == 8191)) {
@@ -1281,11 +1281,11 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                        std :: cout << "Pangea add new type when add set: typeId="<< typeName << std :: endl; 
                        this->addType(typeName, (UserTypeID)typeId);
                    }
-               } else {
+               /*} else {
                    //in distributed mode
                    //TODO: we should work as a client to send a message to remote catalog server to figure it out
                    typeName = "UnknownUserData";
-               }
+               }*/
            }
        }         
        DatabaseID dbId = this->name2id->at(dbName);

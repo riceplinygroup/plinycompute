@@ -86,13 +86,14 @@ public:
 			SetIterator <Type> returnVal;
 			return returnVal;
 		}
-
+                //commented by Jia, below type check can not work with complex types such as Vector<Handle<Foo>>
+                /*
 		if (typeName != getTypeName <Type> ()) {
 			std :: cout << "Wrong type for database set " << setName << "\n";
 			SetIterator <Type> returnVal;
 			return returnVal;
 		}
-
+                */
 		SetIterator <Type> returnVal (myLogger, port, address, databaseName, setName);
 		return returnVal;
 	}
@@ -124,7 +125,6 @@ public:
 			std :: cout << "There was an error constructing this query.  Can't run it.\n";
 			exit (1);
 		}
-
 		if (firstParam->getQueryType () != "localoutput") {
 			std :: cout << "Currently, we can only execute queries that write output sets to the server...\n";
 			std :: cout << "You seem to have done something else.  Who knows what will happen???\n";

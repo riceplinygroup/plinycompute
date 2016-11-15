@@ -36,13 +36,22 @@
 #include "StorageAddSet.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveUserSet.h"
+#include "Configuration.h"
 
-
+#include "SetScan.h"
+#include "KeepGoing.h"
+#include "DoneWithResult.h"
 namespace pdb {
+
+DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf) : BroadcastServer(logger, conf) {
+    // no-op
+}
+
 
 DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger) : BroadcastServer(logger) {
     // no-op
 }
+
 
 DistributedStorageManagerServer::~DistributedStorageManagerServer() {
     // no-op
@@ -318,6 +327,155 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
             }
     ));
 
+    forMe.registerHandler (SetScan_TYPEID, make_shared<SimpleRequestHandler<SetScan>> (
+         [&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
+
+         std :: string errMsg;
+         bool success;
+         std :: string dbName = request->getDatabase();
+         std :: string setName = request->getSetName();
+         std :: cout << "DistributedStorageManager received SetScan message: dbName =" << dbName << ", setName =" << setName << std :: endl;
+
+         //to check whether set exists
+         std :: string fullSetName = dbName + "." + setName;
+         std :: string value;
+         int catalogType = PDBCatalogMsgType::CatalogPDBSet;
+         if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(catalogType, fullSetName, value)) {
+             std :: cout << "Set " << fullSetName << " exists" << std :: endl;
+         } else {
+             errMsg = "Error in handling SetScan message: Set does not exist";
+             std :: cout << errMsg << std :: endl;
+             return make_pair(false, errMsg);
+         }
+
+         //to get all nodes having data for this set
+         std :: vector<std :: string> nodes;
+         if (!findNodesContainingSet(dbName, setName, nodes, errMsg)) {
+             errMsg = "Error in handling SetScan message: Could not find nodes for this set";
+             std :: cout << errMsg << std :: endl;
+             return make_pair(false, errMsg);
+         } 
+
+         std :: cout << "num nodes for this set" << nodes.size() << std :: endl;
+
+         //to send SetScan message to slave servers iteratively 
+         const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
+
+         Record<Vector<Handle<Object>>>* curPage = nullptr;
+         Handle<KeepGoing> temp;
+         bool keepGoingSent = false;
+         for (int i = 0; i < nodes.size(); i++) {
+             std :: string serverName = nodes[i];
+             int port;
+             std :: string address;
+             size_t pos = serverName.find(":");
+             if (pos != string::npos) {
+                port = stoi(serverName.substr(pos + 1, serverName.size()));
+                address = serverName.substr(0, pos);
+             } else {
+                if (conf != nullptr) {
+                    port = conf->getPort();
+                } else {
+                    port = 8108;
+                }
+                address = serverName;
+             }
+         
+
+             std :: cout << "to collect data from the " << i << "-th server with address=" <<  address << " and port=" << port  << std :: endl;
+             Handle<SetScan> newRequest = makeObject<SetScan>(request->getDatabase(), request->getSetName());
+
+             std :: cout << "to connect to the remote node" << std :: endl;
+             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+             std :: cout << "port:" << port << std :: endl;
+             std :: cout << "ip address:" << address << std :: endl;
+
+             if(communicator->connectToInternetServer(logger, port, address, errMsg)) {
+                  success = false;
+                  std :: cout << errMsg << std :: endl;
+                  break;
+             }
+
+             if(!communicator->sendObject(newRequest, errMsg)) {
+                  success = false;
+                  std :: cout << errMsg << std :: endl;
+                  break;
+             }
+             
+             while (true) {
+                 if (curPage != nullptr) {
+                     free (curPage);
+                     curPage = nullptr;
+                     if (keepGoingSent == false) {
+                         if (sendUsingMe->getObjectTypeID() != DoneWithResult_TYPEID) {
+                             Handle <KeepGoing> temp = sendUsingMe->getNextObject <KeepGoing> (success, errMsg);
+                             if (!success) {
+                                 std :: cout << "Problem getting keep going from client: "<< errMsg << std :: endl;
+                                 communicator = nullptr;
+                                 break;
+                             }         
+                             std :: cout << "got keep going" << std :: endl;
+                             if (!communicator->sendObject(temp, errMsg)) {
+                                 std :: cout << "Problem forwarding keep going: " << errMsg << std :: endl;
+                                 communicator = nullptr;
+                                 break;
+                             }         
+                             std :: cout << "sent keep going" << std :: endl;
+                             keepGoingSent = true;
+                         } else {
+                             Handle <DoneWithResult> doneMsg = sendUsingMe->getNextObject <DoneWithResult> (success, errMsg);
+                             if (! success) {
+                                 std :: cout << "Problem getting done message from client: " << errMsg << std :: endl;
+                                 communicator = nullptr;
+                                 return std :: make_pair (false, errMsg);
+                             }
+                             std :: cout << "got done from this client!" <<  std :: endl;
+                             if (!communicator->sendObject(doneMsg, errMsg)) {
+                                 std :: cout << "Problem forwarding done message: " << errMsg << std :: endl;
+                                 communicator = nullptr;
+                                 return std :: make_pair (false, errMsg);
+                             }
+                             std :: cout << "sent done message!" << std :: endl;
+                             return std :: make_pair (true, errMsg);
+                         }
+                     }
+                 }
+                 size_t objSize = communicator->getSizeOfNextObject();
+                 if (communicator->getObjectTypeID() == DoneWithResult_TYPEID) {
+                     std :: cout << "got done from this slave!" << std :: endl;
+                     communicator = nullptr; 
+                     break;
+                 }
+                 curPage = (Record <Vector<Handle<Object>>> *) malloc (objSize);
+                 if (!communicator->receiveBytes (curPage, errMsg)) {
+                     std :: cout << "Problem getting data from slave: " << errMsg << std :: endl;
+                     communicator = nullptr;
+                     break;
+                 }  
+                 std :: cout << "got data from this slave!" << std :: endl;
+                 if (!sendUsingMe->sendBytes(curPage, curPage->numBytes(), errMsg)) {
+                     std :: cout << "Problem forwarding data to client: " << errMsg << std :: endl;
+                     communicator = nullptr;
+                     break;
+                 }
+                 std :: cout << "sent data to client!" << std :: endl;
+                 keepGoingSent = false;
+            }
+      }
+      Handle<DoneWithResult> doneWithResult = makeObject<DoneWithResult>();
+      if (!sendUsingMe->sendObject(doneWithResult, errMsg)) {
+             std :: cout << "Problem sending done message to client: " << errMsg << std :: endl;
+             return std :: make_pair (false, "could not send done message: " + errMsg);
+      }
+      std :: cout << "sent done message to client!" << std :: endl;
+      return std :: make_pair (true, errMsg);
+
+      }));
+
+
+
+
 }
 
 std::function<void (Handle<SimpleRequestResult>, std::string)> DistributedStorageManagerServer::generateAckHandler(
@@ -405,7 +563,7 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
             nodesForSet.push_back(node);
         }
     }
-
+    std :: cout << "return nodes size:" << nodesForSet.size() << std :: endl;
     return true;
 }
 
@@ -444,13 +602,16 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
             }
             auto nodes = (* setsInDB)[setName];
             for (int i = 0; i < nodes.size(); i++) {
+                std :: cout << i << ":" << nodes[i] << std :: endl;
                 nodesContainingSet.push_back(nodes[i]);
             }
+            std :: cout << "return nodes size:" << nodesContainingSet.size() << std :: endl;
             return true;
         }
     }
     errMsg = "Database not found " + databaseName;
     return false;
+
 }
 
 }

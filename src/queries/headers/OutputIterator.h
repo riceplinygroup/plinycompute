@@ -96,10 +96,11 @@ public:
 				connection = nullptr;
 				return;
 			}
-			
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
 			size = data->size ();
+                        std :: cout << "got a page with size="<< size  << std :: endl;			
+                        // added by Jia to fix a segfault when size=0
                         if (size > 0) {
 			     pos = 0;
                         } else {
@@ -150,6 +151,7 @@ public:
 			connection = nullptr;
 			return;
 		}
+                std :: cout << "send done message" << std :: endl;
 	}
 
 private:
