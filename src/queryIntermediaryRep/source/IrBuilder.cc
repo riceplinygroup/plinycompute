@@ -194,11 +194,11 @@ namespace pdb_detail
 
         private:
 
+            Handle<QueryBase> _node; // function's node param
+
             AlreadyTransMapHdl _alreadyTranslated; // function's alreadyTranslated param
 
             bool &_madeNewNode; // function's madeNewNode param
-
-            Handle<QueryBase> _node; // function's node param
 
         } trans(node, alreadyTranslated, madeNewNode);
 

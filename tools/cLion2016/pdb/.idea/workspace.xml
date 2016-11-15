@@ -30,26 +30,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="RetainExplicitClause.cc" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/tcapParser/source/RetainExplicitClause.cc">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="40">
-              <caret line="10" column="49" selection-start-line="10" selection-start-column="49" selection-end-line="10" selection-end-column="49" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RetainNoneClause.cc" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../src/tcapParser/source/RetainNoneClause.cc">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="StoreOperation.cc" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../src/tcapParser/source/StoreOperation.cc">
           <provider selected="true" editor-type-id="text-editor">
@@ -120,11 +100,33 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TranslationUnit.cc" pinned="false" current-in-tab="true">
+      <file leaf-file-name="TranslationUnit.cc" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../../src/tcapParser/source/TranslationUnit.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="7" column="58" selection-start-line="7" selection-start-column="58" selection-end-line="7" selection-end-column="58" />
+            <state relative-caret-position="315">
+              <caret line="21" column="91" selection-start-line="21" selection-start-column="91" selection-end-line="21" selection-end-column="91" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IrBuilder.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="93">
+              <caret line="150" column="51" selection-start-line="150" selection-start-column="51" selection-end-line="150" selection-end-column="51" />
+              <folding>
+                <element signature="e#0#22#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Parser.c" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../../../src/logicalPlan/source/Parser.c">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-3015">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -139,7 +141,6 @@
         <option value="$PROJECT_DIR$/../../../src/tcapBuilderTests/source/TcapBuilderTestsRunner.cc" />
         <option value="$PROJECT_DIR$/../../../src/tcapIntermediaryRepTests/source/TcapBuilderTestsRunner.cc" />
         <option value="$PROJECT_DIR$/../../../src/queriesTests/source/SelectionTests.cc" />
-        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" />
         <option value="$PROJECT_DIR$/../../../src/queries/headers/QueryAlgo.h" />
         <option value="$PROJECT_DIR$/../../../src/tcapBuilder/source/TcapBuilder.cc" />
         <option value="$PROJECT_DIR$/../../../src/lambdas/headers/Lambda.h" />
@@ -186,6 +187,7 @@
         <option value="$PROJECT_DIR$/../../../src/tcapParser/source/RetainExplicitClause.cc" />
         <option value="$PROJECT_DIR$/../../../src/tcapParser/source/TcapStatement.cc" />
         <option value="$PROJECT_DIR$/../../../src/tcapParser/source/TranslationUnit.cc" />
+        <option value="$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc" />
       </list>
     </option>
   </component>
@@ -270,7 +272,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="SearchEverywhereHistoryKey" value="SimpleL&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/SimpleLambda.h&#10;Test47.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;Selection&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/Selection.h&#10;pdb::Object&#9;null&#9;null&#10;Super&#9;null&#9;null&#10;Employee&#9;null&#9;null&#10;test47&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;Test47&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;makeSto&#9;null&#9;null&#10;yylex_init_extra&#9;null&#9;null&#10;Lexeme.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapLexer/source/Lexeme.cc&#10;TcapParser.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapParser/source/TcapParser.cc&#10;LogicalPlan&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/source/LogicalPlanBuilder.cc&#10;lexTcap&#9;null&#9;null&#10;Load.h&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapIntermediaryRep/headers/Load.h&#10;Hoist&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapIntermediaryRep/headers/Hoist.h&#10;ParserT&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/headers/ParserTypes.h&#10;parse&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapParser/headers/TcapParser.h&#10;ParserTypes&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/headers/ParserTypes.h&#10;Lambda&#9;null&#9;null&#10;Test44&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test44.cc&#10;QueryOutput&#9;null&#9;null&#10;QueryB&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/QueryBase.h&#10;Selection.h&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queryIntermediaryRep/headers/SelectionIr.h&#10;ChrisSelection&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/sharedLibraries/source/ChrisSelection.cc&#10;ENABLE&#9;null&#9;null&#10;ListOfN&#9;null&#9;null&#10;SimpleSingleTableQueryProcessorPtr&#9;null&#9;null&#10;makeA&#9;null&#9;null&#10;Em&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/Employee.h&#10;Check&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/CheckEmployees.h&#10;CheckE&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/CheckEmployees.h&#10;getIth&#9;null&#9;null&#10;UseTemporaryAllocationBlockPtr&#9;null&#9;null&#10;QueryPRo&#9;null&#9;null&#10;makeObject&#9;null&#9;null&#10;DatabaseQuery&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/DatabaseQuery.h&#10;QueryClient&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/QueryClient.h&#10;ENABLE_D&#9;null&#9;null&#10;CatalogC&#9;null&#9;null&#10;PDBL&#9;null&#9;null&#10;makeOb&#9;null&#9;null&#10;makeOBject&#9;null&#9;null" />
+    <property name="SearchEverywhereHistoryKey" value="Parser.c&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/source/Parser.c&#10;IrBuilder.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queryIntermediaryRep/source/IrBuilder.cc&#10;SimpleL&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/SimpleLambda.h&#10;Test47.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;Selection&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/Selection.h&#10;pdb::Object&#9;null&#9;null&#10;Super&#9;null&#9;null&#10;Employee&#9;null&#9;null&#10;test47&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;Test47&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test47.cc&#10;makeSto&#9;null&#9;null&#10;yylex_init_extra&#9;null&#9;null&#10;Lexeme.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapLexer/source/Lexeme.cc&#10;TcapParser.cc&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapParser/source/TcapParser.cc&#10;LogicalPlan&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/source/LogicalPlanBuilder.cc&#10;lexTcap&#9;null&#9;null&#10;Load.h&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapIntermediaryRep/headers/Load.h&#10;Hoist&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapIntermediaryRep/headers/Hoist.h&#10;ParserT&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/headers/ParserTypes.h&#10;parse&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tcapParser/headers/TcapParser.h&#10;ParserTypes&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/logicalPlan/headers/ParserTypes.h&#10;Lambda&#9;null&#9;null&#10;Test44&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/tests/source/Test44.cc&#10;QueryOutput&#9;null&#9;null&#10;QueryB&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/QueryBase.h&#10;Selection.h&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queryIntermediaryRep/headers/SelectionIr.h&#10;ChrisSelection&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/sharedLibraries/source/ChrisSelection.cc&#10;ENABLE&#9;null&#9;null&#10;ListOfN&#9;null&#9;null&#10;SimpleSingleTableQueryProcessorPtr&#9;null&#9;null&#10;makeA&#9;null&#9;null&#10;Em&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/Employee.h&#10;Check&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/CheckEmployees.h&#10;CheckE&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/builtInPDBObjects/headers/CheckEmployees.h&#10;getIth&#9;null&#9;null&#10;UseTemporaryAllocationBlockPtr&#9;null&#9;null&#10;QueryPRo&#9;null&#9;null&#10;makeObject&#9;null&#9;null&#10;DatabaseQuery&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/DatabaseQuery.h&#10;QueryClient&#9;FILE&#9;file:///home/barnett/workDev/pdb/repositories/svn/ObjectQueryModel/src/queries/headers/QueryClient.h&#10;ENABLE_D&#9;null&#9;null&#10;CatalogC&#9;null&#9;null&#10;PDBL&#9;null&#9;null&#10;makeOb&#9;null&#9;null&#10;makeOBject&#9;null&#9;null" />
     <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C/C++" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
@@ -491,20 +493,20 @@
       <workItem from="1478202807446" duration="44571000" />
       <workItem from="1478633369986" duration="26480000" />
       <workItem from="1478817585839" duration="3000" />
-      <workItem from="1478817838943" duration="31461000" />
+      <workItem from="1478817838943" duration="32061000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="484737000" />
+    <option name="totallyTimeSpent" value="485337000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1077" y="1048" width="1855" height="1056" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20087336" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30416667" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30416667" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -513,7 +515,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25520834" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25520834" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -552,22 +554,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../../../src/tcapLexer/headers/TcapToken.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="22" column="10" selection-start-line="22" selection-start-column="10" selection-end-line="22" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../../../src/utilities/source/SafeResult.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../../src/tcapLexer/headers/TcapTokenStream.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="230">
@@ -798,7 +784,7 @@
         <state relative-caret-position="510">
           <caret line="34" column="38" selection-start-line="34" selection-start-column="38" selection-end-line="34" selection-end-column="38" />
           <folding>
-            <element signature="e#79#106#0" expanded="true" />
+            <element signature="e#79#106#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -965,8 +951,26 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../../../src/tcapParser/source/TranslationUnit.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="7" column="58" selection-start-line="7" selection-start-column="58" selection-end-line="7" selection-end-column="58" />
+        <state relative-caret-position="315">
+          <caret line="21" column="91" selection-start-line="21" selection-start-column="91" selection-end-line="21" selection-end-column="91" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/queryIntermediaryRep/source/IrBuilder.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="93">
+          <caret line="150" column="51" selection-start-line="150" selection-start-column="51" selection-end-line="150" selection-end-column="51" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../src/logicalPlan/source/Parser.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3015">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
