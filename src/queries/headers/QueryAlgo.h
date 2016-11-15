@@ -22,19 +22,22 @@
 #ifndef QUERYALGO_H
 #define QUERYALGO_H
 
+
 #include "Object.h"
 
 namespace pdb
 {
+    class QueryBase;
+
     class QueryAlgo : public Object
     {
     public:
 
-        virtual void forSelection(Object &selection) = 0;
+        virtual void forSelection(QueryBase &selection) = 0;
 
-        virtual void forSet(Object &set) = 0;
+        virtual void forSet(QueryBase &set) = 0;
 
-        virtual void forQueryOutput(Object &output) = 0;
+        virtual void forQueryOutput(QueryBase &output) = 0;
     };
 }
 

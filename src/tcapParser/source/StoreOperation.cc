@@ -21,14 +21,17 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    StoreOperation::StoreOperation(TcapIdentifier outputTable, shared_ptr<vector<TcapIdentifier>> columnsToStore, shared_ptr<string> destination)
-            : outputTable(outputTable), columnsToStore(columnsToStore),  destination(destination)
+
+    StoreOperation::StoreOperation(TcapIdentifier outputTable,
+                                   shared_ptr<vector<TcapIdentifier>> columnsToStore, string destination)
+            : StoreOperation(make_shared<vector<TcapAttribute>>(), outputTable, columnsToStore, destination)
     {
 
     }
 
-    StoreOperation::StoreOperation(TcapIdentifier outputTable,  shared_ptr<vector<TcapIdentifier>> columnsToStore, string destination)
-            : outputTable(outputTable), columnsToStore(columnsToStore), destination(make_shared<string>(destination))
+    StoreOperation::StoreOperation(shared_ptr<vector<TcapAttribute>> attributes, TcapIdentifier outputTable,
+                                   shared_ptr<vector<TcapIdentifier>> columnsToStore, string destination)
+            : TcapStatement(attributes), outputTable(outputTable), columnsToStore(columnsToStore), destination(destination)
     {
 
     }

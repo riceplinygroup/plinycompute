@@ -22,14 +22,24 @@
 
 namespace pdb_detail
 {
+    /**
+     * A retention clause that indicates that no columns should be copied into the output table.
+     */
     class RetainNoneClause : public RetainClause
     {
+        /**
+         * @return false
+         */
         bool isAll();
 
+        /**
+         * @return true
+         */
         bool isNone() ;
 
-        void match(function<void(RetainAllClause &)> forAll, function<void(RetainExplicitClause &)>,
-                   function<void(RetainNoneClause &)> forNone);
+        // contract from super
+        void match(function<void(RetainAllClause&)> forAll, function<void(RetainExplicitClause&)>,
+                   function<void(RetainNoneClause&)> forNone);
     };
 }
 

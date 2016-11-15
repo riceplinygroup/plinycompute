@@ -32,27 +32,62 @@ using std::vector;
 
 namespace pdb_detail
 {
+    /**
+     * Models a HoistOperation in the TCAP grammar.  For example:
+     *
+     *    hoist "homeworkAverage" from B[student] retain all
+     *
+     * In this example:
+     *
+     *     hoistTarget would be homeworkAverage
+     *     inputTable would be B
+     *     inputTableColumnName would be student
+     *     an instance of RetailAllClause would be the value of retain
+     */
     class HoistOperation : public TableExpression
     {
     public:
 
-        shared_ptr<string> hoistTarget;
+        /**
+         * A descriptor of the field to be hoisted. This is metadata only and has no relationship to TCAP.
+         */
+        const string hoistTarget;
 
-        TcapIdentifier inputTable;
+        /**
+         * The table from which a column will be hoisted.
+         */
+        const TcapIdentifier inputTable;
 
-        shared_ptr<vector<TcapIdentifier>> inputTableColumnNames;
+        /**
+         * The name of the column to hoist.
+         */
+        const TcapIdentifier inputTableColumnName;
 
-        shared_ptr<RetainClause> retain;
+        /**
+         * The retention clause of the operation.
+         */
+        const shared_ptr<RetainClause> retain;
 
-        HoistOperation(string hoistTarget, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+        /**
+         * Creates a new HoistOperation
+         *
+         * @param hoistTarget A descriptor of the field to be hoisted.
+         * @param inputTable The table from which a column will be hoisted.
+         * @param inputTableColumnName The name of the column to hoist.
+         * @param retain The retention clause of the operation.
+         * @return a new HoistOperation
+         */
+        HoistOperation(string hoistTarget, TcapIdentifier inputTable, TcapIdentifier inputTableColumnName,
                        shared_ptr<RetainClause> retain);
 
-        HoistOperation(shared_ptr<string> hoistTarget, TcapIdentifier inputTable,
-                       shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain);
-
-        void execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>, function<void(FilterOperation&)>,
-                     function<void(HoistOperation&)> forHoist, function<void(BinaryOperation&)> forBinaryOp);
+        // contract from super
+        void match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>, function<void(FilterOperation &)>,
+                   function<void(HoistOperation &)> forHoist, function<void(BinaryOperation &)>);
     };
+
+    typedef shared_ptr<HoistOperation> HoistOperationPtr;
+
+
 }
 
 #endif //PDB_TCAPPARSER_HOISTOPERATION_H

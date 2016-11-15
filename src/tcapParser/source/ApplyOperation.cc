@@ -21,21 +21,18 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    ApplyOperation::ApplyOperation(string applyTarget, ApplyOperationType applyType, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+    ApplyOperation::ApplyOperation(string applyTarget, ApplyOperationType applyType, TcapIdentifier inputTable,
+                                   shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
                                    shared_ptr<RetainClause> retain)
-            : ApplyOperation(make_shared<string>(applyTarget), applyType, inputTable, inputTableColumnNames, retain)
-    {
-    }
-
-    ApplyOperation::ApplyOperation(shared_ptr<string> applyTarget, ApplyOperationType applyType, TcapIdentifier inputTable,
-                                   shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain)
-            : applyTarget(applyTarget), applyType(applyType),  inputTable(inputTable), inputTableColumnNames(inputTableColumnNames),
+            : applyTarget(applyTarget), applyType(applyType),  inputTable(inputTable),
+              inputTableColumnNames(inputTableColumnNames),
               retain(retain)
     {
     }
 
-    void ApplyOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)> forApply, function<void(FilterOperation&)>,
-                                 function<void(HoistOperation&)>, function<void(BinaryOperation&)>)
+    void ApplyOperation::match(function<void(LoadOperation&)>, function<void(ApplyOperation&)> forApply,
+                               function<void(FilterOperation&)>,
+                               function<void(HoistOperation&)>, function<void(BinaryOperation&)>)
     {
         forApply(*this);
     }

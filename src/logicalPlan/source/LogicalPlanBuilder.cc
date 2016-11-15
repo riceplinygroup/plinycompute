@@ -574,15 +574,31 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
 // contract from .h
 shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram)
 {
-    shared_ptr<TranslationUnit> transUnit = parseTcap(tcapProgram);
-    if(transUnit == nullptr)
-        return nullptr;
 
-    shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
-    if(instructions == nullptr)
-        return nullptr;
 
-    return buildLogicalPlan(instructions);
+    shared_ptr<LogicalPlan> logicalPlan;
+    {
+        shared_ptr<SafeResult<TranslationUnit>> transUnit = parseTcap(tcapProgram);
+
+        transUnit->apply(
+                [&](TranslationUnit transUnit)
+                {
+                    shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
+
+                    if(instructions == nullptr)
+                        logicalPlan = nullptr;
+
+                    logicalPlan = buildLogicalPlan(instructions);
+                },
+                [&](string errorMsg)
+                {
+                    logicalPlan = nullptr;
+                }
+        );
+
+    }
+
+    return logicalPlan;
 
 }
 

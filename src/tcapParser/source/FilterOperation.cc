@@ -20,15 +20,16 @@
 namespace pdb_detail
 {
 
-    FilterOperation::FilterOperation(TcapIdentifier inputTableName, TcapIdentifier filterColumnName, shared_ptr<RetainClause> retain)
+    FilterOperation::FilterOperation(TcapIdentifier inputTableName, TcapIdentifier filterColumnName,
+                                     shared_ptr<RetainClause> retain)
             : inputTableName(inputTableName), filterColumnName(filterColumnName), retain(retain)
     {
 
     }
 
-    void FilterOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>,
-                                  function<void(FilterOperation&)> forFilter, function<void(HoistOperation&)> forHoist,
-                                  function<void(BinaryOperation&)> forBinaryOp)
+    void FilterOperation::match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>,
+                                function<void(FilterOperation &)> forFilter, function<void(HoistOperation &)>,
+                                function<void(BinaryOperation &)>)
     {
         return forFilter(*this);
     }

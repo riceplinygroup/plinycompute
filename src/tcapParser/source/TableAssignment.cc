@@ -17,10 +17,25 @@
  *****************************************************************************/
 #include "TableAssignment.h"
 
+using std::make_shared;
+
 namespace pdb_detail
 {
-    TableAssignment::TableAssignment(TcapIdentifier tableName, shared_ptr<vector<TcapIdentifier>> columnNames,  shared_ptr<TableExpression> value)
-            : tableName(tableName), columnNames(columnNames), value(value)
+    TableAssignment::TableAssignment(TcapIdentifier tableName,
+                                     shared_ptr<vector<TcapIdentifier>> columnNames,  shared_ptr<TableExpression> value)
+            :TableAssignment(make_shared<vector<TcapAttribute>>(), tableName, columnNames, value)
+    {
+    }
+
+    TableAssignment::TableAssignment(shared_ptr<vector<TcapAttribute>> attributes, TcapIdentifier tableName,
+                                     shared_ptr<vector<TcapIdentifier>> columnNames,  shared_ptr<TableExpression> value)
+            : TcapStatement(attributes), tableName(tableName), columnNames(columnNames), value(value)
+    {
+    }
+
+    TableAssignment::TableAssignment(TcapAttribute attribute, TcapIdentifier tableName,
+                                     shared_ptr<vector<TcapIdentifier>> columnNames,  shared_ptr<TableExpression> value)
+            : TcapStatement(attribute), tableName(tableName), columnNames(columnNames), value(value)
     {
     }
 

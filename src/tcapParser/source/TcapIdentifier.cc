@@ -21,11 +21,7 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    TcapIdentifier::TcapIdentifier(string contents) : contents(make_shared<string>(contents))
-    {
-    }
-
-    TcapIdentifier::TcapIdentifier(shared_ptr<string> contents) : contents(contents)
+    TcapIdentifier::TcapIdentifier(string contents) : contents(contents)
     {
 
     }

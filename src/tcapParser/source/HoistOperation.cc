@@ -21,21 +21,17 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    HoistOperation::HoistOperation(string hoistTarget, TcapIdentifier inputTable, shared_ptr<vector<TcapIdentifier>> inputTableColumnNames,
+    HoistOperation::HoistOperation(string hoistTarget, TcapIdentifier inputTable, TcapIdentifier inputTableColumnName,
                                    shared_ptr<RetainClause> retain)
-            : HoistOperation(make_shared<string>(hoistTarget), inputTable, inputTableColumnNames, retain)
-    {
-    }
-
-    HoistOperation::HoistOperation(shared_ptr<string> hoistTarget, TcapIdentifier inputTable,
-                                   shared_ptr<vector<TcapIdentifier>> inputTableColumnNames, shared_ptr<RetainClause> retain)
-            : hoistTarget(hoistTarget), inputTable(inputTable), inputTableColumnNames(inputTableColumnNames),
+            : hoistTarget(hoistTarget), inputTable(inputTable), inputTableColumnName(inputTableColumnName),
               retain(retain)
     {
     }
 
-    void HoistOperation::execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>, function<void(FilterOperation&)>,
-                                 function<void(HoistOperation&)> forHoist, function<void(BinaryOperation&)> forBinaryOp)
+
+    void HoistOperation::match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>,
+                               function<void(FilterOperation &)>,
+                               function<void(HoistOperation &)> forHoist, function<void(BinaryOperation &)>)
     {
         return forHoist(*this);
     }

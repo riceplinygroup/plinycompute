@@ -22,6 +22,7 @@
 #include "InterfaceFunctions.h"
 #include "QueryItermediaryRepTestsRunner.h"
 #include "QueriesTestsRunner.h"
+#include "TcapBuilderTestsRunner.h"
 #include "TcapTestsRunner.h"
 #include "TcapParsersTestsRunner.h"
 #include "TcapIrTestsRunner.h"
@@ -38,6 +39,7 @@ using pdb_tests::runTcapTests;
 using pdb_tests::runTcapParserTests;
 using pdb_tests::runBuildTcapIrTests;
 using pdb_tests::runLogicalPlanTests;
+using pdb_tests::runBuildTcapBuilderTests;
 
 int main()
 {
@@ -50,6 +52,7 @@ int main()
     runTcapTests(qunit);
     runTcapParserTests(qunit);
     runBuildTcapIrTests(qunit);
+    runBuildTcapBuilderTests(qunit);
     runLogicalPlanTests(qunit);
 
     return qunit.errors();

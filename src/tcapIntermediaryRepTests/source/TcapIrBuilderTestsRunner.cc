@@ -15,30 +15,20 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapStatement.h"
+#include "TcapIrTestsRunner.h"
 
-using std::make_shared;
+#include "BuildTcapIrTests.h"
 
-namespace pdb_detail
+namespace pdb_tests
 {
-    /**
-     * @param attribute the attribute to wrap in a vector
-     * @return a vector of only attribute
-     */
-    shared_ptr<vector<TcapAttribute>> wrapInVector(TcapAttribute attribute)
+    void runBuildTcapIrTests(UnitTest &qunit)
     {
-        shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
-        attributes->push_back(attribute);
-        return attributes;
+        buildTcapIrTest1(qunit);
+        buildTcapIrTest2(qunit);
+        buildTcapIrTest3(qunit);
+        buildTcapIrTest4(qunit);
+        buildTcapIrTest5(qunit);
+        buildTcapIrTest6(qunit);
+        buildTcapIrTest7(qunit);
     }
-
-    TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
-    {
-    }
-
-    TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))
-    {
-    }
-
 }
-

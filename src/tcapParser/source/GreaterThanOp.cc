@@ -20,8 +20,10 @@
 namespace pdb_detail
 {
 
-    GreaterThanOp::GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName, TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain)
-            : lhsTableName(lhsTableName), lhsColumnName(lhsColumnName), rhsTableName(rhsTableName), rhsColumnName(rhsColumnName), retain(retain)
+    GreaterThanOp::GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName,
+                                 TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain)
+            : lhsTableName(lhsTableName), lhsColumnName(lhsColumnName), rhsTableName(rhsTableName),
+              rhsColumnName(rhsColumnName), retain(retain)
     {
 
     }

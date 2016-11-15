@@ -31,12 +31,15 @@ include_directories(
         ../../../src/queryIrProcessor/headers
         ../../../src/serverFunctionalities/headers
         ../../../src/storage/headers
+        ../../../src/tcapBuilder/headers
+        ../../../src/tcapBuilderTests/headers
         ../../../src/tcapIntermediaryRepTests/headers
         ../../../src/tcapIntermediaryRep/headers
         ../../../src/tcapLexer/headers
         ../../../src/tcapLexerTests/headers
         ../../../src/tcapParser/headers
         ../../../src/tcapParserTests/headers
+        ../../../src/utilities/headers
         ../../../src/work/headers)
 
 set(SOURCE_FILES
@@ -87,6 +90,7 @@ set(SOURCE_FILES
         ../../../src/queryIntermediaryRepTests/source/QueryIntermediaryRepTestsRunner.cc
 #        ../../../src/queryIrProcessorTests/source/SelectionIrPageProcessorTests.cc
         ../../../src/serverFunctionalities/source/CatalogClient.cc
+        ../../../src/tcapBuilder/source/TcapBuilder.cc
         ../../../src/tcapLexer/source/TcapToken.cc
         ../../../src/tcapLexer/source/TcapLexer.cc
         ../../../src/tcapLexer/source/TcapTokenStream.cc
@@ -96,11 +100,13 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/TcapIdentifier.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc
-#        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
+        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
         ../../../src/work/source/PDBWork.cc
         ../../../src/work/source/PDBWorker.cc
+        ../../../src/tcapBuilderTests/source/BuildTcapTests.cc
+        ../../../src/tcapBuilderTests/source/TcapBuilderTestsRunner.cc
         ../../../src/tcapParser/source/ApplyOperation.cc
         ../../../src/tcapParser/source/BinaryOperation.cc
         ../../../src/tcapParser/source/FilterOperation.cc
@@ -116,7 +122,7 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/TcapStatement.cc
         ../../../src/tcapParserTests/source/ParseTcapTests.cc
         ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc
-        ../../../src/tcapIntermediaryRepTests/source/TcapIrTestsRunner.cc
+        ../../../src/tcapIntermediaryRepTests/source/TcapIrBuilderTestsRunner.cc
         ../../../src/tcapParser/source/TcapParser.cc
         ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc
         ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc
@@ -127,9 +133,9 @@ set(SOURCE_FILES
         ../../../src/tcapIntermediaryRep/source/Store.cc
         ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/TranslationUnit.cc)
 
-        ../../../src/tests/source/Test47.cc)
+        #../../../src/tests/source/Test47.cc)
 
 
 

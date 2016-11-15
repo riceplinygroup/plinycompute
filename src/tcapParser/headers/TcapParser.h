@@ -21,14 +21,25 @@
 #include <memory>
 #include <string>
 
+#include "SafeResult.h"
 #include "TranslationUnit.h"
 
 using std::shared_ptr;
 using std::string;
 
+using pdb::SafeResult;
+
 namespace pdb_detail
 {
-    shared_ptr<TranslationUnit> parseTcap(const string &source);
+    /**
+     * Parses the given TCAP program string into a TranslationUnit.
+     *
+     * @param source a program in the TCAP language
+     * @return SafeResultSuccess if the string parsed, else a SafeResultFailure.
+     */
+    // n.b. we return a pointer from here because we may have to return nullptr if there is parse error.
+    // we have to return nullptr because PDB style rules forbid throwing exceptions across api boundaries.
+    shared_ptr<SafeResult<TranslationUnit>> parseTcap(const string &source);
 }
 
 #endif //PDB_TCAPPARSER_TCAPPARSER_H

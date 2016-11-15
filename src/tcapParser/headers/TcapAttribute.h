@@ -19,19 +19,42 @@
 #define PDB_TCAPPARSER_TCAPATTRIBUTE_H
 
 #include "TcapIdentifier.h"
+#include "StringLiteral.h"
+
+#include <memory>
+
+using std::shared_ptr;
 
 namespace pdb_detail
 {
+    /**
+     * A key value pair associated with a statement.
+     */
     class TcapAttribute
     {
     public:
 
-        TcapIdentifier name;
+        /**
+         * The key name of the attribute.
+         */
+        const TcapIdentifier name;
 
-        shared_ptr <string> value;
+        /**
+         * The value of the attribute.
+         */
+        const StringLiteral value;
 
-        TcapAttribute(TcapIdentifier name, shared_ptr <string> value);
+        /**
+         * Creates a new TCAP attribute.
+         *
+         * @param name The key name of the attribute.
+         * @param value The value of the attribute.
+         * @return a new TcapAttribute
+         */
+        TcapAttribute(TcapIdentifier name, StringLiteral value);
     };
+
+    typedef shared_ptr<TcapAttribute> TcapAttributePtr;
 }
 
 #endif //PDB_TCAPATTRIBUTE_H

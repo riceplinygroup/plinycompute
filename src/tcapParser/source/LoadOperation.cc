@@ -21,19 +21,14 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    LoadOperation::LoadOperation(shared_ptr<string> source) : source(source)
+    LoadOperation::LoadOperation(string source) : source(source)
     {
 
     }
 
-    LoadOperation::LoadOperation(string source) : source(make_shared<string>(source))
-    {
-
-    }
-
-    void LoadOperation::execute(function<void(LoadOperation&)> forLoad, function<void(ApplyOperation&)>,
-                                function<void(FilterOperation&)>,function<void(HoistOperation&)> forHoist,
-                                function<void(BinaryOperation&)> forBinaryOp)
+    void LoadOperation::match(function<void(LoadOperation &)> forLoad, function<void(ApplyOperation &)>,
+                              function<void(FilterOperation &)>, function<void(HoistOperation &)>,
+                              function<void(BinaryOperation &)>)
     {
         return forLoad(*this);
     }
