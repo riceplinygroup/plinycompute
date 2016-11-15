@@ -21,6 +21,23 @@ using std::make_shared;
 
 namespace pdb_detail
 {
+
+    GreaterThan::GreaterThan(Column leftHandSide, Column rightHandSide, Column outputColumn,
+    shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
+
+    : Instruction(InstructionType::greater_than), leftHandSide(leftHandSide),
+    rightHandSide(rightHandSide), outputColumn(outputColumn),
+    columnsToCopyToOutputTable(columnsToCopyToOutputTable), executorId(executorId)
+    {
+    }
+
+    void GreaterThan::match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+               function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)> forGreaterThan,
+               function<void(Store&)>)
+    {
+        forGreaterThan(*this);
+    }
+
     GreaterThanPtr makeGreaterThan(Column leftHandSide, Column rightHandSide, Column outputColumn,
                                    shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
     {

@@ -133,7 +133,7 @@ set(SOURCE_FILES
         ../../../src/tcapIntermediaryRep/source/Store.cc
         ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/TranslationUnit.cc)
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/TranslationUnit.cc ../../../src/tcapIntermediaryRep/source/ApplyBase.cc ../../../src/tcapIntermediaryRep/source/Column.cc ../../../src/tcapIntermediaryRep/source/Instruction.cc ../../../src/tcapIntermediaryRep/source/TableColumns.cc)
 
         #../../../src/tests/source/Test47.cc)
 

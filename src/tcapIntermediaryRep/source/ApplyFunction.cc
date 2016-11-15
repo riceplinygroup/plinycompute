@@ -26,4 +26,12 @@ namespace pdb_detail
         return make_shared<ApplyFunction>(executorId, functionId, outputTableId, outputColumnId, inputColumns,
                                           columnsToCopyToOutputTable);
     }
+
+
+    void ApplyFunction::match(function<void(Load&)>, function<void(ApplyFunction&)> forApplyFunc, function<void(ApplyMethod&)>,
+               function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
+               function<void(Store&)> forStore)
+    {
+        forApplyFunc(*this);
+    }
 }

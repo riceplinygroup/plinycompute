@@ -22,6 +22,21 @@ using std::make_shared;
 namespace pdb_detail
 {
 
+    Hoist::Hoist(string fieldId, Column inputColumn, Column outputColumn,
+    shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
+
+    : Instruction(InstructionType::hoist), fieldId(fieldId), inputColumn(inputColumn),
+    outputColumn(outputColumn), columnsToCopyToOutputTable(columnsToCopyToOutputTable), executorId(executorId)
+    {
+    }
+
+    void Hoist::match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+               function<void(Filter&)>, function<void(Hoist&)> forHoist, function<void(GreaterThan&)>,
+               function<void(Store&)>)
+    {
+        forHoist(*this);
+    }
+
     HoistPtr makeHoist(string fieldId, Column inputColumn, Column outputColumn,
                        shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
     {

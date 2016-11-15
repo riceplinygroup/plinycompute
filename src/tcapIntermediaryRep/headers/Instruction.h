@@ -51,9 +51,7 @@ namespace pdb_detail
 
         const InstructionType instructionType;
 
-        Instruction(InstructionType type) : instructionType(type)
-        {
-        }
+        Instruction(InstructionType type);
 
         virtual void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)> forApplyFunc,
                            function<void(ApplyMethod&)> forApplyMethod, function<void(Filter&)> forFilter,

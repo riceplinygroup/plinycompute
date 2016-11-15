@@ -19,6 +19,19 @@
 
 namespace pdb_detail
 {
+    Load::Load(string outputTableId, string outputColumnId, string source)
+    :Instruction(InstructionType::load), outputColumnId(outputColumnId), outputTableId(outputTableId),
+    source(source)
+    {
+    }
+
+    void Load::match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+               function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
+               function<void(Store&)>)
+    {
+        forLoad(*this);
+    }
+
     LoadPtr makeLoad(string outputTableId, string outputColumnId, string source)
     {
         return make_shared<Load>(outputTableId, outputColumnId, source);

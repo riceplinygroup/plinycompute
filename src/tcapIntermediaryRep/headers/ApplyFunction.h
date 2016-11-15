@@ -114,10 +114,7 @@ namespace pdb_detail
          */
         void match(function<void(Load&)>, function<void(ApplyFunction&)> forApplyFunc, function<void(ApplyMethod&)>,
                    function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)> forStore) override
-        {
-            forApplyFunc(*this);
-        }
+                   function<void(Store&)> forStore) override;
     };
 
     typedef shared_ptr<ApplyFunction> ApplyFunctionPtr;

@@ -15,10 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-//
-// Created by barnett on 10/25/16.
-//
-
 #ifndef PDB_TCAPINTERMEDIARYREP_COLUMN_H
 #define PDB_TCAPINTERMEDIARYREP_COLUMN_H
 
@@ -36,9 +32,7 @@ namespace pdb_detail
 
         const string columnId;
 
-        Column(string tableId, string columnId) : tableId(tableId), columnId(columnId)
-        {
-        }
+        Column(string tableId, string columnId);
     };
 }
 

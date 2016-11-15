@@ -31,17 +31,11 @@ namespace pdb_detail
 
         const string destination;
 
-        Store(TableColumns columnsToStore, string destination)
-                :Instruction(InstructionType::store), columnsToStore(columnsToStore), destination(destination)
-        {
-        }
+        Store(TableColumns columnsToStore, string destination);
 
         void match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
                    function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)> forStore)
-        {
-            forStore(*this);
-        }
+                   function<void(Store&)> forStore);
     };
 
     typedef shared_ptr<Store> StorePtr;
