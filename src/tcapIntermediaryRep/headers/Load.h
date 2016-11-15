@@ -33,19 +33,11 @@ namespace pdb_detail
 
         const string source;
 
-        Load(string outputTableId, string outputColumnId, string source)
-                :Instruction(InstructionType::load), outputColumnId(outputColumnId), outputTableId(outputTableId),
-                 source(source)
-        {
-        }
+        Load(string outputTableId, string outputColumnId, string source);
 
         void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
                    function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)> forStore) override
-        {
-            forLoad(*this);
-        }
-
+                   function<void(Store&)> forStore) override;
     };
 
     typedef shared_ptr<Load> LoadPtr;

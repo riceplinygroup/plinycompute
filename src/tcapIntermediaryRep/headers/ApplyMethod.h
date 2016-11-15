@@ -102,22 +102,14 @@ namespace pdb_detail
          * @param columnsToCopyToOutputTable  any columns that should be copied into the output table
          */
         ApplyMethod(string executorId, string functionId, string outputTableId, string outputColumnId,  TableColumns inputColumns,
-                      shared_ptr<vector<Column>> columnsToCopyToOutputTable)
-
-                : ApplyBase(executorId, functionId, outputTableId, outputColumnId, inputColumns,
-                            columnsToCopyToOutputTable, InstructionType::apply_method)
-        {
-        }
+                      shared_ptr<vector<Column>> columnsToCopyToOutputTable);
 
         /**
          * Visitiation hook for visitor patttern.
          */
         void match(function<void(Load&)>, function<void(ApplyFunction&)>,
                    function<void(ApplyMethod&)> forApplyMethod, function<void(Filter&)>,
-                   function<void(Hoist&)>, function<void(GreaterThan&)>, function<void(Store&)>) override
-        {
-            forApplyMethod(*this);
-        }
+                   function<void(Hoist&)>, function<void(GreaterThan&)>, function<void(Store&)>) override;
     };
 
     typedef shared_ptr<ApplyMethod> ApplyMethodPtr;

@@ -22,6 +22,23 @@ using std::make_shared;
 namespace pdb_detail
 {
 
+    Filter::Filter(string inputTableId, string filterColumnId, string outputTableId,
+    shared_ptr<vector<Column>> columnsToCopyToOutputTable)
+    :
+    Instruction(InstructionType::filter),
+    inputTableId(inputTableId), filterColumnId(filterColumnId), outputTableId(outputTableId),
+    columnsToCopyToOutputTable(columnsToCopyToOutputTable)
+    {
+
+    }
+
+    void Filter::match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
+               function<void(Filter&)> forFilter, function<void(Hoist&)>, function<void(GreaterThan&)>,
+               function<void(Store&)>)
+    {
+        forFilter(*this);
+    }
+
     FilterPtr makeFilter(string inputTableId, string filterColumnId, string outputTableId,
                          shared_ptr<vector<Column>> columnsToCopyToOutputTable)
     {

@@ -15,55 +15,24 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef PDB_TCAPINTERMEDIARYREP_HOIST_H
-#define PDB_TCAPINTERMEDIARYREP_HOIST_H
-
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "Column.h"
-#include "Instruction.h"
-
-using std::shared_ptr;
-using std::string;
-using std::vector;
-
-using pdb_detail::Column;
-using pdb_detail::Instruction;
+#include "ApplyBase.h"
 
 namespace pdb_detail
 {
-    class Hoist : public Instruction
+    ApplyBase::ApplyBase(string executorId, string functionId, string outputTableId, string outputColumnId,
+              TableColumns inputColumns, shared_ptr<vector<Column>>
+              columnsToCopyToOutputTable, InstructionType type)
+
+            : Instruction(type),  executorId(executorId), functionId(functionId), outputTableId(outputTableId),
+              outputColumnId(outputColumnId), inputColumns(inputColumns),
+              columnsToCopyToOutputTable(columnsToCopyToOutputTable)
     {
-    public:
+    }
 
-        const string fieldId;
+    uint ApplyBase::getOutputTableColumnCount()
+    {
+        return columnsToCopyToOutputTable->size() + 1;
+    }
 
-        const Column inputColumn;
-
-        const Column outputColumn;
-
-        /**
-         * Any option columns to copy into the output table during its contruction.
-         */
-        const shared_ptr<vector<Column>> columnsToCopyToOutputTable;
-
-        const string executorId;
-
-        Hoist(string fieldId, Column inputColumn, Column outputColumn,
-              shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId);
-
-        void match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
-                   function<void(Filter&)>, function<void(Hoist&)> forHoist, function<void(GreaterThan&)>,
-                   function<void(Store&)>);
-
-    };
-
-    typedef shared_ptr<Hoist> HoistPtr;
-
-    HoistPtr makeHoist(string fieldId, Column inputColumn, Column outputColumn,
-                       shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId);
 }
 
-#endif //PDB_TCAPINTERMEDIARYREP_HOIST_H

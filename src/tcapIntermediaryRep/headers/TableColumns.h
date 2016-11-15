@@ -40,28 +40,13 @@ namespace pdb_detail
 
         const shared_ptr<vector<string>> columnIds;
 
-        TableColumns(string tableName, shared_ptr<vector<string>> columnIds)
-            : tableName(tableName), columnIds(columnIds)
-        {
-        }
+        TableColumns(string tableName, shared_ptr<vector<string>> columnIds);
 
-        TableColumns(string tableName, string columnId)
-                : tableName(tableName), columnIds(make_shared<vector<string>>())
-        {
-            columnIds->push_back(columnId);
-        }
+        TableColumns(string tableName, string columnId);
 
-        TableColumns(string tableName, string columnId1, string columnId2)
-                : tableName(tableName), columnIds(make_shared<vector<string>>())
-        {
-            columnIds->push_back(columnId1);
-            columnIds->push_back(columnId2);
-        }
+        TableColumns(string tableName, string columnId1, string columnId2);
 
-        string operator[](vector<string>::size_type index) const
-        {
-            return columnIds->operator[](index);
-        }
+        string operator[](vector<string>::size_type index) const;
 
     };
 }

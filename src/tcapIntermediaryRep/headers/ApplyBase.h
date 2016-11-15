@@ -79,21 +79,12 @@ namespace pdb_detail
          */
         ApplyBase(string executorId, string functionId, string outputTableId, string outputColumnId,
                   TableColumns inputColumns, shared_ptr<vector<Column>>
-                  columnsToCopyToOutputTable, InstructionType type)
-
-                : Instruction(type),  executorId(executorId), functionId(functionId), outputTableId(outputTableId),
-                  outputColumnId(outputColumnId), inputColumns(inputColumns),
-                  columnsToCopyToOutputTable(columnsToCopyToOutputTable)
-        {
-        }
+                  columnsToCopyToOutputTable, InstructionType type);
 
         /**
          * @return the number of coumns in outputTableId created by executing the instruction.
          */
-        uint getOutputTableColumnCount()
-        {
-            return columnsToCopyToOutputTable->size() + 1;
-        }
+        uint getOutputTableColumnCount();
 
     };
 }

@@ -47,20 +47,11 @@ namespace pdb_detail
         const string executorId;
 
         GreaterThan(Column leftHandSide, Column rightHandSide, Column outputColumn,
-                    shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId)
-
-                    : Instruction(InstructionType::greater_than), leftHandSide(leftHandSide),
-                      rightHandSide(rightHandSide), outputColumn(outputColumn),
-                      columnsToCopyToOutputTable(columnsToCopyToOutputTable), executorId(executorId)
-        {
-        }
+                    shared_ptr<vector<Column>> columnsToCopyToOutputTable, string executorId);
 
         void match(function<void(Load&)> forLoad, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
                    function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)> forGreaterThan,
-                   function<void(Store&)>)
-        {
-            forGreaterThan(*this);
-        }
+                   function<void(Store&)>);
 
     };
 

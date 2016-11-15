@@ -65,21 +65,11 @@ namespace pdb_detail
         const shared_ptr<vector<Column>> columnsToCopyToOutputTable;
 
         Filter(string inputTableId, string filterColumnId, string outputTableId,
-               shared_ptr<vector<Column>> columnsToCopyToOutputTable)
-            :
-                Instruction(InstructionType::filter),
-                inputTableId(inputTableId), filterColumnId(filterColumnId), outputTableId(outputTableId),
-                columnsToCopyToOutputTable(columnsToCopyToOutputTable)
-        {
-
-        }
+               shared_ptr<vector<Column>> columnsToCopyToOutputTable);
 
         void match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
                    function<void(Filter&)> forFilter, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)>)
-        {
-            forFilter(*this);
-        }
+                   function<void(Store&)>);
     };
 
     typedef shared_ptr<Filter> FilterPtr;
