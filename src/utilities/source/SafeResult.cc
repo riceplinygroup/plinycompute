@@ -15,30 +15,3 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapStatement.h"
-
-using std::make_shared;
-
-namespace pdb_detail
-{
-    /**
-     * @param attribute the attribute to wrap in a vector
-     * @return a vector of only attribute
-     */
-    shared_ptr<vector<TcapAttribute>> wrapInVector(TcapAttribute attribute)
-    {
-        shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
-        attributes->push_back(attribute);
-        return attributes;
-    }
-
-    TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
-    {
-    }
-
-    TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))
-    {
-    }
-
-}
-

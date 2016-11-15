@@ -30,22 +30,53 @@ using std::string;
 
 namespace pdb_detail
 {
+    /**
+     * Models a filter opertion in the TCAP grammar.  For example:
+     *
+     *    filter D by isExamGreater retain all
+     *
+     * In this example:
+     *
+     *     inputTableName would be D
+     *     filterColumnName would be isExamGreater
+     *     an instance of RetailAllClause would be the value of retain
+     */
     class FilterOperation : public TableExpression
     {
     public:
 
-        TcapIdentifier inputTableName;
+        /**
+         * The name of the table filterd by the operation.
+         */
+        const TcapIdentifier inputTableName;
 
-        TcapIdentifier filterColumnName;
+        /**
+         * The name of the column in inputTableName to be filtered upon.
+         */
+        const TcapIdentifier filterColumnName;
 
-        shared_ptr<RetainClause> retain;
+        /**
+         * The retention clause of the operation.
+         */
+        const shared_ptr<RetainClause> retain;
 
+        /**
+         * Creates a new FilterOperation.
+         *
+         * @param inputTableName The name of the table filterd by the operation.
+         * @param filterColumnName The name of the column in inputTableName to be filtered upon.
+         * @param retain The retention clause of the operation.
+         * @return a new FilterOperation
+         */
         FilterOperation(TcapIdentifier inputTableName, TcapIdentifier filterColumnName, shared_ptr<RetainClause> retain);
 
-        void execute(function<void(LoadOperation&)>, function<void(ApplyOperation&)>,
-                     function<void(FilterOperation&)> forFilter, function<void(HoistOperation&)> forHoist,
-                     function<void(BinaryOperation&)> forBinaryOp);
+        // contract from super
+        void match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>,
+                   function<void(FilterOperation &)> forFilter, function<void(HoistOperation &)>,
+                   function<void(BinaryOperation &)>) override ;
     };
+
+    typedef shared_ptr<FilterOperation> FilterOperationPtr;
 }
 
 #endif //PDB_TCAPPARSER_FILTEROPERATION_H

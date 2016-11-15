@@ -15,30 +15,17 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapStatement.h"
+#ifndef PDB_TCAPINTERMEDIARYREPTESTS_TCAPBUILDERTESTSRUNNER_H
+#define PDB_TCAPINTERMEDIARYREPTESTS_TCAPBUILDERTESTSRUNNER_H
 
-using std::make_shared;
+#include "qunit.h"
 
-namespace pdb_detail
+using QUnit::UnitTest;
+
+namespace pdb_tests
 {
-    /**
-     * @param attribute the attribute to wrap in a vector
-     * @return a vector of only attribute
-     */
-    shared_ptr<vector<TcapAttribute>> wrapInVector(TcapAttribute attribute)
-    {
-        shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
-        attributes->push_back(attribute);
-        return attributes;
-    }
-
-    TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
-    {
-    }
-
-    TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))
-    {
-    }
-
+    void runBuildTcapBuilderTests(UnitTest &qunit);
 }
 
+
+#endif //PDB_TCAPINTERMEDIARYREPTESTS_TCAPBUILDERTESTSRUNNER_H

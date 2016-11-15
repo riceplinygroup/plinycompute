@@ -28,13 +28,13 @@
 
 namespace pdb_detail
 {
-    string getAttributeValue(string name, shared_ptr<vector<TcapAttribute>> attributes)
+    string getAttributeValue(string name, shared_ptr<const vector<TcapAttribute>> attributes)
     {
         for(TcapAttribute a : *attributes.get())
         {
-            if(*a.name.contents.get() == name)
+            if(a.name.contents == name)
             {
-                string s = *a.value.get();
+                string s = a.value.contents;
                 s.erase(std::remove(s.begin(), s.end(), '"'), s.end());
                 return s;
             }
@@ -49,32 +49,32 @@ namespace pdb_detail
 
         shared_ptr<vector<Column>> empty = make_shared<vector<Column>>();
 
-        string inputTableName = *applyOp.inputTable.contents.get();
+        string inputTableName = applyOp.inputTable.contents;
 
         // make tableColumns
         shared_ptr<vector<string>> columnNames = make_shared<vector<string>>();
         {
             for (TcapIdentifier i : *applyOp.inputTableColumnNames.get())
             {
-                columnNames->push_back(*i.contents.get());
+                columnNames->push_back(i.contents);
             }
         }
-        TableColumns inputColumns(*applyOp.inputTable.contents.get(), columnNames);
+        TableColumns inputColumns(applyOp.inputTable.contents, columnNames);
 
         shared_ptr<vector<Column>> outputColumnsToCopy = make_shared<vector<Column>>();
         {
             for(std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size()-1; i++)
             {
-                string columnId = *tableAssignment.columnNames->operator[](i).contents.get();
+                string columnId = tableAssignment.columnNames->operator[](i).contents;
                 outputColumnsToCopy->push_back(Column(inputTableName, columnId));
             }
         }
 
-        string functionId = *applyOp.applyTarget.get();
-        string outputTableName = *tableAssignment.tableName.contents.get();
+        string functionId = applyOp.applyTarget;
+        string outputTableName = tableAssignment.tableName.contents;
 
         // outputcolumnName is the last value in tableAssignment.columnNames
-        string outputcolumnName = *tableAssignment.columnNames->operator[](tableAssignment.columnNames->size()-1).contents.get();
+        string outputcolumnName = tableAssignment.columnNames->operator[](tableAssignment.columnNames->size()-1).contents;
 
         if(applyOp.applyType == ApplyOperationType::func)
             return make_shared<ApplyFunction>(executorId, functionId , outputTableName, outputcolumnName, inputColumns, outputColumnsToCopy);
@@ -87,60 +87,60 @@ namespace pdb_detail
     {
         shared_ptr<Instruction> instruction;
 
-        string assignmentLhsTableName = *tableAssignment.tableName.contents.get();
+        string assignmentLhsTableName = tableAssignment.tableName.contents;
 
-        tableAssignment.value->execute(
+        tableAssignment.value->match(
                 [&](LoadOperation &load)
                 {
-                    string unquotedSource = *load.source.get();
-                    unquotedSource = unquotedSource.substr(1, unquotedSource.size()-2); // remove surrounding quotes
+                    string unquotedSource = load.source.substr(1, load.source.size() - 2); // remove surrounding quotes
                     instruction = make_shared<Load>(assignmentLhsTableName,
-                                                    *tableAssignment.columnNames->operator[](0).contents.get(),
+                                                    tableAssignment.columnNames->operator[](0).contents,
                                                     unquotedSource);
                 },
-                [&](ApplyOperation  &applyOp)
+                [&](ApplyOperation &applyOp)
                 {
                     instruction = makeInstructionFromApply(applyOp, tableAssignment);
 
                 },
                 [&](FilterOperation &filterOperation)
                 {
-                    string inputTableName = *filterOperation.inputTableName.contents.get();
+                    string inputTableName = filterOperation.inputTableName.contents;
                     shared_ptr<vector<Column>> outputColumnsToCopy = make_shared<vector<Column>>();
                     {
-                        for(std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size(); i++)
+                        for (std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size(); i++)
                         {
-                            string columnId = *tableAssignment.columnNames->operator[](i).contents.get();
+                            string columnId = tableAssignment.columnNames->operator[](i).contents;
                             outputColumnsToCopy->push_back(Column(inputTableName, columnId));
                         }
                     }
 
-                    instruction = make_shared<Filter>(inputTableName, *filterOperation.filterColumnName.contents.get(),
+                    instruction = make_shared<Filter>(inputTableName, filterOperation.filterColumnName.contents,
                                                       assignmentLhsTableName, outputColumnsToCopy);
 
                 },
                 [&](HoistOperation &hoistOperation)
                 {
-                    string inputTableName = *hoistOperation.inputTable.contents.get();
+                    string inputTableName = hoistOperation.inputTable.contents;
                     shared_ptr<vector<Column>> outputColumnsToCopy = make_shared<vector<Column>>();
                     {
-                        for(std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size()-1; i++)
+                        for (std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size() - 1; i++)
                         {
-                            string columnId = *tableAssignment.columnNames->operator[](i).contents.get();
+                            string columnId = tableAssignment.columnNames->operator[](i).contents;
                             outputColumnsToCopy->push_back(Column(inputTableName, columnId));
                         }
                     }
 
-                    Column hoistColumn(*hoistOperation.inputTable.contents.get(),
-                                       *hoistOperation.inputTableColumnNames->operator[](0).contents.get());
+                    Column hoistColumn(hoistOperation.inputTable.contents,
+                                       hoistOperation.inputTableColumnName.contents);
 
                     string executorId = getAttributeValue("exec", tableAssignment.attributes);
 
-                    string outputcolumnName = *tableAssignment.columnNames->operator[](tableAssignment.columnNames->size()-1).contents.get();
+                    string outputcolumnName = tableAssignment.columnNames->operator[](
+                            tableAssignment.columnNames->size() - 1).contents;
 
                     Column outputColumn(assignmentLhsTableName, outputcolumnName);
 
-                    instruction = make_shared<Hoist>(*hoistOperation.hoistTarget.get(), hoistColumn,
+                    instruction = make_shared<Hoist>(hoistOperation.hoistTarget, hoistColumn,
                                                      outputColumn, outputColumnsToCopy,
                                                      executorId);
 
@@ -148,24 +148,26 @@ namespace pdb_detail
                 [&](BinaryOperation &binaryOperation)
                 {
                     binaryOperation.execute(
-                            [&](GreaterThanOp& gt)
+                            [&](GreaterThanOp &gt)
                             {
-                                Column lhs(*gt.lhsTableName.contents.get(), *gt.lhsColumnName.contents.get());
-                                Column rhs(*gt.rhsTableName.contents.get(), *gt.rhsColumnName.contents.get());
+                                Column lhs(gt.lhsTableName.contents, gt.lhsColumnName.contents);
+                                Column rhs(gt.rhsTableName.contents, gt.rhsColumnName.contents);
 
                                 string inputTableName = lhs.tableId;
                                 shared_ptr<vector<Column>> outputColumnsToCopy = make_shared<vector<Column>>();
                                 {
-                                    for(std::vector<int>::size_type i = 0; i < tableAssignment.columnNames->size()-1; i++)
+                                    for (std::vector<int>::size_type i = 0;
+                                         i < tableAssignment.columnNames->size() - 1; i++)
                                     {
-                                        string columnId = *tableAssignment.columnNames->operator[](i).contents.get();
+                                        string columnId = tableAssignment.columnNames->operator[](i).contents;
                                         outputColumnsToCopy->push_back(Column(inputTableName, columnId));
                                     }
                                 }
 
                                 string executorId = getAttributeValue("exec", tableAssignment.attributes);
 
-                                string outputcolumnName = *tableAssignment.columnNames->operator[](tableAssignment.columnNames->size()-1).contents.get();
+                                string outputcolumnName = tableAssignment.columnNames->operator[](
+                                        tableAssignment.columnNames->size() - 1).contents;
 
                                 Column outputColumn(assignmentLhsTableName, outputcolumnName);
 
@@ -179,18 +181,18 @@ namespace pdb_detail
 
     shared_ptr<Instruction> makeInstruction(StoreOperation& storeOperation)
     {
-        string unquotedDest = *storeOperation.destination.get();
+        string unquotedDest = storeOperation.destination;
         unquotedDest = unquotedDest.substr(1, unquotedDest.size()-2); // remove surrounding quotes
 
         shared_ptr<vector<string>> columnsToStore = make_shared<vector<string>>();
         {
             for(TcapIdentifier c : *storeOperation.columnsToStore.get())
             {
-                columnsToStore->push_back(*c.contents.get());
+                columnsToStore->push_back(c.contents);
             }
         }
 
-        return make_shared<Store>(TableColumns(*storeOperation.outputTable.contents.get(), columnsToStore), unquotedDest);
+        return make_shared<Store>(TableColumns(storeOperation.outputTable.contents, columnsToStore), unquotedDest);
     }
 
     shared_ptr<Instruction> makeInstruction(shared_ptr<TcapStatement> stmt)
@@ -209,11 +211,11 @@ namespace pdb_detail
     }
 
 
-    shared_ptr<vector<shared_ptr<Instruction>>> buildTcapIr(shared_ptr<TranslationUnit> unit)
+    shared_ptr<vector<shared_ptr<Instruction>>> buildTcapIr(TranslationUnit unit)
     {
         shared_ptr<vector<shared_ptr<Instruction>>> instructions = make_shared<vector<shared_ptr<Instruction>>>();
 
-        for(shared_ptr<TcapStatement> stmt : *unit->statements.get())
+        for(shared_ptr<TcapStatement> stmt : *unit.statements.get())
         {
             try
             {

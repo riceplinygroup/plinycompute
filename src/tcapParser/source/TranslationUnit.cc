@@ -15,30 +15,30 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapStatement.h"
+#include "TranslationUnit.h"
 
 using std::make_shared;
 
 namespace pdb_detail
 {
     /**
-     * @param attribute the attribute to wrap in a vector
-     * @return a vector of only attribute
+     * @param statement the statement to wrap in a vector.
+     * @return a vector containing only statement
      */
-    shared_ptr<vector<TcapAttribute>> wrapInVector(TcapAttribute attribute)
+    shared_ptr<vector<TcapStatementPtr>> wrapInVector(TcapStatementPtr statement)
     {
-        shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
-        attributes->push_back(attribute);
-        return attributes;
+        shared_ptr<vector<shared_ptr<TcapStatement>>> stmts = make_shared<vector<shared_ptr<TcapStatement>>>();
+        stmts->push_back(statement);
+        return stmts;
     }
 
-    TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
-    {
-    }
-
-    TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))
+    TranslationUnit::TranslationUnit(TcapStatementPtr statement) : statements(wrapInVector(statement))
     {
     }
 
+    TranslationUnit::TranslationUnit(shared_ptr<const vector<TcapStatementPtr>> statements)
+        :statements(statements)
+    {
+    }
 }
 

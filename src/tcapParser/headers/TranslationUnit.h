@@ -29,12 +29,35 @@ using std::vector;
 
 namespace pdb_detail
 {
+    /**
+     * A collection of TCAP statements.
+     */
     class TranslationUnit
     {
 
     public:
 
-        shared_ptr<vector<shared_ptr<TcapStatement>>> const statements = make_shared<vector<shared_ptr<TcapStatement>>>();
+        /**
+         * The statements of the unit.
+         */
+        const shared_ptr<const vector<TcapStatementPtr>> statements;
+
+        /**
+         * Creates a single statement unit.
+         *
+         * @param statement the statement
+         * @return A new TranslationUnit
+         */
+        TranslationUnit(TcapStatementPtr statement);
+
+        /**
+         * Creates a new TranslationUnit
+         *
+         * @param statements the statements of the unit.
+         * @return a new TranslationUnit
+         */
+        TranslationUnit(shared_ptr<const vector<TcapStatementPtr>> statements);
+
     };
 
 }

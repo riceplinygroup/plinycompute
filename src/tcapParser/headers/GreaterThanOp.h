@@ -30,23 +30,63 @@ using std::shared_ptr;
 
 namespace pdb_detail
 {
+    /**
+     * Models a a greater than operation in the TCAP grammar.  For example:
+     *
+     *    C[examAverage] > C[hwAverage] retain all
+     *
+     * In this example:
+     *
+     *     lhsTableName would be C
+     *     lhsColumnName would be examAverage
+     *     rhsTableName would be C
+     *     rhsColumnName would be hwAverage
+     *     an instance of RetailAllClause would be the value of retain
+     */
     class GreaterThanOp : public BinaryOperation
     {
     public:
 
-        TcapIdentifier lhsTableName;
+        /**
+         * The table from which the left hand column is drawn.
+         */
+        const TcapIdentifier lhsTableName;
 
-        TcapIdentifier lhsColumnName;
+        /**
+         * The left hand side column used in comparision.
+         */
+        const TcapIdentifier lhsColumnName;
 
-        TcapIdentifier rhsTableName;
+        /**
+         * The table from which the right hand column is drawn.
+         */
+        const TcapIdentifier rhsTableName;
 
-        TcapIdentifier rhsColumnName;
+        /**
+         * The right hand side column used in comparision.
+         */
+        const TcapIdentifier rhsColumnName;
 
-        shared_ptr<RetainClause> retain;
+        /**
+         * The retention clause of the operation.
+         */
+        const shared_ptr<RetainClause> retain;
 
-        GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName, TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain);
+        /**
+         * Creates a new GreaterThanOp.
+         *
+         * @param lhsTableName The table from which the left hand column is drawn.
+         * @param lhsColumnName The left hand side column used in comparision.
+         * @param rhsTableName The table from which the right hand column is drawn.
+         * @param rhsColumnName The right hand side column used in comparision.
+         * @param retain The retention clause of the operation.
+         * @return a GreaterThanOp.
+         */
+        GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName,
+                      TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain);
 
-        void execute(function<void(GreaterThanOp&)> forGreaterThan);
+        // contract from super
+        void execute(function<void(GreaterThanOp&)> forGreaterThan) override;
 
     };
 }

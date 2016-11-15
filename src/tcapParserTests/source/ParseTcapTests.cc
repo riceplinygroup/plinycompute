@@ -57,46 +57,28 @@ using QUnit::UnitTest;
 
 namespace pdb_tests
 {
-    void testParseTcap1(UnitTest &qunit)
+    void testParseTcap1Help(UnitTest &qunit, TranslationUnit parseTree)
     {
-       string program =
-               "@exec \"exec1\"\n"
-               "A(student) = load \"(databaseName, inputSetName)\"\n"
-               "B(student, examAverage) = apply func \"avgExams\" to A[student] retain all\n"
-               "C(student, examAverage, hwAverage) = hoist \"homeworkAverage\" from B[student] retain all\n"
-               "D(student, isExamGreater) = C[examAverage] > C[hwAverage] retain student\n"
-               "E(student) = filter D by isExamGreater retain student\n"
-               "F(name) = apply method \"getName\" to E[student] retain none"
-               "store F[name] \"(databaseName, outputSetName)\"";
-
-        shared_ptr<TranslationUnit> parseTree = parseTcap(program);
-
-        if(parseTree == nullptr)
-        {
-            QUNIT_IS_TRUE(false);
-            return;
-        }
-
         int statementNumber = 0;
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
                     QUNIT_IS_EQUAL(1, assignment.attributes->size());
 
-                    QUNIT_IS_EQUAL("exec", assignment.attributes->operator[](0).name.contents->c_str());
-                    QUNIT_IS_EQUAL("\"exec1\"", assignment.attributes->operator[](0).value->c_str());
+                    QUNIT_IS_EQUAL("exec", assignment.attributes->operator[](0).name.contents);
+                    QUNIT_IS_EQUAL("\"exec1\"", assignment.attributes->operator[](0).value.contents);
 
-                    QUNIT_IS_EQUAL("A", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("A", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(1, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents.get()->c_str())
+                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents)
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation &load)
                             {
-                                QUNIT_IS_EQUAL("\"(databaseName, inputSetName)\"", load.source->c_str())
+                                QUNIT_IS_EQUAL("\"(databaseName, inputSetName)\"", load.source)
 
                             },
                             [&](ApplyOperation &)
@@ -122,17 +104,17 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
-                    QUNIT_IS_EQUAL("B", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("B", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(2, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents.get()->c_str());
-                    QUNIT_IS_EQUAL("examAverage", assignment.columnNames->operator[](1).contents.get()->c_str())
+                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents);
+                    QUNIT_IS_EQUAL("examAverage", assignment.columnNames->operator[](1).contents)
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation &)
                             {
                                 QUNIT_IS_TRUE(false);
@@ -141,14 +123,13 @@ namespace pdb_tests
                             {
                                 QUNIT_IS_EQUAL(ApplyOperationType::func, applyOperation.applyType);
 
-                                QUNIT_IS_EQUAL("\"avgExams\"", applyOperation.applyTarget->c_str())
+                                QUNIT_IS_EQUAL("\"avgExams\"", applyOperation.applyTarget)
 
-                                QUNIT_IS_EQUAL("A", applyOperation.inputTable.contents->c_str())
+                                QUNIT_IS_EQUAL("A", applyOperation.inputTable.contents)
 
                                 QUNIT_IS_EQUAL(1, applyOperation.inputTableColumnNames->size());
 
-                                QUNIT_IS_EQUAL("student", applyOperation.inputTableColumnNames->operator[](
-                                        0).contents.get()->c_str());
+                                QUNIT_IS_EQUAL("student", applyOperation.inputTableColumnNames->operator[](0).contents);
 
                                 QUNIT_IS_TRUE(applyOperation.retain->isAll());
                             },
@@ -170,18 +151,18 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
-                    QUNIT_IS_EQUAL("C", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("C", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(3, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents.get()->c_str());
-                    QUNIT_IS_EQUAL("examAverage", assignment.columnNames->operator[](1).contents.get()->c_str())
-                    QUNIT_IS_EQUAL("hwAverage", assignment.columnNames->operator[](2).contents.get()->c_str())
+                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents);
+                    QUNIT_IS_EQUAL("examAverage", assignment.columnNames->operator[](1).contents)
+                    QUNIT_IS_EQUAL("hwAverage", assignment.columnNames->operator[](2).contents)
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation &)
                             {
                                 QUNIT_IS_TRUE(false);
@@ -196,14 +177,11 @@ namespace pdb_tests
                             },
                             [&](HoistOperation &hoistOperation)
                             {
-                                QUNIT_IS_EQUAL("\"homeworkAverage\"", hoistOperation.hoistTarget->c_str())
+                                QUNIT_IS_EQUAL("\"homeworkAverage\"", hoistOperation.hoistTarget)
 
-                                QUNIT_IS_EQUAL("B", hoistOperation.inputTable.contents->c_str())
+                                QUNIT_IS_EQUAL("B", hoistOperation.inputTable.contents);
 
-                                QUNIT_IS_EQUAL(1, hoistOperation.inputTableColumnNames->size());
-
-                                QUNIT_IS_EQUAL("student", hoistOperation.inputTableColumnNames->operator[](
-                                        0).contents.get()->c_str());
+                                QUNIT_IS_EQUAL("student", hoistOperation.inputTableColumnName.contents);
 
                                 QUNIT_IS_TRUE(hoistOperation.retain->isAll());
                             },
@@ -218,17 +196,17 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
-                    QUNIT_IS_EQUAL("D", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("D", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(2, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents.get()->c_str());
-                    QUNIT_IS_EQUAL("isExamGreater", assignment.columnNames->operator[](1).contents.get()->c_str())
+                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents);
+                    QUNIT_IS_EQUAL("isExamGreater", assignment.columnNames->operator[](1).contents)
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation &)
                             {
                                 QUNIT_IS_TRUE(false);
@@ -250,11 +228,11 @@ namespace pdb_tests
                                 binOp.execute(
                                         [&](GreaterThanOp gt)
                                         {
-                                            QUNIT_IS_EQUAL("C", gt.lhsTableName.contents.get()->c_str());
-                                            QUNIT_IS_EQUAL("examAverage", gt.lhsColumnName.contents.get()->c_str());
+                                            QUNIT_IS_EQUAL("C", gt.lhsTableName.contents);
+                                            QUNIT_IS_EQUAL("examAverage", gt.lhsColumnName.contents);
 
-                                            QUNIT_IS_EQUAL("C", gt.rhsTableName.contents.get()->c_str());
-                                            QUNIT_IS_EQUAL("hwAverage", gt.rhsColumnName.contents.get()->c_str());
+                                            QUNIT_IS_EQUAL("C", gt.rhsTableName.contents);
+                                            QUNIT_IS_EQUAL("hwAverage", gt.rhsColumnName.contents);
                                         });
                             }
                     );
@@ -264,16 +242,16 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
-                    QUNIT_IS_EQUAL("E", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("E", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(1, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents.get()->c_str());
+                    QUNIT_IS_EQUAL("student", assignment.columnNames->operator[](0).contents);
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation)
                             {
                                 QUNIT_IS_TRUE(false);
@@ -284,8 +262,8 @@ namespace pdb_tests
                             },
                             [&](FilterOperation filterOperation)
                             {
-                                QUNIT_IS_EQUAL("D", filterOperation.inputTableName.contents->c_str())
-                                QUNIT_IS_EQUAL("isExamGreater", filterOperation.filterColumnName.contents->c_str())
+                                QUNIT_IS_EQUAL("D", filterOperation.inputTableName.contents)
+                                QUNIT_IS_EQUAL("isExamGreater", filterOperation.filterColumnName.contents)
 
                                 filterOperation.retain->match(
                                         [&](RetainAllClause)
@@ -295,7 +273,7 @@ namespace pdb_tests
                                         [&](RetainExplicitClause exp)
                                         {
                                             QUNIT_IS_EQUAL(1, exp.columns->size());
-                                            QUNIT_IS_EQUAL("student", exp.columns->operator[](0).contents->c_str())
+                                            QUNIT_IS_EQUAL("student", exp.columns->operator[](0).contents)
                                         },
                                         [&](RetainNoneClause)
                                         {
@@ -317,16 +295,16 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
-                    QUNIT_IS_EQUAL("F", assignment.tableName.contents.get()->c_str())
+                    QUNIT_IS_EQUAL("F", assignment.tableName.contents)
 
                     QUNIT_IS_EQUAL(1, assignment.columnNames->size());
 
-                    QUNIT_IS_EQUAL("name", assignment.columnNames->operator[](0).contents.get()->c_str());
+                    QUNIT_IS_EQUAL("name", assignment.columnNames->operator[](0).contents);
 
-                    assignment.value->execute(
+                    assignment.value->match(
                             [&](LoadOperation &)
                             {
                                 QUNIT_IS_TRUE(false);
@@ -335,14 +313,13 @@ namespace pdb_tests
                             {
                                 QUNIT_IS_EQUAL(ApplyOperationType::method, applyOperation.applyType);
 
-                                QUNIT_IS_EQUAL("\"getName\"", applyOperation.applyTarget->c_str())
+                                QUNIT_IS_EQUAL("\"getName\"", applyOperation.applyTarget)
 
-                                QUNIT_IS_EQUAL("E", applyOperation.inputTable.contents->c_str())
+                                QUNIT_IS_EQUAL("E", applyOperation.inputTable.contents)
 
                                 QUNIT_IS_EQUAL(1, applyOperation.inputTableColumnNames->size());
 
-                                QUNIT_IS_EQUAL("student", applyOperation.inputTableColumnNames->operator[](
-                                        0).contents.get()->c_str());
+                                QUNIT_IS_EQUAL("student", applyOperation.inputTableColumnNames->operator[](0).contents);
 
                                 QUNIT_IS_TRUE(applyOperation.retain->isNone());
                             },
@@ -364,16 +341,42 @@ namespace pdb_tests
                     QUNIT_IS_TRUE(false);
                 });
 
-        parseTree->statements->operator[](statementNumber++)->match(
+        parseTree.statements->operator[](statementNumber++)->match(
                 [&](TableAssignment &assignment)
                 {
                     QUNIT_IS_TRUE(false);
                 },
                 [&](StoreOperation &store)
                 {
-                    QUNIT_IS_EQUAL("F", store.outputTable.contents->c_str());
-                    QUNIT_IS_EQUAL("\"(databaseName, outputSetName)\"", store.destination->c_str())
+                    QUNIT_IS_EQUAL("F", store.outputTable.contents);
+                    QUNIT_IS_EQUAL("\"(databaseName, outputSetName)\"", store.destination)
                 });
+    }
+
+    void testParseTcap1(UnitTest &qunit)
+    {
+       string program =
+               "@exec \"exec1\"\n"
+               "A(student) = load \"(databaseName, inputSetName)\"\n"
+               "B(student, examAverage) = apply func \"avgExams\" to A[student] retain all\n"
+               "C(student, examAverage, hwAverage) = hoist \"homeworkAverage\" from B[student] retain all\n"
+               "D(student, isExamGreater) = C[examAverage] > C[hwAverage] retain student\n"
+               "E(student) = filter D by isExamGreater retain student\n"
+               "F(name) = apply method \"getName\" to E[student] retain none"
+               "store F[name] \"(databaseName, outputSetName)\"";
+
+        shared_ptr<SafeResult<TranslationUnit>> parseTreeResult = parseTcap(program);
+
+        parseTreeResult->apply(
+                [&](TranslationUnit parseTree)
+                {
+                    testParseTcap1Help(qunit, parseTree);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                }
+        );
     }
 }
 

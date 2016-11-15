@@ -35,6 +35,7 @@ using pdb::makeObject;
 using pdb::Set;
 using pdb::Selection;
 using pdb::QueryAlgo;
+using pdb::QueryBase;
 
 namespace pdb_tests
 {
@@ -100,16 +101,16 @@ namespace pdb_tests
         {
         public:
 
-            void forSelection(Object&) override
+            void forSelection(QueryBase&) override
             {
                 isSelection = true;
             }
 
-            void forSet(Object&) override
+            void forSet(QueryBase&) override
             {
             }
 
-            void forQueryOutput(Object&) override
+            void forQueryOutput(QueryBase&) override
             {
             }
 

@@ -154,14 +154,14 @@ namespace pdb_detail
             {
             }
 
-            void forSelection(Object&) override  // node is a Selection<?,?>
+            void forSelection(QueryBase&) override  // node is a Selection<?,?>
             {
                 // user query graph's selection is our projection/selection pair.
                 // makeProjection here is not a mistake.
                 output = makeProjection(_node, _alreadyTranslated, _madeNewNode);
             }
 
-            void forSet(Object&) override // node is a Set<?> which is a user query graph root
+            void forSet(QueryBase&) override // node is a Set<?> which is a user query graph root
             {
                 int numInputs = _node->getNumInputs();
 
@@ -171,7 +171,7 @@ namespace pdb_detail
                 output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
             }
 
-            void forQueryOutput(Object&) override // node is a QueryOutput<?> which represents a sink
+            void forQueryOutput(QueryBase&) override // node is a QueryOutput<?> which represents a sink
             {
                 // Our model doesn't split output sets into their own node in a graph.
                 // So instead translate the node that is to write to user query graph's given set node

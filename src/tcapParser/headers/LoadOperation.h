@@ -28,21 +28,39 @@ using std::string;
 
 namespace pdb_detail
 {
+    /**
+     * Models a LoadOperation in the TCAP grammar.  For example:
+     *
+     *    load "(databaseName, inputSetName)"
+     *
+     * In this example:
+     *
+     *     source would be (databaseName, inputSetName)
+     */
     class LoadOperation : public TableExpression
     {
     public:
 
-        LoadOperation(shared_ptr<string> source) ;
+        /**
+         * The source of the load.
+         */
+        const string source;
 
+        /**
+         * Creates a new LoadOperation.
+         * @param source The source of the load.
+         * @return the new LoadOperation
+         */
         LoadOperation(string source);
 
-        shared_ptr<string> source;
-
-        void execute(function<void(LoadOperation&)> forLoad, function<void(ApplyOperation&)>,
-                     function<void(FilterOperation&)>,function<void(HoistOperation&)> forHoist,
-                     function<void(BinaryOperation&)> forBinaryOp) override;
+        // contract from super
+        void match(function<void(LoadOperation &)> forLoad, function<void(ApplyOperation &)>,
+                   function<void(FilterOperation &)>, function<void(HoistOperation &)>,
+                   function<void(BinaryOperation &)>) override;
 
     };
+
+    typedef shared_ptr<LoadOperation> LoadOperationPtr;
 }
 
 #endif //PDB_TCAPPARSER_LOADOPERATION_H

@@ -39,7 +39,7 @@ using pdb_detail::Load;
 
 namespace pdb_detail
 {
-     shared_ptr<vector<shared_ptr<Instruction>>> buildTcapIr(shared_ptr<TranslationUnit> unit);
+     shared_ptr<vector<shared_ptr<Instruction>>> buildTcapIr(TranslationUnit unit);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_TCAPIRBUILDER_H

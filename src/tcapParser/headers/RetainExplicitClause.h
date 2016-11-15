@@ -30,22 +30,49 @@ using std::shared_ptr;
 
 namespace pdb_detail
 {
+    /**
+     * A retention clause that indicates that specific enumerated columns from an input table should be
+     * copied into the output table.
+     */
     class RetainExplicitClause : public RetainClause
     {
+
     public:
 
-        shared_ptr<vector<TcapIdentifier>> columns;
+        /**
+         * The columns to be retained.
+         */
+        const shared_ptr<const vector<TcapIdentifier>> columns;
 
+        /**
+         * Creates a RetainExplicitClause that only retains one column.
+         *
+         * @param column the column to retain
+         * @return a new RetainExplicitClause instance.
+         */
         RetainExplicitClause(TcapIdentifier column);
 
+        /**
+         * Creates a RetainExplicitClause that only retains one column.
+         *
+         * @param column the column to retain
+         * @return a new RetainExplicitClause instance.
+         */
         RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns);
 
+        /**
+         * @return false
+         */
         bool isAll();
 
+        /**
+         * @return false
+         */
         bool isNone();
 
-        void match(function<void(RetainAllClause &)>, function<void(RetainExplicitClause &)> forExplicit,
-                   function<void(RetainNoneClause &)> forNone);
+        // contract from super
+        void match(function<void(RetainAllClause&)>, function<void(RetainExplicitClause&)> forExplicit,
+                   function<void(RetainNoneClause&)>);
     };
 }
 

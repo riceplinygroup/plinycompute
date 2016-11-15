@@ -30,25 +30,64 @@ using std::vector;
 
 namespace pdb_detail
 {
-
+    /**
+     * Models a StoreOperation in the TCAP grammar.  For example:
+     *
+     *    store A[1,2] "(databaseName, outputSetName)"
+     *
+     * In this example:
+     *
+     *     outputTable would be A
+     *     columnsToStore would be [1,2]
+     *     destination would be (databaseName, outputSetName)
+     */
     class StoreOperation : public TcapStatement
     {
     public:
 
-        TcapIdentifier outputTable;
+        /**
+         * The table from which columns are to be stored.
+         */
+        const TcapIdentifier outputTable;
 
-        shared_ptr <vector<TcapIdentifier>> columnsToStore;
+        /**
+         * The columns to store.
+         */
+        const shared_ptr<const vector<TcapIdentifier>> columnsToStore;
 
-        shared_ptr <string> destination;
+        /**
+         * The storage location descriptor.
+         */
+        const string destination;
 
-        StoreOperation(TcapIdentifier outputTable, shared_ptr <vector<TcapIdentifier>> columnsToStore,
-                       shared_ptr <string> destination);
-
+        /**
+        * Creates a new StoreOperation.
+        *
+        * @param outputTable The table from which columns are to be stored.
+        * @param columnsToStore The columns to store.
+        * @param destination The storage location descriptor.
+        * @return a new StoreOperation
+        */
         StoreOperation(TcapIdentifier outputTable, shared_ptr <vector<TcapIdentifier>> columnsToStore,
                        string destination);
 
-        void match(function<void(TableAssignment & )>, function<void(StoreOperation &)> forStore);
+        /**
+         * Creates a new StoreOperation with attributes
+         *
+         * @param attributes the attributes of the statement
+         * @param outputTable The table from which columns are to be stored.
+         * @param columnsToStore The columns to store.
+         * @param destination The storage location descriptor.
+         * @return a new StoreOperation
+         */
+        StoreOperation(shared_ptr<vector<TcapAttribute>> attributes, TcapIdentifier outputTable,
+                       shared_ptr <vector<TcapIdentifier>> columnsToStore, string destination);
+
+        // contract from super
+        void match(function<void(TableAssignment&)>, function<void(StoreOperation&)> forStore);
     };
+
+    typedef shared_ptr<StoreOperation> StoreOperationPtr;
 }
 
 #endif //PDB_STOREOPERATION_H

@@ -15,30 +15,20 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapStatement.h"
+#ifndef PDB_TCAPBUILDER_TCAPBUILDER_H
+#define PDB_TCAPBUILDER_TCAPBUILDER_H
 
-using std::make_shared;
+#include <string>
+
+#include "QueryBase.h"
+
+using std::string;
+
+using pdb::QueryBaseHdl;
 
 namespace pdb_detail
 {
-    /**
-     * @param attribute the attribute to wrap in a vector
-     * @return a vector of only attribute
-     */
-    shared_ptr<vector<TcapAttribute>> wrapInVector(TcapAttribute attribute)
-    {
-        shared_ptr<vector<TcapAttribute>> attributes = make_shared<vector<TcapAttribute>>();
-        attributes->push_back(attribute);
-        return attributes;
-    }
-
-    TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
-    {
-    }
-
-    TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))
-    {
-    }
-
+    string buildTcap(QueryBaseHdl base);
 }
 
+#endif //PDB_TCAPBUILDER_TCAPBUILDER_H

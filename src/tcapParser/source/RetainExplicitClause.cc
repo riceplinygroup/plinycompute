@@ -24,14 +24,24 @@ using std::vector;
 
 namespace pdb_detail
 {
+    /**
+     * @param ident the ident to wrap in a vector
+     * @return a vector containnig only ident
+     */
+    shared_ptr<vector<TcapIdentifier>> wrapInVector(TcapIdentifier ident)
+    {
+        shared_ptr<vector<TcapIdentifier>> idents = make_shared<vector<TcapIdentifier>>();
+        idents->push_back(ident);
+        return idents;
+    }
+
+
     RetainExplicitClause::RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns) : columns(columns)
     {
     }
 
-    RetainExplicitClause::RetainExplicitClause(TcapIdentifier column)
+    RetainExplicitClause::RetainExplicitClause(TcapIdentifier column) : columns(wrapInVector(column))
     {
-        columns = make_shared<vector<TcapIdentifier>>();
-        columns->push_back(column);
     }
 
     bool RetainExplicitClause::isAll()
