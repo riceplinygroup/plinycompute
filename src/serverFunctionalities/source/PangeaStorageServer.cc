@@ -41,6 +41,7 @@
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveTempSet.h"
 #include "StorageRemoveUserSet.h"
+#include "StorageCleanup.h"
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
@@ -307,6 +308,24 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 }
 
 void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
+       // this handler accepts a request to write back all buffered records
+       forMe.registerHandler (StorageCleanup_TYPEID, make_shared<SimpleRequestHandler<StorageCleanup>> (
+           [&] (Handle<StorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
+               std :: cout << "received StorageCleanup" << std :: endl;
+               std :: string errMsg;
+               bool res = true;
+               getFunctionality<PangeaStorageServer>().cleanup();
+
+               const UseTemporaryAllocationBlock tempBlock{1024};
+               Handle<SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+               res = sendUsingMe->sendObject (response, errMsg);
+               return make_pair (res, errMsg);
+           }
+
+       ));
+
+
        // this handler accepts a request to add a database
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
