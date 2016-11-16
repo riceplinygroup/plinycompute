@@ -59,6 +59,8 @@ using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 using pdb_detail::SourceSetNameIr;
 using pdb_detail::buildIr;
+
+
 int main (int argc, char * argv[]) {
 
        auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -106,15 +108,25 @@ int main (int argc, char * argv[]) {
 	Handle <Set <SharedEmployee>> myInputSet = myClient.getSet <SharedEmployee> ("chris_db", "chris_set");
 	Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
 	myFirstSelect->setInput (myInputSet);
-	Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
-	mySecondSelect->setInput (myFirstSelect);
 	Handle <QueryOutput <String>> outputOne = makeObject <QueryOutput <String>> ("chris_db", "output_set1", myFirstSelect);
-	Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
+	//Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
+	//mySecondSelect->setInput (myFirstSelect);
+	//Handle <QueryOutput <String>> outputTwo = makeObject <QueryOutput <String>> ("chris_db", "output_set2", mySecondSelect);
 
         Handle<Vector <Handle<QueryBase>>> queries = makeObject<Vector<Handle<QueryBase>>>();
         queries->push_back(outputOne);
-        queries->push_back(outputTwo);
+        //queries->push_back(outputTwo);
+
+
+
+        // to build Ir
+        // in our distributed PDB, buildIr is done in QuerySchedulerServer (Master node), instead of in client
+        // see Test49 for selection query against a distributed PDB
         pdb_detail::QueryGraphIrPtr queryGraph = buildIr(queries);
+
+        // to initialize a QuerySchedulerServer instance and schedule the query for execution
+        // in distributed PDB, this is contained in the Master node, and is transparent to client
+        // see Test49 for selection query against a distributed PDB 
         QuerySchedulerServer server (logger);
         server.recordServer(fakeServerForScheduler);//to enable worker queue for Scheduler
         server.parseOptimizedQuery(queryGraph);
@@ -133,6 +145,7 @@ int main (int argc, char * argv[]) {
 	std::cout << std::endl;
 	// print the resuts
 
+        // collect and print the results
         if ((printResult == true) && (clusterMode == false)) {
 	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	    std :: cout << "First set of query results: ";
@@ -149,10 +162,11 @@ int main (int argc, char * argv[]) {
 	    std :: cout << "\n";
 	}
 
+        // delete output set
         if (clusterMode == false) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
-	    myClient.deleteSet ("chris_db", "output_set2");
+	    //myClient.deleteSet ("chris_db", "output_set2");
         }
         system ("scripts/cleanupSoFiles.sh");
         
