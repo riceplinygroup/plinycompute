@@ -150,6 +150,11 @@ int main (int argc, char * argv[]) {
             std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
         }
         std :: cout << "total=" << total << std :: endl;
+
+        //to write back all buffered records        
+        temp.cleanupBufferedRecords( errMsg );
+
+
         //Step 3. To execute a Query
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
