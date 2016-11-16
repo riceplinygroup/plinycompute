@@ -31,11 +31,13 @@
 #include "DistributedStorageAddSet.h"
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
+#include "DistributedStorageCleanup.h"
 
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveUserSet.h"
+#include "StorageCleanup.h"
 #include "Configuration.h"
 
 #include "SetScan.h"
@@ -327,6 +329,42 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
             }
     ));
 
+    //Below handler is added by Jia to process DistributedStorageCleanup message, this handler is to write back records on all slaves
+    forMe.registerHandler (DistributedStorageCleanup_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageCleanup>> (
+
+          [&] (Handle <DistributedStorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
+
+
+               std::string errMsg;
+               mutex lock;
+               auto successfulNodes = std::vector<std::string>();
+               auto failureNodes = std::vector<std::string>();
+
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               } 
+              
+               Handle<StorageCleanup> storageCmd = makeObject<StorageCleanup>();
+
+               broadcast<StorageCleanup, Object, SimpleRequestResult>(storageCmd, nullptr, allNodes,
+                                                                      generateAckHandler(successfulNodes, failureNodes, lock));
+
+               bool res = true;
+               Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+               res = sendUsingMe->sendObject (response, errMsg);
+               return make_pair (res, errMsg);
+
+
+          }
+
+   ));
+
+    
+    //Below handler is added by Jia to process SetScan message
     forMe.registerHandler (SetScan_TYPEID, make_shared<SimpleRequestHandler<SetScan>> (
          [&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
 
