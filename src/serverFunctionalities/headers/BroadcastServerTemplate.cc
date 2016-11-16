@@ -86,6 +86,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
             }
+            std :: cout << i << ":connected to server: " << address << std :: endl;
             Handle<MsgType> broadcastMsgCopy = deepCopy<MsgType>(broadcastMsg);
             if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
                 std :: cout << i << ":sendObject: " << errMsg << std :: endl;
@@ -93,6 +94,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
             }
+            std :: cout << i << ":send object to server: " << address << std :: endl;
             if (broadcastData != nullptr) {
                 Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopy<Vector<Handle<PayloadType>>> (broadcastData);
                 if (!communicator->sendObject(payloadCopy, errMsg)) {

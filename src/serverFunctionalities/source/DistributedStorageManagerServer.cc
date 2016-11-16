@@ -334,7 +334,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
           [&] (Handle <DistributedStorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
 
-
+               std :: cout << "received DistributedStorageCleanup" << std :: endl;
                std::string errMsg;
                mutex lock;
                auto successfulNodes = std::vector<std::string>();

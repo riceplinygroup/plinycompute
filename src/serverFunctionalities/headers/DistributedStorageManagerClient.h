@@ -40,11 +40,12 @@ namespace pdb {
         bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
                        std::string& errMsg);
 
-        // added by Jia
+        // templated createSet added by Jia
         template <class DataType>
         bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-
+        // storage cleanup added by Jia
+        bool cleanupBufferedRecords ( std :: string &errMsg );
 
         bool removeDatabase(const std::string& databaseName, std::string & errMsg);
 
