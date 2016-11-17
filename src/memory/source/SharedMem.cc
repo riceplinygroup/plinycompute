@@ -48,7 +48,7 @@ SharedMem::SharedMem(size_t memSize, pdb :: PDBLoggerPtr logger) {
         logger->error(std :: string("Fatal error: initialize shared memory failed with size=") + std :: to_string(memSize));
         exit(-1);
     } 
-    this->allocator = make_shared<ScopedAllocator>(this->memPool, this->shmMemSize);
+    this->allocator = make_shared<SlabAllocator>(this->memPool, this->shmMemSize, 64*1024*1024, 512);
     this->initMutex();
     this->logger = logger;
 }
@@ -71,7 +71,7 @@ void* SharedMem::malloc(size_t size) {
     //this->logger->writeInt(size);
     this->lock();
     //this->logger->writeLn("SharedMem: got lock.");
-    ptr = this->allocator->_malloc_unsafe(size);
+    ptr = this->allocator->slabs_alloc_unsafe(size);
     this->unlock();
     return ptr;
 }
@@ -90,9 +90,9 @@ void * SharedMem::mallocAlign (size_t size, size_t alignment, int& offset) {
 }
 
 
-void SharedMem::free(void *ptr) {
+void SharedMem::free(void *ptr, size_t size) {
     this->lock();
-    this->allocator->_free_unsafe(ptr);
+    this->allocator->slabs_free_unsafe(ptr, size);
     this->unlock();
 }
 
@@ -167,10 +167,10 @@ int SharedMem::initMutex() {
 }
 
 void* SharedMem::_malloc_unsafe(size_t size) {
-    return this->allocator->_malloc_unsafe(size);
+    return this->allocator->slabs_alloc_unsafe(size);
 }
 
-void SharedMem::_free_unsafe(void * ptr) {
-    return this->allocator->_free_unsafe(ptr);
+void SharedMem::_free_unsafe(void * ptr, size_t size) {
+    return this->allocator->slabs_free_unsafe(ptr, size);
 }
 

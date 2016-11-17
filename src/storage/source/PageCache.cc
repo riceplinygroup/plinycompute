@@ -636,7 +636,7 @@ bool PageCache::evictPage(CacheKey key) {
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
                             //cout << "going to unpin a clean page...\n";
                             //free the page
-			    this->shm->free(page->getRawBytes()-page->getInternalOffset());
+			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
                             
 			    page->setOffset(0);
 			    page->setRawBytes(nullptr);
