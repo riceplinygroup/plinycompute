@@ -28,9 +28,17 @@ do
         ip_addr=${arr[i]}
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
-                echo -e "\n+++++++++++ start server: $ip_addr"
-                ssh -i $pem_file $user@$ip_addr $PDB_HOME/scripts/cleanupNode.sh
-                ssh -i $pem_file $user@$ip_addr $PDB_HOME/bin/test603 &
+                echo -e "\n+++++++++++ install and start server: $ip_addr"
+                ssh -i $pem_file $user@$ip_addr 'rm -rf ~/pdb_temp'
+                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp'
+                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/scripts'
+                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/bin'
+                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/CatalogDir'
+                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/logs'
+                scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:~/pdb_temp/bin/
+                scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:~/pdb_temp/scripts/
+                ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
+                ssh -i $pem_file $user@$ip_addr ~/pdb_temp/bin/test603 &
                 sleep 10
                 $PDB_HOME/bin/CatalogServerTests 0 localhost 8108 $ip_addr 8108 worker worker
         fi
