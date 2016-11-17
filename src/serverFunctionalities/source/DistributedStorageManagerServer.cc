@@ -146,7 +146,6 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     //JiaNote: comment out below line because searchForObjectTypeName doesn't work for complex type like Vector<Handle<Foo>>
                     //int16_t typeId = getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
                     int16_t typeId = VTableMap::getIDByName(request->getTypeName());
-                    // TODO: Check if type matches the known type
                     if (typeId == 0) {
                         return make_pair (false, "Could not identify type=" + request->getTypeName());
                     }
@@ -511,19 +510,20 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
       return std :: make_pair (true, errMsg);
 
       }));
-
-
-
-
 }
 
 std::function<void (Handle<SimpleRequestResult>, std::string)> DistributedStorageManagerServer::generateAckHandler(
         std::vector<std::string>& success, std::vector<std::string>& failures, mutex& lock) {
     return [&](Handle<SimpleRequestResult> response, std::string server){
         lock.lock();
+
+        // TODO: Better error handling
+
         if (!response->getRes().first) {
+			std::cout << "BROADCAST CALLBACK FAIL: " << server << ": " << response->getRes().first << " : " << response->getRes().second;
             failures.push_back(server);
         } else {
+			std::cout << "BROADCAST CALLBACK SUCCESS: " << server << ": " << response->getRes().first << " : " << response->getRes().second;
             success.push_back(server);
         }
         lock.unlock();
