@@ -109,7 +109,7 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
                              //remove the page from cache!
                              //cout << "to free the page!\n";
-		             this->server->getSharedMem()->free(page->getRawBytes()-page->getInternalOffset());
+		             this->server->getSharedMem()->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
                              //cout << "internalOffset="<<page->getInternalOffset()<< "\n";
 		             page->setOffset(0);
 		             page->setRawBytes(nullptr);

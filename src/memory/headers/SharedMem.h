@@ -26,7 +26,8 @@
 #define	SHAREDMEM_H
 #include <pthread.h>
 #include "PDBLogger.h"
-#include "ScopedAllocator.h"
+//#include "ScopedAllocator.h"
+#include "SlabAllocator.h"
 
 #include <memory>
 using namespace std;
@@ -42,14 +43,14 @@ public:
     void unlock();
     void * malloc(size_t size);
     void * mallocAlign (size_t size, size_t alignment, int & offset);
-    void free(void *ptr);
+    void free(void *ptr, size_t size);
     long long computeOffset(void* shmAddress);
     void * getPointer(size_t offset);
     static char* addressRoundUp(char * address, size_t roundTo);
     static size_t roundUp(size_t size, size_t roundTo);
     static size_t roundDown(size_t size, size_t roundTo);
     void * _malloc_unsafe(size_t size);
-    void _free_unsafe(void *ptr);
+    void _free_unsafe(void *ptr, size_t size);
 
 protected:
     int initialize();
@@ -61,7 +62,7 @@ protected:
 private:
     pthread_mutex_t * memLock;
     pdb :: PDBLoggerPtr logger;
-    ScopedAllocatorPtr allocator;
+    SlabAllocatorPtr allocator;
     void * memPool;
     size_t shmMemSize;
 };
