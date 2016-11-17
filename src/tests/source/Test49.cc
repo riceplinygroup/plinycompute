@@ -156,6 +156,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create a new set in that database
+        std :: cout << "to create a new set for storing output data" << std :: endl;
         if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>> ("chris_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);

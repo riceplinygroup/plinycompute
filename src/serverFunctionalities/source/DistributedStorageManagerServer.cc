@@ -123,7 +123,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
     forMe.registerHandler(DistributedStorageAddSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddSet>> (
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
-
+                std::cout << "received DistributedStorageAddSet message" << std ::endl;
                 std::string errMsg;
                 mutex lock;
 
@@ -134,6 +134,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 std::string database = request->getDatabase();
                 std::string set = request->getSetName();
                 std::string fullSetName = database + "." + set;
+                std::cout << "set to create is " << fullSetName << std::endl;
                 std::string value;
                 int catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
