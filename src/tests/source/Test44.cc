@@ -153,12 +153,13 @@ int main (int argc, char * argv[]) {
             {
 		     std :: cout << (*a) << "; ";
             }
-	    std :: cout << "\n\nSecond set of query results: ";
+	  /*  std :: cout << "\n\nSecond set of query results: ";
 	    result = myClient.getSetIterator <String> ("chris_db", "output_set2");
 	    for (auto a : result)
             {
 		    std :: cout << (*a) << "; ";
             }
+           */
 	    std :: cout << "\n";
 	}
 

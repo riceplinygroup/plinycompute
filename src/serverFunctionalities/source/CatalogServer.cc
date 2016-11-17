@@ -237,7 +237,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
 			// ask the catalog server for the type ID and then the name of the type
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
-                        std :: cout << "typeID = " << typeID << std :: endl;
+                        std :: cout << "typeID for Set with dbName=" << request->getDatabaseName() << " and setName=" << request->getSetName() << " is " << typeID << std :: endl;
 			// make the response
 			const UseTemporaryAllocationBlock tempBlock{1024};
 			Handle <CatTypeNameSearchResult> response;
@@ -706,7 +706,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
 	//	// and add the set's type
 	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
-
+        std :: cout << "TypeID for Set with dbName=" << databaseName << " and setName=" << setName << " is " << typeIdentifier << std :: endl;
     //TODO this might change depending on what metadata
     Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
 
