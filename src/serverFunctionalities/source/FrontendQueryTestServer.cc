@@ -152,19 +152,25 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 std :: cout << "Output is set" << std :: endl;
                 
                 //copy operators
-                std :: cout << "get operator vector" << std :: endl;
+                //std :: cout << "get operator vector" << std :: endl;
                 Vector<Handle<ExecutionOperator>> operators = request->getOperators();
+                //std :: cout << "got operator vector" << std :: endl;
                 for (int i=0; i < operators.size(); i++) {
+                     //std :: cout << "deep copy the " << i << "-th operator" << std :: endl;
                      Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
+                     //std :: cout << "deep copy done" << std :: endl;
                      Handle<ExecutionOperator> curOperator;
+                     //std :: cout << "to get operator name" << std :: endl;
                      if(operators[i]->getName() == "ProjectionOperator") {
+                         //std :: cout << "to make new projection operator object" << std :: endl;
                          curOperator = makeObject<ProjectionOperator>(newSelection);
                      } else if (operators[i]->getName() == "FilterOperator") {
+                         //std :: cout << "to make new filter operator object" << std :: endl;
                          curOperator = makeObject<FilterOperator>(newSelection);
                      }
                      std :: cout << curOperator->getName() << std :: endl;
                      newRequest->addOperator(curOperator);
-                     std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
+                     //std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
                 }              
  
                 newRequest->print();
