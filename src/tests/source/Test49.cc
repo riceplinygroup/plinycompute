@@ -49,7 +49,7 @@ int main (int argc, char * argv[]) {
 
        bool printResult = true;
        bool clusterMode = false;
-       std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] masterIp" << std :: endl;        
+       std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
        if (argc > 1) {
            if (strcmp(argv[1],"N") == 0) {
                printResult = false;
@@ -86,6 +86,13 @@ int main (int argc, char * argv[]) {
        }
        std :: cout << "Master IP Address is " << masterIp << std :: endl;
 
+       bool whetherToAddData = true;
+       if (argc > 5) {
+           if (strcmp(argv[5],"N") == 0) {
+              whetherToAddData = false;
+           }
+       }
+
        pdb :: PDBLoggerPtr clientLogger = make_shared<pdb :: PDBLogger>("clientLog");
 
        //Step 1. Create Database and Set
@@ -93,6 +100,7 @@ int main (int argc, char * argv[]) {
 
        string errMsg;
 
+       if (whetherToAddData == true) {
         // now, create a new database
         if (!temp.createDatabase ("chris_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
@@ -103,14 +111,6 @@ int main (int argc, char * argv[]) {
 
         // now, create a new set in that database
         if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
-                cout << "Not able to create set: " + errMsg;
-                exit (-1);
-        } else {
-                cout << "Created set.\n";
-        }
-
-        // now, create a new set in that database
-        if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>> ("chris_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -153,7 +153,15 @@ int main (int argc, char * argv[]) {
 
         //to write back all buffered records        
         temp.cleanupBufferedRecords( errMsg );
+        }
 
+        // now, create a new set in that database
+        if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>> ("chris_db", "output_set1", errMsg)) {
+                cout << "Not able to create set: " + errMsg;
+                exit (-1);
+        } else {
+                cout << "Created set.\n";
+        }
 
         //Step 3. To execute a Query
 	// for allocations
@@ -197,7 +205,7 @@ int main (int argc, char * argv[]) {
 	    std :: cout << "count:" << count << "\n";
 	}
 
-/*        if (clusterMode == false) {
+        if (clusterMode == false) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
         } else {
@@ -207,7 +215,7 @@ int main (int argc, char * argv[]) {
             } else {
                 cout << "Removed set.\n";
             }
-        }*/
+        }
         system ("scripts/cleanupSoFiles.sh");
         
 }
