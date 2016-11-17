@@ -207,6 +207,12 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
  
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
+        if (myPage == nullptr) {
+            std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
+            std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
+            std :: cout << "setName" << databaseAndSet.second << std :: endl;
+            exit (-1);
+        }
         size_t pageSize = myPage->getSize();
 
 	// the position in the output vector
