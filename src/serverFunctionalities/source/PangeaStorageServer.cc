@@ -359,10 +359,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        // this handler accepts a request to add a set
        forMe.registerHandler (StorageAddSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddSet>> (
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: cout << "received StorageAddSet" << std :: endl;
                          std :: string errMsg;
                          bool res = true;
                          if (standalone == true) {
-                             bool res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
+                               res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
                              if (res == false) {
                                  errMsg = "Set already exists\n";
                              } else {
@@ -384,6 +385,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                              }
                          } else {
+                            std :: cout << "creating set in Pangea in distributed environment...with setName=" << request->getSetName() << std :: endl;
                          if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
                              errMsg = "Set already exists\n";
                              cout << errMsg << endl;
@@ -398,14 +400,14 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 res = false;
                               }
                          }
-                         }
-                         // make the response
-                         const UseTemporaryAllocationBlock tempBlock{1024};
-                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                      }
+                      // make the response
+                      const UseTemporaryAllocationBlock tempBlock{1024};
+                      Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 
-                         // return the result
-                         res = sendUsingMe->sendObject (response, errMsg);
-                         return make_pair (res, errMsg);
+                      // return the result
+                      res = sendUsingMe->sendObject (response, errMsg);
+                      return make_pair (res, errMsg);
                }
        ));
 
@@ -1278,10 +1280,12 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
        if (set != nullptr) {
            //set exists
+           std :: cout << "Set exists with setName=" << setName << std :: endl;
            return false;
        }
        if (this->name2id->count(dbName) == 0) {
            //database doesn't exist
+           std :: cout << "Database doesn't exist with dbName=" << dbName << std :: endl;
            return false;
        } else {
            //database exists
