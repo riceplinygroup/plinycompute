@@ -33,10 +33,6 @@
 using std::shared_ptr;
 using std::vector;
 
-using pdb_detail::Filter;
-using pdb_detail::Hoist;
-using pdb_detail::Load;
-
 namespace pdb_detail
 {
     /**

@@ -31,7 +31,7 @@ using std::vector;
 namespace pdb_detail
 {
     /**
-     * A collection of TCAP statements.
+     * A list of TCAP statements.
      */
     class TranslationUnit
     {
