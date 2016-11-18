@@ -34,7 +34,7 @@ namespace pdb {
 
 
 template <class DataType>
-bool DistributedStorageManagerClient :: createSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
+bool DistributedStorageManagerClient :: createSet (const std :: string & databaseName, const std :: string & setName, std :: string &errMsg) {
         std :: string typeName = getTypeName <DataType>();
         int16_t typeId = getTypeID <DataType>();
         std :: cout << "typeName for set to create ="<<typeName << ", typeId="<< typeId << std :: endl;

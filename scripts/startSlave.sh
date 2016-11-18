@@ -16,10 +16,11 @@
 # by Jia
 
 pem_file=$1
-ip_addr=$2
+master_ip=$2
+ip_addr=$3
 user=ubuntu
 
 echo -e "\n+++++++++++ start server: $ip_addr"
 ssh -i $pem_file $user@$ip_addr $PDB_HOME/scripts/cleanupNode.sh
-ssh -i $pem_file $user@$ip_addr $PDB_HOME/bin/test603
+ssh -i $pem_file $user@$ip_addr $PDB_HOME/bin/test603 1 $2 $3
 
