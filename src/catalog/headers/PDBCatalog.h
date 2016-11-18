@@ -306,6 +306,38 @@ using namespace pdb;
         bool loadRegisteredObject(string typeName, string typeOfObject, string fileName, string &errorMessage);
 
         void testCatalogPrint();
+
+        /**
+         * getListOfDatabases returns a Vector of metadata for all Databases registered
+         * in the catalog. The information is retrieved from memory rather than disk (SQLite).
+         *
+         * @param key to search for
+         *
+         * @return a Vector of items
+         */
+        void getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &key);
+
+        /**
+         * getListOfDatabases returns a Vector of metadata for all Sets registered
+         * in the catalog. The information is retrieved from memory rather than disk (SQLite).
+         *
+         * @param key to search for
+         *
+         * @return a Vector of items
+         */
+        void getListOfSets(Handle<Vector<CatalogSetMetadata>> &setsInCatalog, const string &key);
+
+        /**
+         * getListOfDatabases returns a Vector of metadata for all Nodes registered
+         * in the catalog. The information is retrieved from memory rather than disk (SQLite).
+         *
+         * @param key to search for
+         *
+         * @return a Vector of items
+         */
+        void getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &key);
+
+
     private:
 
         /**

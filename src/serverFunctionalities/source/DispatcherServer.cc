@@ -144,8 +144,10 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
     int catalogType = PDBCatalogMsgType::CatalogPDBSet;
     Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
 
-    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
-            fullSetName, returnValues, errMsg, catalogType)) {
+//    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
+//            fullSetName, returnValues, errMsg, catalogType)) {
+        getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues, fullSetName) ;
+
         if (returnValues->size() == 0) {
             errMsg = "Set " + fullSetName + " cannot be found in the catalog";
             std :: cout << errMsg << std :: endl;
@@ -161,7 +163,7 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
                 return false;
             }
         }
-    }
+//    }
     std :: cout << fullSetName << std :: endl;
     std :: cout << errMsg << std :: endl;
     return false;

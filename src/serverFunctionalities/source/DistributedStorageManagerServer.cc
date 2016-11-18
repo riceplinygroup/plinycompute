@@ -261,8 +261,10 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
                 std::string typeName;
 
-                if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
-                    fullSetName, returnValues, errMsg, catalogType)) {
+//                if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
+//                    fullSetName, returnValues, errMsg, catalogType)) {
+                    getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues, fullSetName) ;
+
                     if (returnValues->size() == 0) {
                         std::cout << "Cannot remove set, Set " << fullSetName << " does not exist " << std::endl;
                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
@@ -271,7 +273,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     } else {
                         typeName = (*returnValues)[0].getObjectTypeName();
                     }
-                }
+//                }
 
                 if (!findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
                     std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
@@ -562,8 +564,10 @@ bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::str
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
-    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogDatabaseMetadata>(false,
-            databaseName, returnValues, errMsg, catalogType)) {
+//    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogDatabaseMetadata>(false,
+//            databaseName, returnValues, errMsg, catalogType)) {
+        getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, databaseName);
+
         if (returnValues->size() != 1) {
             errMsg = "Could not find metadata for database: " + databaseName;
             std::cout << errMsg;
@@ -575,7 +579,7 @@ bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::str
                 nodesForDatabase.push_back(node.key);
             }
             return true;
-        }
+//        }
     }
     return false;
 
@@ -615,8 +619,10 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
-    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogDatabaseMetadata>(false,
-            databaseName, returnValues, errMsg, catalogType)) {
+//    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogDatabaseMetadata>(false,
+//            databaseName, returnValues, errMsg, catalogType)) {
+        getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, fullSetName);
+
         if (returnValues->size() != 1) {
             errMsg = "Could not find metadata for database: " + databaseName;
             return false;
@@ -647,7 +653,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
             std :: cout << "return nodes size:" << nodesContainingSet.size() << std :: endl;
             return true;
         }
-    }
+//    }
     errMsg = "Database not found " + databaseName;
     return false;
 
