@@ -38,6 +38,7 @@
 #include "CatTypeNameSearch.h"
 #include "CatTypeSearchResult.h"
 #include "CatSharedLibraryRequest.h"
+#include "CatSharedLibraryByNameRequest.h"
 #include "CatCreateDatabaseRequest.h"
 #include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
@@ -215,7 +216,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 				Handle <Vector <char>> response = makeObject <Vector <char>> ();
 				res = sendUsingMe->sendObject (response, errMsg);
 			} else {
-
+                cout << "On Catalog Server bytes returned " << (*putResultHere).size () << endl;
 				// in this case, we need a big space to put the object!!
 				const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size ()};
  				Handle <Vector <char>> response = makeObject <Vector <char>> ((*putResultHere).size (), (*putResultHere).size ()); 
@@ -228,6 +229,125 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 		}
 	));
 	
+
+    // handle a request to obtain a copy of a userd-defined data type stored in a shared library along with
+    // its metadata
+    forMe.registerHandler (CatSharedLibraryByNameRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryByNameRequest>> (
+        [&] (Handle <CatSharedLibraryByNameRequest> request, PDBCommunicatorPtr sendUsingMe) {
+
+        string typeName = request->getTypeLibraryName ();
+
+        cout << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << std :: endl;
+
+        // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+        const LockGuard guard{workingMutex};
+
+        // ask the catalog serer for the shared library
+        // added by Jia to test a length error bug
+        vector <char> * putResultHere = new vector<char>();
+        bool res = false;
+        string returnedBytes;
+        std :: string errMsg;
+
+
+        getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryByNameRequest to get shared library for typeName=") + typeName);
+
+        if(this->isMasterCatalogServer == true) {
+            // Allocates 124Mb for sending .so libraries
+            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+
+            Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
+            Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+
+            cout << "    Invoking getSharedLibrary(typeName) from CatalogServer Handler b/c this is Master Catalog " << endl;
+
+            res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeName,
+                                                                              (*putResultHere),
+                                                                              response,
+                                                                              returnedBytes,
+                                                                              errMsg);
+
+            cout << "    Bytes returned not isMaster: " << returnedBytes.size() << endl;
+
+            String _retBytes(returnedBytes);
+
+            *responseTwo = *response;
+            String newItemID(response->getObjectID());
+            responseTwo->setObjectId(newItemID);
+            String newItemName(response->getItemName());
+            responseTwo->setItemName(newItemName);
+            String newItemKey(response->getItemKey());
+            responseTwo->setItemKey(newItemKey);
+            responseTwo->setLibraryBytes(_retBytes);
+
+            //response->setLibraryBytes(*_retBytes);
+//            (*responseTwo).setLibraryBytes(_retBytes);
+            cout << "Object Id isMaster: " << response->getObjectID() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
+            if (!res) {
+                const UseTemporaryAllocationBlock tempBlock{1024};
+    //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                res = sendUsingMe->sendObject (responseTwo, errMsg);
+            } else {
+    cout << "     before sending responseTWO" << endl;
+
+                res = sendUsingMe->sendObject (responseTwo, errMsg);
+            }
+
+
+        } else {
+            // Allocates 124Mb for sending .so libraries
+            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+
+            Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
+            Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+
+            cout << "    Connecting to the Remote Catalog Server via Catalog Client" << endl;
+            cout << "    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog " << endl;
+            // otherwise connect to remote master catalog server and make call
+
+            res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeName,
+                                                                                      (*putResultHere),
+                                                                                      response,
+                                                                                      returnedBytes,
+                                                                                      errMsg);
+
+            cout << "     Bytes returned not isMaster: " << returnedBytes.size() << endl;
+            String _retBytes(returnedBytes);
+
+            *responseTwo = *response;
+            String newItemID(response->getObjectID());
+            responseTwo->setObjectId(newItemID);
+            String newItemName(response->getItemName());
+            responseTwo->setItemName(newItemName);
+            String newItemKey(response->getItemKey());
+            responseTwo->setItemKey(newItemKey);
+            responseTwo->setLibraryBytes(_retBytes);
+
+//            (*responseTwo).setLibraryBytes(_retBytes);
+            cout << "Object Id not isMaster FROM RESPONSE: " <<  (*response).getObjectID() << " | " << (*response).getItemKey() << " | " << (*response).getItemName() << endl;
+            res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
+
+            cout << "Object Id not isMaster FROM RESPONSETWO" <<  (*responseTwo).getObjectID() << " | " <<  (*responseTwo).getItemKey() << " | " << (*responseTwo).getItemName() << endl;
+            if (!res) {
+                const UseTemporaryAllocationBlock tempBlock{1024};
+    //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                res = sendUsingMe->sendObject (responseTwo, errMsg);
+            } else {
+    cout << "     before sending response" << endl;
+
+                res = sendUsingMe->sendObject (responseTwo, errMsg);
+            }
+
+        }
+
+        cout << " Num bytes in putResultHere " << (*putResultHere).size() << endl;
+
+                    delete putResultHere;
+            // return the result
+            return make_pair (res, errMsg);
+        }
+    ));
+
 	// handle a request to get the string corresponding to the name of an object type
 	forMe.registerHandler (CatSetObjectTypeRequest_TYPEID, make_shared <SimpleRequestHandler <CatSetObjectTypeRequest>> (
 		[&] (Handle <CatSetObjectTypeRequest> request, PDBCommunicatorPtr sendUsingMe) {
@@ -484,7 +604,7 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 	}
 
 	// now, read in the .so file, and put it in the vector
-	std :: string whichFile = catalogDirectory + "/" + allTypeCodes[identifier] + ".so";
+    std :: string whichFile = catalogDirectory + "/pdbCatalog/tmp_so_files/" + allTypeCodes[identifier] + ".so";
         //std :: cout << "to fetch file:" << whichFile << std :: endl;
 	std :: ifstream in (whichFile, std::ifstream::ate | std::ifstream::binary);
 	size_t fileLen = in.tellg();
@@ -500,6 +620,58 @@ bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putRe
 	return true;
 }
 
+bool CatalogServer :: getSharedLibraryByName (std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg) {
+    cout << " Catalog Server->inside get getSharedLibraryByName id for type " << typeName << endl;
+
+        //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
+    // first, make sure we have this identifier
+//    if (allTypeCodes.count (identifier) == 0) {
+//        errMsg = "CatalogServer::getSharedLibrary(): Error: didn't know the identifier you sent me";
+//                std :: cout << errMsg << std :: endl;
+//                getLogger()->error(errMsg);
+//        return false;
+//    }
+
+    // TODO debug these lines
+    int metadataCategory = (int)PDBCatalogMsgType::CatalogPDBRegisteredObject;
+    // gets type id
+    string id = pdbCatalog->itemName2ItemId(metadataCategory, typeName);
+    cout << " id " << id << endl;
+
+    string soFileBytes;
+    string typeOfObject = "data_types";
+
+    // retrieves metadata and library bytes from the catalog
+    retrieveUserDefinedTypeMetadata(typeName,
+            itemMetadata,
+            returnedBytes,
+            errMsg);
+
+    cout << "Metadata returned at get SharedLibrary Id: " << itemMetadata->getItemId().c_str() << endl;
+    cout << "Metadata returned at get SharedLibrary Key: " << itemMetadata->getItemKey().c_str() << endl;
+    cout << "--pass" << endl;
+
+//    cout << "Size after returning " <<  itemMetadata->getLibraryBytes().size() << endl;
+
+//    string returnedBytes = string(itemMetadata->getLibraryBytes());
+//    char *buffer = new char[itemMetadata->getLibraryBytes().size()];
+//    memcpy (buffer, itemMetadata->getLibraryBytes().c_str(), itemMetadata->getLibraryBytes().size());
+
+//    returnedBytes = string(buffer,itemMetadata->getLibraryBytes().size());
+
+
+    cout << "Bytes after string " << returnedBytes.size()<< endl;
+
+//    cout << "bytes size " << returnedBytes.length() << endl;
+
+    cout << "bytes before putResultHere " << putResultHere.size() << endl;
+
+    // copy bytes to output param
+    std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+
+    return true;
+}
+
 int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: string setName) {
 	//cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
 	if (setTypes.count (make_pair (databaseName, setName)) == 0)
@@ -511,7 +683,7 @@ int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: strin
 int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
 	// and add the new .so file
-	string tempFile = catalogDirectory + "/temp.so";
+    string tempFile = catalogDirectory + "/pdbCatalog/tmp_so_files/temp.so";
 	int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 	write (filedesc, soFile.data (), soFile.size ());
 	close (filedesc);	
@@ -542,7 +714,7 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 	// now, get the type name and write the appropriate file
 	string typeName (myFunc ());
 	dlclose (so_handle);
-	filedesc = open ((catalogDirectory + "/" + typeName + ".so").c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    filedesc = open ((catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so").c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 	write (filedesc, soFile.data (), soFile.size ());
 	close (filedesc);	
 
@@ -569,7 +741,7 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 	Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
     cout << "before calling " << endl;
 
-	pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/" + typeName + ".so", "data_types", errMsg);
+    pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
 
 	return typeCode;
 	} else 
@@ -671,6 +843,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
             cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
+        cout << "******************* deleteSet step completed!!!!!!!" << endl;
     } else {
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
@@ -944,9 +1117,13 @@ CatalogServer :: ~CatalogServer () {
 
 CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer) {
 
+    //TODO remove hard-coded
+    string masterPort = "10.134.96.150";
+    catalogClientConnectionToMasterCatalogServer = CatalogClient(8108, masterPort, make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
+
     // allocates 64Mb for Catalog related metadata
     //TODO some of these containers will be removed, here just for testing
-    pdb::makeObjectAllocatorBlock (1024 * 1024 * 64, true);
+    pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
     _allNodesInCluster = makeObject<Vector<CatalogNodeMetadata>>();
     _setTypes = makeObject<Vector<CatalogSetMetadata>>();;
     _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
@@ -1103,6 +1280,9 @@ bool CatalogServer :: addDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMe
     vector<string> sets;
     // add the node info to container
 //    allDatabases.insert (make_pair(dbName, sets));
+
+    // temporary allocator
+    const UseTemporaryAllocationBlock tempBlock{4096};
 
     int metadataCategory = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
@@ -1528,6 +1708,29 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
 
     return true;
 }
+
+bool CatalogServer :: retrieveUserDefinedTypeMetadata(string typeName, Handle<CatalogUserTypeMetadata> &itemMetadata, string &soFileBytes, string &errMsg){
+    string result("");
+
+    string returnedBytes;
+    string typeOfObject = "data_types";
+
+    bool res = pdbCatalog->retrievesDynamicLibrary(typeName,
+                                               typeOfObject,
+                                               itemMetadata,
+                                               returnedBytes,
+                                               soFileBytes,
+                                               errMsg);
+
+    cout << "Metadata returned for item " << itemMetadata->getItemId().c_str() << endl;
+    cout << "Metadata returned for item " << itemMetadata->getItemKey().c_str() << endl;
+    cout << "returned bytes size " << soFileBytes.size() << endl;
+
+    return res;
+
+//    return pdbCatalog->keyIsFound(catalogType, dbName, result);
+}
+
 
 bool CatalogServer :: isDatabaseRegistered(string dbName){
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;

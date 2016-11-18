@@ -49,6 +49,14 @@
 
 namespace pdb {
 
+CatalogClient :: CatalogClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool pointsToCatalogMasterIn){
+    pointsToCatalogMaster = pointsToCatalogMasterIn;
+    CatalogClient(portIn, addressIn, myLoggerIn);
+}
+
+CatalogClient :: CatalogClient () {
+}
+
 CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) {
 
 	// get the communication information
@@ -142,6 +150,16 @@ bool CatalogClient :: shutDownServer (std :: string &errMsg) {
 			return false;});
 }
 
+bool CatalogClient :: getPointsToMasterCatalog(){
+    return pointsToCatalogMaster;
+}
+
+void CatalogClient :: setPointsToMasterCatalog(bool pointsToMaster){
+    pointsToCatalogMaster = pointsToMaster;
+}
+
+
+
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
         std :: cout << "searchForObjectTypeName for " << objectTypeName << std :: endl;
 	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024,
@@ -181,6 +199,51 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
 			close (filedesc);
 			return true;},
 		identifier);
+}
+
+bool CatalogClient :: getSharedLibraryByName (std :: string typeNameToSearch, vector <char> &putResultHere,
+                                              Handle<CatalogUserTypeMetadata> &result,
+                                              string &returnedBytes,
+                                              std :: string &errMsg) {
+
+    // this allocates 128MB memory for the request
+//    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 256};
+
+    std :: cout << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << std :: endl;
+
+    const LockGuard guard{workingMutex};
+        std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << std :: endl;
+//        myLogger->error(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch);
+//    return simpleRequest <CatSharedLibraryByNameRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
+        return simpleRequest <CatSharedLibraryByNameRequest, CatalogUserTypeMetadata, bool> (myLogger, port, address, false, 1024 * 1024 * 4,
+
+//        [&] (Handle <Vector <char>> result) {
+                [&] (Handle <CatalogUserTypeMetadata> result) {
+
+                    std :: cout << "In CatalogClient- Handling CatSharedLibraryByNameRequest received from CatalogServer..." << std :: endl;
+                        myLogger->debug("CatalogClient: To handle result of CatSharedLibraryByNameRequest from CatalogServer...");
+
+            cout << "Cat Client - Finally bytes returned " << result->getLibraryBytes().size() << endl;
+            if (result == nullptr) {
+                myLogger->error ("Error getting shared library: null object returned.\n");
+                return false;
+            }
+
+            if (result->getLibraryBytes().size() == 0) {
+                myLogger->error ("Error getting shared library, no data returned.\n");
+                return false;
+            }
+
+            returnedBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
+            cout << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
+
+
+//            memmove (&putResultHere, result->c_ptr (), result->size ());
+
+            cout << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
+            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+            return true;},
+            typeNameToSearch);
 }
 
 std :: string CatalogClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {

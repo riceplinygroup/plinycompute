@@ -19,4 +19,4 @@ $PDB_HOME/scripts/cleanupNode.sh
 sleep 5
 $PDB_HOME/bin/test404 localhost 8108 &
 sleep 10
-$PDB_HOME/bin/CatalogServerTests 1 localhost 8108 localhost 8108 master master
+$PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                

@@ -48,6 +48,9 @@ public:
 	// this downloads the shared libreary assoicated with the identifier, putting it at the specified location
 	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg);
 
+    // this downloads the shared libreary assoicated with the typeName, putting it at the specified location
+    bool getSharedLibraryByName (std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg);
+
 	// this returns the type of object in the specified set, as a type name
 	int16_t getObjectType (string databaseName, string setName);
 
@@ -130,6 +133,11 @@ public:
 	// returns a reference to the catalog
 	PDBCatalogPtr getCatalog();
 
+	// returns metadata for a user-defined type along with the .so file
+	// bytes enclosed as a string
+	bool retrieveUserDefinedTypeMetadata(string typeName, Handle<CatalogUserTypeMetadata> &itemMetadata, string &soFileBytes, string &errMsg);
+
+
 private:
 	// new catalog metadata containers
     //TODO some containers will be removed, here for testing purposes
@@ -156,11 +164,17 @@ private:
     // interface to a persistent catalog storage for storing and retrieving PDB metadata
     PDBCatalogPtr pdbCatalog;
 
+    // Catalog client helper to connect to the Master Catalog Server
+    CatalogClient catalogClientConnectionToMasterCatalogServer;
+
 	// where the catalog is located
 	std :: string catalogDirectory;
 
 	// serialize access
 	pthread_mutex_t workingMutex;
+
+    //use Pangea Storage Server or not?
+    bool usePangea;
 
     // whether or not this is the master catalog server
     //
