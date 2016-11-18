@@ -1352,6 +1352,46 @@
         }
     }
 
+    void PDBCatalog::getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &keyToSearch){
+        String searchForKey(keyToSearch);
+        if (keyToSearch=="") databasesInCatalog = dbsValues;
+        else{
+            for (int i=0; i< (*dbsValues).size(); i++){
+                if (searchForKey == (*dbsValues)[i].getItemKey()){
+                    databasesInCatalog->push_back((*dbsValues)[i]);
+                }
+            }
+        }
+//        databasesInCatalog = dbsValues;
+    }
+
+    void PDBCatalog::getListOfSets(Handle<Vector<CatalogSetMetadata>> &setsInCatalog, const string &keyToSearch){
+        String searchForKey(keyToSearch);
+        if (keyToSearch=="") setsInCatalog = setValues;
+        else{
+            for (int i=0; i< (*setValues).size(); i++){
+                if (searchForKey == (*setValues)[i].getItemKey()){
+                    setsInCatalog->push_back((*setValues)[i]);
+                }
+            }
+        }
+//        setsInCatalog = setValues;
+    }
+
+    void PDBCatalog::getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &keyToSearch){
+        String searchForKey(keyToSearch);
+        if (keyToSearch=="") nodesInCatalog = nodesValues;
+        else{
+            for (int i=0; i< (*nodesValues).size(); i++){
+                if (searchForKey == (*nodesValues)[i].getItemKey()){
+                    nodesInCatalog->push_back((*nodesValues)[i]);
+                }
+            }
+        }
+//        nodesInCatalog = nodesValues;
+    }
+
+
     //TODO remove these implicit instantiations and add and include at the bottom of the h file
     // Add implicit instantiation of all possible types the method
     // will ever use.
