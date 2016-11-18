@@ -141,29 +141,25 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
         const std::string& typeName, std::string& errMsg) {
     std :: cout << "running validateTypes with typeName" << typeName << std :: endl;
     std::string fullSetName = databaseName + "." + setName;
-    int catalogType = PDBCatalogMsgType::CatalogPDBSet;
     Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
 
-//    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogSetMetadata>(false,
-//            fullSetName, returnValues, errMsg, catalogType)) {
-        getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues, fullSetName) ;
+    getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues, fullSetName) ;
 
-        if (returnValues->size() == 0) {
-            errMsg = "Set " + fullSetName + " cannot be found in the catalog";
+    if (returnValues->size() == 0) {
+        errMsg = "Set " + fullSetName + " cannot be found in the catalog";
+        std :: cout << errMsg << std :: endl;
+        return false;
+    } else {
+        if ((* returnValues)[0].getObjectTypeName() == typeName) {
+            std :: cout << "validateTypes succeed" << std :: endl;
+            return true;
+        } else {
+            errMsg = "Dispatched type " + typeName + " does not match stored type " +
+                    (* returnValues)[0].getObjectTypeName().c_str();
             std :: cout << errMsg << std :: endl;
             return false;
-        } else {
-            if ((* returnValues)[0].getObjectTypeName() == typeName) {
-                std :: cout << "validateTypes succeed" << std :: endl;
-                return true;
-            } else {
-                errMsg = "Dispatched type " + typeName + " does not match stored type " +
-                        (* returnValues)[0].getObjectTypeName().c_str();
-                std :: cout << errMsg << std :: endl;
-                return false;
-            }
         }
-//    }
+    }
     std :: cout << fullSetName << std :: endl;
     std :: cout << errMsg << std :: endl;
     return false;
