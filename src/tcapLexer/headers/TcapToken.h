@@ -59,7 +59,7 @@ namespace pdb_detail
          * @param tokenType the token's type
          * @return a new TcapToken
          */
-        TcapToken(string lexeme, TcapTokenType tokenType);
+        TcapToken(const string &lexeme, const TcapTokenType &tokenType);
 
     };
 

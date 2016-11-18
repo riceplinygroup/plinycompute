@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "BuildTcapIrTests.h"
 #include "RetainClause.h"
 #include "TableExpression.h"
 #include "TcapIdentifier.h"
@@ -68,8 +69,16 @@ namespace pdb_detail
          */
         const shared_ptr<RetainClause> retain;
 
+        // contract from super
+        void match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>, function<void(FilterOperation &)>,
+                   function<void(HoistOperation &)> forHoist, function<void(BinaryOperation &)>);
+
+    private:
+
         /**
          * Creates a new HoistOperation
+         *
+         * Throws invalid_argument exception if retain is nullptr.
          *
          * @param hoistTarget A descriptor of the field to be hoisted.
          * @param inputTable The table from which a column will be hoisted.
@@ -77,12 +86,14 @@ namespace pdb_detail
          * @param retain The retention clause of the operation.
          * @return a new HoistOperation
          */
+        // private because throws exception and PDB style guide disallows exceptions crossing API boundaries
         HoistOperation(string hoistTarget, TcapIdentifier inputTable, TcapIdentifier inputTableColumnName,
                        shared_ptr<RetainClause> retain);
 
-        // contract from super
-        void match(function<void(LoadOperation &)>, function<void(ApplyOperation &)>, function<void(FilterOperation &)>,
-                   function<void(HoistOperation &)> forHoist, function<void(BinaryOperation &)>);
+        friend shared_ptr<HoistOperation> makeHoistOperation(class TcapTokenStream &tokens); // for constructor
+
+        friend void pdb_tests::buildTcapIrTest5(class UnitTest &qunit); // for constructor
+
     };
 
     typedef shared_ptr<HoistOperation> HoistOperationPtr;

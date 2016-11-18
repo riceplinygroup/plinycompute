@@ -15,14 +15,41 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapIdentifier.h"
+#ifndef PDB_TCAPINTERMEDIARYREP_COLUMN_H
+#define PDB_TCAPINTERMEDIARYREP_COLUMN_H
 
-using std::make_shared;
+#include <string>
+
+using std::string;
 
 namespace pdb_detail
 {
-    TcapIdentifier::TcapIdentifier(const string &contents) : contents(contents)
+    /**
+     * Identifies a table and column.
+     */
+    class TableColumn
     {
+    public:
 
-    }
+        /**
+         * The table.
+         */
+        const string tableId;
+
+        /**
+         * The column.
+         */
+        const string columnId;
+
+        /**
+         * Creates a new TableColumn.
+         *
+         * @param tableId the table
+         * @param columnId the column
+         * @return a new TableColumn.
+         */
+        TableColumn(const string &tableId, const string &columnId);
+    };
 }
+
+#endif //PDB_TCAPINTERMEDIARYREP_COLUMN_H

@@ -22,7 +22,7 @@
 #include <vector>
 #include <sys/types.h>
 
-#include "Column.h"
+#include "TableColumn.h"
 #include "ApplyBase.h"
 
 using std::make_shared;
@@ -93,7 +93,18 @@ namespace pdb_detail
     public:
 
         /**
+         * Visitiation hook for visitor patttern.
+         */
+        void match(function<void(Load&)>, function<void(ApplyFunction&)> forApplyFunc, function<void(ApplyMethod&)>,
+                   function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
+                   function<void(Store&)> forStore) override;
+
+    private:
+
+        /**
          * Creates a new ApplyFunction instruction.
+         *
+         * If columnsToCopyToOutputTable is nullptr, throws invalid_argument exception.
          *
          * @param executorId the name of the executor to be applied
          * @param functionId any metadata value describing the origin of the executor
@@ -102,25 +113,41 @@ namespace pdb_detail
          * @param inputColumns the input columns to the executor. May not be emtpy.
          * @param columnsToCopyToOutputTable  any columns that should be copied into the output table
          */
-        ApplyFunction(string executorId, string functionId, string outputTableId, string outputColumnId, TableColumns inputColumns,
-                      shared_ptr<vector<Column>> columnsToCopyToOutputTable)
+        // private because throws exception and PDB style guide forbids exceptions from crossing API boundaries
+        ApplyFunction(const string &executorId, const string &functionId, const string &outputTableId,
+                      const string &outputColumnId, TableColumns inputColumns,
+                      shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable);
 
-            : ApplyBase(executorId, functionId, outputTableId, outputColumnId, inputColumns, columnsToCopyToOutputTable, InstructionType::apply_function)
-        {
-        }
+        // for constructor
+        friend shared_ptr<ApplyFunction> makeApplyFunction(const string &executorId, const string &functionId,
+                                                           const string &outputTableId, const string &outputColumnId,
+                                                           TableColumns inputColumns,
+                                                            shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable);
 
-        /**
-         * Visitiation hook for visitor patttern.
-         */
-        void match(function<void(Load&)>, function<void(ApplyFunction&)> forApplyFunc, function<void(ApplyMethod&)>,
-                   function<void(Filter&)>, function<void(Hoist&)>, function<void(GreaterThan&)>,
-                   function<void(Store&)> forStore) override;
+        // for constructor
+        friend InstructionPtr makeInstructionFromApply(const class ApplyOperation &applyOp,
+                                                       const class TableAssignment& tableAssignment);
+
     };
 
     typedef shared_ptr<ApplyFunction> ApplyFunctionPtr;
 
-    ApplyFunctionPtr makeApplyFunction(string executorId, string functionId, string outputTableId, string outputColumnId, TableColumns inputColumns,
-                                       shared_ptr<vector<Column>> columnsToCopyToOutputTable);
+    /**
+     * Creates a new ApplyFunction instruction.
+     *
+     * If columnsToCopyToOutputTable is nullptr, returns nullptr.
+     *
+     * @param executorId the name of the executor to be applied
+     * @param functionId any metadata value describing the origin of the executor
+     * @param outputTableId the id of the table to be created by execution of the instruction
+     * @param outputColumnId the column in the output table to store the executor's output.
+     * @param inputColumns the input columns to the executor. May not be emtpy.
+     * @param columnsToCopyToOutputTable  any columns that should be copied into the output table
+     * @return a pointer to the created ApplyFunction or nullptr.
+     */
+    ApplyFunctionPtr makeApplyFunction(const string &executorId, const string &functionId, const string &outputTableId,
+                                       const string &outputColumnId, TableColumns inputColumns,
+                                       shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_APPLYFUNCTION_H

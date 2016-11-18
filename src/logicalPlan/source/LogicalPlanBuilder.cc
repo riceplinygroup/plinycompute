@@ -53,11 +53,11 @@ using pdb_detail::TranslationUnit;
 /**
  * @return an attribute list composed of each of the given column's id, in the same order as provided.
  */
-AttList makeAttributeList(const shared_ptr<vector<Column>> &columns)
+AttList makeAttributeList(const shared_ptr<vector<TableColumn>> &columns)
 {
     AttList list;
 
-    for(const Column& column : *columns.get())
+    for(const TableColumn& column : *columns.get())
     {
         list.appendAttribute(column.columnId);
     }
@@ -186,8 +186,8 @@ Input makeInputFromLoad(const Load &load)
     TupleSpec outputTable;
     {
         AttList attList;
-        attList.appendAttribute(load.outputColumnId);
-        outputTable = TupleSpec(load.outputTableId, attList);
+        attList.appendAttribute(load.outputColumn.columnId);
+        outputTable = TupleSpec(load.outputColumn.tableId, attList);
     }
 
     vector<string> sourceTokens; // tokenize load.source by whitespace

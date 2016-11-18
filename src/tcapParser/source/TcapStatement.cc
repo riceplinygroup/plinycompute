@@ -18,6 +18,7 @@
 #include "TcapStatement.h"
 
 using std::make_shared;
+using std::invalid_argument;
 
 namespace pdb_detail
 {
@@ -34,6 +35,9 @@ namespace pdb_detail
 
     TcapStatement::TcapStatement(shared_ptr<vector<TcapAttribute>> attributes) : attributes(attributes)
     {
+        if(attributes == nullptr)
+            throw invalid_argument("attributes may not be null");
+
     }
 
     TcapStatement::TcapStatement(TcapAttribute attribute) : attributes(wrapInVector(attribute))

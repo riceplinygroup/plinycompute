@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "TcapStatement.h"
+#include "SafeResult.h"
 
 using std::make_shared;
 using std::shared_ptr;
@@ -50,13 +51,20 @@ namespace pdb_detail
          */
         TranslationUnit(TcapStatementPtr statement);
 
+    private:
+
         /**
          * Creates a new TranslationUnit
+         *
+         * If statements is nullptr, throws invalid_argument exception.
          *
          * @param statements the statements of the unit.
          * @return a new TranslationUnit
          */
+        // private because throws exception and PDB style guide forbids exceptions crossing API boundaries.
         TranslationUnit(shared_ptr<const vector<TcapStatementPtr>> statements);
+
+        friend shared_ptr<pdb::SafeResult<TranslationUnit>> parseTcap(const string &source); // for constructor
 
     };
 

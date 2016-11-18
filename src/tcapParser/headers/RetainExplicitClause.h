@@ -53,14 +53,6 @@ namespace pdb_detail
         RetainExplicitClause(TcapIdentifier column);
 
         /**
-         * Creates a RetainExplicitClause that only retains one column.
-         *
-         * @param column the column to retain
-         * @return a new RetainExplicitClause instance.
-         */
-        RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns);
-
-        /**
          * @return false
          */
         bool isAll();
@@ -73,6 +65,21 @@ namespace pdb_detail
         // contract from super
         void match(function<void(RetainAllClause&)>, function<void(RetainExplicitClause&)> forExplicit,
                    function<void(RetainNoneClause&)>);
+
+    private:
+
+        /**
+         * Creates a RetainExplicitClause that only retains one column.
+         *
+         * If columns is nullptr, throws invalid_argument exception
+         *
+         * @param column the column to retain
+         * @return a new RetainExplicitClause instance.
+         */
+        // private because throws exception and PDB style guide forbids throwing exception across API boundaries.
+        RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns);
+
+        friend RetainClausePtr makeRetainClause(class TcapTokenStream &tokens); // for contructor
     };
 }
 

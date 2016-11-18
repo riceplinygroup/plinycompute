@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "BinaryOperation.h"
+#include "BuildTcapIrTests.h"
 #include "RetainClause.h"
 #include "TcapIdentifier.h"
 
@@ -72,8 +73,15 @@ namespace pdb_detail
          */
         const shared_ptr<RetainClause> retain;
 
+        // contract from super
+        void execute(function<void(GreaterThanOp&)> forGreaterThan) override;
+
+    private:
+
         /**
          * Creates a new GreaterThanOp.
+         *
+         * Throws invalid_argument exception if retain is nulltpr
          *
          * @param lhsTableName The table from which the left hand column is drawn.
          * @param lhsColumnName The left hand side column used in comparision.
@@ -82,11 +90,13 @@ namespace pdb_detail
          * @param retain The retention clause of the operation.
          * @return a GreaterThanOp.
          */
+        // private because throws exception and PDB style guide forbids exceptions from crossing API boundaries.
         GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName,
                       TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain);
 
-        // contract from super
-        void execute(function<void(GreaterThanOp&)> forGreaterThan) override;
+        friend BinaryOperationPtr makeBinaryOperation(class TcapTokenStream &tokens); // for constructor
+
+        friend void pdb_tests::buildTcapIrTest6(class::UnitTest &qunit); // for constructor
 
     };
 }

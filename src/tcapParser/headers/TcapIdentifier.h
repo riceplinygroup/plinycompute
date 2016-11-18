@@ -46,7 +46,7 @@ namespace pdb_detail
          * @param contents the value of the identifier.
          * @return a new TCAP identifier.
          */
-        TcapIdentifier(string contents);
+        TcapIdentifier(const string &contents);
     };
 }
 

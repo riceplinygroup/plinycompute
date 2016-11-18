@@ -51,7 +51,7 @@ namespace pdb_detail
          * @param value The value of the attribute.
          * @return a new TcapAttribute
          */
-        TcapAttribute(TcapIdentifier name, StringLiteral value);
+        TcapAttribute(const TcapIdentifier &name, const StringLiteral &value);
     };
 
     typedef shared_ptr<TcapAttribute> TcapAttributePtr;

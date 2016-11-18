@@ -18,6 +18,7 @@
 #include "TranslationUnit.h"
 
 using std::make_shared;
+using std::invalid_argument;
 
 namespace pdb_detail
 {
@@ -39,6 +40,8 @@ namespace pdb_detail
     TranslationUnit::TranslationUnit(shared_ptr<const vector<TcapStatementPtr>> statements)
         :statements(statements)
     {
+        if(statements == nullptr)
+            throw invalid_argument("statements may not be null");
     }
 }
 

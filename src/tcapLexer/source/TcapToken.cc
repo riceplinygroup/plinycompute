@@ -19,7 +19,7 @@
 
 namespace pdb_detail
 {
-    TcapToken::TcapToken(string lexeme, TcapTokenType tokenType) : lexeme(lexeme), tokenType(tokenType)
+    TcapToken::TcapToken(const string &lexeme, const TcapTokenType &tokenType) : lexeme(lexeme), tokenType(tokenType)
     {
     }
 

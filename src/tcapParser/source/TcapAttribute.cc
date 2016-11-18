@@ -19,7 +19,7 @@
 
 namespace  pdb_detail
 {
-    TcapAttribute::TcapAttribute(TcapIdentifier name, StringLiteral value) : name(name), value(value)
+    TcapAttribute::TcapAttribute(const TcapIdentifier &name, const StringLiteral &value) : name(name), value(value)
     {
 
     }
