@@ -302,8 +302,9 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 if (failureNodes.size() == 0) {
                     // If all the nodes succeeded in removing the set then we can simply delete the set from the
                     // catalog
+					std::cout << "Succeeded in deleting set " << fullSetName << " on all nodes" << std::endl;
                     if (!getFunctionality<CatalogClient>().deleteSet(database, set, errMsg)) {
-                        std::cout << "Could not delete database, because: " << errMsg << std::endl;
+                        std::cout << "Could not delete set, because: " << errMsg << std::endl;
                         Handle <SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
                         bool res = sendUsingMe->sendObject(response, errMsg);
                         return make_pair(res, errMsg);
@@ -318,6 +319,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                             std::cout << errMsg << std::endl;
                         }
                     }
+					
                     bool res = false;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                     sendUsingMe->sendObject (response, errMsg);
@@ -522,10 +524,10 @@ std::function<void (Handle<SimpleRequestResult>, std::string)> DistributedStorag
         // TODO: Better error handling
 
         if (!response->getRes().first) {
-			std::cout << "BROADCAST CALLBACK FAIL: " << server << ": " << response->getRes().first << " : " << response->getRes().second;
+			std::cout << "BROADCAST CALLBACK FAIL: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
             failures.push_back(server);
         } else {
-			std::cout << "BROADCAST CALLBACK SUCCESS: " << server << ": " << response->getRes().first << " : " << response->getRes().second;
+			std::cout << "BROADCAST CALLBACK SUCCESS: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
             success.push_back(server);
         }
         lock.unlock();
@@ -543,6 +545,9 @@ bool DistributedStorageManagerServer::findNodesForDatabase(const std::string& da
 
     std::vector<std::string> allNodes = std::vector<std::string>();
     const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+
+	std::cout << "findNodesForDatabase considering " << nodes->size() << " nodes" << std::endl;
+
     for (int i = 0; i < nodes->size(); i++) {
         std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
         std::string port = std::to_string((*nodes)[i]->getPort());
@@ -606,7 +611,7 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
             nodesForSet.push_back(node);
         }
     }
-    std :: cout << "return nodes size:" << nodesForSet.size() << std :: endl;
+    std :: cout << "findNodesForSet return nodes size:" << nodesForSet.size() << std :: endl;
     return true;
 }
 
@@ -621,7 +626,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
 
 //    if (getFunctionality<CatalogServer>().getCatalog()->getMetadataFromCatalog<CatalogDatabaseMetadata>(false,
 //            databaseName, returnValues, errMsg, catalogType)) {
-        getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, fullSetName);
+        getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, databaseName);
 
         if (returnValues->size() != 1) {
             errMsg = "Could not find metadata for database: " + databaseName;
@@ -650,7 +655,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
                 std :: cout << i << ":" << nodes[i] << std :: endl;
                 nodesContainingSet.push_back(nodes[i]);
             }
-            std :: cout << "return nodes size:" << nodesContainingSet.size() << std :: endl;
+            std :: cout << "findNodesContainingSet return nodes size:" << nodesContainingSet.size() << std :: endl;
             return true;
         }
 //    }

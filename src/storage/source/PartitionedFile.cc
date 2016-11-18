@@ -230,10 +230,12 @@ bool PartitionedFile::closeDirect() {
 void PartitionedFile::clear() {
         this->closeAll();
 	remove(this->metaPartitionPath.c_str());
+	logger->info("PartitionedFile: Deleting file:" + this->metaPartitionPath);
 	int i;
 	int numPartitions = this->dataPartitionPaths.size();
 	for( i = 0; i < numPartitions; i++ ) {
 		remove(this->dataPartitionPaths.at(i).c_str());
+		logger->info("PartitionedFile: Deleting file:" + this->dataPartitionPaths.at(i));
 	}
         this->cleared = true;
 }

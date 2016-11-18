@@ -593,7 +593,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 	
     // make sure that set exists
     if (isSetRegistered(databaseName, setName) ==  false){
-        errMsg = "Set doesn't exist.\n";
+        errMsg = "Set doesn't exist " + databaseName + "." + setName;
         cout << errMsg << endl;
 
         return false;
@@ -636,21 +636,22 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
     (*dbMetadataObject).deleteSet(setNameCatalog);
 
     // updates the corresponding database metadata
-    if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) cout << "All is ok" << endl;
-    else{
-        return false;
-    }
+    if (!pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)) {
+		return false;
+	}
 
     // after it updated the database metadata in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
     if (isMasterCatalogServer){
+
+		// TODO: Should we explicitly delete the data or just perform data overwrites?
 
         // map to capture the results of broadcasting the Set insertion
         map<string, pair <bool, string>> updateResults;
 
         // first, broadcasts the metadata of the removed set to all local copies of the catalog
         // in the cluster, inserting the new item
-        Handle<CatDeleteSetRequest> setToRemove = makeObject<CatDeleteSetRequest>(databaseName, _setName);
+        Handle<CatDeleteSetRequest> setToRemove = makeObject<CatDeleteSetRequest>(databaseName, setName);
         broadcastCatalogDelete (setToRemove, updateResults, errMsg);
 
         for (auto &item : updateResults){
@@ -670,7 +671,6 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
             cout << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                  << item.second.second << endl;
         }
-        cout << "******************* deleteSet step completed!!!!!!!" << endl;
     } else {
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
