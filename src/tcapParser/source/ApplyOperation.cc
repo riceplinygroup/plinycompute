@@ -17,6 +17,7 @@
  *****************************************************************************/
 #include "ApplyOperation.h"
 
+using std::invalid_argument;
 using std::make_shared;
 
 namespace pdb_detail
@@ -28,7 +29,13 @@ namespace pdb_detail
               inputTableColumnNames(inputTableColumnNames),
               retain(retain)
     {
+        if(inputTableColumnNames == nullptr)
+            throw new std::invalid_argument("inputTableColumnNames may not be null");
+
+        if(retain == nullptr)
+            throw new std::invalid_argument("retain may not be null");
     }
+
 
     void ApplyOperation::match(function<void(LoadOperation&)>, function<void(ApplyOperation&)> forApply,
                                function<void(FilterOperation&)>,

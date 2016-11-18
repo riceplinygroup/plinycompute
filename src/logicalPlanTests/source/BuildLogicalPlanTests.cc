@@ -48,7 +48,6 @@ using pdb_detail::Hoist;
 using pdb_detail::HoistPtr;
 using pdb_detail::InstructionPtr;
 using pdb_detail::Load;
-using pdb_detail::makeApplyFunction;
 using pdb_detail::makeApplyMethod;
 using pdb_detail::makeFilter;
 using pdb_detail::makeGreaterThan;
@@ -85,10 +84,10 @@ namespace pdb_tests
         // the instruction to translate
         ApplyFunctionPtr applyFunction;
         {
-            shared_ptr<vector<Column>> copyCols = make_shared<vector<Column>>();
+            shared_ptr<vector<TableColumn>> copyCols = make_shared<vector<TableColumn>>();
             {
-                copyCols->push_back(Column("A", "3"));
-                copyCols->push_back(Column("A", "4"));
+                copyCols->push_back(TableColumn("A", "3"));
+                copyCols->push_back(TableColumn("A", "4"));
             }
 
             TableColumns inputCols("A", "1", "2");
@@ -133,10 +132,10 @@ namespace pdb_tests
         // the instruction to translate
         ApplyMethodPtr applyMethod;
         {
-            shared_ptr<vector<Column>> copyCols = make_shared<vector<Column>>();
+            shared_ptr<vector<TableColumn>> copyCols = make_shared<vector<TableColumn>>();
             {
-                copyCols->push_back(Column("A", "3"));
-                copyCols->push_back(Column("A", "4"));
+                copyCols->push_back(TableColumn("A", "3"));
+                copyCols->push_back(TableColumn("A", "4"));
             }
 
             TableColumns inputCols("A", "1", "2");
@@ -180,13 +179,13 @@ namespace pdb_tests
         // the instruction to translate
         HoistPtr hoist;
         {
-            shared_ptr<vector<Column>> copyCols = make_shared<vector<Column>>();
+            shared_ptr<vector<TableColumn>> copyCols = make_shared<vector<TableColumn>>();
             {
-                copyCols->push_back(Column("A", "3"));
-                copyCols->push_back(Column("A", "4"));
+                copyCols->push_back(TableColumn("A", "3"));
+                copyCols->push_back(TableColumn("A", "4"));
             }
 
-            hoist = makeHoist("fieldId", Column("inputTable", "InputColumn"), Column("outputTable", "outputColumn"),
+            hoist = makeHoist("fieldId", TableColumn("inputTable", "InputColumn"), TableColumn("outputTable", "outputColumn"),
                               copyCols, "exec");
         }
 
@@ -224,13 +223,13 @@ namespace pdb_tests
         // the instruction to translate
         GreaterThanPtr greaterThan;
         {
-            shared_ptr<vector<Column>> copyCols = make_shared<vector<Column>>();
+            shared_ptr<vector<TableColumn>> copyCols = make_shared<vector<TableColumn>>();
             {
-                copyCols->push_back(Column("A", "3"));
-                copyCols->push_back(Column("A", "4"));
+                copyCols->push_back(TableColumn("A", "3"));
+                copyCols->push_back(TableColumn("A", "4"));
             }
 
-            greaterThan = makeGreaterThan(Column("A", "1"), Column("A", "2"), Column("outputTable", "isGreater"),
+            greaterThan = makeGreaterThan(TableColumn("A", "1"), TableColumn("A", "2"), TableColumn("outputTable", "isGreater"),
                                           copyCols, "exec");
         }
 
@@ -270,9 +269,9 @@ namespace pdb_tests
         // the instruction to translate
         FilterPtr filter;
         {
-            shared_ptr<vector<Column>> copyCols = make_shared<vector<Column>>();
+            shared_ptr<vector<TableColumn>> copyCols = make_shared<vector<TableColumn>>();
             {
-                copyCols->push_back(Column("inputTable", "student"));
+                copyCols->push_back(TableColumn("inputTable", "student"));
             }
 
             filter = makeFilter("inputTable", "filterColumn", "outputTable", copyCols);

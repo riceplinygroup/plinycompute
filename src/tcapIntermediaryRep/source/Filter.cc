@@ -19,17 +19,18 @@
 
 using std::make_shared;
 
+using std::invalid_argument;
+
 namespace pdb_detail
 {
 
-    Filter::Filter(string inputTableId, string filterColumnId, string outputTableId,
-    shared_ptr<vector<Column>> columnsToCopyToOutputTable)
-    :
-    Instruction(InstructionType::filter),
-    inputTableId(inputTableId), filterColumnId(filterColumnId), outputTableId(outputTableId),
-    columnsToCopyToOutputTable(columnsToCopyToOutputTable)
+    Filter::Filter(const string &inputTableId, const string &filterColumnId, const string &outputTableId,
+                   shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable)
+        : Instruction(InstructionType::filter), inputTableId(inputTableId), filterColumnId(filterColumnId),
+          outputTableId(outputTableId), columnsToCopyToOutputTable(columnsToCopyToOutputTable)
     {
-
+        if(columnsToCopyToOutputTable == nullptr)
+            throw invalid_argument("columnsToCopyToOutputTable may not be null");
     }
 
     void Filter::match(function<void(Load&)>, function<void(ApplyFunction&)>, function<void(ApplyMethod&)>,
@@ -39,9 +40,16 @@ namespace pdb_detail
         forFilter(*this);
     }
 
-    FilterPtr makeFilter(string inputTableId, string filterColumnId, string outputTableId,
-                         shared_ptr<vector<Column>> columnsToCopyToOutputTable)
+    FilterPtr makeFilter(const string &inputTableId, const string &filterColumnId, const string &outputTableId,
+                         shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable)
     {
-        return make_shared<Filter>(inputTableId, filterColumnId, outputTableId, columnsToCopyToOutputTable);
+        try
+        {
+            return FilterPtr(new Filter(inputTableId, filterColumnId, outputTableId, columnsToCopyToOutputTable));
+        }
+        catch (const invalid_argument& e)
+        {
+            return nullptr;
+        }
     }
 }

@@ -24,7 +24,7 @@ using std::shared_ptr;
 
 namespace pdb_detail
 {
-    StringLiteral::StringLiteral(string contents) : contents(contents)
+    StringLiteral::StringLiteral(const string &contents) : contents(contents)
     {
     }
 

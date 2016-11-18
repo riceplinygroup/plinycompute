@@ -51,7 +51,7 @@ namespace pdb_detail
          * @param source The source of the load.
          * @return the new LoadOperation
          */
-        LoadOperation(string source);
+        LoadOperation(const string &source);
 
         // contract from super
         void match(function<void(LoadOperation &)> forLoad, function<void(ApplyOperation &)>,

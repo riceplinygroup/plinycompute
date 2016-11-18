@@ -19,8 +19,8 @@
 
 namespace pdb_detail
 {
-    Store::Store(TableColumns columnsToStore, string destination)
-    :Instruction(InstructionType::store), columnsToStore(columnsToStore), destination(destination)
+    Store::Store(TableColumns columnsToStore, const string &destination)
+        :Instruction(InstructionType::store), columnsToStore(columnsToStore), destination(destination)
     {
     }
 
@@ -31,7 +31,7 @@ namespace pdb_detail
         forStore(*this);
     }
 
-    StorePtr makeStore(TableColumns columnsToStore, string destination)
+    StorePtr makeStore(TableColumns columnsToStore, const string &destination)
     {
         return make_shared<Store>(columnsToStore, destination);
     }

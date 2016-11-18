@@ -186,7 +186,7 @@ namespace pdb_detail
 
         shared_ptr<vector<TcapIdentifier>> columns = makeIdentList(tokens);
 
-        return make_shared<RetainExplicitClause>(columns);
+        return RetainClausePtr(new RetainExplicitClause(columns));
     }
 
 
@@ -202,7 +202,7 @@ namespace pdb_detail
      * @return a shared pointer to the created ApplyOperation
      */
     // n.b. we return pointer here because the caller will return this results as TableExpressionPtr
-    ApplyOperationPtr makeApplyOperation(TcapTokenStream &tokens)
+    shared_ptr<ApplyOperation> makeApplyOperation(TcapTokenStream &tokens)
     {
         consumeNext(tokens, TcapTokenType::APPLY_TYPE);
 
@@ -224,7 +224,9 @@ namespace pdb_detail
 
         RetainClausePtr retainClause = makeRetainClause(tokens);
 
-        return make_shared<ApplyOperation>(applyTarget.lexeme, applyType, inputTableName, inputTableInputColumnNames, retainClause);
+        ApplyOperation* op = new ApplyOperation(applyTarget.lexeme, applyType, inputTableName,
+                                                inputTableInputColumnNames, retainClause);
+        return shared_ptr<ApplyOperation>(op);
 
 
     }
@@ -259,7 +261,8 @@ namespace pdb_detail
 
         RetainClausePtr retainClause = makeRetainClause(tokens);
 
-        return make_shared<HoistOperation>(hoistTarget.lexeme, inputTableName, inputTableInputColumnName, retainClause);
+        return shared_ptr<HoistOperation>(new HoistOperation(hoistTarget.lexeme, inputTableName,
+                                                             inputTableInputColumnName, retainClause));
 
 
     }
@@ -313,7 +316,7 @@ namespace pdb_detail
 
         TcapToken externSourceString = consumeNext(tokens, TcapTokenType::STRING_LITERAL_TYPE);
 
-        return make_shared<StoreOperation>(attributes, outputTable, columnsToStore, externSourceString.lexeme);
+        return StoreOperationPtr(new StoreOperation(attributes, outputTable, columnsToStore, externSourceString.lexeme));
 
     }
 
@@ -341,7 +344,7 @@ namespace pdb_detail
 
         RetainClausePtr retain = makeRetainClause(tokens);
 
-        return make_shared<FilterOperation>(inputTableName, filterColumnName, retain);
+        return FilterOperationPtr(new FilterOperation(inputTableName, filterColumnName, retain));
 
     }
 
@@ -385,7 +388,8 @@ namespace pdb_detail
         RetainClausePtr retain = makeRetainClause(tokens);
 
         if(op.tokenType == TcapTokenType::GREATER_THAN_TYPE)
-            return make_shared<GreaterThanOp>(lhsTableName, lhsColumnName, rhsTableName, rhsColumnName, retain);
+            return shared_ptr<GreaterThanOp>(new GreaterThanOp(lhsTableName, lhsColumnName, rhsTableName, rhsColumnName,
+                                                               retain));
 
         throw "Unknown operator type";
     }

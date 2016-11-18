@@ -15,14 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include "TcapIdentifier.h"
-
-using std::make_shared;
+#include "TableColumn.h"
 
 namespace pdb_detail
 {
-    TcapIdentifier::TcapIdentifier(const string &contents) : contents(contents)
+    TableColumn::TableColumn(const string &tableId, const string &columnId) : tableId(tableId), columnId(columnId)
     {
-
     }
+
 }

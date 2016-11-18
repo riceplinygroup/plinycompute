@@ -21,7 +21,7 @@ using std::make_shared;
 
 namespace pdb_detail
 {
-    LoadOperation::LoadOperation(string source) : source(source)
+    LoadOperation::LoadOperation(const string &source) : source(source)
     {
 
     }

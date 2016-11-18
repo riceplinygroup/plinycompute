@@ -164,8 +164,8 @@ namespace pdb_detail
     // contract from .h
     TcapTokenStream lexTcap(const string &source)
     {
-        // tokenize the given source string and store the order of tokens and token types here
-        shared_ptr<vector<TcapToken>> tokensAccum = make_shared<vector<TcapToken>>();
+        // store the order of tokens and token types here
+        const shared_ptr<vector<TcapToken>> tokensAccum = make_shared<vector<TcapToken>>(); // const -> never nullptr
 
         map<string,TcapTokenType> reservedLexemeToTokenType;
         reservedLexemeToTokenType["("]      =  TcapTokenType::LPAREN_TYPE;
@@ -200,7 +200,7 @@ namespace pdb_detail
             advanceThroughWhitespace(pos, source);  // no problem invoking if we are already at end of source
 
             if(pos>=source.length()) // end of input, done.
-                return TcapTokenStream(tokensAccum);
+                return TcapTokenStream(tokensAccum); // tokensAccum can never be nullptr, no need try / catch
 
             /*
              * Check if next lexeme is a string literal

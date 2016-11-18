@@ -37,8 +37,6 @@ namespace pdb_detail
      * @param source a program in the TCAP language
      * @return SafeResultSuccess if the string parsed, else a SafeResultFailure.
      */
-    // n.b. we return a pointer from here because we may have to return nullptr if there is parse error.
-    // we have to return nullptr because PDB style rules forbid throwing exceptions across api boundaries.
     shared_ptr<SafeResult<TranslationUnit>> parseTcap(const string &source);
 }
 

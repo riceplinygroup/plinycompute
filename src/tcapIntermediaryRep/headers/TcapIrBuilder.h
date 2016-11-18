@@ -39,7 +39,13 @@ using pdb_detail::Load;
 
 namespace pdb_detail
 {
-     shared_ptr<vector<shared_ptr<Instruction>>> buildTcapIr(TranslationUnit unit);
+    /**
+     * Creates a list of instructions from the given parsed TCAP program.
+     *
+     * @param unit a parsed TCAP program
+     * @return A correpsonding instruction representation.
+     */
+     shared_ptr<vector<InstructionPtr>> buildTcapIr(TranslationUnit unit);
 }
 
 #endif //PDB_TCAPINTERMEDIARYREP_TCAPIRBUILDER_H

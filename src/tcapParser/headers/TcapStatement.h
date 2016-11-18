@@ -60,6 +60,8 @@ namespace pdb_detail
         /**
          * Creates a TcapStatement with zero or  more attributes.
          *
+         * If attributes is nullptr, throws invalid_argument exception.
+         *
          * @param attributes the attributes
          * @return a new TcapStatement
          */

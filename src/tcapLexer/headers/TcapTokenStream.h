@@ -39,14 +39,6 @@ namespace pdb_detail
     public:
 
         /**
-         * Constructs a stream from the given tokens.
-         *
-         * @param tokens the tokens of the stream
-         * @return a new token stream
-         */
-        TcapTokenStream(shared_ptr<vector<TcapToken>> tokens);
-
-        /**
          * @return true if any tokens remain, else false.
          */
         bool hasNext();
@@ -77,7 +69,20 @@ namespace pdb_detail
         /**
          * The tokens of the stream.
          */
-        shared_ptr<vector<TcapToken>> _tokens;
+        shared_ptr<const vector<TcapToken>> _tokens;
+
+        /**
+         * Constructs a stream from the given tokens.
+         *
+         * Throws invalid_argument exception if tokens is null.
+         *
+         * @param tokens the tokens of the stream. may not be null.
+         * @return a new token stream
+         */
+        // private because throws exception and PDB style guide says no excepsions across API boundaries
+        TcapTokenStream(shared_ptr<const vector<TcapToken>> tokens);
+
+        friend TcapTokenStream lexTcap(const string &source); // for access to constructor
 
     };
 }

@@ -45,7 +45,7 @@ namespace pdb_detail
          * @param contents The unquoated contests of the literal.
          * @return A new String literal.
          */
-        StringLiteral(string contents);
+        StringLiteral(const string &contents);
 
     };
 }

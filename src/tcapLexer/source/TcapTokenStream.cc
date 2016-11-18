@@ -18,11 +18,16 @@
 #include <iostream>
 #include "TcapTokenStream.h"
 
+using std::invalid_argument;
+
 namespace pdb_detail
 {
 
-    TcapTokenStream::TcapTokenStream(shared_ptr<vector<TcapToken>>tokens) :_tokens(tokens)
+    TcapTokenStream::TcapTokenStream(shared_ptr<const vector<TcapToken>> tokens) :_tokens(tokens)
     {
+        if(tokens == nullptr)
+            throw invalid_argument("tokens may not be null");
+
     }
 
     bool TcapTokenStream::hasNext()

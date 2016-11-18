@@ -21,17 +21,21 @@
 #include <memory>
 #include <vector>
 
-#include "Column.h"
+#include "TableColumn.h"
 #include "Instruction.h"
 #include "TableColumns.h"
 
 using std::shared_ptr;
 using std::vector;
 
-using pdb_detail::Column;
+using pdb_detail::TableColumn;
 
 namespace pdb_detail
 {
+    /**
+     * Base class for "apply" TCAP operations that apply a function (or method) to some table to produce
+     * an output colunn.
+     */
     class ApplyBase : public Instruction
     {
 
@@ -63,9 +67,16 @@ namespace pdb_detail
         const TableColumns inputColumns;
 
         /**
-         * Any option columns to copy into the output table during its contruction.
+         * Any optional columns to copy into the output table during its contruction.
          */
-        const shared_ptr<vector<Column>> columnsToCopyToOutputTable;
+        const shared_ptr<vector<TableColumn>> columnsToCopyToOutputTable;
+
+        /**
+         * @return the number of coumns in outputTableId created by executing the instruction.
+         */
+        uint getOutputTableColumnCount();
+
+    protected:
 
         /**
          * Creates a new ApplyFunction instruction.
@@ -77,14 +88,11 @@ namespace pdb_detail
          * @param inputColumns the input columns to the executor. May not be empty.
          * @param columnsToCopyToOutputTable  any columns that should be copied into the output table
          */
-        ApplyBase(string executorId, string functionId, string outputTableId, string outputColumnId,
-                  TableColumns inputColumns, shared_ptr<vector<Column>>
+        ApplyBase(const string &executorId, const string &functionId, const string &outputTableId,
+                  const string &outputColumnId, TableColumns inputColumns, shared_ptr<vector<TableColumn>>
                   columnsToCopyToOutputTable, InstructionType type);
 
-        /**
-         * @return the number of coumns in outputTableId created by executing the instruction.
-         */
-        uint getOutputTableColumnCount();
+
 
     };
 }

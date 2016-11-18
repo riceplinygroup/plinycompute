@@ -18,6 +18,7 @@
 #include "HoistOperation.h"
 
 using std::make_shared;
+using std::invalid_argument;
 
 namespace pdb_detail
 {
@@ -26,6 +27,8 @@ namespace pdb_detail
             : hoistTarget(hoistTarget), inputTable(inputTable), inputTableColumnName(inputTableColumnName),
               retain(retain)
     {
+        if(retain == nullptr)
+            throw invalid_argument("retain may not be null");
     }
 
 

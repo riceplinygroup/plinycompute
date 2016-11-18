@@ -55,6 +55,8 @@ namespace pdb_detail
         /**
          * Creeates a new assigment.
          *
+         * If columnNames is nullptr, throws invalid_argument exception.
+         *
          * @param tableName The name of the table to create.
          * @param columnNames The columns of the new table.
          * @param value The value to be assigned to the new table.
@@ -65,6 +67,8 @@ namespace pdb_detail
 
         /**
          * Creeates a new assigment with a sole attribute.
+         *
+         * If columnNames is nullptr, throws invalid_argument exception.
          *
          * @param attribute an attribute for the statement.
          * @param tableName The name of the table to create.

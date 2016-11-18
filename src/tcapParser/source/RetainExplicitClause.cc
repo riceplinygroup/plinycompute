@@ -22,6 +22,8 @@
 using std::make_shared;
 using std::vector;
 
+using std::invalid_argument;
+
 namespace pdb_detail
 {
     /**
@@ -38,6 +40,8 @@ namespace pdb_detail
 
     RetainExplicitClause::RetainExplicitClause(shared_ptr<vector<TcapIdentifier>> columns) : columns(columns)
     {
+        if(columns == nullptr)
+            throw invalid_argument("columns may not be null");
     }
 
     RetainExplicitClause::RetainExplicitClause(TcapIdentifier column) : columns(wrapInVector(column))

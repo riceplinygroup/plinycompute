@@ -19,9 +19,8 @@
 
 namespace pdb_detail
 {
-    Load::Load(string outputTableId, string outputColumnId, string source)
-    :Instruction(InstructionType::load), outputColumnId(outputColumnId), outputTableId(outputTableId),
-    source(source)
+    Load::Load(TableColumn outputColumn, const string &source)
+            :Instruction(InstructionType::load), outputColumn(outputColumn),  source(source)
     {
     }
 
@@ -32,8 +31,8 @@ namespace pdb_detail
         forLoad(*this);
     }
 
-    LoadPtr makeLoad(string outputTableId, string outputColumnId, string source)
+    LoadPtr makeLoad(const string &outputTableId, const string &outputColumnId, const string &source)
     {
-        return make_shared<Load>(outputTableId, outputColumnId, source);
+        return make_shared<Load>(TableColumn(outputTableId, outputColumnId), source);
     }
 }
