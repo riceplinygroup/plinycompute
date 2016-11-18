@@ -16,7 +16,7 @@
 # by Jia
 
 pem_file=$1
-
+masterIp=$2
 user=ubuntu
 ip_len_valid=3
 
@@ -38,7 +38,7 @@ do
                 scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:~/pdb_temp/bin/
                 scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:~/pdb_temp/scripts/
                 ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
-                ssh -i $pem_file $user@$ip_addr 'cd ~/pdb_temp;  bin/test603' &
+                ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 1 $2 $ip_addr" &
                 sleep 10
                 $PDB_HOME/bin/CatalogServerTests 0 localhost 8108 $ip_addr 8108 worker worker
         fi
