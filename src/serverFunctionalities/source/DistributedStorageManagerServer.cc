@@ -611,7 +611,6 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
                                                              const std::string& setName,
                                                              std::vector<std::string>& nodesContainingSet,
                                                              std::string& errMsg) {
-
     std::string fullSetName = databaseName + "." + setName;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
@@ -651,6 +650,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
     return false;
 
 }
+
 
 }
 

@@ -294,6 +294,7 @@ common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all +  component_di
 common_env.Program('bin/test48', ['build/tests/Test48.cc'] + all)
 common_env.Program('bin/test49', ['build/tests/Test49.cc'] + all)
 common_env.Program('bin/test50', ['build/tests/Test50.cc'] + all)
+common_env.Program('bin/test51', ['build/tests/Test51.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
