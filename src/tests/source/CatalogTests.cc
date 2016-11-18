@@ -25,6 +25,7 @@
 #include "InterfaceFunctions.h"
 #include "SharedEmployee.h"
 #include "Configuration.h"
+#include "CatSharedLibraryByNameRequest.h"
 
 #include <boost/program_options.hpp>
 
@@ -169,8 +170,38 @@ int main (int numArgs, const char *args[]) {
 
     } else if (command.compare("retrieve-type") == 0) {
 
-        std::string soFile = vm["so-library-file"].as<std::string>();
-        std::string soDataType = vm["library-type"].as<std::string>();
+        std::string typeName = vm["type-name"].as<std::string>();
+
+        cout << "Retrieving type " << typeName << endl;
+
+        vector <char> * putResultHere = new vector<char>();
+        // Local allocator
+        const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+
+        Handle <CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
+
+        string soBytes;
+        if (!catClient.getSharedLibraryByName(typeName, (*putResultHere), typeMetadata, soBytes, errMsg)) {
+            std :: cout << "Not able to retrieve type data: " + errMsg << std::endl;
+                    std :: cout << "Please change the parameters: type-name."<<std::endl;
+        } else {
+            cout << "File size in bytes: " << (*putResultHere).size() << endl;
+            string finalName = "__"+typeName;
+
+            cout << "Object Id " << typeMetadata->getObjectID() << " | " << typeMetadata->getItemKey() << " | " << typeMetadata->getItemName() << endl;
+
+            string returnedBytes = string(putResultHere->begin(),putResultHere->end());
+//            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+//            cout << "File size as string: " << returnedBytes.size() << endl;
+            cout << "File size as string: " << soBytes.size() << endl;
+
+            int filedesc = open (finalName.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            write (filedesc, soBytes.c_str(), soBytes.size());
+            close (filedesc);
+
+            std :: cout << "Type properly retrieved.\n";
+        }
+
 
         cout << "Done.\n";
 

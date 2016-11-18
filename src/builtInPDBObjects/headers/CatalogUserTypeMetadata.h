@@ -56,20 +56,34 @@ namespace pdb {
 
         }
 
-        CatalogUserTypeMetadata(pdb :: String objectIDIn,
-                                                                   pdb :: String objectTypeIn,
-                                                                   pdb :: String objectNameIn) :
+        CatalogUserTypeMetadata(pdb :: String itemIdIn,
+                                pdb :: String objectIDIn,
+                                pdb :: String objectTypeIn,
+                                pdb :: String objectNameIn,
+                                pdb :: String libraryBytesIn) :
+            itemId(itemIdIn),
             objectID(objectIDIn),
             objectType(objectTypeIn),
-            objectName(objectNameIn)
-
+            objectName(objectNameIn),
+            libraryBytes(libraryBytesIn)
         {}
 
-    //    CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy){
-    //        objectID = pdbCatalogEntryToCopy.objectID;
-    //        objectType = pdbCatalogEntryToCopy.objectType;
-    //        objectName = pdbCatalogEntryToCopy.objectName;
-    //    }
+        CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy){
+            itemId = pdbCatalogEntryToCopy.itemId;
+            objectID = pdbCatalogEntryToCopy.objectID;
+            objectType = pdbCatalogEntryToCopy.objectType;
+            objectName = pdbCatalogEntryToCopy.objectName;
+            libraryBytes = pdbCatalogEntryToCopy.libraryBytes;
+        }
+
+        CatalogUserTypeMetadata(const Handle<CatalogUserTypeMetadata>& pdbCatalogEntryToCopy){
+            itemId = pdbCatalogEntryToCopy->itemId;
+            objectID = pdbCatalogEntryToCopy->objectID;
+            objectType = pdbCatalogEntryToCopy->objectType;
+            objectName = pdbCatalogEntryToCopy->objectName;
+            libraryBytes = pdbCatalogEntryToCopy->libraryBytes;
+        }
+
 
         ~CatalogUserTypeMetadata(){
         }

@@ -154,6 +154,8 @@
     }
 
     PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location){
+        pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+
         pthread_mutex_init(&(registerMetadataMutex), NULL);
         this->logger = logger;
 
@@ -519,8 +521,11 @@
         string soFileBytes;
         string returnedBytes;
 
-        success = retrievesDynamicLibrary(id,
+        Handle <CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
+
+        success = retrievesDynamicLibrary(typeName,
                                           typeOfObject,
+                                          typeMetadata,
                                           returnedBytes,
                                           soFileBytes,
                                           errorMessage);
@@ -564,7 +569,7 @@
         if (onlyModified == true) queryString.append(" where timeStamp > ").append(key).append("");
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
-//        cout << queryString << endl;
+        cout << queryString << endl;
         if(sqlite3_prepare_v2(sqliteDBHandlerInternal, queryString.c_str(), -1,
                               &statement, NULL) == SQLITE_OK)
         {
@@ -685,6 +690,8 @@
                 objectToRegister->setObjectId(idToRegister);
                 objectToRegister->setItemKey(typeToRegister);
                 objectToRegister->setItemName(typeToRegister);
+                String empty = String(" ");
+                objectToRegister->setLibraryBytes(empty);
 
                 // gets the raw bytes of the object
                 Record <CatalogUserTypeMetadata> *metadataBytes = getRecord <CatalogUserTypeMetadata>(objectToRegister);
@@ -693,6 +700,7 @@
                 serializedBytes = (uint8_t*) malloc(metadataBytes->numBytes ());
                 memcpy(serializedBytes, metadataBytes, metadataBytes->numBytes());
                 size_t soBytesSize = objectBytes.length();
+                cout << "size soBytesSize  " << soBytesSize << endl;
 
                 rc = sqlite3_bind_text(stmt, 1, typeToRegister.c_str(), -1, SQLITE_STATIC);
 
@@ -714,6 +722,7 @@
 
                 if (rc != SQLITE_OK) {
                     errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+                    cout << errorMessage << endl;
                     success = false;
                 } else {
                     rc = sqlite3_step(stmt);
@@ -735,6 +744,8 @@
                 delete serializedBytes;
             }
         }
+        cout << errorMessage << endl;
+
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
     }
@@ -794,6 +805,7 @@
     // dlopen.
     bool PDBCatalog::retrievesDynamicLibrary(string itemId,
                                         string tableName,
+                                        Handle<CatalogUserTypeMetadata> &returnedItem,
                                         string &objectBytes,
                                         string &returnedSoLibrary,
                                         string &errorMessage){
@@ -816,7 +828,7 @@
 //        string onlyFileName = fileName.substr(fileName.find_last_of("/\\")+1);
 
         string query = "SELECT itemID, itemInfo, soBytes FROM " + tableName + " where itemID = ?;";
-//        cout << "query: " << query << " " << itemId << endl;
+        cout << "query: " << query << " " << itemId << endl;
         if (sqlite3_prepare_v2(sqliteDBHandler, query.c_str(), -1, &pStmt, NULL) != SQLITE_OK){
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
@@ -829,7 +841,6 @@
 
         if( sqlite3_step(pStmt) !=SQLITE_ROW ){
             errorMessage = "Error item not found in database: \n";
-
             sqlite3_reset(pStmt);
             sqlite3_close_v2(sqliteDBHandler);
             return false;
@@ -837,19 +848,38 @@
 
         // retrieves metadata stored as serialized pdb :: Object
         int numBytes = sqlite3_column_bytes(pStmt, 1);
+        Record <CatalogUserTypeMetadata> *recordBytes = (Record  <CatalogUserTypeMetadata> *) malloc (numBytes);
 
-        char *buffer = new char[numBytes];
-        memcpy(buffer, sqlite3_column_blob(pStmt, 1), numBytes);
-        objectBytes = string(buffer, numBytes);
-        delete [] buffer;
+        memcpy(recordBytes, sqlite3_column_blob(pStmt, 1), numBytes);
+        //cout << "retrieving " << key << " with timeStamp= " << sqlite3_column_int(statement, 2) << endl;
+
+        // get the object
+//        Handle<CatalogUserTypeMetadata> returnedObject = recordBytes->getRootObject ();
+
+        returnedItem = recordBytes->getRootObject ();
+
+        cout << "Metadata created for item " << returnedItem->getItemId().c_str() << endl;
+        cout << "Metadata created for item " << returnedItem->getItemKey().c_str() << endl;
+
+        cout << "file size= " << numBytes << endl;
 
         // retrieves the bytes for the .so library
         numBytes = sqlite3_column_bytes(pStmt, 2);
 
-        buffer = new char[numBytes];
+        char *buffer = new char[numBytes];
         memcpy(buffer, sqlite3_column_blob(pStmt, 2), numBytes);
         returnedSoLibrary = string(buffer, numBytes);
         delete [] buffer;
+
+        cout << "buffer bytes size " << returnedSoLibrary.size() << endl;
+
+        //TODO this crashes after a couple of runs
+//        String libBytes = String(returnedSoLibrary);
+//////        String libBytes = String("1234567890");
+////
+//        returnedItem->setLibraryBytes(libBytes);
+////
+//        cout << "Size after getLibraryBytes " <<  returnedItem->getLibraryBytes().size() << endl;
 
         sqlite3_reset(pStmt);
         sqlite3_blob_close(pBlob);

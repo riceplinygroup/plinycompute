@@ -31,6 +31,7 @@ class CatalogClient;
 #include "CatalogDatabaseMetadata.h"
 #include "CatalogNodeMetadata.h"
 #include "CatalogSetMetadata.h"
+#include "CatSharedLibraryByNameRequest.h"
 
 #include "CatalogPrintMetadata.h"
 
@@ -43,8 +44,15 @@ public:
 	// destructor
 	~CatalogClient ();
 
+	CatalogClient ();
+
 	// these give us the port and the address of the catalog
 	CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger);
+
+    // this constructor can be used to indicate if a Catalog Client points
+	// to a remote CatalogServer (true) or not (false) given the value of
+	// the pointsToCatalogMaster arg.
+    CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger, bool pointsToCatalogMasterIn);
 
 	// function to register event handlers associated with this server functionality
 	virtual void registerHandlers (PDBServer &forMe) override;
@@ -54,6 +62,10 @@ public:
 
 	// this downloads the shared library assoicated with the identifier, putting it at the specified location
 	bool getSharedLibrary (int16_t identifier, std :: string objectFile);	
+
+    // this downloads the shared library assoicated with the string typeName, putting it at the specified location
+	// this is needed by a remote node that has no knowledge of the typeID
+    bool getSharedLibraryByName (std :: string typeName, vector <char> &putResultHere, Handle<CatalogUserTypeMetadata> &returnedItem, string &returnedBytes, std :: string &errMsg);
 
 	// this registers a type with the catalog
 	// returns true on success, false on fail
@@ -119,7 +131,15 @@ public:
 	// prints the content of the metadata in the catalog
     bool printCatalogMetadata (std :: string itemToSearch, std :: string &errMsg);
 
+    // returns true if this Catalog Client points to a remote
+    // CatalogServer (e.g. the Master Catalog Server)
+    bool getPointsToMasterCatalog();
+
+    void setPointsToMasterCatalog(bool pointsToMaster);
+
 private:
+
+    bool pointsToCatalogMaster;
 
 	int port;
 	std :: string address;

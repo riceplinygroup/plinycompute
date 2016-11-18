@@ -53,7 +53,8 @@ do
                 ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
                 ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 1 $2 $ip_addr" &
                 sleep 10
-                $PDB_HOME/bin/CatalogServerTests 0 localhost 8108 $ip_addr 8108 worker worker
+                $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
+                
         fi
 done
 

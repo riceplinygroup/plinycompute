@@ -305,6 +305,21 @@ using namespace pdb;
         // Loads a stored registered object in memory
         bool loadRegisteredObject(string typeName, string typeOfObject, string fileName, string &errorMessage);
 
+        // Retrieves a dynamic library stored as BLOB in the Catalog
+        // returns 1 if success, 0 otherwise.
+        bool retrievesDynamicLibrary(string fileName,
+                                     string tableName,
+                                     Handle<CatalogUserTypeMetadata> &returnedItem,
+                                     string &objectBytes,
+                                     string &returnedSoLibrary,
+                                     string &errorName);
+
+        /**
+         * getMapsPDBOjbect2SQLiteTable returns the name of a Sqlite table for a given category of
+         * metadata
+
+         */
+
         void testCatalogPrint();
 
         /**
@@ -353,14 +368,6 @@ using namespace pdb;
          * containers
          */
         void loadsMetadataIntoMemory();
-
-        // Retrieves a dynamic library stored as BLOB in the Catalog
-        // returns 1 if success, 0 otherwise.
-        bool retrievesDynamicLibrary(string fileName,
-                                     string tableName,
-                                     string &objectBytes,
-                                     string &returnedSoLibrary,
-                                     string &errorName);
 
 
         // Mutex for ensuring proper writing of metadata to catalog

@@ -23,6 +23,8 @@
 #include "CatalogServer.h"
 #include "CatalogClient.h"
 #include "PangeaStorageServer.h"
+#include "ResourceManagerServer.h"
+#include "DistributedStorageManagerServer.h"
 
 int main (int argc, char * argv[]) {
     bool isMasterCatalog = 0;
