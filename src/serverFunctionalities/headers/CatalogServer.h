@@ -174,7 +174,7 @@ private:
 	pthread_mutex_t workingMutex;
 
     //use Pangea Storage Server or not?
-    bool usePangea;
+    //bool usePangea;
 
     // whether or not this is the master catalog server
     //
