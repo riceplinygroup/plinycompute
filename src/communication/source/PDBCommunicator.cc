@@ -204,6 +204,8 @@ PDBCommunicator::~PDBCommunicator() {
     }
 
     if (socketFD >= 0) {
+        std :: cout << "~~~~~~~~~~~~~~~~~~~~~~~~" << std :: endl;
+        std :: cout << "to close socketFD=" << socketFD << std :: endl;
         close(socketFD);
     }
 #else
