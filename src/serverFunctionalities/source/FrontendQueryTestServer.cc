@@ -95,11 +95,12 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "FATAL ERROR: input set doesn't exist..." << std :: endl;
                     exit (-1);
                 }
+                   
                 input->setDatabaseId(inputSet->getDbID());
                 input->setTypeId(inputSet->getTypeID());
                 input->setSetId(inputSet->getSetID());
                 newRequest->setInput(input);
-                std :: cout << "Input is set" << std :: endl;
+                std :: cout << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                 std :: string outDatabaseName = request->getOutput()->getDatabase();
                 std :: string outSetName = request->getOutput()->getSetName();
@@ -143,7 +144,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 //restructure the output information
                 //makeObjectAllocatorBlock(24*1024*1024, true);
                 Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
-                std :: cout << "Created SetIdentifier object for output" << std :: endl;
+                std :: cout << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
                 output->setDatabaseId(outputSet->getDbID());
                 output->setTypeId(outputSet->getTypeID());
                 output->setSetId(outputSet->getSetID());
