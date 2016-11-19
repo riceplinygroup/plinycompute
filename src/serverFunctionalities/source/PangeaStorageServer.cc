@@ -705,6 +705,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         PageID pageId = request->getPageID();
                         bool wasNewPage = request->getWasNewPage();
 
+                        std :: cout << "to pin page in set with setId=" << setId << std :: endl;
                         bool res;
                         string errMsg;
 
