@@ -369,6 +369,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string errMsg;
                          bool res = true;
                          if (standalone == true) {
+                               std :: cout << "adding set in standalone mode" << std :: endl;
                                res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
                              if (res == false) {
                                  errMsg = "Set already exists\n";
