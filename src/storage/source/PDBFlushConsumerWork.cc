@@ -54,10 +54,10 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                         //this->server->getLogger()->writeInt(page->getPageID());
                         //this->server->getLogger()->writeLn("PartitionId=");
                         //this->server->getLogger()->writeInt(this->partitionId);
-			//cout <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
-                        //cout << "page dbId=" << page->getDbID()<<"\n";
-                        //cout << "page typeId=" << page->getTypeID()<<"\n";
-                        //cout << "page setId=" << page->getSetID()<<"\n";
+			cout <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
+                        cout << "page dbId=" << page->getDbID()<<"\n";
+                        cout << "page typeId=" << page->getTypeID()<<"\n";
+                        cout << "page setId=" << page->getSetID()<<"\n";
                         bool isTempSet = false;
                         if((page->getDbID()==0)&&(page->getTypeID()== 0)){
                             set = this->server->getTempSet(page->getSetID());
@@ -104,7 +104,7 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                                 set->unlockDirtyPageSet();
                                 //std :: cout << "unlockDirtyPageSet() for set with id=" << set->getSetID() << std :: endl;
                                 //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for lockDirtyPageSet()...");
-				//cout<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
+				cout<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
                          }
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
                              //remove the page from cache!
