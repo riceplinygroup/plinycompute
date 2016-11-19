@@ -123,6 +123,9 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
 
     logToMe->trace("PDBCommunicator: Successfully connected to the remote host");
     logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
+    std :: cout << "##########################" << std :: endl;
+    std :: cout << "Connected to server with port =" << portNumber <<", address =" << serverAddress << ", socket=" << socketFD << std :: endl;
+    std :: cout << "==========================" << std :: endl;
     return false;
 }
 
