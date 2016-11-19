@@ -77,16 +77,18 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
         PDBWorkPtr myWork = make_shared <GenericWork> ([i, serverName, port, address, this, &errorCallBack, &broadcastMsg, &broadcastData, &callBack] (PDBBuzzerPtr callerBuzzer) {
             std :: cout << "the " << i << "-th thread is started" << std :: endl;
             std::string errMsg;
+            int portNumber = port;
+            std :: string serverAddress = address;
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
-            std :: cout << i << ":port = " << port << std :: endl;
-            std :: cout << i << ":address = " << address << std :: endl; 
-            if(communicator->connectToInternetServer(this->logger, port, address, errMsg)) {
+            std :: cout << i << ":port = " << portNumber << std :: endl;
+            std :: cout << i << ":address = " << serverAddress << std :: endl; 
+            if(communicator->connectToInternetServer(this->logger, portNumber, serverAddress, errMsg)) {
                 std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
                 errorCallBack(errMsg, serverName);
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
             }
-            std :: cout << i << ":connected to server: " << address << std :: endl;
+            std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
             Handle<MsgType> broadcastMsgCopy = deepCopy<MsgType>(broadcastMsg);
             if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
                 std :: cout << i << ":sendObject: " << errMsg << std :: endl;
@@ -94,7 +96,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
                 return;
             }
-            std :: cout << i << ":send object to server: " << address << std :: endl;
+            std :: cout << i << ":send object to server: " << serverAddress << std :: endl;
             if (broadcastData != nullptr) {
                 Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopy<Vector<Handle<PayloadType>>> (broadcastData);
                 if (!communicator->sendObject(payloadCopy, errMsg)) {
@@ -118,6 +120,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
     }
     std :: cout << "all broadcasting thread returns" << std :: endl;
 }
+
 
 template<class DataType>
 Handle<DataType> BroadcastServer::deepCopy(const Handle<DataType> & original) {

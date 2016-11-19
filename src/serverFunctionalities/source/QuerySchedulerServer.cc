@@ -63,6 +63,9 @@ QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger) {
 void QuerySchedulerServer ::cleanup() {
 
     this->resources = nullptr;
+    for (int i = 0; i < currentPlan.size(); i++) {
+             currentPlan[i]=nullptr;
+    }
     this->currentPlan.clear();
 
 }
@@ -424,7 +427,10 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          if (!sendUsingMe->sendObject (result, errMsg)) {
               return std :: make_pair (false, errMsg);
          }
-
+         for (int i = 0; i < currentPlan.size(); i++) {
+             currentPlan[i]=nullptr;
+         }
+         currentPlan.clear();
          return std :: make_pair (true, errMsg);
 
     
