@@ -478,9 +478,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string databaseName = request->getDatabase();
                          std :: string typeName = request->getTypeName ();
                          std :: string setName = request->getSetName();
-                         bool res = false;
+                         bool res = true;
                          if (standalone == true) {
-                             bool res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
+                             res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
                              if (res == false) {
                                  errMsg = "Set doesn't exist\n";
                              }
@@ -490,16 +490,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
 
                          } else {
-                             if ((getFunctionality<CatalogServer> ().isSetRegistered (databaseName, setName)) == true) {
-                                 if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
+                            if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
                                      errMsg = "Error removing set!\n";
                                      cout << errMsg << endl;
-                             }
-                     } else {
-                                 errMsg = "Set doesn't exist\n";
-                                 cout << errMsg << endl;
-                            }
-                 }
+                            } 
+                         }
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
                          Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -1351,6 +1346,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
            return false;
        }
        SetID setId = usersetSeqIds->at(dbName)->getNextSequenceID();
+       std :: cout << "to add set with dbName=" << dbName << ", typeName=" << typeName << ", setName=" << setName << ", setId=" << setId << std :: endl;
        pthread_mutex_unlock(&this->usersetLock);
        return addSet (dbName, typeName, setName, setId);
 }
@@ -1371,8 +1367,10 @@ bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setNa
      TypePtr type = database->getType(typeId);
      pthread_mutex_lock(&this->usersetLock);
      type->removeSet(setId);
-     userSets->erase(std :: pair <DatabaseID, SetID>(dbId, setId));
-     names2ids->erase(std :: pair <std :: string, std :: string> (dbName, setName));
+     int numRemoved = userSets->erase(std :: pair <DatabaseID, SetID>(dbId, setId)); 
+     std :: cout << "numItems removed from userSets:" << numRemoved << std :: endl;
+     numRemoved = names2ids->erase(std :: pair <std :: string, std :: string> (dbName, setName));
+     std :: cout << "numItems removed from names2ids:" << numRemoved << std :: endl;
      pthread_mutex_unlock(&this->usersetLock);
      return true;
 }

@@ -22,13 +22,13 @@ ip_len_valid=3
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is your the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startSlaves.sh $pem_file $masterIp";
+    echo "Usage: scripts/startSlaves.sh #pem_file #masterIp";
     exit -1;
 fi
 
 if [ -z ${masterIp} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startSlaves.sh $pem_file $masterIp";
+    echo "Usage: scripts/startSlaves.sh #pem_file #masterIp";
     exit -1;
 fi
     
