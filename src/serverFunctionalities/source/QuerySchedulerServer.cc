@@ -362,12 +362,12 @@ void QuerySchedulerServer :: schedule() {
          for (int i = 0; i < this->resources->size(); i++) {
              PDBWorkerPtr myWorker = getWorker();
              PDBWorkPtr myWork = make_shared <GenericWork> (
-                 [&, i] (PDBBuzzerPtr callerBuzzer) {
+                 [i, this, &counter] (PDBBuzzerPtr callerBuzzer) {
                        makeObjectAllocatorBlock(1 * 1024 * 1024, true);
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
-                       std :: cout << "port:" << (*resources)[i]->getPort() << std :: endl;
-                       std :: cout << "ip:" << (*resources)[i]->getAddress() << std :: endl;
-                       bool success = schedule ((*resources)[i]->getAddress(), (*resources)[i]->getPort(), logger, Recreation);
+                       std :: cout << "port:" << (*(this->resources))[i]->getPort() << std :: endl;
+                       std :: cout << "ip:" << (*(this->resources))[i]->getAddress() << std :: endl;
+                       bool success = getFunctionality<QuerySchedulerServer>().schedule ((*(this->resources))[i]->getAddress(), (*(this->resources))[i]->getPort(), this->logger, Recreation);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
@@ -405,32 +405,19 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          pdb_detail::QueryGraphIrPtr queryGraph = pdb_detail::buildIr(userQuery);
 
          std :: cout << "To transform the logicalGraph into a physical plan" << std :: endl;
-         parseOptimizedQuery(queryGraph); 
-         printCurrentPlan();
-
+         getFunctionality<QuerySchedulerServer>().parseOptimizedQuery(queryGraph); 
+         getFunctionality<QuerySchedulerServer>().printCurrentPlan();
          std :: cout << "To get the resource object from the resource manager" << std :: endl;
-         this->resources = getFunctionality<ResourceManagerServer>().getAllResources();
-    
-
-         //print out the resources
-         for (int i = 0; i < this->resources->size(); i++) {
-
-             std :: cout << i << ": address=" << (*(this->resources))[i]->getAddress() << ", numCores=" << (*(this->resources))[i]->getNumCores() << ", memSize=" << (*(this->resources))[i]->getMemSize() << std :: endl;
-
-         }
-
-         //schedule the query
-         schedule(); 
-        
- 
+         getFunctionality<QuerySchedulerServer>().initialize(true);
+         std :: cout << "To schedule the query to run on the cluster" << std :: endl;
+         getFunctionality<QuerySchedulerServer>().schedule(); 
+         std :: cout << "To send back response to client" << std :: endl; 
          Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
          if (!sendUsingMe->sendObject (result, errMsg)) {
               return std :: make_pair (false, errMsg);
          }
-         for (int i = 0; i < currentPlan.size(); i++) {
-             currentPlan[i]=nullptr;
-         }
-         currentPlan.clear();
+         std :: cout << "to cleanup" << std :: endl;
+         getFunctionality<QuerySchedulerServer>().cleanup();
          return std :: make_pair (true, errMsg);
 
     

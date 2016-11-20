@@ -88,7 +88,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 auto successfulNodes = std::vector<std::string>();
                 auto failureNodes = std::vector<std::string>();
                 auto nodesToBroadcastTo = std::vector<std::string>();
-                if (!findNodesForDatabase(database, nodesToBroadcastTo, errMsg)) {
+                if (!getFunctionality<DistributedStorageManagerServer>().findNodesForDatabase(database, nodesToBroadcastTo, errMsg)) {
                     std::cout << "Could not find nodes to broadcast database to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
@@ -96,7 +96,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
 
                 Handle<StorageAddDatabase> storageCmd = makeObject<StorageAddDatabase>(request->getDatabase());
-                broadcast<StorageAddDatabase, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcastTo,
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddDatabase, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcastTo,
                     generateAckHandler(successfulNodes, failureNodes, lock),
                     [&] (std::string errMsg, std::string serverName) {
                         lock.lock();
@@ -157,7 +157,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     }
                 }
 
-                if (!findNodesForSet(database, set, nodesToBroadcast, errMsg)) {
+                if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(database, set, nodesToBroadcast, errMsg)) {
                     std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
@@ -168,7 +168,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                                                              request->getSetName(), request->getTypeName());
 
 
-                broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
 
                 for (auto node : successfulNodes) {
@@ -205,7 +205,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
 
                 auto nodesToBroadcastTo = std::vector<std::string>();
-                if (!findNodesContainingDatabase(database, nodesToBroadcastTo, errMsg)) {
+                if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingDatabase(database, nodesToBroadcastTo, errMsg)) {
                     std::cout << "Could not find nodes to broadcast database delete to " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
@@ -213,7 +213,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
 
                 Handle<StorageRemoveDatabase> storageCmd = makeObject<StorageRemoveDatabase>(database);
-                broadcast<StorageRemoveDatabase, Object, SimpleRequestResult>(storageCmd, nullptr,
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveDatabase, Object, SimpleRequestResult>(storageCmd, nullptr,
                     nodesToBroadcastTo,
                     generateAckHandler(successfulNodes, failureNodes, lock));
 
@@ -271,7 +271,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     typeName = (*returnValues)[0].getObjectTypeName();
                 }
 
-                if (!findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
+                if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
                     std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
@@ -280,7 +280,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
                 Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
                     request->getSetName(), typeName);
-                broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
                     nodesToBroadcast,
                     generateAckHandler(successfulNodes, failureNodes, lock));
 
@@ -350,7 +350,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
               
                Handle<StorageCleanup> storageCmd = makeObject<StorageCleanup>();
 
-               broadcast<StorageCleanup, Object, SimpleRequestResult>(storageCmd, nullptr, allNodes,
+               getFunctionality<DistributedStorageManagerServer>().broadcast<StorageCleanup, Object, SimpleRequestResult>(storageCmd, nullptr, allNodes,
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
 
                bool res = true;
@@ -388,7 +388,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
          //to get all nodes having data for this set
          std :: vector<std :: string> nodes;
-         if (!findNodesContainingSet(dbName, setName, nodes, errMsg)) {
+         if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(dbName, setName, nodes, errMsg)) {
              errMsg = "Error in handling SetScan message: Could not find nodes for this set";
              std :: cout << errMsg << std :: endl;
              return make_pair(false, errMsg);

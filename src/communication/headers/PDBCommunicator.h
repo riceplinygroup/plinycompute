@@ -96,6 +96,8 @@ public:
 
     void setNeedsToDisconnect(bool option);
 
+    int getSocketFD();
+
 private:
 
     // write from start to end to the output socket

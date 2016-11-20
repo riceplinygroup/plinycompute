@@ -89,7 +89,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 return;
             }
             std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
-            Handle<MsgType> broadcastMsgCopy = deepCopy<MsgType>(broadcastMsg);
+            Handle<MsgType> broadcastMsgCopy = deepCopyToCurrentAllocationBlock<MsgType>(broadcastMsg);
             if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
                 std :: cout << i << ":sendObject: " << errMsg << std :: endl;
                 errorCallBack(errMsg, serverName);
@@ -98,7 +98,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             }
             std :: cout << i << ":send object to server: " << serverAddress << std :: endl;
             if (broadcastData != nullptr) {
-                Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopy<Vector<Handle<PayloadType>>> (broadcastData);
+                Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopyToCurrentAllocationBlock<Vector<Handle<PayloadType>>> (broadcastData);
                 if (!communicator->sendObject(payloadCopy, errMsg)) {
                     std :: cout << i << ":sendBytes: " << errMsg << std :: endl;
                     errorCallBack(errMsg, serverName);
