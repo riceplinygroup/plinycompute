@@ -79,6 +79,7 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
             	logToMe->error(strerror(errno));
 		return false;
 	}
+//        std :: cout << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
 	return true;
 }
 
