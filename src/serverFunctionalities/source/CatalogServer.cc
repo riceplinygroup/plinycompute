@@ -397,6 +397,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 	forMe.registerHandler (CatCreateSetRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateSetRequest>> (
 		[&] (Handle <CatCreateSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
+                        std :: cout << "received CatCreateSetRequest" << std :: endl;
 			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
 			const LockGuard guard{workingMutex};
 
@@ -872,6 +873,7 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 	// make sure that type code exists, if we get one that is not built in
 	if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
 		errMsg = "Type code does not exist.\n";
+                cout << errMsg << "TypeId="<< typeIdentifier << endl;
 		return false;
 	}
 
@@ -1118,7 +1120,7 @@ CatalogServer :: ~CatalogServer () {
 CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer) {
 
     //TODO remove hard-coded
-    string masterPort = "10.134.96.150";
+    string masterPort = "10.134.96.44";
     catalogClientConnectionToMasterCatalogServer = CatalogClient(8108, masterPort, make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
 
     // allocates 64Mb for Catalog related metadata

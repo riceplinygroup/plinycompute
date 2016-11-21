@@ -101,58 +101,56 @@ int main (int argc, char * argv[]) {
        string errMsg;
 
        if (whetherToAddData == true) {
-        // now, create a new database
-        if (!temp.createDatabase ("chris_db", errMsg)) {
+           // now, create a new database
+           if (!temp.createDatabase ("chris_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
-        } else {
+           } else {
                 cout << "Created database.\n";
-        }
+           }
 
-        // now, create a new set in that database
-        if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
+           // now, create a new set in that database
+           if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
-        } else {
+           } else {
                 cout << "Created set.\n";
-        }
+           }
 
 
-        //Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-        //dispatcherClient.registerSet(std::pair<std::string, std::string>("chris_db", "chris_set"), pdb::PartitionPolicy::Policy::RANDOM, errMsg);
+           //Step 2. Add data
+           DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-        int numIterations = numOfMb;
-        int total = 0;       
-        for (int num = 0; num < numIterations; num++) {
-            pdb :: makeObjectAllocatorBlock(1024 * 1024, true);
-            pdb::Handle<pdb::Vector<pdb::Handle<pdb::Supervisor>>> storeMe =
+           int numIterations = numOfMb;
+           int total = 0;       
+           for (int num = 0; num < numIterations; num++) {
+               pdb :: makeObjectAllocatorBlock(1024 * 1024, true);
+               pdb::Handle<pdb::Vector<pdb::Handle<pdb::Supervisor>>> storeMe =
                     pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Supervisor>>> ();
-            try {
-                for (int i = 0; true ; i++) {
-                    pdb :: Handle <Supervisor> myData =
+               try {
+                   for (int i = 0; true ; i++) {
+                       pdb :: Handle <Supervisor> myData =
                             pdb::makeObject <pdb::Supervisor> ("Joe Johnson" + to_string (i), i + 45);
-                    for (int j = 0; j < 10; j++) {
-                         pdb :: Handle <Employee> myEmp =
+                       for (int j = 0; j < 10; j++) {
+                            pdb :: Handle <Employee> myEmp =
                                  pdb :: makeObject<Employee> ("Joe Johnson" + to_string(j), j + 45);
-                         myData->addEmp(myEmp);
-                    }
-                    storeMe->push_back (myData);
-                    total++;
-                    //cout << myData.getTypeCode() << std::endl;
-                }
-            } catch (pdb :: NotEnoughSpace &n) {
-                if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
-                    std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                    return -1;
-                }
-            }
-            std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
-        }
-        std :: cout << "total=" << total << std :: endl;
+                            myData->addEmp(myEmp);
+                       }
+                       storeMe->push_back (myData);
+                       total++;
+                   }
+               } catch (pdb :: NotEnoughSpace &n) {
+                   if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
+                       std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                       return -1;
+                   }
+               }
+               std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
+           }
+           std :: cout << "total=" << total << std :: endl;
 
-        //to write back all buffered records        
-        temp.cleanupBufferedRecords( errMsg );
+           //to write back all buffered records        
+           temp.cleanupBufferedRecords( errMsg );
         }
 
         // now, create a new set in that database
