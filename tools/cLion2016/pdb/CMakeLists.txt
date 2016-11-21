@@ -100,7 +100,6 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/TcapIdentifier.cc
 #        ../../../src/tests/source/Test13a.cc
 #        ../../../src/tests/source/Traverse.cc
-        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
         ../../../src/work/source/PDBBuzzer.cc
         ../../../src/work/source/PDBWorkerQueue.cc
         ../../../src/work/source/PDBWork.cc
@@ -120,22 +119,30 @@ set(SOURCE_FILES
         ../../../src/tcapParser/source/StoreOperation.cc
         ../../../src/tcapParser/source/TableAssignment.cc
         ../../../src/tcapParser/source/TcapStatement.cc
+        ../../../src/tcapParser/source/TranslationUnit.cc
         ../../../src/tcapParserTests/source/ParseTcapTests.cc
         ../../../src/tcapParserTests/source/TcapParserTestsRunner.cc
         ../../../src/tcapIntermediaryRepTests/source/TcapIrBuilderTestsRunner.cc
         ../../../src/tcapParser/source/TcapParser.cc
+        ../../../src/tcapIntermediaryRep/source/ApplyBase.cc
         ../../../src/tcapIntermediaryRep/source/ApplyFunction.cc
         ../../../src/tcapIntermediaryRep/source/ApplyMethod.cc
         ../../../src/tcapIntermediaryRep/source/Filter.cc
         ../../../src/tcapIntermediaryRep/source/GreaterThan.cc
         ../../../src/tcapIntermediaryRep/source/Hoist.cc
+        ../../../src/tcapIntermediaryRep/source/Instruction.cc
         ../../../src/tcapIntermediaryRep/source/Load.cc
         ../../../src/tcapIntermediaryRep/source/Store.cc
+        ../../../src/tcapIntermediaryRep/source/TableColumn.cc
+        ../../../src/tcapIntermediaryRep/source/TableColumns.cc
         ../../../src/tcapIntermediaryRep/source/TcapIrBuilder.cc
         ../../../src/tcapIntermediaryRepTests/headers/BuildTcapIrTests.h
-        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc ../../../src/tcapParser/source/TranslationUnit.cc ../../../src/tcapIntermediaryRep/source/ApplyBase.cc ../../../src/tcapIntermediaryRep/source/TableColumn.cc ../../../src/tcapIntermediaryRep/source/Instruction.cc ../../../src/tcapIntermediaryRep/source/TableColumns.cc)
+        ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
 
-        #../../../src/tests/source/Test47.cc)
+        #files with main methods below
+        #        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
+        ../../../src/tests/source/Test47.cc
+        )
 
 
 

@@ -83,87 +83,97 @@ int main () {
 			"F(a,b) = apply method \"someMethod\" to E[a] retain a\n"
 			"store F[b] \"myDB mySet\"";
 
-	shared_ptr<LogicalPlan> final = buildLogicalPlan(program);
+	shared_ptr<SafeResult<LogicalPlan>> result = buildLogicalPlan(program);
 
-	// create a, loading with random data
-	void *myPage = malloc (1024 * 1024);
-       	makeObjectAllocatorBlock (myPage, 1024 * 1024, true);
+	result->apply(
+			[&](LogicalPlan final)
+			{
+				// create a, loading with random data
+				void *myPage = malloc (1024 * 1024);
+				makeObjectAllocatorBlock (myPage, 1024 * 1024, true);
 
-	// write a bunch of supervisors to it
-       	Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> ();
-       	try {
-               	for (int i = 0; true; i++) {
+				// write a bunch of supervisors to it
+				Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> ();
+				try {
+					for (int i = 0; true; i++) {
 
-                       	Handle <Supervisor> super = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29));
-                       	supers->push_back (super);
-                       	for (int j = 0; j < 10; j++) {
-                               	Handle <Employee> temp;
-				if (i % 2 == 0)
-					temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29));
-				else
-					temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29));
-                               	(*supers)[i]->addEmp (temp);
-                       	}
-               	}
+						Handle <Supervisor> super = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29));
+						supers->push_back (super);
+						for (int j = 0; j < 10; j++) {
+							Handle <Employee> temp;
+							if (i % 2 == 0)
+								temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29));
+							else
+								temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29));
+							(*supers)[i]->addEmp (temp);
+						}
+					}
 
-	// an exception means that we filled the page with data
-       	} catch (NotEnoughSpace &e) {}
+					// an exception means that we filled the page with data
+				} catch (NotEnoughSpace &e) {}
 
-	{
-		Handle <Vector <Handle <Object>>> tempVec = unsafeCast <Vector <Handle <Object>>> (supers);
-		TupleSetIterator myIterator (tempVec, 128);
-		Pipeline myPipe (
-			[] () -> std :: pair <void *, size_t> {
-				std :: cout << "Asking for a new page.\n";
-				void *myPage = malloc (64 * 1024);
-				std :: cout << "Page was " << (size_t) myPage << "!!!\n";
-				return std :: make_pair (myPage, 64 * 1024);
-			},
-			[] (void *page, size_t pageSize) {
-				std :: cout << "Writing back page of size " << pageSize << "!!!\n";
-				std :: cout << "Page was " << (size_t) page << "!!!\n";
-				Handle <Vector <Handle <Employee>>> temp = ((Record <Vector <Handle <Employee>>> *) page)->getRootObject ();
-				std :: cout << "Found " << temp->size () << " objects.\n";
-				for (int i = 0; i < temp->size (); i++) {
-					(*temp)[i]->print ();
-					std :: cout << " ";
+				{
+					Handle <Vector <Handle <Object>>> tempVec = unsafeCast <Vector <Handle <Object>>> (supers);
+					TupleSetIterator myIterator (tempVec, 128);
+					Pipeline myPipe (
+							[] () -> std :: pair <void *, size_t> {
+								std :: cout << "Asking for a new page.\n";
+								void *myPage = malloc (64 * 1024);
+								std :: cout << "Page was " << (size_t) myPage << "!!!\n";
+								return std :: make_pair (myPage, 64 * 1024);
+							},
+							[] (void *page, size_t pageSize) {
+								std :: cout << "Writing back page of size " << pageSize << "!!!\n";
+								std :: cout << "Page was " << (size_t) page << "!!!\n";
+								Handle <Vector <Handle <Employee>>> temp = ((Record <Vector <Handle <Employee>>> *) page)->getRootObject ();
+								std :: cout << "Found " << temp->size () << " objects.\n";
+								for (int i = 0; i < temp->size (); i++) {
+									(*temp)[i]->print ();
+									std :: cout << " ";
+								}
+								std :: cout << "\n";
+								free (page);
+							},
+							[] (void *page, size_t pageSize) {
+								std :: cout << "Freeing page of size " << pageSize << "!!!\n";
+								free (page);
+							},
+							myIterator);
+
+					// create the pipeline
+					Input &myInput = final.getInputs ().getProducer ("A");
+					ComputationPtr firstOp = final.getComputations ().getProducingComputation ("B");
+					myPipe.addStage (fillMe ["attAccess_2"]->getExecutor (myInput.getOutput (), firstOp->getInput (), firstOp->getProjection ()));
+
+					ComputationPtr secOp = final.getComputations ().getProducingComputation ("C");
+					myPipe.addStage (fillMe ["methodCall_1"]->getExecutor (firstOp->getOutput (), secOp->getInput (), secOp->getProjection ()));
+
+					ComputationPtr thirdOp = final.getComputations ().getProducingComputation ("D");
+					myPipe.addStage (fillMe ["==_0"]->getExecutor (secOp->getOutput (), thirdOp->getInput (), thirdOp->getProjection ()));
+
+					ComputationPtr fourthOp = final.getComputations ().getProducingComputation ("E");
+					myPipe.addStage (std :: make_shared <FilterQueryExecutor> (thirdOp->getOutput (), fourthOp->getInput (), fourthOp->getProjection ()));
+
+					ComputationPtr fifthOp = final.getComputations ().getProducingComputation ("F");
+					myPipe.addStage (fillMe ["methodCall_3"]->getExecutor (fourthOp->getOutput (), fifthOp->getInput (), fifthOp->getProjection ()));
+
+					// kill all of the pointers, so the only links to the pipeline stages are in the pipeline itself
+					firstOp = secOp = thirdOp = fourthOp = fifthOp = nullptr;
+
+					// run the pipeline!!!
+					// the "1" indicates that we are writing out the column in position 1 (the second column) from the output tuples
+					myPipe.run (1);
 				}
-				std :: cout << "\n";
-				free (page);
-			}, 
-			[] (void *page, size_t pageSize) {
-				std :: cout << "Freeing page of size " << pageSize << "!!!\n";
-				free (page);
-			},
-			myIterator);
-	
-		// create the pipeline
-		Input &myInput = final->getInputs ().getProducer ("A");
-		ComputationPtr firstOp = final->getComputations ().getProducingComputation ("B");
-		myPipe.addStage (fillMe ["attAccess_2"]->getExecutor (myInput.getOutput (), firstOp->getInput (), firstOp->getProjection ()));
-	
-		ComputationPtr secOp = final->getComputations ().getProducingComputation ("C");
-		myPipe.addStage (fillMe ["methodCall_1"]->getExecutor (firstOp->getOutput (), secOp->getInput (), secOp->getProjection ()));
-	
-		ComputationPtr thirdOp = final->getComputations ().getProducingComputation ("D");
-		myPipe.addStage (fillMe ["==_0"]->getExecutor (secOp->getOutput (), thirdOp->getInput (), thirdOp->getProjection ()));
-	
-		ComputationPtr fourthOp = final->getComputations ().getProducingComputation ("E");
-		myPipe.addStage (std :: make_shared <FilterQueryExecutor> (thirdOp->getOutput (), fourthOp->getInput (), fourthOp->getProjection ()));
-	
-		ComputationPtr fifthOp = final->getComputations ().getProducingComputation ("F");
-		myPipe.addStage (fillMe ["methodCall_3"]->getExecutor (fourthOp->getOutput (), fifthOp->getInput (), fifthOp->getProjection ()));
-	
-		// kill all of the pointers, so the only links to the pipeline stages are in the pipeline itself
-		firstOp = secOp = thirdOp = fourthOp = fifthOp = nullptr;
 
-		// run the pipeline!!!
-		// the "1" indicates that we are writing out the column in position 1 (the second column) from the output tuples
-		myPipe.run (1);
-	}	
-	
-	// clean everything up!!
-	supers = nullptr;
-	free (myPage);
-//	delete final;
+				// clean everything up!!
+				supers = nullptr;
+				free (myPage);
+				//	delete final;
+			},
+			[&](const string &errorMsg)
+			{
+				return -1;
+			});
+
+
 }

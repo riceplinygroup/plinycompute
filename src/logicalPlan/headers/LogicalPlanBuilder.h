@@ -23,10 +23,13 @@
 
 #include "Instruction.h"
 #include "ParserTypes.h"
+#include "SafeResult.h"
 
 using std::shared_ptr;
 using std::string;
 using std::vector;
+
+using pdb::SafeResult;
 
 using pdb_detail::InstructionPtr;
 
@@ -39,16 +42,16 @@ using pdb_detail::InstructionPtr;
  * everything other instruction variant turns into a Computation.
  *
  * @param instructions the list of instructions to translate
- * @return A LogicalPlan representation of the given instructions.
+ * @return A LogicalPlan representation of the given instructions or a failure state if the translation failed.
  */
-shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions);
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions);
 
 /**
  * Translates the given TCAP program into an equivalent LogicalPlan.
  *
  * @param tcapProgram the TCAP program to translate.
- * @return The corresponding LogicalPlan or the null pointer if the program cannot be translated.
+ * @return A LogicalPlan representation of the given program or a failure state if the translation failed.
  */
-shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram);
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(string tcapProgram);
 
 #endif
