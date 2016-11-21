@@ -32,6 +32,7 @@
 
 #include "Lexer.h"
 #include "Parser.h"
+#include "SafeResult.h"
 
 using std::dynamic_pointer_cast;
 using std::string;
@@ -65,18 +66,23 @@ namespace pdb_tests
 
         ops->push_back(makeLoad("table", "column", "1 2"));
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    QUNIT_IS_EQUAL(1, logicalPlan.getInputs().size());
 
-        QUNIT_IS_EQUAL(1, logicalPlan->getInputs().size());
-
-        Input input = logicalPlan->getInputs().getInput("table");
-        QUNIT_IS_EQUAL("table", input.getOutputName());
-        QUNIT_IS_EQUAL("table", input.getOutput().getSetName());
-        QUNIT_IS_EQUAL(1, input.getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("column", input.getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("1", input.getDbName());
-        QUNIT_IS_EQUAL("2", input.getSetName());
-
+                    Input input = logicalPlan.getInputs().getInput("table");
+                    QUNIT_IS_EQUAL("table", input.getOutputName());
+                    QUNIT_IS_EQUAL("table", input.getOutput().getSetName());
+                    QUNIT_IS_EQUAL(1, input.getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("column", input.getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("1", input.getDbName());
+                    QUNIT_IS_EQUAL("2", input.getSetName());
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
     }
 
     void testBuildLogicalPlanFromApplyFunction(UnitTest &qunit)
@@ -99,32 +105,37 @@ namespace pdb_tests
         shared_ptr<vector<InstructionPtr>> ops = make_shared<vector<InstructionPtr>>();
         ops->push_back(applyFunction);
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    // check translation
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("outputTable");
 
-        // check translation
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("outputTable");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
 
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
-        shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
+                    QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
 
-        QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("A", apply->getInputName());
+                    QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
 
-        QUNIT_IS_EQUAL("A", apply->getInputName());
-        QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
+                    QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
 
-        QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
+                    QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
 
-        QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
-
-        QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
-
+                    QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
     }
 
     void testBuildLogicalPlanFromApplyMethod(UnitTest &qunit)
@@ -147,30 +158,38 @@ namespace pdb_tests
         shared_ptr<vector<InstructionPtr>> ops = make_shared<vector<InstructionPtr>>();
         ops->push_back(applyMethod);
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    // check translation
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("outputTable");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
 
-        // check translation
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("outputTable");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
 
-        shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
+                    QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("A", apply->getInputName());
+                    QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
 
-        QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("A", apply->getInputName());
-        QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
+                    QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
 
-        QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
+                    QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
 
-        QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
+                    QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
 
-        QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
+
 
     }
 
@@ -193,29 +212,34 @@ namespace pdb_tests
         shared_ptr<vector<InstructionPtr>> ops = make_shared<vector<InstructionPtr>>();
         ops->push_back(hoist);
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    // check translation
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("outputTable");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
 
-        // check translation
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("outputTable");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
+                    QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("inputTable", apply->getInputName());
+                    QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
 
-        shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("inputTable", apply->getInputName());
-        QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
+                    QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
 
-        QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("outputColumn", apply->getOutput().getAtts()[2]);
+                    QUNIT_IS_EQUAL(1, apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("InputColumn", apply->getInput().getAtts()[0]);
 
-        QUNIT_IS_EQUAL(1, apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("InputColumn", apply->getInput().getAtts()[0]);
-
-        QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
-
+                    QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
     }
 
     void testBuildLogicalPlanFromGreaterThan(UnitTest &qunit)
@@ -238,30 +262,35 @@ namespace pdb_tests
 
         ops->push_back(greaterThan);
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    // check translation
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("outputTable");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
 
-        // check translation
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("outputTable");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
+                    QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("A", apply->getInputName());
+                    QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
 
-        shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("exec", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("A", apply->getInputName());
-        QUNIT_IS_EQUAL("outputTable", apply->getOutputName());
+                    QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("isGreater", apply->getOutput().getAtts()[2]);
 
-        QUNIT_IS_EQUAL(3, apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("isGreater", apply->getOutput().getAtts()[2]);
+                    QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
 
-        QUNIT_IS_EQUAL(2, apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("2", apply->getInput().getAtts()[1]);
-
-        QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
-        QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
-
+                    QUNIT_IS_EQUAL(2, apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("3", apply->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL("4", apply->getProjection().getAtts()[1]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
     }
 
     void testBuildLogicalPlanFromFilter(UnitTest &qunit)
@@ -282,25 +311,31 @@ namespace pdb_tests
 
         ops->push_back(filter);
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    // check translation
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("outputTable");
+                    QUNIT_IS_EQUAL("Filter", computation->getComputationName());
 
-        // check translation
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("outputTable");
-        QUNIT_IS_EQUAL("Filter", computation->getComputationName());
-
-        shared_ptr<ApplyFilter> applyFilter = dynamic_pointer_cast<ApplyFilter> (computation);
+                    shared_ptr<ApplyFilter> applyFilter = dynamic_pointer_cast<ApplyFilter> (computation);
 
 
-        QUNIT_IS_EQUAL("inputTable", applyFilter->getInputName());
-        QUNIT_IS_EQUAL(1, applyFilter->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("filterColumn", applyFilter->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("inputTable", applyFilter->getInputName());
+                    QUNIT_IS_EQUAL(1, applyFilter->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("filterColumn", applyFilter->getInput().getAtts()[0]);
 
-        QUNIT_IS_EQUAL("outputTable", applyFilter->getOutputName());
-        QUNIT_IS_EQUAL(1, applyFilter->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("student", applyFilter->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("outputTable", applyFilter->getOutputName());
+                    QUNIT_IS_EQUAL(1, applyFilter->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("student", applyFilter->getOutput().getAtts()[0]);
 
-        QUNIT_IS_EQUAL(1, applyFilter->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("student", applyFilter->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL(1, applyFilter->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("student", applyFilter->getProjection().getAtts()[0]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
 
     }
 
@@ -314,15 +349,23 @@ namespace pdb_tests
 
         ops->push_back(makeStore(TableColumns("inputTable", columnsToStore), "db set"));
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(ops);
+        buildLogicalPlan(ops)->apply(
+                [&](LogicalPlan logicalPlan)
+                {
+                    OutputList outputs = logicalPlan.getOutputs();
+                    QUNIT_IS_EQUAL("db", outputs.getConsumers("inputTable").operator[](0).getdbName());
+                    QUNIT_IS_EQUAL("set", outputs.getConsumers("inputTable").operator[](0).getSetName());
+                    QUNIT_IS_EQUAL("inputTable", outputs.getConsumers("inputTable").operator[](0).getInputName());
+                    QUNIT_IS_EQUAL(2, outputs.getConsumers("inputTable").operator[](0).getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("1", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("2", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[1]);
+                },
+                [&](string errorMsg)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
 
-        OutputList outputs = logicalPlan->getOutputs();
-        QUNIT_IS_EQUAL("db", outputs.getConsumers("inputTable").operator[](0).getdbName());
-        QUNIT_IS_EQUAL("set", outputs.getConsumers("inputTable").operator[](0).getSetName());
-        QUNIT_IS_EQUAL("inputTable", outputs.getConsumers("inputTable").operator[](0).getInputName());
-        QUNIT_IS_EQUAL(2, outputs.getConsumers("inputTable").operator[](0).getInput().getAtts().size());
-        QUNIT_IS_EQUAL("1", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("2", outputs.getConsumers("inputTable").operator[](0).getInput().getAtts()[1]);
+
 
     }
 
@@ -340,138 +383,109 @@ namespace pdb_tests
                          "F(a,b) = apply method \"someMethod\" to E[a] retain a\n"
                          "store F[b] \"myDB mySet\"";
 
-        shared_ptr<LogicalPlan> logicalPlan = buildLogicalPlan(program);
+        shared_ptr<SafeResult<LogicalPlan>> logicalPlanResult = buildLogicalPlan(program);
+
+        logicalPlanResult->apply(
+                [&](LogicalPlan logicalPlan)
+                {
 
 
-//  //       here is a hand compilation of the plan for the above selection
-//        std :: string myLogicalPlan =
-//
-//                "Outputs:                                       \n      \
-//                                                                \n      \
-//                 (\"myDB\", \"mySet\") <= F(b)                  \n      \
-//                                                                \n      \
-//                Inputs:                                         \n      \
-//                                                                \n      \
-//                A(a) <= (\"myDB\", \"mySet\")                   \n      \
-//                                                                \n      \
-//                Computations:                                   \n      \
-//                                                                \n      \
-//		        F (a, b) <= Apply (E (a), E (a), \"methodCall_3\")   	\n      \
-//                E (a) <=  Filter (D(b), D(a))                   	\n      \
-//                D (a, b) <= Apply (C(c, b), C(a), \"==_0\")  		\n      \
-//                C(a, b, c) <= Apply (B(a), B(a, b), \"methodCall_1\")  	\n      \
-//                B(a, b) <= Apply (A(a), A(a), \"attAccess_2\")";
-//
-//
-//       //  parse the logical plan
-//        myLogicalPlan.push_back ('\0');
-//        yyscan_t scanner;
-//        LexerExtra extra { "" };
-//        yylex_init_extra (&extra, &scanner);
-//        const YY_BUFFER_STATE buffer { yy_scan_string (myLogicalPlan.data(), scanner) };
-//        LogicalPlan *final = nullptr;
-//        const int parseFailed { yyparse (scanner, &final) };
-//        yy_delete_buffer (buffer, scanner);
-//        yylex_destroy (scanner);
-//
-//        if (parseFailed) {
-//            std :: cout << "Parse error: " << extra.errorMessage;
-//        }
-//
-//        LogicalPlan* logicalPlan = final;
+                    QUNIT_IS_EQUAL(1, logicalPlan.getInputs().size());
+                    Input input = logicalPlan.getInputs().getInput("A");
+                    QUNIT_IS_EQUAL("myDB", input.getDbName());
+                    QUNIT_IS_EQUAL("mySet", input.getSetName());
+                    QUNIT_IS_EQUAL("A", input.getOutputName());
+                    QUNIT_IS_EQUAL(1, input.getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", input.getOutput().getAtts()[0]);
+
+                    ComputationPtr computation = logicalPlan.getComputations().getProducingComputation("B");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda>(computation);
+                    QUNIT_IS_EQUAL("attAccess_2", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("B", apply->getOutputName());
+                    QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("A", apply->getInputName());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("A", apply->getProjection().getSetName());
+                    QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
 
 
-        QUNIT_IS_EQUAL(1, logicalPlan->getInputs().size());
-        Input input = logicalPlan->getInputs().getInput("A");
-        QUNIT_IS_EQUAL("myDB", input.getDbName());
-        QUNIT_IS_EQUAL("mySet", input.getSetName());
-        QUNIT_IS_EQUAL("A", input.getOutputName());
-        QUNIT_IS_EQUAL(1, input.getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", input.getOutput().getAtts()[0]);
+                    computation = logicalPlan.getComputations().getProducingComputation("C");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    apply = dynamic_pointer_cast<ApplyLambda>(computation);
+                    QUNIT_IS_EQUAL("methodCall_1", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("C", apply->getOutputName());
+                    QUNIT_IS_EQUAL("3", apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("c", apply->getOutput().getAtts()[2]);
+                    QUNIT_IS_EQUAL("B", apply->getInputName());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("B", apply->getProjection().getSetName());
+                    QUNIT_IS_EQUAL("2", apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getProjection().getAtts()[1]);
 
-        ComputationPtr computation = logicalPlan->getComputations().getProducingComputation("B");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
-        shared_ptr<ApplyLambda> apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("attAccess_2", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("B", apply->getOutputName());
-        QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("A", apply->getInputName());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("A", apply->getProjection().getSetName());
-        QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
+                    computation = logicalPlan.getComputations().getProducingComputation("D");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    apply = dynamic_pointer_cast<ApplyLambda>(computation);
+                    QUNIT_IS_EQUAL("==_0", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("D", apply->getOutputName());
+                    QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("C", apply->getInputName());
+                    QUNIT_IS_EQUAL("2", apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("c", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getInput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("C", apply->getProjection().getSetName());
+                    QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
 
+                    computation = logicalPlan.getComputations().getProducingComputation("E");
+                    QUNIT_IS_EQUAL("Filter", computation->getComputationName());
+                    shared_ptr<ApplyFilter> filter = dynamic_pointer_cast<ApplyFilter>(computation);
+                    QUNIT_IS_EQUAL("E", filter->getOutputName());
+                    QUNIT_IS_EQUAL("1", filter->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", filter->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("D", filter->getInputName());
+                    QUNIT_IS_EQUAL("1", filter->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("b", filter->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("D", filter->getProjection().getSetName());
+                    QUNIT_IS_EQUAL("1", filter->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("a", filter->getProjection().getAtts()[0]);
 
-        computation = logicalPlan->getComputations().getProducingComputation("C");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
-        apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("methodCall_1", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("C", apply->getOutputName());
-        QUNIT_IS_EQUAL("3", apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("c", apply->getOutput().getAtts()[2]);
-        QUNIT_IS_EQUAL("B", apply->getInputName());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("B", apply->getProjection().getSetName());
-        QUNIT_IS_EQUAL("2", apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getProjection().getAtts()[1]);
+                    computation = logicalPlan.getComputations().getProducingComputation("F");
+                    QUNIT_IS_EQUAL("Apply", computation->getComputationName());
+                    apply = dynamic_pointer_cast<ApplyLambda>(computation);
+                    QUNIT_IS_EQUAL("methodCall_3", apply->getLambdaToApply());
+                    QUNIT_IS_EQUAL("F", apply->getOutputName());
+                    QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
+                    QUNIT_IS_EQUAL("E", apply->getInputName());
+                    QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL("E", apply->getProjection().getSetName());
+                    QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
+                    QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
 
-        computation = logicalPlan->getComputations().getProducingComputation("D");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
-        apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("==_0", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("D", apply->getOutputName());
-        QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("C", apply->getInputName());
-        QUNIT_IS_EQUAL("2", apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("c", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getInput().getAtts()[1]);
-        QUNIT_IS_EQUAL("C", apply->getProjection().getSetName());
-        QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
-
-        computation = logicalPlan->getComputations().getProducingComputation("E");
-        QUNIT_IS_EQUAL("Filter", computation->getComputationName());
-        shared_ptr<ApplyFilter> filter = dynamic_pointer_cast<ApplyFilter> (computation);
-        QUNIT_IS_EQUAL("E", filter->getOutputName());
-        QUNIT_IS_EQUAL("1", filter->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", filter->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("D", filter->getInputName());
-        QUNIT_IS_EQUAL("1", filter->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("b", filter->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("D", filter->getProjection().getSetName());
-        QUNIT_IS_EQUAL("1", filter->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("a", filter->getProjection().getAtts()[0]);
-
-        computation = logicalPlan->getComputations().getProducingComputation("F");
-        QUNIT_IS_EQUAL("Apply", computation->getComputationName());
-        apply = dynamic_pointer_cast<ApplyLambda> (computation);
-        QUNIT_IS_EQUAL("methodCall_3", apply->getLambdaToApply());
-        QUNIT_IS_EQUAL("F", apply->getOutputName());
-        QUNIT_IS_EQUAL("2", apply->getOutput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getOutput().getAtts()[0]);
-        QUNIT_IS_EQUAL("b", apply->getOutput().getAtts()[1]);
-        QUNIT_IS_EQUAL("E", apply->getInputName());
-        QUNIT_IS_EQUAL("1", apply->getInput().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getInput().getAtts()[0]);
-        QUNIT_IS_EQUAL("E", apply->getProjection().getSetName());
-        QUNIT_IS_EQUAL("1", apply->getProjection().getAtts().size());
-        QUNIT_IS_EQUAL("a", apply->getProjection().getAtts()[0]);
-
-        QUNIT_IS_EQUAL(1, logicalPlan->getOutputs().getConsumers("F").size());
-        Output output = logicalPlan->getOutputs().getConsumers("F")[0];
-        QUNIT_IS_EQUAL("myDB", output.getdbName());
-        QUNIT_IS_EQUAL("mySet", output.getSetName());
-        QUNIT_IS_EQUAL("F", output.getInputName());
-        QUNIT_IS_EQUAL(1, output.getInput().getAtts().size());
-        QUNIT_IS_EQUAL("b", output.getInput().getAtts()[0]);
+                    QUNIT_IS_EQUAL(1, logicalPlan.getOutputs().getConsumers("F").size());
+                    Output output = logicalPlan.getOutputs().getConsumers("F")[0];
+                    QUNIT_IS_EQUAL("myDB", output.getdbName());
+                    QUNIT_IS_EQUAL("mySet", output.getSetName());
+                    QUNIT_IS_EQUAL("F", output.getInputName());
+                    QUNIT_IS_EQUAL(1, output.getInput().getAtts().size());
+                    QUNIT_IS_EQUAL("b", output.getInput().getAtts()[0]);
+                },
+                [&](string error)
+                {
+                    QUNIT_IS_TRUE(false);
+                });
     }
 }

@@ -37,6 +37,9 @@
 using std::istringstream;
 using std::istream_iterator;
 
+using pdb::SafeResultFailure;
+using pdb::SafeResultSuccess;
+
 using pdb_detail::ApplyBase;
 using pdb_detail::ApplyFunction;
 using pdb_detail::ApplyMethod;
@@ -53,11 +56,11 @@ using pdb_detail::TranslationUnit;
 /**
  * @return an attribute list composed of each of the given column's id, in the same order as provided.
  */
-AttList makeAttributeList(const shared_ptr<vector<TableColumn>> &columns)
+AttList makeAttributeList(const vector<TableColumn> &columns)
 {
     AttList list;
 
-    for(const TableColumn& column : *columns.get())
+    for(const TableColumn& column : columns)
     {
         list.appendAttribute(column.columnId);
     }
@@ -133,7 +136,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
      */
     TupleSpec output;
     {
-        AttList attributes = makeAttributeList(apply.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*apply.columnsToCopyToOutputTable.get());
         attributes.appendAttribute(apply.outputColumnId);
         output = TupleSpec(apply.outputTableId, attributes);
     }
@@ -154,7 +157,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
      */
     TupleSpec projection;
     {
-        AttList attributes = makeAttributeList(apply.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*apply.columnsToCopyToOutputTable.get());
         projection = TupleSpec(apply.inputColumns.tableName, attributes);
     }
 
@@ -254,7 +257,7 @@ shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
      */
     TupleSpec output;
     {
-        AttList attributes = makeAttributeList(filter.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*filter.columnsToCopyToOutputTable.get());
         output = TupleSpec(filter.outputTableId, attributes);
     }
 
@@ -274,7 +277,7 @@ shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
      */
     TupleSpec projection;
     {
-        AttList attributes = makeAttributeList(filter.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*filter.columnsToCopyToOutputTable.get());
         projection = TupleSpec(filter.inputTableId, attributes);
     }
 
@@ -334,7 +337,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
      */
     TupleSpec output;
     {
-        AttList attributes = makeAttributeList(hoist.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*hoist.columnsToCopyToOutputTable.get());
         attributes.appendAttribute(hoist.outputColumn.columnId);
         output = TupleSpec(hoist.outputColumn.tableId, attributes);
     }
@@ -355,7 +358,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
      */
     TupleSpec projection;
     {
-        AttList attributes = makeAttributeList(hoist.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*hoist.columnsToCopyToOutputTable.get());
         projection = TupleSpec(hoist.inputColumn.tableId, attributes);
     }
 
@@ -425,7 +428,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
      */
     TupleSpec output;
     {
-        AttList attributes = makeAttributeList(gt.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*gt.columnsToCopyToOutputTable.get());
         attributes.appendAttribute(gt.outputColumn.columnId);
         output = TupleSpec(gt.outputColumn.tableId, attributes);
     }
@@ -446,7 +449,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
      */
     TupleSpec projection;
     {
-        AttList attributes = makeAttributeList(gt.columnsToCopyToOutputTable);
+        AttList attributes = makeAttributeList(*gt.columnsToCopyToOutputTable.get());
         projection = TupleSpec(inputTableId, attributes);
     }
 
@@ -494,7 +497,7 @@ Output makeOutputFromStore(const Store &store)
 }
 
 // contract from .h
-shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions)
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions)
 {
     /*
      * Translate every IR instruction in instructions into a corresponding Logical Plan representation.
@@ -512,6 +515,7 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
     for(shared_ptr<Instruction> instruction : *instructions.get())
     {
         bool exceptionGeneratedInsideMatch = false;
+        string exceptionMessage;
 
         instruction->match(
                 [&](Load &load)
@@ -524,6 +528,7 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
                     catch(string &errorMsg)
                     {
                         exceptionGeneratedInsideMatch = true;
+                        exceptionMessage = errorMsg;
                     }
                 },
                 [&](ApplyFunction &applyFunction)
@@ -556,6 +561,7 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
                     catch(string &errorMsg)
                     {
                         exceptionGeneratedInsideMatch = true;
+                        exceptionMessage = errorMsg;
                     }
                 },
                 [&](Store &store)
@@ -564,19 +570,17 @@ shared_ptr<LogicalPlan> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> inst
                     outputsAccum.addOutput(out);
                 });
 
-        if(exceptionGeneratedInsideMatch) // PDB coding rules prevent exceptions from crossing API boundaries.
-            return nullptr;               // so return a nullptr instead of propagating an exception
+        if(exceptionGeneratedInsideMatch)
+            return make_shared<SafeResultFailure<LogicalPlan>>(exceptionMessage);
     }
 
-    return make_shared<LogicalPlan>(outputsAccum,inputsAccum,compListAccum);
+    return make_shared<SafeResultSuccess<LogicalPlan>>(LogicalPlan(outputsAccum, inputsAccum, compListAccum));
 }
 
 // contract from .h
-shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram)
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(string tcapProgram)
 {
-
-
-    shared_ptr<LogicalPlan> logicalPlan;
+    shared_ptr<SafeResult<LogicalPlan>> logicalPlan;
     {
         shared_ptr<SafeResult<TranslationUnit>> transUnit = parseTcap(tcapProgram);
 
@@ -584,15 +588,11 @@ shared_ptr<LogicalPlan> buildLogicalPlan(string tcapProgram)
                 [&](TranslationUnit transUnit)
                 {
                     shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
-
-                    if(instructions == nullptr)
-                        logicalPlan = nullptr;
-
                     logicalPlan = buildLogicalPlan(instructions);
                 },
                 [&](string errorMsg)
                 {
-                    logicalPlan = nullptr;
+                    logicalPlan = make_shared<SafeResultFailure<LogicalPlan>>(errorMsg);
                 }
         );
 
