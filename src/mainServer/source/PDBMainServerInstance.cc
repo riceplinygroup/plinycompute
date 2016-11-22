@@ -143,8 +143,8 @@ int main(int argc, char **argv) {
 	int maxConnections=20;
 	int numThreads;
 
-	size_t pageSize;
-	size_t sharedMemSize;
+	size_t pageSize=0;
+	size_t sharedMemSize=0;
 
 
 	bool isMaster = true;
@@ -252,15 +252,15 @@ int main(int argc, char **argv) {
 
 	// pageSize
 	if (keyValues.find("pageSize") != keyValues.end()) {
-		std::stringstream sstream(keyValues["pageSize"]);
-		sstream >> pageSize;
+		unsigned int pageSizeInt = stoi(keyValues["pageSize"]);
+		pageSize =(size_t) pageSizeInt;
 		cout << "pageSize: " << pageSize << endl;
 	}
 
 	//sharedMemSize
 	if (keyValues.find("sharedMemSize") != keyValues.end()) {
-		std::stringstream sstream(keyValues["sharedMemSize"]);
-		sstream >> sharedMemSize;
+		unsigned int sharedMemSizeInt = stoi(keyValues["sharedMemSize"]);
+		sharedMemSize =(size_t) sharedMemSizeInt;
 		cout << "sharedMemSize: " << sharedMemSize << endl;
 	}
 
@@ -350,6 +350,7 @@ int main(int argc, char **argv) {
 	conf->setMasterNodePort(masterNodePort);
 	conf->setQueryPlannerPlace(queryPlannerPlace);
 	conf->setUseUnixDomainSock(useUnixDomainSock);
+	conf->setShmSize(sharedMemSize);
 
 	// now print out the configurations
 	conf->printOut();
