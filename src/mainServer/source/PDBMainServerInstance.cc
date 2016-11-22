@@ -16,13 +16,18 @@
  *                                                                           *
  *****************************************************************************/
 #include <iostream>
+#include <sstream>
 #include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <map>
+#include <ctype.h>
+#include <unistd.h>
+#include <string.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
-#include <string>
 #include <string.h>
 #include <vector>
 #include <time.h>
@@ -31,7 +36,9 @@
 #include <unistd.h>
 #include <time.h>
 #include <pthread.h>
-#include <stdio.h>
+
+
+
 
 #include "Configuration.h"
 #include "PDBLogger.h"
@@ -47,8 +54,6 @@
 #include "PDBLogger.h"
 #include "LogLevel.h"
 
-
-
 #include "PDBServer.h"
 #include "CatalogServer.h"
 #include "CatalogClient.h"
@@ -60,13 +65,63 @@
 #include "InterfaceFunctions.h"
 #include "NodeInfo.h"
 
-namespace po = boost::program_options;
 
 using namespace std;
-using namespace pdb;
 
+map<string, string> readConfigFile(const char* m_configFile) {
+	map<string, string> keyValues;
 
-int main(int numArgs, const char *args[]) {
+	std::ifstream infile(m_configFile);
+
+	std::string line;
+	while (std::getline(infile, line)) {
+		// check if the first charachter of the line is a comment starting with #
+		char found = line.find_first_not_of(" \t");
+		if (found != string::npos) {
+			if (line[found] == '#')
+				continue;
+			else {
+				std::istringstream is_line(line);
+				std::string key;
+				// looking for = in the line and getting the keys and values
+				if (std::getline(is_line, key, '=')) {
+					std::string value;
+					// this line removes the space at the end of the string if there are any sppaces
+					key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+					if (std::getline(is_line, value))
+						// this line removes the space at the end of the string if there are any sppaces
+						value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+					// removes comma at the end of the line
+					value.erase(std::remove(value.begin(), value.end(), ','), value.end());
+
+					// Checks if the given character is a punctuation character as classified by the current C locale. The default C locale classifies
+					// the characters !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ as punctuation.
+					// value.erase(std::remove_if(value.begin(), value.end(), ::ispunct), value.end());
+
+					// print out all of the key/values
+					// std::cout << key << "," << value << std::endl;
+
+					//  store_line(key, value);
+					keyValues.insert(std::make_pair(key, value));
+				}
+			}
+		}
+	}
+
+	return keyValues;
+}
+
+// helper function to map string to boolean
+bool to_bool(std::string str) {
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+	std::istringstream is(str);
+	bool b;
+	is >> std::boolalpha >> b;
+	return b;
+}
+
+int main(int argc, char **argv) {
 
 	string serverName;
 	string myIP;
@@ -83,291 +138,223 @@ int main(int numArgs, const char *args[]) {
 	string logLevelSt;
 	string configurationFile;
 
-
-	int port;
-	int masterNodePort;
-	int maxConnections;
-	int recvBufferSize;
-	int inputBufferSize;
+	int port=8080;
+	int masterNodePort=8080;
+	int maxConnections=20;
 	int numThreads;
 
-	size_t clientPageSize;
 	size_t pageSize;
-	size_t miniPageSize;
 	size_t sharedMemSize;
-	size_t memPerConnection;
-
-	double flushThreshold;
-	bool isMaster;
-	bool logEnabled;
-	bool useByteArray;
-	bool useUnixDomainSock;
-
-	bool enableStorage;
-	bool enableCatalog;
-	bool enableDM;
-
-	// TODO: this list of config parameters should be checked - some of them might be depricated.
-	po::options_description desc("Options");
-	desc.add_options()
-			("help", "produce help messages")
-			("conf",     po::value<string>(&configurationFile), "configure files")
-			("isMaster", po::value<bool>(&isMaster), "true if this node is master")
-			("port",     po::value<int>(&port), "frontEnd server listening port, default is 8108. In the case of Client this is the frontEnd server to connect to")
-			("serverName", po::value<string>(&serverName), "name of the node")
-			("myIP", po::value<string>(&myIP), "public IP address of this server.")
-			("ipcFile", po::value<string>(&ipcFile), "ipc file name for client-frontEnd communication, default is ipcFile")
-			("useUnixDomainSock", po::value<bool>(&useUnixDomainSock), "whether to use local server for client-frontEnd communication, default is n")
-			("backEndIpcFile", po::value<string>(&backEndIpcFile), "ipc file name for frontEnd-backEnd communication, default is backEndIpcFile")
-			("recvBufferSize", po::value<int>(&recvBufferSize),	"maximal number of pages in the server receive buffer, default is 5")
-			("maxConnections", po::value<int>(&maxConnections), "maximal concurrent connections, default is 50")
-			("clientPageSize",	po::value<size_t>(&clientPageSize), "client page size, default is 4*1024*1024")
-			("logFile", po::value<string>(&logFile), "log file name, default is serverLog")
-			("pageSize", po::value<size_t>(&pageSize),"storage page size, default is 64*1024*1024")
-			("miniPageSize", po::value<size_t>(&miniPageSize), "storage minipage size, default is 64")
-			("sharedMemSize", po::value<size_t>(&sharedMemSize), "shared memory size, default is 768*1024*1024")
-			("inputBufferSize", po::value<int>(&inputBufferSize), "maximum size of storage input buffer, default is 5")
-			("logEnabled", po::value<bool>(&logEnabled), "y for enabling log, n for disabling log")
-			("logLevel", po::value<string>(&logLevelSt), "Log Levels are: OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE")
-			("useByteArray", po::value<bool>(&useByteArray), "y for useByteArray, n for use pdb::Object")
-			("dataDirs", po::value<string>(&dataDirs), "a comma-separated list of local directories for storing data partitions")
-			("metaDir", po::value<string>(&metaDir), "local directory to store meta partition")
-			("tempDataDirs", po::value<string>(&tempDataDirs), "local directories to store temporary data")
-			("tempMetaDir", po::value<string>(&tempMetaDir), "local directories to store temporary meta data")
-			("flushThreshold", po::value<double>(&flushThreshold), "flush threshold, default is 0.1")
-			("numThreads", po::value<int>(&numThreads), "number of threads for backEnd processing, default is 2")
-			("memPerConnection", po::value<size_t>(&memPerConnection), "size of buffer per connection, default is 4*1024*1024")
-			("queryPlannerPlace",	po::value<string>(&queryPlannerPlace), "hostname and port of the node that does query planner")
-			("masterNodeHostName", po::value<string>(&masterNodeHostName), "hostname of the master node, default is localhost")
-			("masterNodePort", po::value<int>(&masterNodePort), "port number of the master node, default is 8107")
-			("catalogHostname", po::value<string>(&masterNodeHostName), "hostname of the catalog server, default is localhost")
-			("enableStorage", po::value<bool>(&enableStorage), "y for enabling Storage, n for disabling Storage")
-			("enableCatalog", po::value<bool>(&enableCatalog), "y for enabling Catalog, n for disabling Catalog")
-			("enableDM", po::value<bool>(&enableDM), "y for enabling Distribution Manager, n for disabling Distribution Manager")
-			;
-
-	po::positional_options_description p;
-	po::variables_map vm;
-	po::store(po::command_line_parser(numArgs, args).options(desc).positional(p).run(), vm);
-	po::notify(vm);
 
 
-	if (vm.count("conf")) {
-		configurationFile = vm["conf"].as<string>();
-		cout << "Configuration file is" << configurationFile << ".\n";
-	} else {
-		configurationFile = "conf/pdbSettings.conf";
+	bool isMaster = true;
+	bool logEnabled = true;
+	bool enableStorage = true;
+	bool enableCatalog = true;
+	bool enableDM = true;
+	bool useUnixDomainSock=false;
+
+	const char* m_configFile = "./conf/pdbSettings.conf";
+
+	int c;
+	opterr = 0;
+
+	while ((c = getopt(argc, argv, "sc:s:c:")) != -1)
+
+		switch (c) {
+		case 's':
+			isMaster = false;
+			break;
+		case 'c':
+			m_configFile = optarg;
+			break;
+		case '?':
+			if (optopt == 'c')
+				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
+			else if (isprint(optopt))
+				fprintf(stderr, "Unknown option `-%c'.\n", optopt);
+			else
+				fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
+			return 1;
+		default:
+			abort();
+		}
+
+	cout << "isMaster: " << isMaster << endl;
+
+	// ##################################################
+	// ###########                          #############
+	// ###########    READING CONFIG FILE   #############
+	// ###########                          #############
+	// ##################################################
+
+
+
+
+	// read the config file and create a map out of it.
+	map<string, string> keyValues;
+	keyValues = readConfigFile(m_configFile);
+
+	// We go through the map and find the configuration keys.
+
+	if (keyValues.find("port") != keyValues.end()) {
+		port = stoi(keyValues["port"]);
+		cout << "Server Port: " << port << endl;
 	}
 
-	// Load from configuration file.
-	po::variables_map vm1;
-	ifstream settings_file(configurationFile, fstream::in);
 
-	po::store(po::parse_config_file(settings_file, desc), vm1);
-	settings_file.close();
-	po::notify(vm1);
+	if (keyValues.find("serverName") != keyValues.end()) {
+		serverName = keyValues["serverName"];
+		cout << "Server Name: " << serverName << endl;
+	}
 
+
+	if (keyValues.find("myIP") != keyValues.end()) {
+		myIP = keyValues["myIP"];
+		cout << "Server IP: " << myIP << endl;
+	}
+
+	// enableStorage
+	if (keyValues.find("enableStorage") != keyValues.end()) {
+		enableStorage = to_bool(keyValues["enableStorage"]);
+		cout << "enableStorage: " << enableStorage << endl;
+	}
+
+	// enableCatalog
+	if (keyValues.find("enableCatalog") != keyValues.end()) {
+		enableCatalog = to_bool(keyValues["enableCatalog"]);
+		cout << "enableCatalog: " << enableCatalog << endl;
+	}
+
+	// enableDM
+	if (keyValues.find("enableDM") != keyValues.end()) {
+		enableDM = to_bool(keyValues["enableDM"]);
+		cout << "enableDM: " << enableDM << endl;
+	}
+
+	// useUnixDomainSock
+	if (keyValues.find("useUnixDomainSock") != keyValues.end()) {
+		useUnixDomainSock = to_bool(keyValues["useUnixDomainSock"]);
+		cout << "useUnixDomainSock: " << useUnixDomainSock << endl;
+	}
+
+	// maxConnections
+	if (keyValues.find("maxConnections") != keyValues.end()) {
+		maxConnections = stoi(keyValues["maxConnections"]);
+		cout << "maxConnections: " << maxConnections << endl;
+	}
+
+	// logFile
+	if (keyValues.find("logFile") != keyValues.end()) {
+		logFile = keyValues["logFile"];
+		cout << "logFile: " << logFile << endl;
+	}
+
+	// pageSize
+	if (keyValues.find("pageSize") != keyValues.end()) {
+		std::stringstream sstream(keyValues["pageSize"]);
+		sstream >> pageSize;
+		cout << "pageSize: " << pageSize << endl;
+	}
+
+	//sharedMemSize
+	if (keyValues.find("sharedMemSize") != keyValues.end()) {
+		std::stringstream sstream(keyValues["sharedMemSize"]);
+		sstream >> sharedMemSize;
+		cout << "sharedMemSize: " << sharedMemSize << endl;
+	}
+
+	// logEnabled
+	if (keyValues.find("logEnabled") != keyValues.end()) {
+		logEnabled = to_bool(keyValues["logEnabled"]);
+		cout << "logEnabled: " << logEnabled << endl;
+	}
+
+	// logLevel
+	if (keyValues.find("logLevel") != keyValues.end()) {
+		logLevelSt = keyValues["logLevel"];
+		cout << "logLevel: " << logLevelSt << endl;
+	}
+
+	// dataDirs
+	if (keyValues.find("dataDirs") != keyValues.end()) {
+		dataDirs = keyValues["dataDirs"];
+		cout << "dataDirs: " << dataDirs << endl;
+	}
+
+	// metaDir
+	if (keyValues.find("metaDir") != keyValues.end()) {
+		metaDir = keyValues["metaDir"];
+		cout << "metaDir: " << metaDir << endl;
+	}
+
+	// tempDataDirs
+	if (keyValues.find("tempDataDirs") != keyValues.end()) {
+		tempDataDirs = keyValues["tempDataDirs"];
+		cout << "tempDataDirs: " << tempDataDirs << endl;
+	}
+
+	// tempMetaDir
+	if (keyValues.find("tempMetaDir") != keyValues.end()) {
+		tempMetaDir = keyValues["tempMetaDir"];
+		cout << "tempMetaDir: " << tempMetaDir << endl;
+	}
+
+	// numThreads
+	if (keyValues.find("numThreads") != keyValues.end()) {
+		numThreads = stoi(keyValues["numThreads"]);
+		cout << "numThreads: " << numThreads << endl;
+	}
+
+//	// isMaster
+//	if (keyValues.find("isMaster") != keyValues.end()) {
+//        // no need to do that - default is master
+//		//		isMaster = to_bool(keyValues["isMaster"]);
+//		cout << "isMaster: " << isMaster << endl;
+//	}
+
+	// masterNodeHostName
+	if (keyValues.find("masterNodeHostName") != keyValues.end()) {
+		masterNodeHostName = keyValues["masterNodeHostName"];
+		cout << "masterNodeHostName: " << masterNodeHostName << endl;
+	}
+
+
+	// masterNodePort
+	if (keyValues.find("masterNodePort") != keyValues.end()) {
+		masterNodePort = stoi(keyValues["masterNodePort"]);
+		cout << "masterNodePort: " << masterNodePort << endl;
+	}
+
+	// queryPlannerPlace
+	if (keyValues.find("queryPlannerPlace") != keyValues.end()) {
+		queryPlannerPlace = keyValues["queryPlannerPlace"];
+		cout << "queryPlannerPlace: " << queryPlannerPlace << endl;
+	}
+
+
+
+	cout << "#################################################" << endl;
+	cout << "######                                     ######" << endl;
+	cout << "######            Pliny Database           ######" << endl;
+	cout << "######                                     ######" << endl;
+	cout << "#################################################" << endl;
 
 	// Starting with all of the configuration parameters.
 	ConfigurationPtr conf = make_shared<Configuration>();
 
-	if (vm.count("help")) {
-		cout << desc << "\n";
-		return 1;
-	}
-
-	if (vm.count("port")) {
-		port = vm["port"].as<int>();
-		cout << "port was set to " << port << ".\n";
-	}
-	conf->setPort(port);
-
-	if (vm.count("serverName")) {
-		std::string serverName = vm["serverName"].as<std::string>();
-		cout << "serverName was set to " << serverName << ".\n";
-	}
 	conf->setServerName("testServer");
-
-
-	if (vm.count("isMaster")) {
-		isMaster = vm["isMaster"].as<bool>();
-		cout << "isMaster was set to " << isMaster << ".\n";
-	}
+	conf->setPort(port);
 	conf->setIsMaster(isMaster);
-
-	if (vm.count("masterNodeHostName")) {
-		masterNodeHostName = vm["masterNodeHostName"].as<string>();
-		cout << "masterNodeHostName was set to " << masterNodeHostName << ".\n";
-	}
 	conf->setMasterNodeHostName(masterNodeHostName);
-
-	if (vm.count("masterNodePort")) {
-		masterNodePort = vm["masterNodePort"].as<int>();
-		cout << "masterNodePort was set to " << masterNodePort << ".\n";
-	}
 	conf->setMasterNodePort(masterNodePort);
-
-	if (vm.count("queryPlannerPlace")) {
-		std::string queryPlannerPlace = vm["queryPlannerPlace"].as<std::string>();
-		cout << "queryPlannerPlace was set to " << queryPlannerPlace << ".\n";
-	}
 	conf->setQueryPlannerPlace(queryPlannerPlace);
-
-
-
-	if (vm.count("maxConnections")) {
-		maxConnections = vm["maxConnections"].as<int>();
-		cout << "maxConnections was set to " << maxConnections << ".\n";
-	}
-//	conf->setMaxConnections(maxConnections);
-
-	if (vm.count("recvBufferSize")) {
-		recvBufferSize = vm["recvBUfferSize"].as<int>();
-		cout << "recvBUfferSize was set to " << recvBufferSize << ".\n";
-	}
-//	conf->setRecvBufferSize(recvBufferSize);
-
-	if (vm.count("inputBufferSize")) {
-		inputBufferSize = vm["inputBufferSize"].as<int>();
-		cout << "inputBufferSize was set to " << inputBufferSize << ".\n";
-	}
-//	conf->setInputBufferSize(inputBufferSize);
-
-	if (vm.count("ipcFile")) {
-		ipcFile = vm["ipcFile"].as<std::string>();
-		cout << "ipcFile was set to " << ipcFile << ".\n";
-	}
-//	conf->setIpcFile(ipcFile);
-
-	if (vm.count("backEndIpcFile")) {
-		backEndIpcFile = vm["backEndIpcFile"].as<std::string>();
-		cout << "backEndIpcFile was set to " << backEndIpcFile << ".\n";
-	}
-//	conf->setBackEndIpcFile(backEndIpcFile);
-
-	if (vm.count("clientPageSize")) {
-		clientPageSize = vm["clientPageSize"].as<size_t>();
-		cout << "clientPageSize was set to " << clientPageSize << ".\n";
-	}
-//	conf->setClientPageSize(clientPageSize);
-
-	if (vm.count("logFile")) {
-		logFile = vm["logFile"].as<std::string>();
-		cout << "logFile was set to " << logFile << ".\n";
-	}
-//	conf->setLogFile(logFile);
-
-	if (vm.count("logLevel")) {
-		logLevelSt = vm["logLevel"].as<std::string>();
-		cout << "logLevel was set to " << logLevelSt << ".\n";
-	}
-
-	cout << "Log Level is set to " << logLevelSt << endl;
-
-	if (vm.count("dataDirs")) {
-		dataDirs = vm["dataDirs"].as<std::string>();
-		cout << "directories for data persistence was set to " << dataDirs << ".\n";
-	}
-//	conf->setDataDirs(dataDirs);
-
-	if (vm.count("metaDir")) {
-		metaDir = vm["metaDir"].as<std::string>();
-		cout << "directory for meta data persistence was set to " << metaDir << ".\n";
-	}
-//	conf->setMetaDir(metaDir);
-
-	if (vm.count("tempDataDirs")) {
-		tempDataDirs = vm["tempDataDirs"].as<std::string>();
-		cout << "directories for temporary data persistence was set to " << tempDataDirs << ".\n";
-	}
-//	conf->setDataTempDirs(tempDataDirs);
-
-	if (vm.count("tempMetaDir")) {
-		tempMetaDir = vm["tempMetaDir"].as<std::string>();
-		cout << "directory for temporary data persistence was set to " << tempMetaDir << ".\n";
-	}
-//	conf->setMetaTempDir(tempMetaDir);
-
-	if (vm.count("pageSize")) {
-		pageSize = vm["pageSize"].as<size_t>();
-		cout << "pageSize was set to " << pageSize << ".\n";
-	}
-//	conf->setPageSize(pageSize);
-
-	if (vm.count("miniPageSize")) {
-		miniPageSize = vm["miniPageSize"].as<size_t>();
-		cout << "miniPageSize was set to " << miniPageSize << ".\n";
-	}
-//	conf->setMiniPageSize(miniPageSize);
-
-	if (vm.count("sharedMemSize")) {
-		sharedMemSize = vm["sharedMemSize"].as<size_t>();
-		cout << "sharedMemSize was set to " << sharedMemSize << ".\n";
-	}
-//	conf->setShmSize(sharedMemSize);
-
-	if (vm.count("numThreads")) {
-		numThreads = vm["numThreads"].as<int>();
-		cout << "numThreads was set to " << numThreads << ".\n";
-	}
-//	conf->setNumThreads(numThreads);
-
-	if (vm.count("memPerConnection")) {
-		memPerConnection = vm["memPerConnection"].as<size_t>();
-		cout << "memPerConnection was set to " << memPerConnection << ".\n";
-	}
-//	conf->setMemPerConnection(memPerConnection);
-
-	if (vm.count("useUnixDomainSock")) {
-		useUnixDomainSock = vm["useUnixDomainSock"].as<bool>();
-		cout << "useUnixDomainSock was set to " << useUnixDomainSock << ".\n";
-	}
 	conf->setUseUnixDomainSock(useUnixDomainSock);
 
-	if (vm.count("logEnabled")) {
-		logEnabled = vm["logEnabled"].as<bool>();
-		cout << "logEnabled was set to " << logEnabled << ".\n";
-
-	}
-//	conf->setLogEnabled(logEnabled);
-
-	if (vm.count("useByteArray")) {
-		useByteArray = vm["useByteArray"].as<bool>();
-		cout << "useByteArray was set to " << useByteArray << ".\n";
-
-	}
-//  conf->setUseByteArray(useByteArray);
-
-	if (vm.count("flushThreshold")) {
-		flushThreshold = vm["flushThreshold"].as<double>();
-		cout << "flushThreshold was set to " << flushThreshold << ".\n";
-	}
-
-	if (vm.count("enableStorage")) {
-		enableStorage = vm["enableStorage"].as<bool>();
-		cout << "enableStorage was set to " << logEnabled << ".\n";
-
-	}
-
-	if (vm.count("enableCatalog")) {
-		enableCatalog = vm["enableCatalog"].as<bool>();
-		cout << "enableCatalog was set to " << logEnabled << ".\n";
-	}
-
-
-	if (vm.count("enableDM")) {
-		enableDM = vm["enableDM"].as<bool>();
-		cout << "enableDM was set to " << logEnabled << ".\n";
-	}
-
-	if (vm.count("myIP")) {
-		myIP = vm["myIP"].as<std::string>();
-		cout << "Public IP address of this server  was set to " << myIP << ".\n";
-	}
-
-//	conf->setFlushThreshold(flushThreshold);
-
+	// now print out the configurations
 	conf->printOut();
+
+
 
 	//START A FRONTEND SERVER and a Forked backend server
 	PDBLoggerPtr logger = make_shared<PDBLogger>(logFile);
@@ -402,23 +389,6 @@ int main(int numArgs, const char *args[]) {
 
 	SharedMemPtr shm = make_shared<SharedMem>(conf->getShmSize(), logger);
 
-
-	cout << "#################################################" << endl;
-	cout << "######                                     ######" << endl;
-	cout << "######            Pliny Database           ######" << endl;
-	cout << "######                                     ######" << endl;
-	cout << "#################################################" << endl;
-
-
-    // if storage is enabled, catalog has to be enabled too
-    // CATALOG
-//    if(enableCatalog){
-//    	std :: cout << "Catalog Server is enabled. Adding a Catalog server!!\n\n";
-//    	frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir");
-//    	frontEnd.addFunctionality <pdb :: CatalogClient> (port, "localhost", logger);
-//    }else{
-//    	std :: cout << "Catalog Server is disabled!\n\n";
-//    }
 
 
     //STORAGE
@@ -494,6 +464,5 @@ int main(int numArgs, const char *args[]) {
     }else{
     	std :: cout << "Storage Server is disabled!\n\n";
     }
-
+	return 0;
 }
-
