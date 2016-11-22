@@ -62,6 +62,7 @@ int main (int numArgs, const char *args[]) {
     ("node-type", po::value<string>(), "node type to be registered in PDB catalog")
     ("db-name", po::value<string>(), "database name to be registered in PDB catalog")
     ("type-name", po::value<string>(),"type name to be registered in PDB catalog")
+    ("type-id", po::value<int>(),"type id of data type")
     ("set-name", po::value<string>(), "set name to be registered in PDB catalog")
     ("so-library-file", po::value<string>(),"name of .so library file to be registered, e.g. 'libraries/libSharedEmployee.so'")
     ("timestamp", po::value<string>(), "timestamp in unix format for retrieving newer metadata")
@@ -170,36 +171,26 @@ int main (int numArgs, const char *args[]) {
 
     } else if (command.compare("retrieve-type") == 0) {
 
-        std::string typeName = vm["type-name"].as<std::string>();
+//        std::string typeName = vm["type-name"].as<std::string>();
+        int typeId = vm["type-id"].as<int>();
 
-        cout << "Retrieving type " << typeName << endl;
+//        cout << "Retrieving type " << typeName << endl;
+        cout << "Retrieving typeId " << typeId << endl;
 
         vector <char> * putResultHere = new vector<char>();
         // Local allocator
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
         Handle <CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
+        string soFileObject = "temp.so";
 
         string soBytes;
-        if (!catClient.getSharedLibraryByName(typeName, (*putResultHere), typeMetadata, soBytes, errMsg)) {
+//        if (!catClient.getSharedLibraryByName(typeId, typeName, soFileObject, (*putResultHere), typeMetadata, soBytes, errMsg)) {
+        if (!catClient.getSharedLibrary (typeId, soFileObject)) {
             std :: cout << "Not able to retrieve type data: " + errMsg << std::endl;
-                    std :: cout << "Please change the parameters: type-name."<<std::endl;
+                    std :: cout << "Please change the parameters: type-id."<<std::endl;
         } else {
-            cout << "File size in bytes: " << (*putResultHere).size() << endl;
-            string finalName = "__"+typeName;
-
-            cout << "Object Id " << typeMetadata->getObjectID() << " | " << typeMetadata->getItemKey() << " | " << typeMetadata->getItemName() << endl;
-
-            string returnedBytes = string(putResultHere->begin(),putResultHere->end());
-//            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
-//            cout << "File size as string: " << returnedBytes.size() << endl;
-            cout << "File size as string: " << soBytes.size() << endl;
-
-            int filedesc = open (finalName.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-            write (filedesc, soBytes.c_str(), soBytes.size());
-            close (filedesc);
-
-            std :: cout << "Type properly retrieved.\n";
+            std :: cout << "Type properly retrieved." << errMsg << endl;
         }
 
 
