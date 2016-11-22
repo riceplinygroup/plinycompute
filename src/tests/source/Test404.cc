@@ -48,7 +48,7 @@ int main (int argc, char * argv[]) {
     SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), myLogger);
     conf->printOut();
     
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, masterIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
 
     // to register this node

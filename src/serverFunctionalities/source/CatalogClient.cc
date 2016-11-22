@@ -174,34 +174,64 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 		objectTypeName);
 }
 
+//bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
+//
+//	const LockGuard guard{workingMutex};
+//        std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
+//        myLogger->error(std :: string( "CatalogClient to fetch shared library for TypeID=") + std :: to_string(identifier));
+//	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
+//		[&] (Handle <Vector <char>> result) {
+//	                std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;
+//                        myLogger->debug("CatalogClient: To handle result of CatSharedLibraryRequest from CatalogServer...");
+//			if (result == nullptr) {
+//				myLogger->error ("Error getting shared library: null object returned.\n");
+//				return false;
+//			}
+//
+//			if (result->size () == 0) {
+//				myLogger->error ("Error getting shared library, no data returned.\n");
+//				return false;
+//			}
+//
+//			// just write the shared library to the file
+//			int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+//			write (filedesc, result->c_ptr (), result->size ());
+//			close (filedesc);
+//			return true;},
+//		identifier);
+//}
+
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
-	
-	const LockGuard guard{workingMutex};
-        std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
-        myLogger->error(std :: string( "CatalogClient to fetch shared library for TypeID=") + std :: to_string(identifier));
-	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <Vector <char>> result) {
-	                std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;	
-                        myLogger->debug("CatalogClient: To handle result of CatSharedLibraryRequest from CatalogServer...");
-			if (result == nullptr) {
-				myLogger->error ("Error getting shared library: null object returned.\n");
-				return false;
-			}
 
-			if (result->size () == 0) {
-				myLogger->error ("Error getting shared library, no data returned.\n");
-				return false;
-			}
+    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
-			// just write the shared library to the file
-			int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);	
-			write (filedesc, result->c_ptr (), result->size ());
-			close (filedesc);
-			return true;},
-		identifier);
+    Handle <CatalogUserTypeMetadata> tempMetadataObject = makeObject<CatalogUserTypeMetadata>();
+    vector <char> * putResultHere = new vector<char>();
+    string returnedBytes;
+    string errMsg;
+    //using a dummyName b/c it's being searched by typeId
+    string typeNameToSearch ="dummyName";
+
+    bool res = getSharedLibraryByName (identifier,
+                            typeNameToSearch,
+                            objectFile,
+                            (*putResultHere),
+                            tempMetadataObject,
+                            returnedBytes,
+                            errMsg);
+    return res;
+
+    //this is not needed b/c it's get copied in the previous step
+            // just write the shared library to the file
+//            int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+//            write (filedesc, result->c_ptr (), result->size ());
+//            close (filedesc);
 }
 
-bool CatalogClient :: getSharedLibraryByName (std :: string typeNameToSearch, vector <char> &putResultHere,
+bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
+                                              std :: string typeNameToSearch,
+                                              std :: string objectFile,
+                                              vector <char> &putResultHere,
                                               Handle<CatalogUserTypeMetadata> &result,
                                               string &returnedBytes,
                                               std :: string &errMsg) {
@@ -223,17 +253,33 @@ bool CatalogClient :: getSharedLibraryByName (std :: string typeNameToSearch, ve
                     std :: cout << "In CatalogClient- Handling CatSharedLibraryByNameRequest received from CatalogServer..." << std :: endl;
                         myLogger->debug("CatalogClient: To handle result of CatSharedLibraryByNameRequest from CatalogServer...");
 
-            cout << "Cat Client - Finally bytes returned " << result->getLibraryBytes().size() << endl;
             if (result == nullptr) {
                 myLogger->error ("Error getting shared library: null object returned.\n");
                 return false;
             }
 
-            if (result->getLibraryBytes().size() == 0) {
-                myLogger->error ("Error getting shared library, no data returned.\n");
+            // gets the typeId returned by the Master Catalog
+            int16_t returnedTypeId = std::atoi(result->getObjectID().c_str());
+
+            cout << "Cat Client - Object Id returned " <<  returnedTypeId << endl;
+
+            if (returnedTypeId == -1) {
+                errMsg = "Error getting shared library: type not found in Master Catalog.\n";
+                myLogger->error ("Error getting shared library: type not found in Master Catalog.\n");
+                cout << errMsg << endl;
                 return false;
             }
 
+            cout << "Cat Client - Finally bytes returned " << result->getLibraryBytes().size() << endl;
+
+            if (result->getLibraryBytes().size() == 0) {
+                errMsg = "Error getting shared library, no data returned.\n";
+                myLogger->error ("Error getting shared library, no data returned.\n");
+                cout << errMsg << endl;
+                return false;
+            }
+
+            // gets metadata and bytes of the registered type
             returnedBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
             cout << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
 
@@ -242,8 +288,14 @@ bool CatalogClient :: getSharedLibraryByName (std :: string typeNameToSearch, ve
 
             cout << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
             std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+
+            // just write the shared library to the file
+            int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            write (filedesc, returnedBytes.c_str (), returnedBytes.size());
+            close (filedesc);
+
             return true;},
-            typeNameToSearch);
+            identifier, typeNameToSearch);
 }
 
 std :: string CatalogClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {

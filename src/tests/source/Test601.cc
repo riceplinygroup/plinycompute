@@ -30,7 +30,7 @@ int main () {
        std :: cout << "Starting up a catalog/storage server!!\n";
        pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        pdb :: PDBServer frontEnd (8108, 10, myLogger);
-       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false);
+       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false, "localhost", 8108);
        frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
 
        ConfigurationPtr conf = make_shared < Configuration > ();

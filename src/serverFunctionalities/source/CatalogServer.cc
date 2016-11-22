@@ -60,18 +60,16 @@ PDBCatalogPtr CatalogServer :: getCatalog(){
 
 int16_t CatalogServer :: searchForObjectTypeName (std :: string objectTypeName) {
 
-        
-	// first search for the type name in the vTable map (in case it is built in)
-	if (VTableMap :: lookupBuiltInType (objectTypeName) != -1)
-		return VTableMap :: lookupBuiltInType (objectTypeName);
+    // first search for the type name in the vTable map (in case it is built in)
+    if (VTableMap :: lookupBuiltInType (objectTypeName) != -1)
+        return VTableMap :: lookupBuiltInType (objectTypeName);
 
-	// return a -1 if we've never seen this type name
-	if (allTypeNames.count (objectTypeName) == 0) {
-		return -1;
-	}
+    // return a -1 if we've never seen this type name
+    if (allTypeNames.count (objectTypeName) == 0) {
+        return -1;
+    }
 
-	return allTypeNames[objectTypeName];
-        
+    return allTypeNames[objectTypeName];
 }
 
 void CatalogServer :: registerHandlers (PDBServer &forMe) {
@@ -171,71 +169,72 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
         }
     ));
 
-	// handle a request for an object type name search
-	forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
-		[&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
+    // handle a request for an object type name search
+    forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
+        [&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
 
                         std :: cout << "received CatTypeNameSearch message" << std :: endl;
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
                         std :: cout << "got lock" << std :: endl;
 
-
-			// ask the catalog serer for the type ID 
-			int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
+            // ask the catalog serer for the type ID
+            int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
                         std :: cout << "searchForObjectTypeName=" << typeID << std :: endl;
-			// make the result
-			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);				
+            // make the result
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);
 
-			// return the result
-			std :: string errMsg;
-			bool res = sendUsingMe->sendObject (response, errMsg);
-			return make_pair (res, errMsg);
-		}
-	));
+            // return the result
+            std :: string errMsg;
+            bool res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
 
-	// handle a request to obtain a copy of a shared library
-	forMe.registerHandler (CatSharedLibraryRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryRequest>> (
-		[&] (Handle <CatSharedLibraryRequest> request, PDBCommunicatorPtr sendUsingMe) {
+    // handle a request to obtain a copy of a shared library
+    forMe.registerHandler (CatSharedLibraryRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryRequest>> (
+        [&] (Handle <CatSharedLibraryRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-			// ask the catalog serer for the shared library
+            // ask the catalog serer for the shared library
                         // added by Jia to test a length error bug
-			vector <char> * putResultHere = new vector<char>();
-			std :: string errMsg;
-			int16_t typeID = request->getTypeID ();
+            vector <char> * putResultHere = new vector<char>();
+            std :: string errMsg;
+            int16_t typeID = request->getTypeID ();
                         std :: cout << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << typeID << std :: endl;
                         getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=") + std :: to_string(typeID));
-			bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
 
-			if (!res) {
-				const UseTemporaryAllocationBlock tempBlock{1024};
-				Handle <Vector <char>> response = makeObject <Vector <char>> ();
-				res = sendUsingMe->sendObject (response, errMsg);
-			} else {
+            bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
+
+            if (!res) {
+                const UseTemporaryAllocationBlock tempBlock{1024};
+                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                res = sendUsingMe->sendObject (response, errMsg);
+            } else {
                 cout << "On Catalog Server bytes returned " << (*putResultHere).size () << endl;
-				// in this case, we need a big space to put the object!!
-				const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size ()};
- 				Handle <Vector <char>> response = makeObject <Vector <char>> ((*putResultHere).size (), (*putResultHere).size ()); 
-				memmove (response->c_ptr (), (*putResultHere).data (), (*putResultHere).size ());
-				res = sendUsingMe->sendObject (response, errMsg);
-			}
+                // in this case, we need a big space to put the object!!
+                const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size ()};
+                Handle <Vector <char>> response = makeObject <Vector <char>> ((*putResultHere).size (), (*putResultHere).size ());
+                memmove (response->c_ptr (), (*putResultHere).data (), (*putResultHere).size ());
+                res = sendUsingMe->sendObject (response, errMsg);
+            }
                         delete putResultHere;
-			// return the result
-			return make_pair (res, errMsg);
-		}
-	));
-	
+            // return the result
+            return make_pair (res, errMsg);
+        }
+    ));
+
 
     // handle a request to obtain a copy of a userd-defined data type stored in a shared library along with
-    // its metadata
+    // its metadata (stored as a serialized CatalogUserTypeMetadata object)
     forMe.registerHandler (CatSharedLibraryByNameRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryByNameRequest>> (
         [&] (Handle <CatSharedLibraryByNameRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
         string typeName = request->getTypeLibraryName ();
+        int16_t typeId = request->getTypeLibraryId();
 
         cout << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << std :: endl;
 
@@ -261,37 +260,59 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             cout << "    Invoking getSharedLibrary(typeName) from CatalogServer Handler b/c this is Master Catalog " << endl;
 
-            res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeName,
-                                                                              (*putResultHere),
-                                                                              response,
-                                                                              returnedBytes,
-                                                                              errMsg);
-
-            cout << "    Bytes returned not isMaster: " << returnedBytes.size() << endl;
-
-            String _retBytes(returnedBytes);
-
-            *responseTwo = *response;
-            String newItemID(response->getObjectID());
-            responseTwo->setObjectId(newItemID);
-            String newItemName(response->getItemName());
-            responseTwo->setItemName(newItemName);
-            String newItemKey(response->getItemKey());
-            responseTwo->setItemKey(newItemKey);
-            responseTwo->setLibraryBytes(_retBytes);
-
-            //response->setLibraryBytes(*_retBytes);
-//            (*responseTwo).setLibraryBytes(_retBytes);
-            cout << "Object Id isMaster: " << response->getObjectID() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
-            if (!res) {
+            // if the type is not registered in the Master Catalog just return
+//            if (allTypeNames.count (typeName) == 0) {
+            // uses the typeId instead of typeName
+            if (allTypeCodes.count (typeId) == 0) {
                 const UseTemporaryAllocationBlock tempBlock{1024};
-    //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
-                res = sendUsingMe->sendObject (responseTwo, errMsg);
-            } else {
-    cout << "     before sending responseTWO" << endl;
+                // Creates a dummy type
+                Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
+                String newItemID("-1");
+                notFoundResponse->setObjectId(newItemID);
 
-                res = sendUsingMe->sendObject (responseTwo, errMsg);
+                res = sendUsingMe->sendObject (notFoundResponse, errMsg);
+
+            } else{
+                //resolves typeName given the typeId
+                typeName = allTypeCodes[typeId];
+                cout << "Resolved typeName " << typeName << "  for typeId=" << typeId << std :: endl;
+
+                // the type was found in the catalog, retrieve metadata and bytes
+                res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
+                                                                                  typeName,
+                                                                                  (*putResultHere),
+                                                                                  response,
+                                                                                  returnedBytes,
+                                                                                  errMsg);
+
+                cout << "    Bytes returned YES isMaster: " << returnedBytes.size() << endl;
+
+                String _retBytes(returnedBytes);
+
+                // do a deep copy and set metadata
+                *responseTwo = *response;
+                String newItemID(response->getObjectID());
+                responseTwo->setObjectId(newItemID);
+                String newItemName(response->getItemName());
+                responseTwo->setItemName(newItemName);
+                String newItemKey(response->getItemKey());
+                responseTwo->setItemKey(newItemKey);
+                responseTwo->setLibraryBytes(_retBytes);
+
+                cout << "Object Id isMaster: " << response->getObjectID() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
+                if (!res) {
+                    const UseTemporaryAllocationBlock tempBlock{1024};
+        //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                    res = sendUsingMe->sendObject (responseTwo, errMsg);
+                } else {
+                    cout << "     Sending metadata and bytes to caller!" << endl;
+
+                    res = sendUsingMe->sendObject (responseTwo, errMsg);
+                }
+
             }
+
+
 
 
         } else {
@@ -299,41 +320,46 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
             Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
-            Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
             cout << "    Connecting to the Remote Catalog Server via Catalog Client" << endl;
             cout << "    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog " << endl;
             // otherwise connect to remote master catalog server and make call
 
-            res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeName,
+            // uses a dummyObjectFile since this is just making a remote call to the Catalog Master Server
+            // and what matters is the returned bytes.
+            string dummyObjectFile = string("temp.so");
+
+            res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeId,
+                                                                                      typeName,
+                                                                                      dummyObjectFile,
                                                                                       (*putResultHere),
                                                                                       response,
                                                                                       returnedBytes,
                                                                                       errMsg);
 
-            cout << "     Bytes returned not isMaster: " << returnedBytes.size() << endl;
-            String _retBytes(returnedBytes);
+            cout << "     Bytes returned NOT isMaster: " << returnedBytes.size() << endl;
 
-            *responseTwo = *response;
-            String newItemID(response->getObjectID());
-            responseTwo->setObjectId(newItemID);
-            String newItemName(response->getItemName());
-            responseTwo->setItemName(newItemName);
-            String newItemKey(response->getItemKey());
-            responseTwo->setItemKey(newItemKey);
-            responseTwo->setLibraryBytes(_retBytes);
+            // if the library was successfuly retrieved, go ahead and resolve vtable fixing
+            // in the local catalog
+            if (res == true){
+                // resolves vtable fixing on the local catalog, given the library and metadata
+                // retrieved from the remote Master Catalog
+                res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
+            }
 
-//            (*responseTwo).setLibraryBytes(_retBytes);
-            cout << "Object Id not isMaster FROM RESPONSE: " <<  (*response).getObjectID() << " | " << (*response).getItemKey() << " | " << (*response).getItemName() << endl;
-            res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
-
-            cout << "Object Id not isMaster FROM RESPONSETWO" <<  (*responseTwo).getObjectID() << " | " <<  (*responseTwo).getItemKey() << " | " << (*responseTwo).getItemName() << endl;
             if (!res) {
+                cout << "     before sending response" << endl;
+
+                cout << errMsg << endl;
                 const UseTemporaryAllocationBlock tempBlock{1024};
-    //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                Handle<String> responseTwo = makeObject<String>(errMsg);
+
+                //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
             } else {
-    cout << "     before sending response" << endl;
+                cout << "     before sending response" << endl;
+                const UseTemporaryAllocationBlock tempBlock{1024};
+                Handle<String> responseTwo = makeObject<String>("Process completed successfuly! ");
 
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
             }
@@ -348,73 +374,72 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
         }
     ));
 
-	// handle a request to get the string corresponding to the name of an object type
-	forMe.registerHandler (CatSetObjectTypeRequest_TYPEID, make_shared <SimpleRequestHandler <CatSetObjectTypeRequest>> (
-		[&] (Handle <CatSetObjectTypeRequest> request, PDBCommunicatorPtr sendUsingMe) {
+    // handle a request to get the string corresponding to the name of an object type
+    forMe.registerHandler (CatSetObjectTypeRequest_TYPEID, make_shared <SimpleRequestHandler <CatSetObjectTypeRequest>> (
+        [&] (Handle <CatSetObjectTypeRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-			// ask the catalog server for the type ID and then the name of the type
-			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
+            // ask the catalog server for the type ID and then the name of the type
+            int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
                         std :: cout << "typeID for Set with dbName=" << request->getDatabaseName() << " and setName=" << request->getSetName() << " is " << typeID << std :: endl;
-			// make the response
-			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <CatTypeNameSearchResult> response;
-			if (typeID >= 0) 
-				response = makeObject <CatTypeNameSearchResult> (searchForObjectTypeName (typeID), true, "success");
-			else 
-				response = makeObject <CatTypeNameSearchResult> ("", false, "could not find requested type");
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <CatTypeNameSearchResult> response;
+            if (typeID >= 0)
+                response = makeObject <CatTypeNameSearchResult> (searchForObjectTypeName (typeID), true, "success");
+            else
+                response = makeObject <CatTypeNameSearchResult> ("", false, "could not find requested type");
 
-			// return the result
-			std :: string errMsg;
-			bool res = sendUsingMe->sendObject (response, errMsg);
-			return make_pair (res, errMsg);
-		}
-	));
+            // return the result
+            std :: string errMsg;
+            bool res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
 
-	// handle a request to create a database 
-	forMe.registerHandler (CatCreateDatabaseRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateDatabaseRequest>> (
-		[&] (Handle <CatCreateDatabaseRequest> request, PDBCommunicatorPtr sendUsingMe) {
+    // handle a request to create a database
+    forMe.registerHandler (CatCreateDatabaseRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateDatabaseRequest>> (
+        [&] (Handle <CatCreateDatabaseRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-			// ask the catalog server for the type ID and then the name of the type
-			std :: string errMsg;
-			bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
+            // ask the catalog server for the type ID and then the name of the type
+            std :: string errMsg;
+            bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
 
-			// make the response
-			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 
-			// return the result
-			res = sendUsingMe->sendObject (response, errMsg);
-			return make_pair (res, errMsg);
-		}
-	));
-	
-	forMe.registerHandler (CatCreateSetRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateSetRequest>> (
-		[&] (Handle <CatCreateSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
 
-                        std :: cout << "received CatCreateSetRequest" << std :: endl;
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+    forMe.registerHandler (CatCreateSetRequest_TYPEID, make_shared <SimpleRequestHandler <CatCreateSetRequest>> (
+        [&] (Handle <CatCreateSetRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// ask the catalog server for the type ID and then the name of the type
-			std :: string errMsg;
-			auto info = request->whichSet ();
-			bool res = getFunctionality <CatalogServer> ().addSet (request->whichType (), info.first, info.second, errMsg);
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-			// make the response
-			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+            // ask the catalog server for the type ID and then the name of the type
+            std :: string errMsg;
+            auto info = request->whichSet ();
+            bool res = getFunctionality <CatalogServer> ().addSet (request->whichType (), info.first, info.second, errMsg);
 
-			// return the result
-			res = sendUsingMe->sendObject (response, errMsg);
-			return make_pair (res, errMsg);
-		}
-	));
+            // make the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
 
 
     // handle a request to delete a database
@@ -542,86 +567,92 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
         }
     ));
 
-	// handles a request to register a shared library
-	forMe.registerHandler (CatRegisterType_TYPEID, make_shared <SimpleRequestHandler <CatRegisterType>> (
-		[&] (Handle <CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
+    // handles a request to register a shared library
+    forMe.registerHandler (CatRegisterType_TYPEID, make_shared <SimpleRequestHandler <CatRegisterType>> (
+        [&] (Handle <CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
 
-			// in practice, we can do better than simply locking the whole catalog, but good enough for now...
-			const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-			// get the next object... this holds the shared library file... it could be big, so be careful!!
-			size_t objectSize = sendUsingMe->getSizeOfNextObject ();
+            // get the next object... this holds the shared library file... it could be big, so be careful!!
+            size_t objectSize = sendUsingMe->getSizeOfNextObject ();
 
-			bool res;
-			std :: string errMsg;
-			void *memory = malloc (objectSize);
-			Handle <Vector <char>> myFile = sendUsingMe->getNextObject <Vector <char>> (memory, res, errMsg);
-			if (res) {
-				vector <char> soFile;
-				size_t fileLen = myFile->size ();
-				soFile.resize (fileLen);
-				memmove (soFile.data (), myFile->c_ptr (), fileLen);
-				res = (addObjectType (soFile, errMsg) >= 0);
-			}
-			free (memory);
+            bool res;
+            std :: string errMsg;
+            void *memory = malloc (objectSize);
+            Handle <Vector <char>> myFile = sendUsingMe->getNextObject <Vector <char>> (memory, res, errMsg);
+            if (res) {
+                vector <char> soFile;
+                size_t fileLen = myFile->size ();
+                soFile.resize (fileLen);
+                memmove (soFile.data (), myFile->c_ptr (), fileLen);
+                res = (addObjectType (soFile, errMsg) >= 0);
+            }
+            free (memory);
 
-			// create the response
-			const UseTemporaryAllocationBlock tempBlock{1024};
-			Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);				
+            // create the response
+            const UseTemporaryAllocationBlock tempBlock{1024};
+            Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
 
-			// return the result
-			res = sendUsingMe->sendObject (response, errMsg);
-			return make_pair (res, errMsg);
-		}
-	));
-			
+            // return the result
+            res = sendUsingMe->sendObject (response, errMsg);
+            return make_pair (res, errMsg);
+        }
+    ));
+
 }
 
 std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) {
 
         std :: cout << "searchForObjectTypeName with typeIdentifier =" << typeIdentifier << std :: endl;
-	// first search for the type name in the vTable map (in case it is built in)
-	std :: string result = VTableMap :: lookupBuiltInType (typeIdentifier);
-	if (result != "")
-		return result;
+    // first search for the type name in the vTable map (in case it is built in)
+    std :: string result = VTableMap :: lookupBuiltInType (typeIdentifier);
+    if (result != "")
+        return result;
 
-	// return a -1 if we've never seen this type name
-	if (allTypeCodes.count (typeIdentifier) == 0)
-		return "";
+    // return a -1 if we've never seen this type name
+    if (allTypeCodes.count (typeIdentifier) == 0)
+        return "";
 
-	// return a non built-in type
-	return allTypeCodes[typeIdentifier];
+    // return a non built-in type
+    return allTypeCodes[typeIdentifier];
 }
 
 bool CatalogServer :: getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg) {
 
         //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
-	// first, make sure we have this identifier
-	if (allTypeCodes.count (identifier) == 0) {
-		errMsg = "CatalogServer::getSharedLibrary(): Error: didn't know the identifier you sent me";
+    // first, make sure we have this identifier
+    if (allTypeCodes.count (identifier) == 0) {
+        errMsg = "CatalogServer::getSharedLibrary(): Error: didn't know the identifier you sent me";
                 std :: cout << errMsg << std :: endl;
                 getLogger()->error(errMsg);
-		return false;
-	}
+        return false;
+    }
 
-	// now, read in the .so file, and put it in the vector
+    //TODO connect remotely and get the file
+
+    //
+
+
+
+    // now, read in the .so file, and put it in the vector
     std :: string whichFile = catalogDirectory + "/pdbCatalog/tmp_so_files/" + allTypeCodes[identifier] + ".so";
         //std :: cout << "to fetch file:" << whichFile << std :: endl;
-	std :: ifstream in (whichFile, std::ifstream::ate | std::ifstream::binary);
-	size_t fileLen = in.tellg();
+    std :: ifstream in (whichFile, std::ifstream::ate | std::ifstream::binary);
+    size_t fileLen = in.tellg();
         struct stat st;
         stat(whichFile.c_str (), &st);
         fileLen = st.st_size;
-	int filedesc = open (whichFile.c_str (), O_RDONLY);
+    int filedesc = open (whichFile.c_str (), O_RDONLY);
         //std :: cout << "CatalogServer getSharedLibrary: fileLen=" << fileLen << std :: endl;
-	putResultHere.resize (fileLen);
-	read (filedesc, putResultHere.data (), fileLen);
-	close (filedesc);
+    putResultHere.resize (fileLen);
+    read (filedesc, putResultHere.data (), fileLen);
+    close (filedesc);
 
-	return true;
+    return true;
 }
 
-bool CatalogServer :: getSharedLibraryByName (std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg) {
+bool CatalogServer :: getSharedLibraryByName (int16_t identifier, std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg) {
     cout << " Catalog Server->inside get getSharedLibraryByName id for type " << typeName << endl;
 
         //std :: cout << "CatalogServer getSharedLibrary: typeId=" << identifier << std :: endl;
@@ -643,117 +674,129 @@ bool CatalogServer :: getSharedLibraryByName (std :: string typeName, vector <ch
     string typeOfObject = "data_types";
 
     // retrieves metadata and library bytes from the catalog
-    retrieveUserDefinedTypeMetadata(typeName,
+    bool res = retrieveUserDefinedTypeMetadata(typeName,
             itemMetadata,
             returnedBytes,
             errMsg);
 
-    cout << "Metadata returned at get SharedLibrary Id: " << itemMetadata->getItemId().c_str() << endl;
-    cout << "Metadata returned at get SharedLibrary Key: " << itemMetadata->getItemKey().c_str() << endl;
-    cout << "--pass" << endl;
+    // the item was found
+    if (res == true){
+        cout << "Metadata returned at get SharedLibrary Id: " << itemMetadata->getItemId().c_str() << endl;
+        cout << "Metadata returned at get SharedLibrary Key: " << itemMetadata->getItemKey().c_str() << endl;
+        cout << "--pass" << endl;
 
-//    cout << "Size after returning " <<  itemMetadata->getLibraryBytes().size() << endl;
+    //    cout << "Size after returning " <<  itemMetadata->getLibraryBytes().size() << endl;
 
-//    string returnedBytes = string(itemMetadata->getLibraryBytes());
-//    char *buffer = new char[itemMetadata->getLibraryBytes().size()];
-//    memcpy (buffer, itemMetadata->getLibraryBytes().c_str(), itemMetadata->getLibraryBytes().size());
+    //    string returnedBytes = string(itemMetadata->getLibraryBytes());
+    //    char *buffer = new char[itemMetadata->getLibraryBytes().size()];
+    //    memcpy (buffer, itemMetadata->getLibraryBytes().c_str(), itemMetadata->getLibraryBytes().size());
 
-//    returnedBytes = string(buffer,itemMetadata->getLibraryBytes().size());
+    //    returnedBytes = string(buffer,itemMetadata->getLibraryBytes().size());
 
 
-    cout << "Bytes after string " << returnedBytes.size()<< endl;
+        cout << "Bytes after string " << returnedBytes.size()<< endl;
 
-//    cout << "bytes size " << returnedBytes.length() << endl;
+    //    cout << "bytes size " << returnedBytes.length() << endl;
 
-    cout << "bytes before putResultHere " << putResultHere.size() << endl;
+        cout << "bytes before putResultHere " << putResultHere.size() << endl;
 
-    // copy bytes to output param
-    std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+        // copy bytes to output param
+        std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+    } else {
+        cout << "Item with key " << typeName <<  " was not found!" << endl;
+    }
 
-    return true;
+    return res;
 }
 
 int16_t CatalogServer :: getObjectType (std :: string databaseName, std :: string setName) {
-	//cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
-	if (setTypes.count (make_pair (databaseName, setName)) == 0)
-		return -1;
+    //cout << "getObjectType make_pair " << databaseName << " " << setName << endl;
+    if (setTypes.count (make_pair (databaseName, setName)) == 0)
+        return -1;
 
-	return setTypes[make_pair (databaseName, setName)];	
+    return setTypes[make_pair (databaseName, setName)];
 }
 
 int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
-	// and add the new .so file
+    // and add the new .so file
     string tempFile = catalogDirectory + "/pdbCatalog/tmp_so_files/temp.so";
-	int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	write (filedesc, soFile.data (), soFile.size ());
-	close (filedesc);	
+    int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    write (filedesc, soFile.data (), soFile.size ());
+    close (filedesc);
 
-	// check to make sure it is valid
-	void *so_handle = nullptr;
-	so_handle = dlopen (tempFile.c_str (), RTLD_LOCAL | RTLD_LAZY );
-	if (!so_handle) {
-		const char* dlsym_error = dlerror();
-		dlclose (so_handle);
-		errMsg = "Cannot process shared library. " + string (dlsym_error) + '\n';
-		return -1;
-	}
+    // check to make sure it is valid
+    void *so_handle = nullptr;
+    so_handle = dlopen (tempFile.c_str (), RTLD_LOCAL | RTLD_LAZY );
+    if (!so_handle) {
+        const char* dlsym_error = dlerror();
+        dlclose (so_handle);
+        errMsg = "Cannot process shared library. " + string (dlsym_error) + '\n';
+        return -1;
+    }
 
-	const char* dlsym_error;
-	std::string getName = "getObjectTypeName";	
-	typedef char *getObjectTypeNameFunc ();
-	getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
+    const char* dlsym_error;
+    std::string getName = "getObjectTypeName";
+    typedef char *getObjectTypeNameFunc ();
+    getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
 
    cout << "getObjectTypeName= " << getName << endl;
-	if ((dlsym_error = dlerror())) {
-		errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
-		cout << errMsg << endl;
-		return -1;
-	}
+    if ((dlsym_error = dlerror())) {
+        errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
+        cout << errMsg << endl;
+        return -1;
+    }
     cout << "all ok" << endl;
 
-	// now, get the type name and write the appropriate file
-	string typeName (myFunc ());
-	dlclose (so_handle);
-    filedesc = open ((catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so").c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	write (filedesc, soFile.data (), soFile.size ());
-	close (filedesc);	
+    // now, get the type name and write the appropriate file
+    string typeName (myFunc ());
+    dlclose (so_handle);
+    //rename file
+    string newName = catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so";
+    int result = rename( tempFile.c_str() , newName.c_str());
+    if ( result == 0 ) {
+        cout << "Successfully renaming file " << newName << endl;
+    } else {
+        errMsg = "Renaming temp file failed " + newName + "\n";
+        return -1;
+    }
 
-	// add the new type name, if we don't already have it
-	if (allTypeNames.count (typeName) == 0) {
-	int16_t typeCode = 8192 + allTypeNames.size ();
-	allTypeNames [typeName] = typeCode;
-	allTypeCodes [typeCode] = typeName;
+    // add the new type name, if we don't already have it
+    if (allTypeNames.count (typeName) == 0) {
+        cout << "Fixing vtable ptr for type " << typeName << " with metadata retrieved from remote Catalog Server." << endl;
+        int16_t typeCode = 8192 + allTypeNames.size ();
+        allTypeNames [typeName] = typeCode;
+        allTypeCodes [typeCode] = typeName;
 
-	// and update the catalog file
-	vector <string> typeNames;
-	vector <int> typeCodes;
+        // and update the catalog file
+        vector <string> typeNames;
+        vector <int> typeCodes;
 
-	// get the two vectors to add
-	for (auto &pair : allTypeNames) {
-		typeNames.push_back (pair.first);
-		typeCodes.push_back (pair.second);
-	}
+        // get the two vectors to add
+        for (auto &pair : allTypeNames) {
+            typeNames.push_back (pair.first);
+            typeCodes.push_back (pair.second);
+        }
 
-	cout << "before creating object" << endl;
-    //allocates 128Mb to register .so libraries
-    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+        cout << "before creating object" << endl;
+        //allocates 128Mb to register .so libraries
+        makeObjectAllocatorBlock (1024 * 1024 * 128, true);
 
-	Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
-    cout << "before calling " << endl;
+        Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
+        cout << "before calling " << endl;
 
-    pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
+        pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
 
-	return typeCode;
-	} else 
-		return allTypeNames [typeName];
+        return typeCode;
+    } else
+        return allTypeNames [typeName];
 }
 
 bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
     // allocate memory temporarily
     // TODO change this later
-    // makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+//    makeObjectAllocatorBlock (1024 * 1024 * 128, true);
 
     string setUniqueId = databaseName + "." + setName;
     cout << "Deleting set " << setUniqueId << endl;
@@ -763,7 +806,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
         cout << errMsg << endl;
         return false;
     }
-	
+
     // make sure that set exists
     if (isSetRegistered(databaseName, setName) ==  false){
         errMsg = "Set doesn't exist " + databaseName + "." + setName;
@@ -791,7 +834,7 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
     // deletes metadata in sqlite
 
-	pdbCatalog->deleteMetadataInCatalog( metadataObject, catalogType, errMsg);
+    pdbCatalog->deleteMetadataInCatalog( metadataObject, catalogType, errMsg);
 
     // prepares object to update database entry in sqlite
     catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -810,8 +853,8 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
 
     // updates the corresponding database metadata
     if (!pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)) {
-		return false;
-	}
+        return false;
+    }
 
     // after it updated the database metadata in the local catalog, iterate over all nodes,
     // make connections and broadcast the objects
@@ -849,20 +892,20 @@ bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setNa
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
 
-	return true;
+    return true;
 }
 
 bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-	// make sure we are only adding to an existing database
+    // make sure we are only adding to an existing database
     if (isDatabaseRegistered(databaseName) == false){
         errMsg = "Database does not exist.\n";
         cout << errMsg << endl;
         return false;
     }
 
-	// make sure that set does not exist
-	string setUniqueId = databaseName + "." + setName;
+    // make sure that set does not exist
+    string setUniqueId = databaseName + "." + setName;
     if (isSetRegistered(databaseName, setName) ==  true){
         errMsg = "Set already exists.\n";
         cout << errMsg << endl;
@@ -870,17 +913,17 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
 
     }
 
-	// make sure that type code exists, if we get one that is not built in
-	if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
-		errMsg = "Type code does not exist.\n";
+    // make sure that type code exists, if we get one that is not built in
+    if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
+        errMsg = "Type code does not exist.\n";
                 cout << errMsg << "TypeId="<< typeIdentifier << endl;
-		return false;
-	}
+        return false;
+    }
 
-	cout << "...... Calling CatalogServer :: addSet" << endl;
+    cout << "...... Calling CatalogServer :: addSet" << endl;
 
-	//	// and add the set's type
-	setTypes [make_pair (databaseName, setName)] = typeIdentifier;
+    //  // and add the set's type
+    setTypes [make_pair (databaseName, setName)] = typeIdentifier;
         std :: cout << "TypeID for Set with dbName=" << databaseName << " and setName=" << setName << " is " << typeIdentifier << std :: endl;
     //TODO this might change depending on what metadata
     Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
@@ -999,29 +1042,29 @@ bool CatalogServer :: addSet (int16_t typeIdentifier, std :: string databaseName
     // TODO, remove it, just used for debugging
 //    printCatalog("");
 
-	return true;
+    return true;
 }
 
 
 bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &errMsg) {
 
-	// don't add a database that is alredy there
+    // don't add a database that is alredy there
     if (isDatabaseRegistered(databaseName) == true){
         errMsg = "Database name already exists.\n";
         return false;
     }
 
-	vector <string> empty;
+    vector <string> empty;
 
     cout << "...... Calling CatalogServer :: addDatabase" << endl;
 
     //allocates 24Mb to process metadata info
 //    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
-	int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
-	Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
-	String dbName = String(databaseName);
-	metadataObject->setItemName(dbName);
+    int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
+    Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
+    String dbName = String(databaseName);
+    metadataObject->setItemName(dbName);
 
     // stores metadata in sqlite
     if (isDatabaseRegistered(databaseName) == false){
@@ -1050,8 +1093,8 @@ bool CatalogServer :: addDatabase (std :: string databaseName, std :: string &er
         cout << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
     }
 
-	//TODO
-	return true;
+    //TODO
+    return true;
 }
 
 
@@ -1061,7 +1104,7 @@ bool CatalogServer :: deleteDatabase (std :: string databaseName, std :: string 
         errMsg = "Database does not exist.\n";
         cout << errMsg << endl;
         return false;
-    }
+	}
 
     int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle <CatalogDatabaseMetadata> dbMetadataObject = makeObject<CatalogDatabaseMetadata>();
@@ -1071,7 +1114,7 @@ bool CatalogServer :: deleteDatabase (std :: string databaseName, std :: string 
         errMsg = "Database does not exist.\n";
         cout << errMsg << endl;
         return false;
-    }
+	}
 
     if ((*vectorResultItems).size() == 0 ) {
         errMsg = "Database does not exist.\n";
@@ -1117,11 +1160,13 @@ CatalogServer :: ~CatalogServer () {
 	pthread_mutex_destroy(&workingMutex);
 }
 
-CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer) {
+CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer, string masterIPValue, int masterPortValue) {
+    masterIP = masterIPValue;
+    masterPort = masterPortValue;
 
     //TODO remove hard-coded
-    string masterPort = "10.134.96.44";
-    catalogClientConnectionToMasterCatalogServer = CatalogClient(8108, masterPort, make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
+//    string masterPort = "10.134.96.150";
+    catalogClientConnectionToMasterCatalogServer = CatalogClient(masterPort, masterIP, make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
 
     // allocates 64Mb for Catalog related metadata
     //TODO some of these containers will be removed, here just for testing
@@ -1136,21 +1181,21 @@ CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterC
 
     this->isMasterCatalogServer = isMasterCatalogServer;
 
-	catalogDirectory = catalogDirectoryIn;
+    catalogDirectory = catalogDirectoryIn;
     cout << "Catalog Server ctor is Master Catalog= " << this->isMasterCatalogServer << endl;
 
     PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
 
-	// creates instance of catalog
+    // creates instance of catalog
     pdbCatalog = make_shared <PDBCatalog> (catalogLogger, catalogDirectory + "/pdbCatalog");
     // retrieves catalog from an sqlite db and loads metadata into memory
     pdbCatalog->open();
 
     //TODO adde indivitual mutexes
-	// set up the mutex
-	pthread_mutex_init(&workingMutex, nullptr);
+    // set up the mutex
+    pthread_mutex_init(&workingMutex, nullptr);
 
-	cout << "Loading catalog metadata." << endl;
+    cout << "Loading catalog metadata." << endl;
     string errMsg;
 
     string emptyString("");
@@ -1712,9 +1757,9 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
 }
 
 bool CatalogServer :: retrieveUserDefinedTypeMetadata(string typeName, Handle<CatalogUserTypeMetadata> &itemMetadata, string &soFileBytes, string &errMsg){
-    string result("");
 
     string returnedBytes;
+    // TODO this is needed to differentiate between data_types and metrics
     string typeOfObject = "data_types";
 
     bool res = pdbCatalog->retrievesDynamicLibrary(typeName,
@@ -1724,13 +1769,7 @@ bool CatalogServer :: retrieveUserDefinedTypeMetadata(string typeName, Handle<Ca
                                                soFileBytes,
                                                errMsg);
 
-    cout << "Metadata returned for item " << itemMetadata->getItemId().c_str() << endl;
-    cout << "Metadata returned for item " << itemMetadata->getItemKey().c_str() << endl;
-    cout << "returned bytes size " << soFileBytes.size() << endl;
-
     return res;
-
-//    return pdbCatalog->keyIsFound(catalogType, dbName, result);
 }
 
 

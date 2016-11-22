@@ -34,7 +34,7 @@ public:
 	~CatalogServer ();
 
 	// these give us the port and the address of the catalog
-	CatalogServer (std :: string catalogDirectory, bool isMasterCatalogServer=false);
+	CatalogServer (std :: string catalogDirectory, bool isMasterCatalogServer, std :: string masterIP, int masterPort);
 
 	// from the ServerFunctionality interface
 	void registerHandlers (PDBServer &forMe) override;
@@ -49,7 +49,7 @@ public:
 	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg);
 
     // this downloads the shared libreary assoicated with the typeName, putting it at the specified location
-    bool getSharedLibraryByName (std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg);
+    bool getSharedLibraryByName (int16_t identifier, std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg);
 
 	// this returns the type of object in the specified set, as a type name
 	int16_t getObjectType (string databaseName, string setName);
@@ -173,9 +173,6 @@ private:
 	// serialize access
 	pthread_mutex_t workingMutex;
 
-    //use Pangea Storage Server or not?
-    //bool usePangea;
-
     // whether or not this is the master catalog server
     //
     // if this is the master catalog server, it will receive a metadata registration
@@ -193,6 +190,9 @@ private:
     //   3) send ack to master catalog server
 
     bool isMasterCatalogServer;
+
+    string masterIP = "localhost";
+    int masterPort = 8108;
 
 };
 

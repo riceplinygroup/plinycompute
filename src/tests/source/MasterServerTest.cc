@@ -41,7 +41,7 @@ int main (int argc, char * argv[]) {
     std::cout << "Starting up a master server" << std::endl;
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 10, myLogger);
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true);
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, "localhost", 8108);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
