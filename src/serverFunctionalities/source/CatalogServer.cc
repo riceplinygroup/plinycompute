@@ -236,7 +236,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
         string typeName = request->getTypeLibraryName ();
         int16_t typeId = request->getTypeLibraryId();
 
-        cout << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << std :: endl;
+        cout << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << " and typeId=" << typeId << std :: endl;
 
         // in practice, we can do better than simply locking the whole catalog, but good enough for now...
         const LockGuard guard{workingMutex};
