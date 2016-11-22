@@ -239,10 +239,10 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
     // this allocates 128MB memory for the request
 //    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 256};
 
-    std :: cout << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << std :: endl;
+    std :: cout << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 
     const LockGuard guard{workingMutex};
-        std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << std :: endl;
+        std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 //        myLogger->error(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch);
 //    return simpleRequest <CatSharedLibraryByNameRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
         return simpleRequest <CatSharedLibraryByNameRequest, CatalogUserTypeMetadata, bool> (myLogger, port, address, false, 1024 * 1024 * 4,
