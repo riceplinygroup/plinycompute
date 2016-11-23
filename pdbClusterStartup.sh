@@ -18,7 +18,7 @@ PDB_CLUSTER_CONFIG_FILE="./conf/serverlist"
 PEM_FILE=$1
 PDB_HOME="PDBServer"
 PDB_COMMAND="pdbServer"
-PDB_FOLDERS_TO_COPY="bin/pdbServer libraries tools conf pdbStartup.sh "
+PDB_FOLDERS_TO_COPY="bin/pdbServer libraries ./tools/utils/cleanup.sh conf pdbStartup.sh "
 
 PDB_STARTUP="pdbStartup.sh"
 PDB_DIRS1="bin"
