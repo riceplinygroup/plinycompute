@@ -61,14 +61,15 @@ done
 #######
 ###############################################
 
+readClusterCleanUp  $PDB_CLUSTER_CONFIG_FILE $1  $PDB_HOME ;
 
-read -p "Do you wish to remove all old files on Cluster?[y/n]" yn
+#read -p "Do you wish to remove all old files on Cluster?[y/n]" yn
 
-case $yn in
-   [Yy]* ) readClusterCleanUp  $PDB_CLUSTER_CONFIG_FILE $1  $PDB_HOME y ;;
-   [Nn]* ) readClusterCleanUp  $PDB_CLUSTER_CONFIG_FILE $1  $PDB_HOME n ;;
-       * ) echo "Please answer yes or no.";;
-esac
+#case $yn in
+#   [Yy]* ) readClusterCleanUp  $PDB_CLUSTER_CONFIG_FILE $1  $PDB_HOME y ;;
+#   [Nn]* ) readClusterCleanUp  $PDB_CLUSTER_CONFIG_FILE $1  $PDB_HOME n ;;
+#       * ) echo "Please answer yes or no.";;
+#esac
 
 
 
