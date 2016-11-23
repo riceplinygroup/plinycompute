@@ -18,7 +18,7 @@ PDB_CLUSTER_CONFIG_FILE="./conf/serverlist"
 PEM_FILE=$1
 PDB_HOME="PDBServer"
 PDB_COMMAND="pdbServer"
-PDB_FOLDERS_TO_COPY="bin libraries conf pdbStartup.sh"
+PDB_FOLDERS_TO_COPY="bin/pdbServer libraries conf pdbStartup.sh "
 
 PDB_STARTUP="pdbStartup.sh"
 PDB_DIRS1="bin"
@@ -37,7 +37,9 @@ readClusterConfigAndCopy() {
 
 echo "Creating the tar.gz file to copy to cluster nodes... "; 
 
-tar cvfz $3.tar.gz  $@; 
+echo "these folders are copied $4";
+
+tar cvfz $3.tar.gz  $4; 
 
 
 for line in $(cat "$1")
@@ -118,7 +120,7 @@ done
 read -p "Do you wish to copy PDB to all cluster nodes?[y/n]" yn
 
 case $yn in
-  [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME $PDB_FOLDERS_TO_COPY;;
+  [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME "$PDB_FOLDERS_TO_COPY";;
   [Nn]* ) echo "Not Copying only starting cluster" ;;
       * ) echo "Please answer yes or no.";;
 esac
