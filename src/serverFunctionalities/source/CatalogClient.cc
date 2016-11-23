@@ -257,6 +257,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
                 myLogger->error ("Error getting shared library: null object returned.\n");
                 return false;
             }
+            std :: cout << "Getting the returned typeId" << std :: endl;
 
             // gets the typeId returned by the Master Catalog
             int16_t returnedTypeId = std::atoi(result->getObjectID().c_str());
