@@ -48,6 +48,13 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		return nullptr;
 	}
 
+	// TODO- Added by Carlos return if the type is unknown b/c it won't be found neither in
+	// an .so library nor in the Catalog
+	if (objectTypeID==0){
+	    cout << "This is typeId=0, just return!!!!!  " << endl;
+	    return nullptr;
+	}
+
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
 	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
         std :: cout << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
