@@ -348,18 +348,35 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             }
 
             if (!res) {
-                cout << "     before sending response" << endl;
+                cout << "     before sending response Vtable not fixed!!!!!!" << endl;
 
                 cout << errMsg << endl;
                 const UseTemporaryAllocationBlock tempBlock{1024};
-                Handle<String> responseTwo = makeObject<String>(errMsg);
+                Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
+                String newItemID("-1");
+                notFoundResponse->setObjectId(newItemID);
+
+//                Handle<String> responseTwo = makeObject<String>(errMsg);
 
                 //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
-                res = sendUsingMe->sendObject (responseTwo, errMsg);
+                res = sendUsingMe->sendObject (notFoundResponse, errMsg);
             } else {
-                cout << "     before sending response" << endl;
-                const UseTemporaryAllocationBlock tempBlock{1024};
-                Handle<String> responseTwo = makeObject<String>("Process completed successfuly! ");
+                cout << "     before sending response Vtable fixed!!!!" << endl;
+                const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+                Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+
+//                Handle<String> responseTwo = makeObject<String>("Process completed successfully! ");
+                String _retBytes(returnedBytes);
+
+                // do a deep copy and set metadata
+                *responseTwo = *response;
+                String newItemID(response->getObjectID());
+                responseTwo->setObjectId(newItemID);
+                String newItemName(response->getItemName());
+                responseTwo->setItemName(newItemName);
+                String newItemKey(response->getItemKey());
+                responseTwo->setItemKey(newItemKey);
+                responseTwo->setLibraryBytes(_retBytes);
 
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
             }
