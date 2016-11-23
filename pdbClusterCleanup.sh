@@ -14,41 +14,43 @@
 #  limitations under the License.
 #  ========================================================================    
 
-PDB_CLUSTER_CONFIG_FILE="pdbCluster.config"
+PDB_CLUSTER_CONFIG_FILE="./conf/serverlist"
 PEM_FILE=$1
 PDB_HOME="PDBServer"
+USER="ubuntu"
 PDB_CLEANUP_SCRIPT="./tools/utils/cleanup.sh"
+
 
 
 ##############  Function to Run pdbServer on each node ####################
 readClusterCleanUp() {
 
-old_IFS=$IFS  # save the field separator
-IFS=$'\n'     # new field separator, the end of line
+# old_IFS=$IFS  # save the field separator
+# IFS=$'\n'     # new field separator, the end of line
 
 for line in $(cat "$1")
 do
 
 # parse the line to an array
-IFS='#' read -ra ADDR <<< "$line"
+# IFS='#' read -ra ADDR <<< "$line"
 
 echo "Loging to the machine with IP $2";
-scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $PDB_CLEANUP_SCRIPT  ${ADDR[0]}":"$3 ;
+scp  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r $PDB_CLEANUP_SCRIPT   $USER@$line":"$3 ;
 
 
 # remove old files 
 if [ "$4" = "y" ]; then 
-	echo "Removing old files on ${ADDR[0]}";
-	ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]}  "cd $3 && ./cleanup.sh y " ;
+	echo "Removing old files on $USER@$line";
+	ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no   $USER@$line  "cd $3 && ./cleanup.sh y " ;
 else
-	echo "Not Removing old files on ${ADDR[0]}";
-	ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  ${ADDR[0]}  "cd $3 && ./cleanup.sh n " ;
+	echo "Not Removing old files on  $USER@$line";
+	ssh  -i $2 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  $USER@$line  "cd $3 && ./cleanup.sh n " ;
 fi;
 
 
 
 done
-IFS=$old_IFS     # restore default field separator
+# IFS=$old_IFS     # restore default field separator
 
 }
 
