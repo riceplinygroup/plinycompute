@@ -43,82 +43,48 @@ namespace pdb_detail
     void buildTcap(QueryBaseHdl node, list<string> &tcapLines, int &nextUnusedTableName,
                    Handle<Map<Handle<QueryBase>, int>> nodeToResultTableName)
     {
-        class TranslateNode : public QueryAlgo
-        {
-        public:
 
-            TranslateNode(Handle<QueryBase> queryNodeParam, list<string>& tcapLines, int &nextUnusedTableName,
-                          Handle<Map<Handle<QueryBase>, int>> nodeToResultTableName)
-                    : _node(queryNodeParam), _tcapLines(tcapLines), _nextUnusedTableName(nextUnusedTableName),
-                      _nodeToResultTableName(nodeToResultTableName)
-            {
-            }
+        node->match([&](QueryBase&) // Selection case
+                    {
+                        Handle <QueryBase> parentNode = node->getIthInput(0);
+                        buildTcap(parentNode, tcapLines, nextUnusedTableName, nodeToResultTableName);
+                        string parentResultTableName = std::to_string(nodeToResultTableName->operator[](parentNode));
 
-            void forSelection(QueryBase&) override  // node is a Selection<?,?>
-            {
+                        Handle<Selection<Nothing,Nothing>> selection = unsafeCast<Selection<Nothing,Nothing>>(node);
+                        Handle<Nothing> placeholder = makeObject<Nothing>();
+                        SimpleLambda<bool> filterPred = selection->getSelection(placeholder);
 
-                Handle <QueryBase> parentNode = _node->getIthInput(0);
-                buildTcap(parentNode, _tcapLines, _nextUnusedTableName, _nodeToResultTableName);
-                string parentResultTableName = std::to_string(_nodeToResultTableName->operator[](parentNode));
+                        tcapLines.push_back("@exec filterIdent");
 
-                Handle<Selection<Nothing,Nothing>> selection = unsafeCast<Selection<Nothing,Nothing>>(_node);
-                Handle<Nothing> placeholder = makeObject<Nothing>();
-                SimpleLambda<bool> filterPred = selection->getSelection(placeholder);
+                        nodeToResultTableName->operator[](node) = nextUnusedTableName;
+                        string resultTableName = std::to_string(nextUnusedTableName);
+                        nextUnusedTableName++;
 
-                _tcapLines.push_back("@exec filterIdent");
+                        tcapLines.push_back(resultTableName + "(1) = apply func \"f\" to " + parentResultTableName + " retain none");
+                    },
+                    [&](QueryBase&) // Set case
+                    {
+                        string dbName = node->getDBName();
+                        string setName = node->getSetName();
 
-                _nodeToResultTableName->operator[](_node) = _nextUnusedTableName;
-                string resultTableName = std::to_string(_nextUnusedTableName);
-                _nextUnusedTableName++;
+                        nodeToResultTableName->operator[](node) = nextUnusedTableName;
+                        string resultTableName = std::to_string(nextUnusedTableName);
+                        nextUnusedTableName++;
+                        tcapLines.push_back(resultTableName + "(1) = load \"" + dbName + " " + setName + "\"");
+    //
+    //                output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
+                    },
+                    [&](QueryBase&) // QueryOutput case
+                    {
+                        Handle <QueryBase> parentNode = node->getIthInput(0); // QueryOutput has only one input contractually.
+                        buildTcap(parentNode, tcapLines, nextUnusedTableName, nodeToResultTableName);
 
+                        string dbName = node->getDBName();
+                        string setName = node->getSetName();
 
-                _tcapLines.push_back(resultTableName + "(1) = apply func \"f\" to " + parentResultTableName + " retain none");
-
-            }
-
-            void forSet(QueryBase&) override // node is a Set<?> which is a user query graph root
-            {
-
-                string dbName = _node->getDBName();
-                string setName = _node->getSetName();
-
-                _nodeToResultTableName->operator[](_node) = _nextUnusedTableName;
-                string resultTableName = std::to_string(_nextUnusedTableName);
-                _nextUnusedTableName++;
-                _tcapLines.push_back(resultTableName + "(1) = load \"" + dbName + " " + setName + "\"");
-//
-//                output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
-            }
-
-            void forQueryOutput(QueryBase&) override // node is a QueryOutput<?> which represents a sink
-            {
-                Handle <QueryBase> parentNode = _node->getIthInput(0); // QueryOutput has only one input contractually.
-                buildTcap(parentNode, _tcapLines, _nextUnusedTableName, _nodeToResultTableName);
-
-                string dbName = _node->getDBName();
-                string setName = _node->getSetName();
-
-                string parentResultTableName = std::to_string(_nodeToResultTableName->operator[](parentNode));
-                _tcapLines.push_back("store " + parentResultTableName + " \"" + dbName + " " + setName + "\"");
-
-            }
-
-
-        private:
-
-
-            Handle<QueryBase> _node; // function's node param
-
-            Handle<Map<Handle<QueryBase>, int>> _nodeToResultTableName;
-
-            list<string>& _tcapLines;
-
-            int& _nextUnusedTableName;
-
-        } trans(node, tcapLines, nextUnusedTableName, nodeToResultTableName);
-
-        node->execute(trans);
-
+                        string parentResultTableName = std::to_string(nodeToResultTableName->operator[](parentNode));
+                        tcapLines.push_back("store " + parentResultTableName + " \"" + dbName + " " + setName + "\"");
+                    });
     }
 
     string buildTcap(QueryBaseHdl node)

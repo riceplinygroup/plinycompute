@@ -47,8 +47,9 @@ public:
 	// over-ridden by the user so they can supple the actual projection
 	virtual SimpleLambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
 
-        // internal use
-        void execute(QueryAlgo& algo) override;
+	// contact from super
+	void match(function<void(QueryBase&)> forSelection, function<void(QueryBase&)> forSet,
+			   function<void(QueryBase&)> forQueryOutput) override;
 
 	// get an object that is able to process queries of this type
 	SimpleSingleTableQueryProcessorPtr getProcessor ();

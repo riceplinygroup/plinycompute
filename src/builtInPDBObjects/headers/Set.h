@@ -49,9 +49,11 @@ public:
 		this->setSetName (setName);		
 	}
 
-	void execute(QueryAlgo& algo) override {
-		algo.forSet(*this);
-	}
+	void match(function<void(QueryBase&)> forSelection, function<void(QueryBase&)> forSet,
+			   function<void(QueryBase&)> forQueryOutput) override
+	{
+		forSet(*this);
+	};
 
 	// gets the number of inputs
 	virtual int getNumInputs () override {return 0;}

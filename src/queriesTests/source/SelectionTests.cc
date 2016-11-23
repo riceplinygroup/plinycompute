@@ -97,32 +97,13 @@ namespace pdb_tests
 
         };
 
-        class MyAlgo : public QueryAlgo
-        {
-        public:
-
-            void forSelection(QueryBase&) override
-            {
-                isSelection = true;
-            }
-
-            void forSet(QueryBase&) override
-            {
-            }
-
-            void forQueryOutput(QueryBase&) override
-            {
-            }
-
-            bool isSelection = false;
-
-        };
 
         MySelection selection;
-        MyAlgo algo;
 
-        selection.execute(algo);
+        bool isSelection = false;
 
-        QUNIT_IS_TRUE(algo.isSelection);
+        selection.match([&](QueryBase&) { isSelection = true; }, [&](QueryBase&) {}, [&](QueryBase&) {} );
+
+        QUNIT_IS_TRUE(isSelection);
     }
 }
