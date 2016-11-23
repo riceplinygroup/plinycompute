@@ -145,66 +145,43 @@ namespace pdb_detail
         /**
          * Return a different translated sink node depending on what type of user query node sink is.
          */
-        class TranslateNode : public QueryAlgo
-        {
-        public:
+        SetExpressionIrPtr output; // store the translation of _node
+        node->match(
+                [&](QueryBase&)  // node is a Selection<?,?>
+                {
+                    // user query graph's selection is our projection/selection pair.
+                    // makeProjection here is not a mistake.
+                    output = makeProjection(node, alreadyTranslated, madeNewNode);
+                },
+                [&](QueryBase&) // node is a Set<?> which is a user query graph root
+                {
+                    int numInputs  = node->getNumInputs();
 
-            TranslateNode(Handle<QueryBase> queryNodeParam, AlreadyTransMapHdl alreadyTranslated, bool &madeNewNode)
-                    : _node(queryNodeParam), _alreadyTranslated(alreadyTranslated), _madeNewNode(madeNewNode)
-            {
-            }
+                    string dbName  = node->getDBName();
+                    string setName = node->getSetName();
 
-            void forSelection(QueryBase&) override  // node is a Selection<?,?>
-            {
-                // user query graph's selection is our projection/selection pair.
-                // makeProjection here is not a mistake.
-                output = makeProjection(_node, _alreadyTranslated, _madeNewNode);
-            }
+                    output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
+                },
+                [&](QueryBase&) // node is a QueryOutput<?> which represents a sink
+                {
+                    // Our model doesn't split output sets into their own node in a graph.
+                    // So instead translate the node that is to write to user query graph's given set node
+                    // and change its materialization mode.
 
-            void forSet(QueryBase&) override // node is a Set<?> which is a user query graph root
-            {
-                int numInputs = _node->getNumInputs();
+                    // user query: (destination=["db","x"]) <-- (selection node) <-- ...
+                    // logical:   (selection node w/ materialization mode =["db","x"]) <-- ...
 
-                string dbName = _node->getDBName();
-                string setName = _node->getSetName();
+                    string dbName = node->getDBName();
+                    string setName = node->getSetName();
 
-                output = make_shared<SourceSetNameIr>(dbName, setName); // SourceSetNameIr is our root type
-            }
+                    Handle<QueryBase> nodeInput = node->getIthInput(0); // QueryOutput has one (and only one) input,
+                                                                        // contractually
 
-            void forQueryOutput(QueryBase&) override // node is a QueryOutput<?> which represents a sink
-            {
-                // Our model doesn't split output sets into their own node in a graph.
-                // So instead translate the node that is to write to user query graph's given set node
-                // and change its materialization mode.
+                    output = makeOrReuseSetExpressionHelp(nodeInput, alreadyTranslated, madeNewNode);
+                    output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
+                });
 
-                // user query: (destination=["db","x"]) <-- (selection node) <-- ...
-                // logical:   (selection node w/ materialization mode =["db","x"]) <-- ...
-
-                string dbName = _node->getDBName();
-                string setName = _node->getSetName();
-
-                Handle<QueryBase> nodeInput = _node->getIthInput(0); // QueryOutput has one (and only one) input,
-                                                                     // contractually
-
-                output = makeOrReuseSetExpressionHelp(nodeInput, _alreadyTranslated, _madeNewNode);
-                output->setMaterializationMode(make_shared<MaterializationModeNamedSet>(dbName, setName));
-            }
-
-            SetExpressionIrPtr output; // store the translation of _node
-
-        private:
-
-            Handle<QueryBase> _node; // function's node param
-
-            AlreadyTransMapHdl _alreadyTranslated; // function's alreadyTranslated param
-
-            bool &_madeNewNode; // function's madeNewNode param
-
-        } trans(node, alreadyTranslated, madeNewNode);
-
-        node->execute(trans);
-
-        return trans.output;
+        return output;
     }
 
     /**

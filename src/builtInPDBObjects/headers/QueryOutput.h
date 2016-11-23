@@ -73,10 +73,12 @@ public:
 		return "localoutput";
 	}
 
-	void execute (QueryAlgo& algo) override
+
+	void match(function<void(QueryBase&)> forSelection, function<void(QueryBase&)> forSet,
+			   function<void(QueryBase&)> forQueryOutput) override
 	{
-		algo.forQueryOutput(*this);
-	}
+		forQueryOutput(*this);
+	};
 
 private:
 

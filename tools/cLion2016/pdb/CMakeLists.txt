@@ -140,8 +140,8 @@ set(SOURCE_FILES
         ../../../src/tcapIntermediaryRepTests/source/BuildTcapIrTests.cc
 
         #files with main methods below
-        #        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
-        ../../../src/tests/source/Test47.cc
+        ../../../src/unitTestsRunner/source/AllUnitTestsRunner.cc
+        #../../../src/tests/source/Test47.cc
         )
 
 

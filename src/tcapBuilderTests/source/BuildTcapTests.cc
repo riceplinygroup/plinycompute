@@ -70,7 +70,7 @@ namespace pdb_tests
 
             // over-ridden by the user so they can supply the selection on projection
             // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            SimpleLambda <bool> getProjectionSelection (Handle <Zebra> &in)
+            SimpleLambda <bool> getProjectionSelection (Handle <Zebra> &in) override
             {
 
             }
