@@ -158,12 +158,14 @@ int main(int argc, char **argv) {
 
 	int c;
 	opterr = 0;
+	char *MasterNodeAddress = NULL;
 
-	while ((c = getopt(argc, argv, "sc:s:c:")) != -1)
+	while ((c = getopt(argc, argv, "s:c:sc:cs:")) != -1)
 
 		switch (c) {
 		case 's':
 			isMaster = false;
+			MasterNodeAddress = optarg;
 			break;
 		case 'c':
 			m_configFile = optarg;
@@ -180,7 +182,11 @@ int main(int argc, char **argv) {
 			abort();
 		}
 
+	std::string MasterNodeAddressString(MasterNodeAddress);
+
 	cout << "isMaster: " << isMaster << endl;
+	if(!isMaster)
+	cout << "Master Node Address is: " << MasterNodeAddressString << endl;
 
 	// ##################################################
 	// ###########                          #############
