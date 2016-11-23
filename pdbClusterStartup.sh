@@ -81,14 +81,18 @@ do
 COUNTER=$[COUNTER + 1] 
 
 echo $COUNTER
+MasterNodeHost=""
 
 if [ $COUNTER -eq 1 ]
 then
-  echo "Start a Master Node on $line"
+
   ssh  -i $2 -p $SSHPort -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  $USER@$line  "cd $3 && ./pdbStartup.sh " ;
+  $MasterNodeHost=$line
+  echo "Start a Master Node on $MasterNodeHost"
+
 else
   echo "Start a Slave Node on $line"
-  ssh  -i $2 -p $SSHPort -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  $USER@$line  "cd $3 && ./pdbStartup.sh -s" ;
+  ssh  -i $2 -p $SSHPort -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  $USER@$line  "cd $3 && ./pdbStartup.sh -s $MasterNodeHost" ;
 fi
 
 
@@ -111,12 +115,12 @@ done
 ###############################################
 
 
-# read -p "Do you wish to copy PDB to all cluster nodes?[y/n]" yn
+read -p "Do you wish to copy PDB to all cluster nodes?[y/n]" yn
 
 case $yn in
   [Yy]* ) readClusterConfigAndCopy $PDB_CLUSTER_CONFIG_FILE $1 $PDB_HOME $PDB_FOLDERS_TO_COPY;;
   [Nn]* ) echo "Not Copying only starting cluster" ;;
-       * ) echo "Please answer yes or no.";;
+      * ) echo "Please answer yes or no.";;
 esac
 
 echo "Now start up the cluster nodes!" ; 
