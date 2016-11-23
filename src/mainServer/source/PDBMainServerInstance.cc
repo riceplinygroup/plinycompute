@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 
 	int c;
 	opterr = 0;
-	char *MasterNodeAddress = NULL;
+	const char* MasterNodeAddress = "localhost";
 
 	while ((c = getopt(argc, argv, "s:c:sc:cs:")) != -1)
 
@@ -183,10 +183,10 @@ int main(int argc, char **argv) {
 		}
 
 	std::string MasterNodeAddressString(MasterNodeAddress);
-
 	cout << "isMaster: " << isMaster << endl;
 	if(!isMaster)
-	cout << "Master Node Address is: " << MasterNodeAddressString << endl;
+	    cout << "Master Node Address is: " << MasterNodeAddressString << endl;
+
 
 	// ##################################################
 	// ###########                          #############
