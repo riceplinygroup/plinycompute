@@ -797,8 +797,10 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
 
         cout << "before creating object" << endl;
         //allocates 128Mb to register .so libraries
-        makeObjectAllocatorBlock (1024 * 1024 * 128, true);
 
+        //JiaNote: we should use temporary allocation block in functions that may be invoked by other handlers
+        //makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+        const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
         cout << "before calling " << endl;
 
@@ -1187,7 +1189,9 @@ CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterC
 
     // allocates 64Mb for Catalog related metadata
     //TODO some of these containers will be removed, here just for testing
-    pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+    //JiaNote: to use temporary allocation block in constructors of server functionalities
+    //pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
     _allNodesInCluster = makeObject<Vector<CatalogNodeMetadata>>();
     _setTypes = makeObject<Vector<CatalogSetMetadata>>();;
     _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
