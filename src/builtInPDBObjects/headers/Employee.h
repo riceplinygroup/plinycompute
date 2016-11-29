@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef EMPLOYEE_H
 #define EMPLOYEE_H
 
@@ -28,36 +27,38 @@
 
 namespace pdb {
 
-class Employee : public Object {
-        Handle <String> name;
-        int age;
+class Employee: public Object {
+	Handle<String> name;
+	int age;
 
 public:
 
 	ENABLE_DEEP_COPY
 
-        ~Employee () {}
-        Employee () {}
+	~Employee() {
+	}
 
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
+	Employee() {
+	}
 
-	Handle <String> &getName () {
+	void print() {
+		std::cout << "name is: " << *name << " age is: " << age;
+	}
+
+	Handle<String> &getName() {
 		return name;
 	}
 
-    int getAge()
-    {
-        return age;
-    }
+	int getAge() {
+		return age;
+	}
 
-        Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
+	Employee(std::string nameIn, int ageIn) {
+		name = makeObject<String>(nameIn);
+		age = ageIn;
+	}
 
-	bool operator == (Employee &me) const {
+	bool operator ==(Employee &me) const {
 		return name == me.name;
 	}
 };
