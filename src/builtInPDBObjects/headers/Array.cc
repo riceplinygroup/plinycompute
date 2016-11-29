@@ -64,7 +64,7 @@ void Array <TypeContained> :: setUpAndCopyFrom (void *target, void *source) cons
 		// in this case, we might have a fundmanetal type... regardless, just do a simple bitwise copy
 		memmove (newLoc, data, dataSize * fromMe.usedSlots);
 	} else {
-		for (int i = 0; i < fromMe.usedSlots; i++) {
+		for (uint32_t i = 0; i < fromMe.usedSlots; i++) {
 			toMe.typeInfo.setUpAndCopyFromConstituentObject (newLoc + dataSize * i,  data + dataSize * i);
 		}
 	}
@@ -84,7 +84,7 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
 	if (typeInfo.descendsFromObject ()) {
 
 		// run the constructor on each object
-		for (int i = 0; i < numUsedSlots; i++) {
+		for (uint32_t i = 0; i < numUsedSlots; i++) {
 			new ((void *) &(data[i])) TypeContained ();
 		}
 	} else {
@@ -136,7 +136,7 @@ Array <TypeContained> :: ~Array () {
 		objSize = typeInfo.getSizeOfConstituentObject (location);
 
 	// now, delete each of the objects in there, if we have got an object type
-	for (int i = 0; i < usedSlots; i++) {
+	for (uint32_t i = 0; i < usedSlots; i++) {
 		typeInfo.deleteConstituentObject (location + i * objSize);
 	}
 }
@@ -161,7 +161,7 @@ Handle <Array <TypeContained>> Array <TypeContained> :: resize (uint32_t howMany
 
 	tempArray->usedSlots = min;
 
-	for (int i = 0; i < min || i < usedSlots; i++) {
+	for (uint32_t i = 0; i < min || i < usedSlots; i++) {
 
 		if (i < min) {
 			new ((void *) &(newLoc[i])) TypeContained ();
