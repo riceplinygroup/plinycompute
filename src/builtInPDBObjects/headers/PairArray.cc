@@ -274,7 +274,7 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 	// verify that we are a power of two
 	bool gotIt = false;
 	uint32_t val = 1;
-	for (int pow = 0; pow <= 31; pow++) {
+	for (unsigned int pow = 0; pow <= 31; pow++) {
 		if (val >= numSlotsIn) {
 			gotIt = true;
 			break;
@@ -335,7 +335,7 @@ PairArray <KeyType, ValueType> :: ~PairArray () {
 		return;
 
 	// now, delete each of the objects in there, if we have got an object type
-	for (int i = 0; i < numSlots; i++) {
+	for (uint32_t i = 0; i < numSlots; i++) {
 		if (GET_HASH (data, i) != UNUSED) {
 			if (keyTypeInfo.descendsFromObject ())
 				keyTypeInfo.deleteConstituentObject (GET_KEY_PTR (data, i));
@@ -358,7 +358,7 @@ Handle <PairArray <KeyType, ValueType>> PairArray <KeyType, ValueType> :: double
 	// now, re-hash everything 
 	PairArray <KeyType, ValueType> &newOne = *tempArray;
 
-	for (int i = 0; i < numSlots; i++) {
+	for (uint32_t i = 0; i < numSlots; i++) {
 
 		if (GET_HASH (data, i) != UNUSED) {
 
