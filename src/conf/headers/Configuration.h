@@ -38,10 +38,21 @@
 
 using namespace std;
 
-#define DEFAULT_PAGE_SIZE  64*1024*1024
+#ifndef DEFAULT_PAGE_SIZE
+#define DEFAULT_PAGE_SIZE (64*1024*1024)
+#endif
+
+#ifndef DEFAULT_MAX_CONNECTIONS
 #define DEFAULT_MAX_CONNECTIONS 200
-#define DEFAULT_SHAREDMEM_SIZE (size_t)12*(size_t)1024*(size_t)1024*(size_t)1024
+#endif
+
+#ifndef DEFAULT_SHAREDMEM_SIZE
+#define DEFAULT_SHAREDMEM_SIZE ((size_t)12*(size_t)1024*(size_t)1024*(size_t)1024)
+#endif
+
+#ifndef DEFAULT_NUM_THREADS
 #define DEFAULT_NUM_THREADS 2
+#endif
 
 // create a smart pointer for Configuration objects
 class Configuration;
