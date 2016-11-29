@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef COMPANY_H
 #define COMPANY_H
 
@@ -28,35 +27,37 @@
 
 namespace pdb {
 
-class Company : public Object {
+class Company: public Object {
 
 private:
 
-        Vector <int> labels;
-        Vector <Handle <Supervisor>> myGuys;
+	Vector<int> labels;
+	Vector<Handle<Supervisor>> myGuys;
 
 public:
 
 	ENABLE_DEEP_COPY
 
-        ~Company () {}
-        Company () {}
-
-	void addSupervisor (Handle <Supervisor> supToAdd, int labelToAdd) {
-		labels.push_back (labelToAdd);
-		myGuys.push_back (supToAdd);
+	~Company() {
+	}
+	Company() {
 	}
 
-	Handle <Supervisor> &getSupervisor (int which) {
+	void addSupervisor(Handle<Supervisor> supToAdd, int labelToAdd) {
+		labels.push_back(labelToAdd);
+		myGuys.push_back(supToAdd);
+	}
+
+	Handle<Supervisor> &getSupervisor(int which) {
 		return myGuys[which];
 	}
 
-        void print () {
-		for (int i = 0; i < labels.size (); i++) {
-			std :: cout << labels[i] << " ";
-			myGuys[i]->print ();
+	void print() {
+		for (size_t i = 0; i < labels.size(); i++) {
+			std::cout << labels[i] << " ";
+			myGuys[i]->print();
 		}
-        }
+	}
 
 };
 
