@@ -54,6 +54,10 @@ public:
 	// shuts down the server that we are connected to... returns true on success
 	bool shutDownServer (std :: string &errMsg);
 
+        // to flush buffered records into shared memory pages
+        bool cleanupBufferedRecords (std :: string &errMsg);
+
+
 	// this creates a new set in a given database... returns true on success
 	template <class DataType>
 	bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
@@ -81,6 +85,9 @@ public:
         //this test set copy at backend ... returns true on success
         template <class DataType>
         bool copyData (std :: string srcDatabaseName, std :: string srcSetName, std :: string destDatabaseName, std :: string destSetName, std :: string &errMsg);
+
+        
+
 
 private:
 
