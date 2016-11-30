@@ -207,8 +207,13 @@ notices and license terms. Your use of the source code for the these
 subcomponents is subject to the terms and conditions of the following
 licenses.
 
-- Memcached , BSD 3-Clause License
+- Memcached version 1.4, BSD 3-Clause License
+
 (https://github.com/memcached/memcached/blob/master/LICENSE)
+
+Only the following two files are included and manipulated. 
+https://github.com/memcached/memcached/blob/master/slabs.h
+https://github.com/memcached/memcached/blob/master/slabs.c
 
 
 
