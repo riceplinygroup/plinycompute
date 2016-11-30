@@ -151,7 +151,7 @@ int main (int argc, char * argv[]) {
              std :: cout << "total=" << total << std :: endl;
 
              //to write back all buffered records        
-             temp.cleanupBufferedRecords( errMsg );
+             temp.flushData( errMsg );
         }
 
         // now, create a new set in that database to store output data
