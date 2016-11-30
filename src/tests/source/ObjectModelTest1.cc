@@ -46,9 +46,18 @@ using namespace pdb;
 using QUnit::UnitTest;
 
 
+/**
+ * This test generates lots of Supervisor and Employee objects and write them to a file.
+ * Then it reads the file back and reads from file the generated objects.
+ * It tests the Object model functionality and PDB Vector.
+ */
+
+
 int main() {
 	QUnit::UnitTest qunit(std::cerr, QUnit::verbose);
 
+
+	// Create Objects and write them into a file.
 	// 1. load up the allocator with RAM
 	makeObjectAllocatorBlock(1024 * 1024 * 24, true);
 
@@ -79,7 +88,10 @@ int main() {
 	write(filedesc, myBytes, myBytes->numBytes());
 	close(filedesc);
 
-	//2.  read objects back from a file.
+
+
+	// Start of the Second Phase - Reading File Back
+	// 2.  read objects back from a file.
 
 	// load up the allocator with RAM
 	makeObjectAllocatorBlock(1024 * 1024 * 24, false);
@@ -111,9 +123,6 @@ int main() {
 	for (int i = 0; i < numSupers; i += 1000) {
 
 		QUNIT_IS_EQUAL(i  ,  (*result)[i]->getAge());
-
-//		if (i  == (*result)[i]->getAge())
-//			std::cout << "Test OK!" << "\n";
 
 	}
 
