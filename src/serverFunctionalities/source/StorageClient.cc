@@ -21,6 +21,7 @@
 
 #include "StorageClient.h"
 #include "StorageAddDatabase.h"
+#include "StorageCleanup.h"
 namespace pdb {
 
 StorageClient :: StorageClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool usePangeaIn) : myHelper (portIn, addressIn, myLoggerIn) {
@@ -42,6 +43,24 @@ bool StorageClient :: shutDownServer (std :: string &errMsg) {
         
 	return myHelper.shutDownServer (errMsg);	
 }
+
+bool StorageClient :: cleanupBufferedRecords (std :: string & errMsg) {
+        return simpleRequest<StorageCleanup, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+                                                                                    [&] (Handle <SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error cleanup buffered records in storage server: " + result->getRes ().second;
+                                        myLogger->error ("Error cleanup buffered records in storage server: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error cleanup buffered records in storage server";
+                        return false;});
+
+}
+
+
 
 bool StorageClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
         if (usePangea == false) {
