@@ -40,7 +40,7 @@ public:
     }
 	~CatSharedLibraryByNameRequest () {};
 
-    string getTypeLibraryName () {
+    String getTypeLibraryName () {
         return objectTypeName;
     }
 
