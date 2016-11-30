@@ -32,6 +32,9 @@
 #include <fstream>
 #include <unistd.h>
 
+#include <qunit.h>
+
+
 #include "Handle.h"
 #include "PDBVector.h"
 #include "InterfaceFunctions.h"
@@ -40,7 +43,11 @@
 
 using namespace pdb;
 
+using QUnit::UnitTest;
+
+
 int main() {
+	QUnit::UnitTest qunit(std::cerr, QUnit::verbose);
 
 	// 1. load up the allocator with RAM
 	makeObjectAllocatorBlock(1024 * 1024 * 24, true);
@@ -102,8 +109,11 @@ int main() {
 	close(filedesc2);
 
 	for (int i = 0; i < numSupers; i += 1000) {
-		if (i  == (*result)[i]->getAge())
-			std::cout << "Test OK!" << "\n";
+
+		QUNIT_IS_EQUAL(i  ,  (*result)[i]->getAge());
+
+//		if (i  == (*result)[i]->getAge())
+//			std::cout << "Test OK!" << "\n";
 
 	}
 
