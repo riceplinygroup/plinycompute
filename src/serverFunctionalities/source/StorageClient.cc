@@ -44,7 +44,7 @@ bool StorageClient :: shutDownServer (std :: string &errMsg) {
 	return myHelper.shutDownServer (errMsg);	
 }
 
-bool StorageClient :: cleanupBufferedRecords (std :: string & errMsg) {
+bool StorageClient :: flushData (std :: string & errMsg) {
         return simpleRequest<StorageCleanup, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
                                                                                     [&] (Handle <SimpleRequestResult> result) {
                         if (result != nullptr) {

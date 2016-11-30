@@ -45,7 +45,7 @@ namespace pdb {
         bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg);
 
         // storage cleanup added by Jia
-        bool cleanupBufferedRecords ( std :: string &errMsg );
+        bool flushData ( std :: string &errMsg );
 
         bool removeDatabase(const std::string& databaseName, std::string & errMsg);
 

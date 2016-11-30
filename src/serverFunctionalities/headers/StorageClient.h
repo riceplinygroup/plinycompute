@@ -55,7 +55,7 @@ public:
 	bool shutDownServer (std :: string &errMsg);
 
         // to flush buffered records into shared memory pages
-        bool cleanupBufferedRecords (std :: string &errMsg);
+        bool flushData (std :: string &errMsg);
 
 
 	// this creates a new set in a given database... returns true on success
