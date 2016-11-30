@@ -92,16 +92,18 @@ int main (int argc, char * argv[] ) {
                    if (standalone == true) {
                        string nodeName = "standalone";
                        string nodeType = "master";
+
+                       pdb :: UseTemporaryAllocationBlock tempBlock {1024*1024};
                        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(conf->getPort())), String("localhost"), conf->getPort(), String(nodeName), String(nodeType), 1);                       
                        frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true , "localhost", 8108);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (conf->getPort(), "localhost", logger);
-                       /*std :: cout << "to register node metadata in catalog..." << std :: endl;
+                       std :: cout << "to register node metadata in catalog..." << std :: endl;
                        if (frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
                             std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
                             std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
                        } else {
                             std :: cout << "Node metadata successfully added.\n";
-                       }*/
+                       }
 
                    } else {
                        string nodeName = localIp;
