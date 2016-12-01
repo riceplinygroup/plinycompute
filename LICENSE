@@ -208,13 +208,15 @@ subcomponents is subject to the terms and conditions of the following
 licenses.
 
 - Memcached version 1.4, BSD 3-Clause License
-
 (https://github.com/memcached/memcached/blob/master/LICENSE)
 
 Only the following two files are included and manipulated. 
 https://github.com/memcached/memcached/blob/master/slabs.h
 https://github.com/memcached/memcached/blob/master/slabs.c
 
+
+- SQLite version 3.8.10.1 , Public Domain
+(https://sqlite.org/copyright.html)
 
 
 
