@@ -336,7 +336,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                                                                                       response,
                                                                                       returnedBytes,
                                                                                       errMsg);
-
+            std :: cout << "       response->getObjectID()=" << response->getObjectID() << std :: endl;
             cout << "     Bytes returned NOT isMaster: " << returnedBytes.size() << endl;
 
             // if the library was successfuly retrieved, go ahead and resolve vtable fixing
@@ -371,9 +371,12 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 // do a deep copy and set metadata
                 *responseTwo = *response;
                 String newItemID(response->getObjectID());
+                std :: cout << "response->getObjectID()=" << response->getObjectID() << std :: endl;
                 responseTwo->setObjectId(newItemID);
+                std :: cout << "responseTwo->getObjectID()=" << response->getObjectID() << std :: endl;
                 String newItemName(response->getItemName());
                 responseTwo->setItemName(newItemName);
+              
                 String newItemKey(response->getItemKey());
                 responseTwo->setItemKey(newItemKey);
                 responseTwo->setLibraryBytes(_retBytes);
