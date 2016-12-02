@@ -85,9 +85,9 @@ int main (int argc, char * argv[] ) {
                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf, standalone);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                    bool createSet = true;
-                   /*if (standalone == false) {
+                   if (standalone == false) {
                        createSet = false;
-                   }*/
+                   }
                    frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>(standalone, createSet);
                    if (standalone == true) {
                        string nodeName = "standalone";
