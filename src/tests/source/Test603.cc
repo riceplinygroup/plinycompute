@@ -85,9 +85,9 @@ int main (int argc, char * argv[] ) {
                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf, standalone);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                    bool createSet = true;
-                   if (standalone == false) {
+                   /*if (standalone == false) {
                        createSet = false;
-                   }
+                   }*/
                    frontEnd.addFunctionality<pdb :: FrontendQueryTestServer>(standalone, createSet);
                    if (standalone == true) {
                        string nodeName = "standalone";
@@ -95,7 +95,7 @@ int main (int argc, char * argv[] ) {
 
                        pdb :: UseTemporaryAllocationBlock tempBlock {1024*1024};
                        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(conf->getPort())), String("localhost"), conf->getPort(), String(nodeName), String(nodeType), 1);                       
-                       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true , "localhost", 8108);
+                       frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true , "localhost", 8108);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (conf->getPort(), "localhost", logger);
                        std :: cout << "to register node metadata in catalog..." << std :: endl;
                        if (frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
@@ -109,7 +109,7 @@ int main (int argc, char * argv[] ) {
                        string nodeName = localIp;
                        string nodeType = "worker";
                        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String(localIp + ":" + std::to_string(conf->getPort())), String(localIp), conf->getPort(), String(nodeName), String(nodeType), 1);
-                       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", false, masterIp, 8108);
+                       frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", false, masterIp, 8108);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (conf->getPort(), "localhost", logger);
 /*                       pdb :: CatalogClient catClient (conf->getPort(), masterIp, make_shared <pdb :: PDBLogger> ("clientCatalogLog"));
                        if (!catClient.registerNodeMetadata (nodeData, errMsg)) {
