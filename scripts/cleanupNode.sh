@@ -14,6 +14,7 @@
 #  ======================================================================== 
 rm -rf pdbRoot
 rm -rf CatalogDir/*
+rm -rf /tmp/CatalogDir/*
 rm -rf logs/*
 pkill -9 test603
 pkill -9 test404
