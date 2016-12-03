@@ -62,7 +62,7 @@ namespace pdb {
         static void setLogger (PDBLoggerPtr myLoggerIn);
 
         // Returns the type ID of a user-defined object, given the object name
-        static int16_t getIDByName(std::string objectName);
+        static int16_t getIDByName(std::string objectName, bool withLock=true);
 
         // returns the vTablePtr for the corresponding tpye identifier (or a nullptr if the
         // type ID was not recognized)

@@ -299,7 +299,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 responseTwo->setItemKey(newItemKey);
                 responseTwo->setLibraryBytes(_retBytes);
 
-                cout << "Object Id isMaster: " << response->getObjectID() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
+                cout << "Object Id isMaster: " << response->getObjectID().c_str() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
                 if (!res) {
                     const UseTemporaryAllocationBlock tempBlock{1024};
         //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
@@ -336,7 +336,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                                                                                       response,
                                                                                       returnedBytes,
                                                                                       errMsg);
-            std :: cout << "       response->getObjectID()=" << response->getObjectID() << std :: endl;
+            std :: cout << "       response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
             cout << "     Bytes returned NOT isMaster: " << returnedBytes.size() << endl;
 
             // if the library was successfuly retrieved, go ahead and resolve vtable fixing
@@ -371,9 +371,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 // do a deep copy and set metadata
                 *responseTwo = *response;
                 String newItemID(response->getObjectID());
-                std :: cout << "response->getObjectID()=" << response->getObjectID() << std :: endl;
+                std :: cout << "response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
                 responseTwo->setObjectId(newItemID);
-                std :: cout << "responseTwo->getObjectID()=" << response->getObjectID() << std :: endl;
+                std :: cout << "responseTwo->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
                 String newItemName(response->getItemName());
                 responseTwo->setItemName(newItemName);
               

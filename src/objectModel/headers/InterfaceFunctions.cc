@@ -52,7 +52,7 @@ int16_t getTypeID () {
 	
 	// we have some other type name
 	} else {
-                typeID = VTableMap :: getIDByName (getTypeName <ObjType> ());
+                typeID = VTableMap :: getIDByName (getTypeName <ObjType> (), false);
                 return typeID;
         }
 }

@@ -310,6 +310,13 @@ protected:
 
 
 private:
+
+    /**
+     * Lock to synchronize delete and append operations
+     */
+    pthread_mutex_t fileMutex;
+
+
     /**
      * Meta file
      */

@@ -241,7 +241,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
     std :: cout << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 
-    const LockGuard guard{workingMutex};
+    //const LockGuard guard{workingMutex}; //this function will only be invoked from getVTablePtrUsingCatalog() which contains a lock guard already
         std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 //        myLogger->error(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch);
 //    return simpleRequest <CatSharedLibraryByNameRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
