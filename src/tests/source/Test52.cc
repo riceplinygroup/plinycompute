@@ -127,33 +127,41 @@ int main (int argc, char * argv[]) {
             //Step 2. Add data
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-            int numIterations = numOfMb;
-            int total = 0;       
-            for (int num = 0; num < numIterations; num++) {
-                pdb :: makeObjectAllocatorBlock(1024 * 1024, true);
-                pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
-                    pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
-                try {
-                    for (int i = 0; true ; i++) {
-                        pdb :: Handle <SharedEmployee> myData =
-                            pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
-                        storeMe->push_back (myData);
-                        total++;
+
+            if (numOfMb > 0) {
+                int numIterations = numOfMb/64 + 1 ;
+                int remainder = numOfMb - 64*(numIterations-1);
+                int total = 0;       
+                for (int num = 0; num < numIterations; num++) {
+                    if (num == numIterations - 1) {
+                        pdb :: makeObjectAllocatorBlock(remainder * 1024 * 1024, true);
+                    } else {
+                        pdb :: makeObjectAllocatorBlock(64 * 1024 * 1024, true);
                     }
-                } catch (pdb :: NotEnoughSpace &n) {
-                    if (!dispatcherClient.sendData<SharedEmployee>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
-                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
+                    pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
+                        pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
+                    try {
+                        for (int i = 0; true ; i++) {
+                            pdb :: Handle <SharedEmployee> myData =
+                                pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
+                            storeMe->push_back (myData);
+                            total++;
+                        }
+                    } catch (pdb :: NotEnoughSpace &n) {
+                        if (!dispatcherClient.sendData<SharedEmployee>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
+                            std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                            return -1;
+                        }
+                   }
+                   std :: cout << "64MB data sent to dispatcher server~~" << std :: endl;
                 }
-                std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
-             }
-             std :: cout << "total=" << total << std :: endl;
+           
+                std :: cout << "total=" << total << std :: endl;
 
-             //to write back all buffered records        
-             temp.flushData( errMsg );
+                //to write back all buffered records        
+                temp.flushData( errMsg );
+           }
         }
-
         // now, create a new set in that database to store output data
         std :: cout << "to create a new set for storing output data" << std :: endl;
         if (!temp.createSet<String> ("chris_db", "output_set1", errMsg)) {
