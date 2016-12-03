@@ -133,11 +133,11 @@ int main (int argc, char * argv[]) {
                 int remainder = numOfMb - 64*(numIterations-1);
                 int total = 0;       
                 for (int num = 0; num < numIterations; num++) {
+                    int blockSize = 64;
                     if (num == numIterations - 1) {
-                        pdb :: makeObjectAllocatorBlock(remainder * 1024 * 1024, true);
-                    } else {
-                        pdb :: makeObjectAllocatorBlock(64 * 1024 * 1024, true);
+                        blockSize = remainder;
                     }
+                    pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                     pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
                         pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
                     try {
@@ -153,7 +153,7 @@ int main (int argc, char * argv[]) {
                             return -1;
                         }
                    }
-                   std :: cout << "64MB data sent to dispatcher server~~" << std :: endl;
+                   std :: cout << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
                 }
            
                 std :: cout << "total=" << total << std :: endl;
