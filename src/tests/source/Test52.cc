@@ -128,13 +128,14 @@ int main (int argc, char * argv[]) {
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
 
+            int total = 0;       
             if (numOfMb > 0) {
-                int numIterations = numOfMb/64 + 1 ;
-                int remainder = numOfMb - 64*(numIterations-1);
-                int total = 0;       
+                int numIterations = numOfMb/64;
+                int remainder = numOfMb - 64*numIterations;
+                if (remainder > 0) { numIterations = numIterations + 1; }
                 for (int num = 0; num < numIterations; num++) {
                     int blockSize = 64;
-                    if (num == numIterations - 1) {
+                    if ((num == numIterations - 1) && (remainder > 0)){
                         blockSize = remainder;
                     }
                     pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
