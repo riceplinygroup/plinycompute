@@ -38,6 +38,14 @@ public:
 	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true) : dataBase (dataBase), setName (setName),
 		typeName (typeName) {
                 this->typeCheck = typeCheck;
+                this->typeID = -1;
+        }
+
+
+        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true) : dataBase (dataBase), setName (setName),
+                typeName (typeName) {
+                this->typeCheck = typeCheck;
+                this->typeID = typeID;
         }
 
 	std :: string getDatabase () {
@@ -52,6 +60,10 @@ public:
 		return typeName;
 	}
 
+        int getTypeID() {
+                return typeID;
+        }
+
         bool isTypeCheck() {
                 return typeCheck;
         }
@@ -64,6 +76,7 @@ private:
 	String dataBase;
 	String setName;
 	String typeName;
+        int typeID;
         bool typeCheck;
 };
 

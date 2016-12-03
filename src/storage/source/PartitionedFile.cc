@@ -76,6 +76,9 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	}
 	this->openAll();
 	this->writeMeta();
+
+        //Initialize the mutex;
+        pthread_mutex_init(&this->fileMutex, nullptr);
 }
 
 /**
@@ -97,6 +100,11 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->metaFile = nullptr;
         this->usingDirect = false;
         this->cleared = false;
+ 
+
+        //Initialize the mutex;
+        pthread_mutex_init(&this->fileMutex, nullptr);
+
 }
 
 /**
@@ -104,8 +112,11 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
  */
 PartitionedFile::~PartitionedFile() {
         if (this->cleared == false) {
+            pthread_mutex_lock(&this->fileMutex);
 	    this->closeAll();
+            pthread_mutex_unlock(&this->fileMutex);
         } 
+        pthread_mutex_destroy(&this->fileMutex);
 }
 
 /**
@@ -228,6 +239,7 @@ bool PartitionedFile::closeDirect() {
  * To delete a file instance.
  */
 void PartitionedFile::clear() {
+        pthread_mutex_lock(&this->fileMutex);
         this->closeAll();
 	remove(this->metaPartitionPath.c_str());
 	logger->info("PartitionedFile: Deleting file:" + this->metaPartitionPath);
@@ -238,6 +250,7 @@ void PartitionedFile::clear() {
 		logger->info("PartitionedFile: Deleting file:" + this->dataPartitionPaths.at(i));
 	}
         this->cleared = true;
+        pthread_mutex_unlock(&this->fileMutex);
 }
 
 /**
@@ -267,9 +280,12 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
                 //cout << "Error: can't write pageId!\n";
 		return -1;
 	}
-        */ 
+        */
+
+        pthread_mutex_lock (&this->fileMutex); 
         if(this->writeData(curPartition, page->getRawBytes(), page->getRawSize()) < 0) {
                 //cout << "Error: can't write page!\n";
+                pthread_mutex_unlock(&this->fileMutex);
 		return -1;
 	}
         //fflush(curPartition);
@@ -286,6 +302,7 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
         this->metaData->addPageIndex(pageId, partitionId, ret);
 	this->metaData->getPartition(partitionId)->incNumPages();
 	//this->writeMeta();
+        pthread_mutex_unlock(&this->fileMutex);
 	return ret;
 }
 
@@ -300,8 +317,9 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
 
        PageID pageId = page->getPageID();
        //cout <<"appendPage: typeId="<<typeId<<",setId="<<setId<<",pageId="<<pageId<<"\n";
-
+       pthread_mutex_lock(&this->fileMutex);
        if (this->writeDataDirect(handle, page->getRawBytes(), page->getRawSize()) < 0) {
+              pthread_mutex_unlock(&this->fileMutex);
               return -1;
        }
        this->metaData->incNumFlushedPages();
@@ -313,6 +331,7 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        int ret = (int) (this->metaData->getPartition(partitionId)->getNumPages());
        this->metaData->addPageIndex(pageId, partitionId, ret);
        this->metaData->getPartition(partitionId)->incNumPages();
+       pthread_mutex_unlock(&this->fileMutex);
        return ret;
 }
 
