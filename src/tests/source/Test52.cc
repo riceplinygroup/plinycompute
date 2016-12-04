@@ -161,7 +161,7 @@ int main (int argc, char * argv[]) {
 
                 //to write back all buffered records        
                 temp.flushData( errMsg );
-           }
+          }
         }
         // now, create a new set in that database to store output data
         std :: cout << "to create a new set for storing output data" << std :: endl;
