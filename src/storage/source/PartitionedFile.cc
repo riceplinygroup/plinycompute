@@ -239,7 +239,14 @@ bool PartitionedFile::closeDirect() {
  * To delete a file instance.
  */
 void PartitionedFile::clear() {
+
         pthread_mutex_lock(&this->fileMutex);
+        if (this->cleared == true) {
+
+            pthread_mutex_unlock(&this->fileMutex);
+            return;
+
+        }
         this->closeAll();
 	remove(this->metaPartitionPath.c_str());
 	logger->info("PartitionedFile: Deleting file:" + this->metaPartitionPath);
@@ -282,7 +289,11 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
 	}
         */
 
-        pthread_mutex_lock (&this->fileMutex); 
+        pthread_mutex_lock (&this->fileMutex);
+        if (this->cleared == true) {
+            pthread_mutex_unlock (&this->fileMutex);
+            return -1;
+        } 
         if(this->writeData(curPartition, page->getRawBytes(), page->getRawSize()) < 0) {
                 //cout << "Error: can't write page!\n";
                 pthread_mutex_unlock(&this->fileMutex);
@@ -318,6 +329,10 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        PageID pageId = page->getPageID();
        //cout <<"appendPage: typeId="<<typeId<<",setId="<<setId<<",pageId="<<pageId<<"\n";
        pthread_mutex_lock(&this->fileMutex);
+       if (this->cleared == true) {
+              pthread_mutex_unlock(&this->fileMutex);
+              return -1;
+       }
        if (this->writeDataDirect(handle, page->getRawBytes(), page->getRawSize()) < 0) {
               pthread_mutex_unlock(&this->fileMutex);
               return -1;
