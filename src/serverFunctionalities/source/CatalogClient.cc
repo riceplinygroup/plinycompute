@@ -260,7 +260,8 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
             std :: cout << "Getting the returned typeId" << std :: endl;
 
             // gets the typeId returned by the Master Catalog
-            int16_t returnedTypeId = std::atoi(result->getObjectID().c_str());
+            std :: cout << std :: string (result->getObjectID()) << std :: endl;
+            int16_t returnedTypeId = std::atoi((result->getObjectID()).c_str());
 
             cout << "Cat Client - Object Id returned " <<  returnedTypeId << endl;
 
