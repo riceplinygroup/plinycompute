@@ -384,8 +384,8 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 responseTwo->setItemKey(newItemKey);
                 responseTwo->setLibraryBytes(_retBytes);
 
-                res = sendUsingMe->sendObject (responseTwo, errMsg);
                 */
+                res = sendUsingMe->sendObject (responseTwo, errMsg);
             }
 
         }
