@@ -62,6 +62,7 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->metaData->setNumFlushedPages(0);
 	this->metaData->setVersion(0);
         this->metaData->setLatestPageId((unsigned int)(-1));
+        pthread_mutex_init(&this->fileMutex, nullptr);
 	PartitionMetaDataPtr curPartitionMetaData;
         for (i = 0; i < dataPartitionPaths.size(); i++) {
     	    curPartitionMetaData = make_shared<PartitionMetaData>(dataPartitionPaths.at(i), i);
@@ -78,7 +79,6 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->writeMeta();
 
         //Initialize the mutex;
-        pthread_mutex_init(&this->fileMutex, nullptr);
 }
 
 /**
@@ -214,8 +214,10 @@ bool PartitionedFile::closeAll() {
 	int i;
 	int numPartitions = this->dataPartitionPaths.size();
 	fclose(this->metaFile);
+        this->metaFile = nullptr;
 	for ( i = 0; i < numPartitions; i++ ) {
 		fclose(this->dataFiles.at(i));
+                this->dataFiles.at(i) = nullptr;
 	}
 	return true;
 }
@@ -376,7 +378,13 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
  * - ...
  */
 int PartitionedFile::writeMeta() {
+    pthread_mutex_lock (&this->fileMutex);
     if(this->metaFile == nullptr){
+        pthread_mutex_unlock(&this->fileMutex);
+        return -1;
+    }
+    if (this->cleared == true) {
+        pthread_mutex_unlock(&this->fileMutex);
         return -1;
     }
     //compute meta size
@@ -454,6 +462,7 @@ int PartitionedFile::writeMeta() {
     int ret = this->writeData(this->metaFile, (void *)buffer, metaSize);
     fflush(this->metaFile);
     free(buffer);
+    pthread_mutex_unlock(&this->fileMutex);
     return ret;
 }
 

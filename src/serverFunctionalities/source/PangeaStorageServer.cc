@@ -1304,7 +1304,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                        this->addType(typeName, (UserTypeID)-1);
                    } else {
                        std :: cout << "Pangea add new type when add set: typeName="<< typeName << std :: endl;
-                       std :: cout << "Pangea add new type when add set: typeId="<< typeName << std :: endl; 
+                       std :: cout << "Pangea add new type when add set: typeId="<< typeId << std :: endl; 
                        this->addType(typeName, (UserTypeID)typeId);
                    }
                /*} else {
@@ -1331,11 +1331,12 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        type->addSet(setName, setId);
        set = type->getSet(setId);
        this->getCache()->pin(set, MRU, Write);
+       std :: cout << "to get usersetLock" << std :: endl;
        pthread_mutex_lock(&this->usersetLock);
        this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
        this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
        pthread_mutex_unlock(&this->usersetLock);
-       
+       std :: cout << "released usersetLock" << std :: endl;
        return true;
 }
 
@@ -1345,6 +1346,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        pthread_mutex_lock(&this->usersetLock);
        if(usersetSeqIds->count(dbName) == 0) {
            //database doesn't exist
+           pthread_mutex_unlock(&this->usersetLock);
            return false;
        }
        SetID setId = usersetSeqIds->at(dbName)->getNextSequenceID();
