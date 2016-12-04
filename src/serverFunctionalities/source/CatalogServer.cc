@@ -364,27 +364,27 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             } else {
                 cout << "     before sending response Vtable fixed!!!!" << endl;
                 const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-                Handle<CatalogUserTypeMetadata> responseTwo = deepCopyToCurrentAllocationBlock (response);
-                /*Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+                Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
-//                Handle<String> responseTwo = makeObject<String>("Process completed successfully! ");
-                String _retBytes(returnedBytes);
+                //JiaNote, response fields can not be correctly set in following function:
+                /*
+                 *             res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeId,
+                                                                                      typeName,
+                                                                                      dummyObjectFile,
+                                                                                      (*putResultHere),
+                                                                                      response,
+                                                                                      returnedBytes,
+                                                                                      errMsg);
+                 */
 
-                // do a deep copy and set metadata
-                *responseTwo = *response;
+                //Therefore below code is refactored a bit
                 
-                String newItemID(response->getObjectID());
-                //std :: cout << "response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
+                String _retBytes(returnedBytes);
+                char objectIDCharArray[50];
+                sprintf(objectIDCharArray, "%d", typeId);
+                String newItemID(objectIDCharArray);
                 responseTwo->setObjectId(newItemID);
-                //std :: cout << "responseTwo->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
-                String newItemName(response->getItemName());
-                responseTwo->setItemName(newItemName);
-              
-                String newItemKey(response->getItemKey());
-                responseTwo->setItemKey(newItemKey);
                 responseTwo->setLibraryBytes(_retBytes);
-
-                */
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
             }
 

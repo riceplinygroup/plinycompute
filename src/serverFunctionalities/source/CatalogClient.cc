@@ -232,7 +232,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
                                               std :: string typeNameToSearch,
                                               std :: string objectFile,
                                               vector <char> &putResultHere,
-                                              Handle<CatalogUserTypeMetadata> &result,
+                                              Handle<CatalogUserTypeMetadata> &resultToCaller,
                                               string &returnedBytes,
                                               std :: string &errMsg) {
 
