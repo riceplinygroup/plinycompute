@@ -233,7 +233,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  getAllocator().cleanInactiveBlocks();
+                  //getAllocator().cleanInactiveBlocks();
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineNetwork_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
