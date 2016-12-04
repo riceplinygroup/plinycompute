@@ -66,7 +66,7 @@ public:
     // this downloads the shared library assoicated with the string typeName, putting it at the specified location
 	// this is needed by a remote node that has no knowledge of the typeID
     bool getSharedLibraryByName (int16_t identifier,
-                                 std :: string typeName,
+                                 std :: string& typeName,
                                  std :: string objectFile,
                                  vector <char> &putResultHere,
                                  Handle<CatalogUserTypeMetadata> &returnedItem,

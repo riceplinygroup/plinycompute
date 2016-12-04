@@ -385,6 +385,9 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 String newItemID(objectIDCharArray);
                 responseTwo->setObjectId(newItemID);
                 responseTwo->setLibraryBytes(_retBytes);
+                String newTypeName(typeName);
+                responseTwo->setItemName(newTypeName);
+                responseTwo->setItemKey(newTypeName);
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
             }
 

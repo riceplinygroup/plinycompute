@@ -229,7 +229,7 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
 }
 
 bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
-                                              std :: string typeNameToSearch,
+                                              std :: string& typeNameToSearch,
                                               std :: string objectFile,
                                               vector <char> &putResultHere,
                                               Handle<CatalogUserTypeMetadata> &resultToCaller,
@@ -285,7 +285,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
             returnedBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
             cout << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
 
-
+            typeNameToSearch = std :: string((*result).getItemName());
 //            memmove (&putResultHere, result->c_ptr (), result->size ());
 
             cout << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
