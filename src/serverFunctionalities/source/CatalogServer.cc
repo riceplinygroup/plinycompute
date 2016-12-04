@@ -364,13 +364,15 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             } else {
                 cout << "     before sending response Vtable fixed!!!!" << endl;
                 const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-                Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+                Handle<CatalogUserTypeMetadata> responseTwo = deepCopyToCurrentAllocationBlock (response);
+                /*Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
 //                Handle<String> responseTwo = makeObject<String>("Process completed successfully! ");
                 String _retBytes(returnedBytes);
 
                 // do a deep copy and set metadata
                 *responseTwo = *response;
+                
                 String newItemID(response->getObjectID());
                 //std :: cout << "response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
                 responseTwo->setObjectId(newItemID);
@@ -383,6 +385,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 responseTwo->setLibraryBytes(_retBytes);
 
                 res = sendUsingMe->sendObject (responseTwo, errMsg);
+                */
             }
 
         }
@@ -761,7 +764,7 @@ int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
     typedef char *getObjectTypeNameFunc ();
     getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
 
-   cout << "getObjectTypeName= " << getName << endl;
+   cout << "open function: " << getName << endl;
     if ((dlsym_error = dlerror())) {
         errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
         cout << errMsg << endl;
