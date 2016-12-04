@@ -289,12 +289,12 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
             cout << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
             std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
-
+            std::cout <<"bytes copied!" << std :: endl;
             // just write the shared library to the file
             int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
             write (filedesc, returnedBytes.c_str (), returnedBytes.size());
             close (filedesc);
-
+            std :: cout << "objectFile is written by CatalogClient" << std :: endl;
             return true;},
             identifier, typeNameToSearch);
 }
@@ -317,18 +317,22 @@ std :: string CatalogClient :: getObjectType (std :: string databaseName, std ::
 }
 
 bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std :: string setName, std :: string &errMsg) {
-
+        std :: cout << "CatalogClient: to create set..." << std :: endl;
         return simpleRequest <CatCreateSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
                 [&] (Handle <SimpleRequestResult> result) {
+                        std :: cout << "CatalogClient: received response for creating set" << std :: endl;
                         if (result != nullptr) {
                                 if (!result->getRes ().first) {
                                         errMsg = "Error creating set: " + result->getRes ().second;
+                                        std :: cout << "errMsg" << std :: endl;
                                         myLogger->error ("Error creating set: " + result->getRes ().second);
                                         return false;
                                 }
+                                std :: cout << "CatalogClient: created set" << std :: endl;
                                 return true;
                         }
                         errMsg = "Error getting type name: got nothing back from catalog";
+                        std :: cout << errMsg << std :: endl;
                         return false;},
                 databaseName, setName, typeID);
 
