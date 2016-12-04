@@ -92,7 +92,7 @@ public:
 	Configuration() {
 		//set default values.
 		this->nodeId = 0;
-                //this->logLevel = LogLevel::OFF; 
+                this->logLevel = LogLevel::OFF; 
 		serverName = "testServer";
 		serverAddress = "localhost";
 		isMasterCatalogServer = false;
@@ -103,7 +103,7 @@ public:
 		pageSize = DEFAULT_PAGE_SIZE;
 		useUnixDomainSock = false;
 		shmSize = DEFAULT_SHAREDMEM_SIZE;
-		logEnabled = true;
+		logEnabled = false;
 		//temporarily added for unit tests
 		this->createDir("pdbRoot");
 //    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";

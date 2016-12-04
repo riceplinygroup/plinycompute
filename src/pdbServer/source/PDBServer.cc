@@ -95,13 +95,19 @@ void PDBServer::listen() {
 
         // added by Jia to avoid TimeWait state for old sockets
         int optval = 1;
-        setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-
+        if (setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+            myLogger->error("PDBServer: couldn't setsockopt");
+            myLogger->error(strerror(errno));
+            std :: cout << "PDBServer: couldn't setsockopt:" << strerror(errno) << std :: endl;
+            close(sockFD);
+            exit(0);
+        }
 
 
         if (sockFD < 0) {
             myLogger->error("PDBServer: could not get FD to internet socket");
             myLogger->error(strerror(errno));
+            close(sockFD);
             exit(0);
         }
 
@@ -115,6 +121,7 @@ void PDBServer::listen() {
         if (retVal < 0) {
             myLogger->error("PDBServer: could not bind to local socket");
             myLogger->error(strerror(errno));
+            close(sockFD);
             exit(0);
         }
 
@@ -124,6 +131,7 @@ void PDBServer::listen() {
         if (::listen(sockFD, 5) != 0) {
             myLogger->error("PDBServer: listen error");
             myLogger->error(strerror(errno));
+            close(sockFD);
             exit(0);
         }
 

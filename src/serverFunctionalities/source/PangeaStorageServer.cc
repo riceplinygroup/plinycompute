@@ -151,7 +151,7 @@ void PangeaStorageServer :: cleanup() {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first);
         }
-        getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+        //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
         std :: cout << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
         sleep(1);
         std :: cout << "cleaned up for storage..." << std :: endl;
@@ -195,14 +195,6 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
         // the current size (in bytes) of records we need to process
         size_t numBytesToProcess = sizes[databaseAndSet];
-        /*
-        size_t rawPageSize = conf->getPageSize();
-        
-        if(numBytesToProcess < rawPageSize) {
-                std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
-                return;
-        }
-        */
         //std :: cout << "buffer is full, to write to a storage page"<< std::endl;
  
 	// now, get a page to write to
@@ -259,6 +251,12 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
 
 			myPage->unpin ();
+                        CacheKey key;
+                        key.dbId = myPage->getDbID();
+                        key.typeId = myPage->getTypeID();
+                        key.setId = myPage->getSetID();
+                        key.pageId = myPage->getPageID();
+                        this->getCache()->flushPageWithoutEviction(key);
 			break;
 
 		// put the extra objects tht we could not store back in the record
@@ -272,7 +270,13 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			//myPage->flush ();
 
 			myPage->unpin ();
-                        this->getCache()->evictPage(myPage);
+                        //this->getCache()->evictPage(myPage);
+                        CacheKey key;
+                        key.dbId = myPage->getDbID();
+                        key.typeId = myPage->getTypeID();
+                        key.setId = myPage->getSetID();
+                        key.pageId = myPage->getPageID();
+                        this->getCache()->flushPageWithoutEviction(key);
 
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
@@ -622,7 +626,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 				errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
 				everythingOK = false;
 		 }
-                 getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+                 //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
 
 	         //std :: cout << "Making response object.\n";
                  const UseTemporaryAllocationBlock block{1024};                        
