@@ -62,9 +62,9 @@ class Configuration {
 private:
 	NodeID nodeId;
 	string serverName;
-    string serverAddress;
-    bool isMasterCatalogServer;
-    bool usePangea;
+        string serverAddress;
+        bool isMasterCatalogServer;
+        bool usePangea;
 	int port;
 	int maxConnections;
 	string ipcFile;
@@ -90,34 +90,35 @@ private:
 public:
 
 	Configuration() {
-		//set default values.
-		this->nodeId = 0;
-                this->logLevel = LogLevel::OFF; 
-		serverName = "testServer";
-		serverAddress = "localhost";
-		isMasterCatalogServer = false;
-		usePangea = true;
-		port = 8108;
-		maxConnections = DEFAULT_MAX_CONNECTIONS;
-		logFile = "serverLog";
-		pageSize = DEFAULT_PAGE_SIZE;
-		useUnixDomainSock = false;
-		shmSize = DEFAULT_SHAREDMEM_SIZE;
-		logEnabled = false;
-		//temporarily added for unit tests
-		this->createDir("pdbRoot");
+	    //set default values.
+	    this->nodeId = 0;
+            this->logLevel = LogLevel::WARN; 
+	    serverName = "testServer";
+	    serverAddress = "localhost";
+	    isMasterCatalogServer = false;
+	    usePangea = true;
+	    port = 8108;
+	    maxConnections = DEFAULT_MAX_CONNECTIONS;
+	    logFile = "serverLog";
+	    pageSize = DEFAULT_PAGE_SIZE;
+	    useUnixDomainSock = false;
+	    shmSize = DEFAULT_SHAREDMEM_SIZE;
+	    logEnabled = false;
+	    //temporarily added for unit tests
+	    this->createDir("pdbRoot");
 //    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
 		//dataDirs = "/data/data,/mnt/data";
-		dataDirs = "pdbRoot/data";
-		metaDir = "pdbRoot/meta";
-		metaTempDir = "pdbRoot/metaTmp";
-		//dataTempDirs = "/data/tmp,/mnt/tmp";
-		dataTempDirs = "pdbRoot/tmp";
+	    dataDirs = "pdbRoot/data";
+	    metaDir = "pdbRoot/meta";
+	    metaTempDir = "pdbRoot/metaTmp";
+	    //dataTempDirs = "/data/tmp,/mnt/tmp";
+	    dataTempDirs = "pdbRoot/tmp";
 //        dataTempDirs = "/data10/tmp,/mnt/tmp";
 //    	dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
-		numThreads = DEFAULT_NUM_THREADS;
-		ipcFile = "pdbRoot/ipcFile";
-		backEndIpcFile = "pdbRoot/backEndIpcFile";
+	    numThreads = DEFAULT_NUM_THREADS;
+	    ipcFile = "pdbRoot/ipcFile";
+	    backEndIpcFile = "pdbRoot/backEndIpcFile";
+            isMaster = false;
 	}
 
 	NodeID getNodeID() const {
@@ -322,34 +323,25 @@ public:
 
 
 
-	void printOut(){
+    void printOut(){
 		cout<< "nodeID: "  << nodeId<<endl;
 		cout<< "serverName: "  << serverName<<endl;
 		cout<< "serverAddress: "  << serverAddress<<endl;
 		cout<< "isMasterCatalogServer: "  << isMasterCatalogServer<<endl;
-        cout<< "usePangea: "  << usePangea<<endl;
+                cout<< "usePangea: "  << usePangea<<endl;
 		cout<< "port: "  << port<<endl;
 		cout<< "maxConnections: "  << maxConnections<<endl;
-//		cout<< "recvBufferSize: "  << recvBufferSize<<endl;
 		cout<< "ipcFile: "  << ipcFile<<endl;
-//		cout<< "clientPageSize: "  << clientPageSize<<endl;
-//		cout<< "inputBufferSize: "  << inputBufferSize<<endl;
-//		cout<< "logFile: "  << logFile<<endl;
+		cout<< "logFile: "  << logFile<<endl;
 		cout<< "pageSize: "  << pageSize<<endl;
-//		cout<< "miniPageSize: "  << miniPageSize<<endl;
 		cout<< "useUnixDomainSock: "  << useUnixDomainSock<<endl;
 		cout<< "shmSize: "  << shmSize<<endl;
-//		cout<< "numTestObjects: "  << numTestObjects<<endl;
 		cout<< "dataDirs: "  << dataDirs<<endl;
 		cout<< "metaDir: "  << metaDir<<endl;
 		cout<< "metaTempDir: "  << metaTempDir<<endl;
 		cout<< "dataTempDirs: "  << dataTempDirs<<endl;
-//		cout<< "flushThreshold: "  << flushThreshold<<endl;
 		cout<< "numThreads: "  << numThreads<<endl;
-//		cout<< "memPerConnection: "  << memPerConnection<<endl;
 		cout<< "backEndIpcFile: "  << backEndIpcFile<<endl;
-//		cout<< "useByteArray: "  << useByteArray<<endl;
-//        cout<< "pageAlignment: " << alignment <<endl;
 		cout<< "isMaster: "  << isMaster<<endl;
 		cout<< "masterNodeHostName: "  << masterNodeHostName<<endl;
 		cout<< "masterNodePort: "  << masterNodePort<<endl;

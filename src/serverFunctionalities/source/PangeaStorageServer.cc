@@ -94,7 +94,7 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->workers = workers;
         this->conf = conf;
         this->logger = logger;
-        this->logger->setEnabled(conf->isLogEnabled());
+        //this->logger->setEnabled(conf->isLogEnabled());
         this->standalone = standalone;
 
         //IPC file used to communicate with backend

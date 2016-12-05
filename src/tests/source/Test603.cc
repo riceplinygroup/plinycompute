@@ -63,7 +63,6 @@ int main (int argc, char * argv[] ) {
        ConfigurationPtr conf = make_shared < Configuration > ();
        conf->setNumThreads(numThreads);
        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
-       conf->printOut();
 
        string errMsg;
        if(shm != nullptr) {

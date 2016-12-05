@@ -49,8 +49,9 @@ public:
     // opens up the logger
     void open(std :: string fName);
 
+    //JiaNote: why we need an empty logger here? 
     // empty logger
-    PDBLogger();
+    //PDBLogger();
 
     // closes the text file
     ~PDBLogger();
@@ -67,9 +68,9 @@ public:
     // write int, added by Jia
     void writeInt(int writeMe);
 
-	LogLevel getLoglevel();
+    LogLevel getLoglevel();
 
-	void setLoglevel(LogLevel loglevel) ;
+    void setLoglevel(LogLevel loglevel) ;
 
 // Log Levels are:
 //
@@ -88,7 +89,7 @@ public:
     void error(std :: string writeMe);
 
 	// writes a line of text to the log file, if log level WARN, INFO, DEBUG or TRACE is activated
-	void warn(std :: string writeMe);
+    void warn(std :: string writeMe);
 
     // writes a line of text to the log file, if log level 	INFO, DEBUG or TRACE is activated
     void info(std :: string writeMe);
@@ -107,8 +108,9 @@ private:
     // the location we are writing to
     FILE *outputFile;
 
-    bool enabled;
-    LogLevel loglevel;
+    bool enabled = true;
+
+    LogLevel loglevel = WARN;
 
 };
 
