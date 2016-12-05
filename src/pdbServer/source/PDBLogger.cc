@@ -35,13 +35,11 @@ PDBLogger::PDBLogger(std :: string fName) {
 //    bool folder = boost::filesystem::create_directories("logs");
 //    if (folder==true) std :: cout << "logs folder created." << std :: endl;
 
-	// create a director logs if not exists
-	const int dir_err = mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	if (-1 == dir_err)
-	{
-		std :: cout << "logs folder created." << std :: endl;
-	}
-
+// create a director logs if not exists
+    const int dir_err = mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (-1 == dir_err) {
+        std :: cout << "logs folder created." << std :: endl;
+    }
 
     outputFile = fopen(std :: string("logs/"+fName).c_str(), "a");
     if (outputFile == nullptr) {
@@ -49,9 +47,10 @@ PDBLogger::PDBLogger(std :: string fName) {
         perror(nullptr);
         exit(-1);
     }
+
     pthread_mutex_init(&fileLock, nullptr);
+    loglevel = WARN;
     this->enabled = true;
-    loglevel = TRACE;
 }
 
 void PDBLogger::open(std :: string fName) {
@@ -67,10 +66,10 @@ void PDBLogger::open(std :: string fName) {
     }
 }
 
-PDBLogger::PDBLogger() {
+/*PDBLogger::PDBLogger() {
     pthread_mutex_init(&fileLock, nullptr);
-    loglevel = TRACE;
-}
+    loglevel = WARN;
+}*/
 
 PDBLogger::~PDBLogger() {
 
@@ -93,7 +92,6 @@ PDBLogger::~PDBLogger() {
 //    fflush(outputFile);
 //}
 
-//added by Jia
 void PDBLogger::writeInt(int writeMe) {
     if (!this->enabled) {
         return;
@@ -165,7 +163,7 @@ void PDBLogger::fatal(std :: string writeMe) {
 // Added date/time to the logger
 void PDBLogger::writeLn(std :: string writeMe) {
 
-    if (!this->enabled || this->loglevel==OFF) {
+    if (!this->enabled) {
         return;
     }
 
@@ -190,7 +188,6 @@ void PDBLogger::writeLn(std :: string writeMe) {
 }
 
 
-//added by Jia
 
 void PDBLogger::write(char* data, unsigned int length) {
     if (!this->enabled) {
