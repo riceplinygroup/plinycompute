@@ -741,7 +741,10 @@
                 }
                 sqlite3_finalize(stmt);
                 sqlite3_close_v2(sqliteDBHandler);
-                delete serializedBytes;
+                //JiaNote: mismatched free() /delete()
+                // so replace following line with free()
+                //delete serializedBytes;
+                free (serializedBytes);
             }
         }
         cout << errorMessage << endl;

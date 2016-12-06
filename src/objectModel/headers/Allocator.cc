@@ -156,7 +156,20 @@ inline Allocator :: Allocator (size_t numBytesIn) {
 	myState.numBytes = 0;
 
 	// now, setup the active block
-	setupBlock (malloc (numBytesIn), numBytesIn, true);
+	//setupBlock (malloc (numBytesIn), numBytesIn, true);
+
+        // JiaNote: we need initialize allocator block to make valgrind happy
+        #ifdef INITIALIZE_ALLOCATOR_BLOCK
+        void *putMeHere = calloc (1, numBytesIn);
+        #else
+        void *putMeHere = malloc (numBytesIn);
+        #endif
+        // JiaNote: malloc check
+        if (putMeHere == nullptr) {
+            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory" << std :: endl;
+            exit(-1);
+        }
+        setupBlock (putMeHere, numBytesIn, true);
 }
 
 // returns true if and only if the RAM is in the current allocation block
@@ -506,8 +519,13 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t num
 	ALLOCATOR_REF_COUNT++;
 	
 	// and set up the new block
+        // JiaNote: we need initialize allocator block to make valgrind happy
+        #ifdef INITIALIZE_ALLOCATOR_BLOCK
+        void *putMeHere = calloc (1, numBytesAvailable);
+        #else
 	void *putMeHere = malloc (numBytesAvailable);
-        // add malloc check by Jia
+        #endif
+        // JiaNote: malloc check
         if (putMeHere == nullptr) {
             std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory" << std :: endl;
             exit(-1);
