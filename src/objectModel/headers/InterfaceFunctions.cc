@@ -60,9 +60,14 @@ int16_t getTypeID () {
 #define CHAR_PTR(c) ((char *) c)
 
 inline void makeObjectAllocatorBlock (size_t numBytesIn, bool throwExceptionOnFail) {
-	//getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
-        //add malloc results check by Jia
+	
+        //JiaNote: replace following line with malloc results check 
+        //getAllocator ().setupBlock (malloc (numBytesIn), numBytesIn, throwExceptionOnFail);
+        #ifdef INITIALIZE_ALLOCATOR_BLOCK
+        void * space = calloc(1, numBytesIn);
+        #else
         void * space = malloc(numBytesIn);
+        #endif
         if (space == nullptr) {
              std :: cout << "Fatal Error in makeObjectAllocatorBlock(): out of memory" << std :: endl;
              exit (-1);
