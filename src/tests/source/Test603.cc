@@ -43,7 +43,8 @@ int main (int argc, char * argv[] ) {
        }
 
        if (argc == 3) {
-            sharedMemSize = atoi(argv[2])*1024*1024;
+            numThreads = atoi(argv[1]);
+            sharedMemSize = (size_t)(atoi(argv[2]))*(size_t)1024*(size_t)1024;
        } 
 
        if (argc == 4) {
@@ -53,7 +54,7 @@ int main (int argc, char * argv[] ) {
 
        if (argc == 5) {
             numThreads = atoi(argv[1]);
-            sharedMemSize = size_t(atoi(argv[2]))*(size_t)1024*(size_t)1024;
+            sharedMemSize = (size_t)(atoi(argv[2]))*(size_t)1024*(size_t)1024;
             standalone = false;
             masterIp = argv[2];
             localIp = argv[3];
