@@ -831,7 +831,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         UserTypeID typeId = request->getUserTypeID();
                         SetID setId = request->getSetID();
 
-                        bool res;
+                        bool res = true;
                         std :: string errMsg;
 
                         SetPtr set = getFunctionality<PangeaStorageServer>().getSet(dbId, typeId, setId);
