@@ -146,30 +146,32 @@ int main (int argc, char * argv[]) {
 	// print the resuts
 
         // collect and print the results
+        int count = 0;
         if ((printResult == true) && (clusterMode == false)) {
 	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
-	    std :: cout << "First set of query results: ";
+	    std :: cout << "Query results: \n";
 	    for (auto a : result) 
             {
 		     std :: cout << (*a) << "; ";
+                     count ++;
             }
-	  /*  std :: cout << "\n\nSecond set of query results: ";
-	    result = myClient.getSetIterator <String> ("chris_db", "output_set2");
-	    for (auto a : result)
-            {
-		    std :: cout << (*a) << "; ";
-            }
-           */
 	    std :: cout << "\n";
-	}
+            std :: cout << "count=" << count << std :: endl;
+	} else if (clusterMode == false) {
+            SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
+            for (auto a : result)
+            {
+                     count ++;
+            }
+            std :: cout << "count=" << count << std :: endl;
+        } 
 
         // delete output set
         if (clusterMode == false) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
-	    //myClient.deleteSet ("chris_db", "output_set2");
         }
-        system ("scripts/cleanupSoFiles.sh");
+        return count;
         
 }
 
