@@ -56,8 +56,8 @@ int main (int argc, char * argv[] ) {
             numThreads = atoi(argv[1]);
             sharedMemSize = (size_t)(atoi(argv[2]))*(size_t)1024*(size_t)1024;
             standalone = false;
-            masterIp = argv[2];
-            localIp = argv[3];
+            masterIp = argv[3];
+            localIp = argv[4];
        }
 
        std :: cout << "Thread number =" << numThreads << std :: endl;

@@ -42,9 +42,11 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 	if (temp.connectToInternetServer (myLogger, port, address, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleRequest: not able to connect to server.\n");
-		return onErr;
+		//return onErr;
+                std :: cout << "FATAL ERROR: can not connect to remote server with port=" << port << " and address=" << address << std :: endl;
+                exit (-1);
 	}
-
+        std :: cout << "Successfully connected to remote server with port=" << port << " and address=" << address << std :: endl;
 	// build the request
 	const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
 	Handle <RequestType> request = makeObject <RequestType> (args...);;
@@ -83,16 +85,18 @@ ReturnType simpleDoubleRequest (PDBLoggerPtr myLogger, int port, std :: string a
 	if (temp.connectToInternetServer (myLogger, port, address, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleRequest: not able to connect to server.\n");
-		return onErr;
+		//return onErr;
+                std :: cout << "FATAL ERROR: can not connect to remote server with port=" << port << " and address=" << address << std :: endl;
+                exit (-1);
 	}
-
+        std :: cout << "Successfully connected to remote server with port=" << port << " and address=" << address << std :: endl;
 	// build the request
 	if (!temp.sendObject (firstRequest, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleDoubleRequest: not able to send first request to server.\n");
 		return onErr;
 	}
-
+       
 	if (!temp.sendObject (secondRequest, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleDoubleRequest: not able to send second request to server.\n");
