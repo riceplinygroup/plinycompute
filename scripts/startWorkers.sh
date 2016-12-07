@@ -17,6 +17,8 @@
 
 pem_file=$1
 masterIp=$2
+numThreads=$3
+sharedMem=$4
 user=ubuntu
 ip_len_valid=3
 
@@ -32,6 +34,13 @@ if [ -z ${masterIp} ];
     exit -1;
 fi
     
+if [ -z ${numThreads} ];
+     numThreads=6
+fi
+
+if [ -z ${sharedMem} ];
+     sharedMem=12*1024
+fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
@@ -51,7 +60,7 @@ do
                 scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:~/pdb_temp/bin/
                 scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:~/pdb_temp/scripts/
                 ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
-                ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 1 $2 $ip_addr" &
+                ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 $numThreads $sharedMem $masterIp $ip_addr" &
                 sleep 10
                 $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
                 

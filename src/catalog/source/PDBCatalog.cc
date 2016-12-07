@@ -591,7 +591,7 @@
                     Handle<CatalogMetadataType> returnedObject = recordBytes->getRootObject ();
 
                     string itemId = returnedObject->getItemKey().c_str();
-
+                    std :: cout << "itemId=" << itemId << std :: endl;
                     //TODO keep only one container Handle<Vector<PDBCatalog>, the other two don't work
                     // maybe try with the new pdb::Map too!
 //                    returnedValues->push_back(returnedObject);

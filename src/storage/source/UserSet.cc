@@ -221,6 +221,7 @@ void UserSet::dump (char * buffer) {
        }
    }
    setPinned(false);
+   delete iterators;
 }
 
 

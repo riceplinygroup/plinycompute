@@ -31,26 +31,37 @@ int main (int argc, char * argv[] ) {
 
        std :: cout << "Starting up a PDB server!!\n";
        std :: cout << "First run this, then run bin/test46 in another window, then run this again, then run bin/test44 in another window" << std :: endl;
-       std :: cout << "[Usage] #numThreads(optional) #masterIp(optional) #localIp(optional)" << std :: endl;
+       std :: cout << "[Usage] #numThreads(optional) #sharedMemSize(optional, unit: MB) #masterIp(optional) #localIp(optional)" << std :: endl;
        
        int numThreads = 1;
+       size_t sharedMemSize = (size_t)12*(size_t)1024*(size_t)1024*(size_t)1024;
        bool standalone = true;
        std :: string masterIp;
        std :: string localIp;
        if (argc == 2) {
             numThreads = atoi(argv[1]);
-       } 
+       }
+
        if (argc == 3) {
+            sharedMemSize = atoi(argv[2])*1024*1024;
+       } 
+
+       if (argc == 4) {
             std :: cout << "You must provide both masterIp and localIp" << std :: endl;
             exit(-1); 
        } 
-       if (argc == 4) {
+
+       if (argc == 5) {
             numThreads = atoi(argv[1]);
+            sharedMemSize = size_t(atoi(argv[2]))*(size_t)1024*(size_t)1024;
             standalone = false;
             masterIp = argv[2];
             localIp = argv[3];
        }
+
        std :: cout << "Thread number =" << numThreads << std :: endl;
+       std :: cout << "Shared memory size =" << sharedMemSize << std :: endl;
+
        if (standalone == true) {
             std :: cout << "We are now running in standalone mode" << std :: endl;
        } else {
@@ -62,6 +73,7 @@ int main (int argc, char * argv[] ) {
        pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
        ConfigurationPtr conf = make_shared < Configuration > ();
        conf->setNumThreads(numThreads);
+       conf->setShmSize(sharedMemSize);
        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
 
        string errMsg;
@@ -97,7 +109,7 @@ int main (int argc, char * argv[] ) {
                        frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true , "localhost", 8108);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (conf->getPort(), "localhost", logger);
                        std :: cout << "to register node metadata in catalog..." << std :: endl;
-                       if (frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
+                       if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
                             std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
                             std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
                        } else {
@@ -110,14 +122,6 @@ int main (int argc, char * argv[] ) {
                        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String(localIp + ":" + std::to_string(conf->getPort())), String(localIp), conf->getPort(), String(nodeName), String(nodeType), 1);
                        frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", false, masterIp, 8108);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (conf->getPort(), "localhost", logger);
-/*                       pdb :: CatalogClient catClient (conf->getPort(), masterIp, make_shared <pdb :: PDBLogger> ("clientCatalogLog"));
-                       if (!catClient.registerNodeMetadata (nodeData, errMsg)) {
-                           std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
-                           std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
-                       } else {
-                           std :: cout << "Node metadata successfully added. \n";
-                       }
-*/
                    }
                                       
                    frontEnd.startServer (nullptr);

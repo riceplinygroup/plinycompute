@@ -113,11 +113,11 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                      if(createOutputSet == true) {
                          if(isStandalone == true) {
-                             getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
+                             getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                              outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                              std :: cout << "Output set is created in storage" << std :: endl;
-                             // create the output set in the storage manager and in the catalog
                              int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName ());
+                             // create the output set in the storage manager and in the catalog
                              if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
                                  std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
                                  exit (1);
@@ -365,6 +365,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 		        }
 			}
                     loopingSet->setPinned(false);
+                    delete pageIters;
 			// tell the caller we are done
 			const UseTemporaryAllocationBlock tempBlock {1024};
 			Handle <DoneWithResult> temp = makeObject <DoneWithResult> ();

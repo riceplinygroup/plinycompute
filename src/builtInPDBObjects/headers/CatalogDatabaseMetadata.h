@@ -332,7 +332,7 @@ namespace pdb {
         pdb::String createdOn;
         pdb::String lastModified;
 
-        Handle <Map <String, String>> mapOfSets = makeObject <Map <String, String>> ();
+        //Handle <Map <String, String>> mapOfSets = makeObject <Map <String, String>> ();
 
         // a map where the key is the name of a set and the value is a vector with
         // all nodes where that set has information stored

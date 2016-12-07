@@ -691,7 +691,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                               }
                                                     }
                                                     std :: cout << "All done!\n";
-
+                                                    delete iterators;
                                           }
                                  }
                          }
@@ -849,7 +849,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         set->setPinned(true);
                         int numIterators = iterators->size();
            
-                        //std :: cout << "88888888888888888888888888888888\n";
                         //std :: cout << "Buzzer is created in PDBScanWork\n";
                         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
                            [&] (PDBAlarm myAlarm, int & counter) {
@@ -872,12 +871,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         }
                         //std :: cout << "Frontend to send NoMorePage message." << std :: endl;
                         set->setPinned(false);
-
-                        //set->setPinned(true);
-                        //set->flushDirtyPages();
-                        //set->setPinned(false);
-
-                        
+                        delete iterators;
                          
                         //here, we have already loaded all pages, and sent all information about those pages to the other side, now we need inform the other side that this process has been done.
                         //The other side has closed connection, so first we need to create a separate connection to backend 
