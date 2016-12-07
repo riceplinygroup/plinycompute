@@ -63,6 +63,7 @@ bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, st
 
     struct sockaddr_in cli_addr;
     socklen_t clilen = sizeof (cli_addr);
+    bzero((char *) &cli_addr, sizeof (cli_addr));
     logToMe->info("PDBCommunicator: about to wait for request from Internet");
     socketFD = accept(socketFDIn, (struct sockaddr *) &cli_addr, &clilen);
     if (socketFD < 0) {

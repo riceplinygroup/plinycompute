@@ -255,8 +255,10 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
                         myLogger->debug("CatalogClient: To handle result of CatSharedLibraryByNameRequest from CatalogServer...");
 
             if (result == nullptr) {
+                std :: cout << "FATAL ERROR: can't connect to remote server to fetch shared library for typeId=" << identifier << std :: endl;
                 myLogger->error ("Error getting shared library: null object returned.\n");
-                return false;
+                //return false;
+                exit(-1);
             }
             std :: cout << "Getting the returned typeId" << std :: endl;
 
