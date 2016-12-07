@@ -219,6 +219,7 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
                             tempMetadataObject,
                             returnedBytes,
                             errMsg);
+    delete putResultHere;
     return res;
 
     //this is not needed b/c it's get copied in the previous step

@@ -168,6 +168,7 @@ public:
      * The set of iterators will include:
      * -- 1 iterator to scan data in input buffer;
      * -- K iterators to scan data in file partitions, assuming there are K partitions.
+     * IMPORTANT: user needs to delete the returned vector!!!
      */
     virtual vector<PageIteratorPtr> * getIterators();
 
