@@ -233,138 +233,131 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
     forMe.registerHandler (CatSharedLibraryByNameRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryByNameRequest>> (
         [&] (Handle <CatSharedLibraryByNameRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
-        string typeName = request->getTypeLibraryName ();
-        int16_t typeId = request->getTypeLibraryId();
+            string typeName = request->getTypeLibraryName ();
+            int16_t typeId = request->getTypeLibraryId();
 
         cout << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << " and typeId=" << typeId << std :: endl;
 
-        // in practice, we can do better than simply locking the whole catalog, but good enough for now...
-        const LockGuard guard{workingMutex};
+            // in practice, we can do better than simply locking the whole catalog, but good enough for now...
+            const LockGuard guard{workingMutex};
 
-        // ask the catalog serer for the shared library
-        // added by Jia to test a length error bug
-        vector <char> * putResultHere = new vector<char>();
-        bool res = false;
-        string returnedBytes;
-        std :: string errMsg;
+            // ask the catalog serer for the shared library
+            // added by Jia to test a length error bug
+            vector <char> * putResultHere = new vector<char>();
+            bool res = false;
+            string returnedBytes;
+            std :: string errMsg;
 
 
-        getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryByNameRequest to get shared library for typeName=") + typeName);
+            getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryByNameRequest to get shared library for typeName=") + typeName);
 
-        if(this->isMasterCatalogServer == true) {
-            // Allocates 124Mb for sending .so libraries
-            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+            if(this->isMasterCatalogServer == true) {
+                // Allocates 124Mb for sending .so libraries
+                const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
-            Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
-            Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+                Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
+                Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
             cout << "    Invoking getSharedLibrary(typeName) from CatalogServer Handler b/c this is Master Catalog " << endl;
 
-            // if the type is not registered in the Master Catalog just return
-//            if (allTypeNames.count (typeName) == 0) {
-            // uses the typeId instead of typeName
-            if (allTypeCodes.count (typeId) == 0) {
-                const UseTemporaryAllocationBlock tempBlock{1024};
-                // Creates a dummy type
-                Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
-                String newItemID("-1");
-                notFoundResponse->setObjectId(newItemID);
+                // if the type is not registered in the Master Catalog just return
+                if (allTypeCodes.count (typeId) == 0) {
 
-                res = sendUsingMe->sendObject (notFoundResponse, errMsg);
+                    const UseTemporaryAllocationBlock tempBlock{1024};
+                    // Creates an empty Object just to send the response to caller
+                    Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
+                    String newItemID("-1");
+                    notFoundResponse->setObjectId(newItemID);
 
-            } else{
-                //resolves typeName given the typeId
-                typeName = allTypeCodes[typeId];
+                    res = sendUsingMe->sendObject (notFoundResponse, errMsg);
+
+                } else {
+
+                    //resolves typeName given the typeId
+                    typeName = allTypeCodes[typeId];
                 cout << "Resolved typeName " << typeName << "  for typeId=" << typeId << std :: endl;
 
-                // the type was found in the catalog, retrieve metadata and bytes
-                res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
-                                                                                  typeName,
-                                                                                  (*putResultHere),
-                                                                                  response,
-                                                                                  returnedBytes,
-                                                                                  errMsg);
-
-                cout << "    Bytes returned YES isMaster: " << returnedBytes.size() << endl;
-
-                String _retBytes(returnedBytes);
-
-                // do a deep copy and set metadata
-                *responseTwo = *response;
-                String newItemID(response->getObjectID());
-                responseTwo->setObjectId(newItemID);
-                String newItemName(response->getItemName());
-                responseTwo->setItemName(newItemName);
-                String newItemKey(response->getItemKey());
-                responseTwo->setItemKey(newItemKey);
-                responseTwo->setLibraryBytes(_retBytes);
-
-                cout << "Object Id isMaster: " << response->getObjectID().c_str() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
-                if (!res) {
-                    const UseTemporaryAllocationBlock tempBlock{1024};
-        //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
-                    res = sendUsingMe->sendObject (responseTwo, errMsg);
-                } else {
-                    cout << "     Sending metadata and bytes to caller!" << endl;
-
-                    res = sendUsingMe->sendObject (responseTwo, errMsg);
-                }
-
-            }
-
-
-
-
-        } else {
-            // Allocates 124Mb for sending .so libraries
-            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-
-            Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
-
-            cout << "    Connecting to the Remote Catalog Server via Catalog Client" << endl;
-            cout << "    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog " << endl;
-            // otherwise connect to remote master catalog server and make call
-
-            // uses a dummyObjectFile since this is just making a remote call to the Catalog Master Server
-            // and what matters is the returned bytes.
-            string dummyObjectFile = string("temp.so");
-
-            res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeId,
+                    // the type was found in the catalog, retrieve metadata and bytes
+                    res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
                                                                                       typeName,
-                                                                                      dummyObjectFile,
                                                                                       (*putResultHere),
                                                                                       response,
                                                                                       returnedBytes,
                                                                                       errMsg);
-            //std :: cout << "       response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
-            cout << "     Bytes returned NOT isMaster: " << returnedBytes.size() << endl;
 
-            // if the library was successfuly retrieved, go ahead and resolve vtable fixing
-            // in the local catalog
-            if (res == true){
-                // resolves vtable fixing on the local catalog, given the library and metadata
-                // retrieved from the remote Master Catalog
-                
-                res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
-            }
+                    cout << "    Bytes returned YES isMaster: " << returnedBytes.size() << endl;
 
-            if (!res) {
-                cout << "     before sending response Vtable not fixed!!!!!!" << endl;
+                    String _retBytes(returnedBytes);
 
-                cout << errMsg << endl;
-                const UseTemporaryAllocationBlock tempBlock{1024};
-                Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
-                String newItemID("-1");
-                notFoundResponse->setObjectId(newItemID);
+                    // do a deep copy and set metadata
+                    *responseTwo = *response;
+                    String newItemID(response->getObjectID());
+                    responseTwo->setObjectId(newItemID);
+                    String newItemName(response->getItemName());
+                    responseTwo->setItemName(newItemName);
+                    String newItemKey(response->getItemKey());
+                    responseTwo->setItemKey(newItemKey);
+                    responseTwo->setLibraryBytes(_retBytes);
 
-//                Handle<String> responseTwo = makeObject<String>(errMsg);
+                cout << "Object Id isMaster: " << response->getObjectID().c_str() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
+                    if (!res) {
+                    const UseTemporaryAllocationBlock tempBlock{1024};
+        //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
+                        res = sendUsingMe->sendObject (responseTwo, errMsg);
+                    } else {
+                        cout << "     Sending metadata and bytes to caller!" << endl;
+                        res = sendUsingMe->sendObject (responseTwo, errMsg);
+                    }
 
-                //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
-                res = sendUsingMe->sendObject (notFoundResponse, errMsg);
+                }
             } else {
-                cout << "     before sending response Vtable fixed!!!!" << endl;
+                // Allocates 124Mb for sending .so libraries
                 const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-                Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
+
+                Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
+
+                cout << "    Connecting to the Remote Catalog Server via Catalog Client" << endl;
+                cout << "    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog " << endl;
+                // otherwise connect to remote master catalog server and make call
+
+                // uses a dummyObjectFile since this is just making a remote call to the Catalog Master Server
+                // and what matters is the returned bytes.
+                string dummyObjectFile = string("temp.so");
+
+                res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeId,
+                                                                                          typeName,
+                                                                                          dummyObjectFile,
+                                                                                          (*putResultHere),
+                                                                                          response,
+                                                                                          returnedBytes,
+                                                                                          errMsg);
+            //std :: cout << "       response->getObjectID()=" << response->getObjectID().c_str() << std :: endl;
+                cout << "     Bytes returned NOT isMaster: " << returnedBytes.size() << endl;
+
+                // if the library was successfully retrieved, go ahead and resolve vtable fixing
+                // in the local catalog
+                if (res == true) {
+                    // resolves vtable fixing on the local catalog, given the library and metadata
+                    // retrieved from the remote Master Catalog
+                    res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
+                }
+
+                if (!res) {
+                    cout << "     before sending response Vtable not fixed!!!!!!" << endl;
+
+                    cout << errMsg << endl;
+                    const UseTemporaryAllocationBlock tempBlock{1024};
+
+                    Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
+                    String newItemID("-1");
+                    notFoundResponse->setObjectId(newItemID);
+
+                    res = sendUsingMe->sendObject (notFoundResponse, errMsg);
+
+                } else {
+                    cout << "     before sending response Vtable fixed!!!!" << endl;
+                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+                    Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
                 //JiaNote, response fields can not be correctly set in following function:
                 /*
@@ -388,15 +381,14 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                 String newTypeName(typeName);
                 responseTwo->setItemName(newTypeName);
                 responseTwo->setItemKey(newTypeName);
-                res = sendUsingMe->sendObject (responseTwo, errMsg);
+                    res = sendUsingMe->sendObject (responseTwo, errMsg);
+                }
             }
 
-        }
+            cout << " Num bytes in putResultHere " << (*putResultHere).size() << endl;
 
-        cout << " Num bytes in putResultHere " << (*putResultHere).size() << endl;
+            delete putResultHere;
 
-                    delete putResultHere;
-            // return the result
             return make_pair (res, errMsg);
         }
     ));

@@ -21,6 +21,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <stdlib.h>
 
 using std::function;
 using std::string;
