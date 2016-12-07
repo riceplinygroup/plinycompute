@@ -41,6 +41,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+
+#define MAX_RETRIES 5
+
+
 namespace pdb {
 
 PDBCommunicator::PDBCommunicator() {
@@ -152,11 +156,10 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
         return true;
     }
 
-    int retries = 5;
     bool connected = false;
     for (rp = result; rp != NULL; rp = rp->ai_next) {
         int count = 0;
-        while (count <= retries) {
+        while (count <= MAX_RETRIES) {
             logToMe->trace("PDBCommunicator: creating socket....");
             socketFD = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
             if (socketFD == -1) {
@@ -209,6 +212,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
 
     logToMe = logToMeIn;
     struct sockaddr_un server;
+    //TODO: add retry logic here
     socketFD = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socketFD < 0) {
         logToMe->error("PDBCommunicator: could not get FD to local server socket");

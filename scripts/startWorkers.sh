@@ -35,11 +35,11 @@ if [ -z ${masterIp} ];
 fi
     
 if [ -z ${numThreads} ];
-     numThreads=6
+     then numThreads=6;
 fi
 
 if [ -z ${sharedMem} ];
-     sharedMem=12*1024
+     then sharedMem=12*1024;
 fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
