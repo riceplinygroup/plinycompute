@@ -39,7 +39,7 @@ if [ -z ${numThreads} ];
 fi
 
 if [ -z ${sharedMem} ];
-     then sharedMem=12*1024;
+     then sharedMem=12288;
 fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))

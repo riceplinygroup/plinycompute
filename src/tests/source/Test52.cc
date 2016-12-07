@@ -203,8 +203,8 @@ int main (int argc, char * argv[]) {
 
 	std::cout << std::endl;
 	// print the resuts
-        std :: cout << "to print result..." << std :: endl;
         if (printResult == true) {
+            std :: cout << "to print result..." << std :: endl;
 	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
 	    std :: cout << "Query results: ";
             int count = 0;
