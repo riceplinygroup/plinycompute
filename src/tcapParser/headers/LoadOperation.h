@@ -18,6 +18,7 @@
 #ifndef PDB_TCAPPARSER_LOADOPERATION_H
 #define PDB_TCAPPARSER_LOADOPERATION_H
 
+#include <functional>
 #include <memory>
 #include <string>
 
