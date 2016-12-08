@@ -187,13 +187,23 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     PDBLoggerPtr scannerLogger = make_shared<PDBLogger>("scanner.log");
 
     //getScanner
-    int backendCircularBufferSize = 10;
+    int backendCircularBufferSize = 1;
+    if (conf->getShmSize()/conf->getPageSize()-2 < 2+2*numThreads+backendCircularBufferSize) {
+        success = false;
+        errMsg = "Error: Not enough buffer pool size to run the query!";
+        std :: cout << errMsg << std :: endl;
+        exit(-1);
+    }
+    backendCircularBufferSize = (conf->getShmSize()/conf->getPageSize()-4-2*numThreads);
+    if (backendCircularBufferSize > 10) {
+       backendCircularBufferSize = 10;
+    }
     PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scannerLogger, numThreads, backendCircularBufferSize, nodeId); 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
         success = false;
         errMsg = "Error: A job is already running!";
         std :: cout << errMsg << std :: endl;
-        return;
+        exit(-1);
     }
 
     //get input set information
