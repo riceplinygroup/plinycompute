@@ -325,5 +325,9 @@ common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] +
 common_env.Program('bin/ObjectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
 
 #Testing
-pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py')
+pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
+#pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'])
+common_env.Alias('tests', pdbTest)
+main=common_env.Alias('main', ['bin/test100', 'bin/test400', 'bin/test401', 'bin/test402', 'bin/test403', 'bin/test405', 'bin/test600','bin/test601', 'bin/test602','bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'bin/test404', 'bin/test52', 'bin/test49', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/test41', 'bin/test42', 'bin/test43', 'bin/test44', 'bin/test47', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/ObjectModelTest1', 'bin/CatalogTests'])
+Default(main)
