@@ -1,4 +1,30 @@
-There are 2 servers
+There are 4 servers
+
++++++++++++ collect info for server: 192.168.1.230
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       16432208 kB
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+
++++++++++++ collect info for server: 192.168.1.231
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       16432208 kB
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
 
 +++++++++++ collect info for server: 192.168.1.234
 [INFO] local sys collect
