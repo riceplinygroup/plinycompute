@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include <functional>
 #include "Handle.h"
 #include "Lambda.h"
 #include "Supervisor.h"
