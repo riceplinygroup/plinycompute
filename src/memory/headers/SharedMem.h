@@ -51,7 +51,7 @@ public:
     static size_t roundDown(size_t size, size_t roundTo);
     void * _malloc_unsafe(size_t size);
     void _free_unsafe(void *ptr, size_t size);
-
+    size_t getShmSize();    
 protected:
     int initialize();
     void destroy();

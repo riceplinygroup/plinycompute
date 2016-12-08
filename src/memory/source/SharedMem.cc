@@ -65,6 +65,11 @@ void SharedMem::unlock() {
     pthread_mutex_unlock(this->memLock);
 }
 
+size_t SharedMem::getShmSize() {
+    return this->shmMemSize;
+}
+
+
 void* SharedMem::malloc(size_t size) {
     void * ptr;
     //this->logger->writeLn("SharedMem: executing malloc()...");
@@ -173,4 +178,5 @@ void* SharedMem::_malloc_unsafe(size_t size) {
 void SharedMem::_free_unsafe(void * ptr, size_t size) {
     return this->allocator->slabs_free_unsafe(ptr, size);
 }
+
 
