@@ -217,6 +217,7 @@
     PDBCatalog::~PDBCatalog(){
         int deletedFiles = boost::filesystem::remove_all(tempPath);
         this->logger->writeLn(to_string(deletedFiles) + " files have been deleted in temporary folder: " + tempPath);
+        sqlite3_close_v2(sqliteDBHandler);
         pthread_mutex_destroy(&(registerMetadataMutex));
     }
 
@@ -263,7 +264,7 @@
         // If location exists, only opens it.
         mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-        sqlite3 *sqliteDBHandler = NULL;
+        sqliteDBHandler = NULL;
 
         int ret = 0;
         // If database doesn't exist creates database along with tables, otherwise,
@@ -275,26 +276,18 @@
             // Tables are created with primary key on the .so files to avoid
             // duplicating entries.
 
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS data_types (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS metrics (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_node (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);",
-                             sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_database (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_set (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user_permission (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);",
-                            sqliteDBHandler);
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS data_types (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS metrics (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_node (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_database (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_set (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user_permission (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
 
             // Loads into memory all metadata so the CatalogServer can access them
             loadsMetadataIntoMemory();
 
             this->logger->writeLn("Database catalog successfully open.");
-            sqlite3_close_v2(sqliteDBHandler);
 
             cout << " *********Print Metadata " << endl;
             testCatalogPrint();
@@ -548,15 +541,13 @@
                                             string &errorMessage,
                                             int metadataCategory){
 
-        sqlite3 * sqliteDBHandlerInternal = NULL;
-
         pdb :: String emptyString("");
 
-        if ((sqlite3_open_v2(catalogFilename.c_str(), &sqliteDBHandlerInternal,
+        if ((sqlite3_open_v2(catalogFilename.c_str(), &sqliteDBHandler,
                              SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                              NULL)) != SQLITE_OK)
         {
-            this->logger->writeLn("Error opening the database! " + (string)sqlite3_errmsg(sqliteDBHandlerInternal));
+            this->logger->writeLn("Error opening the database! " + (string)sqlite3_errmsg(sqliteDBHandler));
         }
 
         pthread_mutex_lock(&(registerMetadataMutex));
@@ -570,7 +561,7 @@
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
         cout << queryString << endl;
-        if(sqlite3_prepare_v2(sqliteDBHandlerInternal, queryString.c_str(), -1,
+        if(sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1,
                               &statement, NULL) == SQLITE_OK)
         {
 
@@ -605,19 +596,17 @@
             }
             sqlite3_finalize(statement);
             pthread_mutex_unlock(&(registerMetadataMutex));
-            sqlite3_close_v2(sqliteDBHandlerInternal);
 
             return true;
         }else{
 
-            string error = sqlite3_errmsg(sqliteDBHandlerInternal);
+            string error = sqlite3_errmsg(sqliteDBHandler);
 
             if(error != "not an error"){
                 this->logger->writeLn((string)queryString + " " + error);
             }
 
             sqlite3_finalize(statement);
-            sqlite3_close_v2(sqliteDBHandlerInternal);
 
             pthread_mutex_unlock(&(registerMetadataMutex));
             return false;
@@ -645,7 +634,6 @@
         bool success = false;
         errorMessage = "";
 
-        sqlite3 *sqliteDBHandler = NULL;
         sqlite3_stmt *stmt = NULL;
         uint8_t *serializedBytes = NULL;
 
@@ -740,7 +728,6 @@
                     }
                 }
                 sqlite3_finalize(stmt);
-                sqlite3_close_v2(sqliteDBHandler);
                 //JiaNote: mismatched free() /delete()
                 // so replace following line with free()
                 //delete serializedBytes;
@@ -815,7 +802,6 @@
 
         pthread_mutex_lock(&(registerMetadataMutex));
 
-        sqlite3 *sqliteDBHandler = NULL;
         sqlite3_blob *pBlob = NULL;
         sqlite3_stmt *pStmt = NULL;
 
@@ -836,7 +822,6 @@
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
             sqlite3_reset(pStmt);
-            sqlite3_close_v2(sqliteDBHandler);
             return false;
         }
 
@@ -845,7 +830,6 @@
         if( sqlite3_step(pStmt) !=SQLITE_ROW ){
             errorMessage = "Error item not found in database: \n";
             sqlite3_reset(pStmt);
-            sqlite3_close_v2(sqliteDBHandler);
             return false;
         }
 
@@ -888,7 +872,6 @@
         sqlite3_blob_close(pBlob);
 
 
-        sqlite3_close_v2(sqliteDBHandler);
 
          //FIX ME This line throws an error
 //                 this->logger->writeLn("Library " + fileName + " successfully retrieved. Size in bytes " + to_string(numBytes));
@@ -950,7 +933,6 @@
 
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
-        sqlite3 *sqliteDBHandlerInternal = NULL;
 
         string sqlStatement = "INSERT INTO " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " (itemID, itemInfo, timeStamp) VALUES (?, ?, strftime('%s', 'now', 'localtime'))";
 
@@ -968,21 +950,21 @@
 //        cout << sqlStatement << " with key= " << metadataKey << endl;
 
         // Opens connection to db
-        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal,
+        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler,
                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                             NULL)) != SQLITE_OK) {
 
-            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
 
         }
 
         // Prepares statement
-        if ((sqlite3_prepare_v2(sqliteDBHandlerInternal, sqlStatement.c_str(), -1,
+        if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1,
                                 &stmt, NULL)) != SQLITE_OK) {
 
-            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
 
@@ -990,18 +972,18 @@
 
         // Binds key for this piece of metadata
         if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK) {
-            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             isSuccess = false;
         }
 
         // Binds value for this piece of metadata (as a pdb serialized set of bytes)
         if ((sqlite3_bind_blob(stmt, 2, metadataBytes, numberOfBytes, SQLITE_STATIC)) != SQLITE_OK) {
-            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             isSuccess = false;
         }
 
         // Runs the insert statement
-        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)) {
+        if (catalogSqlStep(stmt, errorMessage)) {
             // Metadata item inserted in sqlite then add to pdb :: Vector  in memory
             addItemToVector(metadataValue, metadataCategory);
             isSuccess = true;
@@ -1012,7 +994,6 @@
         }
 
         sqlite3_finalize(stmt);
-        sqlite3_close_v2(sqliteDBHandlerInternal);
 
         pthread_mutex_unlock(&(registerMetadataMutex));
 
@@ -1049,18 +1030,17 @@
 
         size_t numberOfBytes = metadataBytes->numBytes();
 
-        sqlite3 *sqliteDBHandlerInternal = NULL;
 
         // Opens connection to db
-        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
-            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
+            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
 
         // Prepares statement
-        if ((sqlite3_prepare_v2(sqliteDBHandlerInternal,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
-            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+        if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
+            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
@@ -1068,20 +1048,20 @@
         // Binds value for this piece of metadata (as a pdb serialized set of bytes)
         if ((sqlite3_bind_blob(stmt, 1, metadataBytes, numberOfBytes, SQLITE_STATIC)) != SQLITE_OK){
 
-            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             isSuccess = false;
         }
 
         // Binds key for this piece of metadata
         if ((sqlite3_bind_text(stmt, 2, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK){
-            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             isSuccess = false;
         }
 
         this->logger->writeLn(errorMessage);
 
         // Runs the update statement
-        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
+        if (catalogSqlStep(stmt, errorMessage)){
             // if sqlite update goes well, updates container
             updateItemInVector(metadataIndex, metadataValue);
             //TODO remove this couts, used for debugging only
@@ -1095,7 +1075,6 @@
         this->logger->writeLn(errorMessage);
 
         sqlite3_finalize(stmt);
-        sqlite3_close_v2(sqliteDBHandlerInternal);
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
@@ -1124,31 +1103,29 @@
 
 //        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
-        sqlite3 *sqliteDBHandlerInternal = NULL;
-
         // Opens connection to db
-        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandlerInternal, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
-            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
+            errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
         // Prepares statement
-        if ((sqlite3_prepare_v2(sqliteDBHandlerInternal,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
-            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal);
+        if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
+            errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
 
         // Binds key for this piece of metadata
         if ((sqlite3_bind_text(stmt, 1, metadataKey.c_str(), -1, SQLITE_STATIC)) != SQLITE_OK){
-            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandlerInternal) + "\n";
+            errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             isSuccess = false;
         }
 
         this->logger->writeLn(errorMessage);
 
         // Runs the update statement
-        if (catalogSqlStep(sqliteDBHandlerInternal, stmt, errorMessage)){
+        if (catalogSqlStep(stmt, errorMessage)){
             // if sqlite update goes well, updates container
             deleteItemInVector(metadataIndex, metadataValue);
             isSuccess = true;
@@ -1160,7 +1137,6 @@
         this->logger->writeLn(errorMessage);
 
         sqlite3_finalize(stmt);
-        sqlite3_close_v2(sqliteDBHandlerInternal);
 
 //        cout << "Updating " << (*metadataValue).printShort() << endl;
 
@@ -1347,7 +1323,7 @@
      */
 
     // Executes a sqlite3 query on the catalog database given by a query string.
-    bool PDBCatalog::catalogSqlQuery(string queryString, sqlite3 *sqliteDBHandler){
+    bool PDBCatalog::catalogSqlQuery(string queryString){
 
         sqlite3_stmt *statement = NULL;
 
@@ -1369,7 +1345,7 @@
 
     // Executes a sqlite3 statement query on the catalog database given by a query string
     // works for inserts, updates and deletes
-    bool PDBCatalog::catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg){
+    bool PDBCatalog::catalogSqlStep(sqlite3_stmt *stmt, string &errorMsg){
 
         int rc=0;
         if((rc = sqlite3_step(stmt)) == SQLITE_DONE){
