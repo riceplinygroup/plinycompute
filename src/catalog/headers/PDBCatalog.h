@@ -382,6 +382,12 @@ using namespace pdb;
         PDBLoggerPtr logger;
 
         /**
+         * Handler for the SQLite instance
+         **/
+        sqlite3 *sqliteDBHandler = NULL;
+
+
+        /**
          * List unique metadata entries
          **/
         vector<CatalogDatabaseMetadata> dbList;
@@ -438,10 +444,10 @@ using namespace pdb;
 
         // Creates a statement from a string and executes the query, returning a
         // true if successful, false otherwise.
-        bool catalogSqlQuery(string statement, sqlite3 *sqliteDBHandlerOpen);
+        bool catalogSqlQuery(string statement);
 
         // Executes an sql statement in sqlite3 (insert, update or delete)
-        bool catalogSqlStep(sqlite3 *sqliteDBHandler, sqlite3_stmt *stmt, string &errorMsg);
+        bool catalogSqlStep(sqlite3_stmt *stmt, string &errorMsg);
 
         // Retrieves a Registered Object from the sqlite database
         // returns 1 if success, 0 otherwise.
