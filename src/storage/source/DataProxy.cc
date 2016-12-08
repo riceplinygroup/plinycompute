@@ -38,8 +38,7 @@
 #include "StoragePagePinned.h"
 #include "StorageRemoveTempSet.h"
 #include "CloseConnection.h"
-
-#define DATA_PROXY_SCANNER_BUFFER_SIZE 3
+#include "Configuration.h"
 
 DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, SharedMemPtr shm, pdb :: PDBLoggerPtr logger) {
     this->nodeId = nodeId;
@@ -420,8 +419,14 @@ PageScannerPtr DataProxy::getScanner(int numThreads) {
     if(numThreads <= 0) {
         return nullptr;
     }
+    int scannerBufferSize;
+    if (this->shm->getShmSize()/(64*1024*1024) > 16) {
+         scannerBufferSize = 3;
+    } else {
+	 scannerBufferSize = 1; 
+    }    
     PageScannerPtr scanner = make_shared<PageScanner>(this->communicator, this->shm,
-        this->logger, numThreads, DATA_PROXY_SCANNER_BUFFER_SIZE, this->nodeId);
+        this->logger, numThreads, scannerBufferSize, this->nodeId);
     return scanner;
 }
 
