@@ -171,7 +171,7 @@ int main (int argc, char * argv[]) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
         }
-        return count;
+        return 0;
         
 }
 

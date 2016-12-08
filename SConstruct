@@ -290,7 +290,7 @@ common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
 common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
-common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
+#common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
 common_env.Program('bin/test48', ['build/tests/Test48.cc'] + all)
 common_env.Program('bin/test49', ['build/tests/Test49.cc'] + all)
 common_env.Program('bin/test50', ['build/tests/Test50.cc'] + all)
@@ -325,5 +325,5 @@ common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] +
 common_env.Program('bin/ObjectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
 
 #Testing
-#pdbTest=common_env.Command('test',None,'python scripts/integratedTests.py')
-#common_env.AlwaysBuild(pdbTest)
+pdbTest=common_env.Command('test',None,'python scripts/integratedTests.py')
+common_env.AlwaysBuild(pdbTest)

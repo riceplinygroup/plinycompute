@@ -126,10 +126,10 @@ inline Allocator :: ~Allocator () {
 	for (auto &a : allInactives) {
 		if (a.areNoReferences ()) {
 			std :: cout << "This is bad.  There is an allocation block left with no references.\n";
-			exit (1);
+			//exit (1);
 		} else {
 			std :: cout << "This is bad.  There is an allocation block left with " << a.getReferenceCount () << " references.\n";
-			exit (1);
+			//exit (1);
 		}
 	}
 }
