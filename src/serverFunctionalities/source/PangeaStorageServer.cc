@@ -195,7 +195,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
         // the current size (in bytes) of records we need to process
         size_t numBytesToProcess = sizes[databaseAndSet];
-        //std :: cout << "buffer is full, to write to a storage page"<< std::endl;
+        std :: cout << "buffer is full, to write to a storage page"<< std::endl;
  
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
@@ -206,7 +206,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
             exit (-1);
         }
         size_t pageSize = myPage->getSize();
-
+        std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
 	
@@ -244,18 +244,19 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// if we got here, all records have been processed
 
                         // comment the following three lines of code to allow Pangea to manage pages
-			//std :: cout << "Write all of the bytes in the record.\n";
+			std :: cout << "Write all of the bytes in the record.\n";
                         getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 
 
-			myPage->unpin ();
+			//myPage->unpin ();
                         CacheKey key;
                         key.dbId = myPage->getDbID();
                         key.typeId = myPage->getTypeID();
                         key.setId = myPage->getSetID();
                         key.pageId = myPage->getPageID();
+                        this->getCache()->decPageRefCount(key);
                         this->getCache()->flushPageWithoutEviction(key);
 			break;
 
@@ -263,25 +264,26 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		} catch (NotEnoughSpace &n) {
 
                         // comment the following three lines of code to allow Pangea to manage pages						
-			//std :: cout << "Writing back a page!!\n";
+			std :: cout << "Writing back a page!!\n";
 			// write back the current page...
                         getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 
-			myPage->unpin ();
+			//myPage->unpin ();
                         //this->getCache()->evictPage(myPage);
                         CacheKey key;
                         key.dbId = myPage->getDbID();
                         key.typeId = myPage->getTypeID();
                         key.setId = myPage->getSetID();
                         key.pageId = myPage->getPageID();
+                        this->getCache()->decPageRefCount(key);
                         this->getCache()->flushPageWithoutEviction(key);
 
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				//std :: cout << "Are still enough records for another page.\n";
+				std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
                                 pageSize = myPage->getSize();
 				continue;
@@ -299,7 +301,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				for (; pos < numObjectsInRecord; pos++) {
 					extraData->push_back (allObjects[pos]);	
 				}
-				//std :: cout << "Putting the records back complete.\n";
+				std :: cout << "Putting the records back complete.\n";
 	
 				// destroy the record that we were copying from
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();

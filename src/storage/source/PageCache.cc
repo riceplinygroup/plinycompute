@@ -424,6 +424,7 @@ PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) 
        }
        int internalOffset = 0;
        char * pageData;
+       std :: cout << "to get a page" << std :: endl;
        pageData = allocateBufferFromSharedMemoryBlocking(conf->getPageSize(), internalOffset);
        /*
        if(set != nullptr) {
@@ -611,16 +612,16 @@ bool PageCache::evictPage(CacheKey key) {
 		PDBPagePtr page = this->cache->at(key);
                 //cout << "got the page!\n";
 		if (page->getRefCount() > 0) {
-                        //cout << "can't be unpinned due to non-zero reference count\n";
-		//	this->logger->writeLn(
-					//"LRUPageCache: can not evict page because it has been pinned by at least one client");
+                        cout << "can't be unpinned due to non-zero reference count\n";
+			this->logger->writeLn(
+					"LRUPageCache: can not evict page because it has been pinned by at least one client");
 			this->logger->writeInt(page->getPageID());
 			return false;
 		} else {
                         
                         page->setPinned(false);
                         if((page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
-                            //cout << "going to unpin a dirty page...\n";
+                            cout << "going to unpin a dirty page...\n";
                             //update counter
                             //page->updateCounterInRawBytes(); 
                             page->setInFlush(true);
@@ -634,7 +635,7 @@ bool PageCache::evictPage(CacheKey key) {
 
                         }
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
-                            //cout << "going to unpin a clean page...\n";
+                            cout << "going to unpin a clean page...\n";
                             //free the page
 			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
                             
@@ -643,13 +644,13 @@ bool PageCache::evictPage(CacheKey key) {
                             cache->erase(key);
                             this->size--;
                         }
-			//cout<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
+			cout<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
 		}
 
 	} else {
-                //cout << "can not find page in cache!\n";
-		//this->logger->writeLn(
-				//"LRUPageCache: can not evict page because it is not in cache");
+                cout << "can not find page in cache!\n";
+		this->logger->writeLn(
+				"LRUPageCache: can not evict page because it is not in cache");
 		return false;
 	}
 
@@ -762,21 +763,27 @@ void PageCache::evict() {
                 this->logger->debug( "PageCache::evict(): got a page, check whether it can be evicted...");
                 if((curPage->getRefCount()==0)&&((curPage->isDirty()==false) || ((curPage->isDirty()==true)&&(curPage->isInFlush()==false)))){
 		    cachedPages->push(curPage);
-                    //this->logger->writeLn( "put a page to priority queue.");
-               }
+                    this->logger->writeLn( "put a page to priority queue.");
+                } else {
+                    //this->logger->writeLn( "page can not be flushed." );
+                    //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << std :: endl; 
+                }
 	    }
             this->evictionUnlock();
-            //this->logger->writeLn("PageCache::evict(): unlocked for evictionLock()...");
+            this->logger->writeLn("PageCache::evict(): unlocked for evictionLock()...");
 	    PDBPagePtr page;
+            //std :: cout << "this->size=" << this->size << std :: endl;
+            //std :: cout << "this->evictStopSize=" << this->evictStopSize << std :: endl;
+            //std :: cout << "cachedPages->size()=" << cachedPages->size() << std :: endl;
 	    while ((this->size > this->evictStopSize)&&(cachedPages->size() > 0)) {
 		page = cachedPages->top();
                 if(page == nullptr) {
-                    //cout << "PageCache: nothing to evict, return!\n";
+                    cout << "PageCache: nothing to evict, return!\n";
                     this->logger->debug("PageCache: nothing to evict, return!\n");
                     break;
                 }
 		if (this->evictPage(page) == true) {
-			//cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+			cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
 		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
 		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();
@@ -788,7 +795,7 @@ void PageCache::evict() {
         }
 	this->inEviction = false;
         pthread_mutex_unlock(&this->evictionMutex);
-        //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
+        this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
         //cout << "Storage server: finished cache eviction!\n";
         logger->debug( "Storage server: finished cache eviction!\n");
 }
