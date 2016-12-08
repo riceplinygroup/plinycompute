@@ -44,12 +44,12 @@ print("#################################")
 try:
     #run bin/test603
     print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '256'])
+    serverProcess = subprocess.Popen(['bin/test603', '1', '512'])
     print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(5)
     #run bin/test46 1024
     print bcolors.OKBLUE + "start a data client to store data to pdbServer" + bcolors.ENDC
-    subprocess.check_call(['bin/test46', '256'])
+    subprocess.check_call(['bin/test46', '640'])
     #run bin/test44 in a loop for 10 times
     print bcolors.OKBLUE + "start a query client to query data from pdbServer" + bcolors.ENDC
     subprocess.check_call(['bin/test44', 'n'])

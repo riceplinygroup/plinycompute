@@ -27,7 +27,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g -Wall  -O3 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -325,5 +325,5 @@ common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] +
 common_env.Program('bin/ObjectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
 
 #Testing
-#pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44'],'python scripts/integratedTests.py')
-#common_env.AlwaysBuild(pdbTest)
+pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py')
+common_env.Depends(pdbTest, ['bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'])
