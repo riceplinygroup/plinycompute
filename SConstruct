@@ -325,5 +325,5 @@ common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] +
 common_env.Program('bin/ObjectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
 
 #Testing
-pdbTest=common_env.Command('test',None,'python scripts/integratedTests.py')
-common_env.AlwaysBuild(pdbTest)
+pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44'],'python scripts/integratedTests.py')
+#common_env.AlwaysBuild(pdbTest)
