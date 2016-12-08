@@ -33,7 +33,7 @@
 using namespace std;
 
 #define WARN_THRESHOLD 0.9
-#define EVICT_STOP_THRESHOLD 0.5
+#define EVICT_STOP_THRESHOLD 0.25
 
 PageCache::PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, PageCircularBufferPtr flushBuffer,
 		pdb :: PDBLoggerPtr logger, SharedMemPtr shm, CacheStrategy strategy) {
