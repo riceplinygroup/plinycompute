@@ -165,6 +165,7 @@ void PDBWorkerQueue::addAnotherWorker (void *stackBaseIn, void *stackEndIn) {
     // create a thread with an allocator located at the base of its stack
     pthread_attr_t tattr;
     pthread_attr_init (&tattr);
+    pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
     pthread_attr_setstack (&tattr, stackBaseIn, ((char *) stackEndIn) - (char *) stackBaseIn);
 
     int return_code = pthread_create(&(threads[threads.size() - 1]), &tattr, enterTheQueue, this);

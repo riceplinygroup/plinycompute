@@ -27,7 +27,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Wall -O3 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -323,3 +323,7 @@ common_env.Program('bin/test603', ['build/tests/Test603.cc'] + all)
 common_env.Program('bin/pdbServer', ['build/mainServer/PDBMainServerInstance.cc'] + all)
 common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
 common_env.Program('bin/ObjectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
+
+#Testing
+#pdbTest=common_env.Command('test',None,'python scripts/integratedTests.py')
+#common_env.AlwaysBuild(pdbTest)
