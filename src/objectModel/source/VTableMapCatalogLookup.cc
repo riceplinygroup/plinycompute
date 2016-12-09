@@ -62,6 +62,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
             theVTable->logger->debug(std :: string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
         }
 	unlink (sharedLibraryFile.c_str ());
+        std :: cout << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
 	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 	
 	// open up the shared library

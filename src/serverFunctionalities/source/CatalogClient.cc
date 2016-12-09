@@ -204,7 +204,7 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-
+    std :: cout << "CatalogClient: getSharedLibrary for id=" << identifier << std :: endl;
     Handle <CatalogUserTypeMetadata> tempMetadataObject = makeObject<CatalogUserTypeMetadata>();
     vector <char> * putResultHere = new vector<char>();
     string returnedBytes;
