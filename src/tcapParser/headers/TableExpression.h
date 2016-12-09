@@ -19,6 +19,7 @@
 #define PDB_TCAPPARSER_TABLEEXPRESSION_H
 
 #include <memory>
+#include <functional>
 
 using std::function;
 using std::shared_ptr;

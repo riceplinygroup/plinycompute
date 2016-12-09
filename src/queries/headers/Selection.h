@@ -81,6 +81,7 @@ public:
 	virtual std :: string getQueryType () override {
 		return "selection";
 	}
+
 };
 
 }

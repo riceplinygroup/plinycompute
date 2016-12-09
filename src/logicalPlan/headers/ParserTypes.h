@@ -340,6 +340,10 @@ public:
         return inputs.size();
     }
 
+    void pushOutputs(std :: vector <std :: string> &toMe) {
+    	for (auto a : inputs)
+    		toMe.push_back(a.first);
+    }
 	friend std :: ostream& operator<<(std :: ostream& os, const InputList& printMe);
 };
 
@@ -421,6 +425,7 @@ public:
 
 inline std :: ostream& operator<<(std :: ostream& os, const OutputList& printMe) {
 	for (auto &a : printMe.consumers) {
+		os << a.first << "\n";
 		for (auto &b : a.second) {
 			os << b << "\n";
 		}
