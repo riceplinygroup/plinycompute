@@ -136,7 +136,7 @@ inline Allocator :: ~Allocator () {
 
 // we have no active RAM
 inline Allocator :: Allocator () {
-	for (int i = 0; i < 32; i++) {
+	for (unsigned int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
 		myState.chunks.push_back (temp);
 	}
@@ -148,7 +148,7 @@ inline Allocator :: Allocator () {
 }
 
 inline Allocator :: Allocator (size_t numBytesIn) {
-	for (int i = 0; i < 32; i++) {
+	for (unsigned int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
 		myState.chunks.push_back (temp);
 	}
@@ -192,15 +192,15 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	}
 	
 	// get the number of leading zero bits in bytesNeeded
-	int numLeadingZeros = __builtin_clz (bytesNeeded);
+	unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
 	
 	// loop through all of the free chunks
 	// Lets say that someone asks for 54 bytes.  In binary, this is ...000110110 and so there are 26 leading zeros
 	// in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
 	// at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
-	for (int i = 31 - numLeadingZeros; i < 32; i++) {
+	for (unsigned int i = 31 - numLeadingZeros; i < 32; i++) {
 		int len = myState.chunks[i].size ();
-		for (int j = len - 1; j >= 0; j--) {
+		for (unsigned int j = len - 1; j == 0; j--) {
 			if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
 				void *returnVal = myState.chunks[i][j];
 				myState.chunks[i].erase (myState.chunks[i].begin () + j);
