@@ -87,7 +87,7 @@ inline void VTableMap :: listVtableLabels () {
 }
 
 inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLock) {
-        // std :: cout << "getIDByName for " << objectTypeName << std :: endl;
+        std :: cout << "getIDByName for " << objectTypeName << std :: endl;
 	// one important issue is that we might need to lookup soething nasty like:
 	//
 	// pdb::PairArray<pdb::Handle<pdb::String>,pdb::Handle<pdb::Employee>>
