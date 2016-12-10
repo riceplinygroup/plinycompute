@@ -84,7 +84,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             std :: string errMsg;
 
             cout << "--->CatalogServer handler CatalogNodeMetadata_TYPEID calling addNodeMetadata " << request->getNodeIP().c_str() << endl;
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             bool res = getFunctionality <CatalogServer> ().addNodeMetadata (request, errMsg);
             // make the response
             const UseTemporaryAllocationBlock tempBlock{1024};
@@ -103,7 +103,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             cout << "--->CatalogServer handler CatalogDatabaseMetadata_TYPEID calling addDatabaseMetadata" << endl;
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             bool res;
             string itemKey = request->getItemKey().c_str();
             cout << " lookin for key " << itemKey << endl;
@@ -133,7 +133,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             cout << "--->CatalogServer handler CatalogSetMetadata_TYPEID calling addSetMetadata" << endl;
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             bool res = getFunctionality <CatalogServer> ().addSetMetadata (request, errMsg);
 
             // make the response
@@ -154,7 +154,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             std :: string errMsg;
             string item = request->getItemName();
             cout << "--->Testing CatalogPrintMetadata handler with item id " << item << endl;
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             bool res = getFunctionality <CatalogServer> ().printCatalog (item);
 
 //            printCatalog(item);
@@ -177,7 +177,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
                         std :: cout << "got lock" << std :: endl;
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog serer for the type ID
             int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
                         std :: cout << "searchForObjectTypeName=" << typeID << std :: endl;
@@ -198,7 +198,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog serer for the shared library
                         // added by Jia to test a length error bug
             vector <char> * putResultHere = new vector<char>();
@@ -240,7 +240,6 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
             // ask the catalog serer for the shared library
             // added by Jia to test a length error bug
             vector <char> * putResultHere = new vector<char>();
@@ -399,7 +398,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};            
             // ask the catalog server for the type ID and then the name of the type
             int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
                         std :: cout << "typeID for Set with dbName=" << request->getDatabaseName() << " and setName=" << request->getSetName() << " is " << typeID << std :: endl;
@@ -424,7 +423,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             bool res = getFunctionality <CatalogServer> ().addDatabase (request->dbToCreate (), errMsg);
@@ -444,7 +443,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             auto info = request->whichSet ();
@@ -467,7 +466,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             bool res = getFunctionality <CatalogServer> ().deleteDatabase (request->dbToDelete (), errMsg);
@@ -487,7 +486,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             auto info = request->whichSet ();
@@ -509,7 +508,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             bool res = getFunctionality <CatalogServer> ().addNodeToDB (request->nodeToAdd (), request->whichDB(), errMsg);
@@ -529,7 +528,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             bool res = getFunctionality <CatalogServer> ().addNodeToSet (request->nodeToAdd(), request->whichDB(), request->whichSet(), errMsg);
@@ -550,7 +549,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             bool res = getFunctionality <CatalogServer> ().removeNodeFromDB (request->nodeToRemove (), request->whichDB(), errMsg);
@@ -570,7 +569,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
             auto info = request->whichSet ();
@@ -592,7 +591,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
             // in practice, we can do better than simply locking the whole catalog, but good enough for now...
             const LockGuard guard{workingMutex};
-
+            const UseTemporaryAllocationBlock block{1024*1024};
             // get the next object... this holds the shared library file... it could be big, so be careful!!
             size_t objectSize = sendUsingMe->getSizeOfNextObject ();
 
