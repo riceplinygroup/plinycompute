@@ -163,8 +163,8 @@
 
     PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location){
         //JiaNote: it's unsafe to use makeObjectAllocatorBlock in server functionality!! We should use UseTemporaryAllocationBlock
-        //pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
-        pdb :: UseTemporaryAllocationBlock (1024 * 1024 * 128);
+        pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+        //pdb :: UseTemporaryAllocationBlock (1024 * 1024 * 128);
 
         sqlite3_config(SQLITE_CONFIG_LOG, errorLogCallback,NULL);
         pthread_mutex_init(&(registerMetadataMutex), NULL);
