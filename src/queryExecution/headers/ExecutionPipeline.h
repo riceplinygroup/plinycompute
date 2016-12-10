@@ -15,6 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+
 #ifndef EXECUTION_PIPELINE_H
 #define EXECUTION_PIPELINE_H
 
@@ -92,6 +93,8 @@ private:
 	// should always be smaller than the keys.
 	std :: map <int, int> nodeid2Inputnodeid;
 
+	std :: map <int, std :: vector<Output> > nodeid2Outputs;
+
 	std :: map <std :: string, GenericLambdaObjectPtr> lambdaMap;
 
 	// and here is all of the pages we've not yet written back
@@ -113,6 +116,10 @@ public:
 	// adds a stage to the pipeline
 	void addStage (QueryExecutorPtr addMe) {
 		pipeline.push_back (addMe);
+	}
+
+	void addInputStage() {
+		addStage(nullptr);
 	}
 
 	void addComputationsStage(ComputationPtr computation, TupleSpec &inputSpec) {
@@ -139,6 +146,7 @@ public:
 		std :: vector <std :: string> inputs;
 		plan.getInputs().pushOutputs(inputs);
 		auto allComputations = plan.getComputations();
+		auto outputList = plan.getOutputs();
 
 		for (auto a : inputs) {
 			std::cout << "Input: " << a << std::endl;
@@ -149,6 +157,7 @@ public:
 			
 			std :: vector <ComputationPtr> stack;
 			std :: vector <int> inputNodeIds;
+			addInputStage();
 			auto computations = allComputations.getConsumingComputations(a);
 			for (auto c : computations) {
 				stack.push_back(c);
@@ -156,6 +165,7 @@ public:
 				inputTupleSets.push_back(myInput.getOutput ());
 				std :: cout << c->getOutputName() << std::endl;
 			}
+			++nodeId;
 
 			// Add all the stages to produce outputs that are results of computations
 			// based on this input
@@ -168,21 +178,29 @@ public:
 				// each computation creates a new nodeId. If a nodeId is also in the nodeId to Inputs
 				// map, then that computation that creates this node needs to use the inputset specified
 				// as the input
+				// the first nodeid of every pipelined workflow is always the same as the stage number
+				// in the pipeline vector
 				nodeid2Inputnodeid[nodeId] = inputNodeIds[inputNodeIds.size() - 1];
-				++nodeId;
 
 				stack.pop_back();
 				inputTupleSets.pop_back();
 				inputNodeIds.pop_back();
 
 				// push the computations that consumes the output of this computation onto the stack.
-				computations = allComputations.getConsumingComputations(c->getOutputName());
-				for (auto next : computations) {
-					stack.push_back(next);
-					inputNodeIds.push_back(nodeId);
-					inputTupleSets.push_back(c->getOutput ());
-					std :: cout << next->getOutputName() << std::endl;
+				if (outputList.isOutput(c->getOutputName())) {
+					std :: cout << "This one is output." << c->getOutputName() << std :: endl;
+					nodeid2Outputs[nodeId] = outputList.getConsumers(c->getOutputName());
+				} else {
+					computations = allComputations.getConsumingComputations(c->getOutputName());
+					for (auto next : computations) {
+						stack.push_back(next);
+						inputNodeIds.push_back(nodeId);
+						inputTupleSets.push_back(c->getOutput ());
+						std :: cout << next->getOutputName() << std::endl;
+					}
 				}
+				
+				++nodeId;
 			}
 		}
 	}
@@ -208,7 +226,7 @@ public:
 
 		// write back all of the pages
 		cleanPages (999999999);
-
+		storage->stopFlushConsumerThreads();
 		if (unwrittenPages.size () != 0)
 			std :: cout << "This is bad: in destructor for pipeline, still some pages with objects!!\n";
 	}
@@ -274,6 +292,10 @@ public:
 		
 		for (auto it = nodeid2Inputs.begin(); it != nodeid2Inputs.end(); ++it) {
 			int inputNodeId = it->first;
+			auto nextIt = it;
+			++nextIt;
+			int nextInputNodeId = (nextIt == nodeid2Inputs.end()) ? pipeline.size() : nextIt->first;
+
 			Input &nextInputSource = it->second;
 			std :: cout << "Loading next input set: " << nextInputSource << std :: endl;
 
@@ -287,7 +309,6 @@ public:
 		        while (iter->hasNext()){
 		            PDBPagePtr inputPage = iter->next();
 		            
-		            //print out the results
 		            if (inputPage != nullptr) {
 
 		            	auto *temp = (Record <Vector <Handle <Object>>> *) inputPage->getBytes ();
@@ -298,34 +319,50 @@ public:
 						int iteration = 0;
 						while ((curChunk = dataSource.getNextTupleSet ()) != nullptr) {
 
+							std :: map <int, TupleSetPtr> nodeid2TupleSetPtr;
+
+							nodeid2TupleSetPtr[inputNodeId] = curChunk;
+
 							// go through all of the pipeline stages
-							for (QueryExecutorPtr &q : pipeline) {
+							// the first stage is always a nullptr (input stage), so skipped
+							for (int stage = inputNodeId + 1; stage < nextInputNodeId; ++stage) {
+
+								QueryExecutorPtr &q = pipeline[stage];
 
 								try {
-								
-									curChunk = q->process (curChunk);
-								
+
+									curChunk = q->process (nodeid2TupleSetPtr[nodeid2Inputnodeid[stage]]);
+									nodeid2TupleSetPtr[stage] = curChunk;
+									
 								} catch (NotEnoughSpace &n) {
 									// and get a new page
 									myRAM->setIteration (iteration);
+									++iteration;
 									std :: cout << "Pushing!!\n";
 									unwrittenPages.push (myRAM);
 									myRAM = std :: make_shared <My_MemoryHolder> (getNewPage ());
 
 									// then try again
-									curChunk = q->process (curChunk);
+									curChunk = q->process (nodeid2TupleSetPtr[nodeid2Inputnodeid[stage]]);
+									nodeid2TupleSetPtr[stage] = curChunk;
+								}
+
+								if (nodeid2Outputs.count(stage) != 0) {
+									std :: cout << "Encountered sink node" << std :: endl;
+									// TODO
+
 								}
 							}
 
-							std :: cout << "Done pushing through pipeline.\n";
-
+							std :: cout << "Done pushing through pipeline for one chunk of input set.\n";
+							
 							try {
 
 								if (outputVector == nullptr) {
 									outputVector = myRAM->getOutputVector (curChunk, whichColToOutput);
 								}
 								curChunk->writeOutColumn (whichColToOutput, outputVector, true);
-								std :: cout << outputVector->size() << std::endl;
+
 							} catch (NotEnoughSpace &n) {
 
 								// again, we ran out of RAM here, so write back the page and then create a new output page
@@ -342,6 +379,7 @@ public:
 							// lastly, write back all of the output pages
 							iteration++;
 							cleanPages (iteration);
+
 						}
 
 						// write the results
@@ -373,3 +411,4 @@ public:
 }
 
 #endif
+

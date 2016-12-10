@@ -169,7 +169,7 @@ int main (int argc, char * argv[]) {
 									std :: cout << " ";
 								}
 								std :: cout << "\n";
-								free (page);
+								//free (page);
 							},
 							[] (void *page, size_t pageSize) {
 								std :: cout << "Freeing page of size " << pageSize << "!!!\n";

@@ -420,6 +420,10 @@ public:
 		return consumers [inputName];
 	}
 
+	bool isOutput (std :: string inputName) {
+		return consumers.count (inputName) != 0;
+	}
+
 	friend std :: ostream& operator<<(std :: ostream& os, const OutputList& printMe);
 };
 
