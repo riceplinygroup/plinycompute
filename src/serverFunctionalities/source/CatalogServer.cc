@@ -1351,7 +1351,7 @@ bool CatalogServer :: addDatabaseMetadata (Handle<CatalogDatabaseMetadata> &dbMe
 //    allDatabases.insert (make_pair(dbName, sets));
 
     // temporary allocator
-    const UseTemporaryAllocationBlock tempBlock{4096};
+    //const UseTemporaryAllocationBlock tempBlock{4096};
 
     int metadataCategory = PDBCatalogMsgType::CatalogPDBDatabase;
     Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
