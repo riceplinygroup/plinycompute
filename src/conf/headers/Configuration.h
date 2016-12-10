@@ -92,7 +92,7 @@ public:
 	Configuration() {
 	    //set default values.
 	    this->nodeId = 0;
-            this->logLevel = LogLevel::WARN; 
+            this->logLevel = LogLevel::TRACE; 
 	    serverName = "testServer";
 	    serverAddress = "localhost";
 	    isMasterCatalogServer = false;
