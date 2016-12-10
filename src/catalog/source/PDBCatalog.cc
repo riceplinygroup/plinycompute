@@ -153,9 +153,20 @@
         return true;
     }
 
-    PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location){
-        pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+    void errorLogCallback(void *pArg, int iErrCode, const char *zMsg) {
 
+        fprintf(stderr, "(%d) %s\n", iErrCode, zMsg);
+
+    }
+
+
+
+    PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location){
+        //JiaNote: it's unsafe to use makeObjectAllocatorBlock in server functionality!! We should use UseTemporaryAllocationBlock
+        //pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
+        pdb :: UseTemporaryAllocationBlock (1024 * 1024 * 128);
+
+        sqlite3_config(SQLITE_CONFIG_LOG, errorLogCallback,NULL);
         pthread_mutex_init(&(registerMetadataMutex), NULL);
         this->logger = logger;
 
@@ -258,6 +269,7 @@
         return true;
     }
 
+
     void PDBCatalog::open(){
 
         // Creates a location folder for storing the sqlite file containing metadata for this PDB instance.
@@ -265,7 +277,6 @@
         mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
         sqliteDBHandler = NULL;
-
         int ret = 0;
         // If database doesn't exist creates database along with tables, otherwise,
         // opens database without creating a database/tables.
@@ -543,13 +554,18 @@
 
         pdb :: String emptyString("");
 
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
+        /*
         if ((sqlite3_open_v2(catalogFilename.c_str(), &sqliteDBHandler,
                              SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                              NULL)) != SQLITE_OK)
         {
             this->logger->writeLn("Error opening the database! " + (string)sqlite3_errmsg(sqliteDBHandler));
         }
-
+        */
         pthread_mutex_lock(&(registerMetadataMutex));
 
         sqlite3_stmt *statement = NULL;
@@ -637,16 +653,22 @@
         sqlite3_stmt *stmt = NULL;
         uint8_t *serializedBytes = NULL;
 
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
+        int rc;
+        /*
         int rc = sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler,
                                  SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                                  NULL);
-
+        
         if (rc != SQLITE_OK) {
 
             errorMessage =  "Error opening the Database. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             success = false;
 
-        } else {
+        } else*/ {
 
             string queryString("");
             queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
@@ -807,12 +829,17 @@
 
         errorMessage = "";
 
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
+        /*
         if(sqlite3_open_v2(catalogFilename.c_str(), &sqliteDBHandler, SQLITE_OPEN_READWRITE  | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL) != SQLITE_OK){
             errorMessage = "Error opening catalog database: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             return false;
 
         }
-
+        */
         // First we get the name of the file given the full path of the .so library
 //        string onlyFileName = fileName.substr(fileName.find_last_of("/\\")+1);
 
@@ -948,9 +975,12 @@
         size_t numberOfBytes = metadataBytes->numBytes();
 
 //        cout << sqlStatement << " with key= " << metadataKey << endl;
-
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
         // Opens connection to db
-        if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler,
+        /*if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler,
                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                             NULL)) != SQLITE_OK) {
 
@@ -959,7 +989,7 @@
             isSuccess = false;
 
         }
-
+        */
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1,
                                 &stmt, NULL)) != SQLITE_OK) {
@@ -1031,13 +1061,18 @@
         size_t numberOfBytes = metadataBytes->numBytes();
 
 
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
+        /*
         // Opens connection to db
         if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
             errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
-
+        */
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
             errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
@@ -1103,12 +1138,19 @@
 
 //        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
+        //JiaNote: You already invoked sqlite3_open_v2 in PDBCatalog constructor. Why do you open the handle again here?
+        //JiaNote: open twice will cause the first handle being overwritten and cause memory leak or other severe problems!
+        //JiaNote: see this post: http://sqlite.1065341.n5.nabble.com/sqlite3-close-td41614.html
+        //JiaNote: so I commented following code:
+ 
+        /*
         // Opens connection to db
         if((sqlite3_open_v2(uriPath.c_str(), &sqliteDBHandler, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX  , NULL)) != SQLITE_OK){
             errorMessage = "Error opening database: " + (string)sqlite3_errmsg(sqliteDBHandler);
             this->logger->writeLn(errorMessage);
             isSuccess = false;
         }
+        */
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
             errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
