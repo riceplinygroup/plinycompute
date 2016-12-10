@@ -182,9 +182,9 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     }
 
     if (rp == NULL) {
-        logToMe->error("PDBCommunicator: could not connect to remote server");
+        logToMe->error("PDBCommunicator: could not connect to server: address info is null");
         logToMe->error(strerror(errno));
-        errMsg = "Could not connect to remote server ";
+        errMsg = "Could not connect to server: address info is null with ip="+serverAddress+", and port="+port;
         errMsg += strerror(errno);
         std :: cout << errMsg << std :: endl;
         return true;
