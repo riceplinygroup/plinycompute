@@ -53,9 +53,9 @@ int16_t getTypeID () {
 	// we have some other type name
 	} else {
                 std :: string name = getTypeName<ObjType>();
-                std :: cout << "to get ID for name =" << name << std :: endl;
+                //std :: cout << "to get ID for name =" << name << std :: endl;
                 typeID = VTableMap :: getIDByName (getTypeName <ObjType> (), false);
-                std :: cout << "typeId for name=" << name << "is " << typeID << std :: endl;
+                //std :: cout << "typeId for name=" << name << "is " << typeID << std :: endl;
                 return typeID;
         }
 }

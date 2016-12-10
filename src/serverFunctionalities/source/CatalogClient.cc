@@ -220,6 +220,7 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
                             returnedBytes,
                             errMsg);
     delete putResultHere;
+    std :: cout << "CatalogClient: deleted putResultHere" << std :: endl;
     return res;
 
     //this is not needed b/c it's get copied in the previous step
