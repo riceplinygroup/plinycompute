@@ -97,7 +97,70 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
      }
 }
 
+void QuerySchedulerServer :: scheduleNew() {
 
+    int counter = 0;
+    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
+            [&] (PDBAlarm myAlarm, int &counter) {
+                   counter ++;
+                std :: cout << "counter = " << counter << std :: endl;
+            });
+    for (int i = 0; i < this->resources->size(); i++) {
+        PDBWorkerPtr myWorker = getWorker();
+        PDBWorkPtr myWork = make_shared <GenericWork> (
+            [i, this, &counter] (PDBBuzzerPtr callerBuzzer) {
+                    makeObjectAllocatorBlock(1 * 1024 * 1024, true);
+                    std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
+                    std :: cout << "port:" << (*(this->resources))[i]->getPort() << std :: endl;
+                    std :: cout << "ip:" << (*(this->resources))[i]->getAddress() << std :: endl;
+                    bool success = getFunctionality<QuerySchedulerServer>().scheduleNew ((*(this->resources))[i]->getAddress(), (*(this->resources))[i]->getPort(), this->logger, Recreation);
+                    if (!success) {
+                        callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                        return;
+                    }
+                    callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                }
+            );
+        myWorker->execute(myWork, tempBuzzer);
+    }
+
+    while(counter < this->resources->size()) {
+        tempBuzzer->wait();
+    }
+}
+
+bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
+
+    std :: cout << "to connect to the remote node" << std :: endl;
+    PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+    std :: cout << "port:" << port << std :: endl;
+    std :: cout << "ip:" << ip << std :: endl;
+
+    string errMsg;
+    bool success;
+    std :: cout << "Connecting " << std :: endl;
+    if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
+        success = false;
+        std :: cout << errMsg << std :: endl;
+        return success;
+    }
+    std :: cout << "sending plan " << std :: endl;
+
+    if (mode == Direct)
+        success = communicator->sendObject<QueriesAndPlan>(newQueriesAndPlan, errMsg);
+    else {
+        Handle<QueriesAndPlan> newPlan = deepCopyToCurrentAllocationBlock<QueriesAndPlan> (newQueriesAndPlan);
+        success = communicator->sendObject<QueriesAndPlan>(newPlan, errMsg);
+    }
+    if (!success) {
+        std :: cout << errMsg << std :: endl;
+        return false;
+    }
+
+    return true;
+
+}
 
 bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
      

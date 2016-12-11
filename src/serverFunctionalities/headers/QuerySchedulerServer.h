@@ -29,6 +29,7 @@
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
 #include "QueryGraphIr.h"
+#include "QueriesAndPlan.h"
 #include <vector>
 
 namespace pdb {
@@ -69,6 +70,12 @@ public:
 
        void cleanup () override;       
 
+       // For the new query execution stuff
+       void setQueryAndPlan(Handle<QueriesAndPlan> setToMe) {newQueriesAndPlan = setToMe;}
+
+       void scheduleNew();
+
+       bool scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
 protected:
 
@@ -90,6 +97,8 @@ protected:
 
 
        bool usePipelineNetwork;
+
+       Handle<QueriesAndPlan> newQueriesAndPlan;
 
 };
 
