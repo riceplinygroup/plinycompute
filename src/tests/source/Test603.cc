@@ -26,6 +26,7 @@
 #include "PangeaStorageServer.h"
 #include "FrontendQueryTestServer.h"
 #include "HermesExecutionServer.h"
+#include "PipelineDummyTestServer.h"
 
 int main (int argc, char * argv[] ) {
 
@@ -94,6 +95,7 @@ int main (int argc, char * argv[] ) {
                } else {
                    //I'm the frontend server
                    pdb :: PDBServer frontEnd (8108, 100, logger);
+                   frontEnd.addFunctionality<pdb :: PipelineDummyTestServer>();
                    frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf, standalone);
                    frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
                    bool createSet = true;

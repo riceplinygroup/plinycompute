@@ -33,30 +33,12 @@
 #include "TupleSetIterator.h"
 #include "PangeaStorageServer.h"
 #include "UseTemporaryAllocationBlock.h"
-
+#include "LeoQuery.h"
 
 using std::shared_ptr;
 
 using namespace pdb;
 
-class SillyQuery : public BaseQuery {
-
-public:
-
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
-
-	virtual void toMap(std :: map <std :: string, GenericLambdaObjectPtr> &fillMe, int &identifier) override {
-		Handle <Supervisor> temp = nullptr;
-    	getSelection(temp).toMap (fillMe, identifier);
-    	getProjection(temp).toMap (fillMe, identifier);
-    }
-};
 
 int main (int argc, char * argv[]) {
 	
@@ -176,7 +158,7 @@ int main (int argc, char * argv[]) {
 								//free (page);
 							}, storage);
 
-					shared_ptr<BaseQuery> queryToExecute = std::make_shared<SillyQuery>();
+					shared_ptr<BaseQuery> queryToExecute = std::make_shared<LeoQuery>();
 					myPipe.build(queryToExecute, final);
 
 					// run the pipeline!!!
