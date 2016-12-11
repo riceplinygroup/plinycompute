@@ -82,6 +82,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		if (theVTable->logger != nullptr)
 			theVTable->logger->error ("Cannot load Stored Data Type library: " + sharedLibraryFile + 
 				" error " + (std::string)dlsym_error + '\n');
+                
 
 	// if we were able to open it
 	} else {
@@ -90,17 +91,19 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		// first we need to correctly set all of the global variables in the shared library
 		typedef void setGlobalVars (Allocator *, VTableMap *, void *, void *);
 		std::string getInstance = "setAllGlobalVariables";
+                std::cout << "to set global variables" << std::endl;
 		setGlobalVars *setGlobalVarsFunc = (setGlobalVars *) dlsym (so_handle, getInstance.c_str());
-
 		// see if we were able to get the function
 		if ((dlsym_error = dlerror())) {
 			if (theVTable->logger != nullptr)
 				theVTable->logger->error ("Error, can't set global variables in .so file; error is " +
 					(std::string)dlsym_error + "\n");
+                        std :: cout << "FATAL ERROR: we were not able to get the function" << std :: endl;
 			return nullptr;
 		// if we were able to, then run it
 		} else {
 			setGlobalVarsFunc (mainAllocatorPtr, theVTable, stackBase, stackEnd);
+                        std :: cout << "Successfully set global variables" << std :: endl;
 		}
 
 		// get the function that will give us access to the vTable
@@ -113,11 +116,12 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			if (theVTable->logger != nullptr)
 				theVTable->logger->error ("Error, can't load function getInstance (); error is " +
 					(std::string)dlsym_error + "\n");
+                        std :: cout << "FATAL ERROR: we were not able to load function getObjectVTable" << std :: endl;
 			return nullptr;
 		// if we were able to, then run it
 		} else {
 			theVTable->allVTables[objectTypeID] = getObjectFunc ();
-                        //std :: cout << "VTablePtr for objectTypeID="<<objectTypeID<<" is set in allVTables to be "<< theVTable->allVTables[objectTypeID] << std :: endl;
+                        std :: cout << "VTablePtr for objectTypeID="<<objectTypeID<<" is set in allVTables to be "<< theVTable->allVTables[objectTypeID] << std :: endl;
 		}
 
 	}
