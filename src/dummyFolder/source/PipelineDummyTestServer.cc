@@ -85,11 +85,11 @@ void PipelineDummyTestServer :: registerHandlers (PDBServer &forMe) {
                                                 std :: cout << " ";
                                             }
                                             std :: cout << "\n";
-                                            //free (page);
+                                            free (page);
                                         },
                                         [] (void *page, size_t pageSize) {
                                             std :: cout << "Freeing page of size " << pageSize << "!!!\n";
-                                            //free (page);
+                                            free (page);
                                         }, this);
 
                                 myPipe.build(queries, final);
