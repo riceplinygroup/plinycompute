@@ -183,6 +183,7 @@ inline bool Allocator :: contains (void *whereIn) {
 // to be handled because there is not enough RAM in the current allocation block
 #ifdef DEBUG_OBJECT_MODEL
 inline void *Allocator :: getRAM (size_t howMuch, int16_t typeId) {
+        std :: cout << "to get RAM with size = " << howMuch << " and typeId = " << typeId << std :: endl;
 #else
 inline void *Allocator :: getRAM (size_t howMuch) {
 #endif
@@ -212,7 +213,7 @@ inline void *Allocator :: getRAM (size_t howMuch) {
                                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
                                 std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
                                 std :: cout << "###################################"<< std :: endl;
-      #endif                          
+      #endif  
                                 return retAddress;
 			}
                  }

@@ -145,7 +145,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
                     //JiaNote: comment out below line because searchForObjectTypeName doesn't work for complex type like Vector<Handle<Foo>>
                     //int16_t typeId = getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
-                    int16_t typeId = VTableMap::getIDByName(request->getTypeName());
+                    int16_t typeId = VTableMap::getIDByName(request->getTypeName(), false);
                     if (typeId == 0) {
                         return make_pair (false, "Could not identify type=" + request->getTypeName());
                     }

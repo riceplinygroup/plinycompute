@@ -116,7 +116,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                              outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                              std :: cout << "Output set is created in storage" << std :: endl;
-                             int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName ());
+                             int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName (), false);
                              // create the output set in the storage manager and in the catalog
                              if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
                                  std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
