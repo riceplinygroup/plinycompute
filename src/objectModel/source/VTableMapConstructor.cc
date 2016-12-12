@@ -47,7 +47,7 @@ namespace pdb {
                 ss << &(myLock);
                 std :: cout << "to initialize lock at " << ss.str() << std :: endl;
 		pthread_mutex_init(&(myLock), nullptr);
-        	for (int i = 0; i < 16384; i++) {
+        	for (unsigned int i = 0; i < 16384; i++) {
 			allVTables.push_back (nullptr);
 		}
 
