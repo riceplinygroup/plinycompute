@@ -330,32 +330,57 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     }
 
     // make sure we got enough bytes... if we did not, then error out
-    if (read(socketFD, &nextTypeID, sizeof (int16_t)) <  (int) sizeof (int16_t)) {
-        logToMe->error("PDBCommunicator: could not read next message type");
-        logToMe->error(strerror(errno));
-        nextTypeID = NoMsg_TYPEID;
-        close(socketFD);
-        return 0;
-
-    // OK, we did get enough bytes
-    } else {
-    	  logToMe->trace("PDBCommunicator: typeID of next object is " + std :: to_string (nextTypeID));
+    // JIANOTE: we may not receive all the bytes at once, so we need a loop
+    int receivedBytes = 0;
+    int receivedTotal = 0;
+    int bytesToReceive = sizeof(int16_t); 
+    while (receivedTotal < sizeof(int16_t)) {
+        if ((receivedBytes = read(socketFD, (char *) ((char *)(&nextTypeID)+receivedTotal*sizeof(char)), bytesToReceive)) < 0) {
+            logToMe->error("PDBCommunicator: could not read next message type");
+            logToMe->error(strerror(errno));
+            nextTypeID = NoMsg_TYPEID;
+            close(socketFD);
+            return true;
+         } else if (receivedBytes == 0) {
+            logToMe->info("PDBCommunicator: the other side closed the socket");
+            nextTypeID = NoMsg_TYPEID;
+            close(socketFD);
+            return true;
+         } else {
+            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading type is ")+std::to_string(receivedBytes));
+            receivedTotal = receivedTotal + receivedBytes;
+            bytesToReceive = sizeof(int16_t) - receivedTotal;
+         }
     }
-
+    //now we get enough bytes
+    logToMe->trace("PDBCommunicator: typeID of next object is " + std :: to_string (nextTypeID));
     logToMe->trace("PDBCommunicator: getting the size of the next object:");
 
     // make sure we got enough bytes... if we did not, then error out
-    int bytesRead;
-    if ((bytesRead = read(socketFD, &msgSize, sizeof (size_t))) <  (int) sizeof (size_t)) {
-        logToMe->error ("PDBCommunicator: could not read next message size" + std :: to_string (bytesRead));
-        logToMe->error(strerror(errno));
-        close(socketFD);
-        msgSize = 0;
-
-    // OK, we did get enough bytes
-    } else {
-    	  logToMe->trace("PDBCommunicator: size of next object is " + std :: to_string (msgSize));
+    receivedBytes = 0;
+    receivedTotal = 0;
+    bytesToReceive = sizeof(size_t);
+    while (receivedTotal < sizeof(size_t)) {
+        if ((receivedBytes = read(socketFD, (char *) ((char *)(&msgSize)+receivedTotal*sizeof(char)), bytesToReceive)) <  0) {
+            logToMe->error ("PDBCommunicator: could not read next message size:" + std :: to_string (receivedTotal));
+            logToMe->error(strerror(errno));
+            close(socketFD);
+            msgSize = 0;
+            return true;
+        } else if (receivedBytes == 0) { 
+            logToMe->info("PDBCommunicator: the other side closed the socket");
+            nextTypeID = NoMsg_TYPEID;
+            close(socketFD);
+            return true;
+        }
+        else {
+            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading size is ")+std::to_string(receivedBytes));
+            receivedTotal = receivedTotal + receivedBytes;
+            bytesToReceive = sizeof(size_t) - receivedTotal;
+        }
     }
+    // OK, we did get enough bytes
+    logToMe->trace("PDBCommunicator: size of next object is " + std :: to_string (msgSize));
     readCurMsgSize = true;
     return msgSize;
 }
