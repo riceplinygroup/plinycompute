@@ -133,7 +133,9 @@ namespace pdb {
         void setLibraryBytes(pdb :: String &bytesIn){
             libraryBytes = bytesIn;
         }
-
+        void setLibraryBytes(std :: string bytesIn) {
+            libraryBytes = bytesIn;
+        }
         string printShort(){
             string output;
             output = "   Type ID: ";
