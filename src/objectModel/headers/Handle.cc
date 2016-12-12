@@ -413,7 +413,6 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 
 template <class ObjType>
 Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjType> *fromMe) {
-		
 	// get the thing that we used to point to
 	GET_OLD_TARGET;
 
@@ -479,12 +478,14 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 		// set the offset
 		offset = CHAR_PTR (fromMe) - CHAR_PTR (this);
-
+                //std :: cout << "offset=" << offset << std :: endl;
 		// increment the reference count then decrement the old ref count...
 		// it is important to do it in this order to correctly handle self-
 		// assignments without accidentally setting the count to zero
 		getTarget ()->incRefCount ();
+                //std :: cout << "to dec old ref count" << std :: endl;
 		DEC_OLD_REF_COUNT;
+                //std :: cout << "to return" << std :: endl;
 	}
 
 	return *this;
@@ -754,7 +755,9 @@ template <class ObjType>
 ObjType *Handle <ObjType> :: operator -> () const {
 	
 	// fix the vTable pointer and return a reference
+        //std :: cout << "to setVTablePtr in handle -> operator" << std :: endl;
 	typeInfo.setVTablePtr (getTarget ()->getObject ());
+        //std :: cout << "setVTablePtr done" << std :: endl;
 	return getTarget ()->getObject ();
 }
 

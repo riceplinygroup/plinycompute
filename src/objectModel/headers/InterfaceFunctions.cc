@@ -150,6 +150,7 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
 #ifdef DEBUG_OBJECT_MODEL
         PDBTemplateBase temp;
         temp.template setup <ObjType> ();
+        std :: cout << "to get RAM from allocator with size =" << sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE << std :: endl;
 #endif
 	// create a new object
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *)
@@ -160,9 +161,11 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
 #endif
 
 	// if we got a nullptr, get outta there
-	if (returnVal == nullptr)
+	if (returnVal == nullptr) {
+                //std :: cout << "makeObject: return nullptr" << std :: endl;
 		return nullptr;
-
+        }
+        //std :: cout << "to call the placement new" << std :: endl;
 	// call the placement new
         try {
 	        new ((void *) returnVal->getObject ()) ObjType (args... );
@@ -170,6 +173,7 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
                 //for reference counting correctness
                 //returnVal->setRefCount(0);
                 //Handle<ObjType> temp = returnVal;
+                //std :: cout << "to free RAM for exception" << std :: endl;
 #ifdef DEBUG_OBJECT_MODEL
                 getAllocator().freeRAM(returnVal, temp.getTypeCode());
 #else
@@ -177,7 +181,7 @@ RefCountedObject <ObjType> *makeObject (Args&&... args) {
 #endif
                 throw n;
         }
-
+        //std :: cout << "set reference count = 0" << std :: endl;
 	// set the reference count
 	returnVal->setRefCount (0);
 
@@ -190,6 +194,7 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 #ifdef DEBUG_OBJECT_MODEL
         PDBTemplateBase temp;
         temp.template setup <ObjType> ();
+        std :: cout << "to get RAM from allocator with size =" << extra+sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE << std :: endl;
 #endif
 	// create a new object
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
@@ -202,6 +207,7 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 	if (returnVal == nullptr)
 		return nullptr;
 
+        //std :: cout << "to call the placement new" << std :: endl;
 	// call the placement new
         try {
 	    new ((void *) returnVal->getObject ()) ObjType (args... );
@@ -217,7 +223,7 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 #endif
              throw n;
         }
-
+        //std :: cout << "to set reference count = 0" << std :: endl;
 	// set the reference count
 	returnVal->setRefCount (0);
 

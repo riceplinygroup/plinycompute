@@ -27,13 +27,15 @@
 #include <cstring>
 #include <unordered_map>
 
+
+//#define DEBUG_OBJECT_MODEL
+
 namespace pdb {
 
 // This file contains the Allocator class, as well as its helper classes.  While
 // these classes are used extenviely during Object management, most programmers
 // (even PDB engineers) will not directly touch these classes.  Instead, the
 // Allocator is used indirectly, via the functions in InterfactFunctions.h.
-
 #define CHAR_PTR(c) ((char *) c)
 
 // this class is an exception that is (optionally) thrown 

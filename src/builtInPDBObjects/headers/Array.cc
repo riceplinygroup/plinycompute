@@ -82,13 +82,11 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
 	usedSlots = numUsedSlots;
 	numSlots = numSlotsIn;
 	if (typeInfo.descendsFromObject ()) {
-
 		// run the constructor on each object
 		for (uint32_t i = 0; i < numUsedSlots; i++) {
 			new ((void *) &(data[i])) TypeContained ();
 		}
 	} else {
-
 		// zero out everything
 		bzero (data, numUsedSlots * sizeof (TypeContained));
 	}

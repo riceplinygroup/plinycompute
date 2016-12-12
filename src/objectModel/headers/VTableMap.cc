@@ -215,19 +215,22 @@ inline VTableMap :: ~VTableMap () {
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 
-	// OK, first, we check to see if we have the v table pointer for this guy...
+	// JIANOTE TODO: we may need lock it, otherwise another thread may change it
+        /*
+        // OK, first, we check to see if we have the v table pointer for this guy...
 	// this is done without a lock, so we can be very fast...
+        */
 	void *returnVal = theVTable->allVTables[objectTypeID];
 	if (returnVal != nullptr) {
 		return returnVal;
 	}
 
+        const LockGuard guard {theVTable->myLock};
 	// we do not, so get the lock...
         //std :: stringstream ss;
         //ss << &(theVTable->myLock);
         //std :: cout << "to get lock at " << ss.str() << "in getVTablePtr with typeId=" << objectTypeID << std :: endl;
        	
-        const LockGuard guard {theVTable->myLock};
             //std :: cout << "got lock at " << ss.str() << " in getVTablePtr" << std :: endl;
 	    // before we go out to the network for the v table pointer, just verify
 	    // that another thread has not since gotten it for us

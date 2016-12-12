@@ -35,7 +35,8 @@ public:
 	CatTypeNameSearch () {}
 	~CatTypeNameSearch () {}
 
-	CatTypeNameSearch (std :: string searchForMe) : objectName (searchForMe) {}
+	CatTypeNameSearch (std :: string searchForMe) : objectName (searchForMe) {   
+ }
 
 	std :: string getObjectTypeName () {
 		return objectName;

@@ -419,10 +419,13 @@ PDBPagePtr PageCache::getNewPageNonBlocking(NodeID nodeId, CacheKey key, Localit
 //Assumption: for a new pageId, at one time, only one thread will try to allocate a new page for it
 //To allocate a new page, set it as pinned&dirty, add it to cache, and increment reference count
 PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) {
+       pthread_mutex_lock(&evictionMutex);
        if(this->containsPage(key) == true) {
            //cout << "PageCache: getNewPage: Page exists for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
+           pthread_mutex_unlock(&evictionMutex);
            return nullptr;
        }
+       pthread_mutex_unlock(&evictionMutex);
        int internalOffset = 0;
        char * pageData;
        std :: cout << "to get a page" << std :: endl;

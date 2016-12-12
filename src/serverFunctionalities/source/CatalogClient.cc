@@ -162,7 +162,7 @@ void CatalogClient :: setPointsToMasterCatalog(bool pointsToMaster){
 
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
         std :: cout << "searchForObjectTypeName for " << objectTypeName << std :: endl;
-	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024,
+	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, false, 1024*1024,
 		[&] (Handle <CatTypeSearchResult> result) {
 			if (result != nullptr){
                                 std :: cout << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl; 
