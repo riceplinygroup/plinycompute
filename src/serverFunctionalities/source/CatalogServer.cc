@@ -397,7 +397,6 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
                    Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
-                   Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
                    typeName = allTypeCodes[typeId];
                    std :: cout << "Resolved typeName" << typeName << " for typeId=" << typeId << std :: endl;
@@ -411,26 +410,17 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
 
                    cout << "    Bytes returned No isMaster: " << returnedBytes.size() << endl;
 
-                   String _retBytes(returnedBytes);
 
-                   // do a deep copy and set metadata
-                   *responseTwo = *response;
-                   String newItemID(response->getObjectID());
-                   responseTwo->setObjectId(newItemID);
-                   String newItemName(response->getItemName());
-                   responseTwo->setItemName(newItemName);
-                   String newItemKey(response->getItemKey());
-                   responseTwo->setItemKey(newItemKey);
-                   responseTwo->setLibraryBytes(_retBytes);
+                   response->setLibraryBytes(returnedBytes);
 
                    cout << "Object Id isLocal: " << response->getObjectID().c_str() << " | " << response->getItemKey() << " | " << response->getItemName() << endl;
                     if (!res) {
                     const UseTemporaryAllocationBlock tempBlock{1024};
         //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
-                        res = sendUsingMe->sendObject (responseTwo, errMsg);
+                        res = sendUsingMe->sendObject (response, errMsg);
                     } else {
                         cout << "     Sending metadata and bytes to caller!" << endl;
-                        res = sendUsingMe->sendObject (responseTwo, errMsg);
+                        res = sendUsingMe->sendObject (response, errMsg);
                     }
 
                 }
