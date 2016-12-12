@@ -103,6 +103,7 @@ void PageCache::cachePage(PDBPagePtr page, LocalitySet* set) {
 //Otherwise, try to evict a page from shared memory.
 //It will block until data can be allocated.
 char * PageCache::allocateBufferFromSharedMemoryBlocking(size_t size, int & alignOffset) {
+        //below function is thread-safe
 	char* data = (char *) this->shm->mallocAlign(size, 512, alignOffset);
 	//Dangerous: dead loop
 	while (data == nullptr) {
@@ -120,7 +121,7 @@ char * PageCache::allocateBufferFromSharedMemoryBlocking(size_t size, int & alig
 		data = (char *) this->shm->mallocAlign(size, 512, alignOffset);
 	}
           
-        //cout << "page allocated!\n";
+        cout << "page allocated!\n";
 	return data;
 }
 
@@ -435,9 +436,9 @@ PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) 
        */
        //cout << "getNewPage: internalOffset=" << internalOffset <<"\n";
        if(pageData != nullptr) {
-            //cout << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
+            cout << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
        } else {
-            //cout << "failed!!!\n";
+            cout << "failed!!!\n";
             return nullptr;
        } 
        PDBPagePtr page = make_shared<PDBPage>(pageData, nodeId, key.dbId,

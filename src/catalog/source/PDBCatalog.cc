@@ -849,28 +849,51 @@
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
             sqlite3_reset(pStmt);
+            std :: cout << errorMessage << std :: endl;
+            //JiaNote: We should unlock here !!!!!
+            pthread_mutex_unlock(&registerMetadataMutex);
             return false;
         }
 
         sqlite3_bind_text(pStmt, 1, itemId.c_str(), -1, SQLITE_STATIC);
 
         if( sqlite3_step(pStmt) !=SQLITE_ROW ){
-            errorMessage = "Error item not found in database: \n";
+            errorMessage = "Error item not found in database: "+ (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             sqlite3_reset(pStmt);
+            std :: cout << errorMessage << std :: endl;
+            //JiaNote: We should unlock here !!!!
+            pthread_mutex_unlock(&registerMetadataMutex);
             return false;
         }
 
         // retrieves metadata stored as serialized pdb :: Object
         int numBytes = sqlite3_column_bytes(pStmt, 1);
         Record <CatalogUserTypeMetadata> *recordBytes = (Record  <CatalogUserTypeMetadata> *) malloc (numBytes);
+        
+        //JiaNote: we should check whether malloc is successful!
+        if (recordBytes == nullptr) {
+            std :: cout << "FATAL ERROR: Out of memory!" << std :: endl;
+            //JiaNote: we should unlock here
+            pthread_mutex_unlock(&registerMetadataMutex);
+            exit (-1);
+        }
 
         memcpy(recordBytes, sqlite3_column_blob(pStmt, 1), numBytes);
         //cout << "retrieving " << key << " with timeStamp= " << sqlite3_column_int(statement, 2) << endl;
 
         // get the object
-//        Handle<CatalogUserTypeMetadata> returnedObject = recordBytes->getRootObject ();
+        //JiaNote: we need to do deep copy like this!!!
+        Handle<CatalogUserTypeMetadata> returnedObject = recordBytes->getRootObject ();
+        returnedItem = deepCopyToCurrentAllocationBlock<CatalogUserTypeMetadata>(returnedObject);
 
-        returnedItem = recordBytes->getRootObject ();
+        if (returnedItem == nullptr) {
+            std :: cout << "FATAL ERROR: Corrupted CatalogUserTypeMetadata!" << std :: endl;
+            //JiaNote: we should unlock here and free memory here
+            pthread_mutex_unlock(&registerMetadataMutex);
+            free(recordBytes);
+            return false;
+        }
+
 
         cout << "Metadata created for item " << returnedItem->getItemId().c_str() << endl;
         cout << "Metadata created for item " << returnedItem->getItemKey().c_str() << endl;
@@ -906,7 +929,8 @@
 //        this->logger->writeLn("Dynamic library successfully retrieved from the catalog!");
 
         pthread_mutex_unlock(&(registerMetadataMutex));
-
+        //JiaNote: we should free allocated memory for recordBytes here
+        free(recordBytes);
         return true;
     }
 

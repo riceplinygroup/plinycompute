@@ -120,20 +120,20 @@ PDBPagePtr UserSet::getPage(FilePartitionID partitionId,
 
 PDBPagePtr UserSet::addPage() {
     //cout << "To add page...\n";
-    //this->logger->writeLn("UserSet: to add page...");
+    this->logger->writeLn("UserSet: to add page...");
     PageID pageId = seqId.getNextSequenceID();
-    //cout << "PDBPagePtr: pageId=" << pageId << "\n";
-    //this->logger->writeLn("UserSet: pageId generated =");
-    //this->logger->writeInt(pageId);
+    cout << "PDBPagePtr: pageId=" << pageId << "\n";
+    this->logger->writeLn("UserSet: pageId generated =");
+    this->logger->writeInt(pageId);
     CacheKey key;
     key.dbId = this->dbId;
     key.typeId = this->typeId;
     key.setId = this->setId;
     key.pageId = pageId;
     PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this);
-    //cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
-    //this->logger->writeLn("UserSet: pageId set =");
-    //this->logger->writeInt(pageId);
+    cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
+    this->logger->writeLn("UserSet: pageId set =");
+    this->logger->writeInt(pageId);
     if(page == nullptr ) {
         return nullptr;
     }
