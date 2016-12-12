@@ -64,7 +64,7 @@ inline std :: string VTableMap :: lookupBuiltInType (int16_t objectType) {
 // returns the number of registered built-in objects
 inline int VTableMap :: totalBuiltInObjects () {
         int count = 0;
-        for (int i = 0; i < theVTable->allVTables.size();i++){
+        for (unsigned int i = 0; i < theVTable->allVTables.size();i++){
             if (theVTable->allVTables[i] != nullptr){
                 count = count + 1;
             }
@@ -73,7 +73,7 @@ inline int VTableMap :: totalBuiltInObjects () {
 }
 
 inline void VTableMap :: listVtableEntries () {
-        for (int i=0;i< theVTable->allVTables.size();i++){
+        for (unsigned int i=0;i< theVTable->allVTables.size();i++){
             if (theVTable->allVTables[i] != nullptr) std::cout << "vtpr " << i << ": " << theVTable->allVTables[i] << std::endl;
         }
 }    
@@ -104,7 +104,7 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLo
 	bool isTemplate = false;
 	int depth = 0;
 	int length = objectTypeName.size ();
-	for (int loc = 0; loc < length; loc++) {
+	for (unsigned int loc = 0; loc < length; loc++) {
 		if (objectTypeName[loc] == '<') {
 			depth++;
 			if (depth == 1) {
