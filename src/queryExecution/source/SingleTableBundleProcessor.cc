@@ -81,16 +81,16 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
               myOutputVec.push_back(myInputVec[posInInput]);
               totalSize ++;
         }
-        std :: cout << "posInInput=" << posInInput << std :: endl;
-        std :: cout << "posToFinish=" << posToFinish << std :: endl;
+        //std :: cout << "posInInput=" << posInInput << std :: endl;
+        //std :: cout << "posToFinish=" << posToFinish << std :: endl;
         if (posInInput==vecSize) {
             return false;
         } else {
             return true;
         }
     } catch (NotEnoughSpace &n) {
-        std :: cout << "got exception, the page is full" << std :: endl;
-        std :: cout << "loaded " << totalSize << " objects in total" << std :: endl;
+        //std :: cout << "got exception, the page is full" << std :: endl;
+        //std :: cout << "loaded " << totalSize << " objects in total" << std :: endl;
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
             //getRecord(this->context->outputVec);
