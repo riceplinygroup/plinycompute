@@ -68,7 +68,9 @@ bool PDBScanWork::sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool 
 bool PDBScanWork::acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bool & wasError, string & info, string & errMsg) {
 
 	size_t sizeOfNextObject = myCommunicator->getSizeOfNextObject();
+        std :: cout << "PDBScanWork: to create memory block for SimpleRequestResult" << std :: endl;
         const pdb :: UseTemporaryAllocationBlock myBlock{sizeOfNextObject};
+        std :: cout << "PDBScanWork: memory block allocated" << std :: endl;
 	bool success;
 	pdb :: Handle <pdb :: SimpleRequestResult> msg =
 		myCommunicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);

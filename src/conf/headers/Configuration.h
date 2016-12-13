@@ -116,8 +116,8 @@ public:
 //        dataTempDirs = "/data10/tmp,/mnt/tmp";
 //    	dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
 	    numThreads = DEFAULT_NUM_THREADS;
-	    ipcFile = "pdbRoot/ipcFile";
-	    backEndIpcFile = "pdbRoot/backEndIpcFile";
+	    ipcFile = "/tmp/ipcFile";
+	    backEndIpcFile = "/tmp/backEndIpcFile";
             isMaster = false;
 	}
 

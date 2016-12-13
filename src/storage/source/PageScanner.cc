@@ -65,7 +65,9 @@ bool PageScanner::acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, str
     }
 
     //receive the PinPage object
+    std :: cout << "PageScanner: to allocate memory block for PagePinned objects" << std :: endl;
     const pdb :: UseTemporaryAllocationBlock myBlock{myCommunicator->getSizeOfNextObject ()};
+    std :: cout << "PageScanner: memory block allocated" << std :: endl;
     bool success;
     pdb :: Handle <pdb :: StoragePagePinned> msg =
 	myCommunicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
