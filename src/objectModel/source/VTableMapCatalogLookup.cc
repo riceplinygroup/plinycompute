@@ -129,6 +129,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 }
 
 int16_t VTableMap :: lookupTypeNameInCatalog (std :: string objectTypeName) {
+        std :: cout << "invoke lookupTypeNameInCatalog for objectTypeName=" << objectTypeName << std :: endl;
         return theVTable->catalog->searchForObjectTypeName (objectTypeName);
 }
 
