@@ -34,6 +34,7 @@
 #include <sys/types.h> 
 #include <sys/un.h>
 #include <unistd.h>
+#include <signal.h>
 #include "PDBCommunicator.h"
 #include "CloseConnection.h"
 #include "ShutDown.h"
@@ -53,7 +54,9 @@ PDBServer::PDBServer(int portNumberIn, int numConnectionsIn, PDBLoggerPtr myLogg
     myLogger = myLoggerIn;
     isInternet = true;
     allDone = false;
-
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &sa, 0);
     // create the workers
     myWorkers = make_shared <PDBWorkerQueue> (myLogger, numConnections);
 }
@@ -66,7 +69,9 @@ PDBServer::PDBServer (string unixFileIn, int numConnectionsIn, PDBLoggerPtr myLo
     myLogger = myLoggerIn;
     isInternet = false;
     allDone = false;
-
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigaction(SIGPIPE, &sa, 0);
     // create the workers
     myWorkers = make_shared <PDBWorkerQueue> (myLogger, numConnections);
 }
