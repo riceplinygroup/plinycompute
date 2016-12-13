@@ -180,7 +180,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             const UseTemporaryAllocationBlock block{1024*1024};
             // ask the catalog serer for the type ID
             int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
-                        std :: cout << "searchForObjectTypeName=" << typeID << std :: endl;
+            std :: cout << "searchForObjectTypeName for "<<request->getObjectTypeName() << " is "  << typeID << std :: endl;
             // make the result
             const UseTemporaryAllocationBlock tempBlock{1024};
             Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);
