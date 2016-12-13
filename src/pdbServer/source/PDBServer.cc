@@ -179,7 +179,7 @@ void PDBServer::listen() {
             myLogger->error("PDBServer: could not bind to local socket");
             myLogger->error(strerror(errno));
             //if pathToBackEndServer exists, delete it.
-            if( remove(unixFile.c_str()) == 0) {
+            if( unlink(unixFile.c_str()) == 0) {
                 cout << "Removed outdated "<<unixFile.c_str()<<".\n";
             } 
             if (::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (struct sockaddr_un))) {

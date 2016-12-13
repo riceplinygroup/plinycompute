@@ -65,7 +65,7 @@ PDBPagePtr PartitionPageIterator::next() {
 			//page is pinned (ref count ++)
 			pageToReturn = cache->getPage(this->partitionedFile, this->partitionId, this->numIteratedPages,
 					curPageId, false, set);
-                        //std :: cout << "got page" << std :: endl;
+                        std :: cout << "PartitionedPageIterator: got page" << std :: endl;
 			this->numIteratedPages ++;
 
 		}

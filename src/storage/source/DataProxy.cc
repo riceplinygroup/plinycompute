@@ -185,7 +185,9 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
         
         //receive the PagePinned object
        {
+            std :: cout << "DataProxy: to allocate memory block for PagePinned object" << std :: endl;
             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+            std :: cout << "DataProxy: memory block allocated" << std :: endl;
             bool success;
             pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
