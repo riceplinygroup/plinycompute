@@ -398,7 +398,7 @@ private:
         //this stores the mapping from Database name to DatabaseID
         std :: map < std :: string, DatabaseID > * name2id;
 
-
+        long totalObjects;
 };
 
 }

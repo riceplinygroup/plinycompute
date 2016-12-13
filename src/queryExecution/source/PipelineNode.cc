@@ -89,6 +89,9 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              logger->debug(std :: string( "PipelineNode::unbundle(): Current allocation block is full" )); 
              //copy data to output page
              Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+             std :: cout << "###############################" << std :: endl;
+             std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;
+             std :: cout << "###############################" << std :: endl;
              memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
              //std :: cout << "PipelineNode: unpin output page" << std :: endl;
@@ -141,6 +144,9 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         logger->debug(std :: string("PipelineNode::run()--loadOutputBlock before loop: current block is full, copy to output page!"));
         //copy data to output page
         Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+        std :: cout << "###############################" << std :: endl;
+        std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;               
+        std :: cout << "###############################" << std :: endl;
         memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
         //unpin output page
@@ -173,7 +179,10 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              std :: cout << "PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
              logger->debug(std :: string("PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
              //copy data to output page
-             Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());        
+             Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());  
+             std :: cout << "###############################" << std :: endl;
+             std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;               
+             std :: cout << "###############################" << std :: endl;      
              memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
              std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
@@ -227,6 +236,9 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             logger->debug(std :: string("PipelineNode::run()--loadOutputBlock() in loop: current block is full, copy to output page!"));
             //copy data to output page
             Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+            std :: cout << "###############################" << std :: endl;
+            std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;
+            std :: cout << "###############################" << std :: endl;
             memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
             //std :: cout << "to unpin user page for output" << std :: endl;

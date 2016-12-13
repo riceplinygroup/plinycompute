@@ -87,19 +87,22 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 	}
 
+        int totalObjects = 0;
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                //std :: cout << "Projection processor: posInInput="<< posInInput <<", input object num=" << vecSize << std :: endl;
+                std :: cout << "Projection processor: posInInput="<< posInInput <<", input object num=" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 			myOutVec.push_back (projectionFunc ());	
+                        totalObjects ++;
 		}	
-                //std :: cout << "Projection processor processed one input block" << std :: endl;
+                std :: cout << "Projection processor processed one input block with "<<totalObjects << " objects" << std :: endl;
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-                //std :: cout << "Projection processor consumed the page" << std :: endl;
+                std :: cout << "Projection processor consumed the page with "<< totalObjects << " objects" << std :: endl;
+                std :: cout << "posInInput = " << posInInput << std :: endl;
 	        if (this->context != nullptr) {	
 		        //getRecord (this->context->outputVec);
                         context->setOutputFull(true);

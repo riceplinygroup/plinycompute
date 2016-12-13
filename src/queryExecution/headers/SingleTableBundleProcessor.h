@@ -59,7 +59,7 @@ private:
         // pipeline context
         PipelineContextPtr context;
 
-
+        long totalSize;
 public:
 
         ~SingleTableBundleProcessor ();

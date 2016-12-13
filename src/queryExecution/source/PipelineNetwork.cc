@@ -236,7 +236,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
          });
     
     int counter = 0;
-    int batchSize = 100;
+    int batchSize = 2000;
+    //int totalInputObjects = 0;
+    //int totalOutputObjects = 0;
     for (int i = 0; i < numThreads; i++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
          std :: cout << "to run the " << i << "-th work..." << std :: endl;
@@ -278,7 +280,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                       logger->debug(std :: string("PipelineNetwork: Got a page!"));
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
-                          //std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
+                          std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           logger->debug(std :: string("PipelineNetwork: Page is not null with pageId=") + std :: to_string(page->getPageID()));
                           bundler->loadInputPage(page->getBytes());
                           //std :: cout << "loaded an allocate block for output" << std :: endl;
@@ -298,6 +300,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               if (context->isOutputFull()) {
                                   std :: cout << "PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
+                                  std :: cout << "###############################" << std :: endl;
+                                  std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;  
+                                  std :: cout << "###############################" << std :: endl;
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                   memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
@@ -336,6 +341,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   std :: cout << "PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!"));
                                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                                  std :: cout << "###############################" << std :: endl;
+                                  std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;  
+                                  std :: cout << "###############################" << std :: endl;
                                   memcpy(output->getBytes(), myBytes, myBytes->numBytes());
                                   //std :: cout << "we need to unpin the full page" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: we need to unpin the full page"));
@@ -382,6 +390,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                        logger->error(std :: string("Error : output page is null in context"));
                        exit(-1);
                   }
+                  std :: cout << "###############################" << std :: endl;
+                  std :: cout << "To flush query result objects: " << outputVec->size() << std :: endl;  
+                  std :: cout << "###############################" << std :: endl;
                   memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
                   //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
                   //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
