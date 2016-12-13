@@ -91,7 +91,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                std :: cout << "filterProcessor: posInInput=" << posInInput << ",input object num =" << vecSize << std :: endl;
+                //std :: cout << "filterProcessor: posInInput=" << posInInput << ",input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
                         //std :: cout << "posInInput=" << posInInput << std :: endl;
@@ -102,12 +102,12 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
                                 //std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
 		}
-                std :: cout << "Filter processor processed an input block with "<< totalObjects << " output objects" << std :: endl;	
+                //std :: cout << "Filter processor processed an input block with "<< totalObjects << " output objects" << std :: endl;	
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-                std :: cout << "Filter processor consumed current page with "<< totalObjects << " objects" << std :: endl;
-                std :: cout << "posInInput =" << posInInput << std :: endl;
+                //std :: cout << "Filter processor consumed current page with "<< totalObjects << " objects" << std :: endl;
+                //std :: cout << "posInInput =" << posInInput << std :: endl;
                 if (this->context != nullptr) {
 		       //getRecord (context->outputVec);
                        context->setOutputFull(true);
