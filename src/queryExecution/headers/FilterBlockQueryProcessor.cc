@@ -87,24 +87,27 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 	}
 
+        int totalObjects = 0;
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-                //std :: cout << "filterProcessor: posInInput=" << posInInput << ",input object num =" << vecSize << std :: endl;
+                std :: cout << "filterProcessor: posInInput=" << posInInput << ",input object num =" << vecSize << std :: endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
                         //std :: cout << "posInInput=" << posInInput << std :: endl;
 			if (filterFunc ()) {
                                 //std :: cout << "to push back posInInput=" << posInInput << std :: endl;
 				myOutVec.push_back (inputObject);
+                                totalObjects ++;
                                 //std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
 		}
-                //std :: cout << "Filter processor processed an input block" << std :: endl;	
+                std :: cout << "Filter processor processed an input block with "<< totalObjects << " output objects" << std :: endl;	
 		return false;
 
 	} catch (NotEnoughSpace &n) {
-                //std :: cout << "Filter processor consumed current page" << std :: endl;
+                std :: cout << "Filter processor consumed current page with "<< totalObjects << " objects" << std :: endl;
+                std :: cout << "posInInput =" << posInInput << std :: endl;
                 if (this->context != nullptr) {
 		       //getRecord (context->outputVec);
                        context->setOutputFull(true);

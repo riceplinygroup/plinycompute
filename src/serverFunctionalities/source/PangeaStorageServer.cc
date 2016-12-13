@@ -96,7 +96,7 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->logger = logger;
         //this->logger->setEnabled(conf->isLogEnabled());
         this->standalone = standalone;
-
+        this->totalObjects = 0;
         //IPC file used to communicate with backend
         this->pathToBackEndServer = this->conf->getBackEndIpcFile();
 
@@ -151,6 +151,7 @@ void PangeaStorageServer :: cleanup() {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first);
         }
+        std :: cout << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
         //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
         std :: cout << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
         sleep(1);
@@ -229,10 +230,12 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				numObjectsInRecord = allObjects.size ();
-
+              
 				// put all of the data onto the page
-				for (; pos < numObjectsInRecord; pos++)
+				for (; pos < numObjectsInRecord; pos++) {
 					data->push_back (allObjects[pos]);
+                                        totalObjects++;
+                                }
 	
 				// now kill this record
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();

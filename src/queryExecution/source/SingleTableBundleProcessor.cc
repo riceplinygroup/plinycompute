@@ -23,7 +23,7 @@
 namespace pdb {
 
 SingleTableBundleProcessor :: ~SingleTableBundleProcessor() {
-
+    std :: cout << "Total input objects number =" << this->totalSize << std :: endl;
     this->clearInputPage();
     this->clearOutputBlock();
     this->context = nullptr;
@@ -33,6 +33,7 @@ SingleTableBundleProcessor :: SingleTableBundleProcessor () {
 
     this->batchSize = 100;
     this->context = nullptr;
+    this->totalSize = 0;
 } 
 
 void SingleTableBundleProcessor :: initialize () {
@@ -45,6 +46,9 @@ void SingleTableBundleProcessor :: loadInputPage (void * pageToProcess) {
 
     Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) pageToProcess;
     inputVec = myRec->getRootObject ();
+    std :: cout << "#######################################" << std :: endl;
+    std :: cout << "Loaded a page with " << inputVec->size() << " objects"<< std :: endl;
+    std :: cout << "#######################################" << std :: endl;
     posInInput = 0;
 
 }
@@ -66,7 +70,6 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
     if (finalized) {
         return false;
     }
-
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
@@ -75,10 +78,11 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
 //        std :: cout << "posToFinish=" << posToFinish << std :: endl;
         for (; ((posInInput < vecSize) && (posInInput < posToFinish)); posInInput++) {
 //            std :: cout << "posInInput=" << posInInput << std :: endl;
-            myOutputVec.push_back(myInputVec[posInInput]);
+              myOutputVec.push_back(myInputVec[posInInput]);
+              totalSize ++;
         }
-//        std :: cout << "posInInput=" << posInInput << std :: endl;
-//        std :: cout << "posToFinish=" << posToFinish << std :: endl;
+        std :: cout << "posInInput=" << posInInput << std :: endl;
+        std :: cout << "posToFinish=" << posToFinish << std :: endl;
         if (posInInput==vecSize) {
             return false;
         } else {
@@ -86,6 +90,7 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
         }
     } catch (NotEnoughSpace &n) {
         std :: cout << "got exception, the page is full" << std :: endl;
+        std :: cout << "loaded " << totalSize << " objects in total" << std :: endl;
         if (this->context != nullptr) {
             //because final output and intermediate data are allocated on the same page, due to object model limitation
             //getRecord(this->context->outputVec);
