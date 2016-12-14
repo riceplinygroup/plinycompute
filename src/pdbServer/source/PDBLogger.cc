@@ -24,7 +24,7 @@
 #include "PDBLogger.h"
 #include <stdio.h>
 #include <sys/stat.h>
-
+#include <pthread.h>
 #include "LogLevel.h"
 
 //#include "boost/filesystem.hpp"
@@ -178,11 +178,13 @@ void PDBLogger::writeLn(std :: string writeMe) {
 
 	// add date and time to the log
 	writeMe = buf + writeMe;
-
+         
+        //JiaNote: to get thread id for debugging
+        pthread_t threadId = pthread_self();
 	if (writeMe[writeMe.length() - 1] != '\n') {
-		fprintf(outputFile, "%s\n", writeMe.c_str());
+		fprintf(outputFile, "[%lu]%s\n", threadId, writeMe.c_str());
 	} else {
-		fprintf(outputFile, "%s", writeMe.c_str());
+		fprintf(outputFile, "[%lu]%s", threadId, writeMe.c_str());
 	}
 	fflush(outputFile);
 }

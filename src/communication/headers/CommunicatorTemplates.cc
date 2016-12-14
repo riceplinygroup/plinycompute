@@ -56,6 +56,7 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 		errMsg = "PDBCommunicator: not able to send the object type";
             	logToMe->error(errMsg);
             	logToMe->error(strerror(errno));
+                std :: cout << errMsg << strerror(errno) << std :: endl;
 		return false;
 	}
         //std :: cout << "written the type\n";

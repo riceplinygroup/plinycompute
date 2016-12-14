@@ -51,7 +51,7 @@ PDBCommunicator::PDBCommunicator() {
     readCurMsgSize = false;
     socketFD = -1;
     nextTypeID = NoMsg_TYPEID;
-    
+    socketClosed = true;
     //Jia: moved this logic from Chris' message-based communication framework to here
     needToSendDisconnectMsg = false;
 }
@@ -71,9 +71,10 @@ bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, st
         logToMe->error(strerror(errno));
         errMsg = "Could not get socket ";
         errMsg += strerror(errno);
+        close(socketFD);
         return true;
     }
-
+    socketClosed = false;
     logToMe->info("PDBCommunicator: got request from Internet");
     return false;
 }
@@ -195,7 +196,7 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     // Jia: moved automatic tear-down logic from Chris' message-based communication to here
     // note that we need to close this up when we are done
     needToSendDisconnectMsg = true;
-
+    socketClosed = false;
     logToMe->trace("PDBCommunicator: Successfully connected to the remote host");
     logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
 /*    std :: cout << "##########################" << std :: endl;
@@ -220,6 +221,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
         logToMe->error(strerror(errno));
         errMsg = "Could not get FD to local server socket ";
         errMsg += strerror(errno);
+        close(socketFD);
         return true;
     }
 
@@ -232,6 +234,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
         logToMe->error(strerror(errno));
         errMsg = "Could not connect to local server socket ";
         errMsg += strerror(errno);
+        close(socketFD);
         return true;
     }
 
@@ -239,7 +242,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
     // note that we need to close this up when we are done
     needToSendDisconnectMsg = true;
     //std :: cout << "Connected!!\n";
-
+    socketClosed = false;
     return false;
 }
 
@@ -255,11 +258,12 @@ bool PDBCommunicator::pointToFile(PDBLoggerPtr logToMeIn, int socketFDIn, std ::
         logToMe->error(strerror(errno));
         errMsg = "Could not get socket ";
         errMsg += strerror(errno);
+        close(socketFD);
         return true;
     }
 
     logToMe->trace("PDBCommunicator: got request from same machine");
-
+    socketClosed = false;
     return false;
 }
 
@@ -284,6 +288,7 @@ PDBCommunicator::~PDBCommunicator() {
         std :: cout << "~~~~~~~~~~~~~~~~~~~~~~~~" << std :: endl;
         std :: cout << "to close socketFD=" << socketFD << std :: endl;
         close(socketFD);
+        socketClosed = false;
     }
 #else
     
@@ -304,7 +309,7 @@ PDBCommunicator::~PDBCommunicator() {
         */
         close(socketFD);
     }
-
+    socketClosed = false;
 #endif
 
 }
@@ -339,12 +344,18 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             logToMe->error("PDBCommunicator: could not read next message type");
             logToMe->error(strerror(errno));
             nextTypeID = NoMsg_TYPEID;
+            msgSize = 0;
             close(socketFD);
+            socketClosed = true;
             return true;
          } else if (receivedBytes == 0) {
             logToMe->info("PDBCommunicator: the other side closed the socket");
             nextTypeID = NoMsg_TYPEID;
-            close(socketFD);
+            if (!longConnection) {
+                close(socketFD);
+                socketClosed = true;
+            }
+            msgSize = 0;
             return true;
          } else {
             logToMe->info(std::string("PDBCommunicator: receivedBytes for reading type is ")+std::to_string(receivedBytes));
@@ -365,12 +376,17 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             logToMe->error ("PDBCommunicator: could not read next message size:" + std :: to_string (receivedTotal));
             logToMe->error(strerror(errno));
             close(socketFD);
+            socketClosed = true;
             msgSize = 0;
             return true;
         } else if (receivedBytes == 0) { 
             logToMe->info("PDBCommunicator: the other side closed the socket");
             nextTypeID = NoMsg_TYPEID;
-            close(socketFD);
+            if (!longConnection) {
+                close(socketFD);
+                socketClosed = true;
+            }
+            msgSize = 0;
             return true;
         }
         else {
@@ -393,12 +409,13 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
         // write some bytes
         ssize_t numBytes = write(socketFD, start, end - start);
         // make sure they went through
-        if (numBytes <= 0) {
+        if (numBytes < 0) {
             logToMe->error("PDBCommunicator: error in socket write");
 	    logToMe->trace("PDBCommunicator: tried to write " + std :: to_string (end - start) + " bytes.\n");
     	    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
             logToMe->error(strerror(errno));
             close(socketFD);
+            socketClosed = true;
             return true;
         } else {
 	    logToMe->trace("PDBCommunicator: wrote " + std :: to_string (numBytes) + " and are " + std :: to_string (end - start - numBytes) + " to go!");
@@ -425,16 +442,39 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         this->logToMe->trace("PDBCommunicator: received bytes: " + std :: to_string (numBytes));
         this->logToMe->trace("PDBCommunicator: " + std :: to_string (msgSize - (cur - start)) + " bytes to go!");
 
-        if (numBytes <= 0) {
+        if (numBytes < 0) {
             logToMe->error("PDBCommunicator: error reading socket when trying to accept text message");
             logToMe->error(strerror(errno));
             close(socketFD); 
+            socketClosed = true;
             return true;
+        }
+        if (numBytes == 0) {
+            logToMe->info("PDBCommunicator: the other side closed the socket");
+            if(!longConnection) {
+                close(socketFD);
+                socketClosed = true;
+            }
         }
         cur += numBytes;
     }
     return false;
 }
+
+//JiaNote: add following functions to enable a stable long connection:
+
+bool PDBCommunicator::isSocketClosed() {
+    return socketClosed;
+}
+
+bool PDBCommunicator::isLongConnection() {
+   return longConnection;
+}
+
+void PDBCommunicator::setLongConnection(bool longConnection) {
+   this->longConnection = longConnection;
+}
+
 
 }
 
