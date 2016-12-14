@@ -63,14 +63,19 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
         }
 	unlink (sharedLibraryFile.c_str ());
         std :: cout << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
-	theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
+	bool ret = theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 
-        //JiaNote: we should stop here
+        //JiaNote: we should stop here if someone else updated VTable
         void *returnVal = theVTable->allVTables[objectTypeID];
         if (returnVal != nullptr) {
                 return returnVal;
         }
 
+        //JiaNote: we need check return value
+        if (ret == false) {
+                std :: cout << "ERROR in fixing VTableMap for objectTypeID="<< objectTypeID << std :: endl;
+                return nullptr;
+        }
 	
 	// open up the shared library
       

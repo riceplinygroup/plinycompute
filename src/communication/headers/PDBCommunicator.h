@@ -98,6 +98,12 @@ public:
 
     int getSocketFD();
 
+    bool isSocketClosed();
+
+    bool isLongConnection();
+
+    void setLongConnection(bool longConnection);
+
 private:
 
     // write from start to end to the output socket
@@ -122,8 +128,14 @@ private:
     int16_t nextTypeID;
 
     // This is for automatic connection tear-down.
-    // Jia moved this logic from Chris' message-based communication framework to here.
+    // Moved this logic from Chris' message-based communication framework to here.
     bool needToSendDisconnectMsg;
+
+    // to check whether the socket has been closed
+    bool socketClosed;
+
+    bool longConnection;
+
 };
 
 }

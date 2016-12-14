@@ -45,6 +45,7 @@ DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, Shar
     this->communicator = communicator;
     this->shm = shm;
     this->logger = logger;
+    this->communicator->setLongConnection(true);
 }
 
 DataProxy::~DataProxy() {
@@ -52,7 +53,10 @@ DataProxy::~DataProxy() {
 
 bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
     string errMsg;
-
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        return false;
+    }
     if (needMem == true) {
         //create an AddSet object
         {
@@ -112,7 +116,10 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
 
 bool DataProxy::removeTempSet(SetID setId, bool needMem) {
     string errMsg;
-    
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        return false;
+    }
     //create a RemoveSet object
 
     if (needMem == true) {
@@ -165,6 +172,10 @@ bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page, bool needMem) {
 
 bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem) {
     string errMsg;
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        return false;
+    }
     if (needMem == true) {
         //create a PinPage object
         {
@@ -249,6 +260,11 @@ bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool n
 bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PageID pageId, PDBPagePtr &page, bool needMem) {
 
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        return false;
+    }
+
     if(nodeId != this->nodeId) {
         this->logger->writeLn("DataProxy: We do not support to load pages from "
                 "remote node for the time being.");
@@ -330,6 +346,10 @@ bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PDBPagePtr page, bool needMem) {
     //std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        return false;
+    }
     logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
 
     string errMsg;
@@ -418,6 +438,11 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 }
 
 PageScannerPtr DataProxy::getScanner(int numThreads) {
+
+    if (this->communicator->isSocketClosed() == true) {
+        std :: cout << "FATAL ERROR in DataProxy.getScanner: connection is closed" << std :: endl;
+        exit(-1);
+    }
     if(numThreads <= 0) {
         return nullptr;
     }

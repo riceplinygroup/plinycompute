@@ -198,6 +198,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     if (backendCircularBufferSize > 10) {
        backendCircularBufferSize = 10;
     }
+
+    std :: cout << "backendCircularBufferSize is tuned to be " << backendCircularBufferSize << std :: endl;
+
     PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scannerLogger, numThreads, backendCircularBufferSize, nodeId); 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
         success = false;
@@ -211,9 +214,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
     //get iterators
     //TODO: we should get iterators using only databaseName and setName
-    //std :: cout << "To send GetSetPages message" << std :: endl;
+    std :: cout << "To send GetSetPages message" << std :: endl;
     std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, inputSet->getDatabaseId(), inputSet->getTypeId(), inputSet->getSetId());
-    //std :: cout << "GetSetPages message is sent" << std :: endl;
+    std :: cout << "GetSetPages message is sent" << std :: endl;
     int numIteratorsReturned = iterators.size();
     if (numIteratorsReturned != numThreads) {
          success = false;
@@ -258,7 +261,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //std :: cout << "PipelineNetwork: to add user page for output" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: to add user page for output"));
                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                  //std :: cout << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
+                  std :: cout << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->info(out);
