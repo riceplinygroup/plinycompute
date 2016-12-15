@@ -83,7 +83,7 @@ void CatalogServer :: registerHandlers (PDBServer &forMe) {
             // ask the catalog server for the type ID and then the name of the type
             std :: string errMsg;
 
-            cout << "--->CatalogServer handler CatalogNodeMetadata_TYPEID calling addNodeMetadata " << request->getNodeIP().c_str() << endl;
+            cout << "--->CatalogServer handler CatalogNodeMetadata_TYPEID calling addNodeMetadata " << request->getItemKey().c_str() << endl;
             const UseTemporaryAllocationBlock block{1024*1024};
             bool res = getFunctionality <CatalogServer> ().addNodeMetadata (request, errMsg);
             // make the response
@@ -1339,18 +1339,19 @@ bool CatalogServer :: addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata
 
     // adds the port to the node IP address
     string _nodeIP = nodeMetadata->getNodeIP().c_str();
-    string nodAddress = _nodeIP + ":" + to_string(nodeMetadata->getNodePort());
+    string nodeAddress = _nodeIP + ":" + to_string(nodeMetadata->getNodePort());
 
     // don't add a node that is already registered
 //    if(std::find(allNodesInCluster.begin(), allNodesInCluster.end(), nodAddress) != allNodesInCluster.end()){
-    if (isNodeRegistered(_nodeIP) == true) {
-        errMsg = "Node " + _nodeIP + " is already registered.\n";
+    //JIANOTE: We need to support running multiple instances with different ports on the same Ip
+    if (isNodeRegistered(nodeAddress) == true) {
+        errMsg = "NodeAddress " + nodeAddress + " is already registered.\n";
         return false;
     }
 
 
     // add the node info to container
-    allNodesInCluster.push_back (nodAddress);
+    allNodesInCluster.push_back (nodeAddress);
 
     int metadataCategory = PDBCatalogMsgType::CatalogPDBNode;
     Handle<CatalogNodeMetadata> metadataObject = makeObject<CatalogNodeMetadata>();

@@ -53,7 +53,9 @@ namespace pdb {
                 nodeName(nodeNameValue),
                 nodeType(nodeTypeValue),
                 nodeStatus(nodeStatusValue)
-            {}
+            {
+                nodeAddress=std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
+            }
 
 
             //Copy constructor
@@ -64,6 +66,7 @@ namespace pdb {
                 nodeName = pdbNodeToCopy.nodeName;
                 nodeType = pdbNodeToCopy.nodeType;
                 nodeStatus = pdbNodeToCopy.nodeStatus;
+                nodeAddress = std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
             }
 
             //Copy constructor
@@ -74,6 +77,7 @@ namespace pdb {
                 nodeName = pdbNodeToCopy->getItemName();
                 nodeType = pdbNodeToCopy->getNodeType();
                 nodeStatus = pdbNodeToCopy->getNodeStatus();
+                nodeAddress = std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
             }
 
 
@@ -82,16 +86,17 @@ namespace pdb {
             }
 
             void setValues(pdb :: String nodeIdValue, pdb :: String nodeIPValue, int nodePortValue, pdb :: String nodeNameValue, pdb :: String nodeTypeValue, int nodeStatusValue) {
-                nodeId = nodeIPValue;
+                nodeId = nodeIdValue;
                 nodeIP = nodeIPValue;
                 nodePort = nodePortValue;
                 nodeName = nodeNameValue;
                 nodeType = nodeTypeValue;
                 nodeStatus = nodeStatusValue;
+                nodeAddress = std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
             }
 
             pdb :: String getItemKey(){
-                return nodeIP;
+                return nodeAddress;
             }
 
             pdb :: String getNodeIP(){
@@ -119,11 +124,16 @@ namespace pdb {
             }
 
             void setItemKey(pdb :: String &itemKeyIn){
-                nodeIP = itemKeyIn;
+                nodeAddress = itemKeyIn;
             }
 
-            void setItemId(pdb :: String &itemIdIn){
+            void setItemId(pdb :: String &itemIdIn) {
                 nodeId = itemIdIn;
+            }
+
+
+            void setItemIP(pdb :: String &itemIPIn){
+                nodeIP = itemIPIn;
             }
 
             void setItemName(pdb :: String &itemNameIn){
@@ -167,6 +177,7 @@ namespace pdb {
         pdb :: String nodeName;
         pdb :: String nodeType;
         int nodeStatus;
+        pdb :: String nodeAddress;
     };
 
 } /* namespace pdb */

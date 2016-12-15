@@ -110,7 +110,7 @@ public:
     PDBWorkerQueuePtr getWorkerQueue();
 
     //gets access to logger
-    PDBLoggerPtr getLogger(); //added by Jia
+    PDBLoggerPtr getLogger(); 
 
 private:
 

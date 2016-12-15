@@ -28,6 +28,9 @@
 
 namespace pdb {
 
+
+
+//ResourceManagerServer MUST co-locate with QuerySchedulerServer and DispatcherServer
 class ResourceManagerServer : public ServerFunctionality {
 
 public:
@@ -35,11 +38,8 @@ public:
        //destructor
        ~ResourceManagerServer ();
 
-       //constructor, initialize from catalog
-       ResourceManagerServer (std :: string catalogIp);
-
        //constructor, initialize from a server list file 
-       ResourceManagerServer (std :: string pathToServerList, int port);
+       ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode = false);
 
        Handle<Vector<Handle<ResourceInfo>>> getAllResources ();
 
@@ -67,6 +67,9 @@ private:
       Handle<Vector<Handle<NodeDispatcherData>>> nodes;
 
       int port;
+
+      bool pseudoClusterMode;
+
 };
 
 

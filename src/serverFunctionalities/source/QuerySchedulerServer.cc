@@ -55,14 +55,15 @@ namespace pdb {
 QuerySchedulerServer :: ~QuerySchedulerServer () {
 }
 
-QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger) {
+QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode) {
     this->logger = logger;
+    this->pseudoClusterMode = pseudoClusterMode;
 }
 
 
 void QuerySchedulerServer ::cleanup() {
 
-    this->resources = nullptr;
+    free(this->standardResources);
     for (int i = 0; i < currentPlan.size(); i++) {
              currentPlan[i]=nullptr;
     }
@@ -74,27 +75,53 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
 
      this->resourceManagerIp = resourceManagerIp;
      this->port = port;
-     this->resources = nullptr;
+     this->standardResources = nullptr;
      this->logger = logger;
      this->usePipelineNetwork = usePipelineNetwork;
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 
-     std :: cout << "To get the resource object from the resource manager" << std :: endl;
-     if (isRMRunAsServer == true) { 
-         this->resources = getFunctionality<ResourceManagerServer>().getAllResources();
+     this->standardResources = new std :: vector<StandardResourceInfoPtr>();
+     if (pseudoClusterMode == false)  {
+         UseTemporaryAllocationBlock(2 * 1024 * 1024);
+         Handle<Vector<Handle<ResourceInfo>>> resourceObjects;
+         std :: cout << "To get the resource object from the resource manager" << std :: endl;
+         if (isRMRunAsServer == true) { 
+             resourceObjects = getFunctionality<ResourceManagerServer>().getAllResources();
+         } else {
+             ResourceManagerServer rm("conf/serverlist", 8108);
+             resourceObjects = rm.getAllResources();
+         }
+
+         //add and print out the resources
+         for (int i = 0; i < resourceObjects->size(); i++) {
+
+             std :: cout << i << ": address=" << (*(resourceObjects))[i]->getAddress() << ", port="<< (*(resourceObjects))[i]->getPort() <<", node="<<(*(resourceObjects))[i]->getNodeId() <<", numCores=" << (*(resourceObjects))[i]->getNumCores() << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std :: endl;
+             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>((*(resourceObjects))[i]->getNumCores(), (*(resourceObjects))[i]->getMemSize(), (*(resourceObjects))[i]->getAddress().c_str(), (*(resourceObjects))[i]->getPort(), (*(resourceObjects))[i]->getNodeId());
+             this->standardResources->push_back(currentResource);
+         }
+
      } else {
-         ResourceManagerServer rm("conf/serverlist", 8108);
-         this->resources = rm.getAllResources();
-     }
+         UseTemporaryAllocationBlock(2* 1024 * 1024);
+         Handle<Vector<Handle<NodeDispatcherData>>> nodeObjects;
+         std :: cout << "To get the node object from the resource manager" << std :: endl;
+         if (isRMRunAsServer == true) {
+             nodeObjects = getFunctionality<ResourceManagerServer>().getAllNodes();
+         } else {
+             ResourceManagerServer rm("conf/serverlist", 8108);
+             nodeObjects = rm.getAllNodes();
+         }
 
-     //print out the resources
-     for (int i = 0; i < this->resources->size(); i++) {
+         //add and print out the resources
+         for (int i = 0; i < nodeObjects->size(); i++) {
 
-         std :: cout << i << ": address=" << (*(this->resources))[i]->getAddress() << ", numCores=" << (*(this->resources))[i]->getNumCores() << ", memSize=" << (*(this->resources))[i]->getMemSize() << std :: endl;
+             std :: cout << i << ": address=" << (*(nodeObjects))[i]->getAddress() << ", port="<< (*(nodeObjects))[i]->getPort() <<", node="<<(*(nodeObjects))[i]->getNodeId() << std :: endl;
+             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>(0, 0, (*(nodeObjects))[i]->getAddress().c_str(), (*(nodeObjects))[i]->getPort(), (*(nodeObjects))[i]->getNodeId());
+             this->standardResources->push_back(currentResource);
+         }         
+    }
 
-     }
 }
 
 void QuerySchedulerServer :: scheduleNew() {
@@ -105,15 +132,15 @@ void QuerySchedulerServer :: scheduleNew() {
                    counter ++;
                 std :: cout << "counter = " << counter << std :: endl;
             });
-    for (int i = 0; i < this->resources->size(); i++) {
+    for (int i = 0; i < this->standardResources->size(); i++) {
         PDBWorkerPtr myWorker = getWorker();
         PDBWorkPtr myWork = make_shared <GenericWork> (
             [i, this, &counter] (PDBBuzzerPtr callerBuzzer) {
                     makeObjectAllocatorBlock(1 * 1024 * 1024, true);
                     std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
-                    std :: cout << "port:" << (*(this->resources))[i]->getPort() << std :: endl;
-                    std :: cout << "ip:" << (*(this->resources))[i]->getAddress() << std :: endl;
-                    bool success = getFunctionality<QuerySchedulerServer>().scheduleNew ((*(this->resources))[i]->getAddress(), (*(this->resources))[i]->getPort(), this->logger, Recreation);
+                    std :: cout << "port:" << (*(this->standardResources))[i]->getPort() << std :: endl;
+                    std :: cout << "ip:" << (*(this->standardResources))[i]->getAddress() << std :: endl;
+                    bool success = getFunctionality<QuerySchedulerServer>().scheduleNew ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, Recreation);
                     if (!success) {
                         callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                         return;
@@ -124,7 +151,7 @@ void QuerySchedulerServer :: scheduleNew() {
         myWorker->execute(myWork, tempBuzzer);
     }
 
-    while(counter < this->resources->size()) {
+    while(counter < this->standardResources->size()) {
         tempBuzzer->wait();
     }
 }
@@ -422,15 +449,15 @@ void QuerySchedulerServer :: schedule() {
                        counter ++;
                        std :: cout << "counter = " << counter << std :: endl;
                  });
-         for (int i = 0; i < this->resources->size(); i++) {
+         for (int i = 0; i < this->standardResources->size(); i++) {
              PDBWorkerPtr myWorker = getWorker();
              PDBWorkPtr myWork = make_shared <GenericWork> (
                  [i, this, &counter] (PDBBuzzerPtr callerBuzzer) {
                        makeObjectAllocatorBlock(1 * 1024 * 1024, true);
                        std :: cout << "to schedule on the " << i << "-th node" << std :: endl;
-                       std :: cout << "port:" << (*(this->resources))[i]->getPort() << std :: endl;
-                       std :: cout << "ip:" << (*(this->resources))[i]->getAddress() << std :: endl;
-                       bool success = getFunctionality<QuerySchedulerServer>().schedule ((*(this->resources))[i]->getAddress(), (*(this->resources))[i]->getPort(), this->logger, Recreation);
+                       std :: cout << "port:" << (*(this->standardResources))[i]->getPort() << std :: endl;
+                       std :: cout << "ip:" << (*(this->standardResources))[i]->getAddress() << std :: endl;
+                       bool success = getFunctionality<QuerySchedulerServer>().schedule ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, Recreation);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
@@ -441,7 +468,7 @@ void QuerySchedulerServer :: schedule() {
              myWorker->execute(myWork, tempBuzzer);
          }
 
-         while(counter < this->resources->size()) {
+         while(counter < this->standardResources->size()) {
             tempBuzzer->wait();
          }
 

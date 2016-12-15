@@ -12,9 +12,9 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-rm -rf pdbRoot
+rm -rf pdbRoot*
 rm -rf CatalogDir/*
-rm -rf /tmp/CatalogDir/*
+rm -rf /tmp/CatalogDir*
 rm -rf logs/*
 pkill -9 pdb-server
 pkill -9 test603

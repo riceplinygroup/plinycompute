@@ -46,15 +46,10 @@ void ResourceManagerServer :: cleanup () {
 
 }
 
-ResourceManagerServer :: ResourceManagerServer (std :: string catalogIp) {   
 
-//TODO  
-
-}
-
-
-ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, int port) {
+ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode) {
     this->port = port;
+    this->pseudoClusterMode = pseudoClusterMode;
     this->initialize (pathToServerList);
 }
 
@@ -74,14 +69,16 @@ void ResourceManagerServer :: initialize (std :: string pathToServerList) {
 
     //Allocate a Vector
     int maxNodeNum = 1000;
-    makeObjectAllocatorBlock (1024*1024, true);
+    makeObjectAllocatorBlock (2*1024*1024, true);
     this->resources = makeObject<Vector<Handle<ResourceInfo>>>(maxNodeNum);
-    makeObjectAllocatorBlock (1024*1024, true);
+    //makeObjectAllocatorBlock (1*1024*1024, true);
     this->nodes = makeObject<Vector<Handle<NodeDispatcherData>>>(maxNodeNum);
     analyzeNodes(pathToServerList);
-    //to run a script to obtain all system resources
-    system ("scripts/collect_proc.sh");    
-    analyzeResources ("conf/cluster/cluster_info.txt");
+    if (pseudoClusterMode == false) {
+        //to run a script to obtain all system resources
+        system ("scripts/collect_proc.sh");    
+        analyzeResources ("conf/cluster/cluster_info.txt");
+    }
 }
 
 void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
@@ -100,6 +97,7 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
                 port = stoi(inputLine.substr(pos + 1, inputLine.size()));
                 address = inputLine.substr(0, pos);
             } else {
+                //TODO: we should not hardcode 8108
                 port = 8108;
                 address = inputLine;
             }

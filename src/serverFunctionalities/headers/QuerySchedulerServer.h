@@ -21,6 +21,7 @@
 
 #include "ServerFunctionality.h"
 #include "ResourceInfo.h"
+#include "StandardResourceInfo.h"
 #include "Handle.h"
 #include "PDBVector.h"
 #include "QueryBase.h"
@@ -41,9 +42,10 @@ public:
        //destructor
        ~QuerySchedulerServer ();
 
-       QuerySchedulerServer(PDBLoggerPtr logger);
+       //constructor for the case when query scheduler is co-located with resource manager       
+       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false);
 
-       //constructor, initialize from catalog
+       //constructor for the case when query scheduler and resource manager are in two different nodes
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
        //initialization
@@ -79,8 +81,11 @@ public:
 
 protected:
 
+       //current resources (deprecated, and we should use standardResources in our code)
+       //Handle<Vector<Handle<ResourceInfo>>> resources;
+
        //current resources
-       Handle<Vector<Handle<ResourceInfo>>> resources;
+       std :: vector<StandardResourceInfoPtr> * standardResources;
 
        // resource manager IP address
        std :: string resourceManagerIp;
@@ -89,16 +94,17 @@ protected:
        int port;
 
 
-       // physical plan
+       // physical plan that is temporary, however each query scheduler can schedule one JobStage at each time, similar with Spark/Hadoop
        std :: vector<Handle<JobStage>> currentPlan;
 
        // logger
        PDBLoggerPtr logger;
 
-
        bool usePipelineNetwork;
 
        Handle<QueriesAndPlan> newQueriesAndPlan;
+
+       bool pseudoClusterMode; 
 
 };
 
