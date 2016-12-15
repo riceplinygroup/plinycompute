@@ -285,10 +285,8 @@ PDBCommunicator::~PDBCommunicator() {
     }
 
     if (socketFD >= 0) {
-        std :: cout << "~~~~~~~~~~~~~~~~~~~~~~~~" << std :: endl;
-        std :: cout << "to close socketFD=" << socketFD << std :: endl;
         close(socketFD);
-        socketClosed = false;
+        socketClosed = true;
     }
 #else
     
@@ -309,7 +307,7 @@ PDBCommunicator::~PDBCommunicator() {
         */
         close(socketFD);
     }
-    socketClosed = false;
+    socketClosed =true;
 #endif
 
 }
@@ -346,6 +344,11 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             nextTypeID = NoMsg_TYPEID;
             msgSize = 0;
             close(socketFD);
+            if (longConnection) {
+                std :: cout << "############################################" << std :: endl;
+                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO ERROR" << std :: endl;
+                std :: cout << "############################################" << std :: endl;
+            }
             socketClosed = true;
             return true;
          } else if (receivedBytes == 0) {
@@ -376,6 +379,11 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             logToMe->error ("PDBCommunicator: could not read next message size:" + std :: to_string (receivedTotal));
             logToMe->error(strerror(errno));
             close(socketFD);
+            if (longConnection) {
+                std :: cout << "############################################" << std :: endl;
+                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO ERROR" << std :: endl;
+                std :: cout << "############################################" << std :: endl;
+            }
             socketClosed = true;
             msgSize = 0;
             return true;
@@ -415,6 +423,11 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
     	    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
             logToMe->error(strerror(errno));
             close(socketFD);
+            if (longConnection) {
+                std :: cout << "############################################" << std :: endl;
+                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO ERROR" << std :: endl;
+                std :: cout << "############################################" << std :: endl;
+            }
             socketClosed = true;
             return true;
         } else {
@@ -445,7 +458,12 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         if (numBytes < 0) {
             logToMe->error("PDBCommunicator: error reading socket when trying to accept text message");
             logToMe->error(strerror(errno));
-            close(socketFD); 
+            close(socketFD);
+            if (longConnection) {
+                std :: cout << "############################################" << std :: endl;
+                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO ERROR" << std :: endl;
+                std :: cout << "############################################" << std :: endl;
+            } 
             socketClosed = true;
             return true;
         }
