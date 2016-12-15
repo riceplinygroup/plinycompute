@@ -177,7 +177,6 @@ int main (int numArgs, const char *args[]) {
 //        cout << "Retrieving type " << typeName << endl;
         cout << "Retrieving typeId " << typeId << endl;
 
-        vector <char> * putResultHere = new vector<char>();
         // Local allocator
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
@@ -204,7 +203,7 @@ int main (int numArgs, const char *args[]) {
         std::string nodeName = vm["node-name"].as<std::string>();
         std::string nodeType = vm["node-type"].as<std::string>();
         int status = 0;
-
+        //Change a bit to support running multiple ports on the same IP
         pdb :: String _nodeIP = String(nodeIP);
         pdb :: String _nodeAddress = String(nodeIP + ":" + to_string(nodePort));
         pdb :: String _nodeName = String(nodeName);

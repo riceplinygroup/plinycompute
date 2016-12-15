@@ -329,7 +329,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
             }
     ));
 
-    //Below handler is added by Jia to process DistributedStorageCleanup message, this handler is to write back records on all slaves
+    //JiaNote: Below handler is to process DistributedStorageCleanup message, this handler is to write back records on all slaves
     forMe.registerHandler (DistributedStorageCleanup_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageCleanup>> (
 
           [&] (Handle <DistributedStorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
@@ -364,7 +364,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
    ));
 
     
-    //Below handler is added by Jia to process SetScan message
+    //JiaNote: Below handler is to process SetScan message
     forMe.registerHandler (SetScan_TYPEID, make_shared<SimpleRequestHandler<SetScan>> (
          [&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
 

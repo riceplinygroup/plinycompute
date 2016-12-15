@@ -32,7 +32,7 @@ print("#################################")
 print("CLEAN THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
-numTotal = 1
+numTotal = 2
 numErrors = 0
 numPassed = 0
 
@@ -63,7 +63,67 @@ else:
     print bcolors.OKBLUE + "[PASSED] standalone integration tests" + bcolors.ENDC
     numPassed = numPassed + 1
 
+
+
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+
+print("#################################")
+print("RUN DISTRIBUTED INTEGRATION TESTS")
+print("#################################")
+
+try:
+    #run bin/test404
+    print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
+    serverProcess = subprocess.Popen(['bin/test404', 'localhost', '8108', 'Y'])
+    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(9)
+    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
+
+    #run bin/test603 for instance 1
+    print bcolors.OKBLUE + "start a pdbServer as the 1st worker" + bcolors.ENDC
+    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8109'])
+    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(9)
+    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8109', '--node-name', 'worker', '--node-type', 'worker'])
+
+    #run bin/test603 for instance 2
+    print bcolors.OKBLUE + "start a pdbServer as the 2nd worker" + bcolors.ENDC
+    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8110'])
+    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(9)
+    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8110', '--node-name', 'worker', '--node-type', 'worker'])
+
+    #run bin/test603 for instance 3
+    print bcolors.OKBLUE + "start a pdbServer as the 3rd worker" + bcolors.ENDC
+    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8111'])
+    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(9)
+    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8111', '--node-name', 'worker', '--node-type', 'worker'])
+
+    #run bin/test603 for instance 4
+    print bcolors.OKBLUE + "start a pdbServer as the 4th worker" + bcolors.ENDC
+    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8112'])
+    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(9)
+    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8112', '--node-name', 'worker', '--node-type', 'worker'])
+
+    #run bin/test52
+    print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
+    subprocess.check_call(['bin/test52', 'N', 'Y', '1024', 'localhost'])
+
+except subprocess.CalledProcessError as e:
+    print bcolors.FAIL + "[ERROR] in running distributed integration tests" + bcolors.ENDC
+    print e.returncode
+    numErrors = numErrors + 1
+
+else:
+    print bcolors.OKBLUE + "[PASSED] distributed integration tests" + bcolors.ENDC
+    numPassed = numPassed + 1
+
+
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
 
 print("#################################")
 print("SUMMRY")

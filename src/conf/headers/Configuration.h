@@ -86,7 +86,7 @@ private:
 	int masterNodePort;
 	string queryPlannerPlace;
 	LogLevel logLevel;
-
+        string rootDir;
 public:
 
 	Configuration() {
@@ -104,22 +104,29 @@ public:
 	    useUnixDomainSock = false;
 	    shmSize = DEFAULT_SHAREDMEM_SIZE;
 	    logEnabled = false;
-	    //temporarily added for unit tests
-	    this->createDir("pdbRoot");
-//    	dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
-		//dataDirs = "/data/data,/mnt/data";
-	    dataDirs = "pdbRoot/data";
-	    metaDir = "pdbRoot/meta";
-	    metaTempDir = "pdbRoot/metaTmp";
-	    //dataTempDirs = "/data/tmp,/mnt/tmp";
-	    dataTempDirs = "pdbRoot/tmp";
-//        dataTempDirs = "/data10/tmp,/mnt/tmp";
-//    	dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
 	    numThreads = DEFAULT_NUM_THREADS;
 	    ipcFile = "/tmp/ipcFile";
 	    backEndIpcFile = "/tmp/backEndIpcFile";
             isMaster = false;
+            initDirs();
 	}
+
+        void initDirs() {
+            rootDir = std::string("pdbRoot_")+serverAddress+std::string("_")+std::to_string(port);
+            //temporarily added for unit tests
+            this->createDir(rootDir);
+            //dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
+            //dataDirs = "/data/data,/mnt/data";
+            dataDirs = rootDir+std::string("/data");
+            metaDir = rootDir+std::string("/meta");
+            metaTempDir = rootDir+std::string("/metaTmp");
+            //dataTempDirs = "/data/tmp,/mnt/tmp";
+            dataTempDirs = rootDir+std::string("/tmp");
+            //dataTempDirs = "/data10/tmp,/mnt/tmp";
+            //dataTempDirs = "/data1/tmp,/data2/tmp,/data3/tmp,/data4/tmp,/data5/tmp,/data6/tmp,/data7/tmp,/data8/tmp,/data9/tmp,pdbRoot/tmp,/data10/tmp,/mnt/tmp";
+
+        }
+
 
 	NodeID getNodeID() const {
 		return nodeId;

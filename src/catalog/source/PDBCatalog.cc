@@ -992,7 +992,9 @@
         // uses it to assign the index of a metadata item in its container
         int newId = getLastId(metadataCategory);
         pdb :: String newKeyValue = String(std::to_string(newId));
+        std :: cout << "newKeyValue=" << newKeyValue << std :: endl;
         string metadataKey = metadataValue->getItemKey().c_str();
+        std :: cout << "metadataKey=" << metadataKey << std :: endl;
         metadataValue->setItemId(newKeyValue);
 
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);

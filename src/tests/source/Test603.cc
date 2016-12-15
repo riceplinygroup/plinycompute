@@ -35,11 +35,12 @@ int main (int argc, char * argv[] ) {
        std :: cout << "[Usage] #numThreads(optional) #sharedMemSize(optional, unit: MB) #masterIp(optional) #localIp(optional)" << std :: endl;
        
        ConfigurationPtr conf = make_shared < Configuration > ();
+       
        int numThreads = 1;
        size_t sharedMemSize = (size_t)12*(size_t)1024*(size_t)1024*(size_t)1024;
        bool standalone = true;
        std :: string masterIp;
-       std :: string localIp;
+       std :: string localIp="localhost";
        int masterPort = conf->getPort();
        int localPort = conf->getPort();
        if (argc == 2) {
@@ -60,25 +61,28 @@ int main (int argc, char * argv[] ) {
             numThreads = atoi(argv[1]);
             sharedMemSize = (size_t)(atoi(argv[2]))*(size_t)1024*(size_t)1024;
             standalone = false;
-            string masterAccess = argv[3];
+            string masterAccess ( argv[3]);
             size_t pos = masterAccess.find(":");
             if (pos != string::npos) {
                 masterPort = stoi(masterAccess.substr(pos+1, masterAccess.size()));
+                 
                 masterIp = masterAccess.substr(0, pos);
             } else {
                 masterPort = 8108;
                 masterIp = masterAccess;
             }
-            string workerAccess = argv[4];
+            string workerAccess ( argv[4]);
             pos = workerAccess.find(":");
             if (pos != string::npos) {
                 localPort = stoi(workerAccess.substr(pos+1, workerAccess.size()));
                 localIp = workerAccess.substr(0, pos);
+                conf->setPort(localPort);
             } else {
                 localPort = 8108;
                 localIp = workerAccess;
             }
        }
+       conf->initDirs();
 
        std :: cout << "Thread number =" << numThreads << std :: endl;
        std :: cout << "Shared memory size =" << sharedMemSize << std :: endl;
@@ -92,22 +96,28 @@ int main (int argc, char * argv[] ) {
             std :: cout << "Local IP:" << localIp << std :: endl;
             std :: cout << "Local Port:" << localPort << std :: endl;
        }
-  
-       pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
+       std :: string frontendLoggerFile=std::string("frontend_")+localIp+std::string("_")+std::to_string(localPort)+std::string(".log");  
+       pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> (frontendLoggerFile);
        conf->setNumThreads(numThreads);
        conf->setShmSize(sharedMemSize);
        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
+
+       std :: string ipcFile=std::string("/tmp/")+localIp+std::string("_")+std::to_string(localPort);
+       std :: cout << "ipcFile=" << ipcFile << std :: endl;
+       conf->setBackEndIpcFile(ipcFile);
 
        string errMsg;
        if(shm != nullptr) {
                pid_t child_pid = fork();
                if(child_pid == 0) {
                    //I'm the backend server
-                   pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> ("backendLogFile.log");
+                   std :: string backendLoggerFile=std::string("backend_")+localIp+std::string("_")+std::to_string(localPort)+std::string(".log");
+                   pdb :: PDBLoggerPtr logger = make_shared <pdb :: PDBLogger> (backendLoggerFile);
                    pdb :: PDBServer backEnd (conf->getBackEndIpcFile(), 100, logger);
                    backEnd.addFunctionality<pdb :: HermesExecutionServer>(shm, backEnd.getWorkerQueue(), logger, conf);
                    bool usePangea = true;
-                   backEnd.addFunctionality<pdb :: StorageClient> (localPort, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
+                   std :: string clientLoggerFile=std::string("client_")+localIp+std::string("_")+std::to_string(localPort)+std::string(".log");
+                   backEnd.addFunctionality<pdb :: StorageClient> (localPort, "localhost", make_shared <pdb :: PDBLogger> (clientLoggerFile), usePangea);
                    backEnd.startServer(nullptr);
 
                } else if (child_pid == -1) {
@@ -142,7 +152,8 @@ int main (int argc, char * argv[] ) {
                    } else {
                        string nodeName = localIp;
                        string nodeType = "worker";
-                       frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", false, masterIp, masterPort);
+                       std :: string catalogFile=std::string("/tmp/CatalogDir_")+localIp+std::string("_")+std::to_string(localPort);
+                       frontEnd.addFunctionality <pdb :: CatalogServer> (catalogFile, false, masterIp, masterPort);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (localPort, "localhost", logger);
                    }
                                       
