@@ -55,7 +55,10 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        return false;
+        if (communicator->reconnect(errMsg)) {
+            std :: cout << errMsg << std :: endl;
+           return false;
+        }
     }
     if (needMem == true) {
         //create an AddSet object
@@ -118,7 +121,10 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        return false;
+        if (communicator->reconnect(errMsg)) {
+           std :: cout << errMsg << std :: endl;
+           return false;
+        }
     }
     //create a RemoveSet object
 
@@ -174,7 +180,10 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        return false;
+        if (communicator->reconnect(errMsg)) {
+           std :: cout << errMsg << std :: endl;
+           return false;
+        }
     }
     if (needMem == true) {
         //create a PinPage object
@@ -259,10 +268,13 @@ bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool n
 
 bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PageID pageId, PDBPagePtr &page, bool needMem) {
-
+    std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        return false;
+        if (communicator->reconnect(errMsg)) {
+           std :: cout << errMsg << std :: endl;
+           return false;
+        }
     }
 
     if(nodeId != this->nodeId) {
@@ -271,7 +283,6 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
         return false;
     }
 
-    string errMsg;
     if (needMem == true) {
         //create a PinPage object
         {
@@ -346,13 +357,16 @@ bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PDBPagePtr page, bool needMem) {
     //std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
+    std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        return false;
+        if (communicator->reconnect(errMsg)) {
+           std :: cout << errMsg << std :: endl;
+           return false;
+        }
     }
     logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
 
-    string errMsg;
     if (needMem == true) {
         //std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
         //create a UnpinPage object
@@ -438,10 +452,13 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 }
 
 PageScannerPtr DataProxy::getScanner(int numThreads) {
-
+    std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "FATAL ERROR in DataProxy.getScanner: connection is closed" << std :: endl;
-        exit(-1);
+        if (communicator->reconnect(errMsg)) {
+           std :: cout << errMsg << std :: endl;
+           exit(-1);
+        }
     }
     if(numThreads <= 0) {
         return nullptr;

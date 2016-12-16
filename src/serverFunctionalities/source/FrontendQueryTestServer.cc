@@ -92,8 +92,19 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 std :: cout << "Created SetIdentifier object for input" << std :: endl;
                 SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));               
                 if (inputSet == nullptr) {
-                    std :: cout << "FATAL ERROR: input set doesn't exist..." << std :: endl;
-                    exit (-1);
+                    std :: cout << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                    //TODO: move data from other servers
+                    //temporarily, we simply return;
+                    // now, we send back the result
+                    Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                    result->push_back (request->getOutput()->getSetName());
+                    std :: cout << "Query is done without data. " << std :: endl;
+                    // return the results
+                    if (!sendUsingMe->sendObject (result, errMsg)) {
+                        return std :: make_pair (false, errMsg);
+                    }
+                    return std :: make_pair (true, std :: string("execution complete"));
+
                 }
                    
                 input->setDatabaseId(inputSet->getDbID());
@@ -128,7 +139,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              exit (-1);
                          }
                      } else {
-                         std :: cout << "FATAL ERROR: Output set doesn't exist, please create it first" << std :: endl;
+                         std :: cout << "FATAL ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
                          exit (-1);
                      }
                                     

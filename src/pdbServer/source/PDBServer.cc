@@ -133,7 +133,7 @@ void PDBServer::listen() {
         myLogger->trace("PDBServer: about to listen to the Internet for a connection");
 
         // set the backlog on the socket
-        if (::listen(sockFD, 5) != 0) {
+        if (::listen(sockFD, 100) != 0) {
             myLogger->error("PDBServer: listen error");
             myLogger->error(strerror(errno));
             close(sockFD);
@@ -150,7 +150,7 @@ void PDBServer::listen() {
                 continue;
             }
             std :: cout << "||||||||||||||||||||||||||||||||||" << std :: endl;
-            std :: cout << "accepted the connection with sockFD=" << sockFD << std :: endl;
+            std :: cout << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
             handleRequest(myCommunicator);
         }
 
@@ -192,7 +192,7 @@ void PDBServer::listen() {
         myLogger->trace("PDBServer: about to listen to the file for a connection");
 
         // set the backlog on the socket
-        if (::listen(sockFD, 5) != 0) {
+        if (::listen(sockFD, 100) != 0) {
             myLogger->error("PDBServer: listen error");
             myLogger->error(strerror(errno));
             exit(0);
@@ -208,7 +208,8 @@ void PDBServer::listen() {
                 myLogger->error("PDBServer: could not point to an local UNIX socket: " + errMsg);
                 continue;
             }
-
+            std :: cout << "||||||||||||||||||||||||||||||||||" << std :: endl;
+            std :: cout << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
             handleRequest(myCommunicator);
         }
     }
