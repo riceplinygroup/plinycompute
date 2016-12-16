@@ -104,6 +104,8 @@ public:
 
     void setLongConnection(bool longConnection);
 
+    bool reconnect( std::string & errMsg );
+
 private:
 
     // write from start to end to the output socket
@@ -131,10 +133,20 @@ private:
     // Moved this logic from Chris' message-based communication framework to here.
     bool needToSendDisconnectMsg;
 
-    // to check whether the socket has been closed
+    //JiaNote: to add logic to support long connection
     bool socketClosed;
 
     bool longConnection;
+
+
+    //JiaNote: to add logic to support reconnection
+    int portNumber;
+
+    std :: string serverAddress;
+
+    std :: string fileName;
+
+    bool isInternet;
 
 };
 
