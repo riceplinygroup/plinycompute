@@ -30,8 +30,6 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
-numWorkers = "1"
 threadNum = "1"
 sharedMemorySize = "512"
 
@@ -40,7 +38,7 @@ if(len(sys.argv)==4) :
     threadNum = sys.argv[2]
     sharedMemorySize = sys.argv[3]
 else:
-    print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numWorkers (default: 1) numThreads (default: 1) sizeOfSharedMemoryPool (default: 512)"
+    print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numThreads (default: 1) sizeOfSharedMemoryPool (default: 512 MB)"
 
 
 
@@ -63,13 +61,16 @@ try:
     subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
 
     #run bin/test603 for worker
-    port = 8108;
-    for num in range(1, int(numWorkers)):
-        print bcolors.OKBLUE + "start a pdbServer as " + num + "-th worker" + bcolors.ENDC
-        serverProcess = subprocess.Popen(['bin/test603', threadNum, sharedMemorySize, 'localhost:8108', 'localhost:'+str(port+num)])
-        print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
-        time.sleep(9)
-        subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  str(port+num), '--node-name', 'worker', '--node-type', 'worker'])
+    num = 0;
+    with open('conf/serverlist') as f:
+        for each_line in f:
+            print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
+            num = num + 1
+            serverProcess = subprocess.Popen(['bin/test603', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+            print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
+            time.sleep(9)
+            each_line.split(':')
+            subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  each_line[1], '--node-name', 'worker', '--node-type', 'worker'])
 
 
 except subprocess.CalledProcessError as e:
