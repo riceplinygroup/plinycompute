@@ -13,6 +13,8 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 rm -rf pdbRoot*
+rm -rf pdbRoot
+rm -rf /tmp/CatalogDir
 rm -rf CatalogDir/*
 rm -rf /tmp/CatalogDir*
 rm -rf logs/*
