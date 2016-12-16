@@ -69,8 +69,9 @@ try:
             serverProcess = subprocess.Popen(['bin/test603', threadNum, sharedMemorySize, 'localhost:8108', each_line])
             print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
             time.sleep(9)
-            port = each_line.split(":")[1]
-            subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port', '8109', '--node-name', 'worker', '--node-type', 'worker'])
+            each_line = each_line.split(':')
+            port = int(each_line[1])
+            subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port', str(port), '--node-name', 'worker', '--node-type', 'worker'])
 
 
 except subprocess.CalledProcessError as e:
