@@ -33,10 +33,9 @@ class bcolors:
 threadNum = "1"
 sharedMemorySize = "512"
 
-if(len(sys.argv)==4) :
-    numWorkers = sys.argv[1]
-    threadNum = sys.argv[2]
-    sharedMemorySize = sys.argv[3]
+if(len(sys.argv)==3) :
+    threadNum = sys.argv[1]
+    sharedMemorySize = sys.argv[2]
 else:
     print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numThreads (default: 1) sizeOfSharedMemoryPool (default: 512 MB)"
 
