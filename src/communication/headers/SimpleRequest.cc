@@ -46,13 +46,14 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
                 std :: cout << "FATAL ERROR: can not connect to remote server with port=" << port << " and address=" << address << std :: endl;
                 exit (-1);
 	}
+        myLogger->info(std::string( "Successfully connected to remote server with port=") + std::to_string(port) + std::string(" and address=") + address);
         std :: cout << "Successfully connected to remote server with port=" << port << " and address=" << address << std :: endl;
 	// build the request
-        //std :: cout << "bytesForRequest=" << bytesForRequest << std:: endl;
+        std :: cout << "bytesForRequest=" << bytesForRequest << std:: endl;
 	const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
-        //std :: cout << "to make object" << std :: endl;
+        std :: cout << "to make object" << std :: endl;
 	Handle <RequestType> request = makeObject <RequestType> (args...);;
-        //std :: cout << "to send object" << std :: endl;
+        std :: cout << "to send object" << std :: endl;
 	if (!temp.sendObject (request, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleRequest: not able to send request to server.\n");
