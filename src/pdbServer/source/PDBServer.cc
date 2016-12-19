@@ -149,6 +149,7 @@ void PDBServer::listen() {
                 myLogger->error("PDBServer: could not point to an internet socket: " + errMsg);
                 continue;
             }
+            myLogger->info(std::string("accepted the connection with sockFD=")+std::to_string(myCommunicator->getSocketFD()));
             std :: cout << "||||||||||||||||||||||||||||||||||" << std :: endl;
             std :: cout << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
             handleRequest(myCommunicator);

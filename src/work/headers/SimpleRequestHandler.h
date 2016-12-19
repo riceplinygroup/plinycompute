@@ -48,29 +48,42 @@ public:
 
 		// first, get the request
 		PDBCommunicatorPtr myCommunicator = getCommunicator ();
+		PDBLoggerPtr myLogger = getLogger ();
 		bool success;
 		std :: string errMsg;
+                size_t objectSize = myCommunicator->getSizeOfNextObject();
+                myLogger->debug (std::string("SimpleRequestHandle: to receive object with size=") + std::to_string(objectSize));
+                if (objectSize == 0) {
+                      std::cout << "SimpleRequestHandler: object size=0" << std::endl;
+                      myLogger->error("SimpleRequestHandler: object size=0");
+                      callerBuzzer->buzz(PDBAlarm::GenericError);
+                      return;
+                }
 		void *memory = malloc (myCommunicator->getSizeOfNextObject ());
 		{
 			Handle <RequestType> request = myCommunicator->getNextObject <RequestType> (memory, success, errMsg);
 			
-			PDBLoggerPtr myLogger = getLogger ();
 			if (!success) {
 				myLogger->error ("SimpleRequestHandler: tried to get the next object and failed; " + errMsg);
+                                ///JiaNote: we need free memory and return here
+                                free(memory);
 				callerBuzzer->buzz (PDBAlarm :: GenericError);
+                                return;
 			}
 	
 			std :: pair <bool, std :: string> res = processRequest (request, myCommunicator);
 			if (!res.first) {
 				myLogger->error ("SimpleRequestHandler: tried to process the request and failed; " + errMsg);
+                                ///JiaNote: we need free memory here
+                                free(memory);
 				callerBuzzer->buzz (PDBAlarm :: GenericError);
 				return;
 			}
 	
 			myLogger->info ("SimpleRequestHandler: finished processing requet.");
+		        free (memory);
 			callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
 		}
-		free (memory);
 		return;
 	}
 

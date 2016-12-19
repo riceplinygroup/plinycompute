@@ -80,7 +80,9 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
             	logToMe->error(strerror(errno));
 		return false;
 	}
-//        std :: cout << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
+
+        std :: cout << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
+        logToMe->info(std::string("Sent object with typeName=") + getTypeName<ObjType>() + std::string(", recType=") + std::to_string(recType) + std::string(" and socketFD=") + std::to_string(socketFD));
 	return true;
 }
 
@@ -90,7 +92,7 @@ inline bool PDBCommunicator :: receiveBytes (void *data, std :: string &errMsg) 
 	if (!readCurMsgSize) {
 		getSizeOfNextObject ();
 	}
-
+       
 	// the first few bytes of a record always record the size
 	char *mem = (char *) data;
 
@@ -139,8 +141,20 @@ Handle <ObjType> PDBCommunicator :: getNextObject (void *readToHere, bool &succe
 	// if we have previously gotten the size, just return it
 	if (!readCurMsgSize) {
 		getSizeOfNextObject ();
-	}
+	        logToMe->debug(std::string("run getSizeOfNextObject() and get type=")+std::to_string(nextTypeID)+std::string(" and size=") + std::to_string(msgSize));
+        } else {
+                logToMe->debug(std::string("get size info directly with type=")+std::to_string(nextTypeID)+std::string(" and size=") + std::to_string(msgSize));
+        }
 
+        if (msgSize == 0) {
+            success = false;
+            errMsg = "Could not read the the object size";
+            std :: cout << "PDBCommunicator: can not get message size, the connection is possibly closed by the other side" << std :: endl;
+            logToMe->error("PDBCommunicator: can not get message size, the connection is possibly closed by the other side");
+            return nullptr;
+        }       
+
+ 
 	// the first few bytes of a record always record the size
 	char *mem = (char *) readToHere;
 	*((size_t *) mem) = msgSize;
@@ -171,8 +185,17 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
     // if we have previously gotten the size, just return it
     if (!readCurMsgSize) {
 	getSizeOfNextObject ();
+        logToMe->debug(std::string("run getSizeOfNextObject() and get type=")+std::to_string(nextTypeID)+std::string(" and size=") + std::to_string(msgSize));
+    } else {
+        logToMe->debug(std::string("get size info directly with type=")+std::to_string(nextTypeID)+std::string(" and size=") + std::to_string(msgSize));
     }
-
+    if (msgSize == 0) {
+        success = false;
+        errMsg = "Could not read the object size";
+        std :: cout << "PDBCommunicator: can not get message size, the connection is possibly closed by the other side" << std :: endl;
+        logToMe->error("PDBCommunicator: can not get message size, the connection is possibly closed by the other side");
+        return nullptr;
+    }
     // read in the object
     void *mem = malloc (msgSize);
     if (mem == nullptr) {
@@ -193,6 +216,7 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
 	free (mem);
 	return temp;
     } else {
+        free(mem);
 	return nullptr;
     }
 }

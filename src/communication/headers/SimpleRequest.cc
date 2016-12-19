@@ -68,6 +68,9 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 		if (!success) {
 			myLogger->error (errMsg);
 			myLogger->error ("simpleRequest: not able to get next object over the wire.\n");
+                        ///JiaNote: we need free memory here !!!
+
+                        free(memory);
 			return onErr;
 		}
 
