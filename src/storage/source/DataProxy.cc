@@ -90,7 +90,12 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem, int numTr
 
         //receive the StorageAddSetResult message
         {
-            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+            size_t objectSize = this->communicator->getSizeOfNextObject();
+            if (objectSize == 0) {
+                cout << "Receiving ack failure" << std :: endl;
+                return addTempSet(setName, setId, needMem, numTries+1);
+            }
+            const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
             bool success;
             pdb :: Handle <pdb :: StorageAddTempSetResult> ack = 
 	        this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
@@ -99,7 +104,7 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem, int numTr
                 cout << "Receiving ack failure:" << errMsg << "\n";
                 return addTempSet(setName, setId, needMem, numTries+1);
             }
-            if(success == true) {
+            if (success == true) {
 	        setId = ack->getTempSetID();
                 //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
             }     
@@ -173,7 +178,12 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem, int numTries) {
          //receive the SimpleRequestResult message
          {
              bool success;
-             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+             size_t objectSize = this->communicator->getSizeOfNextObject();
+             if (objectSize == 0) {
+                 std :: cout << "Receiving ack failure" << std :: endl;
+                 return removeTempSet(setId, needMem, numTries+1);
+             }
+             const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
              pdb :: Handle <pdb :: SimpleRequestResult> ack =
 	           this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
              if (ack == nullptr) {
@@ -252,8 +262,13 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
         
         //receive the PagePinned object
        {
+            size_t objectSize = this->communicator->getSizeOfNextObject();
+            if (objectSize == 0) {
+                std :: cout << "Receive ack failure" << std :: endl;
+                return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
+            }
             std :: cout << "DataProxy: to allocate memory block for PagePinned object" << std :: endl;
-            const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
+            const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
             std :: cout << "DataProxy: memory block allocated" << std :: endl;
             bool success;
             pdb :: Handle <pdb :: StoragePagePinned> ack =
@@ -367,7 +382,12 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
 
         //receive the PagePinned object
         {
-             const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+             size_t objectSize = this->communicator->getSizeOfNextObject();
+             if (objectSize == 0) {
+                std :: cout << "Receiveing ack failure" << std :: endl;
+                return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1); 
+             }
+             const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
              bool success;
              pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
@@ -481,8 +501,13 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 
        //receive the Ack object
        {
-           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;      
-           pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject ()};
+           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;   
+           size_t objectSize = this->communicator->getSizeOfNextObject();
+           if (objectSize == 0) {
+               std::cout << "receive ack failure" << std::endl;
+               return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
+           }   
+           pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
