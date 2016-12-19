@@ -84,41 +84,48 @@ int main (int argc, char * argv[]) {
 		cout << "Created set.\n";
 	}
 
-        int numIterations = numOfMb;
         int total = 0;
-	for (int num = 0; num < numIterations; ++num) {
-		// now, create a bunch of data
-			pdb :: makeObjectAllocatorBlock (1024 * 1024 * 1, true);
-			pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
-			int i;
-			try {
-		
-				for (i = 0; true; i++) {
+        if (numOfMb > 0) {
+           int numIterations = numOfMb/64;
+           int remainder = numOfMb - 64 * numIterations; 
+           if (remainder > 0) {  numIterations = numIterations + 1; }
+	   for (int num = 0; num < numIterations; ++num) {
+		 // now, create a bunch of data
+                 int blockSize = 64;
+                 if ((num == numIterations - 1) && (remainder > 0)) {
+                     blockSize = remainder;
+                 }
+	         pdb :: makeObjectAllocatorBlock (1024 * 1024 * blockSize, true);
+		 pdb :: Handle <pdb :: Vector <pdb :: Handle <SharedEmployee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
+		 int i;
+		 try {
+			for (i = 0; true; i++) {
 					pdb :: Handle <SharedEmployee> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);	
 					storeMe->push_back (myData);
                                         total++;
-				}
-		
-			} catch (pdb :: NotEnoughSpace &n) {
-		
-				// we got here, so go ahead and store the vector
-				if (!temp.storeData <SharedEmployee> (storeMe, "chris_db", "chris_set", errMsg)) {
-					cout << "Not able to store data: " + errMsg;
-					return -1;
-				}	
-				std :: cout << i << std::endl;
-				std :: cout << "stored the data!!\n";
 			}
-	}
+		
+		} catch (pdb :: NotEnoughSpace &n) {
+		
+			// we got here, so go ahead and store the vector
+			if (!temp.storeData <SharedEmployee> (storeMe, "chris_db", "chris_set", errMsg)) {
+				cout << "Not able to store data: " + errMsg;
+					return -1;
+			}	
+			std :: cout << i << std::endl;
+			std :: cout << "stored the data!!\n";
+		}
+	  }
+      }
 
-	// and shut down the server
-        temp.flushData(errMsg);
+      // and shut down the server
+      temp.flushData(errMsg);
 /*        	
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
 */	
-        std :: cout << "count=" << total << std :: endl;
-        return 0;
+      std :: cout << "count=" << total << std :: endl;
+      return 0;
 }
 
 #endif
