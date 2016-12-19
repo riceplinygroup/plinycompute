@@ -227,7 +227,7 @@ int main (int argc, char * argv[]) {
                 cout << "Removed set.\n";
             }
         }
-        //system ("scripts/cleanupSoFiles.sh");
+        system ("scripts/cleanupSoFiles.sh");
         std::cout << "Time Duration: " <<
                 std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
 }

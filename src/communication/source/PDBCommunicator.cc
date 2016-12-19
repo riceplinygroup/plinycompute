@@ -42,7 +42,7 @@
 #include <unistd.h>
 
 
-#define MAX_RETRIES 10
+#define MAX_RETRIES 5
 
 
 namespace pdb {
@@ -334,6 +334,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
 
     // if we have previously gotten the size, just return it
     if (readCurMsgSize) {
+        logToMe->debug("getSizeOfNextObject: we've done this before");
 	return msgSize;
     }
 
@@ -341,9 +342,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     // JIANOTE: we may not receive all the bytes at once, so we need a loop
     int receivedBytes = 0;
     int receivedTotal = 0;
-    int bytesToReceive = sizeof(int16_t); 
+    int bytesToReceive = (int)(sizeof(int16_t)); 
     int retries = 0;
-    while (receivedTotal < sizeof(int16_t)) {
+    while (receivedTotal < (int)(sizeof(int16_t))) {
         if ((receivedBytes = read(socketFD, (char *) ((char *)(&nextTypeID)+receivedTotal*sizeof(char)), bytesToReceive)) < 0) {
             std :: string errMsg = std::string("PDBCommunicator: could not read next message type") + strerror(errno);
             logToMe->error(errMsg);
@@ -361,9 +362,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                 std :: cout << "############################################" << std :: endl;
             }
             socketClosed = true;
-            return true;
+            return 0;
          } else if (receivedBytes == 0) {
-            logToMe->info("PDBCommunicator: the other side closed the socket");
+            logToMe->info("PDBCommunicator: the other side closed the socket when we try to read the type");
             nextTypeID = NoMsg_TYPEID;
             if (!longConnection) {
                 /*
@@ -374,13 +375,14 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                 close(socketFD);
                 socketClosed = true;
                 msgSize = 0;
-                return true;
+                return 0;
             } else {
                 std :: cout << "PDBCommunicator: the other side closed the socket when we try to get next type" << std :: endl;
                 std :: cout << "############################################" << std :: endl;
                 std :: cout << "WARNING: LONG CONNECTION IS POSSIBLY CLOSED BY PEER" << std :: endl;
                 std :: cout << "############################################" << std :: endl;
-                if (retries < MAX_RETRIES) {
+                //if (retries < MAX_RETRIES) {
+                if (retries < 0) {
                      retries ++;
                      logToMe->info("PDBCommunicator: Retry to see whether network can recover");
                      std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
@@ -391,7 +393,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                      close(socketFD);
                      socketClosed = true;
                      msgSize = 0;
-                     return true;
+                     return 0;
                 }
             }
 
@@ -408,9 +410,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     // make sure we got enough bytes... if we did not, then error out
     receivedBytes = 0;
     receivedTotal = 0;
-    bytesToReceive = sizeof(size_t);
+    bytesToReceive = (int)(sizeof(size_t));
     retries = 0;
-    while (receivedTotal < sizeof(size_t)) {
+    while (receivedTotal < (int)(sizeof(size_t))) {
         if ((receivedBytes = read(socketFD, (char *) ((char *)(&msgSize)+receivedTotal*sizeof(char)), bytesToReceive)) <  0) {
             logToMe->error ("PDBCommunicator: could not read next message size:" + std :: to_string (receivedTotal));
             logToMe->error(strerror(errno));
@@ -422,9 +424,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             }
             socketClosed = true;
             msgSize = 0;
-            return true;
+            return 0;
         } else if (receivedBytes == 0) { 
-            logToMe->info("PDBCommunicator: the other side closed the socket");
+            logToMe->info("PDBCommunicator: the other side closed the socket when we try to get next size");
             nextTypeID = NoMsg_TYPEID;
             std :: cout << "PDBCommunicator: the other side closed the socket when we try to get next size" << std :: endl;
             if (!longConnection) {
@@ -434,12 +436,13 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                 close(socketFD);
                 socketClosed = true;
                 msgSize = 0;
-                return true;
+                return 0;
             } else {
                 std :: cout << "############################################" << std :: endl;
                 std :: cout << "WARNING: LONG CONNECTION IS POSSIBLY CLOSED BY PEER" << std :: endl;
                 std :: cout << "############################################" << std :: endl;
-                if (retries < MAX_RETRIES) {
+                //if (retries < MAX_RETRIES) {
+                if (retries < 0) {
                      retries ++;
                      std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                      logToMe->info("PDBCommunicator: Retry to see whether network can recover");
@@ -450,7 +453,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                      close(socketFD);
                      socketClosed = true;
                      msgSize = 0;
-                     return true;
+                     return 0;
                 }
             }
 
@@ -481,7 +484,8 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
 	    logToMe->trace("PDBCommunicator: tried to write " + std :: to_string (end - start) + " bytes.\n");
     	    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
             logToMe->error(strerror(errno));
-            if (retries < MAX_RETRIES) {
+            //if (retries < MAX_RETRIES) {
+            if (retries < 0) {
                 retries ++;
                 std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
@@ -533,7 +537,7 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
             return true;
         }
         if (numBytes == 0) {
-            logToMe->info("PDBCommunicator: the other side closed the socket");
+            logToMe->info("PDBCommunicator: the other side closed the socket when we do the read");
             std :: cout << "PDBCommunicator: the other side closed the socket when we doTheRead" << std :: endl;
             if(!longConnection) {
                 std :: cout << "############################################" << std :: endl;
@@ -546,7 +550,8 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
                 std :: cout << "############################################" << std :: endl;
                 std :: cout << "WARNING: LONG CONNECTION IS POSSIBLY CLOSED BY PEER" << std :: endl;
                 std :: cout << "############################################" << std :: endl;
-                if (retries < MAX_RETRIES) {
+                //if (retries < MAX_RETRIES) {
+                if (retries < 0) {
                      retries ++;
                      logToMe->info("PDBCommunicator: Retry to see whether network can recover");
                      std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;

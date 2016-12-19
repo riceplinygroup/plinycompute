@@ -40,6 +40,10 @@
 #include "CloseConnection.h"
 #include "Configuration.h"
 
+#ifndef MAX_RETRIES
+#define MAX_RETRIES 5
+#endif
+
 DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, SharedMemPtr shm, pdb :: PDBLoggerPtr logger) {
     this->nodeId = nodeId;
     this->communicator = communicator;
@@ -51,12 +55,20 @@ DataProxy::DataProxy(NodeID nodeId, pdb :: PDBCommunicatorPtr communicator, Shar
 DataProxy::~DataProxy() {
 }
 
-bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
+bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem, int numTries) {
+    if (numTries == MAX_RETRIES) {
+        return false;
+    }
+    if (numTries > 0) {
+        logger->error(std::string("DataProxy: addTempSet with numTries=")+std::to_string(numTries));
+    }
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        logger->error("DataProxy: connection is closed, to reconnect");
         if (communicator->reconnect(errMsg)) {
             std :: cout << errMsg << std :: endl;
+            logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
            return false;
         }
     }
@@ -70,7 +82,8 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
             if (!this->communicator->sendObject<pdb :: StorageAddTempSet> (msg, errMsg))   { 
                //We reserve Database 0 and Type 0 as temp data
                cout << "Sending object failure: " << errMsg <<"\n";
-	       return false;
+	       return addTempSet(setName, setId, needMem, numTries+1);
+               
            }
         }
         //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
@@ -81,6 +94,11 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
             bool success;
             pdb :: Handle <pdb :: StorageAddTempSetResult> ack = 
 	        this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
+
+            if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return addTempSet(setName, setId, needMem, numTries+1);
+            }
             if(success == true) {
 	        setId = ack->getTempSetID();
                 //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
@@ -96,7 +114,7 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
              if (!this->communicator->sendObject<pdb :: StorageAddTempSet> (msg, errMsg))   {
                 //We reserve Database 0 and Type 0 as temp data
                 cout << "Sending object failure: " << errMsg <<"\n";
-                return false;
+                return addTempSet(setName, setId, needMem, numTries+1);
              }
          }
          //std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
@@ -106,6 +124,10 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
              bool success;
              pdb :: Handle <pdb :: StorageAddTempSetResult> ack =
                   this->communicator->getNextObject<pdb :: StorageAddTempSetResult> (success, errMsg) ;
+             if (ack == nullptr) {
+                 cout << "Receiving ack failure:" << errMsg << "\n";
+                 return addTempSet(setName, setId, needMem, numTries+1);
+             }
              if(success == true) {
                   setId = ack->getTempSetID();
                   //std :: cout << "Received StorageAddTempSetResult object from the server" << std :: endl;
@@ -117,12 +139,20 @@ bool DataProxy::addTempSet(string setName, SetID &setId, bool needMem) {
 }
 
 
-bool DataProxy::removeTempSet(SetID setId, bool needMem) {
+bool DataProxy::removeTempSet(SetID setId, bool needMem, int numTries) {
+    if (numTries == MAX_RETRIES) {
+        return false;
+    }
+    if (numTries > 0) {
+        logger->error(std::string("DataProxy: removeTempSet with numTries=")+std::to_string(numTries));
+    }
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        logger->error("DataProxy: connection is closed, to reconnect");
         if (communicator->reconnect(errMsg)) {
            std :: cout << errMsg << std :: endl;
+           logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
            return false;
         }
     }
@@ -136,7 +166,7 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
              //send the message out
              if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
                   cout << "Sending object failure: " << errMsg <<"\n";
-	          return false;
+	          return removeTempSet(setId, needMem, numTries+1);
              }
          }
 
@@ -146,6 +176,11 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
              const pdb :: UseTemporaryAllocationBlock myBlock{this->communicator->getSizeOfNextObject()};
              pdb :: Handle <pdb :: SimpleRequestResult> ack =
 	           this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
+             if (ack == nullptr) {
+                 cout << "Receiving ack failure:" << errMsg << "\n";
+                 return removeTempSet(setId, needMem, numTries+1);
+             }
+
              return success&&(ack->getRes().first);
          }
     }
@@ -156,7 +191,7 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
              //send the message out
              if (!this->communicator->sendObject<pdb :: StorageRemoveTempSet> (msg, errMsg)) {
                  cout << "Sending object failure: " << errMsg <<"\n";
-                 return false;
+                 return removeTempSet(setId, needMem, numTries+1);
              }
           }
 
@@ -165,6 +200,10 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
               bool success;
               pdb :: Handle <pdb :: SimpleRequestResult> ack =
                   this->communicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);
+              if (ack == nullptr) {
+                  cout << "Receiving ack failure:" << errMsg << "\n";
+                  return removeTempSet(setId, needMem, numTries+1);
+              }
               return success&&(ack->getRes().first);
           }
 
@@ -172,16 +211,24 @@ bool DataProxy::removeTempSet(SetID setId, bool needMem) {
 }
 
 //page will be pinned at Storage Server
-bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page, bool needMem) {
-    return addUserPage(0,0,setId, page, needMem);
+bool DataProxy::addTempPage(SetID setId, PDBPagePtr &page, bool needMem, int numTries) {
+    return addUserPage(0,0,setId, page, needMem, numTries);
 }
 
-bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem) {
+bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDBPagePtr &page, bool needMem, int numTries) {
+    if (numTries == MAX_RETRIES) {
+        return false;
+    }
+    if (numTries > 0) {
+        logger->error(std::string("DataProxy: addTempPage with numTries=")+std::to_string(numTries));
+    }
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        logger->error("DataProxy: connection is closed, to reconnect");
         if (communicator->reconnect(errMsg)) {
            std :: cout << errMsg << std :: endl;
+           logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
            return false;
         }
     }
@@ -199,7 +246,7 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             //send the message out
             if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
                 cout << "DataProxy.AddUserPage(): Sending object failure: " << errMsg <<"\n";
-                return false;
+                return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
         }
         
@@ -211,6 +258,10 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             bool success;
             pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
+            if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
+            }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
@@ -237,7 +288,7 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             //send the message out
             if (!this->communicator->sendObject<pdb :: StoragePinPage>(msg, errMsg)) {
                 cout << "Sending object failure: " << errMsg <<"\n";
-                return false;
+                return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
         }
 
@@ -246,6 +297,10 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
             bool success;
             pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);
+            if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
+            }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
@@ -262,17 +317,25 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
 }
 
     
-bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool needMem) {
-    return pinUserPage(this->nodeId, 0, 0, setId, pageId, page, needMem);
+bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool needMem, int numTries) {
+    return pinUserPage(this->nodeId, 0, 0, setId, pageId, page, needMem, numTries);
 }
 
 bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PageID pageId, PDBPagePtr &page, bool needMem) {
+        PageID pageId, PDBPagePtr &page, bool needMem, int numTries) {
+    if (numTries == MAX_RETRIES) {
+        return false;
+    }
+    if (numTries > 0) {
+        logger->error(std::string("DataProxy: pinUserPage with numTries=")+std::to_string(numTries));
+    }
     std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        logger->error("DataProxy: connection is closed, to reconnect");
         if (communicator->reconnect(errMsg)) {
            std :: cout << errMsg << std :: endl;
+           logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
            return false;
         }
     }
@@ -280,7 +343,7 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
     if(nodeId != this->nodeId) {
         this->logger->writeLn("DataProxy: We do not support to load pages from "
                 "remote node for the time being.");
-        return false;
+        return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
     }
 
     if (needMem == true) {
@@ -298,7 +361,7 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              //send the message out
              if (!this->communicator->sendObject<pdb :: StoragePinPage> (msg, errMsg)) {
                 cout << "Sending object failure: " << errMsg <<"\n";
-                return false;
+                return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
              }
         }
 
@@ -308,6 +371,10 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              bool success;
              pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
+             if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
+             }
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
              page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
@@ -329,7 +396,7 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              //send the message out
              if (!this->communicator->sendObject<pdb :: StoragePinPage> (msg, errMsg)) {
                 cout << "Sending object failure: " << errMsg <<"\n";
-                return false;
+                return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
              }
         }
 
@@ -338,6 +405,10 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              bool success;
              pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned> (success, errMsg);
+             if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
+             }
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
              page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
@@ -350,18 +421,26 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
 }
 
 
-bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem) {
-    return unpinUserPage(this->nodeId, 0,0,setId,page, needMem);
+bool DataProxy::unpinTempPage(SetID setId, PDBPagePtr page, bool needMem, int numTries) {
+    return unpinUserPage(this->nodeId, 0,0,setId,page, needMem, numTries);
 }
 
 bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-        PDBPagePtr page, bool needMem) {
+        PDBPagePtr page, bool needMem, int numTries) {
+    if (numTries == MAX_RETRIES) {
+        return false;
+    }
+    if (numTries > 0) {
+        logger->error(std::string("DataProxy: unpinUserPage with numTries=")+std::to_string(numTries));
+    }
     //std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
     std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
+        logger->error("DataProxy: connection is closed, to reconnect");
         if (communicator->reconnect(errMsg)) {
            std :: cout << errMsg << std :: endl;
+           logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
            return false;
         }
     }
@@ -394,7 +473,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
               logger->error(std :: string("Sending StorageUnpinPage object failure:")+errMsg);
-	      return false;
+	      return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
           }
           //std :: cout << "StorageUnpinPage sent.\n";  
           logger->debug("StorageUnpinPage sent.");
@@ -407,6 +486,10 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
 		this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
+           if(ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+                return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
+           }
            //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
@@ -433,7 +516,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
-              return false;
+              return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
           }
           //std :: cout << "StorageUnpinPage sent.\n";
        }
@@ -444,6 +527,10 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
                 this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
+           if (ack == nullptr) {
+                cout << "Receiving ack failure:" << errMsg << "\n";
+               return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
+           }
            //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
