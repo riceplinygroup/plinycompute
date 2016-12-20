@@ -30,6 +30,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <arpa/inet.h>
+
 
 namespace pdb {
 
@@ -91,11 +93,28 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
     if (nodeFile.is_open()) {
         while (! nodeFile.eof()) {
             std :: getline (nodeFile, inputLine);
-            if((inputLine.find(".") != string::npos) || (inputLine.find("localhost") != string::npos)) {
+            if(inputLine.length()<2) {
+               break;
+            }
             size_t pos = inputLine.find(":");
             if (pos != string::npos) {
                 port = stoi(inputLine.substr(pos + 1, inputLine.size()));
                 address = inputLine.substr(0, pos);
+                if (address.find('.') != string::npos) {
+                    struct sockaddr_in sa;
+                    int result = inet_pton(AF_INET, address.c_str(), &(sa.sin_addr));
+                    if (result == 0) {
+                    std :: cout << "ERROR: can't connect to IP:" << address  << std :: endl;
+                    continue;
+                
+                    }
+                } else {
+                    hostent * record = gethostbyname(address.c_str());
+                    if (record == nullptr) {
+                         std :: cout << "ERROR: can't connect to host:" << address << std :: endl;
+                         continue;
+                    }
+                }
             } else {
                 //TODO: we should not hardcode 8108
                 port = 8108;
@@ -106,7 +125,10 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
             this->nodes->push_back(node);
             std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
             nodeId ++;
-          }
+        }
+        if (nodes->size() == 0) {
+           std :: cout << "No workers in the cluster, stopping" << std :: endl;
+           exit(-1);
         }
         nodeFile.close();
     }
