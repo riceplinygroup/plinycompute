@@ -35,6 +35,13 @@
 #include <sstream>
 using namespace std;
 
+#ifndef HEADER_SIZE
+   #define HEADER_SIZE 20
+#endif
+
+#ifndef MAX_RETRIES
+   #define MAX_RETRIES 5
+#endif
 
 PDBScanWork::PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter): counter(counter) {
     this->iter = iter;
@@ -68,6 +75,10 @@ bool PDBScanWork::sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool 
 bool PDBScanWork::acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bool & wasError, string & info, string & errMsg) {
 
 	size_t sizeOfNextObject = myCommunicator->getSizeOfNextObject();
+        if (sizeOfNextObject < HEADER_SIZE) {
+            wasError = true;
+            return false;
+        }
         std :: cout << "PDBScanWork: to create memory block for SimpleRequestResult" << std :: endl;
         const pdb :: UseTemporaryAllocationBlock myBlock{sizeOfNextObject};
         std :: cout << "PDBScanWork: memory block allocated" << std :: endl;
@@ -103,16 +114,16 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
     //create a new connection to backend server
     pdb :: PDBCommunicatorPtr communicatorToBackEnd = make_shared<pdb :: PDBCommunicator>();
     int retry = 0;
-    while (communicatorToBackEnd->connectToLocalServer(logger, storage->getPathToBackEndServer(), errMsg)&&(retry < 10)) {
+    while (communicatorToBackEnd->connectToLocalServer(logger, storage->getPathToBackEndServer(), errMsg)&&(retry < MAX_RETRIES)) {
         retry ++;
-        if (retry >= 10) {
+        if (retry >= MAX_RETRIES) {
     	    errMsg = "PDBScanWowrk: can not connect to local server.";
     	    cout << errMsg <<"\n";
     	    callerBuzzer->buzz(PDBAlarm::GenericError);
             return;
         }
         //std :: cout << "PDBScanWork: Connect to local server failed, wait a while and retry..." << std :: endl;
-        sleep (1);
+        sleep (0);
     }
     if (retry > 0) {
         //std :: cout << "PDBScanWork: Connected to local server" << std :: endl;
@@ -125,25 +136,53 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
         if (page != nullptr) {
             //send PagePinned object to backend
                 //std :: cout << "PDBScanWork: pin page with pageId ="<<page->getPageID()<<"\n";
-        	logger->debug(string("PDBScanWork: pin pages with pageId = ")+to_string(page->getPageID()));
-        	this->sendPagePinned(communicatorToBackEnd, true, page->getNodeID(), page->getDbID(), page->getTypeID(), page->getSetID(), page->getPageID(), page->getSize(), page->getOffset());
-
-        	//receive ack object from backend
-                //std :: cout << "PDBScanWork: waiting for ack..." << std :: endl;
-        	logger->debug("PDBScanWork: waiting for ack... ");
-        	this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
-        	logger->debug("PDBScanWork: ack received ");
-                //std :: cout << "PDBScanWork: got ack!" << std :: endl;
+                retry = 0;
+               
+                while (retry < MAX_RETRIES) {
+        	    logger->debug(string("PDBScanWork: pin pages with pageId = ")+to_string(page->getPageID()));
+        	    bool ret = this->sendPagePinned(communicatorToBackEnd, true, page->getNodeID(), page->getDbID(), page->getTypeID(), page->getSetID(), page->getPageID(), page->getSize(), page->getOffset());
+                    if (ret == false) {
+                        communicatorToBackEnd->reconnect( errMsg );
+                        retry ++;
+                        continue;
+                    } 
+                    //receive ack object from backend
+                    //std :: cout << "PDBScanWork: waiting for ack..." << std :: endl;
+        	    logger->debug("PDBScanWork: waiting for ack... ");
+        	    ret = this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
+                    if (ret == false) {
+                        communicatorToBackEnd->reconnect( errMsg );
+                        retry ++;
+                        continue;
+                    }
+        	    logger->debug("PDBScanWork: ack received ");
+                    break;
+                    //std :: cout << "PDBScanWork: got ack!" << std :: endl;
+                }
         }
     }
     //close the connection
     //std :: cout << "PDBScanWork to close the loop" << std :: endl;
     logger->debug("PDBScanWork to close the loop");
-    this->sendPagePinned(communicatorToBackEnd, false, 0, 0, 0, 0, 0, 0, 0 );
-    this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
-    //notify the caller that this scan thread has finished work.
-    //std :: cout << "PDBScanWork finished.\n";
-    logger->debug("PDBScanWork finished.\n");
+    retry = 0;
+    while (retry < MAX_RETRIES) {
+        bool ret = this->sendPagePinned(communicatorToBackEnd, false, 0, 0, 0, 0, 0, 0, 0 );
+        if (ret == false) {
+             communicatorToBackEnd->reconnect( errMsg );
+             retry ++;
+             continue;
+        }
+        ret = this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
+        if (ret == false) {
+            communicatorToBackEnd->reconnect( errMsg );
+            retry ++;
+            continue;
+        }
+        //notify the caller that this scan thread has finished work.
+        //std :: cout << "PDBScanWork finished.\n";
+        logger->debug("PDBScanWork finished.\n");
+        break;
+    }
     callerBuzzer->buzz(PDBAlarm::WorkAllDone, this->counter);
 }
 

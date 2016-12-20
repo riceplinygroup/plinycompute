@@ -1431,9 +1431,13 @@
 
     void PDBCatalog::getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &keyToSearch){
         String searchForKey(keyToSearch);
+        std :: cout << "keyToSearch=" << keyToSearch << std :: endl;
+        std :: cout << "searchForKey=" << searchForKey << std :: endl;
         if (keyToSearch=="") databasesInCatalog = dbsValues;
         else{
             for (int i=0; i< (*dbsValues).size(); i++){
+                std :: cout << "i=" << i << std :: endl;
+                std :: cout << (*dbsValues)[i].getItemKey() << std :: endl;
                 if (searchForKey == (*dbsValues)[i].getItemKey()){
                     databasesInCatalog->push_back((*dbsValues)[i]);
                 }

@@ -55,7 +55,9 @@ void RefCountedObject <ObjType> :: decRefCount (PDBTemplateBase &typeInfo) {
 
 	// if the ref count goes to zero, free the pointed-to object
 	if (NUM_COPIES == 0) {
-
+                if (typeInfo.getTypeCode() == 0) {
+                    std :: cout << "RefCountedObject::decRefCount: typeInfo=0 before deleteConstituentObject" << std :: endl;
+                }
 		// call the appropriate delete to recursively free, if needed
 		typeInfo.deleteConstituentObject (getObject ());
 	

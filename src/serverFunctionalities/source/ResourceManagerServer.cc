@@ -91,7 +91,7 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
     if (nodeFile.is_open()) {
         while (! nodeFile.eof()) {
             std :: getline (nodeFile, inputLine);
-            if(inputLine.find(".") != string::npos) {
+            if((inputLine.find(".") != string::npos) || (inputLine.find("localhost") != string::npos)) {
             size_t pos = inputLine.find(":");
             if (pos != string::npos) {
                 port = stoi(inputLine.substr(pos + 1, inputLine.size()));

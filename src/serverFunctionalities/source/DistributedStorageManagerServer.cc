@@ -43,6 +43,9 @@
 #include "SetScan.h"
 #include "KeepGoing.h"
 #include "DoneWithResult.h"
+
+//#define USING_ALL_NODES
+
 namespace pdb {
 
 DistributedStorageManagerServer::DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf) : BroadcastServer(logger, conf) {
@@ -88,12 +91,24 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 auto successfulNodes = std::vector<std::string>();
                 auto failureNodes = std::vector<std::string>();
                 auto nodesToBroadcastTo = std::vector<std::string>();
+
+#ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesForDatabase(database, nodesToBroadcastTo, errMsg)) {
                     std::cout << "Could not find nodes to broadcast database to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
+#else
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+               nodesToBroadcastTo = allNodes;
+#endif
 
                 Handle<StorageAddDatabase> storageCmd = makeObject<StorageAddDatabase>(request->getDatabase());
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddDatabase, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcastTo,
@@ -156,14 +171,23 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                         return make_pair (res, errMsg);
                     }
                 }
-
+#ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(database, set, nodesToBroadcast, errMsg)) {
                     std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
-
+#else
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+               nodesToBroadcast = allNodes;
+#endif
                 Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
                                                                              request->getSetName(), request->getTypeName());
 
@@ -205,13 +229,24 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
 
                 auto nodesToBroadcastTo = std::vector<std::string>();
+
+#ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingDatabase(database, nodesToBroadcastTo, errMsg)) {
                     std::cout << "Could not find nodes to broadcast database delete to " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
-
+#else
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+               nodesToBroadcastTo = allNodes;
+#endif
                 Handle<StorageRemoveDatabase> storageCmd = makeObject<StorageRemoveDatabase>(database);
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveDatabase, Object, SimpleRequestResult>(storageCmd, nullptr,
                     nodesToBroadcastTo,
@@ -270,14 +305,23 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 } else {
                     typeName = (*returnValues)[0].getObjectTypeName();
                 }
-
+#ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
                     std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
-
+#else
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+               nodesToBroadcast = allNodes;
+#endif
                 Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
                     request->getSetName(), typeName);
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
@@ -387,14 +431,25 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          }
 
          //to get all nodes having data for this set
-         std :: vector<std :: string> nodes;
-         if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(dbName, setName, nodes, errMsg)) {
+         std :: vector<std :: string> nodesToBroadcast;
+#ifndef USING_ALL_NODES
+         if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(dbName, setName, nodesToBroadcast, errMsg)) {
              errMsg = "Error in handling SetScan message: Could not find nodes for this set";
              std :: cout << errMsg << std :: endl;
              return make_pair(false, errMsg);
          } 
+#else
+         std :: vector < std :: string> allNodes;
+         const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+         for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+         }
+         nodesToBroadcast = allNodes;
 
-         std :: cout << "num nodes for this set" << nodes.size() << std :: endl;
+#endif
+         std :: cout << "num nodes for this set" << nodesToBroadcast.size() << std :: endl;
 
          //to send SetScan message to slave servers iteratively 
          const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
@@ -402,8 +457,8 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          Record<Vector<Handle<Object>>>* curPage = nullptr;
          Handle<KeepGoing> temp;
          bool keepGoingSent = false;
-         for (int i = 0; i < nodes.size(); i++) {
-             std :: string serverName = nodes[i];
+         for (int i = 0; i < nodesToBroadcast.size(); i++) {
+             std :: string serverName = nodesToBroadcast[i];
              int port;
              std :: string address;
              size_t pos = serverName.find(":");
