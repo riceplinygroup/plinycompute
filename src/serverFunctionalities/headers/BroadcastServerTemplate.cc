@@ -110,6 +110,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                     return;
                 }
             }
+           
             const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
             bool err;
             Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);

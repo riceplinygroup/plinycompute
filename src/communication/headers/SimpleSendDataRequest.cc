@@ -82,6 +82,7 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
             // get the response and process it
             size_t objectSize = temp.getSizeOfNextObject();
             if (objectSize == 0) {
+                myLogger->error("simpleRequest: not able to get next object size");
                 std :: cout << "simpleRequest: not able to get next object size" << std :: endl;
                 if (retries < MAX_RETRIES) {
                     retries ++;
@@ -92,6 +93,7 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
             }
             void *memory = malloc (objectSize);
             if (memory == nullptr) {
+                myLogger->error(std::string("FATAL ERROR: not able to allocate memory with size=")+std::to_string(objectSize));
                 std :: cout << "FATAL ERROR: not able to allocate memory" << std :: endl;
                 exit (-1);
             }

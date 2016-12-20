@@ -127,7 +127,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 }
 
 void QuerySchedulerServer :: scheduleNew() {
-
+/*
     int counter = 0;
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
             [&] (PDBAlarm myAlarm, int &counter) {
@@ -156,10 +156,11 @@ void QuerySchedulerServer :: scheduleNew() {
     while(counter < this->standardResources->size()) {
         tempBuzzer->wait();
     }
+*/
 }
 
 bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
-
+/*
     std :: cout << "to connect to the remote node" << std :: endl;
     PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
@@ -186,7 +187,7 @@ bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPt
         std :: cout << errMsg << std :: endl;
         return false;
     }
-
+*/
     return true;
 
 }
