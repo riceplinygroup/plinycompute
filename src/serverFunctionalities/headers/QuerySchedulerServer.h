@@ -30,7 +30,7 @@
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
 #include "QueryGraphIr.h"
-#include "QueriesAndPlan.h"
+//#include "QueriesAndPlan.h"
 #include <vector>
 
 namespace pdb {
@@ -73,7 +73,7 @@ public:
        void cleanup () override;       
 
        // For the new query execution stuff
-       void setQueryAndPlan(Handle<QueriesAndPlan> setToMe) {newQueriesAndPlan = setToMe;}
+       //void setQueryAndPlan(Handle<QueriesAndPlan> setToMe) {newQueriesAndPlan = setToMe;}
 
        void scheduleNew();
 
@@ -102,7 +102,7 @@ protected:
 
        bool usePipelineNetwork;
 
-       Handle<QueriesAndPlan> newQueriesAndPlan;
+//       Handle<QueriesAndPlan> newQueriesAndPlan;
 
        bool pseudoClusterMode; 
 
