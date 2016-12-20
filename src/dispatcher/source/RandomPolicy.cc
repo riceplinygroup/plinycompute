@@ -90,6 +90,10 @@ std::shared_ptr<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>>
         RandomPolicy :: partition(Handle<Vector<Handle<Object>>> toPartition) {
 
     auto partitionedData = std::make_shared<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>> ();
+    if (storageNodes.size() == 0) {
+        std :: cout << "FATAL ERROR: there is no storage node in the cluster, please check conf/serverlist" << std :: endl;
+        exit(-1);
+    }
     int indexOfNodeToUse = rand() % storageNodes.size();
     auto nodeToUse = storageNodes[indexOfNodeToUse];
     partitionedData->insert(std::pair<NodeID, Handle<Vector<Handle<Object>>>>(nodeToUse->getNodeId(), toPartition));

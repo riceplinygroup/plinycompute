@@ -119,6 +119,9 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	// copy over the object
 	returnVal.typeInfo = typeInfo;
         try {
+            if (typeInfo.getTypeCode() == 0) {
+                std :: cout << "copyTargetToCurrentAllocationBlock: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl; 
+            } 
 	    typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
         } catch (NotEnoughSpace &n) {
             std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
@@ -453,6 +456,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
                 try {
+                    if(typeInfo.getTypeCode() == 0) {
+                        std :: cout << "operator=: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl;
+                    }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
@@ -624,6 +630,10 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
                 try {
+                    if (typeInfo.getTypeCode() == 0) {
+                        std :: cout << "Handle operator=: typeInfo=0 before setUpAndCopyFromConstituentObject" << std :: endl;
+                        
+                    }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
                     std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
@@ -684,7 +694,9 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 	}
 
 	typeInfo = fromMe.typeInfo;
-
+        if (typeInfo.getTypeCode() == 0) {
+            std :: cout << "Handle operator = ObjTypeTwo: typeInfo = 0 before getSizeConstituentObject" << std :: endl;
+        }
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy
 	if (!getAllocator ().contains (fromMe.getTarget ()) && getAllocator ().contains (this)) {

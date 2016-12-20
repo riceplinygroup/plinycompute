@@ -51,7 +51,7 @@ try:
         #run bin/test44 in a loop for 10 times
         print bcolors.OKBLUE + "start a query client to query data from pdbServer" + bcolors.ENDC
         subprocess.check_call(['bin/test44', 'n'])
-        print bcolors.OKBLUE + "waiting for 10 seconds for data to be flushed..." + bcolors.ENDC
+        print bcolors.OKBLUE + "waiting for 50 seconds for connections to be fully closed..." + bcolors.ENDC
         time.sleep(50)
 except subprocess.CalledProcessError as e:
     print bcolors.FAIL + "[ERROR] in running standalone integration tests" + bcolors.ENDC

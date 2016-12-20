@@ -108,9 +108,9 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                          }
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
                              //remove the page from cache!
-                             //cout << "to free the page!\n";
+                             cout << "to free the page!\n";
 		             this->server->getSharedMem()->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
-                             //cout << "internalOffset="<<page->getInternalOffset()<< "\n";
+                             cout << "internalOffset="<<page->getInternalOffset()<< "\n";
 		             page->setOffset(0);
 		             page->setRawBytes(nullptr);
                          }
@@ -130,9 +130,9 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                              page->setInFlush(false);
                              page->setDirty(false);
                          }
-                                
+                         std :: cout << "PDBFlushConsumerWork: page freed from cache" << std :: endl;       
                          this->server->getCache()->flushUnlock();
-                         //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for flushUnlock()...");
+                         this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for flushUnlock()...");
 /*
                          if(set!=nullptr) {
                                 if((set->getLastFlushedPageId()==(unsigned int)(-1)) || (key.pageId > set->getLastFlushedPageId())) {

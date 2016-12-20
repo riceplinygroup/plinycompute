@@ -49,7 +49,9 @@ void Array <TypeContained> :: setUpAndCopyFrom (void *target, void *source) cons
 
 	// copy the type info
 	toMe.typeInfo = fromMe.typeInfo;
-
+        if (toMe.typeInfo.getTypeCode() == 0) {
+            std :: cout << "Array::setUpAndCopyFrom: typeInfo=0 before getSizeOfConsitituentObject" << std :: endl;
+        }
         // copy everything over... use memmove on primitive type, or properly do the assignment on everything else
         char *newLoc = (char *) toMe.data;
 	char *data = (char *) fromMe.data;
@@ -58,6 +60,7 @@ void Array <TypeContained> :: setUpAndCopyFrom (void *target, void *source) cons
 	// get the size of the constituent object
 	uint32_t dataSize = 0;
 	if (fromMe.usedSlots > 0)
+                
 		dataSize = toMe.typeInfo.getSizeOfConstituentObject (data);
 
 	if (!toMe.typeInfo.descendsFromObject ()) {
@@ -120,7 +123,9 @@ Array <TypeContained> :: Array () {
 // Note: because this can be called by Object.deleteObject (), it must be written so as to not use TypeContained
 template <class TypeContained>
 Array <TypeContained> :: ~Array () {
-
+        if(typeInfo.getTypeCode() == 0) {
+            std :: cout << "Array::~Array: typeInfo = 0 before getSizeOfConstituentObject" << std :: endl;
+        }
 	// do no work if the guys we store do not come from pdb :: Object
 	if (!typeInfo.descendsFromObject ()) 
 		return;
@@ -226,6 +231,9 @@ void Array <TypeContained> :: deleteObject (void *deleteMe) {
                                                                  
 template <class TypeContained>
 size_t Array <TypeContained> :: getSize (void *forMe) {                                              
+        if(((Array<TypeContained> *)forMe)->typeInfo.getTypeCode() == 0){
+            std :: cout << "Array::getSize: typeInfo = 0 before getSizeOfConstituent" << std :: endl;
+        }
 	return sizeof (Array <TypeContained>) + 
 		((Array <TypeContained> *) forMe)->typeInfo.getSizeOfConstituentObject (forMe) * 
 		((Array <TypeContained> *) forMe)->numSlots;

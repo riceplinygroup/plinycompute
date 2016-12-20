@@ -27,11 +27,11 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Wall  -O3 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
-common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
+common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK -DUSING_ALL_NODES')
 
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())

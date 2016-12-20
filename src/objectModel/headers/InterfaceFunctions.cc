@@ -115,6 +115,7 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe) {
 		// get the space... allocate and set up the reference count before it
 		PDBTemplateBase temp;
 		temp.template setup <ObjType> ();
+
                 #ifdef DEBUG_OBJECT_MODEL
 		void *space = getAllocator ().getRAM (temp.getSizeOfConstituentObject (&forMe) + REF_COUNT_PREAMBLE_SIZE, temp.getTypeCode());
                 #else

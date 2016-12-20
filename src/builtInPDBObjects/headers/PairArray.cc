@@ -113,6 +113,15 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
 	toMe.keyTypeInfo = fromMe.keyTypeInfo;
 	toMe.valueTypeInfo = fromMe.valueTypeInfo;
 
+        if (toMe.keyTypeInfo.getTypeCode() == 0) {
+            std :: cout << "PairArray: setUpAndCopyFrom: keyTypeInfo = 0 " << std :: endl;
+            
+        }
+
+        if (toMe.valueTypeInfo.getTypeCode() == 0) {
+            std :: cout << "PairArray: setUpAndCopyFrom: valueTypeInfo = 0" << std :: endl;
+        }
+
 	// copy over the size info
 	toMe.objSize = fromMe.objSize;
 	toMe.valueOffset = fromMe.valueOffset;
@@ -329,7 +338,14 @@ PairArray <KeyType, ValueType> :: PairArray () {
 // Note: because this can be called by Object.deleteObject (), it must be written so as to not use TypeContained
 template <class KeyType, class ValueType>
 PairArray <KeyType, ValueType> :: ~PairArray () {
+        if (keyTypeInfo.getTypeCode() == 0) {
+            std :: cout << "PairArray: ~PairArray: keyTypeInfo = 0 " << std :: endl;
+         
+        }
 
+        if (valueTypeInfo.getTypeCode() == 0) {
+            std :: cout << "PairArray: ~PairArray: valueTypeInfo = 0" << std :: endl;
+        }
 	// do no work if the guys we store do not come from pdb :: Object
 	if (!keyTypeInfo.descendsFromObject () && !valueTypeInfo.descendsFromObject ()) 
 		return;
