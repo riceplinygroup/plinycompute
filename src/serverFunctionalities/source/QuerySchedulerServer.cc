@@ -53,11 +53,13 @@
 namespace pdb {
 
 QuerySchedulerServer :: ~QuerySchedulerServer () {
+    pthread_mutex_destroy(&connection_mutex);
 }
 
 QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode) {
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
+    pthread_mutex_init(&connection_mutex, nullptr);
 }
 
 
@@ -190,7 +192,8 @@ bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPt
 }
 
 bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
-     
+    
+    pthread_mutex_lock(&connection_mutex); 
     std :: cout << "to connect to the remote node" << std :: endl;
     PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
@@ -202,9 +205,10 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
     if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
         success = false;
         std :: cout << errMsg << std :: endl;
+        pthread_mutex_unlock(&connection_mutex);
         return success;
     }
-
+    pthread_mutex_unlock(&connection_mutex);
     for (int i = 0; i < this->currentPlan.size(); i++) {
         Handle<JobStage> stage = currentPlan[i];
         success = schedule (stage, communicator, mode);

@@ -122,7 +122,7 @@ else:
     numPassed = numPassed + 1
 
 
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
+#subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
 
 print("#################################")

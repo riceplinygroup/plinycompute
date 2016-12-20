@@ -229,7 +229,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     //now due to limitation in object model, we only support one output for a pipeline network
     SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getOutput()->getDatabase(), jobStage->getOutput()->getSetName(), jobStage->getOutput()->getDatabaseId(), jobStage->getOutput()->getTypeId(), jobStage->getOutput()->getSetId());
     
-    
+    pthread_mutex_t connection_mutex;
+    pthread_mutex_init(&connection_mutex, nullptr);    
 
     //create a buzzer and counter
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
@@ -252,8 +253,10 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineNetwork_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
+                  pthread_mutex_lock(&connection_mutex);
                   PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
                   anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                  pthread_mutex_unlock(&connection_mutex);
                   DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
                   //setup an output page to store intermediate results and final output
@@ -422,6 +425,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     while (counter < numThreads) {
          tempBuzzer->wait();
     }
+
+    pthread_mutex_destroy(&connection_mutex);
 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
         success = false;

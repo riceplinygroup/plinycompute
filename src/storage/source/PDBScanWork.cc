@@ -46,8 +46,12 @@ using namespace std;
 PDBScanWork::PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter): counter(counter) {
     this->iter = iter;
     this->storage = storage;
+    pthread_mutex_init(&connection_mutex, nullptr);
 }
 
+PDBScanWork::~PDBScanWork() {
+    pthread_mutex_destroy(&connection_mutex);
+}
 
 bool PDBScanWork::sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool morePagesToPin, NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
         SetID setId, PageID pageId, size_t pageSize, size_t offset) {
@@ -112,6 +116,7 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
 
     logger->debug("PDBScanWork: connect to backend...");
     //create a new connection to backend server
+    pthread_mutex_lock(&connection_mutex);
     pdb :: PDBCommunicatorPtr communicatorToBackEnd = make_shared<pdb :: PDBCommunicator>();
     int retry = 0;
     while (communicatorToBackEnd->connectToLocalServer(logger, storage->getPathToBackEndServer(), errMsg)&&(retry < MAX_RETRIES)) {
@@ -120,11 +125,13 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
     	    errMsg = "PDBScanWowrk: can not connect to local server.";
     	    cout << errMsg <<"\n";
     	    callerBuzzer->buzz(PDBAlarm::GenericError);
+            pthread_mutex_unlock(&connection_mutex);
             return;
         }
         //std :: cout << "PDBScanWork: Connect to local server failed, wait a while and retry..." << std :: endl;
         sleep (0);
     }
+    pthread_mutex_unlock(&connection_mutex);
     if (retry > 0) {
         //std :: cout << "PDBScanWork: Connected to local server" << std :: endl;
     }
