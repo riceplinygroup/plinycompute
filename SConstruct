@@ -31,7 +31,7 @@ elif  common_env['PLATFORM'] == 'posix':
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
-common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK -DUSING_ALL_NODES')
+common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())

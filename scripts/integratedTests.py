@@ -45,8 +45,8 @@ try:
     #run bin/test603
     print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
     serverProcess = subprocess.Popen(['bin/test603', '1', '512'])
-    print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
-    time.sleep(9)
+    print bcolors.OKBLUE + "waiting for 15 seconds for server to be fully started..." + bcolors.ENDC
+    time.sleep(15)
     #run bin/test46 1024
     print bcolors.OKBLUE + "start a data client to store data to pdbServer" + bcolors.ENDC
     subprocess.check_call(['bin/test46', '640'])
