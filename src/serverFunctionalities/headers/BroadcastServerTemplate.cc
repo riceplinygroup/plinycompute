@@ -79,6 +79,8 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             std::string errMsg;
             int portNumber = port;
             std :: string serverAddress = address;
+            //socket() is not thread-safe
+            pthread_mutex_lock(&connection_mutex);
             PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
             std :: cout << i << ":port = " << portNumber << std :: endl;
             std :: cout << i << ":address = " << serverAddress << std :: endl; 
@@ -86,8 +88,10 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
                 errorCallBack(errMsg, serverName);
                 callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
+                pthread_mutex_unlock(&connection_mutex);
                 return;
             }
+            pthread_mutex_unlock(&connection_mutex);
             std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
             Handle<MsgType> broadcastMsgCopy = deepCopyToCurrentAllocationBlock<MsgType>(broadcastMsg);
             if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
@@ -109,6 +113,10 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
             const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
             bool err;
             Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);
+            if (result == nullptr) {
+                std :: cout << "the " << i << "-th thread connection closed unexpectedly" << std :: endl;
+                callerBuzzer->buzz(PDBAlarm::GenericError, serverName);
+            }
             callBack(result, serverName);
             std :: cout << "the " << i << "-th thread finished" << std :: endl;
             callerBuzzer->buzz(PDBAlarm :: WorkAllDone, serverName);

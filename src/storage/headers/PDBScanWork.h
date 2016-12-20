@@ -43,7 +43,7 @@ class PDBScanWork : public pdb :: PDBWork {
 public:
 
     PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter);
-
+    ~PDBScanWork();
     bool sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool morePagesToPin, NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
             SetID setId, PageID pageId, size_t pageSize, size_t offset);
 
@@ -57,7 +57,7 @@ private:
     PageIteratorPtr iter;
     pdb :: PangeaStorageServer * storage;
     int & counter;
-
+    pthread_mutex_t connection_mutex;
 
 };
 

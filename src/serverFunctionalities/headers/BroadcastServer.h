@@ -76,6 +76,8 @@ namespace pdb {
     protected:
         PDBLoggerPtr logger;
         ConfigurationPtr conf;
+        pthread_mutex_t connection_mutex;
+
     };
 }
 

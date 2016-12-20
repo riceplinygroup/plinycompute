@@ -514,7 +514,6 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
 
         ssize_t numBytes = read(socketFD, cur, msgSize - (cur - start));
         this->logToMe->trace("PDBCommunicator: received bytes: " + std :: to_string (numBytes));
-        this->logToMe->trace("PDBCommunicator: " + std :: to_string (msgSize - (cur - start)) + " bytes to go!");
 
         if (numBytes < 0) {
             logToMe->error("PDBCommunicator: error reading socket when trying to accept text message");
@@ -525,11 +524,9 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
                 std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
                 std :: cout << "############################################" << std :: endl;
             } else {
-                std :: cout << "############################################"
- << std :: endl;
+                std :: cout << "############################################" << std :: endl;
                 std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################"
- << std :: endl;
+                std :: cout << "############################################" << std :: endl;
             } 
             socketClosed = true;
             return true;
@@ -556,6 +553,7 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         } else {
             cur += numBytes;
         }
+        this->logToMe->trace("PDBCommunicator: " + std :: to_string (msgSize - (cur - start)) + " bytes to go!");
     }
     return false;
 }

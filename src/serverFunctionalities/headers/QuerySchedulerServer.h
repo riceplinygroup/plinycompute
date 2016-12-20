@@ -106,6 +106,8 @@ protected:
 
        bool pseudoClusterMode; 
 
+       pthread_mutex_t connection_mutex;
+
 };
 
 
