@@ -25,7 +25,16 @@
 #include "GenericWork.h"
 #include "UseTemporaryAllocationBlock.h"
 
+
+#ifndef MAX_RETRIES
+    #define MAX_RETRIES 5
+#endif
+#ifndef HEADER_SIZE
+    #define HEADER_SIZE 20
+#endif
+
 namespace pdb {
+
 
 template <class MsgType, class PayloadType, class ResponseType>
 void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Handle<PayloadType>>> broadcastData,
@@ -76,51 +85,99 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
 
         PDBWorkPtr myWork = make_shared <GenericWork> ([i, serverName, port, address, this, &errorCallBack, &broadcastMsg, &broadcastData, &callBack] (PDBBuzzerPtr callerBuzzer) {
             std :: cout << "the " << i << "-th thread is started" << std :: endl;
-            std::string errMsg;
-            int portNumber = port;
-            std :: string serverAddress = address;
-            //socket() is not thread-safe
-            pthread_mutex_lock(&connection_mutex);
-            PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
-            std :: cout << i << ":port = " << portNumber << std :: endl;
-            std :: cout << i << ":address = " << serverAddress << std :: endl; 
-            if(communicator->connectToInternetServer(this->logger, portNumber, serverAddress, errMsg)) {
-                std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
-                errorCallBack(errMsg, serverName);
-                callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
-                pthread_mutex_unlock(&connection_mutex);
-                return;
-            }
-            pthread_mutex_unlock(&connection_mutex);
-            std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
-            Handle<MsgType> broadcastMsgCopy = deepCopyToCurrentAllocationBlock<MsgType>(broadcastMsg);
-            if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
-                std :: cout << i << ":sendObject: " << errMsg << std :: endl;
-                errorCallBack(errMsg, serverName);
-                callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
-                return;
-            }
-            std :: cout << i << ":send object to server: " << serverAddress << std :: endl;
-            if (broadcastData != nullptr) {
-                Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopyToCurrentAllocationBlock<Vector<Handle<PayloadType>>> (broadcastData);
-                if (!communicator->sendObject(payloadCopy, errMsg)) {
-                    std :: cout << i << ":sendBytes: " << errMsg << std :: endl;
-                    errorCallBack(errMsg, serverName);
-                    callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
-                    return;
+
+            int retries = 0;
+            
+            while (retries <= MAX_RETRIES) {
+
+                std::string errMsg;
+                int portNumber = port;
+                std :: string serverAddress = address;
+
+                //socket() is not thread-safe, so we need synchronize here
+                pthread_mutex_lock(&connection_mutex);
+                PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+                std :: cout << i << ":port = " << portNumber << std :: endl;
+                std :: cout << i << ":address = " << serverAddress << std :: endl; 
+                if(communicator->connectToInternetServer(this->logger, portNumber, serverAddress, errMsg)) {
+                    std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
+                    if (retries < MAX_RETRIES) {
+                        retries ++;
+                        std :: cout << "to retry to resend message" << std :: endl;
+                        pthread_mutex_unlock(&connection_mutex);
+                        continue;
+                    } else {
+                        pthread_mutex_unlock(&connection_mutex);
+                        errorCallBack(errMsg, serverName);
+                        callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
+                        return;
+                    }
                 }
+                pthread_mutex_unlock(&connection_mutex);
+                std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
+                Handle<MsgType> broadcastMsgCopy = deepCopyToCurrentAllocationBlock<MsgType>(broadcastMsg);
+                if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
+                    std :: cout << i << ":sendObject: " << errMsg << std :: endl;
+                    if (retries < MAX_RETRIES) {
+                        retries ++;
+                        std :: cout << "to retry to resend message" << std :: endl;
+                        continue;
+                    } else {
+                        errorCallBack(errMsg, serverName);
+                        callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
+                        return;
+                    }
+                }
+                std :: cout << i << ":send object to server: " << serverAddress << std :: endl;
+                if (broadcastData != nullptr) {
+                    Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopyToCurrentAllocationBlock<Vector<Handle<PayloadType>>> (broadcastData);
+                    if (!communicator->sendObject(payloadCopy, errMsg)) {
+                        std :: cout << i << ":sendBytes: " << errMsg << std :: endl;
+                        if (retries < MAX_RETRIES) {
+                            retries ++;
+                            std :: cout << "to retry to resend message" << std :: endl;
+                            continue;
+                        } else {
+                            errorCallBack(errMsg, serverName);
+                            callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
+                            return;
+                        }
+                    }
+                }
+
+                size_t objectSize = communicator->getSizeOfNextObject();  
+                if (objectSize <  HEADER_SIZE) {
+                    std :: cout << "received size is too small for an object" << std :: endl;
+                    if (retries < MAX_RETRIES) {
+                        retries ++;
+                        std :: cout << "to retry to resend message" << std :: endl;
+                        continue;
+                    } else {
+                        errorCallBack(errMsg, serverName);
+                        callerBuzzer->buzz (PDBAlarm :: GenericError, serverName);
+                        return;
+                    }
+                }       
+                const UseTemporaryAllocationBlock myBlock{objectSize};
+                bool err;
+                Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);
+                if (result == nullptr) {
+                    std :: cout << "the " << i << "-th thread connection closed unexpectedly" << std :: endl;
+                    if (retries < MAX_RETRIES) {
+                        retries ++;
+                        std :: cout << "to retry to resend message" << std :: endl;
+                        continue;
+                    } else {
+                        errorCallBack(errMsg, serverName);
+                        callerBuzzer->buzz(PDBAlarm::GenericError, serverName);
+                        return;
+                    }
+                }
+                callBack(result, serverName);
+                std :: cout << "the " << i << "-th thread finished" << std :: endl;
+                callerBuzzer->buzz(PDBAlarm :: WorkAllDone, serverName);
+                return;
             }
-           
-            const UseTemporaryAllocationBlock myBlock{communicator->getSizeOfNextObject()};
-            bool err;
-            Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);
-            if (result == nullptr) {
-                std :: cout << "the " << i << "-th thread connection closed unexpectedly" << std :: endl;
-                callerBuzzer->buzz(PDBAlarm::GenericError, serverName);
-            }
-            callBack(result, serverName);
-            std :: cout << "the " << i << "-th thread finished" << std :: endl;
-            callerBuzzer->buzz(PDBAlarm :: WorkAllDone, serverName);
         });
         myWorker->execute(myWork, buzzer);
     }
