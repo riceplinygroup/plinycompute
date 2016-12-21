@@ -54,6 +54,7 @@ PDBCommunicator::PDBCommunicator() {
     socketClosed = true;
     //Jia: moved this logic from Chris' message-based communication framework to here
     needToSendDisconnectMsg = false;
+    longConnection = false;
 }
 
 bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, std :: string& errMsg) {
