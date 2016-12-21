@@ -55,6 +55,7 @@ PDBServer::PDBServer(int portNumberIn, int numConnectionsIn, PDBLoggerPtr myLogg
     isInternet = true;
     allDone = false;
     struct sigaction sa;
+    memset (&sa, '\0', sizeof(sa));
     sa.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &sa, 0);
     // create the workers
@@ -70,6 +71,7 @@ PDBServer::PDBServer (string unixFileIn, int numConnectionsIn, PDBLoggerPtr myLo
     isInternet = false;
     allDone = false;
     struct sigaction sa;
+    memset (&sa, '\0', sizeof(sa));
     sa.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &sa, 0);
     // create the workers
