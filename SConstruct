@@ -27,7 +27,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -256,6 +256,8 @@ common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/Sha
 common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLeoQuery.so', ['build/libraries/LeoQuery.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
+common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
 
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -297,6 +299,8 @@ common_env.Program('bin/test49', ['build/tests/Test49.cc'] + all)
 common_env.Program('bin/test50', ['build/tests/Test50.cc'] + all)
 common_env.Program('bin/test51', ['build/tests/Test51.cc'] + all)
 common_env.Program('bin/test52', ['build/tests/Test52.cc'] + all)
+common_env.Program('bin/test53', ['build/tests/Test53.cc'] + all)
+common_env.Program('bin/test54', ['build/tests/Test54.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
@@ -334,5 +338,5 @@ pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['bin/test47', 'bin/test100', 'bin/test400', 'bin/test401', 'bin/test402', 'bin/test403', 'bin/test405', 'bin/test600','bin/test601', 'bin/test602','bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/test404', 'bin/test52', 'bin/test49', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/test43', 'bin/test44', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/ObjectModelTest1', 'bin/CatalogTests'])
+main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/test100', 'bin/test400', 'bin/test401', 'bin/test402', 'bin/test403', 'bin/test405', 'bin/test600','bin/test601', 'bin/test602','bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/test404', 'bin/test52', 'bin/test49', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/test43', 'bin/test44', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/ObjectModelTest1', 'bin/CatalogTests'])
 Default(main)

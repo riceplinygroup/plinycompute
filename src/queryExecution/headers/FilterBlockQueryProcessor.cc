@@ -87,7 +87,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 	}
 
-        int totalObjects = 0;
+        //int totalObjects = 0;
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
@@ -98,7 +98,7 @@ bool FilterBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 			if (filterFunc ()) {
                                 //std :: cout << "to push back posInInput=" << posInInput << std :: endl;
 				myOutVec.push_back (inputObject);
-                                totalObjects ++;
+                                //totalObjects ++;
                                 //std :: cout << "push back posInInput=" << posInInput << std :: endl;
 			}
 		}
