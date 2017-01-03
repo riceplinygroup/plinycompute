@@ -87,7 +87,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		return false;
 	}
 
-        int totalObjects = 0;
+        //int totalObjects = 0;
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
@@ -95,7 +95,7 @@ bool ProjectionBlockQueryProcessor <Output, Input> :: fillNextOutputBlock () {
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 			myOutVec.push_back (projectionFunc ());	
-                        totalObjects ++;
+                        //totalObjects ++;
 		}	
                 //std :: cout << "Projection processor processed one input block with "<<totalObjects << " objects" << std :: endl;
 		return false;

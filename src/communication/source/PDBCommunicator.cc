@@ -368,13 +368,13 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             } else {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             }
             socketClosed = true;
             return 0;
@@ -391,9 +391,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                 continue;
             } else {
                  if (longConnection) {
-                     std :: cout << "############################################" << std :: endl;
-                     std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
-                     std :: cout << "############################################" << std :: endl;
+                     //std :: cout << "############################################" << std :: endl;
+                     //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
+                     //std :: cout << "############################################" << std :: endl;
                  }
                  close(socketFD);
                  socketFD = -1;
@@ -425,16 +425,13 @@ size_t PDBCommunicator::getSizeOfNextObject () {
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             } else {
-                std :: cout << "############################################"
- << std :: endl;
-                std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR"
- << std :: endl;
-                std :: cout << "############################################"
- << std :: endl;
+                //std :: cout << "############################################"<< std :: endl;
+                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR"<< std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             }
             socketClosed = true;
             msgSize = 0;
@@ -451,9 +448,9 @@ size_t PDBCommunicator::getSizeOfNextObject () {
                  continue;
              } else {
                  if (longConnection) {
-                     std :: cout << "############################################" << std :: endl;
-                     std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRIE" << std :: endl;
-                     std :: cout << "############################################" << std :: endl;
+                     //std :: cout << "############################################" << std :: endl;
+                     //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRIE" << std :: endl;
+                     //std :: cout << "############################################" << std :: endl;
                  } 
                  close(socketFD);
                  socketFD = -1;
@@ -496,9 +493,9 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
                 continue;
             } else {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: CONNECTION CLOSED DUE TO WRITE ERROR AFTER RETRY" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO WRITE ERROR AFTER RETRY" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
                 close(socketFD);
                 socketFD = -1;
                 socketClosed = true;
@@ -535,13 +532,13 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             } else {
-                std :: cout << "############################################" << std :: endl;
-                std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                std :: cout << "############################################" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
+                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                //std :: cout << "############################################" << std :: endl;
             } 
             socketClosed = true;
             return true;
@@ -557,9 +554,9 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
                 continue;
             } else {
                 if (longConnection) {
-                    std :: cout << "############################################" << std :: endl;
-                    std :: cout << "WARNING: LONG CONNECTION IS CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
-                    std :: cout << "############################################" << std :: endl;
+                    //std :: cout << "############################################" << std :: endl;
+                    //std :: cout << "WARNING: LONG CONNECTION IS CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
+                    //std :: cout << "############################################" << std :: endl;
                 }
                 close(socketFD);
                 socketFD = -1;

@@ -215,6 +215,12 @@ inline VTableMap :: ~VTableMap () {
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 
+        //it could be a C++ type, we simply return nullptr
+        if (objectTypeID < 0) {
+           return nullptr;
+        }
+
+
 	// JIANOTE TODO: we may need lock it, otherwise another thread may change it
         /*
         // OK, first, we check to see if we have the v table pointer for this guy...
