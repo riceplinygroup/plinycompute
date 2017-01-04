@@ -93,8 +93,9 @@ class Centroid {
             int i;
             std :: cout << "count=" << count << std :: endl;
             for ( i = 0; i < NUM_DIMENSIONS; i++ ) {
-                std :: cout << i << ": " << sum[i] << std :: endl;
+                std :: cout << i << ": " << sum[i] << ";";
             }
+            std :: cout << std :: endl;
         }
 
 

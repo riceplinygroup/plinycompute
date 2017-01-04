@@ -121,7 +121,8 @@ public:
                         (*counters)[threadId] ++;
                         Handle<PartialResult> ret;
                         if ((*counters)[threadId] == 10000) {
-			    ret = (*partialResults)[threadId];
+                            ret = makeObject<PartialResult>();
+			    *ret = *((*partialResults)[threadId]);
                         } else {
                             ret = nullptr;
                         }
