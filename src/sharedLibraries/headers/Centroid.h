@@ -36,6 +36,18 @@ class Centroid {
 
         Centroid() {}
 
+        Centroid(double * point, int count) {
+
+            this->count = count;
+            
+            int i;
+            for ( i = 0; i < NUM_DIMENSIONS; i++ ) {
+                 sum[i] = point[i];
+            }
+
+        }
+
+
         void initialize() {
 
             count = 0;  

@@ -46,9 +46,9 @@ class KMeansQuery : public Selection <PartialResult, double [NUM_DIMENSIONS]> {
 
 public:
 
-	ENABLE_DEEP_COPY
+       ENABLE_DEEP_COPY
 
-	KMeansQuery () { 
+       KMeansQuery () { 
             srand((unsigned int)(time(NULL)));
             int i = 0;
 
@@ -59,7 +59,16 @@ public:
             counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
             partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);            
 
-        }
+       }
+
+       KMeansQuery (Centroid * currentCentroids) {
+           int i = 0;
+           for ( i = 0; i < NUM_CLUSTERS; i ++) {
+               this->currentCentroids[i] = currentCentroids[i];
+           }
+           counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
+           partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);
+       }
 
        int findClosestCluster (double* point) {
        
