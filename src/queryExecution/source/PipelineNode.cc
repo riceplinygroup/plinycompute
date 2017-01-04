@@ -207,8 +207,12 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              context->setOutputVec(outputVec);
              context->setPageToUnpin(output);
              context->setOutputFull(false);
-        }
+             Handle<GenericBlock> newOutputBlock = processor->loadOutputBlock();
+             (* newOutputBlock) = (* outputBlock);
+             outputBlock = nullptr;
+             outputBlock = newOutputBlock;
 
+        }
 
 
         //we assume a run of pipeline will not consume all memory that has just been allocated
@@ -220,6 +224,9 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
           //   logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
 
         }
+
+
+
         if (children->size() == 0) {
              //I am a sink node, run unbundling
             // std :: cout << id << ": I'm a sink node" << std :: endl;
@@ -228,6 +235,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             // std :: cout << id << ": done a sink node" << std :: endl;
             // logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
         }
+
         
         try {
             outputBlock = processor->loadOutputBlock();
@@ -279,6 +287,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
       //      logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
 
     }
+
     if (children->size() == 0) {
             //I am a sink node, run unbundling
         //    std :: cout << id << ": I'm a sink node" << std :: endl;
@@ -287,6 +296,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         //    std :: cout << id << ": done a sink node" << std :: endl;
         //    logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
     }
+
 
     processor->clearOutputBlock();
     outputBlock = nullptr;
