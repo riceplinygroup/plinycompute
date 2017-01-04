@@ -165,7 +165,7 @@ int main (int argc, char * argv[]) {
         // delete output set
         if (clusterMode == false) {
 	    // and delete the sets
-	    myClient.deleteSet ("kmeans_db", "kmeans_set1");
+	    myClient.deleteSet ("kmeans_db", "output_set1");
         }
         system ("scripts/cleanupSoFiles.sh");      
         return 0;
