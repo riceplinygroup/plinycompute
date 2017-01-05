@@ -39,7 +39,7 @@ public:
        ~ResourceManagerServer ();
 
        //constructor, initialize from a server list file 
-       ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode = false);
+       ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode = false, std::string pemFile = "conf/pdb.key");
 
        Handle<Vector<Handle<ResourceInfo>>> getAllResources ();
 
@@ -69,6 +69,8 @@ private:
       int port;
 
       bool pseudoClusterMode;
+
+      std :: string pemFile;
 
 };
 

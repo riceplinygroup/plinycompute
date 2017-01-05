@@ -32,11 +32,12 @@
 int main (int argc, char * argv[]) {
     int port = 8108;
     std :: string masterIp;
+    std :: string pemFile = "conf/pdb.key";
     bool pseudoClusterMode = false;
     if (argc == 3) {
         masterIp = argv[1];
         port = atoi(argv[2]);
-    } else if (argc == 4) {
+    } else if ((argc == 4) || (argc == 5)) {
         masterIp = argv[1];
         port = atoi(argv[2]);
         std :: string isPseudoStr(argv[3]);
@@ -44,8 +45,11 @@ int main (int argc, char * argv[]) {
             pseudoClusterMode = true;
             std :: cout << "Running in pseudo cluster mode" << std :: endl;
         }
-    }else {
-        std :: cout << "[Usage] #masterIp #port #runPseudoClusterOnOneNode (Y for running a pseudo-cluster on one node, N for running a real-cluster distributedly, and default is N)" << std :: endl;
+        if (argc == 5) {
+            pemFile = argv[4];
+        }
+    } else {
+        std :: cout << "[Usage] #masterIp #port #runPseudoClusterOnOneNode (Y for running a pseudo-cluster on one node, N for running a real-cluster distributedly, and default is N) #pemFile (by default is conf/pdb.key)" << std :: endl;
         exit (-1);
     }
   
@@ -58,7 +62,7 @@ int main (int argc, char * argv[]) {
     frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true, masterIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
 
-    frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port, pseudoClusterMode);
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);

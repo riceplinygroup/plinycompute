@@ -49,9 +49,10 @@ void ResourceManagerServer :: cleanup () {
 }
 
 
-ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode) {
+ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, int port, bool pseudoClusterMode, std::string pemFile) {
     this->port = port;
     this->pseudoClusterMode = pseudoClusterMode;
+    this->pemFile = pemFile;
     this->initialize (pathToServerList);
 }
 
@@ -78,7 +79,9 @@ void ResourceManagerServer :: initialize (std :: string pathToServerList) {
     analyzeNodes(pathToServerList);
     if (pseudoClusterMode == false) {
         //to run a script to obtain all system resources
-        system ("scripts/collect_proc.sh");    
+        std :: string command = std::string("scripts/collect_proc.sh ") + this->pemFile;
+        std :: cout << command << std :: endl;
+        system (command.c_str());    
         analyzeResources ("conf/cluster/cluster_info.txt");
     }
 }
