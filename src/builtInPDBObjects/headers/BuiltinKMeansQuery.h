@@ -16,11 +16,11 @@
  *                                                                           *
  *****************************************************************************/
 
+//by Jia, Jan 2nd, 2017
 #ifndef BUILTIN_KMEANS_QUERY_H
 #define BUILTIN_KMEANS_QUERY_H
 
-//by Jia, Jan 2nd, 2017
-
+// PRELOAD %BuiltinKMeansQuery%
 #ifndef MAX_THREADS
    #define MAX_THREADS 8
 #endif
@@ -40,6 +40,8 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
+
+
 
 namespace pdb {
 class BuiltinKMeansQuery : public Selection <BuiltinPartialResult, double [NUM_DIMENSIONS]> {
