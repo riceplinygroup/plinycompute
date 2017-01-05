@@ -18,6 +18,7 @@
 #ifndef BUILTIN_PARTIAL_RESULT_H
 #define BUILTIN_PARTIAL_RESULT_H
 
+//PRELOAD %BuiltinPartialResult%
 #include "Object.h"
 #include "Centroid.h"
 #include <stdlib.h>
