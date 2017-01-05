@@ -83,6 +83,19 @@ class Centroid {
 
         }
 
+        void updateMulti( double* point, int count) {
+
+            this->count += count;
+
+            int i;
+            for ( i = 0; i < NUM_DIMENSIONS; i++ ) {
+                sum[i] += point[i];
+            }
+
+       }
+
+
+
         double computeDistance( double* point ) {
 
             //we only want to compute distance for non-aggregation centroid
@@ -101,14 +114,42 @@ class Centroid {
 
         }
 
-        void print() {
+        void aggregate() {
+           
+            if (count <= 0) {
+                return;
+            }
+
+            int i;
+            for ( i = 0; i < NUM_DIMENSIONS; i++ ) {
+                sum[i] = sum[i]/(double)(count);
+            }
+
+            count = -1;
+
+        }
+
+        double * getSum() {
+
+           return sum;
+
+       }
+
+       int getCount() {
+           
+           return count;
+
+       }
+
+
+       void print() {
             int i;
             std :: cout << "count=" << count << std :: endl;
             for ( i = 0; i < NUM_DIMENSIONS; i++ ) {
                 std :: cout << i << ": " << sum[i] << ";";
             }
             std :: cout << std :: endl;
-        }
+       }
 
 
     private:
