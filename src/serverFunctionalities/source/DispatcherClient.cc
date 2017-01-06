@@ -25,7 +25,7 @@
 namespace pdb {
 
     DispatcherClient::DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) :
-            port(portIn), address(addressIn), logger(myLoggerIn) {}
+            port(portIn), address(addressIn), logger(myLoggerIn), myHelper (portIn, addressIn, myLoggerIn)  {}
 
     DispatcherClient::~DispatcherClient() {}
 
