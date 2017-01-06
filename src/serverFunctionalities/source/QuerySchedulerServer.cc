@@ -209,8 +209,13 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
         pthread_mutex_unlock(&connection_mutex);
         return success;
     }
+    if (this->currentPlan.size() > 1) {
+        std :: cout << "#####################################" << std :: endl;
+        std :: cout << "WARNING: GraphIr generates 2 stages" << std :: endl;
+        std :: cout << "#####################################" << std :: endl;
+    }
     pthread_mutex_unlock(&connection_mutex);
-    for (int i = 0; i < this->currentPlan.size(); i++) {
+    for (int i = 0; i < 1; i++) {
         Handle<JobStage> stage = currentPlan[i];
         success = schedule (stage, communicator, mode);
         if (!success) {

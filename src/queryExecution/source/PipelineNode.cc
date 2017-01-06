@@ -88,32 +88,35 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              std :: cout << "PipelineNode::unbundle(): Current allocation block is full" << std :: endl;
              logger->debug(std :: string( "PipelineNode::unbundle(): Current allocation block is full" )); 
              //copy data to output page
-             Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
-             std :: cout << "###############################" << std :: endl;
-             std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;
-             std :: cout << "###############################" << std :: endl;
-             memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
+             size_t outputVecSize = context->getOutputVec()->size();
+             if (outputVecSize > 0) {
+                 Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                 std :: cout << "###############################" << std :: endl;
+                 std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;
+                 std :: cout << "###############################" << std :: endl;
+                 memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-             //std :: cout << "PipelineNode: unpin output page" << std :: endl;
-             logger->debug(std :: string("PipelineNode: unpin output page"));
-             //unpin output page
-             context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                 //std :: cout << "PipelineNode: unpin output page" << std :: endl;
+                 logger->debug(std :: string("PipelineNode: unpin output page"));
+                 //unpin output page
+                 context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
-             //pin a new output page
-             PDBPagePtr output;
-             std :: cout << "to add user page for output" << std :: endl;
-             logger->debug(std :: string("PipelineNode: to add user page for output"));
-             context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
+                 //pin a new output page
+                 PDBPagePtr output;
+                 std :: cout << "to add user page for output" << std :: endl;
+                 logger->debug(std :: string("PipelineNode: to add user page for output"));
+                 context->getProxy()->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-             logger->debug(std :: string("pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                 std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                 logger->debug(std :: string("pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                 context->setPageToUnpin(output);
+             }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
-             makeObjectAllocatorBlock (output->getSize(), true);
+             makeObjectAllocatorBlock (context->getPageToUnpin()->getSize(), true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);
-             context->setPageToUnpin(output);
              unbundler->loadOutputVector();
              
              context->setOutputFull(false);
@@ -142,32 +145,35 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
     } catch (NotEnoughSpace &n) {
         std :: cout << "PipelineNode::run()--loadOutputBlock before loop: current block is full, copy to output page!" << std :: endl;
         logger->debug(std :: string("PipelineNode::run()--loadOutputBlock before loop: current block is full, copy to output page!"));
-        //copy data to output page
-        Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
-        std :: cout << "###############################" << std :: endl;
-        std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;               
-        std :: cout << "###############################" << std :: endl;
-        memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
+        size_t outputVecSize = context->getOutputVec()->size();
+        if (outputVecSize > 0) {
+            //copy data to output page
+            Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+            std :: cout << "###############################" << std :: endl;
+            std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;               
+            std :: cout << "###############################" << std :: endl;
+            memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-        //unpin output page
-        //std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
-        logger->debug(std :: string("PipelineNode: to unpin the output page"));
-        context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+            //unpin output page
+            //std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
+            logger->debug(std :: string("PipelineNode: to unpin the output page"));
+            context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
-        //pin a new output page
-        //std :: cout << "to add user page for output" << std :: endl;
-        logger->debug(std :: string("PipelineNode: to add user page for output"));
-        proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
+            //pin a new output page
+            //std :: cout << "to add user page for output" << std :: endl;
+            logger->debug(std :: string("PipelineNode: to add user page for output"));
+            proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-        //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-        logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+            //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+            logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+            context->setPageToUnpin(output);
+        }
         std :: string out = getAllocator().printInactiveBlocks();
         logger->info(out);
         makeObjectAllocatorBlock (output->getSize(), true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         context->setOutputVec(outputVec);
-        context->setPageToUnpin(output);
         outputBlock = processor->loadOutputBlock();
     }
     //std :: cout << "loaded an output block" << std :: endl;
@@ -178,34 +184,37 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         if (context->isOutputFull()) {
              std :: cout << "PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
              logger->debug(std :: string("PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
-             //copy data to output page
-             Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());  
-             std :: cout << "###############################" << std :: endl;
-             std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;               
-             std :: cout << "###############################" << std :: endl;      
-             memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
+             size_t outputVecSize = context->getOutputVec()->size();
+             if (outputVecSize > 0) {
+                 //copy data to output page
+                 Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());  
+                 std :: cout << "###############################" << std :: endl;
+                 std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;               
+                 std :: cout << "###############################" << std :: endl;      
+                 memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-             std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
-             logger->debug(std :: string("PipelineNode: to unpin the output page"));
+                 std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
+                 logger->debug(std :: string("PipelineNode: to unpin the output page"));
 
-             //unpin output page
-             context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                 //unpin output page
+                 context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
-             //pin a new output page
-             std :: cout << "to add user page for output" << std :: endl;
-             logger->debug(std :: string("PipelineNode: to add user page for output"));
-             proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
+                 //pin a new output page
+                 std :: cout << "to add user page for output" << std :: endl;
+                 logger->debug(std :: string("PipelineNode: to add user page for output"));
+                 proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(), 
                        context->getOutputSet()->getSetId(), output);
-             std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-             logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                 std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                 logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                 context->setPageToUnpin(output);
+             }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
              makeObjectAllocatorBlock (output->getSize(), true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(nullptr);
              context->setOutputVec(outputVec);
-             context->setPageToUnpin(output);
              context->setOutputFull(false);
              Handle<GenericBlock> newOutputBlock = processor->loadOutputBlock();
              (* newOutputBlock) = (* outputBlock);
@@ -242,35 +251,38 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         } catch (NotEnoughSpace &n) {
             std :: cout << "PipelineNode::run()--loadOutputBlock() in loop: current block is full, copy to output page!" << std :: endl;
             logger->debug(std :: string("PipelineNode::run()--loadOutputBlock() in loop: current block is full, copy to output page!"));
-            //copy data to output page
-            Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
-            std :: cout << "###############################" << std :: endl;
-            std :: cout << "To flush query result objects: " << context->getOutputVec()->size() << std :: endl;
-            std :: cout << "###############################" << std :: endl;
-            memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
+            size_t outputVecSize = context->getOutputVec()->size();
+            if (outputVecSize > 0) {
+                //copy data to output page
+                Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                std :: cout << "###############################" << std :: endl;
+                std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;
+                std :: cout << "###############################" << std :: endl;
+                memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-            //std :: cout << "to unpin user page for output" << std :: endl;
-            logger->debug(std :: string("PipelineNode: to unpin user page for output"));
+                //std :: cout << "to unpin user page for output" << std :: endl;
+                logger->debug(std :: string("PipelineNode: to unpin user page for output"));
 
 
-            //unpin output page
-            context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                //unpin output page
+                context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
-            //pin a new output page
-            std :: cout << "to add user page for output" << std :: endl;
-            logger->debug(std :: string("PipelineNode: to add user page for output"));
-            proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
+                //pin a new output page
+                std :: cout << "to add user page for output" << std :: endl;
+                logger->debug(std :: string("PipelineNode: to add user page for output"));
+                proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-            std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
-            logger->debug(std :: string("PipelineNode: pinned page in output set with id=")+std :: to_string(output->getPageID()));
+                std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+                logger->debug(std :: string("PipelineNode: pinned page in output set with id=")+std :: to_string(output->getPageID()));
+                context->setPageToUnpin(output);
+            }
             std :: string out = getAllocator().printInactiveBlocks();
             logger->info(out);
             makeObjectAllocatorBlock (output->getSize(), true);
             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
             context->setOutputVec(nullptr);
             context->setOutputVec(outputVec);
-            context->setPageToUnpin(output);
             outputBlock = processor->loadOutputBlock();
        }
     }

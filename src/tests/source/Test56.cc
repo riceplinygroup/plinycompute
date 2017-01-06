@@ -242,6 +242,9 @@ int main (int argc, char * argv[]) {
             for (i = 0; i < NUM_CLUSTERS; i ++) {
                 newCentroids[i].aggregate();
             }
+
+            auto aggregationEnd = std :: chrono :: high_resolution_clock :: now();
+
             //to delete the output set and create a new output set
             if (!temp.removeSet ("kmeans_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
@@ -249,12 +252,14 @@ int main (int argc, char * argv[]) {
             } else {
                 cout << "Removed set.\n";
             }
+            auto removeSetEnd = std :: chrono :: high_resolution_clock :: now();
             if (!temp.createSet<BuiltinPartialResult> ("kmeans_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Created set.\n";
             }
+            auto createSetEnd = std :: chrono :: high_resolution_clock :: now();
             //to create the new KMeansQuery object
             // make the query graph
             Handle <Set <double [NUM_DIMENSIONS]>> myInputSet = myClient.getSet <double [NUM_DIMENSIONS]> ("kmeans_db", "kmeans_set");
@@ -262,7 +267,7 @@ int main (int argc, char * argv[]) {
             myQuery->initialize(newCentroids);
             myQuery->setInput (myInputSet);
             Handle <QueryOutput <BuiltinPartialResult>> outputOne = makeObject <QueryOutput <BuiltinPartialResult>> ("kmeans_db", "output_set1", myQuery);
-
+            auto createQueryEnd = std :: chrono :: high_resolution_clock :: now();
             //to execute the new KMeansQuery object
             if (!myClient.execute(errMsg, outputOne)) {
                 std :: cout << "Query failed. Message was: " << errMsg << "\n";
@@ -271,8 +276,19 @@ int main (int argc, char * argv[]) {
 
             auto end = std::chrono::high_resolution_clock::now();
             numIterated ++;
-            std::cout << "Time Duration for the" << numIterated << "-th iteration: " <<
+
+            std::cout << "Time Duration for the " << numIterated << "-th iteration: " <<
                 std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
+            std::cout << "Aggregation Duration for the "<< numIterated << "-th iteration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(aggregationEnd-begin).count() << " ns." << std::endl;
+            std::cout << "Remove Set Duration for the "<< numIterated << "-th iteration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(removeSetEnd-aggregationEnd).count() << " ns." << std::endl;
+            std::cout << "Create Set Duration for the "<< numIterated << "-th iteration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(createSetEnd-removeSetEnd).count() << " ns." << std::endl;
+            std::cout << "Create Query Duration for the "<< numIterated << "-th iteration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(createQueryEnd-createSetEnd).count() << " ns." << std::endl;
+            std::cout << "Execute Query Duration for the "<< numIterated << "-th iteration: " <<
+                std::chrono::duration_cast<std::chrono::nanoseconds>(end-createQueryEnd).count() << " ns." << std::endl;
             std::cout << std::endl;
 
         }
