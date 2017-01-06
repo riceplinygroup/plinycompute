@@ -128,7 +128,7 @@ public:
                             (*partialResults)[threadId] = partialResult;
                         }
 
-                        if ((*counters)[threadId] == 10000) {
+                        if ((*counters)[threadId] == 1000000) {
                             (*partialResults)[threadId]->initialize(); //to clear partial results for last emission
                             (*counters)[threadId] = 0; // to clear counter for last emission
                         }
@@ -136,7 +136,7 @@ public:
                         (*partialResults)[threadId]->updateCentroid(clusterIndex, *checkMe);
                         (*counters)[threadId] ++;
                         Handle<BuiltinPartialResult> ret;
-                        if ((*counters)[threadId] == 10000) {
+                        if ((*counters)[threadId] == 1000000) {
                             ret = makeObject<BuiltinPartialResult>();
 			    *ret = *((*partialResults)[threadId]);
                         } else {
