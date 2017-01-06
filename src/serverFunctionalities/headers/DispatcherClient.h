@@ -27,6 +27,7 @@
 #include "PDBVector.h"
 #include "PDBObject.h"
 #include "PartitionPolicy.h"
+#include "CatalogClient.h"
 
 namespace pdb {
 
@@ -59,7 +60,7 @@ public:
     bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
 
 private:
-
+    CatalogClient myHelper;
     int port;
     std :: string address;
     PDBLoggerPtr logger;
