@@ -44,6 +44,11 @@
 #include "KeepGoing.h"
 #include "DoneWithResult.h"
 
+#include <chrono>
+#include <ctime>
+#include <unistd.h>
+
+
 //#define USING_ALL_NODES
 
 namespace pdb {
@@ -138,6 +143,8 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
     forMe.registerHandler(DistributedStorageAddSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddSet>> (
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
+
+                auto begin = std :: chrono :: high_resolution_clock :: now();
                 std::cout << "received DistributedStorageAddSet message" << std ::endl;
                 std::string errMsg;
                 mutex lock;
@@ -188,12 +195,19 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                }
                nodesToBroadcast = allNodes;
 #endif
-                Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
+               auto catalogGetNodesEnd = std :: chrono :: high_resolution_clock :: now();
+
+               Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
                                                                              request->getSetName(), request->getTypeName());
 
 
-                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
+               getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
+
+               auto storageAddSetEnd = std :: chrono :: high_resolution_clock :: now();
+
+
+
 
                 for (auto node : successfulNodes) {
                     if (!getFunctionality<CatalogClient>().addNodeToSet(node, database, set, errMsg)) {
@@ -201,6 +215,17 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                   << fullSetName << " in Catalog" << std::endl;
                     }
                 }
+
+               auto catalogAddSetEnd = std :: chrono :: high_resolution_clock :: now();
+
+               std::cout << "Time Duration for catalog getting nodes: " <<
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(catalogGetNodesEnd-begin).count() << " ns." << std::endl;
+               std::cout << "Time Duration for storage adding set: " <<
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(storageAddSetEnd - catalogGetNodesEnd).count() << " ns." << std::endl;
+               std::cout << "Time Duration for catalog adding set: " <<
+                   std::chrono::duration_cast<std::chrono::nanoseconds>(catalogAddSetEnd - storageAddSetEnd).count() << " ns." << std::endl;
+               std::cout << std::endl;
+
 
                 bool res = true;
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -281,6 +306,9 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
     forMe.registerHandler(DistributedStorageRemoveSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageRemoveSet>> (
             [&] (Handle <DistributedStorageRemoveSet> request, PDBCommunicatorPtr sendUsingMe) {
 
+
+                auto begin = std :: chrono :: high_resolution_clock :: now();
+
                 std::string errMsg;
                 mutex lock;
                 auto successfulNodes = std::vector<std::string>();
@@ -322,7 +350,10 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                }
                nodesToBroadcast = allNodes;
 #endif
-                Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
+
+               auto catalogGetNodesEnd = std :: chrono :: high_resolution_clock :: now();
+
+               Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
                     request->getSetName(), typeName);
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
                     nodesToBroadcast,
@@ -338,6 +369,8 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
                 }
+
+                auto storageRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
 
                 if (failureNodes.size() == 0) {
                     // If all the nodes succeeded in removing the set then we can simply delete the set from the
@@ -370,6 +403,17 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
                 return make_pair (res, errMsg);
+
+                auto catalogRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
+
+               std::cout << "Time Duration for catalog get nodes info: " <<
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(catalogGetNodesEnd-begin).count() << " ns." << std::endl;
+               std::cout << "Time Duration for storage removing set: " <<
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(storageRemoveSetEnd-catalogGetNodesEnd).count() << " ns." << std::endl;
+               std::cout << "Time Duration for catalog removing set: " <<
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(catalogRemoveSetEnd - storageRemoveSetEnd).count() << " ns." << std::endl;
+               std::cout << std::endl;
+
             }
     ));
 
