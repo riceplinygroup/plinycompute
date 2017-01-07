@@ -399,11 +399,11 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     return make_pair (false, errMsg);
                 }
 
+                auto catalogRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
                 bool res = true;
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
 
-                auto catalogRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
 
                std::cout << "Time Duration for catalog get nodes info: " <<
                     std::chrono::duration_cast<std::chrono::nanoseconds>(catalogGetNodesEnd-begin).count() << " ns." << std::endl;
