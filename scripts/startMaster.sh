@@ -17,7 +17,8 @@
 pemFile=$1
 
 $PDB_HOME/scripts/cleanupNode.sh
+#$PDB_HOME/scripts/cleanupWork.sh
 sleep 5
 $PDB_HOME/bin/test404 localhost 8108 N $pemFile &
-sleep 60
+sleep 100
 $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                

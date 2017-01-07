@@ -61,7 +61,7 @@ do
                 scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:~/pdb_temp/scripts/
                 ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
                 ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 $numThreads $sharedMem $masterIp $ip_addr" &
-                sleep 10
+                sleep 30
                 $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
                 
         fi
