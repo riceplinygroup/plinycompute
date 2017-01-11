@@ -265,8 +265,8 @@ int main(int argc, char **argv) {
 
 	//sharedMemSize
 	if (keyValues.find("sharedMemSize") != keyValues.end()) {
-		unsigned int sharedMemSizeInt = stoi(keyValues["sharedMemSize"]);
-		sharedMemSize =(size_t) sharedMemSizeInt;
+		unsigned long sharedMemSizeLong = stol(keyValues["sharedMemSize"]);
+		sharedMemSize =(size_t) sharedMemSizeLong;
 		cout << "sharedMemSize: " << sharedMemSize << endl;
 	}
 
