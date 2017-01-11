@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_46_CC
-#define TEST_46_CC
+#ifndef Store_SharedEmployee_InDBTest_CC
+#define Store_SharedEmployee_InDBTest_CC
 
 #include "StorageClient.h"
 #include "PDBVector.h"
@@ -29,9 +29,6 @@ int main(int argc, char * argv[]) {
 
 	int numOfMb = 1024;
 
-	std::cout << "Make sure to run bin/test603 in a different window to provide a catalog/storage server.\n";
-	std::cout << "Data Types should be registered before. \n";
-	std::cout << "You can provide one parameter as the size of data to add (in MB)" << std::endl;
 
 	if (argc > 1) {
 		numOfMb = atoi(argv[1]);
@@ -59,7 +56,6 @@ int main(int argc, char * argv[]) {
 			}
 
 		} catch (pdb::NotEnoughSpace &n) {
-
 			// we got here, so go ahead and store the vector
 			if (!temp.storeData<SharedEmployee>(storeMe, "chris_db", "chris_set", errMsg)) {
 				cout << "Not able to store data: " + errMsg;
@@ -69,8 +65,6 @@ int main(int argc, char * argv[]) {
 
 		}
 	}
-
 }
-
 #endif
 

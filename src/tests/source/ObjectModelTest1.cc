@@ -15,6 +15,11 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+
+#ifndef Object_Model_Test1_CC
+#define Object_Model_Test1_CC
+
+
 #define NUM_OBJECTS 10371
 #include <stdio.h>
 #include <cstddef>
@@ -136,4 +141,5 @@ int main() {
 		puts("File successfully deleted");
 
 }
+#endif
 
