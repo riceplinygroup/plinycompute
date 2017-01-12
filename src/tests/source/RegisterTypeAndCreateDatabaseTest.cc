@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef Register_Type_Database_Test_CC
-#define Register_Type_Database_Test_CC
+#ifndef REGISTER_TYPE_DATABASE_TEST_CC
+#define REGISTER_TYPE_DATABASE_TEST_CC
 
 #include "StorageClient.h"
 #include "PDBVector.h"
