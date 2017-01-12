@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef Store_SharedEmployee_InDBTest_CC
-#define Store_SharedEmployee_InDBTest_CC
+#ifndef STORE_SHARED_EMPLOYEE_IN_DB_TEST_CC
+#define STORE_SHARED_EMPLOYEE_IN_DB_TEST_CC
 
 #include "StorageClient.h"
 #include "PDBVector.h"
