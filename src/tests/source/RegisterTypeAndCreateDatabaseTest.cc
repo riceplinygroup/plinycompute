@@ -64,13 +64,21 @@ int main (int argc, char * argv[]) {
         }
 
 
-	// now, create a new database
-	if (!temp.createDatabase ("chris_db", errMsg)) {
-		cout << "Not able to create database: " + errMsg;
-                return -1;
-	} else {
-		cout << "Created database.\n";
-	}
+    	// now, create a new database
+    	if (!temp.createDatabase ("chris_db", errMsg)) {
+    		cout << "Not able to create database: " + errMsg;
+                    return -1;
+    	} else {
+    		cout << "Created database.\n";
+    	}
+
+    	// now, create a new set in that database
+    	if (!temp.createSet <SharedEmployee> ("chris_db", "chris_set", errMsg)) {
+    		cout << "Not able to create set: " + errMsg;
+                    return -1;
+    	} else {
+    		cout << "Created set.\n";
+    	}
 
 
 	// and shut down the server
