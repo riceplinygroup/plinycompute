@@ -24,22 +24,22 @@ ip_len_valid=3
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide two parameters: one is your the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startSlaves.sh #pem_file #masterIp";
+    echo "Usage: scripts/startWorkers.sh #pem_file #masterIp #threadNum #sharedMemSize";
     exit -1;
 fi
 
 if [ -z ${masterIp} ];
     then echo "ERROR: please provide two parameters: one is the path to your pem file and the other is the master IP";
-    echo "Usage: scripts/startSlaves.sh #pem_file #masterIp";
+    echo "Usage: scripts/startWorkers.sh #pem_file #masterIp #threadNum #sharedMemSize";
     exit -1;
 fi
     
 if [ -z ${numThreads} ];
-     then numThreads=6;
+     then numThreads=4;
 fi
 
 if [ -z ${sharedMem} ];
-     then sharedMem=12288;
+     then sharedMem=10240;
 fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
