@@ -34,6 +34,7 @@ class CatalogClient;
 #include "CatSharedLibraryByNameRequest.h"
 
 #include "CatalogPrintMetadata.h"
+#include "CatalogCloseSQLiteDBHandler.h"
 
 namespace pdb {
 
@@ -142,6 +143,9 @@ public:
     bool getPointsToMasterCatalog();
 
     void setPointsToMasterCatalog(bool pointsToMaster);
+
+    // closes the SQLite DB Handler
+    bool closeCatalogSQLite(std :: string &errMsg);
 
 private:
 

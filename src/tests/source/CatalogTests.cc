@@ -138,15 +138,18 @@ int main (int numArgs, const char *args[]) {
         command = "0";
     }
 
-    cout << " Connected to IP: " << conf->getServerAddress() << endl;
-    cout << " Using port: " << conf->getPort() << endl;
-
     //start a catalog client
     pdb :: CatalogClient catClient (conf->getPort(), conf->getServerAddress(), make_shared <pdb :: PDBLogger> ("clientCatalogLog"));
 
     //start a storage client
     bool usePangea = conf->getUsePangea();
-    pdb :: StorageClient storageClient (conf->getPort(), conf->getServerAddress(), make_shared <pdb :: PDBLogger> ("clientLog"), usePangea);
+
+    cout << " Connected to IP: " << conf->getServerAddress() << endl;
+    cout << " Using port: " << conf->getPort() << endl;
+    cout << " Using pangea: " << conf->getUsePangea() << endl;
+
+    pdb :: StorageClient storageClient (conf->getPort(), conf->getServerAddress(),
+            make_shared <pdb :: PDBLogger> ("clientLog"), true);
 
     pdb::DistributedStorageManagerClient distributedStorageClient(conf->getPort(), conf->getServerAddress(),
             make_shared <pdb :: PDBLogger> ("distributedStorageManager"));
@@ -239,11 +242,11 @@ int main (int numArgs, const char *args[]) {
     } else if (command.compare("remove-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-        if (!distributedStorageClient.removeDatabase (databaseName, errMsg)) {
-            std :: cout << "Not able to remove database: " + errMsg << std::endl;
-        } else {
-            std :: cout << "Database and its metadata successfully removed.\n";
-        }
+//        if (!storageClient.removeDatabase (databaseName, errMsg)) {
+//            std :: cout << "Not able to remove database: " + errMsg << std::endl;
+//        } else {
+//            std :: cout << "Database and its metadata successfully removed.\n";
+//        }
         cout << "Done.\n";
 
     } else if (command.compare("retrieve-db") == 0) {

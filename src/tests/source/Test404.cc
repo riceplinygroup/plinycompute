@@ -58,7 +58,7 @@ int main (int argc, char * argv[]) {
     pdb::PDBServer frontEnd(port, 100, myLogger);
     
     ConfigurationPtr conf = make_shared < Configuration > ();
-        
+    
     frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true, masterIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     

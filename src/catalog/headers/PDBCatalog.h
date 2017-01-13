@@ -28,6 +28,8 @@
 #define PDB_CATALOG_H_
 
 #include <algorithm>
+#include <chrono>
+#include <ctime>
 #include <dirent.h>
 #include <dlfcn.h>
 #include <fstream>
@@ -56,6 +58,11 @@
 #include "CatalogSetMetadata.h"
 #include "CatalogUserTypeMetadata.h"
 #include "CatalogDatabaseMetadata.h"
+#include "CatalogStandardSetMetadata.h"
+#include "CatalogUserTypeMetadata.h"
+#include "CatalogStandardDatabaseMetadata.h"
+#include "CatalogStandardNodeMetadata.h"
+#include "CatalogStandardUserTypeMetadata.h"
 
 using namespace std;
 using namespace pdb;
@@ -137,8 +144,9 @@ using namespace pdb;
          * @param errorMessage error message
          * @return true on success
          */
-        template<class CatalogMetadataType>
+        template<class CatalogMetadataType, class CatalogStandardMetadataType>
         bool addMetadataToCatalog(Handle<CatalogMetadataType> &metadataValue,
+                                  CatalogStandardMetadataType &metadataItem,
                                   int &metadataCategory,
                                   string &errorMessage);
 
@@ -351,6 +359,11 @@ using namespace pdb;
          * @return a Vector of items
          */
         void getListOfNodes(Handle<Vector<CatalogNodeMetadata>> &nodesInCatalog, const string &key);
+
+        /**
+         * closeSQLiteHandler closes the SQLite DB handler once is no longer needed
+         */
+        void closeSQLiteHandler();
 
 
     private:

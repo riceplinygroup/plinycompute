@@ -571,6 +571,22 @@ bool CatalogClient :: deleteGenericMetadata (pdb :: Handle<Type> metadataItem, s
         );
 }
 
+bool CatalogClient :: closeCatalogSQLite(std :: string &errMsg){
+    return simpleRequest <CatalogCloseSQLiteDBHandler, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error printing catalog metadata: " + result->getRes ().second;
+                    myLogger->error ("Error printing catalog metadata: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error printing catalog metadata.";
+            return false;}
+    );
+}
+
 
 // implicit instantiation
 template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);

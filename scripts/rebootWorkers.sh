@@ -33,5 +33,6 @@ do
         fi
 done
 
+echo -e "\nWaiting 60 seconds..."
 sleep 60
 

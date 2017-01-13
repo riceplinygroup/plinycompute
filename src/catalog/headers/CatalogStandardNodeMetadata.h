@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <string>
+#include "CatalogNodeMetadata.h"
 
 using namespace std;
 
@@ -65,6 +66,8 @@ class CatalogStandardNodeMetadata {
 
         void setItemKey(string &itemKeyIn);
 
+        void setItemIP(pdb :: String &itemIPIn);
+
         void setItemId(string &itemIdIn);
 
         void setItemName(string &itemNameIn);
@@ -73,6 +76,7 @@ class CatalogStandardNodeMetadata {
 
         string printShort();
 
+        void toStandardMetadata(pdb :: Handle<pdb :: CatalogNodeMetadata> &convertedItem);
 
         friend std::ostream& operator<<(std::ostream &out, CatalogStandardNodeMetadata &node) {
             out << "\nCluster Node Metadata"<< endl;
@@ -94,6 +98,7 @@ class CatalogStandardNodeMetadata {
         string nodeName;
         string nodeType;
         int nodeStatus;
+        string nodeAddress;
 };
 
 #endif /* SRC_CATALOG_CATALOGSTANDARDNODEMETADATA_H_ */

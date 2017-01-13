@@ -145,6 +145,9 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
 
                 auto begin = std :: chrono :: high_resolution_clock :: now();
+                auto beforeCreateSet = begin;
+                auto afterCreateSet = begin;
+
                 std::cout << "received DistributedStorageAddSet message" << std ::endl;
                 std::string errMsg;
                 mutex lock;
@@ -171,12 +174,17 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     if (typeId == 0) {
                         return make_pair (false, "Could not identify type=" + request->getTypeName());
                     }
+
+                    beforeCreateSet = std :: chrono :: high_resolution_clock :: now();
+
                     if (!getFunctionality<CatalogClient>().createSet(typeId, database, set, errMsg)) {
                         std::cout << "Could not register set, because: " << errMsg << std::endl;
                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                         bool res = sendUsingMe->sendObject (response, errMsg);
                         return make_pair (res, errMsg);
                     }
+                    afterCreateSet = std :: chrono :: high_resolution_clock :: now();
+
                 }
 #ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(database, set, nodesToBroadcast, errMsg)) {
@@ -218,14 +226,15 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
                auto catalogAddSetEnd = std :: chrono :: high_resolution_clock :: now();
 
-               std::cout << "Time Duration for catalog getting nodes: " <<
-                   std::chrono::duration_cast<std::chrono::nanoseconds>(catalogGetNodesEnd-begin).count() << " ns." << std::endl;
-               std::cout << "Time Duration for storage adding set: " <<
-                   std::chrono::duration_cast<std::chrono::nanoseconds>(storageAddSetEnd - catalogGetNodesEnd).count() << " ns." << std::endl;
-               std::cout << "Time Duration for catalog adding set: " <<
-                   std::chrono::duration_cast<std::chrono::nanoseconds>(catalogAddSetEnd - storageAddSetEnd).count() << " ns." << std::endl;
+               std::cout << "Time Duration for catalog create set Metadata:\t " <<
+                   std::chrono::duration_cast<std::chrono::duration<float>>(afterCreateSet-beforeCreateSet).count() << " secs." << std::endl;
+               std::cout << "Time Duration for catalog getting nodes:\t " <<
+                   std::chrono::duration_cast<std::chrono::duration<float>>(catalogGetNodesEnd-afterCreateSet).count() << " secs." << std::endl;
+               std::cout << "Time Duration for storage adding set:\t " <<
+                   std::chrono::duration_cast<std::chrono::duration<float>>(storageAddSetEnd - catalogGetNodesEnd).count() << " secs." << std::endl;
+               std::cout << "Time Duration for catalog adding addNodeToSet metadata:\t " <<
+                   std::chrono::duration_cast<std::chrono::duration<float>>(catalogAddSetEnd - storageAddSetEnd).count() << " secs." << std::endl;
                std::cout << std::endl;
-
 
                 bool res = true;
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -405,12 +414,12 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 res = sendUsingMe->sendObject (response, errMsg);
 
 
-               std::cout << "Time Duration for catalog get nodes info: " <<
-                    std::chrono::duration_cast<std::chrono::nanoseconds>(catalogGetNodesEnd-begin).count() << " ns." << std::endl;
-               std::cout << "Time Duration for storage removing set: " <<
-                    std::chrono::duration_cast<std::chrono::nanoseconds>(storageRemoveSetEnd-catalogGetNodesEnd).count() << " ns." << std::endl;
-               std::cout << "Time Duration for catalog removing set: " <<
-                    std::chrono::duration_cast<std::chrono::nanoseconds>(catalogRemoveSetEnd - storageRemoveSetEnd).count() << " ns." << std::endl;
+               std::cout << "Time Duration for catalog get nodes info:\t " <<
+                    std::chrono::duration_cast<std::chrono::duration<float>>(catalogGetNodesEnd-begin).count() << " secs." << std::endl;
+               std::cout << "Time Duration for storage removing set:\t " <<
+                    std::chrono::duration_cast<std::chrono::duration<float>>(storageRemoveSetEnd-catalogGetNodesEnd).count() << " secs." << std::endl;
+               std::cout << "Time Duration for catalog removing set:\t " <<
+                    std::chrono::duration_cast<std::chrono::duration<float>>(catalogRemoveSetEnd - storageRemoveSetEnd).count() << " secs." << std::endl;
                std::cout << std::endl;
                return make_pair (res, errMsg);
 
