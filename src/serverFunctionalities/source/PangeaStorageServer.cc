@@ -19,6 +19,7 @@
 #ifndef PANGEA_STORAGE_SERVER_C
 #define PANGEA_STORAGE_SERVER_C
 
+#include "PDBDebug.h"
 #include "PangeaStorageServer.h"
 #include "SimpleRequestResult.h"
 #include "CatalogServer.h"
@@ -146,16 +147,16 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 }
 
 void PangeaStorageServer :: cleanup() {
-        std :: cout << "to clean up for storage..." << std :: endl; 
+        PDB_COUT << "to clean up for storage..." << std :: endl; 
         for (auto &a : allRecords) {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first);
         }
-        std :: cout << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
+        PDB_COUT << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
         //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
-        std :: cout << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
+        PDB_COUT << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
         sleep(1);
-        std :: cout << "cleaned up for storage..." << std :: endl;
+        PDB_COUT << "cleaned up for storage..." << std :: endl;
 }
 
 PangeaStorageServer :: ~PangeaStorageServer () {
@@ -196,7 +197,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
         // the current size (in bytes) of records we need to process
         size_t numBytesToProcess = sizes[databaseAndSet];
-        std :: cout << "buffer is full, to write to a storage page"<< std::endl;
+        PDB_COUT << "buffer is full, to write to a storage page"<< std::endl;
  
 	// now, get a page to write to
 	PDBPagePtr myPage = getNewPage (databaseAndSet);
@@ -207,7 +208,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
             exit (-1);
         }
         size_t pageSize = myPage->getSize();
-        std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+        PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
 	
@@ -247,7 +248,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// if we got here, all records have been processed
 
                         // comment the following three lines of code to allow Pangea to manage pages
-			std :: cout << "Write all of the bytes in the record.\n";
+			PDB_COUT << "Write all of the bytes in the record.\n";
                         getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
@@ -267,7 +268,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		} catch (NotEnoughSpace &n) {
 
                         // comment the following three lines of code to allow Pangea to manage pages						
-			std :: cout << "Writing back a page!!\n";
+			PDB_COUT << "Writing back a page!!\n";
 			// write back the current page...
                         getRecord(data);
 			//myPage->wroteBytes ();
@@ -286,7 +287,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				std :: cout << "Are still enough records for another page.\n";
+				PDB_COUT << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
                                 pageSize = myPage->getSize();
 				continue;
@@ -304,7 +305,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				for (; pos < numObjectsInRecord; pos++) {
 					extraData->push_back (allObjects[pos]);	
 				}
-				std :: cout << "Putting the records back complete.\n";
+				PDB_COUT << "Putting the records back complete.\n";
 	
 				// destroy the record that we were copying from
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
@@ -318,7 +319,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		}
 	}
 
-	std :: cout << "Now all the records are back.\n";
+	PDB_COUT << "Now all the records are back.\n";
 	sizes[databaseAndSet] = numBytesToProcess;
 }
 
@@ -326,7 +327,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        // this handler accepts a request to write back all buffered records
        forMe.registerHandler (StorageCleanup_TYPEID, make_shared<SimpleRequestHandler<StorageCleanup>> (
            [&] (Handle<StorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
-               std :: cout << "received StorageCleanup" << std :: endl;
+               PDB_COUT << "received StorageCleanup" << std :: endl;
                std :: string errMsg;
                bool res = true;
                getFunctionality<PangeaStorageServer>().cleanup();
@@ -344,7 +345,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        // this handler accepts a request to add a database
        forMe.registerHandler (StorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<StorageAddDatabase>> (
                 [&] (Handle <StorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
-                        std :: cout << "received StorageAddDatabase" << std :: endl;
+                        PDB_COUT << "received StorageAddDatabase" << std :: endl;
                         std :: string errMsg;
                         bool res = true;
                         if (standalone == true) {
@@ -374,26 +375,26 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
        // this handler accepts a request to add a set
        forMe.registerHandler (StorageAddSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddSet>> (
                [&] (Handle <StorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
-                         std :: cout << "received StorageAddSet" << std :: endl;
+                         PDB_COUT << "received StorageAddSet" << std :: endl;
                          std :: string errMsg;
                          bool res = true;
                          if (standalone == true) {
-                               std :: cout << "adding set in standalone mode" << std :: endl;
+                               PDB_COUT << "adding set in standalone mode" << std :: endl;
                                res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
                              if (res == false) {
                                  errMsg = "Set already exists\n";
                              } else {
                                           //int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
                                           int16_t typeID = VTableMap :: getIDByName (request->getTypeName(), false);
-                                          std :: cout << "TypeID ="<< typeID << std :: endl;
+                                          PDB_COUT << "TypeID ="<< typeID << std :: endl;
                                           if (typeID == -1) {
                                                     errMsg = "Could not find type " + request->getTypeName();
                                                     res = false;
                                           } else {
-                                                    std :: cout << "to add set in catalog" << std :: endl;
+                                                    PDB_COUT << "to add set in catalog" << std :: endl;
                                                     res = getFunctionality<CatalogServer>().addSet(typeID, request->getDatabase(), request->getSetName(), errMsg);
                                                     if (res == true) {
-                                                        std :: cout << "success" << std :: endl;
+                                                        PDB_COUT << "success" << std :: endl;
                                                     } else {
                                                         std :: cout << "failed" << std :: endl;
                                                     }
@@ -401,14 +402,14 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                              }
                          } else {
-                            std :: cout << "creating set in Pangea in distributed environment...with setName=" << request->getSetName() << std :: endl;
+                            PDB_COUT << "creating set in Pangea in distributed environment...with setName=" << request->getSetName() << std :: endl;
                          if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
                              errMsg = "Set already exists\n";
                              cout << errMsg << endl;
                          } else {
                              //int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
                              int16_t typeID = VTableMap :: getIDByName(request->getTypeName(), false);
-                             std :: cout << "TypeID ="<< typeID << std :: endl;
+                             PDB_COUT << "TypeID ="<< typeID << std :: endl;
                              // make sure the type is registered in the catalog
                              if (typeID == -1) {
                                 errMsg = "Could not find type " + request->getTypeName();
@@ -458,7 +459,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                     std :: string errMsg;
                     std::string databaseName = request->getDatabase();
                     bool res;
-                    std::cout << "Deleting database " << databaseName << std::endl;
+                    PDB_COUT << "Deleting database " << databaseName << std::endl;
                     if (standalone == true) {
                          res = getFunctionality<PangeaStorageServer>(). removeDatabase(databaseName);
                          if (res == false) {
@@ -616,15 +617,15 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                 size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
 
                                                 if(numBytesToProcess < rawPageSize) {
-                                                      std :: cout << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
+                                                      PDB_COUT << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
                                                  }
                                                 else {
 						      // if we have enough space to fill up a page, do it
-						      std :: cout << "Got the data.\n";
-						      std :: cout << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+						      PDB_COUT << "Got the data.\n";
+						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
 						      getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
-						      std :: cout << "Done with write back.\n";
-						      std :: cout << "Are " << sizes[databaseAndSet] << " bytes left.\n";
+						      PDB_COUT << "Done with write back.\n";
+						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
                                                 }
 		 }
 		 else {
@@ -665,7 +666,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                  if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {
                                           //int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getType());
                                           int16_t typeID = VTableMap :: getIDByName(request->getType(), false);
-                                          std :: cout << "TypeID ="<< typeID << std :: endl;
+                                          PDB_COUT << "TypeID ="<< typeID << std :: endl;
                                           if (typeID == -1) {
                                                     errMsg = "Could not find type " + request->getType();
                                                     res = false;
@@ -679,7 +680,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                               while (iter->hasNext()) {
                                                                       PDBPagePtr page = iter->next();
                                                                       if (page != nullptr) {
-                                                                          std :: cout << "to send the " << numPagesSent <<"-th page" << std :: endl;
+                                                                          PDB_COUT << "to send the " << numPagesSent <<"-th page" << std :: endl;
                                                                           //const UseTemporaryAllocationBlock block{128*1024*1024};
                                                                           //std :: cout << "sending the page..."<<std :: endl;
                                                                           res = sendUsingMe->sendBytes(page->getRawBytes(), page->getRawSize(), errMsg);
@@ -695,7 +696,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                                       }
                                                               }
                                                     }
-                                                    std :: cout << "All done!\n";
+                                                    PDB_COUT << "All done!\n";
                                                     delete iterators;
                                           }
                                  }
@@ -715,7 +716,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         PageID pageId = request->getPageID();
                         bool wasNewPage = request->getWasNewPage();
 
-                        std :: cout << "to pin page in set with setId=" << setId << std :: endl;
+                        PDB_COUT << "to pin page in set with setId=" << setId << std :: endl;
                         bool res;
                         string errMsg;
 
@@ -858,7 +859,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
                            [&] (PDBAlarm myAlarm, int & counter) {
                                     counter ++;
-                                    std :: cout << "counter = " << counter << std :: endl;
+                                    PDB_COUT << "counter = " << counter << std :: endl;
                            });
                         
                         //scan pages and load pages in a multi-threaded style
@@ -1071,7 +1072,7 @@ void PangeaStorageServer::createTempDirs() {
         if ((this->metaTempPath = this->conf->getMetaTempDir()).compare("") != 0) {
                 boost::filesystem::remove_all(metaTempPath);
                 this->conf->createDir(metaTempPath);
-                cout <<"metaTempPath:"<<metaTempPath<<"\n";
+                PDB_COUT <<"metaTempPath:"<<metaTempPath<<"\n";
         }
         string strDataTempPaths = this->conf->getDataTempDirs();
         string curDataTempPath;
@@ -1080,21 +1081,21 @@ void PangeaStorageServer::createTempDirs() {
         if ((curPos = strDataTempPaths.find(',')) == string::npos) {
                 boost::filesystem::remove_all(strDataTempPaths);
                 this->conf->createDir(strDataTempPaths);
-                cout << "dataTempPath:"<< strDataTempPaths <<"\n";
+                PDB_COUT << "dataTempPath:"<< strDataTempPaths <<"\n";
                 dataTempPaths.push_back(strDataTempPaths);
         } else {
                 while ((curPos = strDataTempPaths.find(',')) != string::npos) {
                         curDataTempPath = strDataTempPaths.substr(startPos, curPos);
                         boost::filesystem::remove_all(curDataTempPath);
                         this->conf->createDir(curDataTempPath);
-                        cout << "dataTempPath:"<<curDataTempPath<<"\n";
+                        PDB_COUT << "dataTempPath:"<<curDataTempPath<<"\n";
                         dataTempPaths.push_back(curDataTempPath);
                         strDataTempPaths = strDataTempPaths.substr(curPos + 1,
                                         strDataTempPaths.length() + 1);
                 }
                 boost::filesystem::remove_all(strDataTempPaths);
                 this->conf->createDir(strDataTempPaths);
-                cout << "dataTempPath:"<<strDataTempPaths<<"\n";
+                PDB_COUT << "dataTempPath:"<<strDataTempPaths<<"\n";
                 dataTempPaths.push_back(strDataTempPaths);
         }
 }
@@ -1306,8 +1307,8 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                        typeName = "UnknownUserData";
                        this->addType(typeName, (UserTypeID)-1);
                    } else {
-                       std :: cout << "Pangea add new type when add set: typeName="<< typeName << std :: endl;
-                       std :: cout << "Pangea add new type when add set: typeId="<< typeId << std :: endl; 
+                       PDB_COUT << "Pangea add new type when add set: typeName="<< typeName << std :: endl;
+                       PDB_COUT << "Pangea add new type when add set: typeId="<< typeId << std :: endl; 
                        this->addType(typeName, (UserTypeID)typeId);
                    }
                /*} else {
@@ -1334,12 +1335,12 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        type->addSet(setName, setId);
        set = type->getSet(setId);
        this->getCache()->pin(set, MRU, Write);
-       std :: cout << "to get usersetLock" << std :: endl;
+       PDB_COUT << "to get usersetLock" << std :: endl;
        pthread_mutex_lock(&this->usersetLock);
        this->userSets->insert(std :: pair<std :: pair<DatabaseID, SetID>, SetPtr> (std :: pair<DatabaseID, SetID>(dbId, setId), set));
        this->names2ids->insert(std :: pair<std :: pair<std :: string, std :: string>, std :: pair<DatabaseID, SetID>> (std :: pair<std :: string, std :: string> (dbName, setName), std :: pair<DatabaseID, SetID>(dbId, setId)));
        pthread_mutex_unlock(&this->usersetLock);
-       std :: cout << "released usersetLock" << std :: endl;
+       PDB_COUT << "released usersetLock" << std :: endl;
        return true;
 }
 
@@ -1353,7 +1354,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
            return false;
        }
        SetID setId = usersetSeqIds->at(dbName)->getNextSequenceID();
-       std :: cout << "to add set with dbName=" << dbName << ", typeName=" << typeName << ", setName=" << setName << ", setId=" << setId << std :: endl;
+       PDB_COUT << "to add set with dbName=" << dbName << ", typeName=" << typeName << ", setName=" << setName << ", setId=" << setId << std :: endl;
        pthread_mutex_unlock(&this->usersetLock);
        return addSet (dbName, typeName, setName, setId);
 }
@@ -1375,9 +1376,9 @@ bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setNa
      pthread_mutex_lock(&this->usersetLock);
      type->removeSet(setId);
      int numRemoved = userSets->erase(std :: pair <DatabaseID, SetID>(dbId, setId)); 
-     std :: cout << "numItems removed from userSets:" << numRemoved << std :: endl;
+     PDB_COUT << "numItems removed from userSets:" << numRemoved << std :: endl;
      numRemoved = names2ids->erase(std :: pair <std :: string, std :: string> (dbName, setName));
-     std :: cout << "numItems removed from names2ids:" << numRemoved << std :: endl;
+     PDB_COUT << "numItems removed from names2ids:" << numRemoved << std :: endl;
      pthread_mutex_unlock(&this->usersetLock);
      return true;
 }
@@ -1508,7 +1509,7 @@ SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID set
 void PangeaStorageServer::startFlushConsumerThreads() {
         //get the number of threads to start
         int numThreads = this->dataRootPaths.size();
-        cout<<"number of partitions:"<<numThreads<<"\n";
+        PDB_COUT<<"number of partitions:"<<numThreads<<"\n";
         int i;
         PDBFlushConsumerWorkPtr flusher;
         PDBWorkerPtr worker;
@@ -1521,7 +1522,7 @@ void PangeaStorageServer::startFlushConsumerThreads() {
                         sched_yield();
                 }
                 worker->execute(flusher, flusher->getLinkedBuzzer());
-                cout<<"flushing thread started for partition: "<<i<<"\n";
+                PDB_COUT<<"flushing thread started for partition: "<<i<<"\n";
         }
 
 }
@@ -1718,7 +1719,7 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
                             maxSetId =  setId + 1;
                         }
                         SetPtr set = setIter->second;
-                        std :: cout << "Loaded existing set with database: "<<dbName<<", type: "<<typeName<<", set: "<<set->getSetName()<<std::endl;
+                        PDB_COUT << "Loaded existing set with database: "<<dbName<<", type: "<<typeName<<", set: "<<set->getSetName()<<std::endl;
                         pthread_mutex_lock(&this->usersetLock);
                         this->userSets->insert(
                                 std :: pair<std :: pair <DatabaseID, SetID>,  SetPtr>(
