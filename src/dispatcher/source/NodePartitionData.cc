@@ -18,6 +18,7 @@
 #ifndef OBJECTQUERYMODEL_NODEPARTITIONDATA_CC
 #define OBJECTQUERYMODEL_NODEPARTITIONDATA_CC
 
+#include "PDBDebug.h"
 #include "NodePartitionData.h"
 
 namespace pdb {
@@ -26,11 +27,11 @@ namespace pdb {
             : nodeId(nodeId), port(port), address(address), setName(setAndDatabaseName.first), databaseName(setAndDatabaseName.second) {
 
 
-        std::cout << "Constructing " << port << " and " << address << std::endl;
+        PDB_COUT << "Constructing " << port << " and " << address << std::endl;
 
-        std::cout << "Now is " << getPort() << " and " << getAddress() << std::endl;
+        PDB_COUT << "Now is " << getPort() << " and " << getAddress() << std::endl;
 
-        std::cout << "Now getting " << toString() << std::endl;
+        PDB_COUT << "Now getting " << toString() << std::endl;
 
         this->totalBytesSent = 0;
     }

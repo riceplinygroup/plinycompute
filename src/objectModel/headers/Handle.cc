@@ -26,6 +26,7 @@
 #include <iterator>
 #include <cstring>
 
+#include "PDBDebug.h"
 #include "TypeName.h"
 #include "Handle.h"
 #include "RefCountedObject.h"
@@ -120,7 +121,7 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
 	returnVal.typeInfo = typeInfo;
         try {
             if (typeInfo.getTypeCode() == 0) {
-                std :: cout << "copyTargetToCurrentAllocationBlock: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl; 
+                PDB_COUT << "copyTargetToCurrentAllocationBlock: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl; 
             } 
 	    typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
         } catch (NotEnoughSpace &n) {
@@ -457,7 +458,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
                 try {
                     if(typeInfo.getTypeCode() == 0) {
-                        std :: cout << "operator=: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl;
+                        PDB_COUT << "operator=: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl;
                     }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
@@ -631,7 +632,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
                 try {
                     if (typeInfo.getTypeCode() == 0) {
-                        std :: cout << "Handle operator=: typeInfo=0 before setUpAndCopyFromConstituentObject" << std :: endl;
+                        PDB_COUT << "Handle operator=: typeInfo=0 before setUpAndCopyFromConstituentObject" << std :: endl;
                         
                     }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
@@ -695,7 +696,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
 
 	typeInfo = fromMe.typeInfo;
         if (typeInfo.getTypeCode() == 0) {
-            std :: cout << "Handle operator = ObjTypeTwo: typeInfo = 0 before getSizeConstituentObject" << std :: endl;
+            PDB_COUT << "Handle operator = ObjTypeTwo: typeInfo = 0 before getSizeConstituentObject" << std :: endl;
         }
 	// if the RHS is not in the current allocator, but the handle is, then
 	// we need to copy it over using a deep copy

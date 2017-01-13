@@ -52,7 +52,6 @@ void *getObjectVTable () {							\
 										\
         } catch (NotEnoughSpace &e) {						\
                 std :: cout << "Not enough memory to allocate TYPE_NAME";	\
-		std :: cout << " to extract the vTable.\n";			\
         }									\
 	return returnVal;							\
 }										\

@@ -17,13 +17,13 @@
  *****************************************************************************/
 #ifndef SINGLE_TABLE_BUNDLE_PROCESSOR_CC
 #define SINGLE_TABLE_BUNDLE_PROCESSOR_CC
-
+#include "PDBDebug.h"
 #include "SingleTableBundleProcessor.h"
 
 namespace pdb {
 
 SingleTableBundleProcessor :: ~SingleTableBundleProcessor() {
-    std :: cout << "Total input objects number =" << this->totalSize << std :: endl;
+    PDB_COUT << "Total input objects number =" << this->totalSize << std :: endl;
     this->clearInputPage();
     this->clearOutputBlock();
     this->context = nullptr;
@@ -46,9 +46,9 @@ void SingleTableBundleProcessor :: loadInputPage (void * pageToProcess) {
 
     Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) pageToProcess;
     inputVec = myRec->getRootObject ();
-    std :: cout << "#######################################" << std :: endl;
-    std :: cout << "Loaded a page with " << inputVec->size() << " objects"<< std :: endl;
-    std :: cout << "#######################################" << std :: endl;
+    PDB_COUT << "#######################################" << std :: endl;
+    PDB_COUT << "Loaded a page with " << inputVec->size() << " objects"<< std :: endl;
+    PDB_COUT << "#######################################" << std :: endl;
     posInInput = 0;
 
 }

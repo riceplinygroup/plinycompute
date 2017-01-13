@@ -18,7 +18,7 @@
 
 #ifndef FILTER_BLOCK_QUERY_PROCESSOR_CC
 #define FILTER_BLOCK_QUERY_PROCESSOR_CC
-
+#include "PDBDebug.h"
 #include "InterfaceFunctions.h"
 #include "FilterBlockQueryProcessor.h"
 #include "SharedEmployee.h"

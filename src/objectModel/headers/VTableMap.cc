@@ -33,6 +33,7 @@
 // in BuiltInPDBObjects/headers
 
 #include <dlfcn.h>
+#include "PDBDebug.h"
 #include "LockGuard.h"
 #include <unistd.h>
 #include "PDBLogger.h"
@@ -82,7 +83,7 @@ inline void VTableMap :: listVtableLabels () {
         std::map<std::string, int16_t> iterator;
 
         for(auto &iterator : theVTable->objectTypeNamesList){
-            std::cout << "label= " << iterator.first << " id= " <<  iterator.second << std::endl;
+           std::cout << "label= " << iterator.first << " id= " <<  iterator.second << std::endl;
         }
 }
 
@@ -248,7 +249,7 @@ inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 		return returnVal;
 	} else {
 		// if they have not gotten it for us, then go and get it
-                std :: cout << "VTableMap: to get VTablePtr using Catalog for objectTypeID=" << objectTypeID << std :: endl;
+                PDB_COUT << "VTableMap: to get VTablePtr using Catalog for objectTypeID=" << objectTypeID << std :: endl;
 		returnVal = getVTablePtrUsingCatalog (objectTypeID);
                 //std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
                 return returnVal;

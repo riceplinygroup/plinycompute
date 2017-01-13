@@ -20,6 +20,7 @@
 #ifndef PDB_COMMUN_C
 #define PDB_COMMUN_C
 
+#include "PDBDebug.h"
 #include "BuiltInObjectTypeIDs.h"
 #include "Handle.h"
 #include <iostream>
@@ -223,6 +224,7 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
     logToMe = logToMeIn;
     struct sockaddr_un server;
     //TODO: add retry logic here
+    //TODO: add retry logic here
     socketFD = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socketFD < 0) {
         logToMe->error("PDBCommunicator: could not get FD to local server socket");
@@ -337,7 +339,6 @@ int PDBCommunicator::getSocketFD() {
 
 int16_t PDBCommunicator::getObjectTypeID () {
 
-	// if we do not know the next type ID, then get it
         if (!readCurMsgSize) {
             getSizeOfNextObject ();
         }
@@ -381,13 +382,13 @@ size_t PDBCommunicator::getSizeOfNextObject () {
          } else if (receivedBytes == 0) {
             logToMe->info("PDBCommunicator: the other side closed the socket when we try to read the type");
             nextTypeID = NoMsg_TYPEID;
-            std :: cout << "PDBCommunicator: the other side closed the socket when we try to get next type" << std :: endl;
+            PDB_COUT << "PDBCommunicator: the other side closed the socket when we try to get next type" << std :: endl;
 
             //if (retries < MAX_RETRIES) {
             if (retries < 0) {
                 retries ++;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
-                std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                 continue;
             } else {
                  if (longConnection) {
@@ -439,11 +440,11 @@ size_t PDBCommunicator::getSizeOfNextObject () {
         } else if (receivedBytes == 0) { 
             logToMe->info("PDBCommunicator: the other side closed the socket when we try to get next size");
             nextTypeID = NoMsg_TYPEID;
-            std :: cout << "PDBCommunicator: the other side closed the socket when we try to get next size" << std :: endl;
+            PDB_COUT << "PDBCommunicator: the other side closed the socket when we try to get next size" << std :: endl;
             //if (retries < MAX_RETRIES) {
             if (retries < 0) {
                  retries ++;
-                 std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                 PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                  logToMe->info("PDBCommunicator: Retry to see whether network can recover");
                  continue;
              } else {
@@ -489,8 +490,9 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
             //if (retries < MAX_RETRIES) {
             if (retries < 0) {
                 retries ++;
-                std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
+                continue;
                 continue;
             } else {
                 //std :: cout << "############################################" << std :: endl;
@@ -545,12 +547,12 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         }
         else if (numBytes == 0) {
             logToMe->info("PDBCommunicator: the other side closed the socket when we do the read");
-            std :: cout << "PDBCommunicator: the other side closed the socket when we doTheRead" << std :: endl;
+            PDB_COUT << "PDBCommunicator: the other side closed the socket when we doTheRead" << std :: endl;
             //if (retries < MAX_RETRIES) {
             if (retries < 0) {
                 retries ++;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
-                std :: cout << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
                 continue;
             } else {
                 if (longConnection) {
@@ -589,7 +591,7 @@ bool PDBCommunicator::reconnect(std :: string& errMsg) {
 
     if (needToSendDisconnectMsg == true) {
       //I can reconnect because I'm a client
-        std :: cout << "To reconnect..." << std :: endl;
+        PDB_COUT << "To reconnect..." << std :: endl;
 
         if (socketFD >= 0) {
             close(socketFD);

@@ -25,6 +25,7 @@
 #include "PDBString.h"
 #include "PDBVector.h"
 #include "QueryAlgo.h"
+#include "PDBDebug.h"
 
 using std::function;
 
@@ -46,10 +47,10 @@ public:
 	}
 
 	void print () {
-		std :: cout << whichDB << "." << whichSet << ": " << getQueryType () << "(" << getOutputType () << ")\n";
+		PDB_COUT << whichDB << "." << whichSet << ": " << getQueryType () << "(" << getOutputType () << ")\n";
 		for (int i = 0; i < getNumInputs (); i++) {
 			if (getIthInput (i) == nullptr)
-				std :: cout << "<nullptr>";
+				PDB_COUT << "<nullptr>";
 			else
 				getIthInput (i)->print ();	
 		}
@@ -148,7 +149,7 @@ public:
 			// make sure that the database names match up
 			if (getDBName () != "" && getDBName () != toMe->getDBName ()) {
 				std :: cout << "This is bad; you seem to be combining inputs from different databases.\n";
-				std :: cout << "DBs used are " << getDBName () << " and " << toMe->getDBName () << ".\n";	
+				PDB_COUT << "DBs used are " << getDBName () << " and " << toMe->getDBName () << ".\n";	
 				isError = true;
                                 return false;
 			} else {

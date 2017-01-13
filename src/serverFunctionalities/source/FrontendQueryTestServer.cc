@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string>
-
+#include "PDBDebug.h"
 #include "FrontendQueryTestServer.h"
 #include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
@@ -73,7 +73,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 getAllocator().printInactiveBlocks();
                 std :: string errMsg;
                 bool success;
-                std :: cout << "Frontend got a request for JobStage" << std :: endl;
+                PDB_COUT << "Frontend got a request for JobStage" << std :: endl;
                 request->print();
                 makeObjectAllocatorBlock(24*1024*1024, true);
                 PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
@@ -81,24 +81,24 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << errMsg << std :: endl;
                     exit(1);
                 }
-                std :: cout << "Frontend connected to backend" << std :: endl;
+                PDB_COUT << "Frontend connected to backend" << std :: endl;
 
                 Handle<JobStage> newRequest = makeObject<JobStage>(request->getStageId());
-                std :: cout << "Created JobStage object for forwarding" << std :: endl;
+                PDB_COUT << "Created JobStage object for forwarding" << std :: endl;
                 //restructure the input information  
                 std :: string inDatabaseName = request->getInput()->getDatabase();
                 std :: string inSetName = request->getInput()->getSetName();
                 Handle<SetIdentifier> input = makeObject<SetIdentifier>(inDatabaseName, inSetName);
-                std :: cout << "Created SetIdentifier object for input" << std :: endl;
+                PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
                 SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));               
                 if (inputSet == nullptr) {
-                    std :: cout << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                    PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
                     //TODO: move data from other servers
                     //temporarily, we simply return;
                     // now, we send back the result
                     Handle <Vector <String>> result = makeObject <Vector <String>> ();
                     result->push_back (request->getOutput()->getSetName());
-                    std :: cout << "Query is done without data. " << std :: endl;
+                    PDB_COUT << "Query is done without data. " << std :: endl;
                     // return the results
                     if (!sendUsingMe->sendObject (result, errMsg)) {
                         return std :: make_pair (false, errMsg);
@@ -111,7 +111,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 input->setTypeId(inputSet->getTypeID());
                 input->setSetId(inputSet->getSetID());
                 newRequest->setInput(input);
-                std :: cout << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+                PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                 std :: string outDatabaseName = request->getOutput()->getDatabase();
                 std :: string outSetName = request->getOutput()->getSetName();
@@ -126,14 +126,14 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                          if(isStandalone == true) {
                              getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                              outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                             std :: cout << "Output set is created in storage" << std :: endl;
+                             PDB_COUT << "Output set is created in storage" << std :: endl;
                              int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName (), false);
                              // create the output set in the storage manager and in the catalog
                              if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
                                  std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
                                  exit (1);
                              }
-                             std :: cout << "Output set is created in catalog" << std :: endl;
+                             PDB_COUT << "Output set is created in catalog" << std :: endl;
                          } else {
                              std :: cout << "FATAL ERROR: Now we do not support to create set in middle of distribued query processing" << std :: endl;
                              exit (-1);
@@ -155,13 +155,13 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 //restructure the output information
                 //makeObjectAllocatorBlock(24*1024*1024, true);
                 Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
-                std :: cout << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
+                PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
                 output->setDatabaseId(outputSet->getDbID());
                 output->setTypeId(outputSet->getTypeID());
                 output->setSetId(outputSet->getSetID());
                 newRequest->setOutput(output);
                 newRequest->setOutputTypeName(request->getOutputTypeName());
-                std :: cout << "Output is set" << std :: endl;
+                PDB_COUT << "Output is set" << std :: endl;
                 
                 //copy operators
                 //std :: cout << "get operator vector" << std :: endl;
@@ -180,7 +180,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                          //std :: cout << "to make new filter operator object" << std :: endl;
                          curOperator = makeObject<FilterOperator>(newSelection);
                      }
-                     std :: cout << curOperator->getName() << std :: endl;
+                     PDB_COUT << curOperator->getName() << std :: endl;
                      newRequest->addOperator(curOperator);
                      //std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
                 }              
@@ -191,7 +191,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << errMsg << std :: endl;
                     exit(1);
                 }
-                std :: cout << "Frontend sent request to backend" << std :: endl;
+                PDB_COUT << "Frontend sent request to backend" << std :: endl;
                 // wait for backend to finish.
                 communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
                 if (!success) {
@@ -202,7 +202,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 // now, we send back the result
                 Handle <Vector <String>> result = makeObject <Vector <String>> ();
                 result->push_back (request->getOutput()->getSetName());
-                std :: cout << "Query is done. " << std :: endl;
+                PDB_COUT << "Query is done. " << std :: endl;
                 // return the results
                 if (!sendUsingMe->sendObject (result, errMsg)) {
                      return std :: make_pair (false, errMsg);
@@ -258,7 +258,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 						if (!getFunctionality <CatalogServer> ().deleteSet (whichDatabase, s, errMsg)) {
 							std :: cout << "Error deleting set " << s << ": " << errMsg << "\n";	
 						} else {
-							std :: cout << "Successfully deleted set " << s << "\n";
+							PDB_COUT << "Successfully deleted set " << s << "\n";
 						}
 					}
 				}
@@ -317,7 +317,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 		    // this is the number of pages
 		    std :: string whichDatabase = request->getDatabase ();
 		    std :: string whichSet = request->getSetName ();
-                    std :: cout << "we are now iterating set:" << whichSet << std :: endl;
+                    PDB_COUT << "we are now iterating set:" << whichSet << std :: endl;
 		    // and keep looping while someone wants to get the output
 		    SetPtr loopingSet = getFunctionality <PangeaStorageServer> ().getSet (std :: make_pair (whichDatabase, whichSet));
                     if (loopingSet == nullptr) {
@@ -329,38 +329,38 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 		    vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
 		    // loop through all pages
 		    int numIterators = pageIters->size();
-		    std::cout << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
-                    std::cout << "Number of iterators" << numIterators << std :: endl;
+		    PDB_COUT << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
+                    PDB_COUT << "Number of iterators" << numIterators << std :: endl;
 		    for (int i = 0; i < numIterators; i++) {
-                        std :: cout << "the " << i << "-th iterator" << std :: endl;
+                        PDB_COUT << "the " << i << "-th iterator" << std :: endl;
 		        PageIteratorPtr iter = pageIters->at(i);
 		        while (iter->hasNext()){
 		            PDBPagePtr nextPage = iter->next();
-                            std :: cout << "Got a page!" << std :: endl;
+                            PDB_COUT << "Got a page!" << std :: endl;
 		            // send the relevant page.
 		            if (nextPage != nullptr) {
-		            	std::cout << "Page is not null!! Sending out next page!" << std::endl;
-                                std :: cout << "check the page at server side" << std :: endl;
+		            	PDB_COUT << "Page is not null!! Sending out next page!" << std::endl;
+                                PDB_COUT << "check the page at server side" << std :: endl;
                                 Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
                                 Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
                                 int vecSize = inputVec->size();
-                                std :: cout << "in the page to sent: vector size =" << vecSize << std :: endl;
+                                PDB_COUT << "in the page to sent: vector size =" << vecSize << std :: endl;
                                 if (vecSize != 0) {          
       						const UseTemporaryAllocationBlock tempBlock {2048};
 						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
 						}
-                                                std :: cout << "Page sent to client!" << std :: endl;
+                                                PDB_COUT << "Page sent to client!" << std :: endl;
 						// see whether or not the client wants to see more results
 						bool success;
 						if (sendUsingMe->getObjectTypeID () != DoneWithResult_TYPEID) {
 							Handle <KeepGoing> temp = sendUsingMe->getNextObject <KeepGoing> (success, errMsg);
-                                                        std :: cout << "Keep going" << std :: endl;
+                                                        PDB_COUT << "Keep going" << std :: endl;
 							if (!success)
 								return std :: make_pair (false, errMsg);
 						} else {
 							Handle <DoneWithResult> temp = sendUsingMe->getNextObject <DoneWithResult> (success, errMsg);
-                                                        std :: cout << "Done" << std :: endl;
+                                                        PDB_COUT << "Done" << std :: endl;
 							if (!success)
 								return std :: make_pair (false, errMsg);
 							else
@@ -369,7 +369,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                }
 
 		            } else {
-                              std :: cout << "We've got a null page!!!" << std :: endl;
+                              PDB_COUT << "We've got a null page!!!" << std :: endl;
                     }
                     nextPage->unpin();
 

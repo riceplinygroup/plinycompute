@@ -20,6 +20,7 @@
 #ifndef PDB_COMMUN_TEMPLATES_C
 #define PDB_COMMUN_TEMPLATES_C
 
+#include "PDBDebug.h"
 #include "BuiltInObjectTypeIDs.h"
 #include "Handle.h"
 #include <iostream>
@@ -72,7 +73,7 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	}
         //std :: cout << "record size ="<<record->numBytes()<<"\n";
 	if (doTheWrite ((char *) record, ((char *) record) + record->numBytes ())) {
-                std :: cout << "recType=" << recType << std :: endl;
+                PDB_COUT << "recType=" << recType << std :: endl;
 		errMsg = "PDBCommunicator: not able to send the object size";
                 std :: cout << errMsg << std :: endl;
                 std :: cout << strerror(errno) << std :: endl;
@@ -81,7 +82,7 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 		return false;
 	}
 
-        std :: cout << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
+        PDB_COUT << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
         logToMe->info(std::string("Sent object with typeName=") + getTypeName<ObjType>() + std::string(", recType=") + std::to_string(recType) + std::string(" and socketFD=") + std::to_string(socketFD));
 	return true;
 }
@@ -199,9 +200,9 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
     // read in the object
     void *mem = malloc (msgSize);
     if (mem == nullptr) {
-        std :: cout << "nextTypeId = " << nextTypeID << std :: endl;
-        std :: cout << "msgSize = " << msgSize << std :: endl;
-        std :: cout << "memory is failed to allocate for getNextObject()" << std :: endl;
+        PDB_COUT << "nextTypeId = " << nextTypeID << std :: endl;
+        PDB_COUT << "msgSize = " << msgSize << std :: endl;
+        PDB_COUT << "memory is failed to allocate for getNextObject()" << std :: endl;
         exit(-1);
     }
     Handle <ObjType> temp = getNextObject <ObjType> (mem, success, errMsg);

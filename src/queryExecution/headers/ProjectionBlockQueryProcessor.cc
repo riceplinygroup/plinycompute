@@ -19,7 +19,7 @@
 #ifndef PROJECTION_BLOCK_QUERY_PROCESSOR_CC
 #define PROJECTION_BLOCK_QUERY_PROCESSOR_CC
 
-
+#include "PDBDebug.h"
 #include "InterfaceFunctions.h"
 #include "ProjectionBlockQueryProcessor.h"
 
