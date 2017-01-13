@@ -1,7 +1,6 @@
 #ifndef PDB_DEBUG_H
 #define PDB_DEBUG_H
 
-//by Jia, Jan 2017
 
 #include <ostream>
 #include <iostream>
