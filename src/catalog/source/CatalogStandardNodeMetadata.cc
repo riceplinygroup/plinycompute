@@ -36,7 +36,9 @@ using namespace std;
             nodeName(nodeNameValue),
             nodeType(nodeTypeValue),
             nodeStatus(nodeStatusValue)
-    {}
+    {
+        nodeAddress=std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
+    }
 
 
         //Copy constructor
@@ -47,6 +49,7 @@ using namespace std;
         nodeName = pdbNodeToCopy.nodeName;
         nodeType = pdbNodeToCopy.nodeType;
         nodeStatus = pdbNodeToCopy.nodeStatus;
+        nodeAddress = std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
     }
 
     CatalogStandardNodeMetadata :: ~CatalogStandardNodeMetadata() {
@@ -59,6 +62,7 @@ using namespace std;
         nodeName = nodeNameValue;
         nodeType = nodeTypeValue;
         nodeStatus = nodeStatusValue;
+        nodeAddress = std::string(nodeIP)+std::string(":")+std::to_string(nodePort);
     }
 
     string CatalogStandardNodeMetadata :: getItemKey(){
@@ -90,11 +94,15 @@ using namespace std;
     }
 
     void CatalogStandardNodeMetadata :: setItemKey(string &itemKeyIn){
-        nodeIP = itemKeyIn;
+        nodeAddress = itemKeyIn;
     }
 
     void CatalogStandardNodeMetadata :: setItemId(string &itemIdIn){
         nodeId = itemIdIn;
+    }
+
+    void CatalogStandardNodeMetadata :: setItemIP(pdb :: String &itemIPIn){
+        nodeIP = itemIPIn;
     }
 
     void CatalogStandardNodeMetadata :: setItemName(string &itemNameIn){
@@ -111,5 +119,10 @@ using namespace std;
         output.append(getNodeIP().c_str()).append(" | ").append(getItemName().c_str()).append(" | ").append(getNodeType().c_str());
         return output;
     }
+
+    void CatalogStandardNodeMetadata :: toStandardMetadata(pdb :: Handle<pdb :: CatalogNodeMetadata> &convertedItem){
+//        convertedItem->setValues();
+    }
+
 
 
