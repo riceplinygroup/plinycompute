@@ -14,35 +14,24 @@
 #  ======================================================================== 
 #!/bin/bash
 # by Jia
-pemFile=$1
+processName=$1
+echo "to check $processName"
 
-$PDB_HOME/scripts/cleanupNode.sh
-#$PDB_HOME/scripts/cleanupWork.sh
-sleep 5
-$PDB_HOME/bin/test404 localhost 8108 N $pemFile &
-
-echo "#####################################"
-echo "To sleep for 100 seconds in total for all ssh to return"
-echo "#####################################"
-for x in {1..10}
-do 
-   sleep 10
-   time=`expr $x \\* 10`
-   time=`expr 100 - $time`
-   echo "still need to wait $time seconds for all ssh to return"
-done
+numProcesses=0
 
 for x in {1..10};
 do
-   if pgrep -x "test404" > /dev/null
+   if pgrep -x $processName > /dev/null
    then
-       echo "master is started!"
-       exit 0
+       echo "$processName is started!"
+       numProcesses=1
+       break
    fi
    sleep 15
 done
 
-echo "master hasn't started! It could be that ssh takes too long time. Please retry!"
+if [ "$numProcesses" -eq 0 ]; then
+    echo "$processName hasn't started!"
+    exit 1
+fi
 
-
-#$PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                

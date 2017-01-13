@@ -45,8 +45,10 @@ try:
     #run bin/test603
     print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
     serverProcess = subprocess.Popen(['bin/test603', '1', '512'])
-    print bcolors.OKBLUE + "waiting for 25 seconds for server to be fully started..." + bcolors.ENDC
-    time.sleep(25)
+    print bcolors.OKBLUE + "to check whether server has been fully started..." + bcolors.ENDC
+    subprocess.call(['bash', './scripts/checkProcess.sh', 'test603'])
+    print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC
+    time.sleep(20)
     #run bin/test46 1024
     print bcolors.OKBLUE + "start a data client to store data to pdbServer" + bcolors.ENDC
     subprocess.check_call(['bin/test46', '640'])
@@ -77,9 +79,10 @@ try:
     #run bin/test404
     print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
     serverProcess = subprocess.Popen(['bin/test404', 'localhost', '8108', 'Y'])
-    print bcolors.OKBLUE + "waiting for 20 seconds for server to be fully started..." + bcolors.ENDC
-    time.sleep(20)
-    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
+    print bcolors.OKBLUE + "to check whether server is started..." + bcolors.ENDC
+    subprocess.call(['bash', './scripts/checkProcess.sh', 'test404'])
+    print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC
+    time.sleep(9)
 
     #run bin/test603 for instance 1
     print bcolors.OKBLUE + "start a pdbServer as the 1st worker" + bcolors.ENDC

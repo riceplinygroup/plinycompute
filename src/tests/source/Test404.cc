@@ -58,9 +58,22 @@ int main (int argc, char * argv[]) {
     pdb::PDBServer frontEnd(port, 100, myLogger);
     
     ConfigurationPtr conf = make_shared < Configuration > ();
-    
+        
     frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true, masterIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
+    
+    //to register node metadata
+    std :: string errMsg = " ";
+    pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:"+std::to_string(port)), String("localhost"), port, String("master"), String("master"), 1);
+    if (!frontEnd.getFunctionality<pdb :: CatalogServer>().addNodeMetadata( nodeData, errMsg )) {
+
+        std :: cout << "FATAL ERROR: Not able to register node metadata: "+errMsg << std :: endl;
+
+    } else {
+
+        std :: cout << "Node metadata successfully added." << std :: endl;
+
+    }
 
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
