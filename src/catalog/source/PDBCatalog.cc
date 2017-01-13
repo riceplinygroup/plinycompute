@@ -32,8 +32,8 @@
         dbsResult.insert(make_pair(item->getItemKey().c_str(), *item));
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        std::cout << "----->Time Duration for DB addItemToVector:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("----->Time Duration for DB addItemToVector:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.\n");
 
         return true;
     }
@@ -55,8 +55,7 @@
 
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        std::cout << "----->Time Duration for SET addItemToVector:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("----->Time Duration for SET addItemToVector:\t " + std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
         return true;
     }
@@ -81,8 +80,8 @@
         dbsResult[(*item).getItemKey().c_str()] = (*item);
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        std::cout << "----->Time Duration for DB updateItemInVector:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("----->Time Duration for DB updateItemInVector:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
 
         return true;
@@ -93,8 +92,8 @@
         auto begin = std :: chrono :: high_resolution_clock :: now();
         (*setValues).assign(index, *item);
         auto end = std :: chrono :: high_resolution_clock :: now();
-        std::cout << "----->Time Duration for SET updateItemInVector:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("----->Time Duration for SET updateItemInVector:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
         return true;
     }
@@ -250,8 +249,8 @@
                                                         "data_types"));
 
         auto end = std :: chrono :: high_resolution_clock :: now();
-        std::cout << "----->Time Duration for PDBCatalog constructor:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("----->Time Duration for PDBCatalog constructor:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
 
     }
@@ -269,7 +268,7 @@
     }
 
     void PDBCatalog::closeSQLiteHandler() {
-        cout << "Closing SQLite Handler!!!" << endl;
+        this->logger->debug("Closing SQLite Handler!!!");
         sqlite3_close_v2(sqliteDBHandler);
     }
 
@@ -337,31 +336,29 @@
             catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
             catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user_permission (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
 
-            cout << "error message" << endl;
-
             load = std :: chrono :: high_resolution_clock :: now();
 
             // Loads into memory all metadata so the CatalogServer can access them
             loadsMetadataIntoMemory();
 
-            this->logger->debug("Database catalog successfully open.");
+            this->logger->writeLn("Database catalog successfully open.");
 
-            cout << " *********Print Metadata " << endl;
+            this->logger->writeLn(" *********Print Metadata ");
             testCatalogPrint();
-            cout << " *********Print Metadata " << endl;
+            this->logger->writeLn(" *********Print Metadata ");
 
         }else{
             //cout << "EXISTS!!! " << endl;
         }
         auto end = std :: chrono :: high_resolution_clock :: now();
-        std::cout << "Time Duration for PDBCatalog open SQLite:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(query-begin).count() << " secs." << std::endl;
-        std::cout << "Time Duration for PDBCatalog sqlite CREATES/OPENS:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(load-query).count() << " secs." << std::endl;
-        std::cout << "Time Duration for PDBCatalog loads in memory includes selects in SQLite:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-load).count() << " secs." << std::endl;
-        std::cout << "Time Duration for PDBCatalog open:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+        this->logger->debug("Time Duration for PDBCatalog open SQLite:\t " +
+            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(query-begin).count()) + " secs.");
+        this->logger->debug("Time Duration for PDBCatalog sqlite CREATES/OPENS:\t " +
+            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(load-query).count()) + " secs.");
+        this->logger->debug("Time Duration for PDBCatalog loads in memory includes selects in SQLite:\t " +
+            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-load).count()) + " secs.");
+        this->logger->debug("Time Duration for PDBCatalog open:\t " +
+            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
     }
 
@@ -400,20 +397,20 @@
             // TODO document this
             // populates maps
             for (int i=0; i < (*dbsValues).size(); i++) {
-                cout << "RETRIEVING db " << (*dbsValues)[i].getItemKey().c_str() << " | " << (*dbsValues)[i].getItemName().c_str() << endl;
+                this->logger->debug("RETRIEVING db " + string((*dbsValues)[i].getItemKey()) + " | " + string((*dbsValues)[i].getItemName()));
                 dbsResult.insert(make_pair((*dbsValues)[i].getItemName().c_str(), (*dbsValues)[i]));
 
             }
             for (int i=0; i < (*setValues).size(); i++) {
-                cout << "RETRIEVING set " << (*setValues)[i].getItemKey().c_str() << " | " << (*setValues)[i].getItemName().c_str() << endl;
+                this->logger->debug("RETRIEVING set " + string((*setValues)[i].getItemKey()) + " | " + string((*setValues)[i].getItemName()));
                 setsResult.insert(make_pair((*setValues)[i].getItemKey().c_str(), (*setValues)[i]));
             }
             for (int i=0; i < (*nodesValues).size(); i++) {
-                cout << "RETRIEVING node " << (*nodesValues)[i].getItemKey().c_str() << " | " << (*nodesValues)[i].getNodeIP().c_str() << endl;
+                this->logger->debug("RETRIEVING node " + string((*nodesValues)[i].getItemKey()) + " | " + string((*nodesValues)[i].getNodeIP()));
                 nodesResult.insert(make_pair((*nodesValues)[i].getItemName().c_str(), (*nodesValues)[i]));
             }
             for (int i=0; i < (*udfsValues).size(); i++) {
-                cout << "RETRIEVING TYPE " << (*udfsValues)[i].getObjectID().c_str() << " | " << (*udfsValues)[i].getItemName().c_str() << endl;
+                this->logger->debug("RETRIEVING TYPE " + string((*udfsValues)[i].getObjectID()) + " | " + string((*udfsValues)[i].getItemName()));
                 udfsResult.insert(make_pair((*udfsValues)[i].getItemName().c_str(), (*udfsValues)[i]));
             }
 
@@ -494,7 +491,7 @@
             // TODO document this
             // populates certain metadata
             for (int i=0; i < (*_udfsValues).size(); i++) {
-                cout << "RETRIEVING TYPE " << (*_udfsValues)[i].getItemName().c_str() << " | " << (*_udfsValues)[i].getObjectID().c_str() << endl;
+                this->logger->debug("RETRIEVING TYPE " + string((*_udfsValues)[i].getItemName()) + " | " + string((*_udfsValues)[i].getObjectID()) + "\n");
                 udfsResult.insert(make_pair((*_udfsValues)[i].getItemName().c_str(), (*_udfsValues)[i]));
             }
 
@@ -505,40 +502,39 @@
         cout << "---------------------------------------" << endl;
         cout << "PDB Metadata Registered in the Catalog: " << endl;
 
-        cout << "\nNumber of nodes registered in the cluster: " +
+        cout << "\nNodes in cluster: " +
                 std::to_string((int)(*_nodesValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "----------------------" << endl;
 
         for (int i=0; i< (*_nodesValues).size(); i++) {
             cout << (*_nodesValues)[i].printShort() << endl;
         }
 
-        cout << "\nNumber of databases registered: " +
+        cout << "\nDatabases: " +
                 std::to_string((int)(*_dbsValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "----------" << endl;
 
         for (int i=0; i< (*_dbsValues).size(); i++) {
             cout << (*_dbsValues)[i].printShort() << endl;
         }
-        cout << "\nNumber of sets registered: " +
+        cout << "\nSets: " +
                 std::to_string((int)(*_setValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "----- " << endl;
 
         for (int i=0; i< (*_setValues).size(); i++) {
             cout << (*_setValues)[i].printShort() << endl;
         }
-        cout << "\nNumber of user-defined types registered: " +
+        cout << "\nUser-defined types: " +
                 std::to_string((int)(*_udfsValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "-------------------" << endl;
 
         for (int i=0; i< (*_udfsValues).size(); i++) {
             cout << (*_udfsValues)[i].printShort() << endl;
         }
-        cout << "\nAll Metadata properly retrieved and loaded into memory!" << endl;
+        cout << "\nAll Catalog Metadata retrieved!" << endl;
         cout << "--------------------------------------" << endl;
 
     }
-
 
     void PDBCatalog::printsAllCatalogMetadata() {
 
@@ -593,10 +589,8 @@
 
         if (success==true) {
             success = getRegisteredObject((int16_t)std::atoi(id.c_str()), typeName, typeOfObject, fileName, errorMessage);
-            cout << "return 2" << endl;
         } else {
             errorMessage = "error retrieving " + typeName + "\n";
-            cout << errorMessage << endl;
         }
         return success;
     }
@@ -621,7 +615,7 @@
         if (onlyModified == true) queryString.append(" where timeStamp > ").append(key).append("");
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
-        cout << queryString << endl;
+        this->logger->debug(queryString);
         if(sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1,
                               &statement, NULL) == SQLITE_OK) {
 
@@ -642,7 +636,7 @@
                     Handle<CatalogMetadataType> returnedObject = recordBytes->getRootObject ();
 
                     string itemId = returnedObject->getItemKey().c_str();
-                    std :: cout << "itemId=" << itemId << std :: endl;
+                    this->logger->debug("itemId=" + itemId);
                     //TODO keep only one container Handle<Vector<PDBCatalog>, the other two don't work
                     // maybe try with the new pdb::Map too!
 //                    returnedValues->push_back(returnedObject);
@@ -686,10 +680,10 @@
 
 
         pthread_mutex_lock(&(registerMetadataMutex));
-        cout << "objectBytes " << objectBytes.size() << endl;
-        cout << "typeName " << typeName << endl;
-        cout << "fileName " << fileName << endl;
-        cout << "tableName " << tableName << endl;
+        this->logger->debug("objectBytes " + std::to_string(objectBytes.size()));
+        this->logger->debug("typeName " + typeName);
+        this->logger->debug("fileName " + fileName);
+        this->logger->debug("tableName " + tableName);
 
         bool success = false;
         errorMessage = "";
@@ -699,8 +693,6 @@
 
         string queryString("");
         queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
-
-//            cout << "queryString " << queryString << endl;
 
         int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
         if (rc != SQLITE_OK) {
@@ -717,7 +709,7 @@
             string newObjectId = std::to_string(newItemId);
             String newObjectIndex = String(std::to_string(totalRegisteredTypes));
 
-            cout << "   Object Id -----> " << newObjectId << endl;
+            this->logger->debug("   Object Id -----> " + newObjectId);
             String idToRegister = String(newObjectId);
             String tableToRegister = String(tableName);
             String typeToRegister = String(typeName);
@@ -737,7 +729,7 @@
             serializedBytes = (uint8_t*) malloc(metadataBytes->numBytes ());
             memcpy(serializedBytes, metadataBytes, metadataBytes->numBytes());
             size_t soBytesSize = objectBytes.length();
-            cout << "size soBytesSize  " << soBytesSize << endl;
+            this->logger->debug("size soBytesSize  " + std::to_string(soBytesSize));
 
             rc = sqlite3_bind_text(stmt, 1, typeToRegister.c_str(), -1, SQLITE_STATIC);
 
@@ -812,16 +804,16 @@
             GenericFunction * genericFunctionCall = (GenericFunction*) dlsym(so_handle, getName.c_str());
             if ((dlsym_error = dlerror())) {
                 errorMessage = "Error, can't find create function " + (string)dlsym_error + "\n";
-                cout << "   Error with Dynamic loaded library: " + errorMessage << "." << endl;
+                this->logger->debug("   Error with Dynamic loaded library: " + errorMessage + ".");
                 dlclose(so_handle);
             } else {
                 string objectTypeName = genericFunctionCall();
 
-                cout << "setting vtpr for id " << typeId << endl;
-                cout << "setting vtpr for typeName " << typeName << endl;
+                this->logger->debug("setting vtpr for id " + std::to_string(typeId));
+                this->logger->debug("setting vtpr for typeName " + typeName);
 
                 this->logger->writeLn("Object->getName() called -> " + objectTypeName + " symbols successfully loaded to memory!!!");
-                cout << "   Dynamic loaded library method called -> " + objectTypeName << ", all is Ok!" << endl;
+                this->logger->debug("   Dynamic loaded library method called -> " + objectTypeName + ", all is Ok!");
                 success = true;
             }
         }
@@ -857,7 +849,7 @@
 //        string onlyFileName = fileName.substr(fileName.find_last_of("/\\")+1);
 
         string query = "SELECT itemID, itemInfo, soBytes FROM " + tableName + " where itemID = ?;";
-        cout << "query: " << query << " " << itemId << endl;
+        this->logger->debug("query: " + query + " " + itemId);
         if (sqlite3_prepare_v2(sqliteDBHandler, query.c_str(), -1, &pStmt, NULL) != SQLITE_OK) {
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
@@ -907,10 +899,9 @@
         }
 
 
-        cout << "Metadata created for item " << returnedItem->getItemId().c_str() << endl;
-        cout << "Metadata created for item " << returnedItem->getItemKey().c_str() << endl;
-
-        cout << "file size= " << numBytes << endl;
+        this->logger->debug("Metadata created for item " + string(returnedItem->getItemId()));
+        this->logger->debug("Metadata created for item " + string(returnedItem->getItemKey()));
+        this->logger->debug("file size= " + std::to_string(numBytes));
 
         // retrieves the bytes for the .so library
         numBytes = sqlite3_column_bytes(pStmt, 2);
@@ -920,15 +911,7 @@
         returnedSoLibrary = string(buffer, numBytes);
         delete [] buffer;
 
-        cout << "buffer bytes size " << returnedSoLibrary.size() << endl;
-
-        //TODO this crashes after a couple of runs
-//        String libBytes = String(returnedSoLibrary);
-//////        String libBytes = String("1234567890");
-////
-//        returnedItem->setLibraryBytes(libBytes);
-////
-//        cout << "Size after getLibraryBytes " <<  returnedItem->getLibraryBytes().size() << endl;
+        this->logger->debug("buffer bytes size " + std::to_string(returnedSoLibrary.size()));
 
         sqlite3_reset(pStmt);
         sqlite3_blob_close(pBlob);
@@ -1010,7 +993,7 @@
 
         auto prepareRecord = std :: chrono :: high_resolution_clock :: now();
 
-//        cout << sqlStatement << " with key= " << metadataKey << endl;
+        this->logger->debug(sqlStatement + " with key= " + metadataKey);
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler, sqlStatement.c_str(), -1,
                                 &stmt, NULL)) != SQLITE_OK) {
@@ -1052,17 +1035,17 @@
         pthread_mutex_unlock(&(registerMetadataMutex));
 
         if (isSuccess == true) {
-            cout << "The following item metadata was stored in SQLite and loaded into Catalog memory:" << endl;
+            this->logger->debug("The following item metadata was stored in SQLite and loaded into Catalog memory:");
             cout << metadataValue->printShort() << endl;
         }
         this->logger->writeLn(errorMessage);
         auto end = std :: chrono :: high_resolution_clock :: now();
-        std::cout << "Time Duration for Prepare record\t" <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(prepareRecord-begin).count() << " secs." << std::endl;
-        std::cout << "Time Duration for Real INSERT INTO to sqlite:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(realSQLInsert-prepareRecord).count() << " secs." << std::endl;
-        std::cout << "----->Time Duration for addMetadataToCatalog Total\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-realSQLInsert).count() << " secs." << std::endl;
+        this->logger->debug( "Time Duration for Prepare record\t" +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(prepareRecord-begin).count()) + " secs.");
+        this->logger->debug( "Time Duration for Real INSERT INTO to sqlite:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(realSQLInsert-prepareRecord).count()) + " secs.");
+        this->logger->debug( "----->Time Duration for addMetadataToCatalog Total\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-realSQLInsert).count()) + " secs.");
         return isSuccess;
 
     }
@@ -1085,9 +1068,8 @@
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "UPDATE " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
-//        string sqlStatement = "INSERT OR REPLACE INTO " + mapsPDBOjbect2SQLiteTable[catalogType] + " (itemInfo, itemId) values ( ?, ? )";
 
-//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+        this->logger->debug(sqlStatement +" id: " +  metadataKey.c_str());
 
         auto metadataBytes = getRecord <CatalogMetadataType>(metadataValue);
 
@@ -1124,7 +1106,7 @@
 
             updateItemInVector(metadataIndex, metadataValue);
             //TODO remove this couts, used for debugging only
-            cout << "Metadata for the following item has been updated:" << metadataValue->printShort() << endl;
+            this->logger->debug("Metadata for the following item has been updated:" + metadataValue->printShort());
 
             isSuccess = true;
         } else {
@@ -1137,12 +1119,12 @@
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         auto end = std :: chrono :: high_resolution_clock :: now();
-        std::cout << "Time Duration for Prepare record\t" <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(prepareRecord-begin).count() << " secs." << std::endl;
-        std::cout << "Time Duration for Real UPDATE INTO to sqlite:\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(realSQLInsert-prepareRecord).count() << " secs." << std::endl;
-        std::cout << "----->Time Duration for updateMetadataInCatalog Total\t " <<
-            std::chrono::duration_cast<std::chrono::duration<float>>(end-realSQLInsert).count() << " secs." << std::endl;
+        this->logger->debug("Time Duration for Prepare record\t" +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(prepareRecord-begin).count()) + " secs.");
+        this->logger->debug("Time Duration for Real UPDATE INTO to sqlite:\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(realSQLInsert-prepareRecord).count()) + " secs.");
+        this->logger->debug("----->Time Duration for updateMetadataInCatalog Total\t " +
+                std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-realSQLInsert).count()) + " secs.");
         return isSuccess;
 
 
@@ -1167,7 +1149,7 @@
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
 
-//        cout << sqlStatement << " id: " << metadataKey.c_str() << endl;
+        this->logger->debug(sqlStatement + " id: " + metadataKey.c_str());
 
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
@@ -1198,7 +1180,7 @@
 
         sqlite3_finalize(stmt);
 
-//        cout << "Updating " << (*metadataValue).printShort() << endl;
+        this->logger->debug("Updating " + (*metadataValue).printShort());
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
@@ -1423,12 +1405,12 @@
 
     void PDBCatalog::getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &keyToSearch) {
         String searchForKey(keyToSearch);
-        std :: cout << "keyToSearch=" << keyToSearch << std :: endl;
-        std :: cout << "searchForKey=" << searchForKey << std :: endl;
+        this->logger->debug("keyToSearch=" + keyToSearch);
+        this->logger->debug("searchForKey=" + string(searchForKey));
         if (keyToSearch=="") databasesInCatalog = dbsValues;
         else {
             for (int i=0; i< (*dbsValues).size(); i++) {
-                std :: cout << "i=" << i << std :: endl;
+                this->logger->debug("i=" + std::to_string(i));
                 std :: cout << (*dbsValues)[i].getItemKey() << std :: endl;
                 if (searchForKey == (*dbsValues)[i].getItemKey()) {
                     databasesInCatalog->push_back((*dbsValues)[i]);
