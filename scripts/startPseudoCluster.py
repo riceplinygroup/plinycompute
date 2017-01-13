@@ -57,7 +57,7 @@ try:
     serverProcess = subprocess.Popen(['bin/test404', 'localhost', '8108', 'Y'])
     print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(9)
-    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
+#    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
 
     #run bin/test603 for worker
     num = 0;
