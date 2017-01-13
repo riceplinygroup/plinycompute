@@ -34,7 +34,7 @@
 #endif
 
 
-
+#include "PDBDebug.h"
 #include "Query.h"
 #include "Lambda.h"
 #include "Selection.h"
@@ -63,7 +63,7 @@ using namespace pdb;
 int main (int argc, char * argv[]) {
 
 
-       std :: cout << "Usage: #numIterations #printResult[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
+       PDB_COUT << "Usage: #numIterations #printResult[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
 
        int numIterations = 5;
        if (argc > 1) {
@@ -172,8 +172,9 @@ int main (int argc, char * argv[]) {
                    }
                    std :: cout << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
                 }
-           
+                std :: cout << "######Data Creation Finished#######" << std :: endl;           
                 std :: cout << "total=" << total << std :: endl;
+                std :: cout << "###################################" << std :: endl;
 
                 //to write back all buffered records        
                 temp.flushData( errMsg );

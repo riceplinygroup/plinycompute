@@ -152,8 +152,8 @@ void PDBServer::listen() {
                 continue;
             }
             myLogger->info(std::string("accepted the connection with sockFD=")+std::to_string(myCommunicator->getSocketFD()));
-            std :: cout << "||||||||||||||||||||||||||||||||||" << std :: endl;
-            std :: cout << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
+            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std :: endl;
+            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
             handleRequest(myCommunicator);
         }
 
@@ -180,7 +180,7 @@ void PDBServer::listen() {
             myLogger->error(strerror(errno));
             //if pathToBackEndServer exists, delete it.
             if( unlink(unixFile.c_str()) == 0) {
-                cout << "Removed outdated "<<unixFile.c_str()<<".\n";
+                PDB_COUT << "Removed outdated "<<unixFile.c_str()<<".\n";
             } 
             if (::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (struct sockaddr_un))) {
                 myLogger->error("PDBServer: still could not bind to local socket after removing unixFile");
@@ -211,8 +211,8 @@ void PDBServer::listen() {
                 myLogger->error("PDBServer: could not point to an local UNIX socket: " + errMsg);
                 continue;
             }
-            std :: cout << "||||||||||||||||||||||||||||||||||" << std :: endl;
-            std :: cout << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
+            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std :: endl;
+            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
             handleRequest(myCommunicator);
         }
     }
@@ -273,7 +273,7 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
         } else {
             myLogger->trace("PDBServer: close connection request");
         }
-        std :: cout << "Cleanup server functionalities" << std :: endl;
+        PDB_COUT << "Cleanup server functionalities" << std :: endl;
         // for each functionality, invoke its clean() method
         for (int i = 0; i < allFunctionalities.size(); i++) {
             allFunctionalities.at(i)->cleanup();

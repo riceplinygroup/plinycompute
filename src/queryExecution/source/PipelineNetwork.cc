@@ -199,7 +199,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
        backendCircularBufferSize = 10;
     }
 
-    std :: cout << "backendCircularBufferSize is tuned to be " << backendCircularBufferSize << std :: endl;
+    PDB_COUT << "backendCircularBufferSize is tuned to be " << backendCircularBufferSize << std :: endl;
 
     PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scannerLogger, numThreads, backendCircularBufferSize, nodeId); 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
@@ -214,9 +214,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
     //get iterators
     //TODO: we should get iterators using only databaseName and setName
-    std :: cout << "To send GetSetPages message" << std :: endl;
+    PDB_COUT << "To send GetSetPages message" << std :: endl;
     std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, inputSet->getDatabaseId(), inputSet->getTypeId(), inputSet->getSetId());
-    std :: cout << "GetSetPages message is sent" << std :: endl;
+    PDB_COUT << "GetSetPages message is sent" << std :: endl;
     int numIteratorsReturned = iterators.size();
     if (numIteratorsReturned != numThreads) {
          success = false;
@@ -245,7 +245,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     //int totalOutputObjects = 0;
     for (int i = 0; i < numThreads; i++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-         std :: cout << "to run the " << i << "-th work..." << std :: endl;
+         PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
@@ -264,7 +264,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   //std :: cout << "PipelineNetwork: to add user page for output" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: to add user page for output"));
                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                  std :: cout << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
+                  PDB_COUT << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->info(out);
@@ -286,7 +286,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                       logger->debug(std :: string("PipelineNetwork: Got a page!"));
                       PDBPagePtr page = iter->next();
                       if (page != nullptr) {
-                          std :: cout << "page is not null with pageId="<< page->getPageID() << std :: endl;
+                          PDB_COUT << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           logger->debug(std :: string("PipelineNetwork: Page is not null with pageId=") + std :: to_string(page->getPageID()));
                           bundler->loadInputPage(page->getBytes());
                           //std :: cout << "loaded an allocate block for output" << std :: endl;
@@ -304,13 +304,13 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               //std :: cout << "written one block!" << std :: endl;
                               //logger->debug(std :: string("PipelineNetwork: written one block!"));
                               if (context->isOutputFull()) {
-                                  std :: cout << "PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
+                                  PDB_COUT << "PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
                                   size_t outputVecSize = context->getOutputVec()->size();
                                   if (outputVecSize > 0) {
-                                      std :: cout << "###############################" << std :: endl;
-                                      std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;  
-                                      std :: cout << "###############################" << std :: endl;
+                                      PDB_COUT << "###############################" << std :: endl;
+                                      PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;  
+                                      PDB_COUT << "###############################" << std :: endl;
                                       Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                                       memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
@@ -350,14 +350,14 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   outputBlock = bundler->loadOutputBlock(batchSize);
                               }
                               catch (NotEnoughSpace &n) {
-                                  std :: cout << "PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!" << std :: endl;
+                                  PDB_COUT << "PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork::run()--loadOutputBlock():current block is full, copy to output page!"));
                                   size_t outputVecSize = context->getOutputVec()->size();
                                   if (outputVecSize > 0) {
                                       Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
-                                      std :: cout << "###############################" << std :: endl;
-                                      std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;  
-                                      std :: cout << "###############################" << std :: endl;
+                                      PDB_COUT << "###############################" << std :: endl;
+                                      PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;  
+                                      PDB_COUT << "###############################" << std :: endl;
                                       memcpy(output->getBytes(), myBytes, myBytes->numBytes());
                                       //std :: cout << "we need to unpin the full page" << std :: endl;
                                       logger->debug(std :: string("PipelineNetwork: we need to unpin the full page"));
@@ -406,9 +406,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                        exit(-1);
                   }
                   size_t outputVecSize = context->getOutputVec()->size();
-                  std :: cout << "###############################" << std :: endl;
-                  std :: cout << "To flush query result objects: " << outputVecSize << std :: endl;  
-                  std :: cout << "###############################" << std :: endl;
+                  PDB_COUT << "###############################" << std :: endl;
+                  PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;  
+                  PDB_COUT << "###############################" << std :: endl;
                   memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
                         
                   //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());

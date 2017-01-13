@@ -19,7 +19,7 @@
 #ifndef PROJECTION_QUERY_PROCESSOR_CC
 #define PROJECTION_QUERY_PROCESSOR_CC
 
-
+#include "PDBDebug.h"
 #include "InterfaceFunctions.h"
 #include "ProjectionQueryProcessor.h"
 
@@ -88,7 +88,7 @@ bool ProjectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
 	// we are not finalized, so process the page
 	try {
 		int vecSize = myInVec.size ();
-		std :: cout << "Vector Size: " << std::to_string(vecSize) << std::endl;
+	        PDB_COUT << "Vector Size: " << std::to_string(vecSize) << std::endl;
 		for (; posInInput < vecSize; posInInput++) {
 			inputObject = myInVec[posInInput];
 		//std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;

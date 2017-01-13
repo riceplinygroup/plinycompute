@@ -19,6 +19,7 @@
 #ifndef OUTPUT_ITER_H
 #define OUTPUT_ITER_H
 
+#include "PDBDebug.h"
 #include "Query.h"
 #include "Handle.h"
 #include "DoneWithResult.h"
@@ -99,7 +100,7 @@ public:
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
 			size = data->size ();
-                        std :: cout << "got a page with size="<< size  << std :: endl;			
+                        PDB_COUT << "got a page with size="<< size  << std :: endl;			
                         // added by Jia to fix a segfault when size=0
                         if (size > 0) {
 			     pos = 0;
@@ -151,7 +152,7 @@ public:
 			connection = nullptr;
 			return;
 		}
-                std :: cout << "send done message" << std :: endl;
+                PDB_COUT << "send done message" << std :: endl;
 	}
 
 private:

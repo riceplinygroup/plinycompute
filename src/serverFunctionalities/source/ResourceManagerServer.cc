@@ -19,7 +19,7 @@
 #define RESOURCE_MANAGER_SERVER_CC
 
 //by Jia, Sept 2016
-
+#include "PDBDebug.h"
 #include "ResourceManagerServer.h"
 #include "InterfaceFunctions.h"
 #include "SimpleRequestHandler.h"
@@ -85,14 +85,14 @@ void ResourceManagerServer :: initialize (std :: string pathToServerList) {
     if (pseudoClusterMode == false) {
         //to run a script to obtain all system resources
         std :: string command = std::string("scripts/collect_proc.sh ") + this->pemFile;
-        std :: cout << command << std :: endl;
+        PDB_COUT << command << std :: endl;
         system (command.c_str());    
         analyzeResources ("conf/cluster/cluster_info.txt");
     }
 }
 
 void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
-    std :: cout << serverlist << std :: endl;
+    PDB_COUT << serverlist << std :: endl;
     std :: string inputLine;
     std :: string address;
     int port;
@@ -131,11 +131,11 @@ void ResourceManagerServer :: analyzeNodes(std :: string serverlist) {
             const UseTemporaryAllocationBlock block (1024);
             Handle<NodeDispatcherData> node = makeObject<NodeDispatcherData>(nodeId, port, address);
             this->nodes->push_back(node);
-            std :: cout << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
+            PDB_COUT << "nodeId=" << nodeId << ", address=" << address << ", port=" << port << std :: endl;
             nodeId ++;
         }
         if (nodes->size() == 0) {
-           std :: cout << "No workers in the cluster, stopping" << std :: endl;
+            PDB_COUT << "No workers in the cluster, stopping" << std :: endl;
            exit(-1);
         }
         nodeFile.close();
@@ -160,27 +160,27 @@ void ResourceManagerServer :: analyzeResources (std :: string resourceFileName) 
             std :: getline (resourceFile,line);
             if (line.find("CPUNumber") != string::npos) {
                 //get the number of cores
-                std :: cout << line << std :: endl;
+                PDB_COUT << line << std :: endl;
                 const std :: regex r("[0-9]+");
                 numCores = 0;
                 std :: sregex_iterator N(line.begin(), line.end(), r); 
                 std :: stringstream SS(*N->begin());
                 numCores = 0;
                 SS >> numCores;
-                std :: cout << "numCores =" << numCores << std :: endl;
+                PDB_COUT << "numCores =" << numCores << std :: endl;
             }
 
             if (line.find("MemTotal") != string::npos) {
-                std :: cout << line << std :: endl;
+                PDB_COUT << line << std :: endl;
                 //get the size of memory in MB
                 const std :: regex r("[0-9]+");
                 memSize = 0;
                 std :: sregex_iterator N(line.begin(), line.end(), r);
                 std :: stringstream SS(*N->begin());
                 SS >> memSize;
-                std :: cout << "memSize =" << memSize << std :: endl;
+                PDB_COUT<< "memSize =" << memSize << std :: endl;
                 Handle<ResourceInfo> resource = makeObject<ResourceInfo>(numCores, memSize, (*this->nodes)[numServers]->getAddress(), port, numServers);
-                std :: cout << numServers << ": address=" << resource->getAddress() << ", numCores=" << resource->getNumCores() << ", memSize=" << resource->getMemSize() << std :: endl;
+                PDB_COUT << numServers << ": address=" << resource->getAddress() << ", numCores=" << resource->getNumCores() << ", memSize=" << resource->getMemSize() << std :: endl;
                 this->resources->push_back(resource);
                 numServers ++;
             }

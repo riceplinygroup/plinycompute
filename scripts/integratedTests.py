@@ -48,7 +48,7 @@ try:
     print bcolors.OKBLUE + "to check whether server has been fully started..." + bcolors.ENDC
     subprocess.call(['bash', './scripts/checkProcess.sh', 'test603'])
     print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC
-    time.sleep(20)
+    time.sleep(30)
     #run bin/test46 1024
     print bcolors.OKBLUE + "start a data client to store data to pdbServer" + bcolors.ENDC
     subprocess.check_call(['bin/test46', '640'])

@@ -18,6 +18,7 @@
 #ifndef OBJECTQUERYMODEL_RANDOMPOLICY_CC
 #define OBJECTQUERYMODEL_RANDOMPOLICY_CC
 
+#include "PDBDebug.h"
 #include "RandomPolicy.h"
 
 namespace pdb {
@@ -64,7 +65,7 @@ std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle
         auto nodeData = (* storageNodes)[i];
         auto newNode = std::make_shared<NodePartitionData>(nodeData->getNodeId(), nodeData->getPort(),
                 nodeData->getAddress(), std::pair<std::string, std::string>("",""));
-        std::cout << newNode->toString() << std::endl;
+        PDB_COUT << newNode->toString() << std::endl;
         newData.push_back(newNode);
 
     }
@@ -72,17 +73,17 @@ std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle
 }
 
 NodePartitionDataPtr RandomPolicy :: updateExistingNode(NodePartitionDataPtr newNode, NodePartitionDataPtr oldNode) {
-    std::cout << "Updating existing node " << newNode->toString() << std::endl;
+    PDB_COUT << "Updating existing node " << newNode->toString() << std::endl;
     return oldNode;
 }
 
 NodePartitionDataPtr RandomPolicy :: updateNewNode(NodePartitionDataPtr newNode) {
-    std::cout << "Updating new node " << newNode->toString() << std::endl;
+    PDB_COUT << "Updating new node " << newNode->toString() << std::endl;
     return newNode;
 }
 
 NodePartitionDataPtr RandomPolicy :: handleDeadNode(NodePartitionDataPtr deadNode) {
-    std::cout << "Deleting node " << deadNode->toString() << std::endl;
+    PDB_COUT << "Deleting node " << deadNode->toString() << std::endl;
     return deadNode;
 }
 

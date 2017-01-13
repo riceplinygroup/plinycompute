@@ -32,6 +32,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <unistd.h>
+#include "PDBDebug.h" 
 #include "PDBLogger.h"
 #include <cctype>
 #include "CatalogClient.h"
@@ -51,18 +52,18 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	// TODO- Added by Carlos return if the type is unknown b/c it won't be found neither in
 	// an .so library nor in the Catalog
 	if (objectTypeID==0){
-	    cout << "This is typeId=0, just return!!!!!  " << endl;
+	    PDB_COUT << "This is typeId=0, just return!!!!!  " << endl;
 	    return nullptr;
 	}
 
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
 	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
-        std :: cout << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
+        PDB_COUT << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
         if (theVTable->logger != nullptr) {
             theVTable->logger->debug(std :: string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
         }
 	unlink (sharedLibraryFile.c_str ());
-        std :: cout << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
+        PDB_COUT << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
 	bool ret = theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 
         //JiaNote: we should stop here if someone else updated VTable
@@ -96,7 +97,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		// first we need to correctly set all of the global variables in the shared library
 		typedef void setGlobalVars (Allocator *, VTableMap *, void *, void *);
 		std::string getInstance = "setAllGlobalVariables";
-                std::cout << "to set global variables" << std::endl;
+                PDB_COUT << "to set global variables" << std::endl;
 		setGlobalVars *setGlobalVarsFunc = (setGlobalVars *) dlsym (so_handle, getInstance.c_str());
 		// see if we were able to get the function
 		if ((dlsym_error = dlerror())) {
@@ -108,7 +109,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		// if we were able to, then run it
 		} else {
 			setGlobalVarsFunc (mainAllocatorPtr, theVTable, stackBase, stackEnd);
-                        std :: cout << "Successfully set global variables" << std :: endl;
+                        PDB_COUT << "Successfully set global variables" << std :: endl;
 		}
 
 		// get the function that will give us access to the vTable
@@ -126,7 +127,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 		// if we were able to, then run it
 		} else {
 			theVTable->allVTables[objectTypeID] = getObjectFunc ();
-                        std :: cout << "VTablePtr for objectTypeID="<<objectTypeID<<" is set in allVTables to be "<< theVTable->allVTables[objectTypeID] << std :: endl;
+                        PDB_COUT << "VTablePtr for objectTypeID="<<objectTypeID<<" is set in allVTables to be "<< theVTable->allVTables[objectTypeID] << std :: endl;
 		}
 
 	}
@@ -134,7 +135,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 }
 
 int16_t VTableMap :: lookupTypeNameInCatalog (std :: string objectTypeName) {
-        std :: cout << "invoke lookupTypeNameInCatalog for objectTypeName=" << objectTypeName << std :: endl;
+        PDB_COUT << "invoke lookupTypeNameInCatalog for objectTypeName=" << objectTypeName << std :: endl;
         return theVTable->catalog->searchForObjectTypeName (objectTypeName);
 }
 

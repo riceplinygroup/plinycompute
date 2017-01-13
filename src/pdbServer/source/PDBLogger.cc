@@ -20,6 +20,7 @@
 #define PDB_LOGGER_C
 
 #include <iostream>
+#include "PDBDebug.h"
 #include "LockGuard.h"
 #include "PDBLogger.h"
 #include <stdio.h>
@@ -38,7 +39,7 @@ PDBLogger::PDBLogger(std :: string fName) {
 // create a director logs if not exists
     const int dir_err = mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (-1 == dir_err) {
-        std :: cout << "logs folder created." << std :: endl;
+        PDB_COUT << "logs folder created." << std :: endl;
     }
 
     outputFile = fopen(std :: string("logs/"+fName).c_str(), "a");
