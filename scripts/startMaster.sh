@@ -20,5 +20,29 @@ $PDB_HOME/scripts/cleanupNode.sh
 #$PDB_HOME/scripts/cleanupWork.sh
 sleep 5
 $PDB_HOME/bin/test404 localhost 8108 N $pemFile &
-sleep 100
-$PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                
+
+echo "#####################################"
+echo "To sleep for 100 seconds in total for all ssh to return"
+echo "#####################################"
+for x in {1..10}
+do 
+   sleep 10
+   time=`expr $x \\* 10`
+   time=`expr 100 - $time`
+   echo "still need to wait $time seconds for all ssh to return"
+done
+
+for x in {1..10};
+do
+   if pgrep -x "test404" > /dev/null
+   then
+       echo "master is started!"
+       exit 0
+   fi
+   sleep 15
+done
+
+echo "master hasn't started! It could be that ssh takes too long time. Please retry!"
+
+
+#$PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                

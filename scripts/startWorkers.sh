@@ -51,19 +51,23 @@ do
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
                 echo -e "\n+++++++++++ install and start server: $ip_addr"
-                ssh -i $pem_file $user@$ip_addr 'rm -rf ~/pdb_temp'
-                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp'
-                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/scripts'
-                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/bin'
-                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/CatalogDir'
-                ssh -i $pem_file $user@$ip_addr 'mkdir ~/pdb_temp/logs'
-                scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:~/pdb_temp/bin/
-                scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:~/pdb_temp/scripts/
-                ssh -i $pem_file $user@$ip_addr ~/pdb_temp/scripts/cleanupNode.sh
-                ssh -i $pem_file $user@$ip_addr "cd ~/pdb_temp;  bin/test603 $numThreads $sharedMem $masterIp $ip_addr" &
+                ssh -i $pem_file $user@$ip_addr 'rm -rf /tmp/pdb_temp'
+                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp'
+                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/scripts'
+                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/bin'
+                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/CatalogDir'
+                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/logs'
+                scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:/tmp/pdb_temp/bin/
+                scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:/tmp/pdb_temp/scripts/
+                scp -i $pem_file -r $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:/tmp/pdb_temp/scripts/
+                ssh -i $pem_file $user@$ip_addr /tmp/pdb_temp/scripts/cleanupNode.sh
+                ssh -i $pem_file $user@$ip_addr "cd /tmp/pdb_temp;  bin/test603 $numThreads $sharedMem $masterIp $ip_addr" &
                 sleep 30
+                ssh -i $pem_file $user@$ip_addr /tmp/pdb_temp/scripts/checkProcess.sh test603
+               
                 $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
                 
         fi
 done
 
+echo "servers are started"

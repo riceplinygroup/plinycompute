@@ -53,6 +53,11 @@ ResourceManagerServer :: ResourceManagerServer (std :: string pathToServerList, 
     this->port = port;
     this->pseudoClusterMode = pseudoClusterMode;
     this->pemFile = pemFile;
+    if (this->pseudoClusterMode == true) {
+
+        pathToServerList = "conf/serverlist.test";
+
+    }
     this->initialize (pathToServerList);
 }
 
