@@ -174,33 +174,6 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 		objectTypeName);
 }
 
-//bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
-//
-//	const LockGuard guard{workingMutex};
-//        std :: cout << "CatalogClient to fetch shared library for TypeID=" << identifier << std :: endl;
-//        myLogger->error(std :: string( "CatalogClient to fetch shared library for TypeID=") + std :: to_string(identifier));
-//	return simpleRequest <CatSharedLibraryRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
-//		[&] (Handle <Vector <char>> result) {
-//	                std :: cout << "To handle result of CatSharedLibraryRequest from CatalogServer..." << std :: endl;
-//                        myLogger->debug("CatalogClient: To handle result of CatSharedLibraryRequest from CatalogServer...");
-//			if (result == nullptr) {
-//				myLogger->error ("Error getting shared library: null object returned.\n");
-//				return false;
-//			}
-//
-//			if (result->size () == 0) {
-//				myLogger->error ("Error getting shared library, no data returned.\n");
-//				return false;
-//			}
-//
-//			// just write the shared library to the file
-//			int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-//			write (filedesc, result->c_ptr (), result->size ());
-//			close (filedesc);
-//			return true;},
-//		identifier);
-//}
-
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
@@ -245,7 +218,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
     //const LockGuard guard{workingMutex}; //this function will only be invoked from getVTablePtrUsingCatalog() which contains a lock guard already
         std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << " and id=" << identifier << std :: endl;
-        myLogger->error(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch + " and id=" + std :: to_string(identifier));
+        myLogger->debug(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch + " and id=" + std :: to_string(identifier));
 //    return simpleRequest <CatSharedLibraryByNameRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
         return simpleRequest <CatSharedLibraryByNameRequest, CatalogUserTypeMetadata, bool> (myLogger, port, address, false, 1024 * 1024 * 4,
 
