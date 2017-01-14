@@ -193,6 +193,7 @@ private:
 
     string masterIP = "localhost";
     int masterPort = 8108;
+    PDBLoggerPtr catServerLogger;
 
 };
 
