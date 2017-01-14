@@ -108,7 +108,7 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
         #endif
 	// see if there was not enough RAM
 	if (space == nullptr) {
-                std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
+                PDB_COUT << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
 		returnVal.offset = -1;
 		throw myException;
 	}
@@ -125,7 +125,7 @@ Handle <ObjType> Handle <ObjType> :: copyTargetToCurrentAllocationBlock () {
             } 
 	    typeInfo.setUpAndCopyFromConstituentObject (returnVal.getTarget ()->getObject (), getTarget ()->getObject ());
         } catch (NotEnoughSpace &n) {
-            std :: cout << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
+            PDB_COUT << "ERROR: Not enough memory when invoking copyTargetToCurrentAllocationBlock() in Handle.cc" << std :: endl;
             returnVal.getTarget()->decRefCount(typeInfo);
             returnVal.offset = -1;
             throw n;
@@ -208,7 +208,7 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
                 try {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjType>) in Handle.cc" << std :: endl;
+                    PDB_COUT << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjType>) in Handle.cc" << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     offset = -1;
                     throw n;
@@ -270,7 +270,7 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
                 try {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjTypeTwo>) in Handle.cc" << std :: endl;
+                   PDB_COUT << "ERROR: Not enough memory when invoking Handle(const RefCountedObject<ObjTypeTwo>) in Handle.cc" << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     offset = -1;
                     throw n;
@@ -330,7 +330,7 @@ Handle <ObjType> :: Handle (const Handle <ObjType> &fromMe) {
                 try {
 		typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjType>) in Handle.cc" << std :: endl;
+                    PDB_COUT << "ERROR: Not enough memory when invoking Handle(const Handle<ObjType>) in Handle.cc" << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     offset = -1;
                     throw n;
@@ -391,7 +391,7 @@ Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
                 try {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking Handle(const Handle<ObjTypeTwo>) in Handle.cc" << std :: endl;
+                    PDB_COUT << "ERROR: Not enough memory when invoking Handle(const Handle<ObjTypeTwo>) in Handle.cc" << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     offset = -1;
                     throw n;
@@ -462,7 +462,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
                     }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
+                    PDB_COUT << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
                     DEC_OLD_REF_COUNT;
                     getTarget()->decRefCount(typeInfo);
                     offset = -1;
@@ -550,7 +550,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
                 try {
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjTypeTwo>*) in Handle.cc" << std :: endl;
+                    PDB_COUT << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjTypeTwo>*) in Handle.cc" << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
@@ -637,7 +637,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
                     }
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                    PDB_COUT << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
@@ -727,7 +727,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
                 try {
 		       typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                       std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                       PDB_COUT << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                        getTarget()->decRefCount(typeInfo);
                        DEC_OLD_REF_COUNT;
                        offset = -1;

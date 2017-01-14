@@ -25,6 +25,7 @@
 #ifndef DATA_PROXY_H
 #define DATA_PROXY_H
 
+#include "PDBDebug.h"
 #include "DataProxy.h"
 #include "InterfaceFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
@@ -267,9 +268,9 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
                 std :: cout << "Receive ack failure" << std :: endl;
                 return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
-            std :: cout << "DataProxy: to allocate memory block for PagePinned object" << std :: endl;
+            PDB_COUT << "DataProxy: to allocate memory block for PagePinned object" << std :: endl;
             const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
-            std :: cout << "DataProxy: memory block allocated" << std :: endl;
+            PDB_COUT << "DataProxy: memory block allocated" << std :: endl;
             bool success;
             pdb :: Handle <pdb :: StoragePagePinned> ack =
                 this->communicator->getNextObject<pdb :: StoragePagePinned>(success, errMsg);

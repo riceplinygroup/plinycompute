@@ -18,6 +18,7 @@
 #ifndef OBJECTQUERYMODEL_BROADCASTSERVERTEMPLATE_CC
 #define OBJECTQUERYMODEL_BROADCASTSERVERTEMPLATE_CC
 
+#include "PDBDebug.h"
 #include "BroadcastServer.h"
 #include "ResourceManagerServer.h"
 #include "PDBWorker.h"
@@ -55,7 +56,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 lock.unlock();
             } else {
                 success++;
-                std::cout << "Successful broadcast " << success << " to " << serverName << std::endl;
+                PDB_COUT << "Successful broadcast " << success << " to " << serverName << std::endl;
                 lock.unlock();
             }
         }
@@ -68,7 +69,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
         int port;
         std::string address;
 
-        std::cout << "Broadcasting to " << serverName << std::endl;
+        PDB_COUT << "Broadcasting to " << serverName << std::endl;
 
         size_t pos = serverName.find(":");
         if (pos != string::npos) {
@@ -84,7 +85,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
         }
 
         PDBWorkPtr myWork = make_shared <GenericWork> ([i, serverName, port, address, this, &errorCallBack, &broadcastMsg, &broadcastData, &callBack] (PDBBuzzerPtr callerBuzzer) {
-            std :: cout << "the " << i << "-th thread is started" << std :: endl;
+            PDB_COUT << "the " << i << "-th thread is started" << std :: endl;
 
             int retries = 0;
             
@@ -97,13 +98,13 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 //socket() is not thread-safe, so we need synchronize here
                 pthread_mutex_lock(&connection_mutex);
                 PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
-                std :: cout << i << ":port = " << portNumber << std :: endl;
-                std :: cout << i << ":address = " << serverAddress << std :: endl; 
+                PDB_COUT << i << ":port = " << portNumber << std :: endl;
+                PDB_COUT << i << ":address = " << serverAddress << std :: endl; 
                 if(communicator->connectToInternetServer(this->logger, portNumber, serverAddress, errMsg)) {
-                    std :: cout << i << ":connectToInternetServer: " << errMsg << std :: endl;
+                     PDB_COUT << i << ":connectToInternetServer: " << errMsg << std :: endl;
                     if (retries < MAX_RETRIES) {
                         retries ++;
-                        std :: cout << "to retry to resend message" << std :: endl;
+                        PDB_COUT << "to retry to resend message" << std :: endl;
                         pthread_mutex_unlock(&connection_mutex);
                         continue;
                     } else {
@@ -114,13 +115,13 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                     }
                 }
                 pthread_mutex_unlock(&connection_mutex);
-                std :: cout << i << ":connected to server: " << serverAddress << std :: endl;
+                PDB_COUT << i << ":connected to server: " << serverAddress << std :: endl;
                 Handle<MsgType> broadcastMsgCopy = deepCopyToCurrentAllocationBlock<MsgType>(broadcastMsg);
                 if (!communicator->sendObject<MsgType>(broadcastMsgCopy, errMsg)) {
-                    std :: cout << i << ":sendObject: " << errMsg << std :: endl;
+                    PDB_COUT << i << ":sendObject: " << errMsg << std :: endl;
                     if (retries < MAX_RETRIES) {
                         retries ++;
-                        std :: cout << "to retry to resend message" << std :: endl;
+                        PDB_COUT << "to retry to resend message" << std :: endl;
                         continue;
                     } else {
                         errorCallBack(errMsg, serverName);
@@ -128,14 +129,14 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                         return;
                     }
                 }
-                std :: cout << i << ":send object to server: " << serverAddress << std :: endl;
+                PDB_COUT << i << ":send object to server: " << serverAddress << std :: endl;
                 if (broadcastData != nullptr) {
                     Handle<Vector<Handle<PayloadType>>> payloadCopy = deepCopyToCurrentAllocationBlock<Vector<Handle<PayloadType>>> (broadcastData);
                     if (!communicator->sendObject(payloadCopy, errMsg)) {
-                        std :: cout << i << ":sendBytes: " << errMsg << std :: endl;
+                        PDB_COUT << i << ":sendBytes: " << errMsg << std :: endl;
                         if (retries < MAX_RETRIES) {
                             retries ++;
-                            std :: cout << "to retry to resend message" << std :: endl;
+                            PDB_COUT << "to retry to resend message" << std :: endl;
                             continue;
                         } else {
                             errorCallBack(errMsg, serverName);
@@ -150,7 +151,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                     std :: cout << "received size is too small for an object" << std :: endl;
                     if (retries < MAX_RETRIES) {
                         retries ++;
-                        std :: cout << "to retry to resend message" << std :: endl;
+                        PDB_COUT << "to retry to resend message" << std :: endl;
                         continue;
                     } else {
                         errorCallBack(errMsg, serverName);
@@ -162,10 +163,10 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                 bool err;
                 Handle<ResponseType> result = communicator->getNextObject<ResponseType>(err, errMsg);
                 if (result == nullptr) {
-                    std :: cout << "the " << i << "-th thread connection closed unexpectedly" << std :: endl;
+                     PDB_COUT << "the " << i << "-th thread connection closed unexpectedly" << std :: endl;
                     if (retries < MAX_RETRIES) {
                         retries ++;
-                        std :: cout << "to retry to resend message" << std :: endl;
+                        PDB_COUT << "to retry to resend message" << std :: endl;
                         continue;
                     } else {
                         errorCallBack(errMsg, serverName);
@@ -174,7 +175,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
                     }
                 }
                 callBack(result, serverName);
-                std :: cout << "the " << i << "-th thread finished" << std :: endl;
+                PDB_COUT << "the " << i << "-th thread finished" << std :: endl;
                 callerBuzzer->buzz(PDBAlarm :: WorkAllDone, serverName);
                 return;
             }
@@ -184,7 +185,7 @@ void BroadcastServer::broadcast(Handle<MsgType> broadcastMsg, Handle<Vector<Hand
     while(errors + success < receivers.size()) {
         buzzer->wait();
     }
-    std :: cout << "all broadcasting thread returns" << std :: endl;
+    PDB_COUT << "all broadcasting thread returns" << std :: endl;
 }
 
 

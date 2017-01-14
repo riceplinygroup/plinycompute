@@ -24,6 +24,7 @@
 #ifndef HERMES_EXECUTION_SERVER_H
 #define HERMES_EXECUTION_SERVER_H
 
+#include "PDBDebug.h"
 #include "ServerFunctionality.h"
 #include "SharedMem.h"
 #include "Configuration.h"
@@ -80,7 +81,7 @@ public:
 
 		if(this->curScanner == nullptr) {
 			this->curScanner = curPageScanner;
-			cout<<"scanner set for current job\n";
+			PDB_COUT<<"scanner set for current job\n";
 			return true;
 		} else {
 			//a job is already running

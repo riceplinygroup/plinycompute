@@ -18,6 +18,7 @@
 #ifndef OBJECTQUERYMODEL_DISTRIBUTEDSTORAGEMANAGERSERVER_CC
 #define OBJECTQUERYMODEL_DISTRIBUTEDSTORAGEMANAGERSERVER_CC
 
+#include "PDBDebug.h"
 #include "DistributedStorageManagerServer.h"
 #include "CatalogClient.h"
 #include "CatalogServer.h"
@@ -81,9 +82,9 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
 
                 if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(catalogType, database, value)) {
-                    std::cout << "Database " << database << " already exists " << std::endl;
+                    PDB_COUT << "Database " << database << " already exists " << std::endl;
                 } else {
-                    std::cout << "Database " << database << " does not exist" << std::endl;
+                    PDB_COUT << "Database " << database << " does not exist" << std::endl;
                     if (!getFunctionality<CatalogClient>().createDatabase(database, errMsg)) {
                         std::cout << "Could not register db, because: " << errMsg << std::endl;
                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
@@ -99,7 +100,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
 #ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesForDatabase(database, nodesToBroadcastTo, errMsg)) {
-                    std::cout << "Could not find nodes to broadcast database to: " << errMsg << std::endl;
+                    PDB_COUT << "Could not find nodes to broadcast database to: " << errMsg << std::endl;
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
                     bool res = sendUsingMe->sendObject (response, errMsg);
                     return make_pair (res, errMsg);
@@ -148,7 +149,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 auto beforeCreateSet = begin;
                 auto afterCreateSet = begin;
 
-                std::cout << "received DistributedStorageAddSet message" << std ::endl;
+                PDB_COUT << "received DistributedStorageAddSet message" << std ::endl;
                 std::string errMsg;
                 mutex lock;
 
@@ -159,14 +160,14 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 std::string database = request->getDatabase();
                 std::string set = request->getSetName();
                 std::string fullSetName = database + "." + set;
-                std::cout << "set to create is " << fullSetName << std::endl;
+                PDB_COUT << "set to create is " << fullSetName << std::endl;
                 std::string value;
                 int catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
                 if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(catalogType, fullSetName, value)) {
                     std::cout << "Set " << fullSetName << " already exists " << std::endl;
                 } else {
-                    std::cout << "Set " << fullSetName << " does not exist" << std::endl;
+                    PDB_COUT << "Set " << fullSetName << " does not exist" << std::endl;
 
                     //JiaNote: comment out below line because searchForObjectTypeName doesn't work for complex type like Vector<Handle<Foo>>
                     //int16_t typeId = getFunctionality<CatalogClient>().searchForObjectTypeName(request->getTypeName());
@@ -226,15 +227,15 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
                auto catalogAddSetEnd = std :: chrono :: high_resolution_clock :: now();
 
-               std::cout << "Time Duration for catalog create set Metadata:\t " <<
+               PDB_COUT << "Time Duration for catalog create set Metadata:\t " <<
                    std::chrono::duration_cast<std::chrono::duration<float>>(afterCreateSet-beforeCreateSet).count() << " secs." << std::endl;
-               std::cout << "Time Duration for catalog getting nodes:\t " <<
+               PDB_COUT << "Time Duration for catalog getting nodes:\t " <<
                    std::chrono::duration_cast<std::chrono::duration<float>>(catalogGetNodesEnd-afterCreateSet).count() << " secs." << std::endl;
-               std::cout << "Time Duration for storage adding set:\t " <<
+               PDB_COUT << "Time Duration for storage adding set:\t " <<
                    std::chrono::duration_cast<std::chrono::duration<float>>(storageAddSetEnd - catalogGetNodesEnd).count() << " secs." << std::endl;
-               std::cout << "Time Duration for catalog adding addNodeToSet metadata:\t " <<
+               PDB_COUT << "Time Duration for catalog adding addNodeToSet metadata:\t " <<
                    std::chrono::duration_cast<std::chrono::duration<float>>(catalogAddSetEnd - storageAddSetEnd).count() << " secs." << std::endl;
-               std::cout << std::endl;
+               PDB_COUT << std::endl;
 
                 bool res = true;
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -287,7 +288,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     generateAckHandler(successfulNodes, failureNodes, lock));
 
                 if (failureNodes.size() == 0) {
-                    std::cout << "Successfully deleted database on " << successfulNodes.size() << " nodes" << std::endl;
+                    PDB_COUT << "Successfully deleted database on " << successfulNodes.size() << " nodes" << std::endl;
                 } else {
                     errMsg = "Failed to delete database on " + std::to_string(failureNodes.size()) +
                              " nodes. Skipping registering with catalog";
@@ -369,7 +370,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     generateAckHandler(successfulNodes, failureNodes, lock));
 
                 if (failureNodes.size() == 0) {
-                    std::cout << "Successfully deleted set on " << successfulNodes.size() << " nodes" << std::endl;
+                    PDB_COUT << "Successfully deleted set on " << successfulNodes.size() << " nodes" << std::endl;
                 } else {
                     errMsg = "Failed to delete set on " + std::to_string(failureNodes.size()) +
                              " nodes. Skipping registering with catalog";
@@ -384,7 +385,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 if (failureNodes.size() == 0) {
                     // If all the nodes succeeded in removing the set then we can simply delete the set from the
                     // catalog
-					std::cout << "Succeeded in deleting set " << fullSetName << " on all nodes" << std::endl;
+		    PDB_COUT << "Succeeded in deleting set " << fullSetName << " on all nodes" << std::endl;
                     if (!getFunctionality<CatalogClient>().deleteSet(database, set, errMsg)) {
                         std::cout << "Could not delete set, because: " << errMsg << std::endl;
                         Handle <SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
@@ -414,14 +415,14 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 res = sendUsingMe->sendObject (response, errMsg);
 
 
-               std::cout << "Time Duration for catalog get nodes info:\t " <<
+                PDB_COUT << "Time Duration for catalog get nodes info:\t " <<
                     std::chrono::duration_cast<std::chrono::duration<float>>(catalogGetNodesEnd-begin).count() << " secs." << std::endl;
-               std::cout << "Time Duration for storage removing set:\t " <<
+                PDB_COUT << "Time Duration for storage removing set:\t " <<
                     std::chrono::duration_cast<std::chrono::duration<float>>(storageRemoveSetEnd-catalogGetNodesEnd).count() << " secs." << std::endl;
-               std::cout << "Time Duration for catalog removing set:\t " <<
+                PDB_COUT << "Time Duration for catalog removing set:\t " <<
                     std::chrono::duration_cast<std::chrono::duration<float>>(catalogRemoveSetEnd - storageRemoveSetEnd).count() << " secs." << std::endl;
-               std::cout << std::endl;
-               return make_pair (res, errMsg);
+                PDB_COUT << std::endl;
+                return make_pair (res, errMsg);
 
             }
     ));
@@ -431,7 +432,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
           [&] (Handle <DistributedStorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
 
-               std :: cout << "received DistributedStorageCleanup" << std :: endl;
+               PDB_COUT << "received DistributedStorageCleanup" << std :: endl;
                std::string errMsg;
                mutex lock;
                auto successfulNodes = std::vector<std::string>();
@@ -469,14 +470,14 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          bool success;
          std :: string dbName = request->getDatabase();
          std :: string setName = request->getSetName();
-         std :: cout << "DistributedStorageManager received SetScan message: dbName =" << dbName << ", setName =" << setName << std :: endl;
+         PDB_COUT << "DistributedStorageManager received SetScan message: dbName =" << dbName << ", setName =" << setName << std :: endl;
 
          //to check whether set exists
          std :: string fullSetName = dbName + "." + setName;
          std :: string value;
          int catalogType = PDBCatalogMsgType::CatalogPDBSet;
          if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(catalogType, fullSetName, value)) {
-             std :: cout << "Set " << fullSetName << " exists" << std :: endl;
+             PDB_COUT << "Set " << fullSetName << " exists" << std :: endl;
          } else {
              errMsg = "Error in handling SetScan message: Set does not exist";
              std :: cout << errMsg << std :: endl;
@@ -502,7 +503,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          nodesToBroadcast = allNodes;
 
 #endif
-         std :: cout << "num nodes for this set" << nodesToBroadcast.size() << std :: endl;
+         PDB_COUT << "num nodes for this set" << nodesToBroadcast.size() << std :: endl;
 
          //to send SetScan message to slave servers iteratively 
          const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
@@ -528,14 +529,14 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
              }
          
 
-             std :: cout << "to collect data from the " << i << "-th server with address=" <<  address << " and port=" << port  << std :: endl;
+             PDB_COUT << "to collect data from the " << i << "-th server with address=" <<  address << " and port=" << port  << std :: endl;
              Handle<SetScan> newRequest = makeObject<SetScan>(request->getDatabase(), request->getSetName());
 
-             std :: cout << "to connect to the remote node" << std :: endl;
+             PDB_COUT << "to connect to the remote node" << std :: endl;
              PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
-             std :: cout << "port:" << port << std :: endl;
-             std :: cout << "ip address:" << address << std :: endl;
+             PDB_COUT << "port:" << port << std :: endl;
+             PDB_COUT << "ip address:" << address << std :: endl;
 
              if(communicator->connectToInternetServer(logger, port, address, errMsg)) {
                   success = false;
@@ -561,13 +562,13 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                  communicator = nullptr;
                                  break;
                              }         
-                             std :: cout << "got keep going" << std :: endl;
+                             PDB_COUT << "got keep going" << std :: endl;
                              if (!communicator->sendObject(temp, errMsg)) {
                                  std :: cout << "Problem forwarding keep going: " << errMsg << std :: endl;
                                  communicator = nullptr;
                                  break;
                              }         
-                             std :: cout << "sent keep going" << std :: endl;
+                             PDB_COUT << "sent keep going" << std :: endl;
                              keepGoingSent = true;
                          } else {
                              Handle <DoneWithResult> doneMsg = sendUsingMe->getNextObject <DoneWithResult> (success, errMsg);
@@ -576,36 +577,36 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                  communicator = nullptr;
                                  return std :: make_pair (false, errMsg);
                              }
-                             std :: cout << "got done from this client!" <<  std :: endl;
+                             PDB_COUT << "got done from this client!" <<  std :: endl;
                              if (!communicator->sendObject(doneMsg, errMsg)) {
                                  std :: cout << "Problem forwarding done message: " << errMsg << std :: endl;
                                  communicator = nullptr;
                                  return std :: make_pair (false, errMsg);
                              }
-                             std :: cout << "sent done message!" << std :: endl;
+                             PDB_COUT << "sent done message!" << std :: endl;
                              return std :: make_pair (true, errMsg);
                          }
                      }
                  }
                  size_t objSize = communicator->getSizeOfNextObject();
                  if (communicator->getObjectTypeID() == DoneWithResult_TYPEID) {
-                     std :: cout << "got done from this slave!" << std :: endl;
+                     PDB_COUT << "got done from this slave!" << std :: endl;
                      communicator = nullptr; 
                      break;
                  }
                  curPage = (Record <Vector<Handle<Object>>> *) malloc (objSize);
                  if (!communicator->receiveBytes (curPage, errMsg)) {
-                     std :: cout << "Problem getting data from slave: " << errMsg << std :: endl;
+                     PDB_COUT << "Problem getting data from slave: " << errMsg << std :: endl;
                      communicator = nullptr;
                      break;
                  }  
-                 std :: cout << "got data from this slave!" << std :: endl;
+                 PDB_COUT << "got data from this slave!" << std :: endl;
                  if (!sendUsingMe->sendBytes(curPage, curPage->numBytes(), errMsg)) {
                      std :: cout << "Problem forwarding data to client: " << errMsg << std :: endl;
                      communicator = nullptr;
                      break;
                  }
-                 std :: cout << "sent data to client!" << std :: endl;
+                 PDB_COUT << "sent data to client!" << std :: endl;
                  keepGoingSent = false;
             }
       }
@@ -614,7 +615,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
              std :: cout << "Problem sending done message to client: " << errMsg << std :: endl;
              return std :: make_pair (false, "could not send done message: " + errMsg);
       }
-      std :: cout << "sent done message to client!" << std :: endl;
+      PDB_COUT << "sent done message to client!" << std :: endl;
       return std :: make_pair (true, errMsg);
 
       }));
@@ -628,10 +629,10 @@ std::function<void (Handle<SimpleRequestResult>, std::string)> DistributedStorag
         // TODO: Better error handling
 
         if (!response->getRes().first) {
-			std::cout << "BROADCAST CALLBACK FAIL: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
+			PDB_COUT << "BROADCAST CALLBACK FAIL: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
             failures.push_back(server);
         } else {
-			std::cout << "BROADCAST CALLBACK SUCCESS: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
+			PDB_COUT << "BROADCAST CALLBACK SUCCESS: " << server << ": " << response->getRes().first << " : " << response->getRes().second << std::endl;
             success.push_back(server);
         }
         lock.unlock();
@@ -650,7 +651,7 @@ bool DistributedStorageManagerServer::findNodesForDatabase(const std::string& da
     std::vector<std::string> allNodes = std::vector<std::string>();
     const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
 
-	std::cout << "findNodesForDatabase considering " << nodes->size() << " nodes" << std::endl;
+	PDB_COUT << "findNodesForDatabase considering " << nodes->size() << " nodes" << std::endl;
 
     for (int i = 0; i < nodes->size(); i++) {
         std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
@@ -669,7 +670,7 @@ bool DistributedStorageManagerServer::findNodesForDatabase(const std::string& da
 bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::string& databaseName,
                                                                   std::vector<std::string>& nodesForDatabase,
                                                                   std::string& errMsg) {
-    std :: cout << "findNodesContainingDatabase:" << std :: endl;
+    PDB_COUT << "findNodesContainingDatabase:" << std :: endl;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
     getFunctionality<CatalogServer>().getCatalog()->getListOfDatabases(returnValues, databaseName);
@@ -681,7 +682,7 @@ bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::str
     } else {
         auto nodesInDB = (* returnValues)[0].getNodesInDB();
         for (auto const& node :  (* (* returnValues)[0].getNodesInDB())) {
-            std :: cout << "node: " << node.key << std :: endl;
+            PDB_COUT << "node: " << node.key << std :: endl;
             nodesForDatabase.push_back(node.key);
         }
         return true;
@@ -694,7 +695,7 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
                                                       const std::string& setName,
                                                       std::vector<std::string>& nodesForSet,
                                                       std::string& errMsg ) {
-    std :: cout << "findNodesForSet:" << std :: endl;
+    PDB_COUT << "findNodesForSet:" << std :: endl;
     auto nodesInDatabase = std::vector<std::string>();
     if (!findNodesContainingDatabase(databaseName, nodesInDatabase, errMsg)) {
         return false;
@@ -707,11 +708,11 @@ bool DistributedStorageManagerServer::findNodesForSet(const std::string& databas
 
     for (auto node : nodesInDatabase) {
         if (std::find(nodesContainingSet.begin(), nodesContainingSet.end(), node) == nodesContainingSet.end()) {
-            std :: cout << "node: " << node << std :: endl;
+            PDB_COUT << "node: " << node << std :: endl;
             nodesForSet.push_back(node);
         }
     }
-    std :: cout << "findNodesForSet return nodes size:" << nodesForSet.size() << std :: endl;
+    PDB_COUT << "findNodesForSet return nodes size:" << nodesForSet.size() << std :: endl;
     return true;
 }
 
@@ -748,10 +749,10 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
         }
         auto nodes = (* setsInDB)[setName];
         for (int i = 0; i < nodes.size(); i++) {
-            std :: cout << i << ":" << nodes[i] << std :: endl;
+            PDB_COUT << i << ":" << nodes[i] << std :: endl;
             nodesContainingSet.push_back(nodes[i]);
         }
-        std :: cout << "findNodesContainingSet return nodes size:" << nodesContainingSet.size() << std :: endl;
+        PDB_COUT << "findNodesContainingSet return nodes size:" << nodesContainingSet.size() << std :: endl;
         return true;
     }
     errMsg = "Database not found " + databaseName;

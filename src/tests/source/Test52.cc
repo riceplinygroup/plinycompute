@@ -19,6 +19,7 @@
 #ifndef TEST_52_H
 #define TEST_52_H
 
+#include "PDBDebug.h"
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
@@ -154,7 +155,7 @@ int main (int argc, char * argv[]) {
                             return -1;
                         }
                    }
-                   std :: cout << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
                 }
            
                 std :: cout << "total=" << total << std :: endl;
@@ -164,7 +165,7 @@ int main (int argc, char * argv[]) {
           }
         }
         // now, create a new set in that database to store output data
-        std :: cout << "to create a new set for storing output data" << std :: endl;
+        PDB_COUT << "to create a new set for storing output data" << std :: endl;
         if (!temp.createSet<String> ("chris_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);

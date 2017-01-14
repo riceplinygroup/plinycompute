@@ -25,7 +25,7 @@
 #ifndef USER_SET_CC
 #define USER_SET_CC
 
-
+#include "PDBDebug.h"
 #include "UserSet.h"
 #include "PartitionPageIterator.h"
 #include "SetCachePageIterator.h"
@@ -122,7 +122,7 @@ PDBPagePtr UserSet::addPage() {
     //cout << "To add page...\n";
     this->logger->writeLn("UserSet: to add page...");
     PageID pageId = seqId.getNextSequenceID();
-    cout << "PDBPagePtr: pageId=" << pageId << "\n";
+    PDB_COUT << "PDBPagePtr: pageId=" << pageId << "\n";
     this->logger->writeLn("UserSet: pageId generated =");
     this->logger->writeInt(pageId);
     CacheKey key;
@@ -131,7 +131,7 @@ PDBPagePtr UserSet::addPage() {
     key.setId = this->setId;
     key.pageId = pageId;
     PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this);
-    cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
+    PDB_COUT << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
     this->logger->writeLn("UserSet: pageId set =");
     this->logger->writeInt(pageId);
     if(page == nullptr ) {
@@ -170,7 +170,7 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
 	vector<PageIteratorPtr> * retVec = new vector<PageIteratorPtr>();
 	PageIteratorPtr iterator = nullptr;
         if( dirtyPagesInPageCache->size() > 0 ) {
-            std :: cout << "dirtyPages size=" << dirtyPagesInPageCache->size() << std :: endl;
+            PDB_COUT << "dirtyPages size=" << dirtyPagesInPageCache->size() << std :: endl;
 	    iterator = make_shared<SetCachePageIterator>(this->pageCache, this);
 	    if (iterator != nullptr) {
 		retVec->push_back(iterator);
@@ -189,7 +189,7 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
 		int i = 0;
 		for (i = 0; i < numPartitions; i++) {
 			if(partitionedFile->getMetaData()->getPartition(i)->getNumPages() > 0) {
-                                std :: cout << "numpages in partition:"<<i <<" ="<< partitionedFile->getMetaData()->getPartition(i)->getNumPages()<< std :: endl;
+                                PDB_COUT << "numpages in partition:"<<i <<" ="<< partitionedFile->getMetaData()->getPartition(i)->getNumPages()<< std :: endl;
 				iterator = make_shared<PartitionPageIterator>(this->pageCache, file,
 					(FilePartitionID) i, this);
 				retVec->push_back(iterator);

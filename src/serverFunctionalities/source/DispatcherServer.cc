@@ -21,7 +21,7 @@
 
 #include "DispatcherServer.h"
 #include "CatalogServer.h"
-
+#include "PDBDebug.h"
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
 #include "DispatcherAddData.h"
@@ -52,10 +52,10 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
 
                 std :: string errMsg;
                 bool res = true;
-                std :: cout << "DispatcherAddData handler running" << std :: endl;
+                PDB_COUT << "DispatcherAddData handler running" << std :: endl;
                 // Receive the data to send
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
-                std :: cout << "NumBytes = " << numBytes << std :: endl;
+                PDB_COUT << "NumBytes = " << numBytes << std :: endl;
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
 
@@ -78,7 +78,7 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
     forMe.registerHandler(DispatcherRegisterPartitionPolicy_TYPEID, make_shared<SimpleRequestHandler<DispatcherRegisterPartitionPolicy>> (
             [&] (Handle <DispatcherRegisterPartitionPolicy> request, PDBCommunicatorPtr sendUsingMe) {
 
-                std::cout << "Registering partition policy for set " << request->getSetName() << ":" << request->getDatabaseName() << std::endl;
+                PDB_COUT << "Registering partition policy for set " << request->getSetName() << ":" << request->getDatabaseName() << std::endl;
 
                 std :: string errMsg;
                 bool res = true;
@@ -97,7 +97,7 @@ void DispatcherServer :: registerStorageNodes(Handle<Vector<Handle<NodeDispatche
     this->storageNodes = storageNodes;
     for (int i = 0; i < storageNodes->size(); i++) {
         auto node = (*storageNodes)[i];
-        std::cout << "Dispatcher register node: " << node->getAddress() << " : " << node->getPort()  << std::endl;
+        PDB_COUT << "Dispatcher register node: " << node->getAddress() << " : " << node->getPort()  << std::endl;
     }
 
     for (auto const partitionPolicy : partitionPolicies) {
@@ -107,9 +107,9 @@ void DispatcherServer :: registerStorageNodes(Handle<Vector<Handle<NodeDispatche
 
 void DispatcherServer :: registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicyPtr partitionPolicy) {
     if (partitionPolicies.find(setAndDatabase) != partitionPolicies.end()) {
-        std::cout << "Updating old set" << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
+        PDB_COUT << "Updating old set" << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
     } else {
-        std::cout << "Found new set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
+        PDB_COUT << "Found new set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
     }
     partitionPolicies.insert(std::pair<std::pair<std::string, std::string>, PartitionPolicyPtr>(setAndDatabase, partitionPolicy));
     partitionPolicies[setAndDatabase]->updateStorageNodes(storageNodes);
@@ -121,13 +121,13 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
     // TODO: Implement this
 
     if (partitionPolicies.find(setAndDatabase) == partitionPolicies.end()) {
-        std::cout << "No partition policy was found for set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
-        std::cout << "Defaulting to random policy" << std::endl;
+        PDB_COUT << "No partition policy was found for set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
+        PDB_COUT << "Defaulting to random policy" << std::endl;
         registerSet(setAndDatabase, PartitionPolicyFactory::buildDefaultPartitionPolicy());
         return dispatchData(setAndDatabase, type, toDispatch);
     } else {
         auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(toDispatch);
-        std :: cout << "mappedPartitions size = " << mappedPartitions->size() << std :: endl;
+        PDB_COUT << "mappedPartitions size = " << mappedPartitions->size() << std :: endl;
         for (auto const &pair : (* mappedPartitions)) {
             if (!sendData(setAndDatabase, type, findNode(pair.first), pair.second)) {
                 return false;
@@ -139,7 +139,7 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
 
 bool DispatcherServer :: validateTypes (const std::string& databaseName, const std::string& setName,
         const std::string& typeName, std::string& errMsg) {
-    std :: cout << "running validateTypes with typeName" << typeName << std :: endl;
+    PDB_COUT << "running validateTypes with typeName" << typeName << std :: endl;
     std::string fullSetName = databaseName + "." + setName;
     Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
 
@@ -151,7 +151,7 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
         return false;
     } else {
         if ((* returnValues)[0].getObjectTypeName() == typeName) {
-            std :: cout << "validateTypes succeed" << std :: endl;
+            PDB_COUT << "validateTypes succeed" << std :: endl;
             return true;
         } else {
             errMsg = "Dispatched type " + typeName + " does not match stored type " +
@@ -160,7 +160,7 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
             return false;
         }
     }
-    std :: cout << fullSetName << std :: endl;
+    PDB_COUT << fullSetName << std :: endl;
     std :: cout << errMsg << std :: endl;
     return false;
 }
@@ -168,11 +168,11 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
 bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDatabase, std::string type,
                                    Handle<NodeDispatcherData> destination, Handle<Vector<Handle<Object>>> toSend) {
 
-    std::cout << "Sending data to " << destination->getPort() << " : " << destination->getAddress() << std::endl;
+    PDB_COUT << "Sending data to " << destination->getPort() << " : " << destination->getAddress() << std::endl;
     std::string err;
     StorageClient storageClient = StorageClient(destination->getPort(), destination->getAddress(), logger);
     if (!storageClient.storeData(toSend, setAndDatabase.second, setAndDatabase.first, type, err)) {
-        cout << "Not able to store data: " << err << std::endl;
+        PDB_COUT << "Not able to store data: " << err << std::endl;
         return 0;
     }
     return 1;

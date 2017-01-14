@@ -24,6 +24,7 @@
 #ifndef PAGE_CACHE_CC
 #define PAGE_CACHE_CC
 
+#include "PDBDebug.h"
 #include "PageCache.h"
 #include "PDBEvictWork.h"
 
@@ -121,7 +122,7 @@ char * PageCache::allocateBufferFromSharedMemoryBlocking(size_t size, int & alig
 		data = (char *) this->shm->mallocAlign(size, 512, alignOffset);
 	}
           
-        cout << "page allocated!\n";
+        PDB_COUT << "page allocated!\n";
 	return data;
 }
 
@@ -428,7 +429,7 @@ PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) 
        pthread_mutex_unlock(&evictionMutex);
        int internalOffset = 0;
        char * pageData;
-       std :: cout << "to get a page" << std :: endl;
+       PDB_COUT << "to get a page" << std :: endl;
        pageData = allocateBufferFromSharedMemoryBlocking(conf->getPageSize(), internalOffset);
        /*
        if(set != nullptr) {
@@ -439,9 +440,9 @@ PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) 
        */
        //cout << "getNewPage: internalOffset=" << internalOffset <<"\n";
        if(pageData != nullptr) {
-            cout << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
+            PDB_COUT << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
        } else {
-            cout << "failed!!!\n";
+            PDB_COUT << "failed!!!\n";
             return nullptr;
        } 
        PDBPagePtr page = make_shared<PDBPage>(pageData, nodeId, key.dbId,
@@ -625,7 +626,7 @@ bool PageCache::evictPage(CacheKey key) {
                         
                         page->setPinned(false);
                         if((page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
-                            cout << "going to unpin a dirty page...\n";
+                            PDB_COUT << "going to unpin a dirty page...\n";
                             //update counter
                             //page->updateCounterInRawBytes(); 
                             page->setInFlush(true);
@@ -639,7 +640,7 @@ bool PageCache::evictPage(CacheKey key) {
 
                         }
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
-                            cout << "going to unpin a clean page...\n";
+                            PDB_COUT << "going to unpin a clean page...\n";
                             //free the page
 			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
                             
@@ -648,11 +649,11 @@ bool PageCache::evictPage(CacheKey key) {
                             cache->erase(key);
                             this->size--;
                         }
-			cout<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
+			PDB_COUT<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
 		}
 
 	} else {
-                cout << "can not find page in cache!\n";
+                PDB_COUT << "can not find page in cache!\n";
 		this->logger->writeLn(
 				"LRUPageCache: can not evict page because it is not in cache");
 		return false;
@@ -782,12 +783,12 @@ void PageCache::evict() {
 	    while ((this->size > this->evictStopSize)&&(cachedPages->size() > 0)) {
 		page = cachedPages->top();
                 if(page == nullptr) {
-                    cout << "PageCache: nothing to evict, return!\n";
+                    PDB_COUT << "PageCache: nothing to evict, return!\n";
                     this->logger->debug("PageCache: nothing to evict, return!\n");
                     break;
                 }
 		if (this->evictPage(page) == true) {
-			cout << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+			PDB_COUT << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
 		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
 		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();

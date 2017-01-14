@@ -25,6 +25,7 @@
 #ifndef SRC_CPP_MAIN_DATABASE_HEADERS_USERSET_H_
 #define SRC_CPP_MAIN_DATABASE_HEADERS_USERSET_H_
 
+#include "PDBDebug.h"
 #include "PartitionedFile.h"
 #include "PageCache.h"
 #include "PDBLogger.h"
@@ -254,11 +255,11 @@ public:
      */
     void removePageFromDirtyPageSet(PageID pageId, FilePartitionID partitionId, unsigned int pageSeqInPartition) {
        if(isPinned == false) {
-           std :: cout << "the set is not pinned" << std :: endl;
+           PDB_COUT << "the set is not pinned" << std :: endl;
            dirtyPagesInPageCache->erase(pageId);
            return;
        }
-       std :: cout << "the set is pinned" << std :: endl;
+       PDB_COUT << "the set is pinned" << std :: endl;
        auto search = dirtyPagesInPageCache->find(pageId);
        if(search != dirtyPagesInPageCache->end()) {
            search->second.inCache = false;

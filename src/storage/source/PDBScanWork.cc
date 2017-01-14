@@ -24,6 +24,7 @@
 #ifndef PDBSCANWORK_CC
 #define PDBSCANWORK_CC
 
+#include "PDBDebug.h"
 #include "PDBScanWork.h"
 #include "PDBPage.h"
 #include "PDBCommunicator.h"
@@ -83,9 +84,9 @@ bool PDBScanWork::acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, 
             wasError = true;
             return false;
         }
-        std :: cout << "PDBScanWork: to create memory block for SimpleRequestResult" << std :: endl;
+        PDB_COUT << "PDBScanWork: to create memory block for SimpleRequestResult" << std :: endl;
         const pdb :: UseTemporaryAllocationBlock myBlock{sizeOfNextObject};
-        std :: cout << "PDBScanWork: memory block allocated" << std :: endl;
+        PDB_COUT << "PDBScanWork: memory block allocated" << std :: endl;
 	bool success;
 	pdb :: Handle <pdb :: SimpleRequestResult> msg =
 		myCommunicator->getNextObject<pdb :: SimpleRequestResult> (success, errMsg);

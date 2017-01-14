@@ -19,6 +19,7 @@
 #ifndef ALLOCATOR_CC
 #define ALLOCATOR_CC
 
+#include "PDBDebug.h"
 #include <sstream>
 #include <cstddef>
 #include <iostream>
@@ -588,7 +589,7 @@ inline std::string Allocator :: printInactiveBlocks() {
              
         }
         
-        std :: cout << out << std :: endl;
+        PDB_COUT << out << std :: endl;
         return out;
 }
 

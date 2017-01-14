@@ -19,6 +19,7 @@
 #ifndef TEST_46_CC
 #define TEST_46_CC
 
+#include "PDBDebug.h"
 #include "StorageClient.h"
 #include "PDBVector.h"
 #include "Employee.h"
@@ -112,8 +113,8 @@ int main (int argc, char * argv[]) {
 				cout << "Not able to store data: " + errMsg;
 					return -1;
 			}	
-			std :: cout << i << std::endl;
-			std :: cout << "stored the data!!\n";
+			PDB_COUT << i << std::endl;
+			PDB_COUT << "stored the data!!\n";
 		}
 	  }
       }
@@ -124,7 +125,7 @@ int main (int argc, char * argv[]) {
 	if (!temp.shutDownServer (errMsg))
 		std :: cout << "Shut down not clean: " << errMsg << "\n";
 */	
-      std :: cout << "count=" << total << std :: endl;
+      PDB_COUT << "count=" << total << std :: endl;
       return 0;
 }
 

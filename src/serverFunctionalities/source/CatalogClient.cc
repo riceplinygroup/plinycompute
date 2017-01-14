@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "PDBDebug.h"
 #include "CatalogClient.h"
 #include "CatRegisterType.h"
 #include "SimpleSendDataRequest.h"
@@ -99,10 +100,10 @@ bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :
 	    return false;
 	}
 	size_t fileLen = in.tellg();
-	cout << "file " << fileContainingSharedLib << endl;
-	cout << "size " << fileLen << endl;
+	PDB_COUT << "file " << fileContainingSharedLib << endl;
+	PDB_COUT << "size " << fileLen << endl;
 	
-	std::cout << "Registering type " << fileContainingSharedLib << std::endl;
+	PDB_COUT << "Registering type " << fileContainingSharedLib << std::endl;
 
 	// this makes a an empty vector with fileLen slots
 	const UseTemporaryAllocationBlock tempBlock{fileLen + 1024};
@@ -161,11 +162,11 @@ void CatalogClient :: setPointsToMasterCatalog(bool pointsToMaster){
 
 
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
-        std :: cout << "searchForObjectTypeName for " << objectTypeName << std :: endl;
+        PDB_COUT << "searchForObjectTypeName for " << objectTypeName << std :: endl;
 	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, -1, 1024*1024,
 		[&] (Handle <CatTypeSearchResult> result) {
 			if (result != nullptr){
-                                std :: cout << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl; 
+                                PDB_COUT << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl; 
 				return result->getTypeID ();
                         }
 			else {
@@ -177,7 +178,7 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
-    std :: cout << "CatalogClient: getSharedLibrary for id=" << identifier << std :: endl;
+    PDB_COUT << "CatalogClient: getSharedLibrary for id=" << identifier << std :: endl;
     Handle <CatalogUserTypeMetadata> tempMetadataObject = makeObject<CatalogUserTypeMetadata>();
     vector <char> * putResultHere = new vector<char>();
     string returnedBytes;
@@ -193,7 +194,7 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
                             returnedBytes,
                             errMsg);
     delete putResultHere;
-    std :: cout << "CatalogClient: deleted putResultHere" << std :: endl;
+    PDB_COUT << "CatalogClient: deleted putResultHere" << std :: endl;
     return res;
 
     //this is not needed b/c it's get copied in the previous step
@@ -214,10 +215,10 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
     // this allocates 128MB memory for the request
 //    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 256};
 
-    std :: cout << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
+    PDB_COUT << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 
     //const LockGuard guard{workingMutex}; //this function will only be invoked from getVTablePtrUsingCatalog() which contains a lock guard already
-        std :: cout << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << " and id=" << identifier << std :: endl;
+    PDB_COUT << "CatalogClient to fetch shared library for TypeName=" << typeNameToSearch << " and id=" << identifier << std :: endl;
         myLogger->debug(std :: string( "CatalogClient to fetch shared library for typeNameToSearch=") + typeNameToSearch + " and id=" + std :: to_string(identifier));
 //    return simpleRequest <CatSharedLibraryByNameRequest, Vector <char>, bool> (myLogger, port, address, false, 1024,
         return simpleRequest <CatSharedLibraryByNameRequest, CatalogUserTypeMetadata, bool> (myLogger, port, address, false, 1024 * 1024 * 4,
@@ -225,7 +226,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 //        [&] (Handle <Vector <char>> result) {
                 [&] (Handle <CatalogUserTypeMetadata> result) {
 
-                    std :: cout << "In CatalogClient- Handling CatSharedLibraryByNameRequest received from CatalogServer..." << std :: endl;
+                    PDB_COUT << "In CatalogClient- Handling CatSharedLibraryByNameRequest received from CatalogServer..." << std :: endl;
                         myLogger->debug("CatalogClient: To handle result of CatSharedLibraryByNameRequest from CatalogServer...");
 
             if (result == nullptr) {
@@ -234,13 +235,13 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
                 //return false;
                 exit(-1);
             }
-            std :: cout << "Getting the returned typeId" << std :: endl;
+            PDB_COUT << "Getting the returned typeId" << std :: endl;
 
             // gets the typeId returned by the Master Catalog
-            std :: cout << std :: string (result->getObjectID()) << std :: endl;
+            PDB_COUT << std :: string (result->getObjectID()) << std :: endl;
             int16_t returnedTypeId = std::atoi((result->getObjectID()).c_str());
 
-            cout << "Cat Client - Object Id returned " <<  returnedTypeId << endl;
+            PDB_COUT << "Cat Client - Object Id returned " <<  returnedTypeId << endl;
 
             if (returnedTypeId == -1) {
                 errMsg = "Error getting shared library: type not found in Master Catalog.\n";
@@ -249,7 +250,7 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
                 return false;
             }
 
-            cout << "Cat Client - Finally bytes returned " << result->getLibraryBytes().size() << endl;
+            PDB_COUT << "Cat Client - Finally bytes returned " << result->getLibraryBytes().size() << endl;
 
             if (result->getLibraryBytes().size() == 0) {
                 errMsg = "Error getting shared library, no data returned.\n";
@@ -260,19 +261,19 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
             // gets metadata and bytes of the registered type
             returnedBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
-            cout << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
+            PDB_COUT << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
 
             typeNameToSearch = std :: string((*result).getItemName());
 //            memmove (&putResultHere, result->c_ptr (), result->size ());
 
-            cout << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
+            PDB_COUT << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
             std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
-            std::cout <<"bytes copied!" << std :: endl;
+            PDB_COUT <<"bytes copied!" << std :: endl;
             // just write the shared library to the file
             int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
             write (filedesc, returnedBytes.c_str (), returnedBytes.size());
             close (filedesc);
-            std :: cout << "objectFile is written by CatalogClient" << std :: endl;
+            PDB_COUT << "objectFile is written by CatalogClient" << std :: endl;
             return true;},
             identifier, typeNameToSearch);
 }
@@ -295,10 +296,10 @@ std :: string CatalogClient :: getObjectType (std :: string databaseName, std ::
 }
 
 bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std :: string setName, std :: string &errMsg) {
-        std :: cout << "CatalogClient: to create set..." << std :: endl;
+        PDB_COUT << "CatalogClient: to create set..." << std :: endl;
         return simpleRequest <CatCreateSetRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
                 [&] (Handle <SimpleRequestResult> result) {
-                        std :: cout << "CatalogClient: received response for creating set" << std :: endl;
+                        PDB_COUT << "CatalogClient: received response for creating set" << std :: endl;
                         if (result != nullptr) {
                                 if (!result->getRes ().first) {
                                         errMsg = "Error creating set: " + result->getRes ().second;
@@ -306,7 +307,7 @@ bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std
                                         myLogger->error ("Error creating set: " + result->getRes ().second);
                                         return false;
                                 }
-                                std :: cout << "CatalogClient: created set" << std :: endl;
+                                PDB_COUT << "CatalogClient: created set" << std :: endl;
                                 return true;
                         }
                         errMsg = "Error getting type name: got nothing back from catalog";
@@ -441,7 +442,7 @@ bool CatalogClient :: removeNodeFromDB (std :: string nodeIP, std :: string data
 
 //TODO review these catalog-related methods
 bool CatalogClient :: registerDatabaseMetadata (std :: string itemToSearch, std :: string &errMsg) {
-    cout << "inside registerDatabaseMetadata" << endl;
+    PDB_COUT << "inside registerDatabaseMetadata" << endl;
 
     return simpleRequest <CatalogDatabaseMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
         [&] (Handle <SimpleRequestResult> result) {
@@ -460,7 +461,7 @@ bool CatalogClient :: registerDatabaseMetadata (std :: string itemToSearch, std 
 
 bool CatalogClient :: registerNodeMetadata (pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData, std :: string &errMsg) {
 
-    cout << "registerNodeMetadata for item: " << (*nodeData) << endl;
+    PDB_COUT << "registerNodeMetadata for item: " << (*nodeData) << endl;
 
     return simpleRequest <CatalogNodeMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
         [&] (Handle <SimpleRequestResult> result) {
@@ -482,7 +483,7 @@ bool CatalogClient :: registerNodeMetadata (pdb :: Handle<pdb :: CatalogNodeMeta
 // List metadata
 bool CatalogClient :: printCatalogMetadata (std :: string timeStamp, std :: string &errMsg) {
 
-    cout << "print greater than " << timeStamp << endl;
+    PDB_COUT << "print greater than " << timeStamp << endl;
     return simpleRequest <CatalogPrintMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
         [&] (Handle <SimpleRequestResult> result) {
             if (result != nullptr) {
