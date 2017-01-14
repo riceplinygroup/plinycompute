@@ -77,7 +77,7 @@ namespace pdb {
     }
 
     void CatalogServer :: registerHandlers (PDBServer &forMe) {
-        getLogger()->debug("Catalog Server registering handlers");
+        catServerLogger->debug("Catalog Server registering handlers");
 
         //TODO change this test
         // handle a request to add metadata for a new Database in the catalog
@@ -87,7 +87,7 @@ namespace pdb {
                 // ask the catalog server for the type ID and then the name of the type
                 std :: string errMsg;
 
-                getLogger()->debug("CatalogServer handler CatalogNodeMetadata_TYPEID calling addNodeMetadata " + string(request->getItemKey()));
+                catServerLogger->debug("CatalogServer handler CatalogNodeMetadata_TYPEID calling addNodeMetadata " + string(request->getItemKey()));
                 const UseTemporaryAllocationBlock block{1024*1024};
                 bool res = getFunctionality <CatalogServer> ().addNodeMetadata (request, errMsg);
                 // make the response
@@ -106,17 +106,17 @@ namespace pdb {
 
                 // ask the catalog server for the type ID and then the name of the type
                 std :: string errMsg;
-                getLogger()->debug("--->CatalogServer handler CatalogDatabaseMetadata_TYPEID calling addDatabaseMetadata");
+                catServerLogger->debug("--->CatalogServer handler CatalogDatabaseMetadata_TYPEID calling addDatabaseMetadata");
                 const UseTemporaryAllocationBlock block{1024*1024};
                 bool res;
                 string itemKey = request->getItemKey().c_str();
-                getLogger()->debug(" lookin for key " + itemKey);
+                catServerLogger->debug(" lookin for key " + itemKey);
                 // if database exists update its metadata
                 if (isDatabaseRegistered(itemKey) == false){
-                    getLogger()->debug(" Key is new then call addDatabaseMetadata ");
+                    catServerLogger->debug(" Key is new then call addDatabaseMetadata ");
                     res = getFunctionality <CatalogServer> ().addDatabaseMetadata (request, errMsg);
                 }else{
-                    getLogger()->debug(" Key already exists call updateDatabaseMetadata ");
+                    catServerLogger->debug(" Key already exists call updateDatabaseMetadata ");
                     res = getFunctionality <CatalogServer> ().updateDatabaseMetadata (request, errMsg);
                 }
 
@@ -136,7 +136,7 @@ namespace pdb {
 
                 // ask the catalog server for the type ID and then the name of the type
                 std :: string errMsg;
-                getLogger()->debug("--->CatalogServer handler CatalogSetMetadata_TYPEID calling addSetMetadata");
+                catServerLogger->debug("--->CatalogServer handler CatalogSetMetadata_TYPEID calling addSetMetadata");
                 const UseTemporaryAllocationBlock block{1024*1024};
                 bool res = getFunctionality <CatalogServer> ().addSetMetadata (request, errMsg);
 
@@ -157,7 +157,7 @@ namespace pdb {
                 // ask the catalog server for the type ID and then the name of the type
                 std :: string errMsg;
                 string item = request->getItemName();
-                getLogger()->debug("--->Testing CatalogPrintMetadata handler with item id " + item);
+                catServerLogger->debug("--->Testing CatalogPrintMetadata handler with item id " + item);
                 const UseTemporaryAllocationBlock block{1024*1024};
                 bool res = getFunctionality <CatalogServer> ().printCatalog (item);
 
@@ -177,13 +177,13 @@ namespace pdb {
         forMe.registerHandler (CatTypeNameSearch_TYPEID, make_shared <SimpleRequestHandler <CatTypeNameSearch>> (
             [&] (Handle <CatTypeNameSearch> request, PDBCommunicatorPtr sendUsingMe) {
 
-                getLogger()->debug("received CatTypeNameSearch message");
+                catServerLogger->debug("received CatTypeNameSearch message");
                 // in practice, we can do better than simply locking the whole catalog, but good enough for now...
                 const LockGuard guard{workingMutex};
                 const UseTemporaryAllocationBlock block{1024*1024};
                 // ask the catalog serer for the type ID
                 int16_t typeID = getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getObjectTypeName ());
-                getLogger()->debug("searchForObjectTypeName for " + request->getObjectTypeName() + " is " + std::to_string(typeID));
+                catServerLogger->debug("searchForObjectTypeName for " + request->getObjectTypeName() + " is " + std::to_string(typeID));
                 // make the result
                 const UseTemporaryAllocationBlock tempBlock{1024};
                 Handle <CatTypeSearchResult> response = makeObject <CatTypeSearchResult> (typeID);
@@ -207,7 +207,7 @@ namespace pdb {
                 vector <char> * putResultHere = new vector<char>();
                 std :: string errMsg;
                 int16_t typeID = request->getTypeID ();
-                getLogger()->debug("CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" + std :: to_string(typeID));
+                catServerLogger->debug("CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" + std :: to_string(typeID));
 
                 bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
 
@@ -216,7 +216,7 @@ namespace pdb {
                     Handle <Vector <char>> response = makeObject <Vector <char>> ();
                     res = sendUsingMe->sendObject (response, errMsg);
                 } else {
-                    getLogger()->debug("On Catalog Server bytes returned " + std :: to_string((*putResultHere).size ()));
+                    catServerLogger->debug("On Catalog Server bytes returned " + std :: to_string((*putResultHere).size ()));
                     // in this case, we need a big space to put the object!!
                     const UseTemporaryAllocationBlock temp{1024 + (*putResultHere).size ()};
                     Handle <Vector <char>> response = makeObject <Vector <char>> ((*putResultHere).size (), (*putResultHere).size ());
@@ -241,7 +241,7 @@ namespace pdb {
 
                 // in practice, we can do better than simply locking the whole catalog, but good enough for now...
                 const LockGuard guard{workingMutex};
-                getLogger()->debug("Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" + typeName + " and typeId=" + std :: to_string(typeId));
+                catServerLogger->debug("Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" + typeName + " and typeId=" + std :: to_string(typeId));
                 // ask the catalog serer for the shared library
                 // added by Jia to test a length error bug
                 vector <char> * putResultHere = new vector<char>();
@@ -250,7 +250,7 @@ namespace pdb {
                 std :: string errMsg;
 
 
-                getLogger()->debug(std :: string("CatalogServer to handle CatSharedLibraryByNameRequest to get shared library for typeName=") + typeName + std :: string(" and typeId=") + std :: to_string(typeId));
+                catServerLogger->debug(std :: string("CatalogServer to handle CatSharedLibraryByNameRequest to get shared library for typeName=") + typeName + std :: string(" and typeId=") + std :: to_string(typeId));
 
                 if(this->isMasterCatalogServer == true) {
                     // Allocates 128Mb for sending .so libraries
@@ -259,7 +259,7 @@ namespace pdb {
                     Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
                     //Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
-                    getLogger()->debug("    Invoking getSharedLibrary(typeName) from CatalogServer Handler b/c this is Master Catalog ");
+                    catServerLogger->debug("    Invoking getSharedLibrary(typeName) from CatalogServer Handler b/c this is Master Catalog ");
 
                     // if the type is not registered in the Master Catalog just return
                     if (allTypeCodes.count (typeId) == 0) {
@@ -276,7 +276,7 @@ namespace pdb {
 
                         //resolves typeName given the typeId
                         typeName = allTypeCodes[typeId];
-                        getLogger()->debug("Resolved typeName " + typeName + "  for typeId=" + std::to_string(typeId));
+                        catServerLogger->debug("Resolved typeName " + typeName + "  for typeId=" + std::to_string(typeId));
 
                         // the type was found in the catalog, retrieve metadata and bytes
                         res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
@@ -286,11 +286,11 @@ namespace pdb {
                                                                                           returnedBytes,
                                                                                           errMsg);
 
-                        getLogger()->debug("    Bytes returned YES isMaster: " + std :: to_string(returnedBytes.size()));
+                        catServerLogger->debug("    Bytes returned YES isMaster: " + std :: to_string(returnedBytes.size()));
 
-                        getLogger()->debug("typeId=" + string(response->getObjectID()));
-                        getLogger()->debug("ItemName=" + string(response->getItemName()));
-                        getLogger()->debug("ItemKey=" + string(response->getItemKey()));
+                        catServerLogger->debug("typeId=" + string(response->getObjectID()));
+                        catServerLogger->debug("ItemName=" + string(response->getItemName()));
+                        catServerLogger->debug("ItemKey=" + string(response->getItemKey()));
                         response->setLibraryBytes(returnedBytes);
                         /*
                         JiaNote: I comment below lines because response and reponseTwo are in the same allocation block after calling deepCopyToCurrentAllocationBlock in retrievesDynamicLibrary
@@ -304,14 +304,14 @@ namespace pdb {
                         responseTwo->setItemKey(newItemKey);
                         responseTwo->setLibraryBytes(_retBytes);
                         */
-                        getLogger()->debug("Object Id isMaster: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
+                        catServerLogger->debug("Object Id isMaster: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
                         if (!res) {
                             //const UseTemporaryAllocationBlock tempBlock{1024};
             //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
                             //res = sendUsingMe->sendObject (responseTwo, errMsg);
                             res = sendUsingMe->sendObject (response, errMsg);
                         } else {
-                            getLogger()->debug("     Sending metadata and bytes to caller!");
+                            catServerLogger->debug("     Sending metadata and bytes to caller!");
                             //res = sendUsingMe->sendObject (responseTwo, errMsg);
                             res = sendUsingMe->sendObject (response, errMsg);
                         }
@@ -325,8 +325,8 @@ namespace pdb {
 
                         Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
 
-                        getLogger()->debug("    Connecting to the Remote Catalog Server via Catalog Client");
-                        getLogger()->debug("    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog ");
+                        catServerLogger->debug("    Connecting to the Remote Catalog Server via Catalog Client");
+                        catServerLogger->debug("    Invoking CatalogClient.getSharedLibraryByName(typeName) from CatalogServer b/c this is Local Catalog ");
                         // otherwise connect to remote master catalog server and make call
 
                         // uses a dummyObjectFile since this is just making a remote call to the Catalog Master Server
@@ -340,7 +340,7 @@ namespace pdb {
                                                                                               response,
                                                                                               returnedBytes,
                                                                                               errMsg);
-                        getLogger()->debug("     Bytes returned NOT isMaster: " + std :: to_string(returnedBytes.size()));
+                        catServerLogger->debug("     Bytes returned NOT isMaster: " + std :: to_string(returnedBytes.size()));
 
                         // if the library was successfully retrieved, go ahead and resolve vtable fixing
                         // in the local catalog
@@ -351,9 +351,9 @@ namespace pdb {
                         }
 
                         if (!res) {
-                            getLogger()->debug("     before sending response Vtable not fixed!!!!!!");
+                            catServerLogger->debug("     before sending response Vtable not fixed!!!!!!");
 
-                            getLogger()->debug(errMsg);
+                            catServerLogger->debug(errMsg);
                             const UseTemporaryAllocationBlock tempBlock{1024};
 
                             Handle <CatalogUserTypeMetadata> notFoundResponse = makeObject<CatalogUserTypeMetadata>();
@@ -363,7 +363,7 @@ namespace pdb {
                             res = sendUsingMe->sendObject (notFoundResponse, errMsg);
 
                        } else {
-                           getLogger()->debug("     before sending response Vtable fixed!!!!");
+                           catServerLogger->debug("     before sending response Vtable fixed!!!!");
                             const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
                             Handle <CatalogUserTypeMetadata> responseTwo = makeObject<CatalogUserTypeMetadata>();
 
@@ -400,7 +400,7 @@ namespace pdb {
                        Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
 
                        typeName = allTypeCodes[typeId];
-                       getLogger()->debug("Resolved typeName" + typeName + " for typeId=" + std :: to_string(typeId));
+                       catServerLogger->debug("Resolved typeName" + typeName + " for typeId=" + std :: to_string(typeId));
                        // the type was found in the catalog, retrieve metadata and bytes
                        res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
                                                                                           typeName,
@@ -409,18 +409,18 @@ namespace pdb {
                                                                                           returnedBytes,
                                                                                           errMsg);
 
-                       getLogger()->debug("    Bytes returned No isMaster: " + std :: to_string(returnedBytes.size()));
+                       catServerLogger->debug("    Bytes returned No isMaster: " + std :: to_string(returnedBytes.size()));
 
 
                        response->setLibraryBytes(returnedBytes);
 
-                       getLogger()->debug("Object Id isLocal: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
+                       catServerLogger->debug("Object Id isLocal: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
                         if (!res) {
                         const UseTemporaryAllocationBlock tempBlock{1024};
             //                Handle <Vector <char>> response = makeObject <Vector <char>> ();
                             res = sendUsingMe->sendObject (response, errMsg);
                         } else {
-                            getLogger()->debug("     Sending metadata and bytes to caller!");
+                            catServerLogger->debug("     Sending metadata and bytes to caller!");
                             res = sendUsingMe->sendObject (response, errMsg);
                         }
 
@@ -429,7 +429,7 @@ namespace pdb {
 
                 }
 
-                getLogger()->debug(" Num bytes in putResultHere " + std :: to_string((*putResultHere).size()));
+                catServerLogger->debug(" Num bytes in putResultHere " + std :: to_string((*putResultHere).size()));
 
                 delete putResultHere;
 
@@ -446,7 +446,7 @@ namespace pdb {
                 const UseTemporaryAllocationBlock block{1024*1024};
                 // ask the catalog server for the type ID and then the name of the type
                 int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabaseName (), request->getSetName ());
-                getLogger()->debug("typeID for Set with dbName=" + string(request->getDatabaseName()) + " and setName=" + string(request->getSetName()) + " is " + std::to_string(typeID));
+                catServerLogger->debug("typeID for Set with dbName=" + string(request->getDatabaseName()) + " and setName=" + string(request->getSetName()) + " is " + std::to_string(typeID));
                 // make the response
                 const UseTemporaryAllocationBlock tempBlock{1024};
                 Handle <CatTypeNameSearchResult> response;
@@ -668,7 +668,7 @@ namespace pdb {
             [&] (Handle <CatalogCloseSQLiteDBHandler> request, PDBCommunicatorPtr sendUsingMe) {
 
                 std :: string errMsg;
-                getLogger()->debug("--->Testing CatalogCloseSQLiteDBHandler handler ");
+                catServerLogger->debug("--->Testing CatalogCloseSQLiteDBHandler handler ");
                 const UseTemporaryAllocationBlock block{1024*1024};
 
                 pdbCatalog->closeSQLiteHandler();
@@ -688,7 +688,7 @@ namespace pdb {
 
     std :: string CatalogServer :: searchForObjectTypeName (int16_t typeIdentifier) {
 
-        getLogger()->debug("searchForObjectTypeName with typeIdentifier =" + std :: to_string(typeIdentifier));
+        catServerLogger->debug("searchForObjectTypeName with typeIdentifier =" + std :: to_string(typeIdentifier));
         // first search for the type name in the vTable map (in case it is built in)
         std :: string result = VTableMap :: lookupBuiltInType (typeIdentifier);
         if (result != "")
@@ -707,7 +707,7 @@ namespace pdb {
         // first, make sure we have this identifier
         if (allTypeCodes.count (identifier) == 0) {
             errMsg = "CatalogServer::getSharedLibrary(): Error: didn't know the identifier you sent me";
-            getLogger()->error(errMsg);
+            catServerLogger->error(errMsg);
             return false;
         }
 
@@ -733,13 +733,13 @@ namespace pdb {
     }
 
     bool CatalogServer :: getSharedLibraryByName (int16_t identifier, std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg) {
-        getLogger()->debug(" Catalog Server->inside get getSharedLibraryByName id for type " + typeName);
+        catServerLogger->debug(" Catalog Server->inside get getSharedLibraryByName id for type " + typeName);
 
         // TODO debug these lines
         int metadataCategory = (int)PDBCatalogMsgType::CatalogPDBRegisteredObject;
         // gets type id
         string id = pdbCatalog->itemName2ItemId(metadataCategory, typeName);
-        getLogger()->debug(" id " + id);
+        catServerLogger->debug(" id " + id);
 
         string soFileBytes;
         string typeOfObject = "data_types";
@@ -752,18 +752,18 @@ namespace pdb {
 
         // the item was found
         if (res == true){
-            getLogger()->debug("Metadata returned at get SharedLibrary Id: " + string(itemMetadata->getItemId()));
-            getLogger()->debug("Metadata returned at get SharedLibrary Key: " + string(itemMetadata->getItemKey()));
-            getLogger()->debug("--pass");
+            catServerLogger->debug("Metadata returned at get SharedLibrary Id: " + string(itemMetadata->getItemId()));
+            catServerLogger->debug("Metadata returned at get SharedLibrary Key: " + string(itemMetadata->getItemKey()));
+            catServerLogger->debug("--pass");
 
-            getLogger()->debug("Bytes after string " + std :: to_string(returnedBytes.size()));
+            catServerLogger->debug("Bytes after string " + std :: to_string(returnedBytes.size()));
 
-            getLogger()->debug("bytes before putResultHere " + std :: to_string(putResultHere.size()));
+            catServerLogger->debug("bytes before putResultHere " + std :: to_string(putResultHere.size()));
 
             // copy bytes to output param
             std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
         } else {
-            getLogger()->debug("Item with key " + typeName +  " was not found!");
+            catServerLogger->debug("Item with key " + typeName +  " was not found!");
         }
 
         return res;
@@ -799,13 +799,13 @@ namespace pdb {
         typedef char *getObjectTypeNameFunc ();
         getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
 
-        getLogger()->debug("open function: " + getName);
+        catServerLogger->debug("open function: " + getName);
         if ((dlsym_error = dlerror())) {
             errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
-            getLogger()->error(errMsg);
+            catServerLogger->error(errMsg);
             return -1;
         }
-        getLogger()->debug("all ok");
+        catServerLogger->debug("all ok");
 
         // now, get the type name and write the appropriate file
         string typeName (myFunc ());
@@ -814,15 +814,15 @@ namespace pdb {
         string newName = catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so";
         int result = rename( tempFile.c_str() , newName.c_str());
         if ( result == 0 ) {
-            getLogger()->debug("Successfully renaming file " + newName);
+            catServerLogger->debug("Successfully renaming file " + newName);
         } else {
-            getLogger()->debug("Renaming temp file failed " + newName);
+            catServerLogger->debug("Renaming temp file failed " + newName);
             return -1;
         }
 
         // add the new type name, if we don't already have it
         if (allTypeNames.count (typeName) == 0) {
-            getLogger()->debug("Fixing vtable ptr for type " + typeName + " with metadata retrieved from remote Catalog Server.");
+            catServerLogger->debug("Fixing vtable ptr for type " + typeName + " with metadata retrieved from remote Catalog Server.");
             int16_t typeCode = 8192 + allTypeNames.size ();
             allTypeNames [typeName] = typeCode;
             allTypeCodes [typeCode] = typeName;
@@ -837,14 +837,14 @@ namespace pdb {
                 typeCodes.push_back (pair.second);
             }
 
-            getLogger()->debug("before creating object");
+            catServerLogger->debug("before creating object");
             //allocates 128Mb to register .so libraries
 
             //JiaNote: we should use temporary allocation block in functions that may be invoked by other handlers
             //makeObjectAllocatorBlock (1024 * 1024 * 128, true);
             const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
             Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
-            getLogger()->debug("before calling ");
+            catServerLogger->debug("before calling ");
 
             pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
 
@@ -856,7 +856,7 @@ namespace pdb {
     bool CatalogServer :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
         string setUniqueId = databaseName + "." + setName;
-        getLogger()->debug("Deleting set " + setUniqueId);
+        catServerLogger->debug("Deleting set " + setUniqueId);
 
         if (isDatabaseRegistered(databaseName) ==  false){
             errMsg = "Database does not exist.\n";
@@ -897,7 +897,7 @@ namespace pdb {
         Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
         if(pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*vectorResultItems).size(); i++){
             if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
@@ -925,7 +925,7 @@ namespace pdb {
             broadcastCatalogDelete (setToRemove, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                getLogger()->debug("Set Metadata in node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Set Metadata in node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
 
@@ -938,12 +938,12 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
             for (auto &item : updateSetResults){
-                getLogger()->debug("DB Metadata in node IP: " + item.first + ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+                catServerLogger->debug("DB Metadata in node IP: " + item.first + ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
                      + item.second.second);
             }
-            getLogger()->debug("******************* deleteSet step completed!!!!!!!");
+            catServerLogger->debug("******************* deleteSet step completed!!!!!!!");
         } else {
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         return true;
@@ -969,11 +969,11 @@ namespace pdb {
         // make sure that type code exists, if we get one that is not built in
         if (typeIdentifier >= 8192 && allTypeCodes.count (typeIdentifier) == 0) {
             errMsg = "Type code does not exist.\n";
-            getLogger()->debug(errMsg + "TypeId=" + std :: to_string(typeIdentifier));
+            catServerLogger->debug(errMsg + "TypeId=" + std :: to_string(typeIdentifier));
             return false;
         }
 
-        getLogger()->debug("...... Calling CatalogServer :: addSet");
+        catServerLogger->debug("...... Calling CatalogServer :: addSet");
 
         //  // and add the set's type
         setTypes [make_pair (databaseName, setName)] = typeIdentifier;
@@ -982,7 +982,7 @@ namespace pdb {
 
         //JiaNote: added below code to replace above line so that built-in type and registered type can both get translated
         string typeNameStr = searchForObjectTypeName (typeIdentifier);
-        getLogger()->debug("Got typeName=" + typeNameStr);
+        catServerLogger->debug("Got typeName=" + typeNameStr);
         if (typeNameStr == "") {
             errMsg = "TypeName doesn not exist";
             return false;
@@ -991,7 +991,7 @@ namespace pdb {
 
         auto afterChecks = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("TypeID for Set with dbName=" + databaseName + " and setName=" + setName + " is " + std :: to_string(typeIdentifier));
+        catServerLogger->debug("TypeID for Set with dbName=" + databaseName + " and setName=" + setName + " is " + std :: to_string(typeIdentifier));
         //TODO this might change depending on what metadata
         Handle<CatalogSetMetadata> metadataObject = makeObject<CatalogSetMetadata>();
         // TODO *****************New Metadata*****************
@@ -1065,7 +1065,7 @@ namespace pdb {
         Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
         if(pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*vectorResultItems).size(); i++){
             if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
@@ -1080,9 +1080,9 @@ namespace pdb {
         catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
         // if database exists update its metadata
         if (isDatabaseRegistered(databaseName) == true){
-           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) getLogger()->debug("DB Update Set metadata OK");
+           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) catServerLogger->debug("DB Update Set metadata OK");
            else{
-               getLogger()->debug("DB Update metadata Set Error: " + errMsg);
+               catServerLogger->debug("DB Update metadata Set Error: " + errMsg);
                return false;
            }
 
@@ -1107,7 +1107,7 @@ namespace pdb {
             broadCast1 = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateResults){
-                getLogger()->debug("Set Metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Set Metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
 
@@ -1120,31 +1120,31 @@ namespace pdb {
             broadCast2 = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateSetResults){
-                getLogger()->debug("DB Metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("DB Metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
-            getLogger()->debug("******************* addSet step completed!!!!!!!");
+            catServerLogger->debug("******************* addSet step completed!!!!!!!");
         } else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("Time Duration for check registration:\t " +
+        catServerLogger->debug("Time Duration for check registration:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterChecks-begin).count()) + " secs.");
-        getLogger()->debug("Time Duration for Setting Metadata values:\t " +
+        catServerLogger->debug("Time Duration for Setting Metadata values:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeCallAddUpdate-afterChecks).count()) + " secs.");
-        getLogger()->debug("Time Duration for addMetadataToCatalog SET:\t " +
+        catServerLogger->debug("Time Duration for addMetadataToCatalog SET:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterCallAddUpdate-beforeCallAddUpdate).count()) + " secs.");
-        getLogger()->debug("Time Duration for getMetadataFromCatalog call:\t " +
+        catServerLogger->debug("Time Duration for getMetadataFromCatalog call:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(aftergetMetadataFromCatalog-afterCallAddUpdate).count()) + " secs.");
-        getLogger()->debug("Time Duration for Updte DB Metadata:\t " +
+        catServerLogger->debug("Time Duration for Updte DB Metadata:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateMetadata-aftergetMetadataFromCatalog).count()) + " secs.");
-        getLogger()->debug("Time Duration for broadcastCatalogUpdate SET:\t " +
+        catServerLogger->debug("Time Duration for broadcastCatalogUpdate SET:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast1-afterUpdateMetadata).count()) + " secs.");
-        getLogger()->debug("Time Duration for broadcastCatalogUpdate DB:\t " +
+        catServerLogger->debug("Time Duration for broadcastCatalogUpdate DB:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast2-broadCast1).count()) + " secs.");
-        getLogger()->debug("------>Time Duration to AddSet\t " +
+        catServerLogger->debug("------>Time Duration to AddSet\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
         // TODO, remove it, just used for debugging
@@ -1164,7 +1164,7 @@ namespace pdb {
 
         vector <string> empty;
 
-        getLogger()->debug("...... Calling CatalogServer :: addDatabase");
+        catServerLogger->debug("...... Calling CatalogServer :: addDatabase");
 
         //allocates 24Mb to process metadata info
     //    makeObjectAllocatorBlock (1024 * 1024 * 24, true);
@@ -1199,13 +1199,13 @@ namespace pdb {
 
             for (auto &item : updateResults){
                 // adds node info to database metadata
-                getLogger()->debug("DB metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("DB metadata broadcasted to node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
-            getLogger()->debug("******************* addDatabase step completed!!!!!!!");
+            catServerLogger->debug("******************* addDatabase step completed!!!!!!!");
         }
         else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         //TODO
@@ -1255,13 +1255,13 @@ namespace pdb {
 
             for (auto &item : updateResults){
                 // adds node info to database metadata
-                getLogger()->debug("DB metadata broadcasted to node IP: " + item.first
+                catServerLogger->debug("DB metadata broadcasted to node IP: " + item.first
                         + ((item.second.first == true) ? " deleted correctly!" : " couldn't be deleted due to error: ")
                         + item.second.second);
             }
         }
         else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         return pdbCatalog->deleteMetadataInCatalog( dbMetadataObject, catalogType, errMsg);
@@ -1273,6 +1273,8 @@ namespace pdb {
     }
 
     CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer, string masterIPValue, int masterPortValue) {
+        catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
+
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
         masterIP = masterIPValue;
@@ -1298,7 +1300,7 @@ namespace pdb {
         this->isMasterCatalogServer = isMasterCatalogServer;
 
         catalogDirectory = catalogDirectoryIn;
-        getLogger()->debug("Catalog Server ctor is Master Catalog= " + std :: to_string(this->isMasterCatalogServer));
+        catServerLogger->debug("Catalog Server ctor is Master Catalog= " + std :: to_string(this->isMasterCatalogServer));
 
         PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
 
@@ -1311,7 +1313,7 @@ namespace pdb {
         // set up the mutex
         pthread_mutex_init(&workingMutex, nullptr);
 
-        getLogger()->debug("Loading catalog metadata.");
+        catServerLogger->debug("Loading catalog metadata.");
         string errMsg;
 
         string emptyString("");
@@ -1319,7 +1321,7 @@ namespace pdb {
         if(pdbCatalog->getMetadataFromCatalog(false, emptyString,
                                               _udfsValues,
                                               errMsg, PDBCatalogMsgType::CatalogPDBRegisteredObject) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*_udfsValues).size(); i++){
             string _typeName = (*_udfsValues)[i].getItemKey().c_str();
@@ -1332,7 +1334,7 @@ namespace pdb {
 
         // retrieves metadata for databases from sqlite storage and loads them into memory
         if(pdbCatalog->getMetadataFromCatalog(false, emptyString,_allDatabases, errMsg, PDBCatalogMsgType::CatalogPDBDatabase) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         // get the list of databases
     //    vector <string> databaseNames;
@@ -1347,12 +1349,12 @@ namespace pdb {
                 string _setName = (*(*_allDatabases)[i].getListOfSets())[j].c_str();
                 string _typeName = (*(*_allDatabases)[i].getListOfTypes())[j].c_str();
 
-                getLogger()->debug("Database " + _dbName + " has set " + _setName + " and type " + _typeName);
+                catServerLogger->debug("Database " + _dbName + " has set " + _setName + " and type " + _typeName);
                 // populates information about databases
     //            allDatabases [_dbName].push_back(_setName);
 
                 // populates information about types and sets for a given database
-                getLogger()->debug("ADDDDDDDing type= " + _typeName + " db= " + _dbName + " _set=" + _setName + " typeId= " + string(pdbCatalog->getUserDefinedTypesList()[_typeName].getObjectID()));
+                catServerLogger->debug("ADDDDDDDing type= " + _typeName + " db= " + _dbName + " _set=" + _setName + " typeId= " + string(pdbCatalog->getUserDefinedTypesList()[_typeName].getObjectID()));
                 setTypes [make_pair (_dbName, _setName)] = (int16_t)std::atoi(pdbCatalog->getUserDefinedTypesList()[_typeName].getObjectID().c_str());
 
             }
@@ -1360,7 +1362,7 @@ namespace pdb {
 
         // retrieves metadata for nodes in the cluster from sqlite storage and loads them into memory
         if(pdbCatalog->getMetadataFromCatalog(false, emptyString,_allNodesInCluster,errMsg,PDBCatalogMsgType::CatalogPDBNode) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*_allNodesInCluster).size(); i++){
             string _nodeAddress = (*_allNodesInCluster)[i].getItemId().c_str();
@@ -1369,13 +1371,13 @@ namespace pdb {
             string _nodeName = (*_allNodesInCluster)[i].getItemName().c_str();
             string _nodeType = (*_allNodesInCluster)[i].getNodeType().c_str();
             int status = (*_allNodesInCluster)[i].getNodeStatus();
-            getLogger()->debug(_nodeAddress + " | " + _nodeIP + " | " + std :: to_string(_nodePort) + " | " + _nodeName + " | " + _nodeType + " | " + std :: to_string(status));
+            catServerLogger->debug(_nodeAddress + " | " + _nodeIP + " | " + std :: to_string(_nodePort) + " | " + _nodeName + " | " + _nodeType + " | " + std :: to_string(status));
             allNodesInCluster.push_back(_nodeAddress);
         }
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("Catalog Metadata successfully loaded!");
-        getLogger()->debug("--------->Populate CatalogServer Metadata : " +
+        catServerLogger->debug("Catalog Metadata successfully loaded!");
+        catServerLogger->debug("--------->Populate CatalogServer Metadata : " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
     }
@@ -1424,11 +1426,11 @@ namespace pdb {
 
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
             for (auto &item : updateResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
         } else {
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         //TODO
@@ -1472,11 +1474,11 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
         } else {
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         //TODO
@@ -1505,11 +1507,11 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
         } else {
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         //TODO
@@ -1536,7 +1538,7 @@ namespace pdb {
         // add the node info to container
         // TODO get the values from the catalog instead!!!
         // change the 1 in the last param
-        getLogger()->debug("inserting set-----------------> dbName= " + dbName + " setName " + setName + " id " + std :: to_string(typeId));
+        catServerLogger->debug("inserting set-----------------> dbName= " + dbName + " setName " + setName + " id " + std :: to_string(typeId));
         setTypes.insert (make_pair(make_pair(dbName, setName), typeId));
 
         int metadataCategory = PDBCatalogMsgType::CatalogPDBSet;
@@ -1547,7 +1549,7 @@ namespace pdb {
 
         auto beforeaddMetadataToCatalog = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("Adding set metadata for set " + setName);
+        catServerLogger->debug("Adding set metadata for set " + setName);
         pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem, metadataCategory, errMsg);
 
         auto afteraddMetadataToCatalog = std :: chrono :: high_resolution_clock :: now();
@@ -1565,25 +1567,25 @@ namespace pdb {
             afterbroadcastCatalogUpdate = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
         } else {
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
         auto beforeReturn = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("Time Duration for check and copy:\t " +
+        catServerLogger->debug("Time Duration for check and copy:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeaddMetadataToCatalog-begin).count()) + " secs.");
-        getLogger()->debug("Time Duration for adding metadata to catalog:\t " +
+        catServerLogger->debug("Time Duration for adding metadata to catalog:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddMetadataToCatalog - beforeaddMetadataToCatalog).count()) + " secs.");
-        getLogger()->debug("Time Duration for check isMasterCatalog:\t " +
+        catServerLogger->debug("Time Duration for check isMasterCatalog:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforebroadcastCatalogUpdate - afteraddMetadataToCatalog).count()) + " secs.");
-        getLogger()->debug("Time Duration for broadcast update:\t " +
+        catServerLogger->debug("Time Duration for broadcast update:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterbroadcastCatalogUpdate - beforebroadcastCatalogUpdate).count()) + " secs.");
-        getLogger()->debug("Time Duration before return:\t " +
+        catServerLogger->debug("Time Duration before return:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - afterbroadcastCatalogUpdate).count()) + " secs.");
-        getLogger()->debug("------>Time Duration to Complete addSetMetadata\t " +
+        catServerLogger->debug("------>Time Duration to Complete addSetMetadata\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - begin).count()) + " secs.");
 
         //TODO
@@ -1620,7 +1622,7 @@ namespace pdb {
     //        }
     //    }
 
-        getLogger()->debug("...... Calling CatalogServer :: addNodeToSet");
+        catServerLogger->debug("...... Calling CatalogServer :: addNodeToSet");
 
         // prepares data for the DB metadata
         int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -1629,7 +1631,7 @@ namespace pdb {
         Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
         if(pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*vectorResultItems).size(); i++){
             if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
@@ -1647,10 +1649,10 @@ namespace pdb {
 
         // if database exists update its metadata
         if (isDatabaseRegistered(databaseName) == true){
-            getLogger()->debug(".......... Invoking updateMetadataInCatalog key: " + databaseName);
-           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) getLogger()->debug("DB Update Set metadata OK");
+            catServerLogger->debug(".......... Invoking updateMetadataInCatalog key: " + databaseName);
+           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) catServerLogger->debug("DB Update Set metadata OK");
            else{
-               getLogger()->debug("DB Update metadata Set Error: " + errMsg);
+               catServerLogger->debug("DB Update metadata Set Error: " + errMsg);
                return false;
            }
 
@@ -1663,7 +1665,7 @@ namespace pdb {
         // after it registered the database metadata in the local catalog, iterate over all nodes,
         // make connections and broadcast the objects
         if (isMasterCatalogServer){
-            getLogger()->debug("About to broadcast addition of node to set in the cluster: ");
+            catServerLogger->debug("About to broadcast addition of node to set in the cluster: ");
 
             // map to capture the results of broadcasting the DB update
             map<string, pair <bool, string>> updateSetResults;
@@ -1671,18 +1673,18 @@ namespace pdb {
             // second, broadcasts the metadata of the DB to which this set has been added,
             // updating all local copies of the catalog in the cluster
             if (broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg)){
-                getLogger()->debug(" Broadcasting DB updated Ok. ");
+                catServerLogger->debug(" Broadcasting DB updated Ok. ");
             } else {
-                getLogger()->debug(" Error broadcasting DB update.");
+                catServerLogger->debug(" Error broadcasting DB update.");
             }
             for (auto &item : updateSetResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
 
         }
         else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         auto afterBroadcast = std :: chrono :: high_resolution_clock :: now();
@@ -1693,15 +1695,15 @@ namespace pdb {
 
         auto addNodeToSet = std :: chrono :: high_resolution_clock :: now();
 
-        getLogger()->debug("Time Duration for check registration:\t " +
+        catServerLogger->debug("Time Duration for check registration:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegisteredCheck-begin).count()) + " secs.");
-        getLogger()->debug("Time Duration for adding set to map:\t " +
+        catServerLogger->debug("Time Duration for adding set to map:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddSetToMap - afterRegisteredCheck).count()) + " secs.");
-        getLogger()->debug("Time Duration for updating db Metadata:\t " +
+        catServerLogger->debug("Time Duration for updating db Metadata:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateDB - afteraddSetToMap).count()) + " secs.");
-        getLogger()->debug("Time Duration for broadcast update:\t " +
+        catServerLogger->debug("Time Duration for broadcast update:\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterBroadcast - afterUpdateDB).count()) + " secs.");
-        getLogger()->debug("------>Time Duration to Complete addNodeToSet\t " +
+        catServerLogger->debug("------>Time Duration to Complete addNodeToSet\t " +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(addNodeToSet - begin).count()) + " secs.");
 
         return true;
@@ -1715,7 +1717,7 @@ namespace pdb {
             return false;
         }
 
-        getLogger()->debug("...... Calling CatalogServer :: addNodeToSet");
+        catServerLogger->debug("...... Calling CatalogServer :: addNodeToSet");
 
         // prepares data for the DB metadata
         int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
@@ -1724,7 +1726,7 @@ namespace pdb {
         Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
         if(pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType) == false)
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
 
         for (int i=0; i < (*vectorResultItems).size(); i++){
             if ((*vectorResultItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*vectorResultItems)[i];
@@ -1739,10 +1741,10 @@ namespace pdb {
 
         // if database exists update its metadata
         if (isDatabaseRegistered(databaseName) == true){
-            getLogger()->debug(".......... Invoking updateMetadataInCatalog key: " + databaseName);
-           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) getLogger()->debug("DB Update Set metadata OK");
+            catServerLogger->debug(".......... Invoking updateMetadataInCatalog key: " + databaseName);
+           if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)==true) catServerLogger->debug("DB Update Set metadata OK");
            else{
-               getLogger()->debug("DB Update metadata Set Error: " + errMsg);
+               catServerLogger->debug("DB Update metadata Set Error: " + errMsg);
                return false;
            }
 
@@ -1753,7 +1755,7 @@ namespace pdb {
         // after it registered the database metadata in the local catalog, iterate over all nodes,
         // make connections and broadcast the objects
         if (isMasterCatalogServer){
-            getLogger()->debug("About to broadcast addition of node to set in the cluster: ");
+            catServerLogger->debug("About to broadcast addition of node to set in the cluster: ");
 
             // map to capture the results of broadcasting the DB update
             map<string, pair <bool, string>> updateSetResults;
@@ -1761,18 +1763,18 @@ namespace pdb {
             // second, broadcasts the metadata of the DB to which this set has been added,
             // updating all local copies of the catalog in the cluster
             if (broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg)){
-                getLogger()->debug(" Broadcasting DB updated Ok. ");
+                catServerLogger->debug(" Broadcasting DB updated Ok. ");
             } else {
-                getLogger()->debug(" Error broadcasting DB update.");
+                catServerLogger->debug(" Error broadcasting DB update.");
             }
             for (auto &item : updateSetResults){
-                getLogger()->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                catServerLogger->debug("Node IP: " + item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
                      + item.second.second);
             }
 
         }
         else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
 
         // TODO, remove it, just used for debugging
@@ -1789,14 +1791,14 @@ namespace pdb {
 
         if (!isDatabaseRegistered(databaseName)){
             errMsg = "Database does not exist.\n";
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
             return false;
         }
 
         // make sure that set exists
         if (!isSetRegistered(databaseName, setName)){
             errMsg = "Set doesn't exist.\n";
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
             return false;
         }
 
@@ -1806,13 +1808,13 @@ namespace pdb {
         Handle<Vector<CatalogDatabaseMetadata>> vectorResultItems = makeObject<Vector<CatalogDatabaseMetadata>>();
 
         if(!pdbCatalog->getMetadataFromCatalog(false, databaseName,vectorResultItems,errMsg,catalogType)) {
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
             return false;
         }
 
         if (vectorResultItems->size() != 1) {
             errMsg = "Could not find database " + databaseName;
-            getLogger()->debug(errMsg);
+            catServerLogger->debug(errMsg);
             return false;
         }
 
@@ -1821,9 +1823,9 @@ namespace pdb {
         dbMetadataObject->removeNodeFromSet(nodeIP, setName);
 
         if (pdbCatalog->updateMetadataInCatalog(dbMetadataObject, catalogType, errMsg)) {
-            getLogger()->debug("DB Update Set metadata OK");
+            catServerLogger->debug("DB Update Set metadata OK");
         } else{
-            getLogger()->debug("DB Update metadata Set Error: " + errMsg);
+            catServerLogger->debug("DB Update metadata Set Error: " + errMsg);
             return false;
         }
         // after it registered the database metadata in the local catalog, iterate over all nodes,
@@ -1837,7 +1839,7 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                getLogger()->debug("Set Metadata broadcasted to node IP: " + item.first +
+                catServerLogger->debug("Set Metadata broadcasted to node IP: " + item.first +
                         (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                         + item.second.second);
             }
@@ -1850,12 +1852,12 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
             for (auto &item : updateSetResults){
-                getLogger()->debug("DB Metadata broadcasted to node IP: " + item.first +
+                catServerLogger->debug("DB Metadata broadcasted to node IP: " + item.first +
                         (item.second.first ? " updated correctly!" : " couldn't be updated due to error: ")
                         + item.second.second);
             }
         } else{
-            getLogger()->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
+            catServerLogger->debug("This is not Master Catalog Node, thus metadata was only registered locally!");
         }
         return true;
     }
@@ -1886,7 +1888,7 @@ namespace pdb {
 
             auto afterConn = std :: chrono :: high_resolution_clock :: now();
 
-            getLogger()->debug("Time Duration for create catalog client:\t " +
+            catServerLogger->debug("Time Duration for create catalog client:\t " +
                     std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterConn-beforeConn).count()) + " secs.");
 
             //TODO new mechanism for identifying the master node not based on the name!
@@ -1899,7 +1901,7 @@ namespace pdb {
 
                 auto afterRegGeneric = std :: chrono :: high_resolution_clock :: now();
 
-                getLogger()->debug("Time Duration for registerGenericMetadata call to node " + nodeAddress + " \t" +
+                catServerLogger->debug("Time Duration for registerGenericMetadata call to node " + nodeAddress + " \t" +
                         std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegGeneric-beforeRegGeneric).count()) + " secs.");
 
                 // adds the result of the update
@@ -1909,7 +1911,7 @@ namespace pdb {
 
         }
         auto afterLoop = std :: chrono :: high_resolution_clock :: now();
-        getLogger()->debug("------>Time Duration to complete broadcastCatalogUpdate\t" +
+        catServerLogger->debug("------>Time Duration to complete broadcastCatalogUpdate\t" +
                 std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterLoop-beforeLoop).count()) + " secs.");
 
         return true;
@@ -1943,7 +1945,7 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
 
         } else {
 
-            getLogger()->debug("Don't broadcast to " + nodeAddress + " because it has the master catalog.");
+            catServerLogger->debug("Don't broadcast to " + nodeAddress + " because it has the master catalog.");
 
         }
 
