@@ -396,7 +396,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                                     if (res == true) {
                                                         PDB_COUT << "success" << std :: endl;
                                                     } else {
-                                                        std :: cout << "failed" << std :: endl;
+                                                        PDB_COUT << "failed" << std :: endl;
                                                     }
                                           }
 
@@ -1303,7 +1303,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
                    //int typeId = getFunctionality <CatalogServer> ().searchForObjectTypeName(typeName);
                    int typeId = VTableMap :: getIDByName(typeName, false);
                    if((typeId <= 0) || (typeId == 8191)) {
-                       std :: cout << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
+                       PDB_COUT << "type doesn't  exist for name="<< typeName << ", and we store it as default type" << std :: endl;
                        typeName = "UnknownUserData";
                        this->addType(typeName, (UserTypeID)-1);
                    } else {

@@ -63,13 +63,13 @@ using namespace pdb;
 int main (int argc, char * argv[]) {
 
 
-       PDB_COUT << "Usage: #numIterations #printResult[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
+       std::cout << "Usage: #numIterations #printResult[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
 
        int numIterations = 5;
        if (argc > 1) {
            numIterations = atoi(argv[1]);
        }
-       std :: cout << "To run KMeans with " << numIterations << " iterations" << std :: endl;
+       std::cout << "To run KMeans with " << numIterations << " iterations" << std :: endl;
 
        bool printResult = true;
 

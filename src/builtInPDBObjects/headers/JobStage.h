@@ -20,6 +20,7 @@
 
 //by Jia, Oct 1st
 
+#include "PDBDebug.h"
 #include "Object.h"
 #include "DataTypes.h"
 #include "Handle.h"
@@ -111,17 +112,17 @@ namespace pdb {
             }
 
             void print() {
-                std::cout << "[ID] id=" << id << std :: endl;
-                std::cout << "[INPUT] databaseName=" << input->getDatabase()<<", setName=" << input->getSetName()<< std :: endl;
-                std::cout << "[OUTPUT] databaseName=" << output->getDatabase()<<", setName=" << output->getSetName()<< std :: endl;
-                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
-                std::cout << "[OPERATORS] number=" << operators.size() << std :: endl;
+                PDB_COUT << "[ID] id=" << id << std :: endl;
+                PDB_COUT << "[INPUT] databaseName=" << input->getDatabase()<<", setName=" << input->getSetName()<< std :: endl;
+                PDB_COUT << "[OUTPUT] databaseName=" << output->getDatabase()<<", setName=" << output->getSetName()<< std :: endl;
+                PDB_COUT << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                PDB_COUT << "[OPERATORS] number=" << operators.size() << std :: endl;
                 for (int i = 0; i < operators.size(); i++) {
-                      std :: cout << i << "-th operator:" << operators[i]->getName() << std :: endl;
+                      PDB_COUT << i << "-th operator:" << operators[i]->getName() << std :: endl;
                 }
-                std::cout << "[CHILDREN] number=" << childrenStages.size() << std :: endl;
+                PDB_COUT << "[CHILDREN] number=" << childrenStages.size() << std :: endl;
                 for (int i = 0; i < childrenStages.size(); i++) {
-                     std :: cout << i << "-th child:" << std :: endl;
+                     PDB_COUT << i << "-th child:" << std :: endl;
                      childrenStages[i]->print();
                 }
             }

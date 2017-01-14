@@ -363,7 +363,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
         if ((receivedBytes = read(socketFD, (char *) ((char *)(&nextTypeID)+receivedTotal*sizeof(char)), bytesToReceive)) < 0) {
             std :: string errMsg = std::string("PDBCommunicator: could not read next message type") + strerror(errno);
             logToMe->error(errMsg);
-            std :: cout << errMsg << std :: endl;
+            PDB_COUT << errMsg << std :: endl;
             nextTypeID = NoMsg_TYPEID;
             msgSize = 0;
             close(socketFD);
@@ -422,7 +422,7 @@ size_t PDBCommunicator::getSizeOfNextObject () {
         if ((receivedBytes = read(socketFD, (char *) ((char *)(&msgSize)+receivedTotal*sizeof(char)), bytesToReceive)) <  0) {
             std :: string errMsg = "PDBCommunicator: could not read next message size:" + std :: to_string(receivedTotal) + strerror(errno);
             logToMe->error (errMsg);
-            std :: cout << errMsg << std :: endl;
+            PDB_COUT << errMsg << std :: endl;
             close(socketFD);
             socketFD = -1;
             if (longConnection) {

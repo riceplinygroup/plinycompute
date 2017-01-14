@@ -44,9 +44,12 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 
 	// in ths case, we do not have the vTable pointer for this guy, so we will try to load it
 	if (theVTable->catalog == nullptr) { 
-		if (theVTable->logger != nullptr)
-			theVTable->logger->error (std :: string("unable to obtain shared library file for typeId=")+std :: to_string(objectTypeID));
-		return nullptr;
+		if (theVTable->logger != nullptr) {
+                        if (objectTypeID >= 8191) {
+			    theVTable->logger->error (std :: string("unable to obtain shared library file for typeId=")+std :: to_string(objectTypeID));
+                        }
+		        return nullptr;
+                }
 	}
 
 	// TODO- Added by Carlos return if the type is unknown b/c it won't be found neither in
