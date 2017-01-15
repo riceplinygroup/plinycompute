@@ -94,7 +94,7 @@ public:
                         }  
                         #ifndef ACCURATE_TOPK
                         if ((*counters)[threadId] == 100000) {
-                            (*partialResults)[threadId]->reset(); //to clear partial results for last emission
+                            //(*partialResults)[threadId]->reset(); //to clear partial results for last emission
                             (*partialResults)[threadId]->initialize();
                             (*counters)[threadId] = 0; // to clear counter for last emission
                         }
