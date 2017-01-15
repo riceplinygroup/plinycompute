@@ -256,7 +256,7 @@
     }
 
     PDBCatalog::~PDBCatalog() {
-        cout << "Catalog destructor called!!!" << endl;
+        this->logger->debug("Catalog destructor called!!!");
         int deletedFiles = boost::filesystem::remove_all(tempPath);
         this->logger->writeLn(to_string(deletedFiles) + " files have been deleted in temporary folder: " + tempPath);
         sqlite3_close_v2(sqliteDBHandler);
@@ -341,11 +341,11 @@
             // Loads into memory all metadata so the CatalogServer can access them
             loadsMetadataIntoMemory();
 
-            this->logger->writeLn("Database catalog successfully open.");
+            this->logger->debug("Database catalog successfully open.");
 
-            this->logger->writeLn(" *********Print Metadata ");
-            testCatalogPrint();
-            this->logger->writeLn(" *********Print Metadata ");
+            this->logger->debug(" *********Print Metadata ");
+            //testCatalogPrint();
+            this->logger->debug(" *********Print Metadata ");
 
         }else{
             //cout << "EXISTS!!! " << endl;
@@ -372,19 +372,19 @@
         // retrieves metadata from the sqlite DB and populates containers
         if (getMetadataFromCatalog(false, emptyString, nodesValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBNode) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBNode) == false) this->logger->debug(errorMessage);
 
         (*catalogContents)[String("nodes")] = unsafeCast<Vector<Object>>(nodesValues);
 
         if (getMetadataFromCatalog(false, emptyString, setValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBSet) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBSet) == false) this->logger->debug(errorMessage);
 
         (*catalogContents)[String("sets")] = unsafeCast<Vector<Object>>(setValues);
 
         if (getMetadataFromCatalog(false, emptyString, dbsValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBDatabase) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBDatabase) == false) this->logger->debug(errorMessage);
 
         (*catalogContents)[String("dbs")] = unsafeCast<Vector<Object>>(dbsValues);
 
@@ -415,16 +415,17 @@
             }
 
         } else {
-            cout << errorMessage << endl;
+            this->logger->debug(errorMessage);
         }
 
-        cout << "---------------------------------------" << endl;
-        cout << "PDB Metadata Registered in the Catalog: " << endl;
+        cout << "=========================================" << endl;
+        cout << "Metadata Registered in the PDB Catalog " << endl;
+        cout << "-----------------------------------------" << endl;
 
         printsAllCatalogMetadata();
 
-        cout << "\nAll Metadata properly retrieved and loaded into memory!" << endl;
-        cout << "--------------------------------------" << endl;
+        cout << "\nAll Metadata retrieved and loaded." << endl;
+        cout << "=========================================" << endl;
 
     }
 
@@ -475,15 +476,15 @@
         // retrieves metadata from the sqlite DB and populates containers
         if (getMetadataFromCatalog(true, dateAsString, _nodesValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBNode) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBNode) == false) this->logger->debug(errorMessage);
 
         if (getMetadataFromCatalog(true, dateAsString, _setValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBSet) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBSet) == false) this->logger->debug(errorMessage);
 
         if (getMetadataFromCatalog(true, dateAsString, _dbsValues,
                                    errorMessage,
-                                   PDBCatalogMsgType::CatalogPDBDatabase) == false) cout << errorMessage << endl;
+                                   PDBCatalogMsgType::CatalogPDBDatabase) == false) this->logger->debug(errorMessage);
 
         if (getMetadataFromCatalog(true, dateAsString, _udfsValues,
                                    errorMessage,
@@ -496,15 +497,15 @@
             }
 
         } else {
-            cout << errorMessage << endl;
+            this->logger->debug(errorMessage);
         }
 
-        cout << "---------------------------------------" << endl;
-        cout << "PDB Metadata Registered in the Catalog: " << endl;
+        cout << "=========================================" << endl;
+        cout << "PDB Metadata Registered in the Catalog " << endl;
 
         cout << "\nNodes in cluster: " +
                 std::to_string((int)(*_nodesValues).size()) << endl;
-        cout << "----------------------" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*_nodesValues).size(); i++) {
             cout << (*_nodesValues)[i].printShort() << endl;
@@ -512,57 +513,58 @@
 
         cout << "\nDatabases: " +
                 std::to_string((int)(*_dbsValues).size()) << endl;
-        cout << "----------" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*_dbsValues).size(); i++) {
             cout << (*_dbsValues)[i].printShort() << endl;
         }
         cout << "\nSets: " +
                 std::to_string((int)(*_setValues).size()) << endl;
-        cout << "----- " << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*_setValues).size(); i++) {
             cout << (*_setValues)[i].printShort() << endl;
         }
         cout << "\nUser-defined types: " +
                 std::to_string((int)(*_udfsValues).size()) << endl;
-        cout << "-------------------" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*_udfsValues).size(); i++) {
             cout << (*_udfsValues)[i].printShort() << endl;
         }
-        cout << "\nAll Catalog Metadata retrieved!" << endl;
+        cout << "\nAll Metadata properly retrieved and\n"
+                "loaded into memory!" << endl;
         cout << "--------------------------------------" << endl;
 
     }
 
     void PDBCatalog::printsAllCatalogMetadata() {
 
-        cout << "\nNumber of nodes registered in the cluster: " +
-                std::to_string((int)(*nodesValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "\nI. Nodes in the cluster (" +
+                std::to_string((int)(*nodesValues).size()) << ")" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*nodesValues).size(); i++) {
             cout << (*nodesValues)[i].printShort() << endl;
         }
 
-        cout << "\nNumber of databases registered: " +
-                std::to_string((int)(*dbsValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "\nII. Databases (" +
+                std::to_string((int)(*dbsValues).size()) << ")" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*dbsValues).size(); i++) {
             cout << (*dbsValues)[i].printShort() << endl;
         }
-        cout << "\nNumber of sets registered: " +
-                std::to_string((int)(*setValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "\nIII. Sets (" +
+                std::to_string((int)(*setValues).size()) << ")" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*setValues).size(); i++) {
             cout << (*setValues)[i].printShort() << endl;
         }
-        cout << "\nNumber of user-defined types registered: " +
-                std::to_string((int)(*udfsValues).size()) << endl;
-        cout << "--------------------------------------------" << endl;
+        cout << "\nIV. User-defined types (" +
+                std::to_string((int)(*udfsValues).size()) << ")" << endl;
+        cout << "----------------------------" << endl;
 
         for (int i=0; i< (*udfsValues).size(); i++) {
             cout << (*udfsValues)[i].printShort() << endl;
@@ -751,7 +753,7 @@
 
             if (rc != SQLITE_OK) {
                 errorMessage = "Bind operation failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
-                cout << errorMessage << endl;
+                this->logger->debug(errorMessage);
                 success = false;
             } else {
                 rc = sqlite3_step(stmt);
@@ -771,7 +773,7 @@
             sqlite3_finalize(stmt);
             free (serializedBytes);
         }
-        cout << errorMessage << endl;
+        this->logger->debug(errorMessage);
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
@@ -854,7 +856,7 @@
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
             sqlite3_reset(pStmt);
-            std :: cout << errorMessage << std :: endl;
+            this->logger->debug(errorMessage);
             pthread_mutex_unlock(&registerMetadataMutex);
             return false;
         }
@@ -864,7 +866,7 @@
         if( sqlite3_step(pStmt) !=SQLITE_ROW ) {
             errorMessage = "Error item not found in database: "+ (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             sqlite3_reset(pStmt);
-            std :: cout << errorMessage << std :: endl;
+            this->logger->debug(errorMessage);
 
             pthread_mutex_unlock(&registerMetadataMutex);
             return false;
@@ -1036,7 +1038,7 @@
 
         if (isSuccess == true) {
             this->logger->debug("The following item metadata was stored in SQLite and loaded into Catalog memory:");
-            cout << metadataValue->printShort() << endl;
+            this->logger->debug(metadataValue->printShort());
         }
         this->logger->writeLn(errorMessage);
         auto end = std :: chrono :: high_resolution_clock :: now();
@@ -1411,7 +1413,7 @@
         else {
             for (int i=0; i< (*dbsValues).size(); i++) {
                 this->logger->debug("i=" + std::to_string(i));
-                std :: cout << (*dbsValues)[i].getItemKey() << std :: endl;
+                this->logger->debug((*dbsValues)[i].getItemKey());
                 if (searchForKey == (*dbsValues)[i].getItemKey()) {
                     databasesInCatalog->push_back((*dbsValues)[i]);
                 }
