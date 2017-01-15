@@ -85,7 +85,6 @@ public:
                  
 		return makeLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
-                        std::cout << "myWorkerId=" << (unsigned long) threadId << std::endl;
                         if (counters->count(threadId) == 0) {
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
                             (*counters)[threadId] = 0;
