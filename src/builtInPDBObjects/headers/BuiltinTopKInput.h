@@ -37,7 +37,7 @@ public:
 
     BuiltinTopKInput(double score, Handle<Object> object) {
         this->score = score;
-        this->object = deepCopyToCurrentAllocationBlock<Object>(object);
+        this->object = object;
     }
 
     double getScore() {

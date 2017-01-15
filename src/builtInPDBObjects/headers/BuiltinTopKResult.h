@@ -97,11 +97,13 @@ public:
    }
 
 
-   Handle<Vector<Handle<BuiltinTopKInput>>> getTopK() {
+   Handle<Vector<Handle<BuiltinTopKInput>>>& getTopK() {
 
        return topK;
 
    }
+
+   
 
 private:
 
