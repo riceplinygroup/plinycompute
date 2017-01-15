@@ -47,6 +47,16 @@ public:
 	// over-ridden by the user so they can supple the actual projection
 	virtual SimpleLambda <Handle<Out>> getProjection (Handle <In> &in) = 0;
 
+
+        //To get aggregation results for queries like TopK 
+        virtual Handle<Vector<Handle<Out>>> getAggregatedResults() {
+
+             Handle<Vector<Handle<Out>>> ret = nullptr;
+             return ret;
+
+        }
+
+
 	// contact from super
 	void match(function<void(QueryBase&)> forSelection, function<void(QueryBase&)> forSet,
 			   function<void(QueryBase&)> forQueryOutput) override;
