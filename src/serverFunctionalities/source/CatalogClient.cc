@@ -60,18 +60,18 @@ CatalogClient :: CatalogClient () {
 
 CatalogClient :: CatalogClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn) {
 
-	// get the communication information
-	port = portIn;
-	address = addressIn;
-	myLogger = myLoggerIn;
+    // get the communication information
+    port = portIn;
+    address = addressIn;
+    myLogger = myLoggerIn;
 
-	// and let the v-table map know this information
+    // and let the v-table map know this information
     if (!theVTable->getCatalogClient()) {
         theVTable->setCatalogClient(this);
     }
 
-	// set up the mutex
-	pthread_mutex_init(&workingMutex, nullptr);
+    // set up the mutex
+    pthread_mutex_init(&workingMutex, nullptr);
 }
 
 CatalogClient :: ~CatalogClient () {
@@ -83,72 +83,72 @@ CatalogClient :: ~CatalogClient () {
         theVTable->setCatalogClient(nullptr);
     }
 
-	pthread_mutex_destroy (&workingMutex);
+    pthread_mutex_destroy (&workingMutex);
 }
 
 void CatalogClient :: registerHandlers (PDBServer &forMe) { /* no handlers for a catalog client!! */}
 
 bool CatalogClient :: registerType (std :: string fileContainingSharedLib, std :: string &errMsg) {
-	
-	const LockGuard guard{workingMutex};
 
-	// first, load up the shared library file
-	// get the file size
-	std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
-	if (in.fail()){
-	    errMsg = "The file " + fileContainingSharedLib + " doesn't exist or cannot be opened.\n";
-	    return false;
-	}
-	size_t fileLen = in.tellg();
-	PDB_COUT << "file " << fileContainingSharedLib << endl;
-	PDB_COUT << "size " << fileLen << endl;
-	
-	PDB_COUT << "Registering type " << fileContainingSharedLib << std::endl;
+    const LockGuard guard{workingMutex};
 
-	// this makes a an empty vector with fileLen slots
-	const UseTemporaryAllocationBlock tempBlock{fileLen + 1024};
-	bool res;
-	{
-	Handle <Vector <char>> putResultHere = makeObject <Vector <char>> (fileLen, fileLen);
+    // first, load up the shared library file
+    // get the file size
+    std::ifstream in (fileContainingSharedLib, std::ifstream::ate | std::ifstream::binary);
+    if (in.fail()){
+        errMsg = "The file " + fileContainingSharedLib + " doesn't exist or cannot be opened.\n";
+        return false;
+    }
+    size_t fileLen = in.tellg();
+    PDB_COUT << "file " << fileContainingSharedLib << endl;
+    PDB_COUT << "size " << fileLen << endl;
 
-	// read data into it
+    PDB_COUT << "Registering type " << fileContainingSharedLib << std::endl;
+
+    // this makes a an empty vector with fileLen slots
+    const UseTemporaryAllocationBlock tempBlock{fileLen + 1024};
+    bool res;
+    {
+    Handle <Vector <char>> putResultHere = makeObject <Vector <char>> (fileLen, fileLen);
+
+    // read data into it
         int filedesc = open (fileContainingSharedLib.c_str (), O_RDONLY);
         read (filedesc, putResultHere->c_ptr (), fileLen);
         close (filedesc);
 
-	res = simpleSendDataRequest <CatRegisterType, char, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr) {
-				if (!result->getRes ().first) {
-					errMsg = "Error registering type: " + result->getRes ().second;
-					myLogger->error ("Error registering type: " + result->getRes ().second);
-					return false;
-				}
-				return true;
-			} else {
-				errMsg = "Error registering type: got null pointer on return message.\n";
-				myLogger->error ("Error registering type: got null pointer on return message.\n");
-				return false;	
-			}},
-		putResultHere);
-	}
-	return res;
+    res = simpleSendDataRequest <CatRegisterType, char, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error registering type: " + result->getRes ().second;
+                    myLogger->error ("Error registering type: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            } else {
+                errMsg = "Error registering type: got null pointer on return message.\n";
+                myLogger->error ("Error registering type: got null pointer on return message.\n");
+                return false;
+            }},
+        putResultHere);
+    }
+    return res;
 }
 
 bool CatalogClient :: shutDownServer (std :: string &errMsg) {
 
-	return simpleRequest <ShutDown, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr) {
-				if (!result->getRes ().first) {
-					errMsg = "Error shutting down server: " + result->getRes ().second;
-					myLogger->error ("Error shutting down server: " + result->getRes ().second);
-					return false;
-				}
-				return true;
-			}
-			errMsg = "Error getting type name: got nothing back from catalog";
-			return false;});
+    return simpleRequest <ShutDown, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error shutting down server: " + result->getRes ().second;
+                    myLogger->error ("Error shutting down server: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;});
 }
 
 bool CatalogClient :: getPointsToMasterCatalog(){
@@ -163,16 +163,16 @@ void CatalogClient :: setPointsToMasterCatalog(bool pointsToMaster){
 
 int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) {
         PDB_COUT << "searchForObjectTypeName for " << objectTypeName << std :: endl;
-	return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, -1, 1024*1024,
-		[&] (Handle <CatTypeSearchResult> result) {
-			if (result != nullptr){
-                                PDB_COUT << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl; 
-				return result->getTypeID ();
+    return simpleRequest <CatTypeNameSearch, CatTypeSearchResult, int16_t> (myLogger, port, address, -1, 1024*1024,
+        [&] (Handle <CatTypeSearchResult> result) {
+            if (result != nullptr){
+                                PDB_COUT << "searchForObjectTypeName: getTypeId=" << result->getTypeID() << std :: endl;
+                return result->getTypeID ();
                         }
-			else {
+            else {
                                 std :: cout << "searchForObjectTypeName: error in getting typeId" << std :: endl;
-				return (int16_t) -1;}},
-		objectTypeName);
+                return (int16_t) -1;}},
+        objectTypeName);
 }
 
 bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
@@ -280,19 +280,19 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
 std :: string CatalogClient :: getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg) {
 
-	return simpleRequest <CatSetObjectTypeRequest, CatTypeNameSearchResult, std :: string> (myLogger, port, address, "", 1024,
-		[&] (Handle <CatTypeNameSearchResult> result) {
-			if (result != nullptr) {
-				auto success = result->wasSuccessful ();
-				if (!success.first) {
-					errMsg = "Error getting type name: " + success.second;
-					myLogger->error ("Error getting type name: " + success.second);
-				} else 
-					return result->getTypeName ();
-			}
-			errMsg = "Error getting type name: got nothing back from catalog";
-			return std :: string ("");},
-		databaseName, setName);
+    return simpleRequest <CatSetObjectTypeRequest, CatTypeNameSearchResult, std :: string> (myLogger, port, address, "", 1024,
+        [&] (Handle <CatTypeNameSearchResult> result) {
+            if (result != nullptr) {
+                auto success = result->wasSuccessful ();
+                if (!success.first) {
+                    errMsg = "Error getting type name: " + success.second;
+                    myLogger->error ("Error getting type name: " + success.second);
+                } else
+                    return result->getTypeName ();
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return std :: string ("");},
+        databaseName, setName);
 }
 
 bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std :: string setName, std :: string &errMsg) {
@@ -319,19 +319,19 @@ bool CatalogClient :: createSet (int16_t typeID, std :: string databaseName, std
 
 bool CatalogClient :: createDatabase (std :: string databaseName, std :: string &errMsg) {
 
-	return simpleRequest <CatCreateDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
-		[&] (Handle <SimpleRequestResult> result) {
-			if (result != nullptr) {
-				if (!result->getRes ().first) {
-					errMsg = "Error creating database: " + result->getRes ().second;
-					myLogger->error ("Error creating database: " + result->getRes ().second);
-					return false;
-				}
-				return true;
-			}
-			errMsg = "Error getting type name: got nothing back from catalog";
-			return false;},
-		databaseName);
+    return simpleRequest <CatCreateDatabaseRequest, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
+        [&] (Handle <SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes ().first) {
+                    errMsg = "Error creating database: " + result->getRes ().second;
+                    myLogger->error ("Error creating database: " + result->getRes ().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error getting type name: got nothing back from catalog";
+            return false;},
+        databaseName);
 }
 
 bool CatalogClient :: deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg) {
