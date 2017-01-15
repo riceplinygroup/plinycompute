@@ -111,6 +111,12 @@ public:
                             ret = makeObject<BuiltinTopKResult>();
 			    ret = deepCopyToCurrentAllocationBlock<BuiltinTopKResult>((*partialResults)[threadId]);
                             std :: cout << "emit partialresult with "<< ret->getTopK()->size() << " elements" << std :: endl;
+                            Handle<Vector<Handle<BuiltinTopKInput>>> elements = ret->getTopK();
+                            int i;
+                            for (i = 0; i < elements->size(); i ++) {
+                                std::cout << "score=" << (*elements)[i]->getScore() << std::endl;
+                            }
+                             
                         }
                         return ret;
                         #endif

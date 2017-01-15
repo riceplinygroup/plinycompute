@@ -68,7 +68,7 @@ public:
        //we do not have enough elements
        if (curSize < K) {
            topK->push_back(element);
-           std :: cout << "add an element to topK with score="<< curScore << std::endl;
+           //std :: cout << "add an element to topK with score="<< curScore << std::endl;
            if(curScore < minScore) {
                 minIndex = curSize;
                 minScore = curScore;
@@ -78,7 +78,7 @@ public:
        //we have enought elements, if minScore is smaller than the cutoff value, we do nothing 
        if (curScore > minScore) {
            //Step 1. replace the minIndex using the new element
-           std :: cout << "add an element to topK with score="<< curScore << std::endl;
+           //std :: cout << "add an element to topK with score="<< curScore << std::endl;
            (*topK)[minIndex] = element;
            //Step 2. update minIndex and minScore
            size_t i;
