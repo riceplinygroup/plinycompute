@@ -51,6 +51,12 @@ public:
           
        }
 
+       ~BuiltinTopKQuery() {
+           counters = nullptr;
+           partialResults = nullptr;
+       }
+
+
        void initialize () {
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
@@ -86,6 +92,7 @@ public:
 		return makeLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
                         if (counters->count(threadId) == 0) {
+                            UseTemporaryAllocationBlock tempBlock{8*1024*1024};
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
                             (*counters)[threadId] = 0;
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
@@ -109,13 +116,13 @@ public:
                         #else
                         if ((*counters)[threadId] == 100000) {
                             ret = makeObject<BuiltinTopKResult>();
-			    ret = deepCopyToCurrentAllocationBlock<BuiltinTopKResult>((*partialResults)[threadId]);
-                            std :: cout << "emit partialresult with "<< ret->getTopK()->size() << " elements" << std :: endl;
+                            (*ret) = *(*partialResults)[threadId];
                             Handle<Vector<Handle<BuiltinTopKInput>>> elements = ret->getTopK();
                             int i;
                             for (i = 0; i < elements->size(); i ++) {
                                 std::cout << "score=" << (*elements)[i]->getScore() << std::endl;
                             }
+                            std :: cout << "emit partialresult with "<< ret->getTopK()->size() << " elements" << std :: endl;
                              
                         }
                         return ret;

@@ -603,6 +603,18 @@ inline void Allocator :: cleanInactiveBlocks() {
         return;
 }
 
+inline void Allocator :: cleanInactiveBlocks( size_t size ) {
+        for (auto it = allInactives.begin(); it != allInactives.end(); ) {
+            if(it->numBytes()==size) {
+                it->freeBlock();
+                it = allInactives.erase (it);
+            } else {
+                it ++;
+            }
+        }
+        return;
+}
+
 extern void *stackBase;
 extern void *stackEnd;
 extern Allocator *mainAllocatorPtr;

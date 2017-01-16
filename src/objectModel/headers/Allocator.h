@@ -251,6 +251,8 @@ public:
         // Jia Note: this function should only be used for debugging purposes.
         void cleanInactiveBlocks();
 
+        void cleanInactiveBlocks( size_t size );
+
 private:
 
 	friend void makeObjectAllocatorBlock (size_t numBytesIn);

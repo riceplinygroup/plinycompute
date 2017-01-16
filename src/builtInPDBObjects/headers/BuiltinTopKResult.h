@@ -41,7 +41,9 @@ public:
    ENABLE_DEEP_COPY
 
    BuiltinTopKResult() {}
-   ~BuiltinTopKResult() {}
+   ~BuiltinTopKResult() {
+       topK = nullptr;
+   }
 
    void initialize() {
 
