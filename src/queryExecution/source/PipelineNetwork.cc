@@ -20,6 +20,7 @@
 
 //by Jia, Sept 2016
 
+#include "PDBDebug.h"
 #include "PipelineNetwork.h"
 #include "PageCircularBufferIterator.h"
 #include "DataProxy.h"
@@ -282,9 +283,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
 
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
                   while (iter->hasNext()) {
-                      //std :: cout << "got a page!" << std :: endl;
-                      logger->debug(std :: string("PipelineNetwork: Got a page!"));
                       PDBPagePtr page = iter->next();
+                      PDB_COUT << "Got a page" << std :: endl;
+                      logger->debug(std :: string("PipelineNetwork: Got a page"));
                       if (page != nullptr) {
                           PDB_COUT << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           logger->debug(std :: string("PipelineNetwork: Page is not null with pageId=") + std :: to_string(page->getPageID()));

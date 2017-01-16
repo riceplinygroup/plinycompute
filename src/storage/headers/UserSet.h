@@ -292,6 +292,9 @@ public:
  */
    void dump (char * buffer);
 
+
+   void clear();
+
    bool getPinned() { return this->isPinned; }
 
 /*

@@ -34,7 +34,9 @@
 using namespace std;
 
 #define WARN_THRESHOLD 0.9
-#define EVICT_STOP_THRESHOLD 0.25
+#ifndef EVICT_STOP_THRESHOLD
+    #define EVICT_STOP_THRESHOLD 0.25
+#endif
 
 PageCache::PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, PageCircularBufferPtr flushBuffer,
 		pdb :: PDBLoggerPtr logger, SharedMemPtr shm, CacheStrategy strategy) {
@@ -265,6 +267,31 @@ bool PageCache::removePage(CacheKey key) {
     pthread_mutex_unlock(&this->cacheMutex);
     return true;
 }
+
+//Free page data and Remove page specified by Key from cache hashMap.
+//This function will be used by the UserSet::clear() method.
+bool PageCache::freePage(PDBPagePtr curPage) {
+    CacheKey key;
+    key.dbId = curPage->getDbID();
+    key.typeId = curPage->getTypeID();
+    key.setId = curPage->getSetID();
+    key.pageId = curPage->getPageID();
+
+    pthread_mutex_lock(&this->cacheMutex);
+    if (this->containsPage(key) == false) {
+        pthread_mutex_unlock(&this->cacheMutex);
+        return false;
+    }
+
+    cache->erase(key);
+    this->size --;
+    pthread_mutex_unlock(&this->cacheMutex);
+    this->shm->free(curPage->getRawBytes()-curPage->getInternalOffset(), curPage->getSize()+512);
+    curPage->setOffset(0);
+    curPage->setRawBytes(nullptr);
+    return true;
+}
+
 
 
 //Below method can be used for all PDBFile instances, include sequence file and partitioned file.
