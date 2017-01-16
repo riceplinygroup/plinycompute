@@ -166,7 +166,7 @@ bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPa
             page = make_shared<PDBPage>(rawData, dataNodeId, dataDbId,
                      dataTypeId, dataSetId, dataPageId, pageSize, offset);
             //cout << "BackEndServer: add page to circular buffer...\n";
-            logger->debug(string( "BackEndServer: add page to circular buffer...\n"));
+            logger->debug(string( "BackEndServer: add page scanner page to circular buffer...\n"));
             if (this->buffer != nullptr) {
                 this->buffer->addPageToTail(page);
             } else {

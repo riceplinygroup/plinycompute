@@ -215,7 +215,7 @@ public:
     //Remove page specified by Key from cache hashMap.
     //This function will be used by the flushConsumer thread.
     bool removePage(CacheKey key);
-
+    bool freePage(PDBPagePtr page);
     //Lock for eviction.
     void evictionLock();
 

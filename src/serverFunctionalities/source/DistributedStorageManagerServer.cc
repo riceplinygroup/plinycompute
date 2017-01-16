@@ -75,7 +75,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
      */
     forMe.registerHandler(DistributedStorageAddDatabase_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddDatabase>> (
             [&] (Handle <DistributedStorageAddDatabase> request, PDBCommunicatorPtr sendUsingMe) {
-
+                const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
                 std::string errMsg;
                 std::string database = request->getDatabase();
                 std::string value;
@@ -144,7 +144,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
     forMe.registerHandler(DistributedStorageAddSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddSet>> (
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
-
+                const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
                 auto begin = std :: chrono :: high_resolution_clock :: now();
                 auto beforeCreateSet = begin;
                 auto afterCreateSet = begin;
@@ -246,7 +246,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
     forMe.registerHandler(DistributedStorageRemoveDatabase_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageRemoveDatabase>> (
             [&] (Handle <DistributedStorageRemoveDatabase> request, PDBCommunicatorPtr sendUsingMe) {
-
+                const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
                 std::string errMsg;
                 mutex lock;
                 std::vector<std::string> successfulNodes = std::vector<std::string>();
@@ -316,7 +316,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
     forMe.registerHandler(DistributedStorageRemoveSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageRemoveSet>> (
             [&] (Handle <DistributedStorageRemoveSet> request, PDBCommunicatorPtr sendUsingMe) {
 
-
+                const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
                 auto begin = std :: chrono :: high_resolution_clock :: now();
 
                 std::string errMsg;
@@ -431,7 +431,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
     forMe.registerHandler (DistributedStorageCleanup_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageCleanup>> (
 
           [&] (Handle <DistributedStorageCleanup> request, PDBCommunicatorPtr sendUsingMe) {
-
+               const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
                PDB_COUT << "received DistributedStorageCleanup" << std :: endl;
                std::string errMsg;
                mutex lock;
@@ -465,7 +465,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
     //JiaNote: Below handler is to process SetScan message
     forMe.registerHandler (SetScan_TYPEID, make_shared<SimpleRequestHandler<SetScan>> (
          [&] (Handle <SetScan> request, PDBCommunicatorPtr sendUsingMe) {
-
+         const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
          std :: string errMsg;
          bool success;
          std :: string dbName = request->getDatabase();
@@ -506,7 +506,6 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          PDB_COUT << "num nodes for this set" << nodesToBroadcast.size() << std :: endl;
 
          //to send SetScan message to slave servers iteratively 
-         const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
 
          Record<Vector<Handle<Object>>>* curPage = nullptr;
          Handle<KeepGoing> temp;
@@ -670,6 +669,7 @@ bool DistributedStorageManagerServer::findNodesForDatabase(const std::string& da
 bool DistributedStorageManagerServer::findNodesContainingDatabase(const std::string& databaseName,
                                                                   std::vector<std::string>& nodesForDatabase,
                                                                   std::string& errMsg) {
+    const UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
     PDB_COUT << "findNodesContainingDatabase:" << std :: endl;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 
@@ -720,6 +720,7 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
                                                              const std::string& setName,
                                                              std::vector<std::string>& nodesContainingSet,
                                                              std::string& errMsg) {
+    const UseTemporaryAllocationBlock tempBlock{4 * 1024 * 1024};
     std::string fullSetName = databaseName + "." + setName;
     Handle<Vector<CatalogDatabaseMetadata>> returnValues = makeObject<Vector<CatalogDatabaseMetadata>>();
 

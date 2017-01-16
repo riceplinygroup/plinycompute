@@ -149,6 +149,7 @@ int UserType::removeSet(SetID setId) {
 		this->logger->writeLn("UserType: removing input buffer for set:");
 		this->logger->writeInt(setId);
 		this->logger->writeLn("\n");
+                //setIter->second->clear();
 		setIter->second->getFile()->clear();
                 pthread_mutex_lock(&setLock);
 		this->sets->erase(setIter);
