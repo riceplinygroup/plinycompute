@@ -32,6 +32,7 @@
 #include "GenericWork.h"
 #include "SingleTableBundleProcessor.h"
 #include "SetSpecifier.h"
+#include "UseTemporaryAllocationBlock.h"
 
 namespace pdb {
 
@@ -413,20 +414,13 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   PDB_COUT << "###############################" << std :: endl;
                   memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
                         
-                  //Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (context->getPageToUnpin()->getBytes());
-                  //Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-                  //int vecSize = inputVec->size();
-                  //std :: cout << "after getRecord: outputVec size =" << vecSize << std :: endl;
-                  //std :: cout << "unpin the output page" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: unpin the output page"));
                   proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
                       outputToUnpin->getSetID(), outputToUnpin, true);
-                  //std :: cout << "output page is unpinned" << std :: endl;
                   logger->debug(std :: string("PipelineNetwork: output page is unpinned"));
                   context->setPageToUnpin(nullptr);
                   outputVec = nullptr;
                   makeObjectAllocatorBlock (1024, true);
-                  //std :: cout << "buzz the buzzer" << std :: endl;
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }
@@ -438,7 +432,34 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     while (counter < numThreads) {
          tempBuzzer->wait();
     }
-
+    //write aggregated results to output set
+    PDB_COUT << "to aggregate..." << std::endl;
+    Handle<Selection<Object, Object>>  queryObject = unsafeCast<Selection<Object, Object>>(jobStage->getSelection());
+    PDB_COUT << "got query object" << std::endl;
+    Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
+    if (aggregationResults != nullptr) {
+        std :: cout << "aggregationResult is not null" << std ::endl;
+        DataProxyPtr proxy = make_shared<DataProxy>(nodeId, communicatorToFrontend, shm, logger);
+        PDBPagePtr output = nullptr;
+        proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+        makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
+        Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
+        int count = 0;
+        try {
+            size_t i;
+            for ( i = 0; i < aggregationResults->size(); i ++) {
+                   (*outputVec)[i] = deepCopyToCurrentAllocationBlock((*aggregationResults)[i]);
+                   count ++;
+             }
+        }
+        catch (NotEnoughSpace &n) {
+            std :: cout << "FATAL ERROR: so far we do not support large aggregation results that need more than one page." << std :: endl;
+        }
+        getRecord(outputVec);
+        proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output, true);
+        PDB_COUT << count << " aggregation objects have been written to output set with size="<<outputVec->size() << std :: endl;
+    }
+    
     pthread_mutex_destroy(&connection_mutex);
 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {

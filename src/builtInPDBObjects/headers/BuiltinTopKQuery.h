@@ -28,7 +28,7 @@
    #define K 100
 #endif
 
-//#define ACCURATE_TOPK
+#define ACCURATE_TOPK
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
@@ -87,6 +87,7 @@ public:
        }
 
 
+
        SimpleLambda <Handle <BuiltinTopKResult>> getProjection (Handle<BuiltinTopKInput> &checkMe) override {
                  
 		return makeLambda (checkMe, [&] {
@@ -100,7 +101,7 @@ public:
                             (*partialResults)[threadId] = partialResult;
                         }  
                         #ifndef ACCURATE_TOPK
-                        if ((*counters)[threadId] == 100000) {
+                        if ((*counters)[threadId] == 1000000) {
                             //(*partialResults)[threadId]->reset(); //to clear partial results for last emission
                             (*partialResults)[threadId]->initialize();
                             (*counters)[threadId] = 0; // to clear counter for last emission
@@ -114,7 +115,7 @@ public:
                         #ifdef ACCURATE_TOPK
                         return ret;
                         #else
-                        if ((*counters)[threadId] == 100000) {
+                        if ((*counters)[threadId] == 1000000) {
                             ret = makeObject<BuiltinTopKResult>();
                             (*ret) = *(*partialResults)[threadId];
                             Handle<Vector<Handle<BuiltinTopKInput>>> elements = ret->getTopK();
@@ -129,6 +130,15 @@ public:
                         #endif
 		});
 	}
+
+        Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
+            UseTemporaryAllocationBlock tempBlock {64*1024*1024};
+            Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
+            for (auto iter = partialResults->begin();  iter != partialResults->end(); ++iter) {
+                vectorOfResults->push_back( (*iter).value );
+            }
+            return vectorOfResults;
+        }
 
 
 private:
