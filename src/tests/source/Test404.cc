@@ -67,7 +67,7 @@ int main (int argc, char * argv[]) {
     pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:"+std::to_string(port)), String("localhost"), port, String("master"), String("master"), 1);
     if (!frontEnd.getFunctionality<pdb :: CatalogServer>().addNodeMetadata( nodeData, errMsg )) {
 
-        std :: cout << "FATAL ERROR: Not able to register node metadata: "+errMsg << std :: endl;
+        std :: cout << "Node metadata was not added because "+errMsg << std :: endl;
 
     } else {
 

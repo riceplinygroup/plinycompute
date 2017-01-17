@@ -147,7 +147,7 @@ namespace pdb {
             string printShort(){
                 string output;
                 output = "   Node address: ";
-                output.append(getNodeIP().c_str()).append(" | ").append(getItemName().c_str()).append(" | ").append(getNodeType().c_str());
+                output.append(getItemKey().c_str()).append(" | ").append(getItemName().c_str()).append(" | ").append(getNodeType().c_str());
                 return output;
             }
 

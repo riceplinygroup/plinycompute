@@ -26,6 +26,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <chrono>
+#include <ctime>
+
 #include "PDBDebug.h"
 #include "CatalogClient.h"
 #include "CatRegisterType.h"
@@ -225,6 +228,10 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
 
 //        [&] (Handle <Vector <char>> result) {
                 [&] (Handle <CatalogUserTypeMetadata> result) {
+            auto begin = std :: chrono :: high_resolution_clock :: now();
+            auto afterLoad = begin;
+            auto afterWrite = begin;
+            auto afterCopy = begin;
 
                     PDB_COUT << "In CatalogClient- Handling CatSharedLibraryByNameRequest received from CatalogServer..." << std :: endl;
                         myLogger->debug("CatalogClient: To handle result of CatSharedLibraryByNameRequest from CatalogServer...");
@@ -266,14 +273,27 @@ bool CatalogClient :: getSharedLibraryByName (int16_t identifier,
             typeNameToSearch = std :: string((*result).getItemName());
 //            memmove (&putResultHere, result->c_ptr (), result->size ());
 
+            afterLoad = std :: chrono :: high_resolution_clock :: now();
+
             PDB_COUT << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
             std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
             PDB_COUT <<"bytes copied!" << std :: endl;
+            afterCopy = std :: chrono :: high_resolution_clock :: now();
+
             // just write the shared library to the file
             int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
             write (filedesc, returnedBytes.c_str (), returnedBytes.size());
             close (filedesc);
+            afterWrite = std :: chrono :: high_resolution_clock :: now();
+
             PDB_COUT << "objectFile is written by CatalogClient" << std :: endl;
+            myLogger->debug("Time Duration afterLoad:\t " +
+                    std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterLoad-begin).count()) + " secs.");
+            myLogger->debug("Time Duration afterCopy:\t " +
+                    std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterCopy-afterLoad).count()) + " secs.");
+            myLogger->debug("Time Duration afterWrite:\t " +
+                    std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterWrite-afterCopy).count()) + " secs.");
+
             return true;},
             identifier, typeNameToSearch);
 }
