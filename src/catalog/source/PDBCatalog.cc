@@ -407,7 +407,7 @@
             }
             for (int i=0; i < (*nodesValues).size(); i++) {
                 this->logger->debug("RETRIEVING node " + string((*nodesValues)[i].getItemKey()) + " | " + string((*nodesValues)[i].getNodeIP()));
-                nodesResult.insert(make_pair((*nodesValues)[i].getItemName().c_str(), (*nodesValues)[i]));
+                nodesResult.insert(make_pair((*nodesValues)[i].getItemKey().c_str(), (*nodesValues)[i]));
             }
             for (int i=0; i < (*udfsValues).size(); i++) {
                 this->logger->debug("RETRIEVING TYPE " + string((*udfsValues)[i].getObjectID()) + " | " + string((*udfsValues)[i].getItemName()));

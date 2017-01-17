@@ -234,6 +234,10 @@ namespace pdb {
         // its metadata (stored as a serialized CatalogUserTypeMetadata object)
         forMe.registerHandler (CatSharedLibraryByNameRequest_TYPEID, make_shared <SimpleRequestHandler <CatSharedLibraryByNameRequest>> (
             [&] (Handle <CatSharedLibraryByNameRequest> request, PDBCommunicatorPtr sendUsingMe) {
+            auto begin = std :: chrono :: high_resolution_clock :: now();
+            auto getShared = begin;
+            auto setLib = begin;
+            auto addObject = begin;
 
                 string typeName = request->getTypeLibraryName ();
                 int16_t typeId = request->getTypeLibraryId();
@@ -285,6 +289,7 @@ namespace pdb {
                                                                                           response,
                                                                                           returnedBytes,
                                                                                           errMsg);
+                        getShared = std :: chrono :: high_resolution_clock :: now();
 
                         catServerLogger->debug("    Bytes returned YES isMaster: " + std :: to_string(returnedBytes.size()));
 
@@ -304,6 +309,8 @@ namespace pdb {
                         responseTwo->setItemKey(newItemKey);
                         responseTwo->setLibraryBytes(_retBytes);
                         */
+                        setLib = std :: chrono :: high_resolution_clock :: now();
+
                         catServerLogger->debug("Object Id isMaster: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
                         if (!res) {
                             //const UseTemporaryAllocationBlock tempBlock{1024};
@@ -340,6 +347,9 @@ namespace pdb {
                                                                                               response,
                                                                                               returnedBytes,
                                                                                               errMsg);
+
+                        getShared = std :: chrono :: high_resolution_clock :: now();
+
                         catServerLogger->debug("     Bytes returned NOT isMaster: " + std :: to_string(returnedBytes.size()));
 
                         // if the library was successfully retrieved, go ahead and resolve vtable fixing
@@ -349,6 +359,8 @@ namespace pdb {
                             // retrieved from the remote Master Catalog
                             res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
                         }
+
+                        addObject = std :: chrono :: high_resolution_clock :: now();
 
                         if (!res) {
                             catServerLogger->debug("     before sending response Vtable not fixed!!!!!!");
@@ -409,10 +421,14 @@ namespace pdb {
                                                                                           returnedBytes,
                                                                                           errMsg);
 
+                       getShared = std :: chrono :: high_resolution_clock :: now();
+
                        catServerLogger->debug("    Bytes returned No isMaster: " + std :: to_string(returnedBytes.size()));
 
 
                        response->setLibraryBytes(returnedBytes);
+
+                       setLib = std :: chrono :: high_resolution_clock :: now();
 
                        catServerLogger->debug("Object Id isLocal: " + string(response->getObjectID()) + " | " + string(response->getItemKey()) + " | " + string(response->getItemName()));
                         if (!res) {
@@ -432,6 +448,14 @@ namespace pdb {
                 catServerLogger->debug(" Num bytes in putResultHere " + std :: to_string((*putResultHere).size()));
 
                 delete putResultHere;
+                auto end = std :: chrono :: high_resolution_clock :: now();
+
+                catServerLogger->debug("Time Duration for getShared:\t " +
+                        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(getShared-begin).count()) + " secs.");
+                catServerLogger->debug("Time Duration for setLib:\t " +
+                        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(setLib-getShared).count()) + " secs.");
+                catServerLogger->debug("Time Duration for addObject:\t " +
+                        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(addObject-getShared).count()) + " secs.");
 
                 return make_pair (res, errMsg);
             }
@@ -1989,6 +2013,7 @@ bool CatalogServer :: isSetRegistered(string dbName, string setName){
 bool CatalogServer :: isNodeRegistered(string nodeIP){
     int catalogType = PDBCatalogMsgType::CatalogPDBNode;
     string result("");
+    catServerLogger->debug("searching to register node " + nodeIP);
 
     return pdbCatalog->keyIsFound(catalogType, nodeIP, result);
 }
