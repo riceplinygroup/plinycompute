@@ -41,6 +41,7 @@ class PipelineContext {
     //the final output vector that needs to invoke getRecord() on
     Handle<Vector<Handle<Object>>> outputVec;
 
+
     private:
 
     //the proxy to pin/unpin output page
@@ -107,6 +108,8 @@ class PipelineContext {
     PDBPagePtr getPageToUnpin () {
         return this->pageToUnpin;
     }
+
+
 
 };
 

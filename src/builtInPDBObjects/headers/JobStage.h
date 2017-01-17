@@ -107,6 +107,12 @@ namespace pdb {
             }
 
 
+            Handle<QueryBase> & getSelection() {
+                return operators[0]->getSelection();
+            }
+
+
+
             JobStageID getStageId() {
                 return this->id;
             }
