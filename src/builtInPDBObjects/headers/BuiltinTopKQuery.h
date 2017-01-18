@@ -28,7 +28,7 @@
    #define K 100
 #endif
 
-#define ACCURATE_TOPK
+//#define ACCURATE_TOPK
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
@@ -41,20 +41,30 @@
 
 
 namespace pdb {
-class BuiltinTopKQuery : public Selection <BuiltinTopKResult, BuiltinTopKInput> {
+class BuiltinTopKQuery : public Selection <BuiltinTopKResult, Object> {
 
 public:
 
        ENABLE_DEEP_COPY
 
        BuiltinTopKQuery () { 
-          
+         this->k = K; 
        }
+
+       BuiltinTopKQuery (int k) {
+         this->k = k;
+      }
+
 
        ~BuiltinTopKQuery() {
            counters = nullptr;
            partialResults = nullptr;
        }
+
+
+       virtual double getScore(Handle<Object> object) {
+           return 3.14159265359;
+       };
 
 
        void initialize () {
@@ -65,7 +75,7 @@ public:
 
 
 
-       SimpleLambda <bool> getSelection (Handle <BuiltinTopKInput> &checkMe) override {
+       SimpleLambda <bool> getSelection (Handle <Object> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
                     return false; //getSelection will not be applied in pipeline, so simply return false
 		});
@@ -88,7 +98,7 @@ public:
 
 
 
-       SimpleLambda <Handle <BuiltinTopKResult>> getProjection (Handle<BuiltinTopKInput> &checkMe) override {
+       SimpleLambda <Handle <BuiltinTopKResult>> getProjection (Handle<Object> &checkMe) override {
                  
 		return makeLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
@@ -107,8 +117,8 @@ public:
                             (*counters)[threadId] = 0; // to clear counter for last emission
                         }
                         #endif
-
-                        (*partialResults)[threadId]->updateTopK(checkMe);
+                        double score = getScore(checkMe);
+                        (*partialResults)[threadId]->updateTopK(score, checkMe);
                         (*counters)[threadId] ++;
 
                         Handle<BuiltinTopKResult> ret = nullptr;
@@ -134,8 +144,9 @@ public:
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
             UseTemporaryAllocationBlock tempBlock {64*1024*1024};
             Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
+            int i = 0;
             for (auto iter = partialResults->begin();  iter != partialResults->end(); ++iter) {
-                vectorOfResults->push_back( (*iter).value );
+                (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>( (*iter).value );
             }
             return vectorOfResults;
         }
@@ -151,7 +162,8 @@ private:
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
 
-
+        //number of top elements
+        int k;
 };
 
 }

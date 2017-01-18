@@ -65,12 +65,13 @@ public:
    }
 
    //TODO: to use comparator instead of ">="
-   void updateTopK (Handle<BuiltinTopKInput> element) {
-       double curScore = element->getScore();
+   void updateTopK (double score, Handle<Object> element) {
+       double curScore = score;
        size_t curSize = topK->size();
        //we do not have enough elements
        if (curSize < K) {
-           topK->push_back(element);
+           Handle<BuiltinTopKInput> newTopKElement = makeObject<BuiltinTopKInput>(curScore, element);
+           topK->push_back(newTopKElement);
            //std :: cout << "add an element to topK with score="<< curScore << std::endl;
            if(curScore < minScore) {
                 minIndex = curSize;
@@ -82,7 +83,7 @@ public:
        if (curScore > minScore) {
            //Step 1. replace the minIndex using the new element
            //std :: cout << "add an element to topK with score="<< curScore << std::endl;
-           (*topK)[minIndex] = element;
+           (*topK)[minIndex] = makeObject<BuiltinTopKInput>(score, element);
            //Step 2. update minIndex and minScore
            size_t i;
            //Step 2.1 re-initialize 
