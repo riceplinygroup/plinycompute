@@ -111,7 +111,7 @@ public:
                             (*partialResults)[threadId] = partialResult;
                         }  
                         #ifndef ACCURATE_TOPK
-                        if ((*counters)[threadId] == 1000000) {
+                        if ((*counters)[threadId] == 10000) {
                             //(*partialResults)[threadId]->reset(); //to clear partial results for last emission
                             (*partialResults)[threadId]->initialize();
                             (*counters)[threadId] = 0; // to clear counter for last emission
@@ -125,7 +125,7 @@ public:
                         #ifdef ACCURATE_TOPK
                         return ret;
                         #else
-                        if ((*counters)[threadId] == 1000000) {
+                        if ((*counters)[threadId] == 10000) {
                             ret = makeObject<BuiltinTopKResult>();
                             (*ret) = *(*partialResults)[threadId];
                             Handle<Vector<Handle<BuiltinTopKInput>>> elements = ret->getTopK();
@@ -148,6 +148,7 @@ public:
             for (auto iter = partialResults->begin();  iter != partialResults->end(); ++iter) {
                 (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>( (*iter).value );
             }
+            PDB_COUT << "there are " << i << " partial results" << std :: endl;
             return vectorOfResults;
         }
 
