@@ -27,6 +27,7 @@
 #include "Object.h"
 #include "PDBVector.h"
 #include <float.h>
+#include "BuiltinTopKInput.h"
 
 namespace pdb {
 
