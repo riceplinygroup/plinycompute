@@ -459,7 +459,9 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output, true);
         PDB_COUT << count << " aggregation objects have been written to output set with size="<<outputVec->size() << std :: endl;
     }
-    
+    else {
+        PDB_COUT << "aggregation results may be null" << std :: endl;
+    }    
     pthread_mutex_destroy(&connection_mutex);
 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {

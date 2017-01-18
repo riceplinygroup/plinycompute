@@ -72,7 +72,7 @@ public:
        if (curSize < K) {
            Handle<BuiltinTopKInput> newTopKElement = makeObject<BuiltinTopKInput>(curScore, element);
            topK->push_back(newTopKElement);
-           //std :: cout << "add an element to topK with score="<< curScore << std::endl;
+           PDB_COUT << "add an element to topK with score="<< curScore << std::endl;
            if(curScore < minScore) {
                 minIndex = curSize;
                 minScore = curScore;
@@ -82,7 +82,7 @@ public:
        //we have enought elements, if minScore is smaller than the cutoff value, we do nothing 
        if (curScore > minScore) {
            //Step 1. replace the minIndex using the new element
-           //std :: cout << "add an element to topK with score="<< curScore << std::endl;
+           PDB_COUT << "add an element to topK with score="<< curScore << std::endl;
            (*topK)[minIndex] = makeObject<BuiltinTopKInput>(score, element);
            //Step 2. update minIndex and minScore
            size_t i;
