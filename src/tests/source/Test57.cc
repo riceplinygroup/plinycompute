@@ -118,7 +118,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<BuiltinTopKInput> ("topK_db", "topK_set", errMsg)) {
+            if (!temp.createSet<Object> ("topK_db", "topK_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -142,19 +142,16 @@ int main (int argc, char * argv[]) {
                         blockSize = remainder;
                     }
                     pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    pdb::Handle<pdb::Vector<pdb::Handle<BuiltinTopKInput>>> storeMe =
-                        pdb::makeObject<pdb::Vector<pdb::Handle<BuiltinTopKInput>>> ();
+                    pdb::Handle<pdb::Vector<pdb::Handle<Object>>> storeMe =
+                        pdb::makeObject<pdb::Vector<pdb::Handle<Object>>> ();
                     try {
                         for (int i = 0; true ; i++) {
-                            pdb :: Handle<Employee> employee = pdb :: makeObject<Employee>("steve", i%100); 
-                            double score = rand()/double(RAND_MAX);
-                            pdb :: Handle <BuiltinTopKInput> myData =
-                                pdb::makeObject <BuiltinTopKInput> (score, employee);
-                            storeMe->push_back (myData);
+                            pdb :: Handle<Object> employee = pdb :: makeObject<Employee>("steve", i%100); 
+                            storeMe->push_back (employee);
                             total++;
                         }
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<BuiltinTopKInput>(std::pair<std::string, std::string>("topK_set", "topK_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<Object>(std::pair<std::string, std::string>("topK_set", "topK_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -176,7 +173,7 @@ int main (int argc, char * argv[]) {
 
         if (!temp.createSet<BuiltinTopKResult> ("topK_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
-                exit (-1);
+                //exit (-1);
         } else {
                 cout << "Created set.\n";
         }
@@ -189,7 +186,7 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", clientLogger, true);
 	// make the query graph
-	Handle <Set <BuiltinTopKInput>> myInputSet = myClient.getSet <BuiltinTopKInput> ("topK_db", "topK_set");
+	Handle <Set <Object>> myInputSet = myClient.getSet <Object> ("topK_db", "topK_set");
 	Handle <BuiltinTopKQuery> myQuery = makeObject <BuiltinTopKQuery> ();
         myQuery->initialize();
         std :: cout << "To set input" << std :: endl;
@@ -222,7 +219,7 @@ int main (int argc, char * argv[]) {
             int i;
             for (i = 0; i < elements->size(); i ++) {
                 std::cout << "score=" << (*elements)[i]->getScore() << std::endl;
-                finalResult->updateTopK((*elements)[i]);
+                finalResult->updateTopK((*elements)[i]->getScore(), (*elements)[i]->getObject());
 
             }
 
