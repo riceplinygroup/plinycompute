@@ -22,7 +22,7 @@
 #include "PDBDebug.h"
 #include "PipelineNode.h"
 #include "SingleTableUnbundleProcessor.h"
-
+#include "Configuration.h"
 namespace pdb {
 PipelineNode :: ~PipelineNode () {
     //std :: cout << "PipelineNode with id=" << id << " is running" << std :: endl;
@@ -211,7 +211,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
-             makeObjectAllocatorBlock (output->getSize(), true);
+             makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(nullptr);
              context->setOutputVec(outputVec);
@@ -279,7 +279,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             }
             std :: string out = getAllocator().printInactiveBlocks();
             logger->info(out);
-            makeObjectAllocatorBlock (output->getSize(), true);
+            makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
             context->setOutputVec(nullptr);
             context->setOutputVec(outputVec);
