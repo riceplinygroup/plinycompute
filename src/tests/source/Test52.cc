@@ -230,7 +230,7 @@ int main (int argc, char * argv[]) {
         }
         system ("scripts/cleanupSoFiles.sh");
         std::cout << "Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
+                std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
 }
 
 #endif
