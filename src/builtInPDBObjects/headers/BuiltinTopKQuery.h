@@ -28,7 +28,7 @@
    #define K 100
 #endif
 
-#define ACCURATE_TOPK
+//#define ACCURATE_TOPK
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
