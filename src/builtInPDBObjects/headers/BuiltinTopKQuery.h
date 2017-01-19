@@ -50,19 +50,22 @@ public:
 
        BuiltinTopKQuery () { 
 
-          logger = make_shared<PDBLogger>("BuiltinTopKQueryLog");
-
+          this->logFileName = "BuiltinTopKQueryLog";
+          this->logger = nullptr;
        }
 
        BuiltinTopKQuery (std :: string loggerFileName) {
 
-          logger = make_shared<PDBLogger>(loggerFileName);
-            
+          this->logFileName = loggerFileName;
+          this->logger = nullptr;  
        }
 
 
        ~BuiltinTopKQuery() {
-           counters = nullptr;
+           if (this->logger != nullptr) {
+               delete this->logger;
+           }
+
        }
 
 
@@ -75,6 +78,7 @@ public:
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
+           logger = new PDBLogger(logFileName);
        }
 
 
@@ -109,7 +113,9 @@ public:
                         if (counters->count(threadId) == 0) {
                             UseTemporaryAllocationBlock tempBlock{8*1024*1024};
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
-                            logger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
+                            if (logger != nullptr) {
+                                logger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
+                            }
                             (*counters)[threadId] = 0;
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
                             partialResult->initialize();
@@ -181,8 +187,8 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-        PDBLoggerPtr logger;
-
+        PDBLogger* logger;
+        String logFileName;
 };
 
 }
