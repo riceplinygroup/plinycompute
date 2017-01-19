@@ -199,12 +199,6 @@ bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string object
     delete putResultHere;
     PDB_COUT << "CatalogClient: deleted putResultHere" << std :: endl;
     return res;
-
-    //this is not needed b/c it's get copied in the previous step
-            // just write the shared library to the file
-//            int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-//            write (filedesc, result->c_ptr (), result->size ());
-//            close (filedesc);
 }
 
 bool CatalogClient :: getSharedLibraryByName (int16_t identifier,

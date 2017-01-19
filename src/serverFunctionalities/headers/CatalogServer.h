@@ -46,10 +46,10 @@ public:
 	// this uses the identerifer for the object to find the corresponding type name
 	string searchForObjectTypeName (int16_t typeIdentifier);
 
-	// this downloads the shared libreary assoicated with the identifier, putting it at the specified location
+	// this downloads the shared library associated  with the identifier, putting it at the specified location
 	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg);
 
-    // this downloads the shared libreary assoicated with the typeName, putting it at the specified location
+    // this downloads the shared library associated with the typeName, putting it at the specified location
     bool getSharedLibraryByName (int16_t identifier, std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg);
 
 	// this returns the type of object in the specified set, as a type name
@@ -87,8 +87,8 @@ public:
 	// the typeID is given by the master catalog
     int16_t addObjectType (int16_t typeID, vector <char> &soFile, string &errMsg);
 
-	// print the content of the catalog metadata
-	bool printCatalog (string item);
+	// print the content of the catalog metadata that have changed since a given timestamp
+	bool printCatalog (string timeStamp);
 
 	// registers metadata about a node in the cluster
 	bool addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata, std :: string &errMsg);
