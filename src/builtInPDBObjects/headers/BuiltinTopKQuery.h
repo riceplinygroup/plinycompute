@@ -71,7 +71,7 @@ public:
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
-           
+           vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
        }
 
 
@@ -144,15 +144,18 @@ public:
 	}
 
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
-            makeObjectAllocatorBlock(64*1024*1024, true);
-            vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
                 Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
                 for (j = 0; j < result->size(); j++) {
                    std::cout <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
                 }
-                (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>((*partialResults)[(*threads)[i]]);
+                (*vectorOfResults)[i]= makeObject<BuiltinTopKResult>();
+                *(*vectorOfResults)[i] = *((*partialResults)[(*threads)[i]]);
+                Handle<Vector<Handle<BuiltinTopKInput>>> result1 = (*vectorOfResults)[i]->getTopK();
+                for (j = 0; j < result1->size(); j++) {
+                   std::cout <<i <<"-" << j << ":"<<(*result1)[j]->getScore() << std::endl;
+               }
             }
             PDB_COUT << "there are " << i << " partial results" << std :: endl;
             return vectorOfResults;
