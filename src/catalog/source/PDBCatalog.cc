@@ -670,7 +670,8 @@
 
     }
 
-    bool PDBCatalog::registerUserDefinedObject (pdb :: Handle <CatalogUserTypeMetadata> &objectToRegister,
+    bool PDBCatalog::registerUserDefinedObject (int16_t typeCode,
+                                                pdb :: Handle <CatalogUserTypeMetadata> &objectToRegister,
                                                 const string &objectBytes,
                                                 const string &typeName,
                                                 const string &fileName,
@@ -679,13 +680,11 @@
 
         bool isSuccess = false;
 
-
-
         pthread_mutex_lock(&(registerMetadataMutex));
-        this->logger->debug("objectBytes " + std::to_string(objectBytes.size()));
-        this->logger->debug("typeName " + typeName);
-        this->logger->debug("fileName " + fileName);
-        this->logger->debug("tableName " + tableName);
+        PDB_COUT << "inside registerUserDefinedObject\nobjectBytes " << std::to_string(objectBytes.size()) << endl;
+        PDB_COUT << "typeName " << typeName << endl;
+        PDB_COUT << "fileName " << fileName << endl;
+        PDB_COUT << "tableName " << tableName << endl;
 
         bool success = false;
         errorMessage = "";
@@ -695,23 +694,25 @@
 
         string queryString("");
         queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
+        PDB_COUT << "QueryString = " << queryString << endl;
 
         int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
         if (rc != SQLITE_OK) {
             errorMessage =  "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
+            PDB_COUT << "errorMessage" << errorMessage << endl;
+
             success = false;
         } else {
-
+            PDB_COUT << "Pass else" << endl;
             // Gets the number of registered objects in the catalog
-            int16_t numberOfRegisteredObjects = udfsResult.size();
-            int totalRegisteredTypes = (int)numberOfRegisteredObjects;
-//                cout << "Number of registered objects= " << numberOfRegisteredObjects << endl;
+            int totalRegisteredTypes = (int)udfsResult.size();
 
-            int newItemId = (int)(initialTypeID + numberOfRegisteredObjects);
-            string newObjectId = std::to_string(newItemId);
-            String newObjectIndex = String(std::to_string(totalRegisteredTypes));
+            PDB_COUT << "ASSIGN TYPE_ID-> " << std::to_string(typeCode) << " for Type " << typeName << endl;
 
-            this->logger->debug("   Object Id -----> " + newObjectId);
+            string newObjectId = std::to_string(typeCode);
+            String newObjectIndex = String(std::to_string(typeCode));
+
+            PDB_COUT << "   Object Id -----> " << newObjectId;
             String idToRegister = String(newObjectId);
             String tableToRegister = String(tableName);
             String typeToRegister = String(typeName);
@@ -773,7 +774,7 @@
             sqlite3_finalize(stmt);
             free (serializedBytes);
         }
-        this->logger->debug(errorMessage);
+        PDB_COUT << errorMessage << std :: endl;
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;

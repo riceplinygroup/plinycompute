@@ -245,7 +245,7 @@ namespace pdb {
 
                 // in practice, we can do better than simply locking the whole catalog, but good enough for now...
                 const LockGuard guard{workingMutex};
-                catServerLogger->debug("Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" + typeName + " and typeId=" + std :: to_string(typeId));
+                PDB_COUT << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName << " and typeId=" << std :: to_string(typeId) << endl;
                 // ask the catalog serer for the shared library
                 // added by Jia to test a length error bug
                 vector <char> * putResultHere = new vector<char>();
@@ -325,6 +325,7 @@ namespace pdb {
 
                     }
                 } else {
+                    // Handles requesting a Shared Library if this is not the Master Catalog
                     //JiaNote: It is possible this request is from a backend process, in that case, it is possible that frontend catalog server already has that shared library file
                     if (allTypeCodes.count (typeId) == 0) {
                         // Allocates 124Mb for sending .so libraries
@@ -357,7 +358,7 @@ namespace pdb {
                         if (res == true) {
                             // resolves vtable fixing on the local catalog, given the library and metadata
                             // retrieved from the remote Master Catalog
-                            res = getFunctionality <CatalogServer> ().addObjectType (*putResultHere, errMsg);
+                            res = getFunctionality <CatalogServer> ().addObjectType (typeId, *putResultHere, errMsg);
                         }
 
                         addObject = std :: chrono :: high_resolution_clock :: now();
@@ -673,7 +674,7 @@ namespace pdb {
                     size_t fileLen = myFile->size ();
                     soFile.resize (fileLen);
                     memmove (soFile.data (), myFile->c_ptr (), fileLen);
-                    res = (addObjectType (soFile, errMsg) >= 0);
+                    res = (addObjectType (-1, soFile, errMsg) >= 0);
                 }
                 free (memory);
 
@@ -800,7 +801,7 @@ namespace pdb {
         return setTypes[make_pair (databaseName, setName)];
     }
 
-    int16_t CatalogServer :: addObjectType (vector <char> &soFile, string &errMsg) {
+    int16_t CatalogServer :: addObjectType (int16_t typeIDFromMasterCatalog, vector <char> &soFile, string &errMsg) {
 
         // and add the new .so file
         string tempFile = catalogDirectory + "/pdbCatalog/tmp_so_files/temp.so";
@@ -823,17 +824,20 @@ namespace pdb {
         typedef char *getObjectTypeNameFunc ();
         getObjectTypeNameFunc *myFunc = (getObjectTypeNameFunc *) dlsym(so_handle, getName.c_str());
 
-        catServerLogger->debug("open function: " + getName);
+        PDB_COUT << "open function: " << getName << endl;
         if ((dlsym_error = dlerror())) {
             errMsg = "Error, can't load function getObjectTypeName in the shared library. " + string(dlsym_error) + '\n';
             catServerLogger->error(errMsg);
             return -1;
         }
-        catServerLogger->debug("all ok");
+        PDB_COUT << "all ok" << endl;
 
         // now, get the type name and write the appropriate file
         string typeName (myFunc ());
         dlclose (so_handle);
+
+        PDB_COUT << "typeName returned from SO file: " << typeName << endl;
+
         //rename file
         string newName = catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so";
         int result = rename( tempFile.c_str() , newName.c_str());
@@ -846,8 +850,12 @@ namespace pdb {
 
         // add the new type name, if we don't already have it
         if (allTypeNames.count (typeName) == 0) {
-            catServerLogger->debug("Fixing vtable ptr for type " + typeName + " with metadata retrieved from remote Catalog Server.");
-            int16_t typeCode = 8192 + allTypeNames.size ();
+            PDB_COUT << "Fixing vtable ptr for type "<< typeName << " with metadata retrieved from remote Catalog Server." << endl;
+            int16_t typeCode;
+            if (typeIDFromMasterCatalog==-1) typeCode = 8192 + allTypeNames.size ();
+            else typeCode = typeIDFromMasterCatalog;
+            PDB_COUT << "Id Assigned to type " << typeName << " was " << std::to_string(typeCode) << endl;
+
             allTypeNames [typeName] = typeCode;
             allTypeCodes [typeCode] = typeName;
 
@@ -868,9 +876,9 @@ namespace pdb {
             //makeObjectAllocatorBlock (1024 * 1024 * 128, true);
             const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
             Handle<CatalogUserTypeMetadata> objectMetadata = makeObject<CatalogUserTypeMetadata>();
-            catServerLogger->debug("before calling ");
+            PDB_COUT << "before calling registerUserDefinedObject with typeCode=" << typeCode << endl;
 
-            pdbCatalog->registerUserDefinedObject(objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
+            pdbCatalog->registerUserDefinedObject(typeCode, objectMetadata, std::string(soFile.begin(), soFile.end()), typeName, catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so", "data_types", errMsg);
 
             return typeCode;
         } else

@@ -20,6 +20,7 @@
 #define CATALOG_SERVER_H
 
 #include "ServerFunctionality.h"
+#include "PDBDebug.h"
 #include "PDBServer.h"
 #include "PDBCatalog.h"
 #include "CatalogClient.h"
@@ -82,9 +83,10 @@ public:
     // returns true on success, false on fail
     bool removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
 
-	// adds a new object type... return -1 on failure
-	int16_t addObjectType (vector <char> &soFile, string &errMsg);
-	
+    // adds a new object type... return -1 on failure, this is done on a worker node catalog
+	// the typeID is given by the master catalog
+    int16_t addObjectType (int16_t typeID, vector <char> &soFile, string &errMsg);
+
 	// print the content of the catalog metadata
 	bool printCatalog (string item);
 
