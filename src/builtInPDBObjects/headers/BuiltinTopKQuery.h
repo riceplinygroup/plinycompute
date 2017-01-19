@@ -28,7 +28,7 @@
    #define K 100
 #endif
 
-//#define ACCURATE_TOPK
+#define ACCURATE_TOPK
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
@@ -71,7 +71,6 @@ public:
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
-           vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
        }
 
 
@@ -148,6 +147,7 @@ public:
 
 
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
+            vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
                 Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
