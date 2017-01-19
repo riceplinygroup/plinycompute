@@ -56,6 +56,9 @@ public:
 
         }
 
+        virtual bool isAggregation() {
+             return false;
+        }
 
 	// contact from super
 	void match(function<void(QueryBase&)> forSelection, function<void(QueryBase&)> forSet,

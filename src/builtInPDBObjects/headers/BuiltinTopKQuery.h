@@ -143,6 +143,10 @@ public:
 		});
 	}
 
+
+        virtual bool isAggregation() override {   return true; }
+
+
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
