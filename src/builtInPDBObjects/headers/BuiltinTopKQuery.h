@@ -34,7 +34,6 @@
 #include "BuiltinTopKResult.h"
 #include "Selection.h"
 #include "PDBMap.h"
-#include "PDBLogger.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
@@ -49,15 +48,6 @@ public:
        ENABLE_DEEP_COPY
 
        BuiltinTopKQuery () { 
-
-          logger = make_shared<PDBLogger>("BuiltinTopKQueryLog");
-
-       }
-
-       BuiltinTopKQuery (std :: string loggerFileName) {
-
-          logger = make_shared<PDBLogger>(loggerFileName);
-            
        }
 
 
@@ -109,7 +99,6 @@ public:
                         if (counters->count(threadId) == 0) {
                             UseTemporaryAllocationBlock tempBlock{8*1024*1024};
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
-                            logger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
                             (*counters)[threadId] = 0;
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
                             partialResult->initialize();
@@ -181,8 +170,6 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-        PDBLoggerPtr logger;
-
 };
 
 }
