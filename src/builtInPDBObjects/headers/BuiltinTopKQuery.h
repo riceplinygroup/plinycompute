@@ -34,7 +34,6 @@
 #include "BuiltinTopKResult.h"
 #include "Selection.h"
 #include "PDBMap.h"
-#include "PDBLogger.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
@@ -50,21 +49,9 @@ public:
 
        BuiltinTopKQuery () { 
 
-          this->logFileName = "BuiltinTopKQueryLog";
-          this->logger = nullptr;
        }
-
-       BuiltinTopKQuery (std :: string loggerFileName) {
-
-          this->logFileName = loggerFileName;
-          this->logger = nullptr;  
-       }
-
 
        ~BuiltinTopKQuery() {
-           if (this->logger != nullptr) {
-               delete (PDBLogger *)this->logger;
-           }
 
        }
 
@@ -78,7 +65,6 @@ public:
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
-           logger = new PDBLogger(logFileName);
        }
 
 
@@ -113,10 +99,6 @@ public:
                         if (counters->count(threadId) == 0) {
                             UseTemporaryAllocationBlock tempBlock{8*1024*1024};
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
-                            if (logger != nullptr) {
-                                PDBLogger * pdbLogger = static_cast<PDBLogger*>(logger);
-                                pdbLogger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
-                            }
                             (*counters)[threadId] = 0;
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
                             partialResult->initialize();
@@ -188,8 +170,6 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-        void* logger;
-        String logFileName;
 };
 
 }
