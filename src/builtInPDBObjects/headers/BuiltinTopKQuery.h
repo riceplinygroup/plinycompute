@@ -144,8 +144,8 @@ public:
 	}
 
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
-            UseTemporaryAllocationBlock tempBlock {64*1024*1024};
-            Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
+            makeObjectAllocatorBlock(64*1024*1024, true);
+            vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
                 Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
@@ -167,7 +167,7 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-
+        Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults;
         //number of top elements
         int k;
 };
