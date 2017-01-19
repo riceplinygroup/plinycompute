@@ -35,6 +35,7 @@ elif  common_env['PLATFORM'] == 'posix':
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
+#common_env.Append(CCFLAGS='-DDEBUG_OBJECT_MODEL')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
@@ -359,5 +360,5 @@ pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/test100', 'bin/test400', 'bin/test401', 'bin/test402', 'bin/test403', 'bin/test405', 'bin/test600','bin/test601', 'bin/test602','bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/test404', 'bin/test52', 'bin/test49', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/test43', 'bin/test44', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest'])
+main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/test404', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest'])
 Default(main)
