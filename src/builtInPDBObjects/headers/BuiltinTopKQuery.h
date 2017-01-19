@@ -28,7 +28,7 @@
    #define K 100
 #endif
 
-//#define ACCURATE_TOPK
+#define ACCURATE_TOPK
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
@@ -146,9 +146,12 @@ public:
         Handle<Vector<Handle<BuiltinTopKResult>>> getAggregatedResults () override  {
             UseTemporaryAllocationBlock tempBlock {64*1024*1024};
             Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
-            int i = 0;
+            int i , j;
             for (i = 0; i < threads->size(); i ++) {
-
+                Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
+                for (j = 0; j < result->size(); j++) {
+                   std::cout <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
+                }
                 (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>((*partialResults)[(*threads)[i]]);
             }
             PDB_COUT << "there are " << i << " partial results" << std :: endl;
