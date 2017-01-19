@@ -49,10 +49,8 @@ public:
 
 
         //To get aggregation results for queries like TopK 
-        virtual Handle<Vector<Handle<Out>>> getAggregatedResults() {
-
-             Handle<Vector<Handle<Out>>> ret = nullptr;
-             return ret;
+        virtual Handle<Vector<Handle<Out>>>& getAggregatedResults() {
+             return aggregationResult;
 
         }
 
@@ -94,6 +92,10 @@ public:
 	virtual std :: string getQueryType () override {
 		return "selection";
 	}
+
+protected:
+
+        Handle<Vector<Handle<Out>>> aggregationResult;
 
 };
 
