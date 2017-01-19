@@ -69,8 +69,9 @@ public:
 
        void initialize () {
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
+           threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
-
+           
        }
 
 
@@ -109,6 +110,7 @@ public:
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
                             partialResult->initialize();
                             (*partialResults)[threadId] = partialResult;
+                            threads->push_back(threadId);       
                         }  
                         #ifndef ACCURATE_TOPK
                         if ((*counters)[threadId] == 10000) {
@@ -145,8 +147,9 @@ public:
             UseTemporaryAllocationBlock tempBlock {64*1024*1024};
             Handle<Vector<Handle<BuiltinTopKResult>>> vectorOfResults = makeObject<Vector<Handle<BuiltinTopKResult>>> ();
             int i = 0;
-            for (auto iter = partialResults->begin();  iter != partialResults->end(); ++iter) {
-                (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>( (*iter).value );
+            for (i = 0; i < threads->size(); i ++) {
+
+                (*vectorOfResults)[i]= deepCopyToCurrentAllocationBlock<BuiltinTopKResult>((*partialResults)[(*threads)[i]]);
             }
             PDB_COUT << "there are " << i << " partial results" << std :: endl;
             return vectorOfResults;
@@ -157,8 +160,7 @@ private:
 
         //counters to record the number of points processed
         Handle<Map<pthread_t, unsigned long>> counters;
-
-
+        Handle<Vector<pthread_t>> threads;
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;

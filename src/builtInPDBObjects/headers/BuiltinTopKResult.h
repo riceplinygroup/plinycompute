@@ -83,7 +83,7 @@ public:
        if (curScore > minScore) {
            //Step 1. replace the minIndex using the new element
            PDB_COUT << "add an element to topK with score="<< curScore << std::endl;
-           (*topK)[minIndex] = makeObject<BuiltinTopKInput>(score, element);
+           (*topK)[minIndex] = makeObject<BuiltinTopKInput>(curScore, element);
            //Step 2. update minIndex and minScore
            size_t i;
            //Step 2.1 re-initialize 
