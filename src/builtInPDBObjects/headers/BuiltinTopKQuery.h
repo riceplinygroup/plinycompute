@@ -63,7 +63,7 @@ public:
 
        ~BuiltinTopKQuery() {
            if (this->logger != nullptr) {
-               delete this->logger;
+               delete (PDBLogger *)this->logger;
            }
 
        }
@@ -114,7 +114,8 @@ public:
                             UseTemporaryAllocationBlock tempBlock{8*1024*1024};
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
                             if (logger != nullptr) {
-                                logger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
+                                PDBLogger * pdbLogger = static_cast<PDBLogger*>(logger);
+                                pdbLogger->info(std :: string("to allocate slot for thread:") + std :: to_string((unsigned long)(threadId)));
                             }
                             (*counters)[threadId] = 0;
                             Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
@@ -187,7 +188,7 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-        PDBLogger* logger;
+        void* logger;
         String logFileName;
 };
 
