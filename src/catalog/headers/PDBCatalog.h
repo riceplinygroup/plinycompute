@@ -49,6 +49,7 @@
 #include "InterfaceFunctions.h"
 #include "Handle.h"
 #include "Object.h"
+#include "PDBDebug.h"
 #include "PDBLogger.h"
 #include "PDBCommunicator.h"
 #include "PDBCatalogMsgType.h"
@@ -120,6 +121,7 @@ using namespace pdb;
 
         /**
          * registerUserDefinedObject registers a user-defined type in the Catalog
+         * @typeCode is the typeID already resolved
          * @param objectToRegister contains the metadata for this object
          *
          * @param objectBytes are the binary bytes of the .so file encapsulated as an string
@@ -128,7 +130,8 @@ using namespace pdb;
          * @param tableName is a string identifying the type of the object (e.g. metrics, data_type)
          * @return true on success
          */
-        bool registerUserDefinedObject (pdb :: Handle <CatalogUserTypeMetadata> &objectToRegister,
+        bool registerUserDefinedObject (int16_t typeCode,
+                                        pdb :: Handle <CatalogUserTypeMetadata> &objectToRegister,
                                         const string &objectBytes,
                                         const string &typeName,
                                         const string &fileName,
@@ -365,7 +368,6 @@ using namespace pdb;
          */
         void closeSQLiteHandler();
 
-
     private:
 
         /**
@@ -453,7 +455,6 @@ using namespace pdb;
         // String that represents the temporary location where the .so files
         // will be stored during runtime
         string tempPath;
-
 
         // Creates a statement from a string and executes the query, returning a
         // true if successful, false otherwise.
