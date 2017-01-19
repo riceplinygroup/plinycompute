@@ -434,6 +434,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     }
     //write aggregated results to output set
     PDB_COUT << "to aggregate..." << std::endl;
+    makeObjectAllocatorBlock(64 * 1024 * 1024, true);
     Handle<Selection<Object, Object>>  queryObject = unsafeCast<Selection<Object, Object>>(jobStage->getSelection());
     PDB_COUT << "got query object" << std::endl;
     Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
@@ -448,7 +449,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         try {
             size_t i;
             for ( i = 0; i < aggregationResults->size(); i ++) {
-                   (*outputVec)[i] = deepCopyToCurrentAllocationBlock((*aggregationResults)[i]);
+                   (*outputVec)[i] = makeObject<Object>();
+                   *(*outputVec)[i] = *((*aggregationResults)[i]);
                    count ++;
              }
         }
