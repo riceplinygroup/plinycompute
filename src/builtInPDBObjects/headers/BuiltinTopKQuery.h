@@ -58,7 +58,6 @@ public:
 
        ~BuiltinTopKQuery() {
            counters = nullptr;
-           partialResults = nullptr;
        }
 
 
@@ -71,6 +70,7 @@ public:
            counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
            partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
+           aggregationResult = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
        }
 
 
@@ -147,7 +147,6 @@ public:
 
 
         Handle<Vector<Handle<BuiltinTopKResult>>>& getAggregatedResults () override  {
-            aggregationResult = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
                 Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
