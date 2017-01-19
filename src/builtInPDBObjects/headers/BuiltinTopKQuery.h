@@ -48,12 +48,7 @@ public:
        ENABLE_DEEP_COPY
 
        BuiltinTopKQuery () { 
-         this->k = K; 
        }
-
-       BuiltinTopKQuery (int k) {
-         this->k = k;
-      }
 
 
        ~BuiltinTopKQuery() {
@@ -151,14 +146,14 @@ public:
             for (i = 0; i < threads->size(); i ++) {
                 Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
                 for (j = 0; j < result->size(); j++) {
-                   std::cout <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
+                   PDB_COUT <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
                 }
                 Handle<BuiltinTopKResult> curResult= makeObject<BuiltinTopKResult>();
                 aggregationResult->push_back(curResult);
                 *(*aggregationResult)[i] = *((*partialResults)[(*threads)[i]]);
                 Handle<Vector<Handle<BuiltinTopKInput>>> result1 = (*aggregationResult)[i]->getTopK();
                 for (j = 0; j < result1->size(); j++) {
-                   std::cout <<i <<"-" << j << ":"<<(*result1)[j]->getScore() << std::endl;
+                   PDB_COUT <<i <<"-" << j << ":"<<(*result1)[j]->getScore() << std::endl;
                }
             }
             PDB_COUT << "there are " << i << " partial results" << std :: endl;
@@ -175,8 +170,6 @@ private:
         //current aggregated TopK values
         //each thread has a BuiltinTopKResult instance
         Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
-        //number of top elements
-        int k;
 };
 
 }
