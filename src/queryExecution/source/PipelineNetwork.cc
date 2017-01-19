@@ -434,25 +434,23 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     }
     //write aggregated results to output set
     PDB_COUT << "to aggregate..." << std::endl;
-    makeObjectAllocatorBlock(64 * 1024 * 1024, true);
     Handle<Selection<Object, Object>>  queryObject = unsafeCast<Selection<Object, Object>>(jobStage->getSelection());
     PDB_COUT << "got query object" << std::endl;
-    Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
-    if (aggregationResults != nullptr) {
-        std :: cout << "aggregationResult is not null" << std ::endl;
+    if (queryObject->isAggregation() == true) {
+        int count = 0;
         DataProxyPtr proxy = make_shared<DataProxy>(nodeId, communicatorToFrontend, shm, logger);
         PDBPagePtr output = nullptr;
         proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
         makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
-        int count = 0;
         try {
-            size_t i;
+            Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
+            PDB_COUT << "aggregationResult size="<< aggregationResults->size() << std ::endl;
+            size_t i, j;
             for ( i = 0; i < aggregationResults->size(); i ++) {
-                   (*outputVec)[i] = makeObject<Object>();
-                   *(*outputVec)[i] = *((*aggregationResults)[i]);
-                   count ++;
-             }
+                  outputVec->push_back((*aggregationResults)[i]); 
+                  count ++;
+            }
         }
         catch (NotEnoughSpace &n) {
             std :: cout << "FATAL ERROR: so far we do not support large aggregation results that need more than one page." << std :: endl;
@@ -460,9 +458,10 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         getRecord(outputVec);
         proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output, true);
         PDB_COUT << count << " aggregation objects have been written to output set with size="<<outputVec->size() << std :: endl;
+        
     }
     else {
-        PDB_COUT << "aggregation results may be null" << std :: endl;
+        PDB_COUT << "no aggregation in this query object" << std :: endl;
     }    
     pthread_mutex_destroy(&connection_mutex);
 
