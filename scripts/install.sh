@@ -22,6 +22,27 @@ pdb_dir=/home/ubuntu/pdb_install
 
 scripts/cleanupNode.sh
 
+# By default disable strict host key checking
+if [ "$PDB_SSH_OPTS" = "" ]; then
+  PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+fi
+
+if [ -z ${pem_file} ];
+then
+  PDB_SSH_OPTS=$PDB_SSH_OPTS
+else
+  PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
+fi
+
+if [ "$PLINY_HOME" = "" ]; then
+then
+  echo "We do not have pliny dependency."
+else
+  mkdir bin
+  cp $PLINY_HOME/bin/pdb-server bin/
+  cp $PLINY_HOME/bin/pdb-cluster bin/
+fi
+
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
 echo "There are $length servers"
@@ -31,10 +52,10 @@ do
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
                 echo -e "\n+++++++++++ install server: $ip_addr"
-                ssh -i $pem_file $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
-                scp -i $pem_file -r $PDB_HOME/bin/pdb-server $user@$ip_addr:$pdb_dir/bin/ 
-                scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
-                ssh -i $pem_file $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
+                ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
+                scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-server $user@$ip_addr:$pdb_dir/bin/ 
+                scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $user@$ip_addr:$pdb_dir/scripts/
+                ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir; scripts/cleanupNode.sh"
         fi
 done
 
