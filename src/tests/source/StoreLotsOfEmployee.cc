@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 1024*10, true);
+	pdb::makeObjectAllocatorBlock((size_t) 1024*100, true);
 
 	for (int i = 0; i < numOfObjects; i++) {
 
