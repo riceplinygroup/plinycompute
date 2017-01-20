@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-# by Jia
 
 pem_file=$1
 masterIp=$2
@@ -21,6 +20,13 @@ numThreads=$3
 sharedMem=$4
 user=ubuntu
 ip_len_valid=3
+pdb_dir=/home/ubuntu/pdb_install
+PDB_SSH_SLEEP=30
+
+# By default disable strict host key checking
+if [ "$PDB_SSH_OPTS" = "" ]; then
+  PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+fi
 
 if [ -z ${pem_file} ];
     then echo "ERROR: please provide at least two parameters: one is your the path to your pem file and the other is the master IP";
@@ -39,7 +45,7 @@ if [ -z ${numThreads} ];
 fi
 
 if [ -z ${sharedMem} ];
-     then sharedMem=10240;
+     then sharedMem=4096;
 fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
@@ -50,21 +56,10 @@ do
         ip_addr=${arr[i]}
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
-                echo -e "\n+++++++++++ install and start server: $ip_addr"
-                ssh -i $pem_file $user@$ip_addr 'rm -rf /tmp/pdb_temp'
-                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp'
-                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/scripts'
-                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/bin'
-                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/CatalogDir'
-                ssh -i $pem_file $user@$ip_addr 'mkdir /tmp/pdb_temp/logs'
-                scp -i $pem_file -r $PDB_HOME/bin/test603 $user@$ip_addr:/tmp/pdb_temp/bin/
-                scp -i $pem_file -r $PDB_HOME/scripts/cleanupNode.sh $user@$ip_addr:/tmp/pdb_temp/scripts/
-                scp -i $pem_file -r $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:/tmp/pdb_temp/scripts/
-                ssh -i $pem_file $user@$ip_addr /tmp/pdb_temp/scripts/cleanupNode.sh
-                ssh -i $pem_file $user@$ip_addr "cd /tmp/pdb_temp;  bin/test603 $numThreads $sharedMem $masterIp $ip_addr" &
-                sleep 30
-                ssh -i $pem_file $user@$ip_addr /tmp/pdb_temp/scripts/checkProcess.sh test603
-               
+                echo -e "\n+++++++++++ start server: $ip_addr"
+                ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $masterIp $ip_addr &" &
+                sleep $PDB_SSH_SLEEP
+                ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-server
                 $PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip $ip_addr --node-port  8108 --node-name worker --node-type worker                
                 
         fi

@@ -35,7 +35,6 @@ elif  common_env['PLATFORM'] == 'posix':
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
-#common_env.Append(CCFLAGS='-DDEBUG_OBJECT_MODEL')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
@@ -339,13 +338,12 @@ common_env.Program('bin/test400', ['build/tests/Test400.cc'] + all)
 common_env.Program('bin/test401', ['build/tests/Test401.cc'] + all)
 common_env.Program('bin/test402', ['build/tests/Test402.cc'] + all)
 common_env.Program('bin/test403', ['build/tests/Test403.cc'] + all)
-common_env.Program('bin/test404', ['build/tests/Test404.cc'] + all)
+common_env.Program('bin/pdb-cluster', ['build/tests/Test404.cc'] + all)
 common_env.Program('bin/test405', ['build/tests/Test405.cc'] + all)
 common_env.Program('bin/test600', ['build/tests/Test600.cc'] + all)
 common_env.Program('bin/test601', ['build/tests/Test601.cc'] + all)
 common_env.Program('bin/test602', ['build/tests/Test602.cc'] + all)
-# The dummy folder added by leo to test pipeline stuff and avoid linker issues
-common_env.Program('bin/test603', ['build/tests/Test603.cc'] + all + component_dir_basename_to_cc_file_paths['dummyFolder'] +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
+common_env.Program('bin/pdb-server', ['build/tests/Test603.cc'] + all + component_dir_basename_to_cc_file_paths['dummyFolder'] +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
 common_env.Program('bin/test604', ['build/tests/Test604.cc'] + all  +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
 common_env.Program('bin/test605', ['build/tests/Test605.cc'] + all)
 common_env.Program('bin/test606', ['build/tests/Test606.cc'] + all)
@@ -359,7 +357,7 @@ common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
-common_env.Depends(pdbTest, ['bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
+common_env.Depends(pdbTest, ['bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/test603', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/test404', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

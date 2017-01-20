@@ -13,7 +13,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-# by Jia
 processName=$1
 echo "to check $processName"
 
