@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
 	std::string setName("chris_set");
 
 	int numOfElementInsideTheObject = 20;
-	long numOfObjects = (long) 100 * 1000 * 1000;
+	int numOfObjects = 100000;
 
 	if (argc > 1) {
 		numOfObjects = atoi(argv[1]);
@@ -67,7 +67,7 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 400 * MB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 1024*10, true);
 
 	for (int i = 0; i < numOfObjects; i++) {
 
@@ -75,25 +75,23 @@ int main(int argc, char * argv[]) {
 
 		try {
 
-			for (int i = 0; numOfElementInsideTheObject; i++) {
-				pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (i), i + 45);
+			for (int j = 0; numOfElementInsideTheObject; j++) {
+				pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (j), j + 45);
 				storeMe->push_back (myData);
 			}
 
 		} catch (pdb :: NotEnoughSpace &n) {
-
-			// store the data
+			// if not enough memory then send the object to the server for the storage.
 			if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
 				cout << "Not able to store data: " + errMsg;
 				return 0;
 			}
 
-			//std :: cout << "stored the data!!\n";
+			if(i%100==0)
+			std::cout << "Wrote Objects " << i << endl;
 		}
 
-		if(i%100==0)
-		std::cout << "Wrote Objects " << i << endl;
 	}
-
 }
+
 #endif
