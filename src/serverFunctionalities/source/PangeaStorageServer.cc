@@ -603,8 +603,12 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	         // get the record
 		 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
 	         void *readToHere = malloc (numBytes);
-		 sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
-
+		 Handle<Vector<Handle<Object>>> objectsToStore = sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+                 if (objectsToStore->size() == 0) {
+                     everythingOK = false;
+                     errMsg = "Warning: client attemps to store a vector that contains zero objects, simply ignores it";
+                     std :: cout << errMsg << std :: endl;
+                 }
 		 if (everythingOK) {	
 						// at this point, we have performed the serialization, so remember the record
 				auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
@@ -612,7 +616,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 				getFunctionality <PangeaStorageServer> ().bufferRecord 
 							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
 
-
+             
                                  size_t numBytesToProcess = sizes[databaseAndSet];
                                                 size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
 

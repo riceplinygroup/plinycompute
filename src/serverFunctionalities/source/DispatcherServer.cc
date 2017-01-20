@@ -58,7 +58,14 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 PDB_COUT << "NumBytes = " << numBytes << std :: endl;
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
+                if (dataToSend->size() == 0) {
+                    errMsg = "Warning: client attemps to store zero object vector";
+                    Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
+                    res = sendUsingMe->sendObject(response, errMsg);
+                    std::cout << errMsg << std::endl;
+                    return make_pair(false, errMsg);
 
+                }
                 // Check that the type of the data being stored matches what is known to the catalog
                 if (!validateTypes( request->getDatabaseName(), request->getSetName(), request->getTypeName(), errMsg)) {
                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
