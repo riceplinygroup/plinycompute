@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
 
 		try {
 
-			for (int j = 0; numOfElementInsideTheObject; j++) {
+			for (int j = 0; true; j++) {
 				pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (j), j + 45);
 				storeMe->push_back (myData);
 			}
