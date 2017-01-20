@@ -39,6 +39,8 @@ using namespace pdb;
 
 int main(int argc, char * argv[]) {
 
+	cout<< "make sure to have a server and run in another window  ./bin/test603 2 512" << endl;
+
 	std::string databaseName("chris_db");
 	std::string setName("chris_set");
 
@@ -67,7 +69,7 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 1024*100, true);
+	pdb::makeObjectAllocatorBlock((size_t) 100*KB , true);
 
 	for (int i = 0; i < numOfObjects; i++) {
 
