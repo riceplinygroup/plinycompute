@@ -13,13 +13,14 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-# by Jia
 pemFile=$1
 
-$PDB_HOME/scripts/cleanupNode.sh
-#$PDB_HOME/scripts/cleanupWork.sh
-sleep 5
-$PDB_HOME/bin/test404 localhost 8108 N $pemFile &
+pkill -9  test404
+pkill -9  test603
+pkill -9  pdb-cluster
+pkill -9  pdb-server
+
+$PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile &
 
 echo "#####################################"
 echo "To sleep for 100 seconds in total for all ssh to return"
@@ -34,7 +35,7 @@ done
 
 for x in {1..10};
 do
-   if pgrep -x "test404" > /dev/null
+   if pgrep -x "pdb-cluster" > /dev/null
    then
        echo "master is started!"
        exit 0
@@ -45,4 +46,3 @@ done
 echo "master hasn't started! It could be that ssh takes too long time. Please retry!"
 
 
-#$PDB_HOME/bin/CatalogTests  --port 8108 --serverAddress localhost --command register-node --node-ip localhost --node-port  8108 --node-name master --node-type master                

@@ -13,12 +13,24 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-# by Jia
 
 pem_file=$1
-
 user=ubuntu
 ip_len_valid=3
+pdb_dir="/home/ubuntu/pdb_install"
+PDB_SSH_SLEEP=30
+
+# By default disable strict host key checking
+if [ "$PDB_SSH_OPTS" = "" ]; then
+  PDB_SSH_OPTS="-o StrictHostKeyChecking=no"
+fi
+
+if [ -z ${pem_file} ];
+then
+  PDB_SSH_OPTS=$PDB_SSH_OPTS
+else
+  PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
+fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
@@ -29,8 +41,9 @@ do
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
                 echo -e "\n+++++++++++ stop server: $ip_addr"
-                ssh -i $pem_file $user@$ip_addr 'pkill -9 test603'
-                ssh -i $pem_file $user@$ip_addr 'pkill -9 pdb-server'
+                ssh $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/stopWorker.sh"
+                
         fi
 done
 
+echo "servers are stopped"

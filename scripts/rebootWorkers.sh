@@ -13,7 +13,6 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-# by Jia
 
 pem_file=$1
 

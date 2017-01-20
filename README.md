@@ -18,7 +18,7 @@ Run: scons
 
 
 
-Firstly, we need to setup the test suite by following 3 steps. (Those 3 steps only need to be done once)
+Firstly, we need to setup the test suite by following 4 steps. (Those 4 steps only need to be done only once)
 
 Step (1.1) In rice cloud, find one ubuntu server as your Master, and log in to that server using the 'ubuntu' account;
 
@@ -31,42 +31,41 @@ Step (1.3) In rice cloud, find at least one different ubuntu servers as your Sla
 10.134.96.184
 10.134.96.153  
 
-Secondly, we run the test case.  (You can repeatedly run following steps to repeat the test)
+Step (1.4) On the master server, install the cluster by run:
+     
+     scripts/install.sh $pem_file
+
+Secondly, we start the cluster
 
 On the Master server:
 
-
-Step (2.1) : reboot the Master server, open a terminal on Master server, and run following command to reboot workers:
-
-cd $PDB_HOME
-scripts/rebootWorkeres.sh YourPemFilePathToLogInToWorkers (e.g. XXXX.pem)
-
-wait for all workers to come back (restarted)
-
-Step (2.2) : open a terminal on Master server, and run following commands:
+Step (2.1)
 
 cd $PDB_HOME
 scripts/startMaster.sh YourPEMFilePathToLogInToWorkers
 
 wait for the scripts to return (see something like "master is started!" in the end), and move to  step 2.3:
 
-Step (2.3) : run following command:   
+Step (2.2) : run following command:   
  
 cd $PDB_HOME
-scripts/startWorkers.sh YourPemFilePathToLogInToWorkers MasterIPAddress ThreadNumber (optional, default is 6)  SharedMemSize (optional, unit MB, default is 12884)
+scripts/startWorkers.sh YourPemFilePathToLogInToWorkers MasterIPAddress ThreadNumber (optional, default is 4)  SharedMemSize (optional, unit MB, default is 4096)
 
-wait for the scripts to return (see something like "servers are started!" in the end), and move to the step 2.4:
+wait for the scripts to return (see something like "servers are started!" in the end).
 
 
-Step (2.4) : run following command:  
+Thirdly, you can run test cases
+
+For example
 
 cd $PDB_HOME
 bin/test52  Y Y YourTestingDataSizeInMB (e.g. 1024 to test 1GB data) YourMasterIP
 
 
+Forthly, you can cleanup all catalog and storage data by running following command in master
 
-
-
+cd $PDB_HOME
+scripts/cleanup.sh
 
 
 

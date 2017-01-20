@@ -13,13 +13,9 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-# by Jia
 
-pem_file=$1
-ip_addr=$2
-user=ubuntu
 
-echo -e "\n+++++++++++ stop server: $ip_addr"
-ssh -i $pem_file $user@$ip_addr 'pkill -9 test603'
-ssh -i $pem_file $user@$ip_addr 'pkill -9 pdb-server'
-
+pkill -9 pdb-server
+pkill -9 test603
+pkill -9 pdb-cluster
+pkill -9 test404

@@ -52,20 +52,20 @@ print("RUN A PSEDO CLUSTER")
 print("#################################")
 
 try:
-    #run bin/test404
+    #run bin/pdb-cluster
     print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test404', 'localhost', '8108', 'Y'])
+    serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
     print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(9)
 #    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
 
-    #run bin/test603 for worker
+    #run bin/pdb-server for worker
     num = 0;
     with open('conf/serverlist') as f:
         for each_line in f:
             print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
             num = num + 1
-            serverProcess = subprocess.Popen(['bin/test603', threadNum, sharedMemorySize, 'localhost:8108', each_line])
+            serverProcess = subprocess.Popen(['bin/pdb-server', threadNum, sharedMemorySize, 'localhost:8108', each_line])
             print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
             time.sleep(9)
             each_line = each_line.split(':')

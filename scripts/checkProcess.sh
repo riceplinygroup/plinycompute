@@ -13,7 +13,6 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 #!/bin/bash
-# by Jia
 processName=$1
 echo "to check $processName"
 

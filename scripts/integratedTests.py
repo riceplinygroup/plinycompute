@@ -42,11 +42,11 @@ print("RUN STANDALONE INTEGRATION TESTS")
 print("#################################")
 
 try:
-    #run bin/test603
+    #run bin/pdb-server
     print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '512'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512'])
     print bcolors.OKBLUE + "to check whether server has been fully started..." + bcolors.ENDC
-    subprocess.call(['bash', './scripts/checkProcess.sh', 'test603'])
+    subprocess.call(['bash', './scripts/checkProcess.sh', 'pdb-server'])
     print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC
     time.sleep(30)
     #run bin/test46 1024
@@ -76,38 +76,38 @@ print("RUN DISTRIBUTED INTEGRATION TESTS")
 print("#################################")
 
 try:
-    #run bin/test404
+    #run bin/pdb-cluster
     print bcolors.OKBLUE + "start a pdbServer as the coordinator" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test404', 'localhost', '8108', 'Y'])
+    serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
     print bcolors.OKBLUE + "to check whether server is started..." + bcolors.ENDC
-    subprocess.call(['bash', './scripts/checkProcess.sh', 'test404'])
+    subprocess.call(['bash', './scripts/checkProcess.sh', 'pdb-cluster'])
     print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC
     time.sleep(9)
 
-    #run bin/test603 for instance 1
+    #run bin/pdb-server for instance 1
     print bcolors.OKBLUE + "start a pdbServer as the 1st worker" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8109'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512', 'localhost:8108', 'localhost:8109'])
     print bcolors.OKBLUE + "waiting for 15 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(15)
     subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8109', '--node-name', 'worker', '--node-type', 'worker'])
 
-    #run bin/test603 for instance 2
+    #run bin/pdb-server for instance 2
     print bcolors.OKBLUE + "start a pdbServer as the 2nd worker" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8110'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512', 'localhost:8108', 'localhost:8110'])
     print bcolors.OKBLUE + "waiting for 15 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(15)
     subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8110', '--node-name', 'worker', '--node-type', 'worker'])
 
-    #run bin/test603 for instance 3
+    #run bin/pdb-server for instance 3
     print bcolors.OKBLUE + "start a pdbServer as the 3rd worker" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8111'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512', 'localhost:8108', 'localhost:8111'])
     print bcolors.OKBLUE + "waiting for 15 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(15)
     subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8111', '--node-name', 'worker', '--node-type', 'worker'])
 
-    #run bin/test603 for instance 4
+    #run bin/pdb-server for instance 4
     print bcolors.OKBLUE + "start a pdbServer as the 4th worker" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/test603', '1', '512', 'localhost:8108', 'localhost:8112'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512', 'localhost:8108', 'localhost:8112'])
     print bcolors.OKBLUE + "waiting for 15 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(15)
     subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8112', '--node-name', 'worker', '--node-type', 'worker'])
