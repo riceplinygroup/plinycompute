@@ -67,8 +67,8 @@ bool PageScanner::acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, str
     //receive the PinPage object
     size_t receivedSize = myCommunicator->getSizeOfNextObject();
     if (receivedSize == 0) {
-         std :: cout << "FATAL ERROR in PageScanner: received size is 0" << std :: endl;
-         exit (-1);
+         std :: cout << "ERROR in PageScanner: received size is 0" << std :: endl;
+         return false;
     }
     const pdb :: UseTemporaryAllocationBlock myBlock{receivedSize};
     bool success;

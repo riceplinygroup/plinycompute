@@ -21,7 +21,7 @@ sharedMem=$4
 user=ubuntu
 ip_len_valid=3
 pdb_dir=/home/ubuntu/pdb_install
-PDB_SSH_SLEEP=30
+PDB_SSH_SLEEP=10
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then

@@ -453,7 +453,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
             }
         }
         catch (NotEnoughSpace &n) {
-            std :: cout << "FATAL ERROR: so far we do not support large aggregation results that need more than one page." << std :: endl;
+            std :: cout << "ERROR: so far we do not support large aggregation results that need more than one page." << std :: endl;
         }
         getRecord(outputVec);
         proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output, true);

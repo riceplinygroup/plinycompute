@@ -46,14 +46,14 @@ ReturnType simpleSendDataRequest (PDBLoggerPtr myLogger, int port, std :: string
 	    if (temp.connectToInternetServer (myLogger, port, address, errMsg)) {
 		myLogger->error (errMsg);
 		myLogger->error ("simpleSendDataRequest: not able to connect to server.\n");
-                std :: cout << "FATAL ERROR: can't connect to remote server with port =" << port << " and address =" << address << std :: endl;
-                exit (-1);
+                std :: cout << "ERROR: can't connect to remote server with port =" << port << " and address =" << address << std :: endl;
+                return onErr;
 	    }
 
 	    // build the request
             if (bytesForRequest < HEADER_SIZE) {
-                std :: cout << "FATAL ERROR: block size is too small" << std :: endl;
-                exit (-1);
+                std :: cout << "ERROR: block size is too small" << std :: endl;
+                return onErr;
             }
 	    const UseTemporaryAllocationBlock tempBlock{bytesForRequest};
 	    Handle <RequestType> request = makeObject <RequestType> (args...);

@@ -567,17 +567,17 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 PageScannerPtr DataProxy::getScanner(int numThreads) {
     std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
-        std :: cout << "FATAL ERROR in DataProxy.getScanner: connection is closed" << std :: endl;
+        std :: cout << "ERROR in DataProxy.getScanner: connection is closed" << std :: endl;
         if (communicator->reconnect(errMsg)) {
            std :: cout << errMsg << std :: endl;
-           exit(-1);
+           return nullptr;
         }
     }
     if(numThreads <= 0) {
         return nullptr;
     }
     int scannerBufferSize;
-    if (this->shm->getShmSize()/(64*1024*1024) > 16) {
+    if (this->shm->getShmSize()/(DEFAULT_PAGE_SIZE) > 16) {
          scannerBufferSize = 3;
     } else {
 	 scannerBufferSize = 1; 
