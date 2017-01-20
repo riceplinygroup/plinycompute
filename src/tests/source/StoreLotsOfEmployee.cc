@@ -25,6 +25,13 @@
 #ifndef STORE_LOTS_OF_EMPLOYEE_CC
 #define STORE_LOTS_OF_EMPLOYEE_CC
 
+#include <cstddef>
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <ctime>
+#include <string>
+
 #include "StorageClient.h"
 #include "PDBVector.h"
 #include "Employee.h"
@@ -39,13 +46,13 @@ using namespace pdb;
 
 int main(int argc, char * argv[]) {
 
-	cout<< "make sure to have a server and run in another window  ./bin/test603 2 512" << endl;
+	cout << "make sure to have a server and run in another window  ./bin/test603 2 512" << endl;
 
 	std::string databaseName("chris_db");
 	std::string setName("chris_set");
 
-	int numOfElementInsideTheObject = 20;
-	int numOfObjects = 100000;
+	int numOfElementInsideTheObject = 10;
+	int numOfObjects = 10000;
 
 	if (argc > 1) {
 		numOfObjects = atoi(argv[1]);
@@ -69,32 +76,40 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 100*KB , true);
+	pdb::makeObjectAllocatorBlock((size_t) 1 * MB, true);
+
+	// for timing
+	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (int i = 0; i < numOfObjects; i++) {
 
 		pdb::Handle<pdb::Vector<pdb::Handle<Employee>>>storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <Employee>>> ();
 
 		try {
+			pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (i), i + 45);
+			storeMe->push_back (myData);
 
-			for (int j = 0; numOfElementInsideTheObject; j++) {
-				pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (j), j + 45);
-				storeMe->push_back (myData);
+			if(storeMe->size()!=0) {
+				if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
+					cout << "Not able to store data: " + errMsg;
+					return 0;
+				}
 			}
 
 		} catch (pdb :: NotEnoughSpace &n) {
-
-			// if not enough memory then send the object to the server for the storage.
-			if(storeMe->size()!=0)
-			if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
-				cout << "Not able to store data: " + errMsg;
-				return 0;
-			}
-
-			if(i%100==0)
-			std::cout << "Wrote Objects " << i << endl;
+			std::cout << "NotEnoughSpace  " << endl;
 		}
 
+		if(i%100==0) {
+
+			auto end = std::chrono::high_resolution_clock::now();
+
+			std::cout << "Wrote Objects " << i ;
+			std::cout << " in " <<
+			std::chrono::duration_cast<std::chrono::milliseconds>(end-begin).count() << " milliseconds. " << endl;
+
+			begin = std::chrono::high_resolution_clock::now();
+		}
 	}
 }
 
