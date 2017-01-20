@@ -446,7 +446,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         try {
             Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
             PDB_COUT << "aggregationResult size="<< aggregationResults->size() << std ::endl;
-            size_t i, j;
+            size_t i;
             for ( i = 0; i < aggregationResults->size(); i ++) {
                   outputVec->push_back((*aggregationResults)[i]); 
                   count ++;
