@@ -10,12 +10,7 @@ Run: scons
 
 
 
-
-
-
-
 ## Run PDB on a Cluster 
-
 
 
 Firstly, we need to setup the test suite by following 4 steps. (Those 4 steps only need to be done only once)
@@ -56,16 +51,22 @@ wait for the scripts to return (see something like "servers are started!" in the
 
 Thirdly, you can run test cases
 
-For example
+For example:
 
 cd $PDB_HOME
 bin/test52  Y Y YourTestingDataSizeInMB (e.g. 1024 to test 1GB data) YourMasterIP
 
 
-Forthly, you can cleanup all catalog and storage data by running following command in master
+## Stop Cluster
+cd $PDB_HOME
+scripts/stopWorkers.sh $PATH_TO_YOUR_PEM_FILE
+
+
+## Cleanup Catalog and Storage data
+You can cleanup all catalog and storage data by running following command in master
 
 cd $PDB_HOME
-scripts/cleanup.sh
+scripts/cleanup.sh $PATH_TO_YOUR_PEM_FILE
 
 
 
