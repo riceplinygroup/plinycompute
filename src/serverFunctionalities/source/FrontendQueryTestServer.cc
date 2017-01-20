@@ -131,24 +131,24 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              // create the output set in the storage manager and in the catalog
                              if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
                                  std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
-                                 exit (1);
+                                 return std :: make_pair (false, std :: string("Could not create set in catalog"));;
                              }
                              PDB_COUT << "Output set is created in catalog" << std :: endl;
                          } else {
-                             std :: cout << "FATAL ERROR: Now we do not support to create set in middle of distribued query processing" << std :: endl;
-                             exit (-1);
+                             std :: cout << "ERROR: Now we do not support to create set in middle of distribued query processing" << std :: endl;
+                             return std :: make_pair (false, std :: string("Set doesn't exist"));;
                          }
                      } else {
-                         std :: cout << "FATAL ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
-                         exit (-1);
+                         std :: cout << "ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
+                         return std :: make_pair (false, std :: string("Set doesn't exist"));;
                      }
                                     
 
                 } else {
    
                      if (createOutputSet == true) {
-                         std :: cout << "FATAL ERROR: output set exists, please remove it first" << std :: endl;
-                         exit (-1);
+                         std :: cout << "ERROR: output set exists, please remove it first" << std :: endl;
+                         return std :: make_pair (false, std :: string("Output set exists, please remove it first"));;
                      }
                 }
 
@@ -196,7 +196,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
                 if (!success) {
                     std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
-                    exit(1);
+                    return std :: make_pair (false, std :: string("backend failure"));;
                 }
 
                 // now, we send back the result

@@ -107,7 +107,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			if (theVTable->logger != nullptr)
 				theVTable->logger->error ("Error, can't set global variables in .so file; error is " +
 					(std::string)dlsym_error + "\n");
-                        std :: cout << "FATAL ERROR: we were not able to get the function" << std :: endl;
+                        std :: cout << "ERROR: we were not able to get the function" << std :: endl;
 			return nullptr;
 		// if we were able to, then run it
 		} else {
@@ -125,7 +125,7 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			if (theVTable->logger != nullptr)
 				theVTable->logger->error ("Error, can't load function getInstance (); error is " +
 					(std::string)dlsym_error + "\n");
-                        std :: cout << "FATAL ERROR: we were not able to load function getObjectVTable" << std :: endl;
+                        std :: cout << "ERROR: we were not able to load function getObjectVTable" << std :: endl;
 			return nullptr;
 		// if we were able to, then run it
 		} else {

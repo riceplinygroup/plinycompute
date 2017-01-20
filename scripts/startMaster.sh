@@ -14,7 +14,7 @@
 #  limitations under the License.
 #  ========================================================================    
 pemFile=$1
-
+PDB_SLEEP_TIME=100
 pkill -9  test404
 pkill -9  test603
 pkill -9  pdb-cluster
@@ -25,13 +25,8 @@ $PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile &
 echo "#####################################"
 echo "To sleep for 100 seconds in total for all ssh to return"
 echo "#####################################"
-for x in {1..10}
-do 
-   sleep 10
-   time=`expr $x \\* 10`
-   time=`expr 100 - $time`
-   echo "still need to wait $time seconds for all ssh to return"
-done
+
+sleep $PDB_SLEEP_TIME
 
 for x in {1..10};
 do
@@ -40,7 +35,7 @@ do
        echo "master is started!"
        exit 0
    fi
-   sleep 15
+   sleep 10
 done
 
 echo "master hasn't started! It could be that ssh takes too long time. Please retry!"
