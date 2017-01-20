@@ -35,7 +35,6 @@ else
 fi
 
 if [ "$PLINY_HOME" = "" ]; then
-then
   echo "We do not have pliny dependency."
 else
   mkdir bin
