@@ -77,13 +77,15 @@ int main(int argc, char * argv[]) {
 
 		try {
 
-			for (int j = 0; true; j++) {
+			for (int j = 0; numOfElementInsideTheObject; j++) {
 				pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (j), j + 45);
 				storeMe->push_back (myData);
 			}
 
 		} catch (pdb :: NotEnoughSpace &n) {
+
 			// if not enough memory then send the object to the server for the storage.
+			if(storeMe->size()!=0)
 			if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
 				cout << "Not able to store data: " + errMsg;
 				return 0;
