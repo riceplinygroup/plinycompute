@@ -76,6 +76,8 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
+	// This does not work with 1 MB memory
+	// But it works with 10MB memory.
 	pdb::makeObjectAllocatorBlock((size_t) 1 * MB, true);
 
 	// for timing
@@ -97,7 +99,8 @@ int main(int argc, char * argv[]) {
 			}
 
 		} catch (pdb :: NotEnoughSpace &n) {
-			std::cout << "NotEnoughSpace  " << endl;
+			// Because we store small size of data, this should never happen.
+			std::cout << "This should never happen. NotEnoughSpace  " << endl;
 		}
 
 		if(i%100==0) {
