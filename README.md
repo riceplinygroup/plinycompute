@@ -72,7 +72,18 @@ cd $PDB_HOME
 scripts/cleanup.sh $PATH_TO_YOUR_PEM_FILE
 
 
+## Environment Variables:
 
+
+(1) PDB_SSH_OPTS
+
+by default, it is defined to be "-o StrictHostKeyChecking=no"
+
+(2) PDB_SSH_FOREGROUND
+
+if you define it to non empty like "y" or "yes", it will run as before and bring all output to your ssh terminal;
+
+by default, it is not defined, and it will run in background using nohup (I saw Carlos also used this in his contributed "launchWorkers.sh"), which means it will not be interrupted by ssh.
 
 
 
