@@ -86,7 +86,7 @@ int main(int argc, char * argv[]) {
 	for (int i = 0; i < numOfObjects; i++) {
 
 
-		pdb::Handle<pdb::Vector<pdb::Handle<Employee>>>storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <Employee>>> ();
+		pdb::Handle<pdb::Vector<pdb::Handle<Employee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <Employee>>> ();
 
 		try {
 			pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (i), i + 45);
