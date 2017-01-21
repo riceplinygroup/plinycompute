@@ -192,17 +192,19 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	if ((bytesNeeded % 4) != 0) {
 		bytesNeeded += (4 - (bytesNeeded % 4));
 	}
-	
 	// get the number of leading zero bits in bytesNeeded
 	unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
-	
+
+#ifdef DEBUG_OBJECT_MODEL
+       std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
+#endif	
 	// loop through all of the free chunks
 	// Lets say that someone asks for 54 bytes.  In binary, this is ...000110110 and so there are 26 leading zeros
 	// in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
 	// at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
 	for (unsigned int i = 31 - numLeadingZeros; i < 32; i++) {
 		int len = myState.chunks[i].size ();
-		for (int j = len - 1; j >= 0; j--) {
+		for ( int j = len - 1;  j >= 0;  j-- ) {
 			if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
 				void *returnVal = myState.chunks[i][j];
 				myState.chunks[i].erase (myState.chunks[i].begin () + j);
@@ -213,6 +215,9 @@ inline void *Allocator :: getRAM (size_t howMuch) {
                                 std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
                                 std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                                std :: cout << "starting chunk index=" << 31-numLeadingZeros << std :: endl;
+                                std :: cout << "ending chunk index=" << i << std :: endl;
+                                std :: cout << "bytes needed=" << bytesNeeded << std :: endl;
                                 std :: cout << "###################################"<< std :: endl;
       #endif  
                                 return retAddress;
@@ -248,6 +253,7 @@ inline void *Allocator :: getRAM (size_t howMuch) {
         std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
         std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;                     
         std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+        std :: cout << "created a new chunk with size =" << bytesNeeded << std :: endl;
         std :: cout << "###################################"<< std :: endl;
         #endif
         return retAddress;
@@ -329,6 +335,8 @@ inline void Allocator :: freeRAM (void *here) {
                 std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
                 std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                std :: cout << "freed numBytes=" << chunkSize << std :: endl;
+                std :: cout << "chunk index=" << 31-leadingZeros << std :: endl;
                 std :: cout << "###################################"<< std :: endl;
                 #endif     
 		return;
