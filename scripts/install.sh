@@ -38,9 +38,7 @@ if [ "$PLINY_HOME" = "" ]; then
   echo "We do not have pliny dependency."
 else
   mkdir bin
-  cp $PLINY_HOME/bin/pdb-server bin/
-  cp $PLINY_HOME/bin/pdb-cluster bin/
-  cp $PLINY_HOME/bin/pdb-client bin/CatalogTests
+  scripts/syncWithPliny.sh
 fi
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
