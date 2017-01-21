@@ -28,4 +28,4 @@ pkill -9 pdb-cluster
 
 echo -e "+++++++++++ to start a pdb worker"
 echo "bin/pdb-server $numThreads $sharedMemSize $master_ip $ip_addr &"
-bin/pdb-server $numThreads $sharedMemSize $master_ip $ip_addr &
+nohup bin/pdb-server $numThreads $sharedMemSize $master_ip $ip_addr  >> log.out 2>&1 < /dev/null &
