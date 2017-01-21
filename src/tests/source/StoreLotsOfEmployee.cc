@@ -52,7 +52,7 @@ int main(int argc, char * argv[]) {
 	std::string setName("chris_set");
 
 	int numOfElementInsideTheObject = 10;
-	int numOfObjects = 10000;
+	int numOfObjects = 1000000;
 
 	if (argc > 1) {
 		numOfObjects = atoi(argv[1]);
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
 			pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (i), i + 45);
 			storeMe->push_back (myData);
 
-			std :: cout << "In Allocator are currently " << getNumObjectsInCurrentAllocatorBlock () << " objects.\n";
+//			std :: cout << "In Allocator are currently " << getNumObjectsInCurrentAllocatorBlock () << " objects.\n";
 
 			if(storeMe->size()!=0) {
 				if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
@@ -110,6 +110,7 @@ int main(int argc, char * argv[]) {
 		if(i%100==0) {
 
 			auto end = std::chrono::high_resolution_clock::now();
+
 
 			std::cout << "Wrote Objects " << i ;
 			std::cout << " in " <<
