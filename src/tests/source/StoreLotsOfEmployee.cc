@@ -78,18 +78,21 @@ int main(int argc, char * argv[]) {
 
 	// This does not work with 1 MB memory
 	// But it works with 10MB memory.
-	pdb::makeObjectAllocatorBlock((size_t) 1 * MB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 100 * KB, true);
 
 	// for timing
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	for (int i = 0; i < numOfObjects; i++) {
 
+
 		pdb::Handle<pdb::Vector<pdb::Handle<Employee>>>storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <Employee>>> ();
 
 		try {
 			pdb :: Handle <Employee> myData = pdb :: makeObject <Employee> ("Joe Johnson" + to_string (i), i + 45);
 			storeMe->push_back (myData);
+
+			std :: cout << "In Allocator are currently " << getNumObjectsInCurrentAllocatorBlock () << " objects.\n";
 
 			if(storeMe->size()!=0) {
 				if (!conn.storeData <Employee> (storeMe, databaseName, setName, errMsg, false)) {
@@ -102,6 +105,7 @@ int main(int argc, char * argv[]) {
 			// Because we store small size of data, this should never happen.
 			std::cout << "This should never happen. NotEnoughSpace  " << endl;
 		}
+
 
 		if(i%100==0) {
 
