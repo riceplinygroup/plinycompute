@@ -202,7 +202,7 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 	// at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
 	for (unsigned int i = 31 - numLeadingZeros; i < 32; i++) {
 		int len = myState.chunks[i].size ();
-		for (unsigned int j = len - 1; j == 0; j--) {
+		for (int j = len - 1; j >= 0; j--) {
 			if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
 				void *returnVal = myState.chunks[i][j];
 				myState.chunks[i].erase (myState.chunks[i].begin () + j);
