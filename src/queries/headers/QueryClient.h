@@ -34,6 +34,8 @@ class QueryClient {
 
 public:
 
+        QueryClient() {}
+
 	// connect to the database
 	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, int useScheduler=false) : myHelper (portIn, addressIn, myLoggerIn) {
 		port = portIn;
@@ -190,6 +192,10 @@ public:
                  }
          
 	}
+
+        void setUseScheduler(bool useScheduler) {
+                this->useScheduler = useScheduler;
+        }
 
 private:
 
