@@ -76,8 +76,8 @@ int main(int argc, char * argv[]) {
 		std::cout << "Created set.\n";
 	}
 
-	// This does not work with 1 MB memory
-	// But it works with 10MB memory.
+	// This does not work with 100 KB memory
+	// But it works with 1 MB or more memory.
 	pdb::makeObjectAllocatorBlock((size_t) 100 * KB, true);
 
 	// for timing
