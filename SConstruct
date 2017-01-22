@@ -112,9 +112,12 @@ def scanClassNames(includes):
 				yield (m.group ())[1:-1]
 
 def extractCode (common_env, targets, sources, extra_includes=[], extra_classes=[]):
+    # Sort the class names so that we have consistent type ids
+	scanned = list(scanClassNames(sources))
+	scanned.sort()
 	writeFiles(
 		includes=map(path.abspath, list(extra_includes)) + sources,
-		classes=list(extra_classes) + list(scanClassNames(sources)))
+		classes=list(extra_classes) + scanned)
 
 # here we get a list of all of the .h files in the 'headers' directory
 from os import listdir
