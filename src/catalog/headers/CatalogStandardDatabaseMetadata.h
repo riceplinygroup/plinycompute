@@ -31,6 +31,7 @@
 #include <map>
 
 #include<CatalogStandardPermissionsMetadata.h>
+#include "PDBDebug.h"
 
 using namespace std;
 
@@ -159,7 +160,6 @@ class CatalogStandardDatabaseMetadata {
 
         // Contains information about nodes in the cluster with data for a given database
         vector< string > listOfNodes;
-//        Vector <string> listOfNodes;
 
         // Contains information about sets in the cluster containing data for a given database
         // this might change, check with Jia if this is needed or not

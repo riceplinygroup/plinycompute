@@ -61,12 +61,13 @@ public:
 	// this uses the name of the object to find the corresponding identifier
 	int16_t searchForObjectTypeName (std :: string objectTypeName);
 
-	// this downloads the shared library assoicated with the identifier, putting it at the specified location
+	// retrieves the content of a Shared Library given it's Type Id
 	bool getSharedLibrary (int16_t identifier, std :: string objectFile);	
 
-    // this downloads the shared library assoicated with the string typeName, putting it at the specified location
-	// this is needed by a remote node that has no knowledge of the typeID
-    bool getSharedLibraryByName (int16_t identifier,
+    // retrieves the content of a Shared Library along with its registered metadata,
+	// given it's typeName. Typically this method is invoked by a remote node that
+	// has no knowledge of the typeID
+    bool getSharedLibraryByTypeName (int16_t identifier,
                                  std :: string& typeName,
                                  std :: string objectFile,
                                  vector <char> &putResultHere,
@@ -78,8 +79,8 @@ public:
 	// returns true on success, false on fail
 	bool registerType (std :: string fileContainingSharedLib, std :: string &errMsg);
 
-        // shuts down the server that we are connected to... returns true on success
-        bool shutDownServer (std :: string &errMsg);
+    // shuts down the server that we are connected to... returns true on success
+    bool shutDownServer (std :: string &errMsg);
 
 	// this returns the type of object in the specified set, as a type name; returns "" on err
 	std :: string getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg);

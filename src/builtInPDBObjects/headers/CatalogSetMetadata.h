@@ -39,7 +39,7 @@ namespace pdb {
     class CatalogSetMetadata : public Object {
         public:
 
-        CatalogSetMetadata(){
+        CatalogSetMetadata() {
         }
 
         CatalogSetMetadata(pdb :: String pdbSetIdIn, pdb :: String pdbSetKeyIn, pdb::String pdbSetNameIn,
@@ -53,7 +53,7 @@ namespace pdb {
             typeName(pdbTypeNameIn)
         {}
 
-        CatalogSetMetadata(const CatalogSetMetadata& pdbSetToCopy){
+        CatalogSetMetadata(const CatalogSetMetadata& pdbSetToCopy) {
             pdbSetId = pdbSetToCopy.pdbSetId;
             setKey = pdbSetToCopy.setKey;
             pdbSetName = pdbSetToCopy.pdbSetName;
@@ -63,7 +63,7 @@ namespace pdb {
             typeName = pdbSetToCopy.typeName;
         }
 
-        CatalogSetMetadata(const Handle<CatalogSetMetadata>& pdbSetToCopy){
+        CatalogSetMetadata(const Handle<CatalogSetMetadata>& pdbSetToCopy) {
             pdbSetId = pdbSetToCopy->pdbSetId;
             setKey = pdbSetToCopy->setKey;
             pdbSetName = pdbSetToCopy->pdbSetName;
@@ -73,10 +73,9 @@ namespace pdb {
             typeName = pdbSetToCopy->typeName;
         }
 
-
         void setValues(pdb :: String pdbSetIdIn, pdb :: String pdbSetKeyIn, pdb::String pdbSetNameIn,
                                       pdb::String pdbDatabaseIdIn, pdb::String pdbDatabaseNameIn, pdb::String pdbTypeIdIn,
-                                      pdb::String pdbTypeNameIn){
+                                      pdb::String pdbTypeNameIn) {
 
             pdbSetId = pdbSetIdIn;
             setKey = pdbSetKeyIn;
@@ -87,92 +86,75 @@ namespace pdb {
             typeName = pdbTypeNameIn;
         }
 
-        ~CatalogSetMetadata(){
+        ~CatalogSetMetadata() {
         }
 
         // The set ID is used as key for storing metadata
-        pdb :: String getItemKey(){
+        pdb :: String getItemKey() {
             return setKey;
         }
 
-        pdb :: String getItemId(){
+        pdb :: String getItemId() {
             return pdbSetId;
         }
 
-        pdb :: String getDBId(){
+        pdb :: String getDBId() {
             return pdbDatabaseId;
         }
 
-        pdb :: String getObjectTypeId(){
+        pdb :: String getObjectTypeId() {
             return typeId;
         }
 
 
-        pdb :: String getItemName(){
+        pdb :: String getItemName() {
             return pdbSetName;
         }
 
-        pdb :: String getDBName(){
+        pdb :: String getDBName() {
             return pdbDatabaseName;
         }
 
-        pdb :: String getObjectTypeName(){
+        pdb :: String getObjectTypeName() {
             return typeName;
         }
 
-        void setTypeName(pdb :: String &typeNameIn){
+        void setTypeName(pdb :: String &typeNameIn) {
             typeName = typeNameIn;
         }
 
-        void setDBName(pdb :: String &pdbDatabaseNameIn){
+        void setDBName(pdb :: String &pdbDatabaseNameIn) {
             pdbDatabaseName = pdbDatabaseNameIn;
         }
 
-        void setDBId(pdb :: String &dbIdIn){
+        void setDBId(pdb :: String &dbIdIn) {
             pdbDatabaseId = dbIdIn;
         }
 
-        void setTypeId(pdb :: String &typeIdIn){
+        void setTypeId(pdb :: String &typeIdIn) {
             typeId = typeIdIn;
         }
 
-        void setItemKey(pdb :: String &itemKeyIn){
+        void setItemKey(pdb :: String &itemKeyIn) {
             setKey = itemKeyIn;
         }
 
-        void setItemId(pdb :: String &itemIdIn){
+        void setItemId(pdb :: String &itemIdIn) {
             pdbSetId = itemIdIn;
         }
 
-        void setItemName(pdb :: String &itemNameIn){
+        void setItemName(pdb :: String &itemNameIn) {
             pdbSetName = itemNameIn;
         }
 
-        string printShort(){
+        string printShort() {
             string output;
             output = "   \nSet ";
             output.append(getItemId()).append(":").append(getItemKey().c_str()).append(" | in DB ").append(getDBId()).append(":").append(getDBName().c_str()).append(" | for type ").append(getObjectTypeId()).append(":").append(getObjectTypeName().c_str());
             return output;
         }
 
-        friend std::ostream& operator<<(std::ostream &out, CatalogSetMetadata &catalogSet) {
-            out << "\nCatalogSet Metadata"<< endl;
-            out << "-------------------"<< endl;
-    //        out << "      DB Id: " << catalogSet.getDBId() << endl;
-    //        out << "    DB name: " << catalogSet.getDBName() << endl;
-    //        out << "     Set Id: " << catalogSet.getItemId() << endl;
-    //        out << "    Set Key: " << catalogSet.getItemKey() << endl;
-    //        out << "   Set Name: " << catalogSet.getItemName() << endl;
-    //        out << "    Type Id: " << catalogSet.getObjectTypeId() << endl;
-    //        out << "  Type Name: " << catalogSet.getObjectTypeName() << endl;
-            out << "-------------------\n"<< endl;
-           return out;
-       }
-
-            // overloads << operator
-//            friend std::ostream& operator<<(std::ostream &out, CatalogSetMetadata &catalogSet);
-
-            ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
         private:
             pdb :: String pdbSetId;
@@ -187,7 +169,5 @@ namespace pdb {
     };
 
 } // namespace
-
-//#include "CatalogSetMetadata.cc"
 
 #endif /* CATALOG_SET_METADATA_H_ */

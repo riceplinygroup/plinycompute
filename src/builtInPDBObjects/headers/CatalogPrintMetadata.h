@@ -54,8 +54,6 @@ namespace pdb {
             return itemName;
         }
 
-
-
         ENABLE_DEEP_COPY
 
     private:

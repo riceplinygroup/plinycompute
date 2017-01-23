@@ -52,7 +52,7 @@ namespace pdb {
 
         ENABLE_DEEP_COPY
 
-        CatalogUserTypeMetadata(){
+        CatalogUserTypeMetadata() {
 
         }
 
@@ -68,7 +68,7 @@ namespace pdb {
             libraryBytes(libraryBytesIn)
         {}
 
-        CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy){
+        CatalogUserTypeMetadata(const CatalogUserTypeMetadata& pdbCatalogEntryToCopy) {
             itemId = pdbCatalogEntryToCopy.itemId;
             objectID = pdbCatalogEntryToCopy.objectID;
             objectType = pdbCatalogEntryToCopy.objectType;
@@ -76,7 +76,7 @@ namespace pdb {
             libraryBytes = pdbCatalogEntryToCopy.libraryBytes;
         }
 
-        CatalogUserTypeMetadata(const Handle<CatalogUserTypeMetadata>& pdbCatalogEntryToCopy){
+        CatalogUserTypeMetadata(const Handle<CatalogUserTypeMetadata>& pdbCatalogEntryToCopy) {
             itemId = pdbCatalogEntryToCopy->itemId;
             objectID = pdbCatalogEntryToCopy->objectID;
             objectType = pdbCatalogEntryToCopy->objectType;
@@ -84,65 +84,63 @@ namespace pdb {
             libraryBytes = pdbCatalogEntryToCopy->libraryBytes;
         }
 
-
-        ~CatalogUserTypeMetadata(){
+        ~CatalogUserTypeMetadata() {
         }
 
-
-        pdb :: String getItemKey(){
+        pdb :: String getItemKey() {
             return objectName;
         }
 
-        pdb :: String getItemId(){
+        pdb :: String getItemId() {
             return itemId;
         }
 
-        pdb :: String getObjectID(){
+        pdb :: String getObjectID() {
             return objectID;
         }
 
-        pdb :: String getObjectType(){
+        pdb :: String getObjectType() {
             return objectType;
         }
 
-        pdb :: String getItemName(){
+        pdb :: String getItemName() {
             return objectName;
         }
 
-        pdb :: String getLibraryBytes(){
+        pdb :: String getLibraryBytes() {
             return libraryBytes;
         }
 
-
-        void setObjectId(pdb :: String &objectIdIn){
+        void setObjectId(pdb :: String &objectIdIn) {
             objectID = objectIdIn;
         }
 
-        void setItemId(pdb :: String &itemIdIn){
+        void setItemId(pdb :: String &itemIdIn) {
             itemId = itemIdIn;
         }
 
-        void setItemKey(pdb :: String &itemKeyIn){
+        void setItemKey(pdb :: String &itemKeyIn) {
             objectName = itemKeyIn;
         }
 
-        void setItemName(pdb :: String &itemIdIn){
+        void setItemName(pdb :: String &itemIdIn) {
             objectName = itemIdIn;
         }
 
-        void setLibraryBytes(pdb :: String &bytesIn){
+        void setLibraryBytes(pdb :: String &bytesIn) {
             libraryBytes = bytesIn;
         }
+
         void setLibraryBytes(std :: string bytesIn) {
             libraryBytes = bytesIn;
         }
-        string printShort(){
+
+        string printShort() {
             string output;
             output = "   Type ID: ";
             output.append(getObjectID().c_str()).append(" | Type Name: ").append(getItemName().c_str());
             return output;
         }
-
 
         friend std::ostream& operator<<(std::ostream &out, CatalogUserTypeMetadata &userDefinedObject) {
             out << "\nCatalog User-defined Type Metadata"<< endl;
@@ -153,8 +151,6 @@ namespace pdb {
             out << "-------------------\n"<< endl;
            return out;
        }
-
-
 
     private:
         // numeric index to indicate the position on the vector
@@ -171,7 +167,5 @@ namespace pdb {
     };
 
 } /* namespace pdb */
-
-//#include "CatalogUserTypeMetadata.cc"
 
 #endif /* CATALOG_USER_TYPE_METADATA_H_ */

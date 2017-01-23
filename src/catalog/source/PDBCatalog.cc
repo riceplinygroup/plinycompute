@@ -25,7 +25,8 @@
 #include "PDBCatalog.h"
 
     template<>
-    bool PDBCatalog::addItemToVector<CatalogDatabaseMetadata>(Handle<CatalogDatabaseMetadata> &item, int &key) {
+    bool PDBCatalog::addItemToVector<CatalogDatabaseMetadata>(Handle<CatalogDatabaseMetadata> &item,
+                                                              int &key) {
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
         dbsValues->push_back(*item);
@@ -55,7 +56,8 @@
 
         auto end = std :: chrono :: high_resolution_clock :: now();
 
-        this->logger->debug("----->Time Duration for SET addItemToVector:\t " + std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
+        this->logger->debug("----->Time Duration for SET addItemToVector:\t " +
+            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
         return true;
     }
@@ -116,9 +118,6 @@
         for (int i=0; i< (*setValues).size(); i++) {
             if ((*item).getItemKey() != (*setValues)[i].getItemKey()) {
                 tempContainter->push_back((*setValues)[i]);
-//                cout << "Keeping Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
-            } else {
-//                cout << "Deleting Set in Vector " << (*setValues)[i].getItemKey().c_str() << endl;
             }
         }
         (*setValues).clear();
@@ -133,9 +132,6 @@
         for (int i=0; i< (*nodesValues).size(); i++){
             if ((*item).getItemKey() != (*nodesValues)[i].getItemKey()) {
                 tempContainter->push_back((*nodesValues)[i]);
-//                cout << "Deleting node in Vector " << (*item).getItemKey().c_str() << endl;
-            } else {
-//                cout << "Keeping node in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*nodesValues).clear();
@@ -150,9 +146,6 @@
         for (int i=0; i< (*dbsValues).size(); i++) {
             if ((*item).getItemKey() != (*dbsValues)[i].getItemKey()) {
                 tempContainter->push_back((*dbsValues)[i]);
-//                cout << "Deleting DB in Vector " << (*item).getItemKey().c_str() << endl;
-            } else {
-//                cout << "Keeping DB in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*dbsValues).clear();
@@ -167,9 +160,6 @@
         for (int i=0; i< (*udfsValues).size(); i++) {
             if ((*item).getItemKey() != (*udfsValues)[i].getItemKey()) {
                 tempContainter->push_back((*udfsValues)[i]);
-//                cout << "Deleting udf in Vector " << (*item).getItemKey().c_str() << endl;
-            } else {
-//                cout << "Keeping udf in Vector " << (*item).getItemKey().c_str() << endl;
             }
         }
         (*udfsValues).clear();
@@ -185,8 +175,6 @@
     }
 
     PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
-        //JiaNote: it's unsafe to use makeObjectAllocatorBlock in server functionality!! We should use UseTemporaryAllocationBlock
-        //pdb::makeObjectAllocatorBlock (1024 * 1024 * 128, true);
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
         pdb :: UseTemporaryAllocationBlock (1024 * 1024 * 128);
@@ -207,7 +195,7 @@
         else this->logger->debug("Folder " + tempPath + " was not created, it already exists.");
 
         // TODO remove unused containers!!
-        // allocates memory for catalog metadata
+
         listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
 
         nodesValues = makeObject<Vector<CatalogNodeMetadata>>();
@@ -217,36 +205,35 @@
 
         catalogContents = makeObject<Map<String, Handle<Vector<Object>>>>();
 
-
         // Populates a map to convert strings from PDBObject names to SQLite table names
         // in order to create query strings
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBNode,
-                                                   "pdb_node"));
+                                         "pdb_node"));
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBDatabase,
-                                                   "pdb_database"));
+                                         "pdb_database"));
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBSet,
-                                                   "pdb_set"));
+                                         "pdb_set"));
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBUser,
-                                                   "pdb_user"));
+                                         "pdb_user"));
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBPermissions,
-                                                   "pdb_user_permission"));
+                                         "pdb_user_permission"));
         mapsPDBOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject,
-                                                   "data_types"));
+                                         "data_types"));
 
         // Populates a map to convert strings from Vector<PDBOjbect> names to SQLite table names
         // in order to create query strings
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBNode,
-                                                        "pdb_node"));
+                                              "pdb_node"));
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBDatabase,
-                                                        "pdb_database"));
+                                              "pdb_database"));
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBSet,
-                                                        "pdb_set"));
+                                              "pdb_set"));
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBUser,
-                                                        "pdb_user"));
+                                              "pdb_user"));
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBPermissions,
-                                                        "pdb_user_permission"));
+                                              "pdb_user_permission"));
         mapsPDBArrayOjbect2SQLiteTable.insert(make_pair(PDBCatalogMsgType::CatalogPDBRegisteredObject,
-                                                        "data_types"));
+                                              "data_types"));
 
         auto end = std :: chrono :: high_resolution_clock :: now();
         this->logger->debug("----->Time Duration for PDBCatalog constructor:\t " +
@@ -322,44 +309,51 @@
                                   SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_URI | SQLITE_OPEN_FULLMUTEX,
                                   NULL)) == SQLITE_OK) {
 
-            // Tables are created with primary key on the .so files to avoid
-            // duplicating entries.
             query = std :: chrono :: high_resolution_clock :: now();
+            // These two SQLite flags optimize insertions/deletions/updates to the tables by buffering
+            // data prior to writing to disk
             sqlite3_exec(sqliteDBHandler, "PRAGMA synchronous=OFF" , NULL, NULL, NULL);
             sqlite3_exec(sqliteDBHandler, "PRAGMA journal_mode=memory" , NULL, NULL, NULL);
 
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS data_types (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS metrics (itemID TEXT, itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_node (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_database (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_set (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
-            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user_permission (itemID TEXT PRIMARY KEY, itemInfo BLOB, timeStamp INTEGER);");
+            // Create tables if they don't exist, they are created with primary key to prevent duplicates
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS data_types (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS metrics (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, soBytes BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_node (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_database (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_set (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, timeStamp INTEGER);");
+            catalogSqlQuery("CREATE TABLE IF NOT EXISTS pdb_user_permission (itemID TEXT PRIMARY KEY, "
+                            "itemInfo BLOB, timeStamp INTEGER);");
 
             load = std :: chrono :: high_resolution_clock :: now();
 
             // Loads into memory all metadata so the CatalogServer can access them
             loadsMetadataIntoMemory();
 
-            this->logger->debug("Database catalog successfully open.");
+            PDB_COUT << "Database catalog successfully open." << endl;
 
-            this->logger->debug(" *********Print Metadata ");
-            //testCatalogPrint();
-            this->logger->debug(" *********Print Metadata ");
+            PDB_COUT << " *********Print Metadata " << endl;
+            PDB_COUT << " *********Print Metadata " << endl;
 
         }else{
             //cout << "EXISTS!!! " << endl;
         }
-        auto end = std :: chrono :: high_resolution_clock :: now();
-        this->logger->debug("Time Duration for PDBCatalog open SQLite:\t " +
-            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(query-begin).count()) + " secs.");
-        this->logger->debug("Time Duration for PDBCatalog sqlite CREATES/OPENS:\t " +
-            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(load-query).count()) + " secs.");
-        this->logger->debug("Time Duration for PDBCatalog loads in memory includes selects in SQLite:\t " +
-            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-load).count()) + " secs.");
-        this->logger->debug("Time Duration for PDBCatalog open:\t " +
-            std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) + " secs.");
 
+        auto end = std :: chrono :: high_resolution_clock :: now();
+        PDB_COUT << "Time Duration for open SQLite:\t " <<
+        std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(query-begin).count()) << " secs." << endl;
+        PDB_COUT << "Time Duration for sqlite CREATES/OPENS:\t " <<
+        std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(load-query).count()) << " secs." << endl;
+        PDB_COUT << "Time Duration for loads in memory includes selects in SQLite:\t " <<
+        std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-load).count()) << " secs." << endl;
+        PDB_COUT << "Time Duration for open:\t " <<
+        std::to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) << " secs." << endl;
     }
 
     void PDBCatalog::loadsMetadataIntoMemory() {
@@ -369,7 +363,7 @@
         // an empty string lists all entries in a given category
         string emptyString("");
 
-        // retrieves metadata from the sqlite DB and populates containers
+        // retrieves metadata from the SQLite DB and populates containers
         if (getMetadataFromCatalog(false, emptyString, nodesValues,
                                    errorMessage,
                                    PDBCatalogMsgType::CatalogPDBNode) == false) this->logger->debug(errorMessage);
@@ -394,28 +388,31 @@
 
             (*catalogContents)[String("udfs")] = unsafeCast<Vector<Object>>(udfsValues);
 
-            // TODO document this
             // populates maps
             for (int i=0; i < (*dbsValues).size(); i++) {
-                this->logger->debug("RETRIEVING db " + string((*dbsValues)[i].getItemKey()) + " | " + string((*dbsValues)[i].getItemName()));
+                this->logger->debug("RETRIEVING db " + string((*dbsValues)[i].getItemKey()) + " | "
+                    + string((*dbsValues)[i].getItemName()));
                 dbsResult.insert(make_pair((*dbsValues)[i].getItemName().c_str(), (*dbsValues)[i]));
 
             }
             for (int i=0; i < (*setValues).size(); i++) {
-                this->logger->debug("RETRIEVING set " + string((*setValues)[i].getItemKey()) + " | " + string((*setValues)[i].getItemName()));
+                this->logger->debug("RETRIEVING set " + string((*setValues)[i].getItemKey()) + " | "
+                    + string((*setValues)[i].getItemName()));
                 setsResult.insert(make_pair((*setValues)[i].getItemKey().c_str(), (*setValues)[i]));
             }
             for (int i=0; i < (*nodesValues).size(); i++) {
-                this->logger->debug("RETRIEVING node " + string((*nodesValues)[i].getItemKey()) + " | " + string((*nodesValues)[i].getNodeIP()));
+                this->logger->debug("RETRIEVING node " + string((*nodesValues)[i].getItemKey()) + " | "
+                    + string((*nodesValues)[i].getNodeIP()));
                 nodesResult.insert(make_pair((*nodesValues)[i].getItemKey().c_str(), (*nodesValues)[i]));
             }
             for (int i=0; i < (*udfsValues).size(); i++) {
-                this->logger->debug("RETRIEVING TYPE " + string((*udfsValues)[i].getObjectID()) + " | " + string((*udfsValues)[i].getItemName()));
+                this->logger->debug("RETRIEVING TYPE " + string((*udfsValues)[i].getObjectID()) + " | "
+                    + string((*udfsValues)[i].getItemName()));
                 udfsResult.insert(make_pair((*udfsValues)[i].getItemName().c_str(), (*udfsValues)[i]));
             }
 
         } else {
-            this->logger->debug(errorMessage);
+            PDB_COUT << errorMessage << endl;
         }
 
         cout << "=========================================" << endl;
@@ -455,11 +452,6 @@
             }
 
         }
-
-//        (*catalogContents)[String("nodes")] = unsafeCast<Vector<Object>>(nodesValues);
-//        (*catalogContents)[String("sets")] = unsafeCast<Vector<Object>>(setValues);
-//        (*catalogContents)[String("dbs")] = unsafeCast<Vector<Object>>(dbsValues);
-//        (*catalogContents)[String("udfs")] = unsafeCast<Vector<Object>>(udfsValues);
     }
 
 
@@ -489,15 +481,15 @@
         if (getMetadataFromCatalog(true, dateAsString, _udfsValues,
                                    errorMessage,
                                    PDBCatalogMsgType::CatalogPDBRegisteredObject) == true) {
-            // TODO document this
-            // populates certain metadata
+
             for (int i=0; i < (*_udfsValues).size(); i++) {
-                this->logger->debug("RETRIEVING TYPE " + string((*_udfsValues)[i].getItemName()) + " | " + string((*_udfsValues)[i].getObjectID()) + "\n");
+                PDB_COUT << "RETRIEVING TYPE " << string((*_udfsValues)[i].getItemName()) << " | "
+                         << string((*_udfsValues)[i].getObjectID()) << endl;
                 udfsResult.insert(make_pair((*_udfsValues)[i].getItemName().c_str(), (*_udfsValues)[i]));
             }
 
         } else {
-            this->logger->debug(errorMessage);
+            PDB_COUT << errorMessage << endl;
         }
 
         cout << "=========================================" << endl;
@@ -571,33 +563,6 @@
         }
     }
 
-    // TODO review and clean this
-    bool PDBCatalog::loadRegisteredObject(string typeName, string typeOfObject,
-                                          string fileName, string &errorMessage) {
-        bool success = false;
-        int metadataCategory = (int)PDBCatalogMsgType::CatalogPDBRegisteredObject;
-        string id = itemName2ItemId(metadataCategory, typeName);
-        string soFileBytes;
-        string returnedBytes;
-
-        Handle <CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
-
-        success = retrievesDynamicLibrary(typeName,
-                                          typeOfObject,
-                                          typeMetadata,
-                                          returnedBytes,
-                                          soFileBytes,
-                                          errorMessage);
-
-        if (success==true) {
-            success = getRegisteredObject((int16_t)std::atoi(id.c_str()), typeName, typeOfObject, fileName, errorMessage);
-        } else {
-            errorMessage = "error retrieving " + typeName + "\n";
-        }
-        return success;
-    }
-
-    //TODO keep only the vector
     template<class CatalogMetadataType>
     bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
                                             string key,
@@ -693,7 +658,9 @@
         uint8_t *serializedBytes = NULL;
 
         string queryString("");
-        queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
+        queryString = "INSERT INTO " + tableName + " (itemID, itemInfo, soBytes, timeStamp) "
+                      "VALUES(?, ?, ?, strftime('%s', 'now', 'localtime'))";
+
         PDB_COUT << "QueryString = " << queryString << endl;
 
         int rc = sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1, &stmt, NULL);
@@ -717,7 +684,7 @@
             String tableToRegister = String(tableName);
             String typeToRegister = String(typeName);
 
-            // Sets pbject ID prior to serialization
+            // Sets object ID prior to serialization
             objectToRegister->setItemId(newObjectIndex);
             objectToRegister->setObjectId(idToRegister);
             objectToRegister->setItemKey(typeToRegister);
@@ -735,20 +702,11 @@
             this->logger->debug("size soBytesSize  " + std::to_string(soBytesSize));
 
             rc = sqlite3_bind_text(stmt, 1, typeToRegister.c_str(), -1, SQLITE_STATIC);
-
-//                cout << "Received item key " << objectToRegister->getItemKey() << endl;
-//                cout << "Received item id " << objectToRegister->getItemId() << endl;
-//                cout << "Received item name " << objectToRegister->getItemName() << endl;
-//                cout << "Received item type " << objectToRegister->getObjectType() << endl;
-//                cout << "Received item file " << objectToRegister->getFileName() << endl;
-//                cout << "Received item # bytes " << objectToRegister->getLibraryBytes().length() << endl;
-
             rc = sqlite3_bind_blob(stmt, 2, serializedBytes, metadataBytes->numBytes(), SQLITE_STATIC);
             rc = sqlite3_bind_blob(stmt, 3, objectBytes.c_str(), soBytesSize, SQLITE_STATIC);
 
-
+            // Inserts newly added object into containers
             addItemToVector(objectToRegister, totalRegisteredTypes);
-            // Inserts newly added object into maps, if they are new adds them, otherwise returns error message
             pair<map<string, Object>::iterator, bool> result;
             pair<map<int16_t, Object>::iterator, bool> result2;
 
@@ -831,13 +789,12 @@
 
     void PDBCatalog::unregisterPDBObject (string unregisterMe) {}
 
-    // Retrieves an .so library file stored as BLOB from the catalog
+    // Retrieves a Shared Library file stored as BLOB in SQLite
     // and writes it into a temporary folder/file so it can be loaded using
     // dlopen.
     bool PDBCatalog::retrievesDynamicLibrary(string itemId,
                                         string tableName,
                                         Handle<CatalogUserTypeMetadata> &returnedItem,
-                                        string &objectBytes,
                                         string &returnedSoLibrary,
                                         string &errorMessage) {
 
@@ -848,16 +805,13 @@
 
         errorMessage = "";
 
-        // First we get the name of the file given the full path of the .so library
-//        string onlyFileName = fileName.substr(fileName.find_last_of("/\\")+1);
-
         string query = "SELECT itemID, itemInfo, soBytes FROM " + tableName + " where itemID = ?;";
-        this->logger->debug("query: " + query + " " + itemId);
+        PDB_COUT << "query: " << query << " " << itemId << endl;
         if (sqlite3_prepare_v2(sqliteDBHandler, query.c_str(), -1, &pStmt, NULL) != SQLITE_OK) {
             errorMessage = "Error query not well formed: " + (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
 
             sqlite3_reset(pStmt);
-            this->logger->debug(errorMessage);
+            PDB_COUT << errorMessage << endl;
             pthread_mutex_unlock(&registerMetadataMutex);
             return false;
         }
@@ -867,7 +821,7 @@
         if( sqlite3_step(pStmt) !=SQLITE_ROW ) {
             errorMessage = "Error item not found in database: "+ (string)sqlite3_errmsg(sqliteDBHandler) + "\n";
             sqlite3_reset(pStmt);
-            this->logger->debug(errorMessage);
+            PDB_COUT << errorMessage << endl;
 
             pthread_mutex_unlock(&registerMetadataMutex);
             return false;
@@ -879,7 +833,7 @@
         
         //JiaNote: we should check whether malloc is successful!
         if (recordBytes == nullptr) {
-            std :: cout << "FATAL ERROR: Out of memory!" << std :: endl;
+            PDB_COUT << "FATAL ERROR: Out of memory!" << std :: endl;
 
             pthread_mutex_unlock(&registerMetadataMutex);
             exit (-1);
@@ -894,7 +848,7 @@
         returnedItem = deepCopyToCurrentAllocationBlock<CatalogUserTypeMetadata>(returnedObject);
 
         if (returnedItem == nullptr) {
-            std :: cout << "FATAL ERROR: Corrupted CatalogUserTypeMetadata!" << std :: endl;
+            PDB_COUT <<  "FATAL ERROR: Corrupted CatalogUserTypeMetadata!" << std :: endl;
 
             pthread_mutex_unlock(&registerMetadataMutex);
             free(recordBytes);
@@ -902,9 +856,9 @@
         }
 
 
-        this->logger->debug("Metadata created for item " + string(returnedItem->getItemId()));
-        this->logger->debug("Metadata created for item " + string(returnedItem->getItemKey()));
-        this->logger->debug("file size= " + std::to_string(numBytes));
+        PDB_COUT << "Metadata created for item " << string(returnedItem->getItemId()) << endl;
+        PDB_COUT << "Metadata created for item " << string(returnedItem->getItemKey()) << endl;
+        PDB_COUT << "file size= " + std::to_string(numBytes) << endl;
 
         // retrieves the bytes for the .so library
         numBytes = sqlite3_column_bytes(pStmt, 2);
@@ -914,7 +868,7 @@
         returnedSoLibrary = string(buffer, numBytes);
         delete [] buffer;
 
-        this->logger->debug("buffer bytes size " + std::to_string(returnedSoLibrary.size()));
+        PDB_COUT << "buffer bytes size " + std::to_string(returnedSoLibrary.size()) << endl;
 
         sqlite3_reset(pStmt);
         sqlite3_blob_close(pBlob);
@@ -981,7 +935,8 @@
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
 
-        string sqlStatement = "INSERT INTO " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " (itemID, itemInfo, timeStamp) VALUES (?, ?, strftime('%s', 'now', 'localtime'))";
+        string sqlStatement = "INSERT INTO " + mapsPDBOjbect2SQLiteTable[metadataCategory] +
+                              " (itemID, itemInfo, timeStamp) VALUES (?, ?, strftime('%s', 'now', 'localtime'))";
 
 
         // gets the size of the container for a given type of metadata and
@@ -1070,7 +1025,8 @@
 
         bool isSuccess = false;
         sqlite3_stmt *stmt = NULL;
-        string sqlStatement = "UPDATE " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
+        string sqlStatement = "UPDATE " + mapsPDBOjbect2SQLiteTable[metadataCategory] +
+                              " set itemInfo =  ?, timeStamp = strftime('%s', 'now', 'localtime') where itemId = ?";
 
         this->logger->debug(sqlStatement +" id: " +  metadataKey.c_str());
 
@@ -1100,7 +1056,7 @@
             isSuccess = false;
         }
 
-        this->logger->writeLn(errorMessage);
+        PDB_COUT << errorMessage << endl;
 
         // Runs the update statement
         if (catalogSqlStep(stmt, errorMessage)) {
@@ -1109,14 +1065,13 @@
 
             updateItemInVector(metadataIndex, metadataValue);
             //TODO remove this couts, used for debugging only
-            this->logger->debug("Metadata for the following item has been updated:" + metadataValue->printShort());
+            PDB_COUT << "Metadata for the following item has been updated:" << metadataValue->printShort() << endl;
 
             isSuccess = true;
         } else {
             errorMessage = "Cannot update item in Catalog";
-            this->logger->writeLn(errorMessage);
         }
-        this->logger->writeLn(errorMessage);
+        PDB_COUT << errorMessage << endl;
 
         sqlite3_finalize(stmt);
 
@@ -1152,12 +1107,12 @@
         sqlite3_stmt *stmt = NULL;
         string sqlStatement = "DELETE from " + mapsPDBOjbect2SQLiteTable[metadataCategory] + " where itemId = ?";
 
-        this->logger->debug(sqlStatement + " id: " + metadataKey.c_str());
+        PDB_COUT << sqlStatement << " id: " << metadataKey.c_str() << endl;
 
         // Prepares statement
         if ((sqlite3_prepare_v2(sqliteDBHandler,sqlStatement.c_str(),-1, &stmt, NULL)) != SQLITE_OK) {
             errorMessage = "Prepared statement failed. " + (string)sqlite3_errmsg(sqliteDBHandler);
-            this->logger->writeLn(errorMessage);
+            PDB_COUT << errorMessage << endl;
             isSuccess = false;
         }
 
@@ -1167,23 +1122,21 @@
             isSuccess = false;
         }
 
-        this->logger->writeLn(errorMessage);
+        PDB_COUT << errorMessage << endl;
 
         // Runs the update statement
         if (catalogSqlStep(stmt, errorMessage)) {
             // if sqlite update goes well, updates container
             deleteItemInVector(metadataIndex, metadataValue);
             isSuccess = true;
-
         } else {
             errorMessage = "Cannot delete item in Catalog";
-            this->logger->writeLn(errorMessage);
         }
-        this->logger->writeLn(errorMessage);
+        PDB_COUT << errorMessage << endl;
 
         sqlite3_finalize(stmt);
 
-        this->logger->debug("Updating " + (*metadataValue).printShort());
+        PDB_COUT << "Updating " << (*metadataValue).printShort() << endl;
 
         pthread_mutex_unlock(&(registerMetadataMutex));
         return isSuccess;
@@ -1449,8 +1402,6 @@
 //        nodesInCatalog = nodesValues;
     }
 
-
-    //TODO remove these implicit instantiations and add and include at the bottom of the h file
     // Add implicit instantiation of all possible types the method
     // will ever use.
     template bool PDBCatalog::addMetadataToCatalog<CatalogNodeMetadata>(pdb :: Handle<CatalogNodeMetadata> &metadataValue,
