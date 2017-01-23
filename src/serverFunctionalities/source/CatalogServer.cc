@@ -215,7 +215,8 @@ namespace pdb {
                 std :: string errMsg;
                 int16_t typeID = request->getTypeID ();
 
-                PDB_COUT << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID=" << std :: to_string(typeID) << endl;
+                PDB_COUT << "CatalogServer to handle CatSharedLibraryRequest to get shared library for typeID="
+                         << std :: to_string(typeID) << endl;
 
                 // retrieves the .so library
                 bool res = getFunctionality <CatalogServer> ().getSharedLibrary (typeID, (*putResultHere), errMsg);
@@ -264,9 +265,6 @@ namespace pdb {
                 PDB_COUT << "Triggering Handler CatalogServer CatSharedLibraryByNameRequest for typeName=" << typeName
                          << " and typeId=" << std :: to_string(typeId) << endl;
 
-                // ask the catalog serer for the shared library
-                // added by Jia to test a length error bug
-                vector <char> * putResultHere = new vector<char>();
                 bool res = false;
                 string returnedBytes;
                 std :: string errMsg;
@@ -302,12 +300,10 @@ namespace pdb {
                         PDB_COUT << "Resolved typeName " << typeName << "  for typeId=" + std::to_string(typeId) << endl;
 
                         // the type was found in the catalog, retrieves metadata and bytes of the Shared Library
-                        res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
-                                                                                          typeName,
-                                                                                          (*putResultHere),
-                                                                                          response,
-                                                                                          returnedBytes,
-                                                                                          errMsg);
+                        res = getFunctionality <CatalogServer> ().getSharedLibraryByTypeName(typeName,
+                                                                                             response,
+                                                                                             returnedBytes,
+                                                                                             errMsg);
 
                         getShared = std :: chrono :: high_resolution_clock :: now();
 
@@ -353,19 +349,24 @@ namespace pdb {
                         // and what matters is the returned bytes.
                         string dummyObjectFile = string("temp.so");
 
+                        // ask the catalog serer for the shared library
+                        // added by Jia to test a length error bug
+                        vector <char> * putResultHere = new vector<char>();
+
                         // retrieves from remote catalog the Shared Library bytes in "putsResultHere" and
                         // metadata in the "response" object
-                        res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByName(typeId,
-                                                                                              typeName,
-                                                                                              dummyObjectFile,
-                                                                                              (*putResultHere),
-                                                                                              response,
-                                                                                              returnedBytes,
-                                                                                              errMsg);
+                        res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByTypeName(typeId,
+                                                                                                      typeName,
+                                                                                                      dummyObjectFile,
+                                                                                                      (*putResultHere),
+                                                                                                      response,
+                                                                                                      returnedBytes,
+                                                                                                      errMsg);
 
                         getShared = std :: chrono :: high_resolution_clock :: now();
 
                         PDB_COUT << "     Bytes returned NOT isMaster: " << std :: to_string(returnedBytes.size()) << endl;
+                        PDB_COUT << " Num bytes in putResultHere " << std :: to_string((*putResultHere).size()) << endl;
 
                         // if the library was successfully retrieved, go ahead and resolve vtable fixing
                         // in the local catalog, given the library and metadata retrieved from the remote Master Catalog
@@ -373,6 +374,7 @@ namespace pdb {
                             res = getFunctionality <CatalogServer> ().addObjectType (typeId, *putResultHere, errMsg);
                         }
 
+                        delete putResultHere;
                         addObject = std :: chrono :: high_resolution_clock :: now();
 
                         if (!res) {
@@ -427,12 +429,10 @@ namespace pdb {
 
                         // retrieves from local catalog the Shared Library bytes in "putsResultHere" and metadata
                         // in the "response" object
-                        res = getFunctionality <CatalogServer> ().getSharedLibraryByName (typeId,
-                                                                                          typeName,
-                                                                                          (*putResultHere),
-                                                                                          response,
-                                                                                          returnedBytes,
-                                                                                          errMsg);
+                        res = getFunctionality <CatalogServer> ().getSharedLibraryByTypeName(typeName,
+                                                                                             response,
+                                                                                             returnedBytes,
+                                                                                             errMsg);
 
                         getShared = std :: chrono :: high_resolution_clock :: now();
 
@@ -457,9 +457,6 @@ namespace pdb {
                     } // end "if" type was found in local catalog or not
                 } // end "if" is Master or Local catalog case
 
-                PDB_COUT << " Num bytes in putResultHere " << std :: to_string((*putResultHere).size()) << endl;
-
-                delete putResultHere;
                 auto end = std :: chrono :: high_resolution_clock :: now();
 
                 PDB_COUT << "Time Duration for getShared:\t " <<
@@ -473,7 +470,7 @@ namespace pdb {
             }
         ));
 
-        // handles a request to retrieve the TypeId of an Type, if it's not registered returns -1
+        // handles a request to retrieve the TypeId of a Type, if it's not registered returns -1
         forMe.registerHandler (CatSetObjectTypeRequest_TYPEID, make_shared <SimpleRequestHandler <CatSetObjectTypeRequest>> (
             [&] (Handle <CatSetObjectTypeRequest> request, PDBCommunicatorPtr sendUsingMe) {
 
@@ -687,7 +684,9 @@ namespace pdb {
                 auto info = request->whichSet ();
 
                 // invokes remove node information from a Set in an existing Database
-                bool res = getFunctionality <CatalogServer> ().removeNodeFromSet (request->nodeToRemove(), request->whichDB(), request->whichSet(), errMsg);
+                bool res = getFunctionality <CatalogServer> ().removeNodeFromSet (request->nodeToRemove(),
+                                                                                  request->whichDB(), request->whichSet(),
+                                                                                  errMsg);
 
                 // make the response
                 const UseTemporaryAllocationBlock tempBlock{1024};
@@ -801,9 +800,9 @@ namespace pdb {
         return true;
     }
 
-    // retrieves the bytes of a Shared Library and its associated metadata
-    bool CatalogServer :: getSharedLibraryByName (int16_t identifier, std :: string typeName,
-                                                  vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata,
+    // retrieves the bytes of a Shared Library and its associated metadata, given its typeName
+    bool CatalogServer :: getSharedLibraryByTypeName (std :: string typeName,
+                                                  Handle <CatalogUserTypeMetadata> &itemMetadata,
                                                   string &returnedBytes, std :: string &errMsg) {
 
         PDB_COUT << " Catalog Server->inside get getSharedLibraryByName id for type " << typeName << endl;
@@ -815,31 +814,26 @@ namespace pdb {
 
         PDB_COUT << " id " << id << endl;
 
-        string soFileBytes;
-
         // data_types is used for retrieving User Defined Types
         string typeOfObject = "data_types";
 
-        // retrieves metadata and library bytes from the catalog
-        bool res = retrieveUserDefinedTypeMetadata(typeName,
-                                                   itemMetadata,
-                                                   returnedBytes,
-                                                   errMsg);
+        if (pdbCatalog->retrievesDynamicLibrary(typeName,
+                                                typeOfObject,
+                                                itemMetadata,
+                                                returnedBytes,
+                                                errMsg) == true) {
 
-        // the item was found
-        if (res == true){
             PDB_COUT << "Metadata returned at get SharedLibrary Id: " << string(itemMetadata->getItemId()) << endl;
             PDB_COUT << "Metadata returned at get SharedLibrary Key: " << string(itemMetadata->getItemKey()) << endl;
             PDB_COUT << "Bytes after string " << std :: to_string(returnedBytes.size()) << endl;
-            PDB_COUT << "bytes before putResultHere " << std :: to_string(putResultHere.size()) << endl;
-
-            // copy bytes to output parameter
-            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
+            return true;
         } else {
             PDB_COUT << "Item with key " << typeName <<  " was not found! " << endl;
+            return false;
         }
 
-        return res;
+            // copy bytes to output parameter Not needed anymore
+//            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
     }
 
     // returns the typeId of a Type given it's name, if not found returns -1
@@ -1017,8 +1011,9 @@ namespace pdb {
             broadcastCatalogDelete (setToRemove, updateResults, errMsg);
 
             for (auto &item : updateResults) {
-                PDB_COUT << "Set Metadata in node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Set Metadata in node IP: " << item.first
+                         << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
 
             // map to capture the results of broadcasting the DB update
@@ -1029,8 +1024,9 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
             for (auto &item : updateSetResults) {
-                PDB_COUT << "DB Metadata in node IP: " << item.first << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "DB Metadata in node IP: " << item.first
+                         << ((item.second.first == true) ? "updated correctly!" : "couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
             PDB_COUT << "******************* deleteSet step completed!!!!!!!" << endl;
         } else {
@@ -1155,7 +1151,7 @@ namespace pdb {
             if ((*databaseItems)[i].getItemKey().c_str()==databaseName) *dbMetadataObject = (*databaseItems)[i];
         }
 
-        auto aftergetMetadataFromCatalog = std :: chrono :: high_resolution_clock :: now();
+        auto aftergetMetaFromCat = std :: chrono :: high_resolution_clock :: now();
 
         (*dbMetadataObject).addSet(setNameCatalog);
         (*dbMetadataObject).addType(typeName);
@@ -1173,9 +1169,9 @@ namespace pdb {
             return false;
         }
 
-        auto afterUpdateMetadata = std :: chrono :: high_resolution_clock :: now();
-        auto broadCast1 = afterUpdateMetadata;
-        auto broadCast2 = afterUpdateMetadata;
+        auto afterUpdateMeta = std :: chrono :: high_resolution_clock :: now();
+        auto broadCast1 = afterUpdateMeta;
+        auto broadCast2 = afterUpdateMeta;
 
         // after it updated the database metadata in the local catalog, if this is the master
         // catalog iterate over all nodes in the cluster and broadcast the update to the
@@ -1190,8 +1186,9 @@ namespace pdb {
             broadCast1 = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateResults) {
-                PDB_COUT << "Set Metadata broadcasted to node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Set Metadata broadcasted to node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
 
             // map to capture the results of broadcasting the DB update
@@ -1203,8 +1200,9 @@ namespace pdb {
             broadCast2 = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateSetResults){
-                PDB_COUT << "DB Metadata broadcasted to node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "DB Metadata broadcasted to node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
             PDB_COUT << "******************* addSet step completed!!!!!!!" << endl;
         } else{
@@ -1214,21 +1212,29 @@ namespace pdb {
         auto end = std :: chrono :: high_resolution_clock :: now();
 
         PDB_COUT << "Time Duration for check registration:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterChecks-begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterChecks-begin).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for Setting Metadata values:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeCallAddUpdate-afterChecks).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeCallAddUpdate-afterChecks).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for addMetadataToCatalog SET:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterCallAddUpdate-beforeCallAddUpdate).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterCallAddUpdate-beforeCallAddUpdate).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for getMetadataFromCatalog call:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(aftergetMetadataFromCatalog-afterCallAddUpdate).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(aftergetMetaFromCat-afterCallAddUpdate).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for Updte DB Metadata:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateMetadata-aftergetMetadataFromCatalog).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateMeta-aftergetMetaFromCat).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for broadcastCatalogUpdate SET:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast1-afterUpdateMetadata).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast1-afterUpdateMeta).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for broadcastCatalogUpdate DB:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast2-broadCast1).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(broadCast2-broadCast1).count())
+            << " secs." << endl;
         PDB_COUT << "------>Time Duration to AddSet\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count())
+            << " secs." << endl;
 
         return true;
     }
@@ -1274,8 +1280,9 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                PDB_COUT << "DB metadata broadcasted to node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "DB metadata broadcasted to node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
             PDB_COUT << "******************* addDatabase step completed!!!!!!!" << endl;
         }
@@ -1351,7 +1358,8 @@ namespace pdb {
     }
 
     // constructor
-    CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer, string masterIPValue, int masterPortValue) {
+    CatalogServer :: CatalogServer (std :: string catalogDirectoryIn, bool isMasterCatalogServer,
+                                    string masterIPValue, int masterPortValue) {
         PDBLoggerPtr catalogLogger = make_shared<PDBLogger>("catalogLogger");
         catServerLogger = make_shared<pdb::PDBLogger>("catalogServer.log");
 
@@ -1360,7 +1368,8 @@ namespace pdb {
         masterIP = masterIPValue;
         masterPort = masterPortValue;
 
-        catalogClientConnectionToMasterCatalogServer = CatalogClient(masterPort, masterIP, make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
+        catalogClientConnectionToMasterCatalogServer = CatalogClient(masterPort, masterIP,
+                                                                     make_shared <pdb :: PDBLogger> ("clientCatalogToServerLog"));
 
         //JiaNote: to use temporary allocation block in constructors of server functionalities
         // TODO change this constant
@@ -1493,8 +1502,9 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                PDB_COUT << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: " << item.first
+                         << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1532,8 +1542,9 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                PDB_COUT << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ") <<
-                     item.second.second << endl;
+                PDB_COUT << "Node IP: " << item.first
+                         << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1563,8 +1574,9 @@ namespace pdb {
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                PDB_COUT << "Node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1590,7 +1602,8 @@ namespace pdb {
             return false;
         }
 
-        PDB_COUT << "inserting set-----------------> dbName= " << dbName << " setName " << setName << " id " << std :: to_string(typeId) << endl;
+        PDB_COUT << "inserting set-----------------> dbName= " << dbName << " setName " << setName
+                 << " id " << std :: to_string(typeId) << endl;
         setTypes.insert (make_pair(make_pair(dbName, setName), typeId));
 
         int metadataCategory = PDBCatalogMsgType::CatalogPDBSet;
@@ -1599,14 +1612,14 @@ namespace pdb {
 
         *metadataObject = *setMetadata;
 
-        auto beforeaddMetadataToCatalog = std :: chrono :: high_resolution_clock :: now();
+        auto beforeaddMetaToCat = std :: chrono :: high_resolution_clock :: now();
 
         PDB_COUT << "Adding set metadata for set " << setName << endl;
         pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem, metadataCategory, errMsg);
 
-        auto afteraddMetadataToCatalog = std :: chrono :: high_resolution_clock :: now();
-        auto beforebroadcastCatalogUpdate = afteraddMetadataToCatalog;
-        auto afterbroadcastCatalogUpdate = afteraddMetadataToCatalog;
+        auto afteraddMetToCat = std :: chrono :: high_resolution_clock :: now();
+        auto beforeBroadCatUpdate = afteraddMetToCat;
+        auto afterBroadCatUpdate = afteraddMetToCat;
 
         // after it registered the Set metadata in the local catalog, if this is the master
         // catalog iterate over all nodes in the cluster and broadcast the insert to the
@@ -1615,15 +1628,16 @@ namespace pdb {
             // get the results of each broadcast
             map<string, pair <bool, string>> updateResults;
 
-            beforebroadcastCatalogUpdate = std :: chrono :: high_resolution_clock :: now();
+            beforeBroadCatUpdate = std :: chrono :: high_resolution_clock :: now();
 
             broadcastCatalogUpdate (metadataObject, updateResults, errMsg);
 
-            afterbroadcastCatalogUpdate = std :: chrono :: high_resolution_clock :: now();
+            afterBroadCatUpdate = std :: chrono :: high_resolution_clock :: now();
 
             for (auto &item : updateResults){
-                PDB_COUT << "Node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1631,17 +1645,23 @@ namespace pdb {
         auto beforeReturn = std :: chrono :: high_resolution_clock :: now();
 
         PDB_COUT << "Time Duration for check and copy:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeaddMetadataToCatalog-begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeaddMetaToCat-begin).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for adding metadata to catalog:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddMetadataToCatalog - beforeaddMetadataToCatalog).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddMetToCat - beforeaddMetaToCat).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for check isMasterCatalog:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforebroadcastCatalogUpdate - afteraddMetadataToCatalog).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeBroadCatUpdate - afteraddMetToCat).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for broadcast update:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterbroadcastCatalogUpdate - beforebroadcastCatalogUpdate).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterBroadCatUpdate - beforeBroadCatUpdate).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration before return:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - afterbroadcastCatalogUpdate).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - afterBroadCatUpdate).count())
+            << " secs." << endl;
         PDB_COUT << "------>Time Duration to Complete addSetMetadata\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(beforeReturn - begin).count())
+            << " secs." << endl;
 
         return true;
     }
@@ -1720,8 +1740,9 @@ namespace pdb {
                 PDB_COUT << " Error broadcasting DB update." << endl;
             }
             for (auto &item : updateSetResults) {
-                PDB_COUT << "Node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1731,15 +1752,20 @@ namespace pdb {
         auto addNodeToSet = std :: chrono :: high_resolution_clock :: now();
 
         PDB_COUT << "Time Duration for check registration:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegisteredCheck-begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegisteredCheck-begin).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for adding set to map:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddSetToMap - afterRegisteredCheck).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afteraddSetToMap - afterRegisteredCheck).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for updating db Metadata:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateDB - afteraddSetToMap).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterUpdateDB - afteraddSetToMap).count())
+            << " secs." << endl;
         PDB_COUT << "Time Duration for broadcast update:\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterBroadcast - afterUpdateDB).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterBroadcast - afterUpdateDB).count())
+            << " secs." << endl;
         PDB_COUT << "------>Time Duration to Complete addNodeToSet\t " <<
-        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(addNodeToSet - begin).count()) << " secs." << endl;
+        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(addNodeToSet - begin).count())
+            << " secs." << endl;
 
         return true;
     }
@@ -1805,8 +1831,9 @@ namespace pdb {
                 PDB_COUT << " Error broadcasting DB update." << endl;
             }
             for (auto &item : updateSetResults) {
-                PDB_COUT << "Node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
 
         } else {
@@ -1817,7 +1844,8 @@ namespace pdb {
     }
 
     // removes node information from a Set
-    bool CatalogServer :: removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg){
+    bool CatalogServer :: removeNodeFromSet (std :: string nodeIP, std :: string databaseName,
+                                             std :: string setName, std :: string &errMsg) {
         string setUniqueId = databaseName + "." + setName;
 
         // make sure the database exists
@@ -1874,8 +1902,9 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateResults, errMsg);
 
             for (auto &item : updateResults){
-                PDB_COUT << "Node IP: " << item.first << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "Node IP: " << item.first
+                         << ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
 
             // map to capture the results of broadcasting the DB update
@@ -1886,8 +1915,9 @@ namespace pdb {
             broadcastCatalogUpdate (dbMetadataObject, updateSetResults, errMsg);
 
             for (auto &item : updateSetResults){
-                PDB_COUT << "DB Metadata broadcasted to Node IP: " << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
-                     << item.second.second << endl;
+                PDB_COUT << "DB Metadata broadcasted to Node IP: "
+                         << item.first + ((item.second.first == true) ? " updated correctly!" : " couldn't be updated due to error: ")
+                         << item.second.second << endl;
             }
         } else {
             PDB_COUT << "This is not Master Catalog Node, thus metadata was only registered locally!" << endl;
@@ -1930,7 +1960,8 @@ namespace pdb {
                 auto afterRegGeneric = std :: chrono :: high_resolution_clock :: now();
 
                 PDB_COUT << "Time Duration for registerGenericMetadata call to node " << nodeAddress + " \t" <<
-                        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegGeneric-beforeRegGeneric).count()) << " secs." << endl;
+                        std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterRegGeneric-beforeRegGeneric).count())
+                        << " secs." << endl;
 
                 // adds the result of the update
                 broadcastResults.insert(make_pair(nodeIP, make_pair(res , errMsg)));
@@ -1939,8 +1970,9 @@ namespace pdb {
 
         auto afterLoop = std :: chrono :: high_resolution_clock :: now();
 
-        PDB_COUT << "------>Time Duration to complete broadcastCatalogUpdate\t" <<
-                std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterLoop-beforeLoop).count()) << " secs." << endl;
+        PDB_COUT << "------>Time Duration to complete broadcastCatalogUpdate\t"
+                 << std :: to_string(std::chrono::duration_cast<std::chrono::duration<float>>(afterLoop-beforeLoop).count())
+                 << " secs." << endl;
 
         return true;
     }
@@ -1974,7 +2006,6 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
             broadcastResults.insert(make_pair(nodeIP, make_pair(res , errMsg)));
 
         } else {
-
             PDB_COUT << "Don't broadcast to " + nodeAddress + " because it has the master catalog." << endl;
 
         }
@@ -1982,26 +2013,6 @@ bool CatalogServer :: broadcastCatalogDelete (Handle<Type> metadataToSend,
     }
 
     return true;
-}
-
-// retrieves the metadata and Shared Library from the catalog
-bool CatalogServer :: retrieveUserDefinedTypeMetadata(string typeName,
-                                                      Handle<CatalogUserTypeMetadata> &itemMetadata,
-                                                      string &soFileBytes,
-                                                      string &errMsg){
-
-    string returnedBytes;
-    // TODO this is needed to differentiate between data_types and metrics
-    string typeOfObject = "data_types";
-
-    bool res = pdbCatalog->retrievesDynamicLibrary(typeName,
-                                               typeOfObject,
-                                               itemMetadata,
-                                               returnedBytes,
-                                               soFileBytes,
-                                               errMsg);
-
-    return res;
 }
 
 // checks if a Database is registered

@@ -36,25 +36,25 @@ using namespace std;
 
     CatalogStandardDatabaseMetadata :: CatalogStandardDatabaseMetadata(string dbIdIn, string dbNameIn, string userCreatorIn,
                                  string createdOnIn, string lastModifiedIn):
-                dbId(dbIdIn),
-                dbName(dbNameIn),
-                userCreator(userCreatorIn),
-                createdOn(createdOnIn),
-                lastModified(lastModifiedIn)
+        dbId(dbIdIn),
+        dbName(dbNameIn),
+        userCreator(userCreatorIn),
+        createdOn(createdOnIn),
+        lastModified(lastModifiedIn)
     {
     }
 
     CatalogStandardDatabaseMetadata :: CatalogStandardDatabaseMetadata(const CatalogStandardDatabaseMetadata& pdbDatabaseToCopy) {
-            dbId = pdbDatabaseToCopy.dbId;
-            dbName = pdbDatabaseToCopy.dbName;
-            userCreator = pdbDatabaseToCopy.userCreator;
-            createdOn = pdbDatabaseToCopy.createdOn;
-            lastModified = pdbDatabaseToCopy.lastModified;
-            listOfNodes = pdbDatabaseToCopy.listOfNodes;
-            listOfSets = pdbDatabaseToCopy.listOfSets;
-            listOfTypes = pdbDatabaseToCopy.listOfTypes;
-            setsInDB = pdbDatabaseToCopy.setsInDB;
-            nodesInDB = pdbDatabaseToCopy.nodesInDB;
+        dbId = pdbDatabaseToCopy.dbId;
+        dbName = pdbDatabaseToCopy.dbName;
+        userCreator = pdbDatabaseToCopy.userCreator;
+        createdOn = pdbDatabaseToCopy.createdOn;
+        lastModified = pdbDatabaseToCopy.lastModified;
+        listOfNodes = pdbDatabaseToCopy.listOfNodes;
+        listOfSets = pdbDatabaseToCopy.listOfSets;
+        listOfTypes = pdbDatabaseToCopy.listOfTypes;
+        setsInDB = pdbDatabaseToCopy.setsInDB;
+        nodesInDB = pdbDatabaseToCopy.nodesInDB;
     }
 
     void CatalogStandardDatabaseMetadata :: setValues(string dbIdIn, string dbNameIn, string userCreatorIn, string createdOnIn, string lastModifiedIn){
@@ -63,36 +63,33 @@ using namespace std;
         userCreator = userCreatorIn;
         createdOn = createdOnIn;
         lastModified = lastModifiedIn;
-
     }
 
 
     CatalogStandardDatabaseMetadata :: ~CatalogStandardDatabaseMetadata() {
-        // TODO Auto-generated destructor stub
     }
-
 
     void CatalogStandardDatabaseMetadata :: addPermission( CatalogStandardPermissionsMetadata &permissionsIn){
         listOfPermissions.push_back(permissionsIn);
     }
 
     void CatalogStandardDatabaseMetadata :: addNode(string &nodeIn){
-//            cout << "Adding node " << nodeIn.c_str() << endl;
+        PDB_COUT << "Adding node " << nodeIn.c_str() << endl;
         listOfNodes.push_back(nodeIn);
     }
 
     void CatalogStandardDatabaseMetadata :: addSet(string &setIn){
-//            cout << "Adding node " << setIn.c_str() << endl;
+        PDB_COUT << "Adding node " << setIn.c_str() << endl;
         listOfSets.push_back(setIn);
     }
 
     void CatalogStandardDatabaseMetadata :: addSetToMap(string &setName, string &nodeIP){
-//            cout << "first: " << setName.c_str() << " push_back node: " << nodeIP.c_str();
+        PDB_COUT << "first: " << setName.c_str() << " push_back node: " << nodeIP.c_str();
         setsInDB[setName].push_back(nodeIP);
     }
 
     void CatalogStandardDatabaseMetadata :: addNodeToMap(string &nodeIP, string &setName){
-//            cout << "first: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
+        PDB_COUT << "first: " << nodeIP.c_str() << " push_back set: " << setName.c_str();
         nodesInDB[nodeIP].push_back(setName);
     }
 
@@ -145,16 +142,6 @@ using namespace std;
         }
         replaceListOfNodes(tempListOfNodes);
     }
-
-    void CatalogStandardDatabaseMetadata :: deleteType(string &typeIn){
-//        listOfTypes.erase(std::remove(listOfTypes.begin(), listOfTypes.end(), typeIn), listOfTypes.end());
-    }
-
-
-
-//        pdb :: Handle <pdb:: Vector < pdb :: Handle<string> > > getListOfNodes(){
-//            return listOfNodes;
-//        }
 
     vector< string > CatalogStandardDatabaseMetadata :: getListOfNodes(){
         return listOfNodes;
@@ -220,7 +207,6 @@ using namespace std;
 
     string CatalogStandardDatabaseMetadata :: printShort(){
         string output;
-//            string spaces("\n                                               ");
         string spaces("");
         output = "   \nDB ";
         output.append(getItemId().c_str()).append(":").append(getItemKey().c_str());
@@ -268,10 +254,6 @@ using namespace std;
         return output;
     }
 
-    // overloads << operator
-//        friend std::ostream& operator<<(std::ostream &out, CatalogStandardDatabaseMetadata &database);
-
-
     void CatalogStandardDatabaseMetadata :: deleteSetFromSetList(string &setName) {
         // creates a temp vector
         vector< string > tempListOfSets;
@@ -297,39 +279,10 @@ using namespace std;
 
     void CatalogStandardDatabaseMetadata :: deleteNodeFromSingleSet(string &node, string &setName) {
         getSetsInDB().erase(node);
-//            map< string, vector < string > > tempSetsInDB;
-//            for (auto &a : getSetsInDB()) {
-//                if (a.first!=setName){
-//                    tempSetsInDB[a.first] = a.second;
-//                } else {
-//                    auto nodes = a.second;
-//                    auto newNodes = tempSetsInDB[a.first];
-//                    for (int i = 0; i < nodes.size(); i++) {
-//                        if (nodes[i] != node) {
-//                            newNodes.push_back(nodes[i]);
-//                        }
-//                    }
-//                }
-//            }
-//            replaceMapOfSets(tempSetsInDB);
     }
 
     void CatalogStandardDatabaseMetadata :: deleteSetFromSingleNode(string &setName, string &node) {
         getNodesInDB().erase(setName);
-//            map< string, vector< string > > tempNodesInDB;
-//            for (auto &a : getNodesInDB()) {
-//                if (a.first!=node){
-//                    tempNodesInDB[a.first] = a.second;
-//                } else {
-//                    auto sets = a.second;
-//                    auto newSets = tempNodesInDB[a.first];
-//                    for (int i = 0; i < sets.size(); i++) {
-//                        if (sets[i] != setName) {
-//                            newSets.insert(std::make_pair(sets[i]));
-//                        }
-//                    }
-//                }
-//            }
     }
 
     void CatalogStandardDatabaseMetadata :: deleteSetFromNodeMap(string &setName) {

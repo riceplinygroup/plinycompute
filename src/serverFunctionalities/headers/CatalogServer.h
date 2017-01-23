@@ -35,7 +35,8 @@ public:
 	~CatalogServer ();
 
 	// these give us the port and the address of the catalog
-	CatalogServer (std :: string catalogDirectory, bool isMasterCatalogServer, std :: string masterIP, int masterPort);
+	CatalogServer (std :: string catalogDirectory, bool isMasterCatalogServer,
+	               std :: string masterIP, int masterPort);
 
 	// from the ServerFunctionality interface
 	void registerHandlers (PDBServer &forMe) override;
@@ -46,11 +47,15 @@ public:
 	// this uses the identerifer for the object to find the corresponding type name
 	string searchForObjectTypeName (int16_t typeIdentifier);
 
-	// this downloads the shared library associated  with the identifier, putting it at the specified location
-	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere, std :: string &errMsg);
+	// this downloads the shared library associated  with the identifier, putting it at
+	// the specified location
+	bool getSharedLibrary (int16_t identifier, vector <char> &putResultHere,
+	                       std :: string &errMsg);
 
-    // this downloads the shared library associated with the typeName, putting it at the specified location
-    bool getSharedLibraryByName (int16_t identifier, std :: string typeName, vector <char> &putResultHere, Handle <CatalogUserTypeMetadata> &itemMetadata, string &returnedBytes, std :: string &errMsg);
+    // this retrieves a shared library along its registered metadata, given its name by typeName
+    bool getSharedLibraryByTypeName (std :: string typeName,
+                                     Handle <CatalogUserTypeMetadata> &itemMetadata,
+                                     string &returnedBytes, std :: string &errMsg);
 
 	// this returns the type of object in the specified set, as a type name
 	int16_t getObjectType (string databaseName, string setName);
@@ -69,7 +74,8 @@ public:
 	
     // this adds a node to a set... returns true on success
     // returns true on success, false on fail
-    bool addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+    bool addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName,
+                       std :: string &errMsg);
 
     // this adds a node to a DB... returns true on success
     // returns true on success, false on fail
@@ -77,7 +83,8 @@ public:
 
     // this adds a node to a set... returns true on success
     // returns true on success, false on fail
-    bool removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
+    bool removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName,
+                            std :: string &errMsg);
 
     // this adds a node to a DB... returns true on success
     // returns true on success, false on fail
@@ -134,11 +141,6 @@ public:
 
 	// returns a reference to the catalog
 	PDBCatalogPtr getCatalog();
-
-	// returns metadata for a user-defined type along with the .so file
-	// bytes enclosed as a string
-	bool retrieveUserDefinedTypeMetadata(string typeName, Handle<CatalogUserTypeMetadata> &itemMetadata, string &soFileBytes, string &errMsg);
-
 
 private:
 	// new catalog metadata containers

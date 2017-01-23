@@ -126,7 +126,8 @@ using namespace pdb;
          *
          * @param objectBytes are the binary bytes of the .so file encapsulated as an string
          * @param typeName is a string given by the user to identify the type (e.g. myCoolType)
-         * @param fileName is the path+filename of the .so file in the local system (e.g. mypath/mylibs/libMyCoolType.so
+         * @param fileName is the path+filename of the .so file in the local system
+         *        (e.g. mypath/mylibs/libMyCoolType.so
          * @param tableName is a string identifying the type of the object (e.g. metrics, data_type)
          * @return true on success
          */
@@ -139,11 +140,12 @@ using namespace pdb;
                                         string &errorMessage);
 
         /**
-         * addMetadataToCatalog registers a Metadata item into the Catalog, basically saving it as serialized
-         * bytes in an Sqlite table, it then adds that metadata item into memory.
+         * addMetadataToCatalog registers a Metadata item into the Catalog, basically saving it
+         * as serialized bytes in an Sqlite table, it then adds that metadata item into memory.
          *
          * @param metadataValue encapsulates the object with the metadata
-         * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory identifies the metadata category (values are defined in
+         *        PDBCatalogMsgType)
          * @param errorMessage error message
          * @return true on success
          */
@@ -154,7 +156,8 @@ using namespace pdb;
                                   string &errorMessage);
 
         /**
-         * addItemToVector loads a registered Metadata item into memory so it can be accessed by the CatalogServer
+         * addItemToVector loads a registered Metadata item into memory so it can be accessed by
+         * the CatalogServer
          *
          * @param item encapsulates the object with the metadata
          * @param key is a string key used for maps
@@ -164,10 +167,12 @@ using namespace pdb;
         bool addItemToVector(Handle<CatalogMetadataType> &item, int &key);
 
         /**
-         * updateMetadataInCatalog updates an existing Metadata item in Sqlite along with its content in memory
+         * updateMetadataInCatalog updates an existing Metadata item in Sqlite along with its
+         * content in memory
          *
          * @param metadataValue encapsulates the object with the metadata
-         * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory identifies the metadata category (values are defined in
+         *        PDBCatalogMsgType)
          * @param errorMessage error message
          * @return true on success
          */
@@ -177,10 +182,12 @@ using namespace pdb;
                                      string &errorMessage);
 
         /**
-         * deleteMetadataInCatalog deletes an existing Metadata item in Sqlite along with its content in memory
+         * deleteMetadataInCatalog deletes an existing Metadata item in Sqlite along with its
+         * content in memory
          *
          * @param metadataValue encapsulates the object with the metadata
-         * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory identifies the metadata category (values are defined in
+         *        PDBCatalogMsgType)
          * @param errorMessage error message
          * @return true on success
          */
@@ -216,8 +223,8 @@ using namespace pdb;
         map<string, CatalogNodeMetadata> getListOfNodesInCluster ();
 
         /**
-         * getSerializedCatalog retrieves the bytes of the entire catalog, this could be used it one
-         * wants to ship the catalog from the master node to a different machine
+         * getSerializedCatalog retrieves the bytes of the entire catalog, this could be used
+         * it one wants to ship the catalog from the master node to a different machine
          *
          * @param fileName is the name of the catalago file
          * @param version is the version to retrieve
@@ -232,8 +239,8 @@ using namespace pdb;
                 string &errorMessage);
 
         /**
-         * setCatalogVersion sets the version of the catalog, this is typically called when updates
-         * are made to the catalog
+         * setCatalogVersion sets the version of the catalog, this is typically called when
+         * updates are made to the catalog
          *
          * @param version contains the signature of the version
          */
@@ -250,13 +257,15 @@ using namespace pdb;
         void getModifiedMetadata(string dateAsString);
 
         /**
-         * getMetadataFromCatalog retrieves all Metadata from Sqlite for a given category and returns it
-         * in a container
+         * getMetadataFromCatalog retrieves all Metadata from Sqlite for a given category and
+         * returns it in a container
          *
-         * @param key if blank returns all items in the category, otherwise, only the one matching the key
+         * @param key if blank returns all items in the category, otherwise, only the one
+         *        matching the key
          * @param returnedEntries is a Vector of the Objects
          * @param errorMessage error message
-         * @param metadataCategory identifies the metadata category (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory identifies the metadata category (values are defined in
+         *        PDBCatalogMsgType)
          * @return true on success
          */
         template<class CatalogMetadataType>
@@ -267,10 +276,11 @@ using namespace pdb;
                                     int metadataCategory);
 
         /**
-         * getLastId gets the number of items in a given Metadata category, so the id can be properly
-         * set prior to the addition of a new item.
+         * getLastId gets the number of items in a given Metadata category, so the id can be
+         * properly set prior to the addition of a new item.
          *
-         * @param metadataCategory is an enum to identify the category of metadata (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory is an enum to identify the category of metadata (values are
+         *        defined in PDBCatalogMsgType)
          * @return the number of items as an int
          */
         int getLastId(int &metadataCategory);
@@ -278,7 +288,8 @@ using namespace pdb;
         /**
          * itemName2ItemId maps the id of a Metadata item given its name
          *
-         * @param metadataCategory is an enum to identify the category of metadata (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory is an enum to identify the category of metadata (values are
+         *        defined in PDBCatalogMsgType)
          * @return the value of the item
          */
         string itemName2ItemId(int &metadataCategory, string &key);
@@ -286,7 +297,8 @@ using namespace pdb;
         /**
          * keyIsFound checks if a Metadata item is found in its container
          *
-         * @param metadataCategory is an enum to identify the category of metadata (values are defined in PDBCatalogMsgType)
+         * @param metadataCategory is an enum to identify the category of metadata (values are
+         *        defined in PDBCatalogMsgType)
          * @param key to search for
          * @return the value of the item
          */
@@ -313,23 +325,13 @@ using namespace pdb;
         // Lists all metadata registered in the catalog
         void printsAllCatalogMetadata();
 
-        // Loads a stored registered object in memory
-        bool loadRegisteredObject(string typeName, string typeOfObject, string fileName, string &errorMessage);
-
         // Retrieves a dynamic library stored as BLOB in the Catalog
         // returns 1 if success, 0 otherwise.
         bool retrievesDynamicLibrary(string fileName,
                                      string tableName,
                                      Handle<CatalogUserTypeMetadata> &returnedItem,
-                                     string &objectBytes,
                                      string &returnedSoLibrary,
                                      string &errorName);
-
-        /**
-         * getMapsPDBOjbect2SQLiteTable returns the name of a Sqlite table for a given category of
-         * metadata
-
-         */
 
         void testCatalogPrint();
 
@@ -341,7 +343,8 @@ using namespace pdb;
          *
          * @return a Vector of items
          */
-        void getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog, const string &key);
+        void getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>> &databasesInCatalog,
+                                const string &key);
 
         /**
          * getListOfDatabases returns a Vector of metadata for all Sets registered
@@ -388,8 +391,9 @@ using namespace pdb;
         // Mutex for ensuring proper writing of metadata to catalog
         pthread_mutex_t registerMetadataMutex;
 
-        // This is the initial type_id to be assigned to types registered as .so libraries
-        // Types from 1 to 4000 are reserved for built-in types.
+        // This is the initial typeID value to be assigned to types registered via Shared Libraries
+        // typeID from 1 to 8191 are reserved for built-in types and assigned automatically at
+        // compile time
         int16_t initialTypeID = 8192;
 
         string catalogVersion;
@@ -397,10 +401,9 @@ using namespace pdb;
         PDBLoggerPtr logger;
 
         /**
-         * Handler for the SQLite instance
+         * Handler for the SQLite instance, which stores all catalog metadata
          **/
         sqlite3 *sqliteDBHandler = NULL;
-
 
         /**
          * List unique metadata entries
