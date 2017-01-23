@@ -20,7 +20,7 @@ ip_len_valid=3
 pdb_dir="/home/ubuntu/pdb_install"
 PDB_SSH_SLEEP=30
 
-scripts/cleanupNode.sh
+pkill -9 pdb-cluster
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
