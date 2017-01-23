@@ -349,16 +349,11 @@ namespace pdb {
                         // and what matters is the returned bytes.
                         string dummyObjectFile = string("temp.so");
 
-                        // ask the catalog serer for the shared library
-                        // added by Jia to test a length error bug
-                        vector <char> * putResultHere = new vector<char>();
-
                         // retrieves from remote catalog the Shared Library bytes in "putsResultHere" and
                         // metadata in the "response" object
                         res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByTypeName(typeId,
                                                                                                       typeName,
                                                                                                       dummyObjectFile,
-                                                                                                      (*putResultHere),
                                                                                                       response,
                                                                                                       returnedBytes,
                                                                                                       errMsg);
@@ -366,15 +361,13 @@ namespace pdb {
                         getShared = std :: chrono :: high_resolution_clock :: now();
 
                         PDB_COUT << "     Bytes returned NOT isMaster: " << std :: to_string(returnedBytes.size()) << endl;
-                        PDB_COUT << " Num bytes in putResultHere " << std :: to_string((*putResultHere).size()) << endl;
 
                         // if the library was successfully retrieved, go ahead and resolve vtable fixing
                         // in the local catalog, given the library and metadata retrieved from the remote Master Catalog
                         if (res == true) {
-                            res = getFunctionality <CatalogServer> ().addObjectType (typeId, *putResultHere, errMsg);
+                            res = getFunctionality <CatalogServer> ().addObjectType (typeId, returnedBytes, errMsg);
                         }
 
-                        delete putResultHere;
                         addObject = std :: chrono :: high_resolution_clock :: now();
 
                         if (!res) {
@@ -713,11 +706,9 @@ namespace pdb {
                 std :: string errMsg;
                 void *memory = malloc (objectSize);
                 Handle <Vector <char>> myFile = sendUsingMe->getNextObject <Vector <char>> (memory, res, errMsg);
+
                 if (res) {
-                    vector <char> soFile;
-                    size_t fileLen = myFile->size ();
-                    soFile.resize (fileLen);
-                    memmove (soFile.data (), myFile->c_ptr (), fileLen);
+                    string soFile( myFile->c_ptr(), objectSize);
                     res = (addObjectType (-1, soFile, errMsg) >= 0);
                 }
                 free (memory);
@@ -845,7 +836,7 @@ namespace pdb {
     }
 
     // Adds metadata and bytes of a Shared Library in the catalog and returns its typeId
-    int16_t CatalogServer :: addObjectType (int16_t typeIDFromMasterCatalog, vector <char> &soFile, string &errMsg) {
+    int16_t CatalogServer :: addObjectType (int16_t typeIDFromMasterCatalog, string &soFile, string &errMsg) {
 
         // read the bytes from the temporary extracted file and copy to output parameter
         string tempFile = catalogDirectory + "/pdbCatalog/tmp_so_files/temp.so";

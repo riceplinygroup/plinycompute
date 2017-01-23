@@ -184,32 +184,30 @@ int16_t CatalogClient :: searchForObjectTypeName (std :: string objectTypeName) 
 }
 
 // retrieves the content of a Shared Library given it's Type Id
-bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string objectFile) {
+bool CatalogClient :: getSharedLibrary (int16_t identifier, std :: string sharedLibraryFileName) {
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
     PDB_COUT << "CatalogClient: getSharedLibrary for id=" << identifier << std :: endl;
     Handle <CatalogUserTypeMetadata> tempMetadataObject = makeObject<CatalogUserTypeMetadata>();
-    vector <char> * putResultHere = new vector<char>();
-    string returnedBytes;
+    string sharedLibraryBytes;
     string errMsg;
 
     //using a dummyName b/c it's being searched by typeId
     string typeNameToSearch ="dummyName";
 
-    bool res = getSharedLibraryByTypeName (identifier, typeNameToSearch, objectFile, (*putResultHere),
-                                       tempMetadataObject, returnedBytes, errMsg);
-    delete putResultHere;
+    bool res = getSharedLibraryByTypeName (identifier, typeNameToSearch, sharedLibraryFileName,
+                                       tempMetadataObject, sharedLibraryBytes, errMsg);
 
     PDB_COUT << "CatalogClient: deleted putResultHere" << std :: endl;
     return res;
 }
 
 // retrieves a Shared Library given it's typeName
-bool CatalogClient :: getSharedLibraryByTypeName (int16_t identifier, std :: string& typeNameToSearch, std :: string objectFile,
-                                              vector <char> &putResultHere, Handle<CatalogUserTypeMetadata> &resultToCaller,
-                                              string &returnedBytes, std :: string &errMsg) {
+bool CatalogClient :: getSharedLibraryByTypeName (int16_t identifier, std :: string& typeNameToSearch, std :: string sharedLibraryFileName,
+                                                  Handle<CatalogUserTypeMetadata> &typeMetadata,
+                                                  string &sharedLibraryBytes, std :: string &errMsg) {
 
-    PDB_COUT << "inside CatalogClient getSharedLibraryByName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
+    PDB_COUT << "inside CatalogClient getSharedLibraryByTypeName for type=" << typeNameToSearch << " and id=" << identifier << std :: endl;
 
     return simpleRequest <CatSharedLibraryByNameRequest, CatalogUserTypeMetadata, bool> (myLogger, port, address, false, 1024 * 1024 * 4,
         [&] (Handle <CatalogUserTypeMetadata> result) {
@@ -245,20 +243,18 @@ bool CatalogClient :: getSharedLibraryByTypeName (int16_t identifier, std :: str
 
             // gets metadata and bytes of the registered type
             typeNameToSearch = std :: string((*result).getItemName());
-            returnedBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
+            sharedLibraryBytes = string(result->getLibraryBytes().c_str(), result->getLibraryBytes().size());
 
             PDB_COUT << "   Metadata in Catalog Client " <<  (*result).getObjectID() << " | " << (*result).getItemKey() << " | " << (*result).getItemName() << endl;
 
             afterLoad = std :: chrono :: high_resolution_clock :: now();
 
-            PDB_COUT << "copying bytes received in CatClient # bytes " << returnedBytes.size() << endl;
-            std::copy(returnedBytes.begin(), returnedBytes.end(), std::back_inserter(putResultHere));
-            PDB_COUT <<"bytes copied!" << std :: endl;
+            PDB_COUT << "copying bytes received in CatClient # bytes " << sharedLibraryBytes.size() << endl;
             afterCopy = std :: chrono :: high_resolution_clock :: now();
 
             // just write the shared library to the file
-            int filedesc = open (objectFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-            write (filedesc, returnedBytes.c_str (), returnedBytes.size());
+            int filedesc = open (sharedLibraryFileName.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            write (filedesc, sharedLibraryBytes.c_str (), sharedLibraryBytes.size());
             close (filedesc);
             afterWrite = std :: chrono :: high_resolution_clock :: now();
 
