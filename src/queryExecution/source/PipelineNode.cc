@@ -231,7 +231,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              context->setOutputFull(false);
              try {
                  Handle<GenericBlock> newOutputBlock = processor->loadOutputBlock();
-                 newOutputBlock = deepCopyToCurrentAllocationBlock<GenericBlock>(outputBlock);
+                 //newOutputBlock = deepCopyToCurrentAllocationBlock<GenericBlock>(outputBlock);
                  outputBlock = nullptr;
                  outputBlock = newOutputBlock;
              }

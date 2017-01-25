@@ -342,9 +342,10 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   PDB_COUT << "PipelineNetwork: to deep copy the last output block to new output block that is allocated in new allocation block" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: to deep copy the last output block to new output block that is allocated in new allocation block"));
                                   try {
-                                      newOutputBlock = deepCopyToCurrentAllocationBlock<GenericBlock>(outputBlock);
-                                      PDB_COUT << "PipelineNetwork: deep copy done" << std :: endl;
-                                      logger->debug(std :: string("PipelineNetwork: deep copy done"));
+                                      //TODO: we need figure it out
+                                      //newOutputBlock = deepCopyToCurrentAllocationBlock<GenericBlock>(outputBlock);
+                                      //PDB_COUT << "PipelineNetwork: deep copy done" << std :: endl;
+                                      //logger->debug(std :: string("PipelineNetwork: deep copy done"));
                                       outputBlock = nullptr;
                                       outputBlock = newOutputBlock;
                                   }
@@ -361,6 +362,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                       proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                                          context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
                                       callerBuzzer->buzz(PDBAlarm :: GenericError, counter);
+                                      return;
                                   }
                               }
 

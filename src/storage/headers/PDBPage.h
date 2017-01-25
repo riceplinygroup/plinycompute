@@ -90,8 +90,9 @@ public:
             //there is a problem:
             //reference count should always >= 0
             pthread_mutex_unlock(&this->refCountMutex);
-            std :: cout << "Fatal Error: page reference count < 0" << std :: endl;
-            exit(-1);
+            std :: cout << "Error: page reference count < 0" << std :: endl;
+            this->setPinned(false);
+            this->refCount = 0;
         } else if (this->refCount == 0) {
             this->setPinned(false);
         }
