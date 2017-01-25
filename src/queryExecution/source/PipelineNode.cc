@@ -96,7 +96,7 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
                  PDB_COUT << "###############################" << std :: endl;
                  memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-                 //std :: cout << "PipelineNode: unpin output page" << std :: endl;
+                 PDB_COUT << "PipelineNode: unpin output page" << std :: endl;
                  logger->debug(std :: string("PipelineNode: unpin output page"));
                  //unpin output page
                  context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
@@ -121,8 +121,11 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              
              context->setOutputFull(false);
     }
-  //  std :: cout << "unbundled an input block!" << std :: endl;
-  //  logger->debug(std :: string("PipelineNode: unbundled an input block!"));
+
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << "unbundled an input block!" << std :: endl;
+    logger->debug(std :: string("PipelineNode: unbundled an input block!"));
+#endif
     unbundler->clearOutputVec();
     unbundler->clearInputBlock();
     unbundler->setContext(nullptr);
@@ -130,13 +133,19 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
 }
 
 bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize, PDBLoggerPtr logger) {
-    //std :: cout << "running pipeline node with id=" << id << std :: endl;
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << "running pipeline node with id=" << id << std :: endl;
+#endif
     BlockQueryProcessorPtr processor = this->getProcessor(context);
-    //std :: cout << "got processor"<< std :: endl;
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << "got processor"<< std :: endl;
+#endif
     processor->initialize();
     processor->loadInputBlock(inputBatch);
-    //std :: cout << "to load output block" << std :: endl;
-    //logger->debug(string("to load output block"));
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << "to load output block" << std :: endl;
+    logger->debug(string("to load output block"));
+#endif
     DataProxyPtr proxy = context->getProxy();
     PDBPagePtr output = nullptr;
     Handle<GenericBlock> outputBlock = nullptr;
@@ -155,17 +164,17 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
             //unpin output page
-            //std :: cout << "PipelineNode: to unpin the output page" << std :: endl;
+            PDB_COUT << "PipelineNode: to unpin the output page" << std :: endl;
             logger->debug(std :: string("PipelineNode: to unpin the output page"));
             context->getProxy()->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
                        context->getPageToUnpin()->getSetID(), context->getPageToUnpin(), true);
 
             //pin a new output page
-            //std :: cout << "to add user page for output" << std :: endl;
+            PDB_COUT << "to add user page for output" << std :: endl;
             logger->debug(std :: string("PipelineNode: to add user page for output"));
             proxy->addUserPage(context->getOutputSet()->getDatabaseId(), context->getOutputSet()->getTypeId(),
                        context->getOutputSet()->getSetId(), output);
-            //std :: cout << "pinned page in output set with id=" << output->getPageID() << std :: endl;
+            PDB_COUT << "pinned page in output set with id=" << output->getPageID() << std :: endl;
             logger->debug(std :: string("PipelineNode: pinned page in output set with id=") + std :: to_string(output->getPageID()));
             context->setPageToUnpin(output);
         }
@@ -176,11 +185,15 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         context->setOutputVec(outputVec);
         outputBlock = processor->loadOutputBlock();
     }
-    //std :: cout << "loaded an output block" << std :: endl;
-    //logger->debug("loaded an output block");
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << "loaded an output block" << std :: endl;
+    logger->debug("loaded an output block");
+#endif
     while (processor->fillNextOutputBlock()) {
-        //std :: cout << id << ":written to a block" << std :: endl;
-        //logger->debug(std :: to_string(id)+std :: string( ":written to a block"));
+#ifdef DEBUG_PIPELINE
+        PDB_COUT << id << ":written to a block" << std :: endl;
+        logger->debug(std :: to_string(id)+std :: string( ":written to a block"));
+#endif
         if (context->isOutputFull()) {
              PDB_COUT << "PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
              logger->debug(std :: string("PipelineNode::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
@@ -216,33 +229,47 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              context->setOutputVec(nullptr);
              context->setOutputVec(outputVec);
              context->setOutputFull(false);
-             Handle<GenericBlock> newOutputBlock = processor->loadOutputBlock();
-             (* newOutputBlock) = (* outputBlock);
-             outputBlock = nullptr;
-             outputBlock = newOutputBlock;
+             try {
+                 Handle<GenericBlock> newOutputBlock = processor->loadOutputBlock();
+                 newOutputBlock = deepCopyToCurrentAllocationBlock<GenericBlock>(outputBlock);
+                 outputBlock = nullptr;
+                 outputBlock = newOutputBlock;
+             }
+             catch (NotEnoughSpace &n) {
+                 PDB_COUT << "PipelineNode: deep copy unfinished object meet problem when deep copy again" << std :: endl;
+                 logger->error(std::string("PipelineNode: deep copy unfinished object meet problem when deep copy again"));
+                 return false;
+             } 
 
         }
 
 
         //we assume a run of pipeline will not consume all memory that has just been allocated
         for (int i = 0; i < this->children->size(); i ++) {
-          //   std :: cout << id << ": run " << i << "-th child" << std :: endl;
-          //   logger->debug(std :: to_string(id)+std :: string(":run ")+std :: to_string(i)+std :: string("-th child"));
+#ifdef DEBUG_PIPELINE 
+             PDB_COUT << id << ": run " << i << "-th child" << std :: endl;
+             logger->debug(std :: to_string(id)+std :: string(":run ")+std :: to_string(i)+std :: string("-th child"));
+#endif
              children->at(i)->run(context, outputBlock, batchSize, logger);
-          //   std :: cout << id <<": done" << i << "-th child" << std :: endl;
-          //   logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
-
+#ifdef DEBUG_PIPELINE
+             PDB_COUT << id <<": done" << i << "-th child" << std :: endl;
+             logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
+#endif
         }
 
 
 
         if (children->size() == 0) {
              //I am a sink node, run unbundling
-            // std :: cout << id << ": I'm a sink node" << std :: endl;
-            // logger->debug(std :: to_string(id)+std :: string(": I'm a sink node"));
+#ifdef DEBUG_PIPELINE
+             PDB_COUT << id << ": I'm a sink node" << std :: endl;
+             logger->debug(std :: to_string(id)+std :: string(": I'm a sink node"));
+#endif
              unbundle(context, outputBlock, logger);
-            // std :: cout << id << ": done a sink node" << std :: endl;
-            // logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
+#ifdef DEBUG_PIPELINE
+             PDB_COUT << id << ": done a sink node" << std :: endl;
+             logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
+#endif
         }
 
         
@@ -260,7 +287,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
                 PDB_COUT << "###############################" << std :: endl;
                 memcpy(context->getPageToUnpin()->getBytes(), myBytes, myBytes->numBytes());
 
-                //std :: cout << "to unpin user page for output" << std :: endl;
+                PDB_COUT << "to unpin user page for output" << std :: endl;
                 logger->debug(std :: string("PipelineNode: to unpin user page for output"));
 
 
@@ -286,27 +313,36 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             outputBlock = processor->loadOutputBlock();
        }
     }
-    //std :: cout << id << ": we processed the input block" << std :: endl;
-    //logger->debug(std :: string("PipelineNode:")+std :: to_string(id)+std :: string(": we processed the input block"));
+#ifdef DEBUG_PIPELINE
+    PDB_COUT << id << ": we processed the input block" << std :: endl;
+    logger->debug(std :: string("PipelineNode:")+std :: to_string(id)+std :: string(": we processed the input block"));
+#endif
     processor->clearInputBlock();
 
     //we assume a run of pipeline will not consume all memory that has just been allocated
     for (int i = 0; i < this->children->size(); i ++) {
-      //      std :: cout << id << ": run " << i << "-th child" << std :: endl;
-      //      logger->debug(std :: to_string(id)+std :: string(":run ")+std :: to_string(i)+std :: string("-th child"));
+#ifdef DEBUG_PIPELINE
+            PDB_COUT << id << ": run " << i << "-th child" << std :: endl;
+            logger->debug(std :: to_string(id)+std :: string(":run ")+std :: to_string(i)+std :: string("-th child"));
+#endif
             children->at(i)->run(context, outputBlock, batchSize, logger);
-      //      std :: cout << id <<": done" << i << "-th child" << std :: endl;
-      //      logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
-
+#ifdef DEBUG_PIPELINE
+            PDB_COUT << id <<": done" << i << "-th child" << std :: endl;
+            logger->debug(std :: to_string(id)+std :: string(":done ")+std :: to_string(i)+std :: string("-th child"));
+#endif
     }
 
     if (children->size() == 0) {
             //I am a sink node, run unbundling
-        //    std :: cout << id << ": I'm a sink node" << std :: endl;
-        //    logger->debug(std :: to_string(id)+std :: string(": I'm a sink node"));
+#ifdef DEBUG_PIPELINE
+            PDB_COUT << id << ": I'm a sink node" << std :: endl;
+            logger->debug(std :: to_string(id)+std :: string(": I'm a sink node"));
+#endif
             unbundle(context, outputBlock, logger);
-        //    std :: cout << id << ": done a sink node" << std :: endl;
-        //    logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
+#ifdef DEBUG_PIPELINE
+            PDB_COUT << id << ": done a sink node" << std :: endl;
+            logger->debug(std :: to_string(id)+std :: string(": done a sink node"));
+#endif
     }
 
 

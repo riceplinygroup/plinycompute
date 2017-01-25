@@ -60,8 +60,14 @@ void Array <TypeContained> :: setUpAndCopyFrom (void *target, void *source) cons
 	// get the size of the constituent object
 	uint32_t dataSize = 0;
 	if (fromMe.usedSlots > 0)
-                
+#ifdef DEBUG_DEEP_COPY
+                PDB_COUT << "fromMe.usedSlots=" << fromMe.usedSlots << std::endl;
+#endif                
 		dataSize = toMe.typeInfo.getSizeOfConstituentObject (data);
+
+#ifdef DEBUG_DEEP_COPY
+                PDB_COUT << "dataSize=" << dataSize << std::endl;
+#endif
 
 	if (!toMe.typeInfo.descendsFromObject ()) {
 		// in this case, we might have a fundmanetal type... regardless, just do a simple bitwise copy
