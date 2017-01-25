@@ -55,7 +55,9 @@ public:
 	Handle <Set <Type>> getSet (std :: string databaseName, std :: string setName) {
 	
 		// verify that the database and set work 
+#ifdef DEBUG_SET_TYPE
 		std :: string errMsg;
+
 		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
 		
 		if (typeName == "") {
@@ -70,7 +72,7 @@ public:
 			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
 			return returnVal;
 		}
-
+#endif
 		Handle <Set <Type>> returnVal = makeObject <Set <Type>> (databaseName, setName);
 		return returnVal;
 	}

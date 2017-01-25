@@ -424,7 +424,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
 	typeInfo.setup <ObjType> ();
 
 	if (fromMe == nullptr) {
-                std :: cout << "ERROR: not enough memory when invoking operator = (const RefCountedObject <ObjType>*) in Handle.cc" << std :: endl;
+                std :: cout << "ERROR: fromMe is nullptr when invoking operator = (const RefCountedObject <ObjType>*) in Handle.cc" << std :: endl;
 		DEC_OLD_REF_COUNT;
 		offset = -1;
 		return *this;
@@ -460,6 +460,11 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTyp
                     if(typeInfo.getTypeCode() == 0) {
                         PDB_COUT << "operator=: typeInfo = 0 before setUpAndCopyFromConstituentObject" << std :: endl;
                     }
+#ifdef DEBUG_DEEP_COPY
+                    if (typeInfo.getTypeCode() > 126){
+                        PDB_COUT << "typeInfo=" << typeInfo.getTypeCode() << std :: endl;
+                    }
+#endif
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe->getObject ());
                 } catch (NotEnoughSpace &n) {
                     PDB_COUT << "ERROR: Not enough memory when invoking operator = (const RefCountedObject<ObjType>*) in Handle.cc" << std :: endl;
@@ -618,7 +623,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
                 #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
-                        std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                        std :: cout << "Not enough memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
 			throw myException;
@@ -631,13 +636,15 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjType> &fromMe
 
 		// copy over the object; use a virtual method so that we get everything set up and copied correctly
                 try {
-                    if (typeInfo.getTypeCode() == 0) {
-                        PDB_COUT << "Handle operator=: typeInfo=0 before setUpAndCopyFromConstituentObject" << std :: endl;
-                        
+#ifdef DEBUG_DEEP_COPY
+                    int typeId = typeInfo.getTypeCode();
+                    if ((typeId == 0)||(typeId > 126)) {
+                        PDB_COUT << "Handle operator=: typeInfo="<< typeId << " before setUpAndCopyFromConstituentObject" << std :: endl;
                     }
+#endif
 		    typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                    PDB_COUT << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                    PDB_COUT << "Not enough memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                     getTarget()->decRefCount(typeInfo);
                     DEC_OLD_REF_COUNT;
                     offset = -1;
@@ -712,7 +719,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
                 #endif
 		// see if there was not enough RAM
 		if (space == nullptr) {
-                        std :: cout << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                        std :: cout << "Not enough memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
 			DEC_OLD_REF_COUNT;
 			offset = -1;
 			throw myException;
@@ -727,7 +734,7 @@ Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fro
                 try {
 		       typeInfo.setUpAndCopyFromConstituentObject (getTarget ()->getObject (), fromMe.getTarget ()->getObject ());
                 } catch (NotEnoughSpace &n) {
-                       PDB_COUT << "Not enought memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
+                       PDB_COUT << "Not enough memory when doing a deep copy with TypeId=" << typeInfo.getTypeCode() << std :: endl;
                        getTarget()->decRefCount(typeInfo);
                        DEC_OLD_REF_COUNT;
                        offset = -1;
