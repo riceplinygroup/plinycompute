@@ -587,7 +587,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 		bool everythingOK = true;
                 bool typeCheckOrNot = request->isTypeCheck();
                 if (typeCheckOrNot == true) {
-
+#ifdef DEBUG_SET_TYPE
 			// first, check with the catalog to make sure that the given database, set, and type are correct
 			int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabase (), request->getSetName ());
 			if (typeID < 0) {
@@ -598,6 +598,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         else if (typeID != VTableMap :: getIDByName (request->getType(), false)) {
                                 everythingOK = false;
                         }
+#endif
+
                  }
 					
 	         // get the record
