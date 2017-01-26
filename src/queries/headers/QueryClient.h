@@ -82,6 +82,7 @@ public:
 	SetIterator <Type> getSetIterator (std :: string databaseName, std :: string setName) {
 
 		// verify that the database and set work 
+#ifdef DEBUG_SET_TYPE
 		std :: string errMsg;
 		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
 		
@@ -90,6 +91,7 @@ public:
 			SetIterator <Type> returnVal;
 			return returnVal;
 		}
+#endif
                 //commented by Jia, below type check can not work with complex types such as Vector<Handle<Foo>>
                 /*
 		if (typeName != getTypeName <Type> ()) {
