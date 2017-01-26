@@ -36,6 +36,7 @@ fi
 if [ "$PLINY_HOME" = "" ]; then
   echo "We do not have pliny dependency."
 else
+  rm -rf bin
   mkdir bin
   scripts/syncWithPliny.sh
 fi
@@ -49,7 +50,7 @@ do
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
                 echo -e "\n+++++++++++ install server: $ip_addr"
-     #           ssh $PDB_SSH_OPTS $user@$ip_addr "rm -rf $pdb_dir; mkdir $pdb_dir; mkdir $pdb_dir/bin; mkdir  $pdb_dir/logs; mkdir $pdb_dir/scripts"
+                ssh $PDB_SSH_OPTS $user@$ip_addr "rm $pdb_dir/log.out; rm $pdb_dir/logs/*"
                 scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-server $user@$ip_addr:$pdb_dir/bin/ 
                 scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
         fi
