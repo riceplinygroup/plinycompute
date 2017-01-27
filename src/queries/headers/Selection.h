@@ -54,6 +54,13 @@ public:
 
         }
 
+        //To get aggregation results for queries like TopK 
+        virtual Handle<Vector<Handle<Out>>>& getAggregatedResultsOptimized() {
+             return aggregationResult;
+
+        }
+
+
         virtual bool isAggregation() {
              return false;
         }

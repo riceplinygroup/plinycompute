@@ -186,29 +186,37 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 }              
  
                 newRequest->print();
-
                 if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
                     std :: cout << errMsg << std :: endl;
-                    exit(1);
-                }
-                PDB_COUT << "Frontend sent request to backend" << std :: endl;
-                // wait for backend to finish.
-                communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
-                if (!success) {
-                    std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
-                    return std :: make_pair (false, std :: string("backend failure"));;
+                    errMsg = std::string("can't send message to backend: ") +errMsg;
+                    success = false; 
+                } else {
+                    PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                    // wait for backend to finish.
+                    communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                    if (!success) {
+                        std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                        errMsg = std::string("backend failure: ") +errMsg;
+                    }
                 }
 
                 // now, we send back the result
                 Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                result->push_back (request->getOutput()->getSetName());
-                PDB_COUT << "Query is done. " << std :: endl;
+                if (success == true) {
+                    result->push_back (request->getOutput()->getSetName());
+                    PDB_COUT << "Query is done. " << std :: endl;
+                    errMsg = std :: string("execution complete");
+                } else {
+                    std :: cout << "Query failed at server" << std :: endl;
+                }
                 // return the results
                 if (!sendUsingMe->sendObject (result, errMsg)) {
-                     return std :: make_pair (false, errMsg);
+                    return std :: make_pair (false, errMsg);
                 }
-
-                return std :: make_pair (true, std :: string("execution complete")); 
+                if (success == false) {
+                   //TODO:restart backend
+                }
+                return std :: make_pair (success, errMsg); 
  
 
              } ));
