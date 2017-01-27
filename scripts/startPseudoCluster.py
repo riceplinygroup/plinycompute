@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-#JiaNote: to run pseudo cluster
+#JiaNote: to run pseudo cluster on single node
 
 
 import subprocess
@@ -61,7 +61,7 @@ try:
 
     #run bin/pdb-server for worker
     num = 0;
-    with open('conf/serverlist') as f:
+    with open('conf/serverlist.test') as f:
         for each_line in f:
             print bcolors.OKBLUE + "start a pdbServer at " + each_line + "as " + str(num) + "-th worker" + bcolors.ENDC
             num = num + 1
