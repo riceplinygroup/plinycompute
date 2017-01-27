@@ -252,7 +252,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
          PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
                   getAllocator().cleanInactiveBlocks((size_t)(67108844));
-                  getAllocator().cleanInactiveBlocks((size_t)(8388608));
+                  getAllocator().cleanInactiveBlocks((size_t)(12582912));
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineNetwork_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
@@ -292,8 +292,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                           PDB_COUT << "page is not null with pageId="<< page->getPageID() << std :: endl;
                           logger->debug(std :: string("PipelineNetwork: Page is not null with pageId=") + std :: to_string(page->getPageID()));
                           bundler->loadInputPage(page->getBytes());
-                          PDB_COUT << "loaded an allocate block for output" << std :: endl;
-                          logger->debug(std :: string("PipelineNetwork: Loaded an allocate block for output"));
+                          //PDB_COUT << "loaded an allocate block for output" << std :: endl;
+                          //logger->debug(std :: string("PipelineNetwork: Loaded an allocate block for output"));
                           Handle<GenericBlock> outputBlock;
                           try {
                               outputBlock = bundler->loadOutputBlock(batchSize);
@@ -304,8 +304,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                               callerBuzzer->buzz(PDBAlarm :: GenericError, counter);;
                           }
                           while(bundler->fillNextOutputBlock()) {
-                              PDB_COUT << "written one block!" << std :: endl;
-                              logger->debug(std :: string("PipelineNetwork: written one block!"));
+                              //PDB_COUT << "written one block!" << std :: endl;
+                              //logger->debug(std :: string("PipelineNetwork: written one block!"));
                               if (context->isOutputFull()) {
                                   PDB_COUT << "PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!" << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork::run()--fillNextOutputBlock(): current block is full, copy to output page!"));
@@ -475,7 +475,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         try {
-            Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResults();
+            Handle<Vector<Handle<Object>>> aggregationResults = queryObject->getAggregatedResultsOptimized();
             PDB_COUT << "aggregationResult size="<< aggregationResults->size() << std ::endl;
             size_t i;
             for ( i = 0; i < aggregationResults->size(); i ++) {
