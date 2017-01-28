@@ -21,6 +21,15 @@ ip_len_valid=3
 
 scripts/cleanupNode.sh
 
+if [ "$PLINY_HOME" = "" ]; then
+  echo "We do not have pliny dependency."
+else
+  mkdir bin
+  $PLINY_HOME/scripts/cleanup.sh
+fi
+
+
+
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
   PDB_SSH_OPTS="-o StrictHostKeyChecking=no"

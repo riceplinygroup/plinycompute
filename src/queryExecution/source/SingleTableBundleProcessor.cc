@@ -56,7 +56,7 @@ void SingleTableBundleProcessor :: loadInputPage (void * pageToProcess) {
 Handle<GenericBlock> SingleTableBundleProcessor :: loadOutputBlock ( size_t batchSize) {
 
     this->clearOutputBlock();
-    this->outputBlock = makeObject<GenericBlock> ();
+    this->outputBlock = makeObject<GenericBlock> (batchSize);
     this->batchSize = batchSize;
     return this->outputBlock;
 }
@@ -78,7 +78,13 @@ bool SingleTableBundleProcessor :: fillNextOutputBlock () {
 //        std :: cout << "posToFinish=" << posToFinish << std :: endl;
         for (; ((posInInput < vecSize) && (posInInput < posToFinish)); posInInput++) {
 //            std :: cout << "posInInput=" << posInInput << std :: endl;
+#ifdef ENABLE_SHALLOW_COPY
+              Handle<Object> placeholder = nullptr;
+              myOutputVec.push_back(placeholder);
+              myOutputVec[myOutputVec.size()-1].shallowCopyToCurrentAllocationBlock(myInputVec[posInInput]);
+#else
               myOutputVec.push_back(myInputVec[posInInput]);
+#endif
               totalSize ++;
         }
         //std :: cout << "posInInput=" << posInInput << std :: endl;

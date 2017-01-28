@@ -209,6 +209,11 @@ public:
 	// gets a pointer to the target object
 	RefCountedObject <ObjType> *getTarget () const;
 
+        // JiaNote: to shallow copy a handle to current allocation block
+        // This is to improve the performance of current pipeline bundling
+        Handle<ObjType>& shallowCopyToCurrentAllocationBlock(const Handle<ObjType> & copyMe);
+
+
 private:
 
 	template <class ObjTypeTwo> friend class Handle;
