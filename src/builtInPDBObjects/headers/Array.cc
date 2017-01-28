@@ -200,12 +200,16 @@ void Array <TypeContained> :: assign (uint32_t which, const TypeContained &val) 
 
 template <class TypeContained>
 void Array <TypeContained> :: push_back (const TypeContained &val) {
-
 	// need a placement new to correctly initialize before the copy
 	new ((void *) &(((TypeContained *) (data))[usedSlots])) TypeContained ();
 	((TypeContained *) (data))[usedSlots] = val;
 	usedSlots++;
 }
+
+
+
+
+
 
 template <class TypeContained>
 TypeContained *Array <TypeContained> :: c_ptr () {
@@ -244,6 +248,9 @@ size_t Array <TypeContained> :: getSize (void *forMe) {
 		((Array <TypeContained> *) forMe)->typeInfo.getSizeOfConstituentObject (forMe) * 
 		((Array <TypeContained> *) forMe)->numSlots;
 }
+
+        
+
 
 }
 

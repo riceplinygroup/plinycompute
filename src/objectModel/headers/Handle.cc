@@ -807,6 +807,38 @@ RefCountedObject <ObjType> *Handle <ObjType> :: getTarget () const {
 	return (RefCountedObject <ObjType> *) (CHAR_PTR (this) + offset);
 }
 
+
+
+// JiaNote: to shallow copy a handle to current allocation block
+// This is to improve the performance of current pipeline bundling
+template <class ObjType>
+Handle<ObjType> &Handle<ObjType> :: shallowCopyToCurrentAllocationBlock(const Handle<ObjType> & copyMe) {
+
+        // get the thing that we used to point to
+        GET_OLD_TARGET;
+
+        // if we got a null pointer as the RHS, then we are the RHS
+        if (copyMe == nullptr) {
+                DEC_OLD_REF_COUNT;
+                offset = -1;
+                return *this;
+        }
+
+        typeInfo = copyMe.typeInfo;
+
+        // set the offset
+        offset = CHAR_PTR (copyMe.getTarget ()) - CHAR_PTR (this);
+
+        // increment the reference count then decrement the old ref count...
+        // it is important to do it in this order to correctly handle self-
+        // assignments without accidentally setting the count to zero
+        getTarget ()->incRefCount ();
+        DEC_OLD_REF_COUNT;
+
+        return *this;
+
+}
+
 }
 
 #endif

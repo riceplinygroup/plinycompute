@@ -109,6 +109,7 @@ public:
 
 	// beause the communicator needs to see inside to do efficient sends
 	friend class PDBCommunicator;
+
 };
 
 }

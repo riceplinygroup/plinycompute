@@ -46,7 +46,7 @@ public:
     ~GenericBlock() {}
 
     GenericBlock() {}
-
+    GenericBlock(size_t batchSize) : block(batchSize) {}
     Vector<Handle<Object>> & getBlock() {
         return block;
     }
