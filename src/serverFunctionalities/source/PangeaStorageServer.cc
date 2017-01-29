@@ -1374,6 +1374,10 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string setName) {
 
 bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setName) {
      SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
+     if (set == nullptr) {
+        PDB_COUT << "set with dbName=" << dbName << " and setName=" << setName << " doesn't exist" << std :: endl;
+        return false;
+     }
      DatabaseID dbId = set->getDbID();
      UserTypeID typeId = set->getTypeID();
      SetID setId = set->getSetID();
