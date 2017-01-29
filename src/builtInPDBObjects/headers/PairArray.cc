@@ -84,7 +84,7 @@ public:
 };
 
 // the maximum fill factor before we double
-#define FILL_FACTOR 1
+#define FILL_FACTOR .667
 
 // access keys, hashes, and data in the underlying array
 #define GET_HASH(data, i) (*((size_t *) (((char *) data) + (i * objSize))))
