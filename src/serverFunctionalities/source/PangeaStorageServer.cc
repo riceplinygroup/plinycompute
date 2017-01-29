@@ -26,6 +26,7 @@
 #include "StorageAddData.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
+#include "StorageClearSet.h"
 #include "StorageGetData.h"
 #include "StorageGetDataResponse.h"
 #include "StorageGetSetPages.h"
@@ -428,6 +429,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+
        // this handler requests to add a temp set
        forMe.registerHandler (StorageAddTempSet_TYPEID, make_shared<SimpleRequestHandler<StorageAddTempSet>> (
                [&] (Handle <StorageAddTempSet> request, PDBCommunicatorPtr sendUsingMe) {
@@ -505,6 +507,46 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                      errMsg = "Error removing set!\n";
                                      cout << errMsg << endl;
                             } 
+                         }
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+               }
+
+       ));
+
+       forMe.registerHandler (StorageClearSet_TYPEID, make_shared<SimpleRequestHandler<StorageClearSet>> (
+               [&] (Handle <StorageClearSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         std :: string databaseName = request->getDatabase();
+                         std :: string typeName = request->getTypeName ();
+                         std :: string setName = request->getSetName();
+                         bool res = true;
+                         if (standalone == true) {
+                             PDB_COUT << "removing set in standalone mode" << std :: endl;
+                             res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
+                             if (res == false) {
+                                 errMsg = "Set doesn't exist\n";
+                             } else {
+                                 PDB_COUT << "adding set in standalone mode" << std :: endl;
+                                 res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
+                             }
+
+                         } else {
+                            PDB_COUT << "removing set in cluster mode" << std :: endl;
+                            if ((res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, setName)) == false) {
+                                     errMsg = "Error removing set!\n";
+                                     cout << errMsg << endl;
+                            } else {
+                                     if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
+                                         errMsg = "Set already exists\n";
+                                         cout << errMsg << endl;
+                                     }
+                            }
                          }
                          // make the response
                          const UseTemporaryAllocationBlock tempBlock{1024};
@@ -809,8 +851,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 std :: cout << "dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                                 std :: cout << errMsg << std :: endl;
                                 logger->error(errMsg);
-                                exit(-1);
                        } else {
+                                getFunctionality<PangeaStorageServer>().getCache()->evictPage(key);
                                 res = true;
                                 //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
