@@ -29,6 +29,17 @@
 #include <float.h>
 #include "BuiltinTopKInput.h"
 
+/*
+ * This class is deprecated and not maintained.
+ * The TopKQuery class is moved to the pliny project for easier scripting with P
+liny classes
+ * To find the new class TopKQuery from pliny project.
+ */
+
+
+
+
+
 namespace pdb {
 
 /* A class to wrap Top K (K-largest) values obtained so far */

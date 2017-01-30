@@ -45,6 +45,9 @@ public:
        //constructor for the case when query scheduler is co-located with resource manager       
        QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false);
 
+       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false);
+
+
        //constructor for the case when query scheduler and resource manager are in two different nodes
        QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
 
@@ -78,6 +81,15 @@ public:
        void scheduleNew();
 
        bool scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
+
+       Handle<SetIdentifier>  getOutputSet() {
+           return currentPlan[0]->getOutput();
+       }
+
+       std :: string getOutputTypeName() {
+           return currentPlan[0]->getOutputTypeName();
+       }
+
 
 protected:
 

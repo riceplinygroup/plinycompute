@@ -23,6 +23,7 @@
 #include "PDBDebug.h"
 #include "InterfaceFunctions.h"
 #include "QuerySchedulerServer.h"
+#include "DistributedStorageManagerClient.h"
 #include "QueryOutput.h"
 #include "ResourceInfo.h"
 #include "ResourceManagerServer.h"
@@ -57,11 +58,19 @@ QuerySchedulerServer :: ~QuerySchedulerServer () {
 }
 
 QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode) {
+    this->port =8108;
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
 }
 
+
+QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode) {
+    this->port =port;
+    this->logger = logger;
+    this->pseudoClusterMode = pseudoClusterMode;
+    pthread_mutex_init(&connection_mutex, nullptr);
+}
 
 void QuerySchedulerServer ::cleanup() {
 
@@ -215,6 +224,7 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
         PDB_COUT << "#####################################" << std :: endl;
     }
     pthread_mutex_unlock(&connection_mutex);
+    //Now we only allow one stage for each query graph
     for (int i = 0; i < 1; i++) {
         Handle<JobStage> stage = currentPlan[i];
         success = schedule (stage, communicator, mode);
@@ -306,6 +316,8 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
         return true;
 }
 
+
+//checkSet can only be true if we deploy QuerySchedulerServer, CatalogServer and DistributedStorageManagerServer on the same machine.
 void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
 
      //current logical planning only supports selection and projection
@@ -336,10 +348,12 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                 continue;
             } 
             string name = "";
-            Handle<SetIdentifier> output = makeObject<SetIdentifier>(materializationMode->tryGetDatabaseName( name ), materializationMode->tryGetSetName( name )); 
+            Handle<SetIdentifier> output = makeObject<SetIdentifier>(materializationMode->tryGetDatabaseName( name ), materializationMode->tryGetSetName( name ));
+
             jobStageId ++;
             Handle<JobStage> stage = makeObject<JobStage>(jobStageId);
             stage->setOutput(output);
+            
             bool isNodeMaterializable = true;
             while (curNode->getName() != "SourceSetNameIr") {
                 if(curNode->isTraversed() == false) {
@@ -505,7 +519,24 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
          pdb_detail::QueryGraphIrPtr queryGraph = pdb_detail::buildIr(userQuery);
 
          PDB_COUT << "To transform the logicalGraph into a physical plan" << std :: endl;
-         getFunctionality<QuerySchedulerServer>().parseOptimizedQuery(queryGraph); 
+         
+         getFunctionality<QuerySchedulerServer>().parseOptimizedQuery(queryGraph);
+
+#ifdef CLEAR_SET
+         //So far we only clear for the first stage. (we now only schedule the first stage)
+         Handle<SetIdentifier> output = getFunctionality<QuerySchedulerServer>().getOutputSet(); 
+         std :: string outputTypeName = getFunctionality<QuerySchedulerServer>().getOutputTypeName();
+         //check whether output exists, if yes, we remove that set and create a new set
+         DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
+         std :: cout << "QuerySchedulerServer: to clear output set with databaseName=" << output->getDatabase() << " and setName=" << output->getSetName() << " and typeName=" << outputTypeName << std :: endl;
+         std :: cout << "Please turn CLEAR_SET flag off if client is responsible for creating output set" << std :: endl;
+         bool ret = dsmClient.clearSet(output->getDatabase(), output->getSetName(), outputTypeName, errMsg);
+         if (ret == false) {
+              std :: cout << "QuerySchedulerServer: can't clear output set with databaseName=" << output->getDatabase() << " and setName=" << output->getSetName() << " and typeName=" << outputTypeName << std :: endl;
+              return std :: make_pair (false, errMsg);
+         }
+         std :: cout << "QuerySchedulerServer: set cleared" << std :: endl;
+#endif
          getFunctionality<QuerySchedulerServer>().printCurrentPlan();
          PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
          getFunctionality<QuerySchedulerServer>().initialize(true);
