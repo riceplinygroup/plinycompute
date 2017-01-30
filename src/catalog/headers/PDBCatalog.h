@@ -178,11 +178,10 @@ using namespace pdb;
          * @param errorMessage error message
          * @return true on success
          */
-        //TODO the itme maybe is not needed.
         template<class CatalogMetadataType>
         bool deleteMetadataInCatalog(pdb :: Handle<CatalogMetadataType> metadataValue,
-                                                 int &metadataCategory,
-                                                 string &errorMessage);
+                                     int &metadataCategory,
+                                     string &errorMessage);
 
 
         /**
@@ -221,9 +220,9 @@ using namespace pdb;
          * @return true on success
          */
         bool getSerializedCatalog(string fileName,
-                string version,
-                string &returnedBytes,
-                string &errorMessage);
+                                  string version,
+                                  string &returnedBytes,
+                                  string &errorMessage);
 
         /**
          * setCatalogVersion sets the version of the catalog, this is typically called when
@@ -292,34 +291,39 @@ using namespace pdb;
         bool keyIsFound(int &metadataCategory, string &key, string &value);
 
         /**
-         * overloads the << operator so other classes can print the content of the
+         * Overloads the << operator so other classes can print the content of the
          * catalog metadata
          */
         friend std::ostream& operator<<(std::ostream &out, PDBCatalog &catalog);
 
         /**
-         * getLogger gets the logger for the Catalog
+         * Gets the logger for the Catalog
          */
         PDBLoggerPtr getLogger();
 
-        // TODO
-        //******* to document and review if needed or have to removed
+        /**
+         * Returns a map with metadata for all user-defined types registered in the catalog
+         */
         map <string, CatalogUserTypeMetadata> getUserDefinedTypesList();
 
-        // TODO remove this??
-        void unregisterPDBObject (string unregisterMe);
-
-        // Lists all metadata registered in the catalog
+        /**
+         * Prints all metadata registered in the catalog
+         */
         void printsAllCatalogMetadata();
 
-        // Retrieves a dynamic library stored as BLOB in the Catalog
-        // returns 1 if success, 0 otherwise.
+        /**
+         * Retrieves a dynamic library stored as BLOB in the Catalog
+         * returns 1 if success, 0 otherwise.
+         */
         bool retrievesDynamicLibrary(string fileName,
                                      string tableName,
                                      Handle<CatalogUserTypeMetadata> &returnedItem,
                                      string &returnedSoLibrary,
                                      string &errorName);
 
+        /**
+         * Prints all metadata registered in the catalog, used for debugging purposes
+         */
         void testCatalogPrint();
 
         /**
@@ -378,13 +382,14 @@ using namespace pdb;
         // Mutex for ensuring proper writing of metadata to catalog
         pthread_mutex_t registerMetadataMutex;
 
-        // This is the initial typeID value to be assigned to types registered via Shared Libraries
-        // typeID from 1 to 8191 are reserved for built-in types and assigned automatically at
-        // compile time
-        int16_t initialTypeID = 8192;
-
+        /**
+         * A string that indicates the version of this catalog instance
+         **/
         string catalogVersion;
 
+        /**
+         * The logger for this catalog instance
+         **/
         PDBLoggerPtr logger;
 
         /**
@@ -396,86 +401,144 @@ using namespace pdb;
          * List unique metadata entries
          **/
         vector<CatalogDatabaseMetadata> dbList;
-        // list of users in the cluster
+
+        /**
+         * Contains information of users registered in the catalog. (To be implemented)
+         **/
         Handle<pdb :: Vector < Handle < CatalogUserTypeMetadata > >> listUsersInCluster;
 
-        // Map of users, given the name of a user as a string,
-        // lists all databases belonging to that user.
+        /**
+         * Map of users, given the name of a user as a string,
+         * lists all databases belonging to that user. (To be implemented)
+         **/
         multimap < string, CatalogUserTypeMetadata > mapUsersInCluster;
 
-        // map for storing a map of Object name and ID
+        /**
+         * Maps a typeName to its typeID for a user-defined type registered in the catalog
+         **/
         map<string, int16_t> mapTypeNameToTypeID;
 
-        // map for storing a map of ID and Object name
+        /**
+         * Maps a typeID to its typeName for a user-defined type registered in the catalog
+         **/
         map <int16_t, string> mapTypeIdToTypeName;
 
-        //TODO some of these can be removed???
-        // stores information about registered user-defined objects in the catalog by name.
-        map<string, CatalogUserTypeMetadata> registeredUserDefinedObjectsByName;
+        /**
+         * Maps a node IP:Port to its Metadata
+         **/
+        map <string, CatalogNodeMetadata> registeredNodes;
 
-        //TODO new temp containers for metadata,
-        map <string, CatalogNodeMetadata> nodesResult;
-        Handle<Vector <CatalogNodeMetadata> > nodesValues;
+        /**
+         * Container for keeping in memory metadata for all registered nodes
+         * in the catalog
+         **/
+        Handle<Vector <CatalogNodeMetadata> > registeredNodesMetadata;
 
-        map <string, CatalogSetMetadata> setsResult;
-        Handle<Vector <CatalogSetMetadata> > setValues;
+        /**
+         * Maps a node IP:Port to its Metadata
+         **/
+        map <string, CatalogSetMetadata> registeredSets;
 
-        map <string, CatalogDatabaseMetadata> dbsResult;
-        Handle<Vector <CatalogDatabaseMetadata> > dbsValues;
+        /**
+         * Container for keeping in memory metadata for all registered nodes
+         * in the catalog
+         **/
+        Handle<Vector <CatalogSetMetadata> > registeredSetsMetadata;
 
-        map <string, CatalogUserTypeMetadata> udfsResult;
-        Handle<Vector <CatalogUserTypeMetadata> > udfsValues;
-        //end of temp containers
+        /**
+         * Maps a database name to its Metadata
+         **/
+        map <string, CatalogDatabaseMetadata> registeredDatabases;
 
-        //Container for all metadata in the catalog
+        /**
+         * Container for keeping in memory metadata for all registered databases
+         * in the catalog
+         **/
+        Handle<Vector <CatalogDatabaseMetadata> > registeredDatabasesMetadata;
+
+        /**
+         * Maps a user-defined type to its Metadata
+         **/
+        map <string, CatalogUserTypeMetadata> registeredUserDefinedTypes;
+
+        /**
+         * Container for keeping in memory metadata for all registered user-defined types
+         * in the catalog
+         **/
+        Handle<Vector <CatalogUserTypeMetadata> > registeredUserDefinedTypesMetadata;
+
+        /**
+         * Container for keeping in memory  all the metadata registered in
+         * the catalog. Used when a remote catalog (i.e. non-master catalog)
+         * requests an update "pull" of newly registered metadata.
+         **/
         Handle<Map<String, Handle<Vector<Object> > > > catalogContents;
 
-        // URI string that represents the location of the plinyCatalog.db
-        // so it can be use for opening connnections to the catalog.
+        /**
+         * URI string that represents the location of the plinyCatalog.db
+         * so it can be use for opening connections to the SQLite catalog file
+         **/
         string uriPath;
 
-        // this is the root path where the catalog resides
-        // it's relative to where PDB runs
+        /**
+         * Root path where the catalog resides, relative to where PDB runs
+         **/
         string catalogRootPath;
 
-        // this string contains the full name of the catalog file, to be used
-        // by sqlite statements
+        /**
+         * String that contains the full name of the catalog file, to be used
+         * in SQLite statements
+         **/
         string catalogFilename;
 
-        // String that represents the temporary location where the .so files
-        // will be stored during runtime
+        /**
+         * String that represents the temporary location where shared library files
+         * will be stored at runtime
+         **/
         string tempPath;
 
-        // Creates a statement from a string and executes the query, returning a
-        // true if successful, false otherwise.
+        /**
+         * Creates a statement from a string and executes the query, returning
+         * true if successfu
+         **/
         bool catalogSqlQuery(string statement);
 
-        // Executes an sql statement in sqlite3 (insert, update or delete)
+        /**
+         * Executes an sql statement in sqlite3 (insert, update or delete)
+         **/
         bool catalogSqlStep(sqlite3_stmt *stmt, string &errorMsg);
 
-        // Retrieves a Registered Object from the sqlite database
-        // returns 1 if success, 0 otherwise.
-        bool getRegisteredObject(int16_t typeId,
-                                 string fileName,
-                                 string typeOfObject,
-                                 string typeName,
-                                 string &errorMessage);
-
-        // Creates a temporary folder to place the .so files, returns 0 if success, -1
-        // otherwise
+        /**
+         * Creates a temporary folder to place the shared library files, returns 0 if success
+         **/
         int createsTempPath();
 
-        // Sets the URI path
+        /**
+         * Sets the URI path where the SQLite database is located
+         **/
         void setUriPath(string thePath){ uriPath=thePath; }
 
-        // Generates a random string, will be used for creating a random folder to temporarily
-        // placed the .so files
+        /**
+         * Generates a random string that can be used for creating a random folder to temporarily
+         * placed the shared library files
+         **/
         string genRandomString(int len);
 
-        // Deletes all .so files from the temp directory, this is called by the destructor
+        /**
+         * Deletes all shared library files from the temp directory (is called by the destructor)
+         **/
         void deleteTempSoFiles(string filePath);
 
+        /**
+         * Maps the name of an SQLite table given the type of metadata it contains. Used for
+         * composing prepared SQL statements in SQLite, given a type Metadata
+         **/
         map<int, string> mapsPDBOjbect2SQLiteTable;
+
+        /**
+         * Maps the name of an SQLite table given the type of metadata it contains. Used for
+         * composing prepared SQL statements in SQLite, given a tyep of Metadata in a container
+         **/
         map<int, string>  mapsPDBArrayOjbect2SQLiteTable;
 
     };

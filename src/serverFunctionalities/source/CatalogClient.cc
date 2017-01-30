@@ -559,14 +559,14 @@ namespace pdb {
         );
     }
 
-    // implicit instantiation to register various types of Metadata
-    template bool CatalogClient :: registerGenericMetadata<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);
-    template bool CatalogClient :: registerGenericMetadata<CatalogDatabaseMetadata> (Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
-    template bool CatalogClient :: registerGenericMetadata<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
+    /* Explicit instantiation to register various types of Metadata */
+    template bool CatalogClient :: registerGenericMetadata (Handle<CatalogNodeMetadata> metadataItem,  string &errMsg);
+    template bool CatalogClient :: registerGenericMetadata (Handle<CatalogDatabaseMetadata> metadataItem, string &errMsg);
+    template bool CatalogClient :: registerGenericMetadata (Handle<CatalogSetMetadata> metadataItem, string &errMsg);
 
-    // implicit instantiation to delete various types of Metadata
-    template bool CatalogClient :: deleteGenericMetadata<CatDeleteDatabaseRequest> (Handle<CatDeleteDatabaseRequest> metadataItem, string &errMsg);
-    template bool CatalogClient :: deleteGenericMetadata<CatDeleteSetRequest> (Handle<CatDeleteSetRequest> metadataItem, string &errMsg);
+    /* Explicit instantiation to delete various types of Metadata */
+    template bool CatalogClient :: deleteGenericMetadata (Handle<CatDeleteDatabaseRequest> metadataItem, string &errMsg);
+    template bool CatalogClient :: deleteGenericMetadata (Handle<CatDeleteSetRequest> metadataItem, string &errMsg);
 
 }
 #endif
