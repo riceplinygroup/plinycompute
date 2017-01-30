@@ -34,38 +34,46 @@ namespace pdb {
 
     public:
 
-        // destructor
+         /* Destructor */
         ~CatalogClient ();
 
+        /* Default Constructor */
         CatalogClient ();
 
-        // Creates a Catalog Client given the port and address of the catalog
-        //   for a local catalog the address is typically "localhost"
-        //   for a remote catalog, the address is the IP address of the machine
-        //   where the catalog resides
+        /*
+         * Creates a Catalog Client given the port and address of the catalog
+         *   for a local catalog the address is typically "localhost"
+         *   for a remote catalog, the address is the IP address of the machine
+         *   where the catalog resides
+         */
         CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger);
 
-        // Creates a Catalog Client given the port and address of the catalog
-        //   for a local catalog the address is typically "localhost"
-        //   for a remote catalog, the address is the IP address of the machine
-        //   where the catalog resides.
-        //   If this catalog client points to a catalog in a remote machine, the
-        //   pointsToCatalogMasterIn argument must be set to "true"
+        /*
+         * Creates a Catalog Client given the port and address of the catalog
+         *   for a local catalog the address is typically "localhost"
+         *   for a remote catalog, the address is the IP address of the machine
+         *   where the catalog resides.
+         *   If this catalog client points to a catalog in a remote machine, the
+         *   pointsToCatalogMasterIn argument must be set to "true"
+         *
+         */
         CatalogClient (int port, std :: string address, PDBLoggerPtr myLogger, bool pointsToCatalogMasterIn);
 
-        // Registers event handlers associated with this server functionality
+        /* Registers event handlers associated with this server functionality */
         virtual void registerHandlers (PDBServer &forMe) override;
 
-        // Uses the name of the object type to find its corresponding typeId, returns -1
-        // if not found
+        /* Uses the name of the object type to find its corresponding typeId, returns -1
+         * if not found
+         */
         int16_t searchForObjectTypeName (std :: string objectTypeName);
 
-        // Retrieves the content of a Shared Library given it's Type Id
+        /* Retrieves the content of a Shared Library given it's Type Id */
         bool getSharedLibrary (int16_t identifier, std :: string sharedLibraryFileName);
 
-        // Retrieves the content of a Shared Library along with its registered metadata,
-        // given it's typeName. Typically this method is invoked by a remote machine that
-        // has no knowledge of the typeID
+        /* Retrieves the content of a Shared Library along with its registered metadata,
+         * given it's typeName. Typically this method is invoked by a remote machine that
+         * has no knowledge of the typeID
+         */
         bool getSharedLibraryByTypeName (int16_t identifier,
                                          std :: string& typeName,
                                          std :: string sharedLibraryFileName,
@@ -73,88 +81,103 @@ namespace pdb {
                                          string &sharedLibraryBytes,
                                          std :: string &errMsg);
 
-        // Registers a type with the catalog
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to register a type with the catalog
+         * returns true on success, false on fail */
         bool registerType (std :: string fileContainingSharedLib, std :: string &errMsg);
 
-        // Shuts down the server that we are connected to... returns true on success
+        /* Sends a request to the Catalog Server to shut down the server that we are connected to
+         * ... returns true on success */
         bool shutDownServer (std :: string &errMsg);
 
-        // Returns the type of object in the specified set, as a type name; returns "" on err
+        /* Sends a request to the Catalog Server to return the typeName of a user-defined type in the
+         * specified database and set; returns "" on err */
         std :: string getObjectType (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // Creates a new database
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to Create a new database
+         * returns true on success, false on fail
+         */
         bool createDatabase (std :: string databaseName, std :: string &errMsg);
 
-        // Registers metadata about a database
+        /* Sends a request to the Catalog Server to register metadata about a database */
         bool registerDatabaseMetadata (std :: string databaseName, std :: string &errMsg);
 
-        // Registers metadata about a node in the cluster
+        /* Sends a request to the Catalog Server to register metadata about a node in the cluster */
         bool registerNodeMetadata (pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData, std :: string &errMsg);
 
-        // Templated method for registering a piece of metadata in the catalog
+        /* Templated method for registering a piece of metadata in the catalog */
         template <class Type>
         bool registerGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg);
 
-        // Templated method for removing a piece of metadata from the catalog
+        /* Templated method for removing a piece of metadata from the catalog */
         template <class Type>
         bool deleteGenericMetadata (pdb :: Handle<Type> metadataItem, std :: string &errMsg);
 
-        // Creates a new set in a given database... returns true on success
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to Creates a new set for a given DataType in a database;
+         * returns true on success, false on fail
+         */
         template <class DataType>
         bool createSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // same as above, but here we use the type code
+        /* same as above, but here we use the type code */
         bool createSet (int16_t identifier, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // Deletes a database
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to delete a database; returns true on success, false on fail
+         */
         bool deleteDatabase (std :: string databaseName, std :: string &errMsg);
 
-        // Deletes a set
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to delete a set returns true on success, false on fail
+         */
         bool deleteSet (std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // Adds information about a node to a set for a given database
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to add information about a node to a set for a given database;
+         * returns true on success, false on fail
+         */
         bool addNodeToSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // Adds information about a node to a database
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to add information about a node to a database;
+         * returns true on success, false on fail
+         */
         bool addNodeToDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
 
-        // Removes information about a node from a set, this is invoked when storage
-        // removes a set for a database in a node in the cluster
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to remove information about a node from a set, this is invoked when storage
+         * removes a set for a database in a node in the cluster; returns true on success, false on fail
+         */
         bool removeNodeFromSet (std :: string nodeIP, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
-        // Removes information about a node from a database, this is invoked when storage
-        // removes a database in a node in the cluster
-        // returns true on success, false on fail
+        /* Sends a request to the Catalog Server to remove information about a node from a database, this is invoked when storage
+         * removes a database in a node in the cluster; returns true on success, false on fail
+         */
         bool removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
 
-        // Prints the content of the metadata stored in the catalog
+        /* Sends a request to the Catalog Server to prints the content of the metadata stored in the catalog */
         bool printCatalogMetadata (std :: string itemToSearch, std :: string &errMsg);
 
-        // Returns true if this Catalog Client points to a remote
-        // Master Catalog Server
+        /* Returns true if this Catalog Client points to a remote
+         * Master Catalog Server
+         */
         bool getPointsToMasterCatalog();
 
+        /* Sets to true if this Catalog Client points to the Master Catalog Server */
         void setPointsToMasterCatalog(bool pointsToMaster);
 
-        // Closes the SQLite DB Handler
+        /* Sends a request to the Catalog Server to close the SQLite DB Handler */
         bool closeCatalogSQLite(std :: string &errMsg);
 
     private:
 
+        /* True if this Catalog Client points to the Master Catalog Server */
         bool pointsToCatalogMaster;
 
-        int port;
+        /* The IP address where this Catalog Client is connected to */
         std :: string address;
+
+        /* The port where this Catalog Client is connected to */
+        int port;
+
+        /* Logger to debug information */
         PDBLoggerPtr myLogger;
 
+        /* To ensure serialized access */
         pthread_mutex_t workingMutex;
     };
 

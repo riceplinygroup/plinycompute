@@ -206,8 +206,6 @@ namespace pdb {
                 const LockGuard guard{workingMutex};
                 const UseTemporaryAllocationBlock block{1024*1024};
 
-                // added by Jia to test a length error bug
-                //TODO check if I can remove this?
                 vector <char> * putResultHere = new vector<char>();
                 std :: string errMsg;
                 int16_t typeID = request->getTypeID ();
@@ -384,7 +382,7 @@ namespace pdb {
                             // if retrieval was successful prepare and send object to caller
                             PDB_COUT << "     before sending response Vtable fixed!!!!" << endl;
 
-                            //TODO chance this constant
+                            //TODO change this constant
                             const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
                             // prepares Object to be sent to caller
@@ -1241,12 +1239,10 @@ namespace pdb {
         int catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
         Handle<CatalogDatabaseMetadata> metadataObject = makeObject<CatalogDatabaseMetadata>();
 
-        // TODO *****************New Metadata*****************
         CatalogStandardDatabaseMetadata metadataItem = CatalogStandardDatabaseMetadata();
+
         // populates object metadata
         metadataItem.setItemName(databaseName);
-        //*****************New metadata*****************
-
         String dbName = String(databaseName);
         metadataObject->setItemName(dbName);
 
@@ -2039,18 +2035,17 @@ void CatalogServer :: setIsMasterCatalogServer(bool isMasterCatalogServerIn) {
     isMasterCatalogServer = isMasterCatalogServerIn;
 }
 
-
-// implicit instantiation to broadcast Catalog Updates for a Node
-template bool CatalogServer :: broadcastCatalogUpdate<CatalogNodeMetadata> (Handle<CatalogNodeMetadata> metadataToSend,
+/* Explicit instantiation to broadcast Catalog Updates for a Node */
+template bool CatalogServer :: broadcastCatalogUpdate (Handle<CatalogNodeMetadata> metadataToSend,
                                                                             map <string, pair<bool,
                                                                             string>> &broadcastResults,
                                                                             string &errMsg);
 
-// implicit instantiation to broadcast Catalog Updates for a Database
-template bool CatalogServer :: broadcastCatalogUpdate<CatalogDatabaseMetadata> (Handle<CatalogDatabaseMetadata> metadataToSend,
+/* Explicit instantiation to broadcast Catalog Updates for a Database */
+template bool CatalogServer :: broadcastCatalogUpdate (Handle<CatalogDatabaseMetadata> metadataToSend,
                                                                                 map <string, pair<bool, string>> &broadcastResults,
                                                                                 string &errMsg);
-// implicit instantiation to broadcast Catalog Updates for a Set
-template bool CatalogServer :: broadcastCatalogUpdate<CatalogSetMetadata> (Handle<CatalogSetMetadata> metadataToSend,
+/* Explicit instantiation to broadcast Catalog Updates for a Set */
+template bool CatalogServer :: broadcastCatalogUpdate (Handle<CatalogSetMetadata> metadataToSend,
                                                                            map <string, pair<bool, string>> &broadcastResults,
                                                                            string &errMsg);
