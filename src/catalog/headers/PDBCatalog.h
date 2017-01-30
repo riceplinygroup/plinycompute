@@ -15,15 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PDBCatalog.h
- *
- *  Created on: May 11, 2015
- *
- * This is an implementation of a catalog that uses sqlite3 for storing,
- * User Defined Objects and Metrics
- */
-
 #ifndef PDB_CATALOG_H_
 #define PDB_CATALOG_H_
 
@@ -34,25 +25,18 @@
 #include <dlfcn.h>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <pthread.h>
+#include <sqlite3.h>
 #include <sstream>
+#include <stdio.h>
 #include <string>
 #include <string.h>
-#include <sqlite3.h>
-#include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
-#include <map>
-#include <pthread.h>
 
 #include <boost/filesystem.hpp>
-#include "InterfaceFunctions.h"
-#include "Handle.h"
-#include "Object.h"
-#include "PDBDebug.h"
-#include "PDBLogger.h"
-#include "PDBCommunicator.h"
-#include "PDBCatalogMsgType.h"
 
 #include "CatalogNodeMetadata.h"
 #include "CatalogPermissionsMetadata.h"
@@ -64,36 +48,39 @@
 #include "CatalogStandardDatabaseMetadata.h"
 #include "CatalogStandardNodeMetadata.h"
 #include "CatalogStandardUserTypeMetadata.h"
+#include "Handle.h"
+#include "InterfaceFunctions.h"
+#include "Object.h"
+#include "PDBCommunicator.h"
+#include "PDBDebug.h"
+#include "PDBLogger.h"
+#include "PDBCatalogMsgType.h"
 
 using namespace std;
 using namespace pdb;
 
-// TODO remove this ??
-    // A function that returns the vTablePointer for a given user-defined object.
-    typedef pdb::Object *GetVTableFunc();
+/**
+ * PDBCatalog encapsulates the storage of metadata for an instance of PDB.
+ * The underlying persistent storage is an embedded SQLite database with the
+ * following tables and their contents:
+ *
+ *   - data_types: user-defined types
+ *   - metrics: user-defined metrics
+ *   - pdb_node: metadata about nodes in a cluster
+ *   - pdb_database: metadata about databases
+ *   - pdb_set: metadata about sets
+ *   - pdb_user: metadata about users in a PDB instance (to be implemented)
+ *   - pdb_user_permission: access to databases for users of PDB (to be implemented)
+ *
+ * This class also offers containers for accessing these metadata in memory upon
+ * launching an instance of CatalogServer.
+ */
 
     // A function that returns a string with the name of a user-defined object.
     typedef char *GenericFunction();
 
     class PDBCatalog;
     typedef shared_ptr <PDBCatalog> PDBCatalogPtr;
-
-    /**
-     *   PDBCatalog encapsulates the storage and maintenance of metadata for an
-     *   instance of PDB. Some of the metadata includes:
-     *    - user defined objects (types and metrics)
-     *    - databases
-     *    - nodes in a cluster
-     *    - users in the database
-     *    - permissions
-     *
-     *    This information is stored in an embedded SQLite database for
-     *    persistence purposes.
-     *
-     *    The CatalogServer gets access to these metadata via an instance of
-     *    PDBCatalog. Clients stores and retrieves metadata by connecting a
-     *    CatalogClient to the CatalogServer.
-     */
 
     class PDBCatalog {
     public:
@@ -121,12 +108,12 @@ using namespace pdb;
 
         /**
          * registerUserDefinedObject registers a user-defined type in the Catalog
-         * @typeCode is the typeID already resolved
+         * @typeCode is the typeID already assgined
          * @param objectToRegister contains the metadata for this object
          *
-         * @param objectBytes are the binary bytes of the .so file encapsulated as an string
-         * @param typeName is a string given by the user to identify the type (e.g. myCoolType)
-         * @param fileName is the path+filename of the .so file in the local system
+         * @param objectBytes are the binary bytes of the Shared Library encapsulated as an string
+         * @param typeName is a string obtained from the shared library, which identifies the type (e.g. myCoolType)
+         * @param fileName is the path+filename of the Shared Library in the local file system
          *        (e.g. mypath/mylibs/libMyCoolType.so
          * @param tableName is a string identifying the type of the object (e.g. metrics, data_type)
          * @return true on success
@@ -487,9 +474,6 @@ using namespace pdb;
 
         // Deletes all .so files from the temp directory, this is called by the destructor
         void deleteTempSoFiles(string filePath);
-
-        // TODO remove this one?
-        unsigned mapsObjectNameToObjectId(string objectName);
 
         map<int, string> mapsPDBOjbect2SQLiteTable;
         map<int, string>  mapsPDBArrayOjbect2SQLiteTable;

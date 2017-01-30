@@ -19,9 +19,9 @@
 #ifndef CAT_CLIENT_TEMPL_CC
 #define CAT_CLIENT_TEMPL_CC
 
-#include "SimpleRequest.h"
 #include "CatalogClient.h"
 #include "CatCreateSetRequest.h"
+#include "SimpleRequest.h"
 #include "SimpleRequestResult.h"
 
 namespace pdb {

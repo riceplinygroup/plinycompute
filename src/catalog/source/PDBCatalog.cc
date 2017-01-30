@@ -908,16 +908,6 @@
         }
     }
 
-    unsigned PDBCatalog::mapsObjectNameToObjectId(string objectName) {
-        auto search = mapTypeNameToTypeID.find(objectName);
-        if(search != mapTypeNameToTypeID.end()) {
-            unsigned objectIndex = (unsigned) search->second;
-            return objectIndex;
-        } else {
-            return -1;
-        }
-    }
-
     template<class CatalogMetadataType, class CatalogStandardMetadataType>
     bool PDBCatalog::addMetadataToCatalog(pdb :: Handle<CatalogMetadataType> &metadataValue,
                                           CatalogStandardMetadataType &metadataItem,

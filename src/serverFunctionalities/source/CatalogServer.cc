@@ -15,45 +15,42 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
+#include <chrono>
+#include <cstring>
 #include <cstddef>
+#include <ctime>
+#include <fcntl.h>
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <cstring>
-#include <unistd.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <string>
+#include <unistd.h>
+#include <vector>
 
-#include <chrono>
-#include <ctime>
-
-#include "UseTemporaryAllocationBlock.h"
-#include "CatalogServer.h"
-#include "SimpleRequestHandler.h"
 #include "BuiltInObjectTypeIDs.h"
-#include "CatTypeNameSearchResult.h"
-#include "CatTypeSearchResult.h"
-#include "CatSetObjectTypeRequest.h"
-#include "CatRegisterType.h"
-#include "CatTypeNameSearch.h"
-#include "CatTypeSearchResult.h"
-#include "CatSharedLibraryRequest.h"
-#include "CatSharedLibraryByNameRequest.h"
+#include "CatalogCloseSQLiteDBHandler.h"
+#include "CatalogDatabaseMetadata.h"
+#include "CatalogPrintMetadata.h"
+#include "CatalogServer.h"
+#include "CatAddNodeToDatabaseRequest.h"
+#include "CatAddNodeToSetRequest.h"
 #include "CatCreateDatabaseRequest.h"
-#include "SimpleRequestResult.h"
 #include "CatCreateSetRequest.h"
 #include "CatDeleteDatabaseRequest.h"
 #include "CatDeleteSetRequest.h"
-#include "CatAddNodeToDatabaseRequest.h"
-#include "CatAddNodeToSetRequest.h"
+#include "CatRegisterType.h"
 #include "CatRemoveNodeFromDatabaseRequest.h"
 #include "CatRemoveNodeFromSetRequest.h"
-#include "CatalogDatabaseMetadata.h"
-#include "CatalogPrintMetadata.h"
-#include "CatalogCloseSQLiteDBHandler.h"
+#include "CatSetObjectTypeRequest.h"
+#include "CatSharedLibraryByNameRequest.h"
+#include "CatSharedLibraryRequest.h"
+#include "CatTypeNameSearch.h"
+#include "CatTypeNameSearchResult.h"
+#include "CatTypeSearchResult.h"
+#include "SimpleRequestHandler.h"
+#include "SimpleRequestResult.h"
+#include "UseTemporaryAllocationBlock.h"
 
 namespace pdb {
 
