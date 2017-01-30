@@ -51,6 +51,10 @@ namespace pdb {
 
         bool removeSet(const std::string& databaseName, const std::string& setName, std::string & errMsg);
 
+        // clearSet added by Jia
+        bool clearSet(const std::string& databaseName, const std::string& setName, const std::string & typeName, std::string & errMsg);
+
+
 
     private:
         std::function<bool (Handle<SimpleRequestResult>)> generateResponseHandler(std::string description, std::string & errMsg);

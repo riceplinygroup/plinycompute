@@ -24,7 +24,6 @@ scripts/cleanupNode.sh
 if [ "$PLINY_HOME" = "" ]; then
   echo "We do not have pliny dependency."
 else
-  mkdir bin
   $PLINY_HOME/scripts/cleanup.sh
 fi
 

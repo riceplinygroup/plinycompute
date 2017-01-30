@@ -35,6 +35,7 @@ elif  common_env['PLATFORM'] == 'posix':
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
+common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 # Make the build multithreaded

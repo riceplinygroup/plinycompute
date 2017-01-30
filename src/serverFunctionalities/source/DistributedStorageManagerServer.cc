@@ -32,12 +32,14 @@
 #include "DistributedStorageAddSet.h"
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
+#include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
 
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveUserSet.h"
+#include "StorageClearSet.h"
 #include "StorageCleanup.h"
 #include "Configuration.h"
 
@@ -50,7 +52,7 @@
 #include <unistd.h>
 
 
-//#define USING_ALL_NODES
+#define USING_ALL_NODES
 
 namespace pdb {
 
@@ -141,7 +143,62 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 return make_pair (res, errMsg);
             }
     ));
+    forMe.registerHandler(DistributedStorageClearSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageClearSet>> (
+            [&] (Handle <DistributedStorageClearSet> request, PDBCommunicatorPtr sendUsingMe) {
+                const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
+                PDB_COUT << "received DistributedStorageClearSet message" << std ::endl;
+                std::string errMsg;
+                bool res = true;
+                mutex lock;
 
+                auto successfulNodes = std::vector<std::string>();
+                auto failureNodes = std::vector<std::string>();
+                auto nodesToBroadcast = std::vector<std::string>();
+
+                std::string database = request->getDatabase();
+                std::string set = request->getSetName();
+                std::string fullSetName = database + "." + set;
+                PDB_COUT << "set to clear is " << fullSetName << std::endl;
+                std::string value;
+                int catalogType = PDBCatalogMsgType::CatalogPDBSet;
+
+                if (getFunctionality<CatalogServer>().getCatalog()->keyIsFound(catalogType, fullSetName, value)) {
+                    std::cout << "Set " << fullSetName << " already exists " << std::endl;
+                    //to remove set
+#ifndef USING_ALL_NODES
+                    if (!getFunctionality<DistributedStorageManagerServer>().findNodesForSet(database, set, nodesToBroadcast, errMsg)) {
+                        std::cout << "Could not find nodes to broadcast set to: " << errMsg << std::endl;
+                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
+                        bool res = sendUsingMe->sendObject (response, errMsg);
+                        return make_pair (res, errMsg);
+                    }
+#else
+                    std::vector<std::string> allNodes;
+                    const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+                    for (int i = 0; i < nodes->size(); i++) {
+                        std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                        std::string port = std::to_string((*nodes)[i]->getPort());
+                        allNodes.push_back(address + ":" + port);
+                    }
+                    nodesToBroadcast = allNodes;
+#endif
+                    Handle<StorageClearSet> storageCmd = makeObject<StorageClearSet>(request->getDatabase(),
+                                                                             request->getSetName(), request->getTypeName());
+
+
+                    getFunctionality<DistributedStorageManagerServer>().broadcast<StorageClearSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
+                                                                      generateAckHandler(successfulNodes, failureNodes, lock));
+                    res = true; 
+                } else {
+                    PDB_COUT << "Set " << fullSetName << " does not exist" << std::endl;
+                    res = false;
+                    errMsg= std :: string("Set to clear with name=") + fullSetName + std :: string( " doesn't exist");
+                }
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                res = sendUsingMe->sendObject (response, errMsg);
+                return make_pair (res, errMsg);
+            }
+    ));
     forMe.registerHandler(DistributedStorageAddSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddSet>> (
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                 const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
@@ -342,6 +399,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     return make_pair (res, errMsg);
                 } else {
                     typeName = (*returnValues)[0].getObjectTypeName();
+                    std :: cout << "typeName=" << typeName << std :: endl;
                 }
 #ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
@@ -362,7 +420,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 #endif
 
                auto catalogGetNodesEnd = std :: chrono :: high_resolution_clock :: now();
-
+               PDB_COUT << "to broadcast StorageRemoveUserSet" << std :: endl;
                Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
                     request->getSetName(), typeName);
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
@@ -743,12 +801,18 @@ bool DistributedStorageManagerServer::findNodesContainingSet(const std::string& 
             return false;
         }
         auto setsInDB = (* returnValues)[0].getSetsInDB();
+        for (auto & kv : (*setsInDB)) {
+            std :: cout << kv.key << std :: endl;
+        }
         String pdbSetName = String(setName);
+        PDB_COUT << "pdbSetName=" << pdbSetName << std :: endl;
         if (setsInDB->count(pdbSetName) == 0) {
             // The set is currently contained in no nodes
+            PDB_COUT << "set is not in map" << std :: endl;
             return true;
         }
-        auto nodes = (* setsInDB)[setName];
+        PDB_COUT << "set is in map" << std :: endl;
+        auto nodes = (* setsInDB)[pdbSetName];
         for (int i = 0; i < nodes.size(); i++) {
             PDB_COUT << i << ":" << nodes[i] << std :: endl;
             nodesContainingSet.push_back(nodes[i]);

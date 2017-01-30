@@ -38,6 +38,12 @@
 #include <stdlib.h>
 #include <time.h>
 
+/*
+ * This class is deprecated and not maintained.
+ * The TopKQuery class is moved to the pliny project for easier scripting with Pliny classes
+ * To find the new class TopKQuery from pliny project.
+ */
+
 
 
 namespace pdb {
