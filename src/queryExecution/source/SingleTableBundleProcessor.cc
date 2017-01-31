@@ -121,7 +121,7 @@ void SingleTableBundleProcessor :: clearOutputBlock () {
 
 void SingleTableBundleProcessor :: clearInputPage () {
 
-    this->inputVec = nullptr;
+    //this->inputVec = nullptr;
 
 }
 

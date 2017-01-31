@@ -852,7 +852,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 std :: cout << errMsg << std :: endl;
                                 logger->error(errMsg);
                        } else {
+#ifdef ENABLE_EVICTION
                                 getFunctionality<PangeaStorageServer>().getCache()->evictPage(key);
+#endif
                                 res = true;
                                 //std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
                        }
