@@ -251,26 +251,30 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             [&] (Handle<JobStage> request, PDBCommunicatorPtr sendUsingMe) {
             PDB_COUT << "Backend got JobStage message with Id=" << request->getStageId() << std :: endl;
             request->print();
-            
-            //initialize a pipeline network
-            //int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
-            NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
-            pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
-            SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
-            ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
+            bool res = true;
+            std :: string errMsg;
+            if( getCurPageScanner() == nullptr) { 
+                //initialize a pipeline network
+                //int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
+                NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+                pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+                SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
+                ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
 
 
-            PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, conf->getNumThreads());
-            PDB_COUT << "initialize the pipeline network" << std :: endl;
-            network->initialize(request);
-            PDB_COUT << "running source node" << std :: endl;
-            network->runSource(0, this);
-            
+                PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, conf->getNumThreads());
+                PDB_COUT << "initialize the pipeline network" << std :: endl;
+                network->initialize(request);
+                PDB_COUT << "running source node" << std :: endl;
+                network->runSource(0, this);
+            } else {
+                res = false;
+                errMsg = "A Job is already running in this server";
+            }
+
             PDB_COUT << "to send back reply" << std :: endl;
 
 
-            bool res = true;
-            std :: string errMsg;
             //std :: cout << "Making response object.\n";
             const UseTemporaryAllocationBlock block{1024};
             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
