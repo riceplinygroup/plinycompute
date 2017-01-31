@@ -19,6 +19,7 @@
 #ifndef PDB_WORKER_C
 #define PDB_WORKER_C
 
+#include "Allocator.h"
 #include "LockGuard.h"
 #include "PDBWorker.h"
 #include <iostream>
@@ -62,7 +63,8 @@ void PDBWorker::enter() {
             pthread_cond_wait(&workToDoSignal, &workerMutex);
         }
     }
-
+    getAllocator().cleanInactiveBlocks((size_t)(67108844));
+    getAllocator().cleanInactiveBlocks((size_t)(12582912));
     // then do the work
     runMe->execute(parent, buzzWhenDone);
     okToExecute = false;

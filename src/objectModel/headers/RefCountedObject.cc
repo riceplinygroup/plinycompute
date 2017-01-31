@@ -51,6 +51,9 @@ void RefCountedObject <ObjType> :: incRefCount () {
 template <class ObjType>
 void RefCountedObject <ObjType> :: decRefCount (PDBTemplateBase &typeInfo) {
 
+        if(! getAllocator().isManaged(this)) {
+            return;
+        } 
 	NUM_COPIES--;
 
 	// if the ref count goes to zero, free the pointed-to object

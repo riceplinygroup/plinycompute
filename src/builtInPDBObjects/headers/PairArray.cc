@@ -179,7 +179,7 @@ PairArray <KeyType, ValueType> :: PairArray (const PairArray &toMe) {
 }
 
 template <class KeyType, class ValueType>
-int PairArray <KeyType, ValueType> :: count (KeyType &me) {
+int PairArray <KeyType, ValueType> :: count (const KeyType &me) {
 
 	// hash this dude
 	size_t hashVal = Hasher <KeyType> :: hash (me);
@@ -213,8 +213,9 @@ int PairArray <KeyType, ValueType> :: count (KeyType &me) {
 	}
 
 	// we should never reach here
-	std :: cout << "Fatal Error: Ran off the end of the hash table!!\n";
-	exit (1);
+	std :: cout << "Warning: Ran off the end of the hash table!!\n";
+        return 0;
+	//exit (1);
 }
 
 template <class KeyType, class ValueType> 

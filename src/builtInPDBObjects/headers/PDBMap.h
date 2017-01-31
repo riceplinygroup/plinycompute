@@ -57,7 +57,7 @@ public:
 	size_t size() const;
 	
 	// returns 0 if this entry is undefined; 1 if it is defined
-	int count (KeyType &which);
+	int count (const KeyType &which);
 
         // these are used for iteration
         PDBMapIterator <KeyType, ValueType> begin ();

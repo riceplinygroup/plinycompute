@@ -70,12 +70,12 @@ inline size_t hashMe (char *me, size_t len) {
 template <class KeyType, class ValueType>
 Map <KeyType, ValueType> :: Map (uint32_t initSize) {
 
-	if (initSize == 0) {
+	if (initSize < 2) {
 		std :: cout << "Fatal Error: Map initialization:" << initSize << " too small; must be at least one.\n";
          
-		exit (0);
+		initSize = 2;
 	}
-
+        
 	// this way, we'll allocate extra bytes on the end of the array
 	MapRecordClass <KeyType, ValueType> temp;
 	size_t size = temp.getObjSize ();	
@@ -87,7 +87,7 @@ Map <KeyType, ValueType> :: Map () {
 
 	MapRecordClass <KeyType, ValueType> temp;
 	size_t size = temp.getObjSize ();	
-	myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size, 1);
+	myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size*2, 2);
 }
 
 template <class KeyType, class ValueType>
@@ -96,17 +96,22 @@ Map <KeyType, ValueType> :: ~Map () {}
 
 template <class KeyType, class ValueType>
 ValueType &Map <KeyType, ValueType> :: operator [] (const KeyType &which) {
-		
-	if (myArray->isOverFull ()) {
-		Handle <PairArray <KeyType, ValueType>> temp = myArray->doubleArray ();
-		myArray = temp;
-	}
+
+        //JiaNote: each time we increase size only when key doesn't exist.
+        // so that we can make sure usedSlot < maxSlots each time before we invoke[] for insertion
+        // and for read-only data, we will not invoke doubleArray(), if we always invoke count() before invoke []
+        if (myArray->count(which) == 0) {
+            if (myArray->isOverFull ()) {
+                Handle <PairArray <KeyType, ValueType>> temp = myArray->doubleArray ();
+                myArray = temp;
+            }
+        }
 	ValueType &res = (*myArray)[which];
 	return res;
 }
 
 template <class KeyType, class ValueType>
-int Map <KeyType, ValueType> :: count (KeyType &which) {
+int Map <KeyType, ValueType> :: count (const KeyType &which) {
 	return myArray->count (which);
 }
 
