@@ -115,7 +115,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                 std :: string outDatabaseName = request->getOutput()->getDatabase();
                 std :: string outSetName = request->getOutput()->getSetName();
-       
+                success = true;
                 // add the output set
                 //TODO: check whether output set exists
                 std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
@@ -136,11 +136,15 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              PDB_COUT << "Output set is created in catalog" << std :: endl;
                          } else {
                              std :: cout << "ERROR: Now we do not support to create set in middle of distribued query processing" << std :: endl;
-                             return std :: make_pair (false, std :: string("Set doesn't exist"));;
+                             errMsg = std :: string("Output set doesn't exist");
+                             success = false;
+                             //return std :: make_pair (false, std :: string("Set doesn't exist"));;
                          }
                      } else {
                          std :: cout << "ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
-                         return std :: make_pair (false, std :: string("Set doesn't exist"));;
+                         errMsg = std :: string ("Output set doesn't exist");
+                         success = false;
+                         //return std :: make_pair (false, std :: string("Set doesn't exist"));;
                      }
                                     
 
@@ -148,58 +152,60 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
    
                      if (createOutputSet == true) {
                          std :: cout << "ERROR: output set exists, please remove it first" << std :: endl;
-                         return std :: make_pair (false, std :: string("Output set exists, please remove it first"));;
+                         errMsg = std :: string("ERROR: output set exists, please remove it first");
+                         success = false;
+                         //return std :: make_pair (false, std :: string("Output set exists, please remove it first"));;
                      }
                 }
-
-                //restructure the output information
-                //makeObjectAllocatorBlock(24*1024*1024, true);
-                Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
-                PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
-                output->setDatabaseId(outputSet->getDbID());
-                output->setTypeId(outputSet->getTypeID());
-                output->setSetId(outputSet->getSetID());
-                newRequest->setOutput(output);
-                newRequest->setOutputTypeName(request->getOutputTypeName());
-                PDB_COUT << "Output is set" << std :: endl;
+                if (success == true) {
+                    //restructure the output information
+                    //makeObjectAllocatorBlock(24*1024*1024, true);
+                    Handle<SetIdentifier> output = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                    PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
+                    output->setDatabaseId(outputSet->getDbID());
+                    output->setTypeId(outputSet->getTypeID());
+                    output->setSetId(outputSet->getSetID());
+                    newRequest->setOutput(output);
+                    newRequest->setOutputTypeName(request->getOutputTypeName());
+                    PDB_COUT << "Output is set" << std :: endl;
                 
-                //copy operators
-                //std :: cout << "get operator vector" << std :: endl;
-                Vector<Handle<ExecutionOperator>> operators = request->getOperators();
-                //std :: cout << "got operator vector" << std :: endl;
-                for (int i=0; i < operators.size(); i++) {
-                     //std :: cout << "deep copy the " << i << "-th operator" << std :: endl;
-                     Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
-                     //std :: cout << "deep copy done" << std :: endl;
-                     Handle<ExecutionOperator> curOperator;
-                     //std :: cout << "to get operator name" << std :: endl;
-                     if(operators[i]->getName() == "ProjectionOperator") {
-                         //std :: cout << "to make new projection operator object" << std :: endl;
-                         curOperator = makeObject<ProjectionOperator>(newSelection);
-                     } else if (operators[i]->getName() == "FilterOperator") {
-                         //std :: cout << "to make new filter operator object" << std :: endl;
-                         curOperator = makeObject<FilterOperator>(newSelection);
-                     }
-                     PDB_COUT << curOperator->getName() << std :: endl;
-                     newRequest->addOperator(curOperator);
-                     //std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
-                }              
+                    //copy operators
+                    //std :: cout << "get operator vector" << std :: endl;
+                    Vector<Handle<ExecutionOperator>> operators = request->getOperators();
+                    //std :: cout << "got operator vector" << std :: endl;
+                    for (int i=0; i < operators.size(); i++) {
+                        //std :: cout << "deep copy the " << i << "-th operator" << std :: endl;
+                        Handle<QueryBase> newSelection = deepCopyToCurrentAllocationBlock<QueryBase> (operators[i]->getSelection());
+                        //std :: cout << "deep copy done" << std :: endl;
+                        Handle<ExecutionOperator> curOperator;
+                        //std :: cout << "to get operator name" << std :: endl;
+                        if(operators[i]->getName() == "ProjectionOperator") {
+                           //std :: cout << "to make new projection operator object" << std :: endl;
+                           curOperator = makeObject<ProjectionOperator>(newSelection);
+                        } else if (operators[i]->getName() == "FilterOperator") {
+                           //std :: cout << "to make new filter operator object" << std :: endl;
+                           curOperator = makeObject<FilterOperator>(newSelection);
+                        }
+                        PDB_COUT << curOperator->getName() << std :: endl;
+                        newRequest->addOperator(curOperator);
+                        //std :: cout << "the " << i << "-th operator is copied to vector" << std :: endl;
+                   }              
  
-                newRequest->print();
-                if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
-                    std :: cout << errMsg << std :: endl;
-                    errMsg = std::string("can't send message to backend: ") +errMsg;
-                    success = false; 
-                } else {
-                    PDB_COUT << "Frontend sent request to backend" << std :: endl;
-                    // wait for backend to finish.
-                    communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
-                    if (!success) {
-                        std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
-                        errMsg = std::string("backend failure: ") +errMsg;
-                    }
+                   newRequest->print();
+                   if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                       std :: cout << errMsg << std :: endl;
+                       errMsg = std::string("can't send message to backend: ") +errMsg;
+                       success = false; 
+                   } else {
+                       PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                       // wait for backend to finish.
+                       communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                       if (!success) {
+                           std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                           errMsg = std::string("backend failure: ") +errMsg;
+                       }
+                  }
                 }
-
                 // now, we send back the result
                 Handle <Vector <String>> result = makeObject <Vector <String>> ();
                 if (success == true) {
