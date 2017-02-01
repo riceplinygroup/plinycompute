@@ -13,7 +13,7 @@ Run: scons
 
 Firstly, we need to setup the test suite by following 4 steps. (Those 4 steps only need to be done only once)
 
-Step (1.1) In rice cloud, find one ubuntu server as your Master, and log in to that server using the 'ubuntu' account;
+Step (1.1) In rice cloud or AWS, find one ubuntu server as your Master, and log in to that server using the 'ubuntu' account;
 
 
 Step (1.2) Download PDB code from svn to the Master server, configure PDB_HOME and PLINY_HOME to be the svn repository. For example, you can:
