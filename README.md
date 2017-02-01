@@ -13,13 +13,13 @@ Run: scons
 
 Firstly, we need to setup the test suite by following 4 steps. (Those 4 steps only need to be done only once)
 
-Step (1.1) In rice cloud or AWS, find one ubuntu server as your Master, and log in to that server using the 'ubuntu' account;
+Step (1.1) In rice cloud or AWS, find one ubuntu server as your Master, and log in to that server using the 'ubuntu' account; (In future, we shall not be constrained by OS, and we can use the 'pdb' account)
 
 
 Step (1.2) Download PDB code from svn to the Master server, configure PDB_HOME and PLINY_HOME to be the svn repository. For example, you can:
      - edit ~/.bashrc, and add following to that file: export PDB_HOME=~/PDB/ObjectQueryModel
 
-     If you are running PDB from Pliny, you can do following:
+     If you are running PDB from Pliny, you need do following so that you can use Pliny commands:
      export PLINY_HOME=~/pliny/pdb-pliny-interface
      export PDB_HOME=$PLINY_HOME/pdb
 
@@ -31,7 +31,12 @@ Step (1.3) In rice cloud, find at least one different ubuntu servers as your Sla
 
 Step (1.4) On the master server, install the cluster by run:
      
-     scripts/install.sh $pem_file
+     scripts/install.sh $pem_file/private_key
+
+
+
+
+
 
 Secondly, we start the cluster
 
@@ -40,14 +45,14 @@ On the Master server:
 Step (2.1)
 
 cd $PDB_HOME
-scripts/startMaster.sh YourPEMFilePathToLogInToWorkers
+scripts/startMaster.sh $pem_file/private_key
 
 wait for the scripts to return (see something like "master is started!" in the end), and move to  step 2.3:
 
 Step (2.2) : run following command:   
  
 cd $PDB_HOME
-scripts/startWorkers.sh YourPemFilePathToLogInToWorkers MasterIPAddress ThreadNumber (optional, default is 4)  SharedMemSize (optional, unit MB, default is 4096)
+scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNumber (optional, default is 4)  $SharedMemSize (optional, unit MB, default is 4096)
 
 wait for the scripts to return (see something like "servers are started!" in the end).
 
@@ -56,20 +61,44 @@ Thirdly, you can run test cases
 
 For example:
 
+
+Ex1. In PDB without Pliny dependency (PLINY_HOME is set to empty)
 cd $PDB_HOME
 bin/test52  Y Y YourTestingDataSizeInMB (e.g. 1024 to test 1GB data) YourMasterIP
 
 
+Ex2. In PDB with Pliny dependency (PLINY_HOME is set to pdb-pliny-interface)
+cd $PLINY_HOME
+./bin/pdb-create -d db1 -s set1 -c
+./bin/pliny-add -d db1 -s set1 -c --capacity 0  < ~/maven12-src-edu.json
+./bin/pdb-flush -d db1 -s set1 -c
+./bin/pliny-query -s set1 -d db1 -o set1_out -f foo.jsonl -c < tests/dataset-4.jsonl
+
 ## Stop Cluster
 cd $PDB_HOME
-scripts/stopWorkers.sh $PATH_TO_YOUR_PEM_FILE
+scripts/stopWorkers.sh $pem_file/private_key
+
+
+## Soft Reboot Cluster (restart cluster with all data kept)
+cd $PDB_HOME
+scripts/stopWorkers.sh $pem_file/private_key
+scripts/startMaster.sh $pem_file/private_key
+scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
+
+
+## Upgrade Cluster (for developers and testers upgrade binaries and restart cluster with all data kept)
+cd $PDB_HOME
+scripts/stopWorkers.sh $pem_file/private_key
+scripts/upgrade.sh $pem_file/private_key
+scripts/startMaster.sh $pem_file/private_key
+scripts/startWorkers.sh $pem_file/private_key $MasterIPAddress $ThreadNum $SharedMemoryPoolSize
 
 
 ## Cleanup Catalog and Storage data
 You can cleanup all catalog and storage data by running following command in master
 
 cd $PDB_HOME
-scripts/cleanup.sh $PATH_TO_YOUR_PEM_FILE
+scripts/cleanup.sh $pem_file
 
 
 ## Environment Variables:
@@ -84,56 +113,5 @@ by default, it is defined to be "-o StrictHostKeyChecking=no"
 if you define it to non empty like "y" or "yes", it will run as before and bring all output to your ssh terminal;
 
 by default, it is not defined, and it will run in background using nohup (I saw Carlos also used this in his contributed "launchWorkers.sh"), which means it will not be interrupted by ssh.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Documentation
-
-
-
-
-## Example Programs
-
-
-
-
-
-## Running Tests
-
-Testing requires building PDB.
-
-
-
-
-
-## Configuration
-
-
-
-
-
-
-
-
-## Contributing
-
-
-
-
-
-
 
 
