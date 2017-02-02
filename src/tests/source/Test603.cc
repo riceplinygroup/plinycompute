@@ -139,7 +139,7 @@ int main (int argc, char * argv[] ) {
 
                        pdb :: UseTemporaryAllocationBlock tempBlock {1024*1024};
                        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:" + std::to_string(localPort)), String("localhost"), localPort, String(nodeName), String(nodeType), 1);                       
-                       frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true , "localhost", localPort);
+                       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true , "localhost", localPort);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (localPort, "localhost", logger);
                        std :: cout << "to register node metadata in catalog..." << std :: endl;
                        if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
@@ -151,7 +151,7 @@ int main (int argc, char * argv[] ) {
 
                    } else {
 
-                       std :: string catalogFile=std::string("/tmp/CatalogDir_")+localIp+std::string("_")+std::to_string(localPort);
+                       std :: string catalogFile=std::string("CatalogDir_")+localIp+std::string("_")+std::to_string(localPort);
                        frontEnd.addFunctionality <pdb :: CatalogServer> (catalogFile, false, masterIp, masterPort);
                        frontEnd.addFunctionality <pdb :: CatalogClient> (localPort, "localhost", logger);
 

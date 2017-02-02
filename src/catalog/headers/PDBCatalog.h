@@ -36,8 +36,6 @@
 #include <unistd.h>
 #include <vector>
 
-#include <boost/filesystem.hpp>
-
 #include "CatalogNodeMetadata.h"
 #include "CatalogPermissionsMetadata.h"
 #include "CatalogSetMetadata.h"

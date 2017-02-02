@@ -59,7 +59,7 @@ int main (int argc, char * argv[]) {
     
     ConfigurationPtr conf = make_shared < Configuration > ();
     
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("/tmp/CatalogDir", true, masterIp, port);
+    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, masterIp, port);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     
     //to register node metadata

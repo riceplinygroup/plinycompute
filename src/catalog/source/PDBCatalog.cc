@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PDBCatalog.cpp
- *
- *  Created on: May 11, 2015
- *      Author: carlos
- */
-
 #include "PDBCatalog.h"
 
     /* Specialization for adding Database metadata */
@@ -175,14 +168,34 @@
 
         //sets the paths for the location of the catalog files
         catalogRootPath = location + "/";
-        catalogFilename = catalogRootPath+ "plinyCatalog.db";
+        string catalogPath = catalogRootPath + "pdbCatalog/";
+        catalogFilename = catalogPath+ "plinyCatalog.db";
         setUriPath("file:" + catalogFilename);
         tempPath = catalogRootPath + "tmp_so_files";
 
+        // Creates the parent folder for the catalog
+        // If location exists, only opens it.
+        if (mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+            PDB_COUT << "Parent catalog folder " << catalogRootPath << " was not created, it already exists." << std :: endl;
+        } else {
+            PDB_COUT << "Parent catalog folder " << catalogRootPath << "  was created/opened." << std :: endl;
+        }
+
+        // Creates a location folder for storing the sqlite file containing metadata for this PDB instance.
+        // If location exists, only opens it.
+        if (mkdir(catalogPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+            PDB_COUT << "Catalog folder " << catalogPath << " was not created, it already exists." << std :: endl;
+        } else {
+            PDB_COUT << "Catalog folder " << catalogPath << " was created/opened." << std :: endl;
+        }
+
         // creates temp folder for extracting so_files (only if folder doesn't exist)
-        bool folder = boost::filesystem::create_directories(tempPath);
-        if (folder==true) this->logger->debug("Libraries temporary folder: " + tempPath + " created.");
-        else this->logger->debug("Folder " + tempPath + " was not created, it already exists.");
+        const int folder = mkdir(tempPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (folder == -1) {
+            PDB_COUT << "Folder " << tempPath << " was not created, it already exists." << std :: endl;
+        } else {
+            PDB_COUT << "Folder " << tempPath << " for temporary shared libraries was created/opened." << std :: endl;
+        }
 
         listUsersInCluster = makeObject< Vector<Handle<CatalogUserTypeMetadata>>>();
 
@@ -232,8 +245,12 @@
 
     PDBCatalog::~PDBCatalog() {
         this->logger->debug("Catalog destructor called!!!");
-        int deletedFiles = boost::filesystem::remove_all(tempPath);
-        this->logger->writeLn(to_string(deletedFiles) + " files have been deleted in temporary folder: " + tempPath);
+        int deletedFiles = remove(tempPath.c_str());
+        if (deletedFiles == -1) {
+            PDB_COUT <<  " Error trying to remove temporary folder: " << tempPath << endl;
+        } else {
+            PDB_COUT <<  " Temporary folder: " << tempPath << " has been removed." << endl;
+        }
         sqlite3_close_v2(sqliteDBHandler);
         pthread_mutex_destroy(&(registerMetadataMutex));
     }
@@ -284,10 +301,6 @@
         auto begin = std :: chrono :: high_resolution_clock :: now();
         auto query = begin;
         auto load = begin;
-
-        // Creates a location folder for storing the sqlite file containing metadata for this PDB instance.
-        // If location exists, only opens it.
-        mkdir(catalogRootPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
         sqliteDBHandler = NULL;
         int ret = 0;
@@ -1238,10 +1251,6 @@
 
         return false;
     }
-
-    /**
-     * SQLite-related methods
-     */
 
     // Executes a sqlite3 query on the catalog database given by a query string.
     bool PDBCatalog::catalogSqlQuery(string queryString) {

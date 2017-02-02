@@ -769,7 +769,7 @@ namespace pdb {
         }
 
         // now, read in the .so file
-        std :: string whichFile = catalogDirectory + "/pdbCatalog/tmp_so_files/" + allTypeCodes[identifier] + ".so";
+        std :: string whichFile = catalogDirectory + "/tmp_so_files/" + allTypeCodes[identifier] + ".so";
         std :: ifstream in (whichFile, std::ifstream::ate | std::ifstream::binary);
         size_t fileLen = in.tellg();
 
@@ -834,7 +834,7 @@ namespace pdb {
     int16_t CatalogServer :: addObjectType (int16_t typeIDFromMasterCatalog, string &soFile, string &errMsg) {
 
         // read the bytes from the temporary extracted file and copy to output parameter
-        string tempFile = catalogDirectory + "/pdbCatalog/tmp_so_files/temp.so";
+        string tempFile = catalogDirectory + "/tmp_so_files/temp.so";
         int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
         write (filedesc, soFile.data (), soFile.size ());
         close (filedesc);
@@ -872,7 +872,7 @@ namespace pdb {
         PDB_COUT << "typeName returned from SO file: " << typeName << endl;
 
         //rename temporary file
-        string newName = catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so";
+        string newName = catalogDirectory + "/tmp_so_files/" + typeName + ".so";
         int result = rename( tempFile.c_str() , newName.c_str());
         if ( result == 0 ) {
             PDB_COUT << "Successfully renaming file " << newName << endl;
@@ -914,7 +914,7 @@ namespace pdb {
 
             // register the bytes of the shared library along its metadata in the catalog
             pdbCatalog->registerUserDefinedObject(typeCode, objectMetadata, std::string(soFile.begin(), soFile.end()), typeName,
-                                                  catalogDirectory + "/pdbCatalog/tmp_so_files/" + typeName + ".so",
+                                                  catalogDirectory + "/tmp_so_files/" + typeName + ".so",
                                                   "data_types", errMsg);
 
             return typeCode;
@@ -1369,7 +1369,7 @@ namespace pdb {
         PDB_COUT << "Catalog Server ctor is Master Catalog= " << std :: to_string(this->isMasterCatalogServer) << endl;
 
         // creates instance of catalog
-        pdbCatalog = make_shared <PDBCatalog> (catalogLogger, catalogDirectory + "/pdbCatalog");
+        pdbCatalog = make_shared <PDBCatalog> (catalogLogger, catalogDirectory);
 
         // retrieves catalog metadata from an SQLite storage and loads metadata into memory
         pdbCatalog->open();
