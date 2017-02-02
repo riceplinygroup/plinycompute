@@ -14,7 +14,7 @@
 #  limitations under the License.
 #  ========================================================================    
 pemFile=$1
-PDB_SLEEP_TIME=100
+PDB_SLEEP_TIME=60
 pkill -9  test404
 pkill -9  test603
 pkill -9  pdb-cluster

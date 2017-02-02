@@ -30,12 +30,13 @@ else
     echo "Your current PDB_HOME is: '$PDB_HOME'";
 fi
 
-chmod -R 600 $PDB_HOME/conf/pdb.key
 #remember to provide your pem file as parameter
 if [ -z ${PEM_FILE} ];
     then PEM_FILE=$PDB_HOME/conf/pdb.key;
+    chmod -R 600 $PDB_HOME/conf/pdb.key
 else
     echo "Your pem file is: '$PEM_FILE'";
+    chmod -R 600 $PEM_FILE
 fi
 
 
