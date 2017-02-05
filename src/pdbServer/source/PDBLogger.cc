@@ -115,22 +115,22 @@ void PDBLogger::writeInt(int writeMe) {
 //	TRACE
 
 void PDBLogger::trace(std :: string writeMe) {
-    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR || this->loglevel==INFO || this->loglevel==DEBUG) {
+    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR || this->loglevel==WARN || this->loglevel==INFO || this->loglevel==DEBUG) {
         return;
     }
-	this->writeLn("[TRACE] "+writeMe);
+	this->writeLn("[TRACE] "+ writeMe);
 }
 
 void PDBLogger::debug(std :: string writeMe) {
-    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR|| this->loglevel==INFO) {
+    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR || this->loglevel==WARN || this->loglevel==INFO ) {
         return;
     }
-	this->writeLn("[DEBUG] "+writeMe);
+	this->writeLn("[DEBUG] "+ writeMe);
 }
 
 
 void PDBLogger::info(std :: string writeMe) {
-    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR) {
+    if (!this->enabled || this->loglevel==OFF || this->loglevel==FATAL || this->loglevel==ERROR || this->loglevel==WARN) {
         return;
     }
 	this->writeLn("[INFO] "+writeMe);
