@@ -814,7 +814,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 std :: cout << "dbId = " << dbId << ", typeId = " << typeId << ", setId = " << setId << std :: endl; 
                                 std :: cout << errMsg << std :: endl;
                                 logger->error(errMsg);
-                                exit(-1);
+                                //exit(-1);
                         }
                         return make_pair(res, errMsg);
                 }

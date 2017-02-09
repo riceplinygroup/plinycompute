@@ -79,7 +79,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                 PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                 if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                     std :: cout << errMsg << std :: endl;
-                    exit(1);
+                    return std :: make_pair(false, errMsg);
                 }
                 PDB_COUT << "Frontend connected to backend" << std :: endl;
 
@@ -385,8 +385,15 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 		            } else {
                               PDB_COUT << "We've got a null page!!!" << std :: endl;
                     }
-                    nextPage->unpin();
-
+                    //to evict this page
+                    PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
+                    CacheKey key;
+                    key.dbId = nextPage->getDbID();
+                    key.typeId = nextPage->getTypeID();
+                    key.setId = nextPage->getSetID();
+                    key.pageId = nextPage->getPageID();
+                    cache->decPageRefCount(key);
+                    cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
 		        }
 			}
                     loopingSet->setPinned(false);

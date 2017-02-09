@@ -112,15 +112,15 @@ vector<PageCircularBufferIteratorPtr> PageScanner::getSetIterators(NodeID nodeId
 	getSetPagesRequest->setUserTypeID(typeId);
 	getSetPagesRequest->setSetID(setId);
 
+        vector<PageCircularBufferIteratorPtr> vec;
         //send request to storage
         if (!this->communicator->sendObject<pdb :: StorageGetSetPages> (getSetPagesRequest, errMsg)) {
             errMsg = "Could not send data to server.";
             logger->error(std::string("PageScanner: ") + errMsg);
-            exit(-1);
+            return vec;
         }
 
         //initialize iterators;
-        vector<PageCircularBufferIteratorPtr> vec;
         unsigned int i;
         PageCircularBufferIteratorPtr iter;
         for (i = 0; i < this->numThreads; i++) {
@@ -172,7 +172,7 @@ bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPa
             } else {
                 std :: cout << "Fatal Error: this is bad, the circular buffer is null!" << std :: endl;
                 logger->error("Fatal Error: this is bad, the circular buffer is null!");
-                exit(-1);
+                return true;
             }
             //cout << "BackEndServer: sending PagePinnedAck to frontEnd...\n";
             logger->debug("BackEndServer: sending PagePinnedAck to frontEnd...\n");
