@@ -83,7 +83,7 @@ namespace pdb {
         return [&](Handle<SimpleRequestResult> result) {
             if (result != nullptr) {
                 if (!result->getRes().first) {
-                    errMsg = result->getRes ().second;
+                    errMsg = description + result->getRes ().second;
                     logger->error (description + ": " + result->getRes ().second);
                     return false;
                 }
