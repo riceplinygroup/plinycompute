@@ -195,7 +195,8 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         success = false;
         errMsg = "Error: Not enough buffer pool size to run the query!";
         std :: cout << errMsg << std :: endl;
-        exit(-1);
+        //exit(-1);
+        return;
     }
     backendCircularBufferSize = (conf->getShmSize()/conf->getPageSize()-4-2*numThreads);
     if (backendCircularBufferSize > 10) {
@@ -209,7 +210,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
         success = false;
         errMsg = "Error: A job is already running!";
         std :: cout << errMsg << std :: endl;
-        exit(-1);
+        return;
     }
 
     //get input set information
