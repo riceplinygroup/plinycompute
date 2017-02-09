@@ -242,7 +242,6 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				// now kill this record
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
 				free (allRecs[allRecs.size () - 1]);
-                                std :: cout << "freed " << allRecs[allRecs.size()-1]->numBytes() << " bytes.";
 				allRecs.pop_back ();
 				pos = 0;
 			}
@@ -299,7 +298,6 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 					
 				// create the vector to hold these guys
 				void *myRAM = malloc (allRecs[allRecs.size () - 1]->numBytes ());
-                                PDB_COUT << "Allocated " << allRecs[allRecs.size()-1]->numBytes() << " bytes." << std :: endl;
 				const UseTemporaryAllocationBlock block (myRAM, allRecs[allRecs.size () - 1]->numBytes ());
 				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
 
@@ -313,13 +311,12 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				// destroy the record that we were copying from
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
 				free (allRecs[allRecs.size () - 1]);
-                                PDB_COUT << "Freed " << allRecs[allRecs.size () - 1]->numBytes () << " bytes." << std :: endl;
 	
 				// and get the record that we copied to
 				allRecs[allRecs.size () - 1] = getRecord (extraData);	
 				numBytesToProcess += allRecs[allRecs.size () - 1]->numBytes ();
 				break;
-		     }
+			}
 		}
 	}
 
@@ -650,7 +647,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	         // get the record
 		 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
 	         void *readToHere = malloc (numBytes);
-                 PDB_COUT << "Allocated " << numBytes << " bytes." << std :: endl;
 		 Handle<Vector<Handle<Object>>> objectsToStore = sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
                  if (objectsToStore->size() == 0) {
                      everythingOK = false;
@@ -665,25 +661,24 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
 
              
-                                size_t numBytesToProcess = sizes[databaseAndSet];
-                                size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
+                                 size_t numBytesToProcess = sizes[databaseAndSet];
+                                                size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
 
-                                if(numBytesToProcess < rawPageSize) {
-                                     PDB_COUT << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
-                                }
-                                else {
-                                     // if we have enough space to fill up a page, do it
-	                             PDB_COUT << "Got the data.\n";
-		                     PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
-	                             getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
-	                             PDB_COUT << "Done with write back.\n";
-	                             PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
-                                }
+                                                if(numBytesToProcess < rawPageSize) {
+                                                      PDB_COUT << "data is buffered, all buffered data size=" << numBytesToProcess << std :: endl;
+                                                 }
+                                                else {
+						      // if we have enough space to fill up a page, do it
+						      PDB_COUT << "Got the data.\n";
+						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
+						      getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
+						      PDB_COUT << "Done with write back.\n";
+						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
+                                                }
 		 }
 		 else {
 				errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
 				everythingOK = false;
-                                free(readToHere);
 		 }
                  //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
 
