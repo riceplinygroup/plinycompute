@@ -42,6 +42,10 @@ using namespace std;
 #define DEFAULT_PAGE_SIZE (64*1024*1024)
 #endif
 
+#ifndef DEFAULT_NET_PAGE_SIZE
+#define DEFAULT_NET_PAGE_SIZE DEFAULT_PAGE_SIZE-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID))
+#endif
+
 #ifndef DEFAULT_MAX_CONNECTIONS
 #define DEFAULT_MAX_CONNECTIONS 200
 #endif
