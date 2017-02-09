@@ -33,6 +33,7 @@
 #include "SingleTableBundleProcessor.h"
 #include "SetSpecifier.h"
 #include "UseTemporaryAllocationBlock.h"
+#include "Configuration.h"
 
 namespace pdb {
 
@@ -231,6 +232,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     //now due to limitation in object model, we only support one output for a pipeline network
     SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getOutput()->getDatabase(), jobStage->getOutput()->getSetName(), jobStage->getOutput()->getDatabaseId(), jobStage->getOutput()->getTypeId(), jobStage->getOutput()->getSetId());
     
+    Handle<Selection<Object, Object>>  queryObject = unsafeCast<Selection<Object, Object>>(jobStage->getSelection());
     pthread_mutex_t connection_mutex;
     pthread_mutex_init(&connection_mutex, nullptr);    
 
@@ -263,15 +265,17 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
                   //setup an output page to store intermediate results and final output
-                  PDBPagePtr output;
+                  PDBPagePtr output=nullptr;
                   //std :: cout << "PipelineNetwork: to add user page for output" << std :: endl;
-                  logger->debug(std :: string("PipelineNetwork: to add user page for output"));
-                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                  PDB_COUT << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
-                  logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                  if (queryObject->isAggregation() == false) { 
+                     logger->debug(std :: string("PipelineNetwork: to add user page for output"));
+                     proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                     PDB_COUT << "PipelineNetwork: pinned page in output set with id=" << output->getPageID() << std :: endl;
+                     logger->debug(std :: string("PipelineNetwork: pinned page in output set with id=") + std :: to_string(output->getPageID()));
+                  }
                   std :: string out = getAllocator().printInactiveBlocks();
-                  logger->info(out);
-                  makeObjectAllocatorBlock (output->getSize(), true);
+                  logger->warn(out);
+                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
                   Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              
                   //setup pipeline context
@@ -328,7 +332,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   }
                                   std :: string out = getAllocator().printInactiveBlocks();
                                   logger->info(out);
-                                  makeObjectAllocatorBlock (output->getSize(), true);
+                                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
                                   PDB_COUT << "PipelineNetwork: used new allocator block." << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: used new allocator block."));
                                   outputVec = makeObject<Vector<Handle<Object>>>();
@@ -352,15 +356,19 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   catch (NotEnoughSpace &n) {
                                       PDB_COUT << "PipelineNetwork: unfinished deep copy meet a problem when copied again, should ignore" << std::endl;
                                       logger->error(std :: string("PipelineNetwork: unfinished deep copy meet a problem when copied again, should ignore"));
-                                      Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
-                                      PDB_COUT << "###############################" << std :: endl;
-                                      PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;
-                                      PDB_COUT << "###############################" << std :: endl;
-                                      memcpy(output->getBytes(), myBytes, myBytes->numBytes());
-                                      PDB_COUT << "we need to unpin the full page" << std :: endl;
-                                      logger->debug(std :: string("PipelineNetwork: we need to unpin the full page"));
-                                      proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
-                                         context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                                      size_t outputVecSize = context->getOutputVec()->size();
+                                      if (outputVecSize > 0) {
+                                          Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
+                                          PDB_COUT << "###############################" << std :: endl;
+                                          PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;
+                                          PDB_COUT << "###############################" << std :: endl;
+                                          memcpy(output->getBytes(), myBytes, myBytes->numBytes());
+                                          PDB_COUT << "we need to unpin the full page" << std :: endl;
+                                          logger->debug(std :: string("PipelineNetwork: we need to unpin the full page"));
+                                          proxy->unpinUserPage(nodeId, context->getPageToUnpin()->getDbID(), context->getPageToUnpin()->getTypeID(),
+                                          context->getPageToUnpin()->getSetID(), context->getPageToUnpin());
+                                          context->setPageToUnpin(output);
+                                      }
                                       callerBuzzer->buzz(PDBAlarm :: GenericError, counter);
                                       return;
                                   }
@@ -404,7 +412,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   }
                                   std :: string out = getAllocator().printInactiveBlocks();
                                   logger->info(out);
-                                  makeObjectAllocatorBlock (output->getSize(), true);
+                                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
                                   context->setOutputFull(false);
@@ -432,24 +440,25 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   logger->info(std :: string("PipelineNetwork: the vector size=") + std :: to_string(context->getOutputVec()->size()));
                   Record<Vector<Handle<Object>>> * myBytes = getRecord(context->getOutputVec());
                   PDBPagePtr outputToUnpin = context->getPageToUnpin();
-                  if (outputToUnpin == nullptr) {
+                  if ((outputToUnpin == nullptr)&&(queryObject->isAggregation() == false)) {
                        std :: cout << "Error : output page is null in context" << std :: endl;
                        logger->error(std :: string("Error : output page is null in context"));
                        callerBuzzer->buzz(PDBAlarm::GenericError, counter);
                   }
-                  //No matter whether the output vector size is zero or not, we need to flush it, because the page is pinned in beginning
-                  //TODO: can we refine the logic a bit
-                  size_t outputVecSize = context->getOutputVec()->size();
-                  PDB_COUT << "###############################" << std :: endl;
-                  PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;  
-                  PDB_COUT << "###############################" << std :: endl;
-                  memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
-                        
-                  logger->debug(std :: string("PipelineNetwork: unpin the output page"));
-                  proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
-                      outputToUnpin->getSetID(), outputToUnpin, true);
-                  logger->debug(std :: string("PipelineNetwork: output page is unpinned"));
-                  context->setPageToUnpin(nullptr);
+                  if (queryObject->isAggregation() == false) {
+                       //No matter whether the output vector size is zero or not, we need to flush it, because the page is pinned in beginning
+                       //TODO: can we refine the logic a bit
+                       size_t outputVecSize = context->getOutputVec()->size();
+                       PDB_COUT << "###############################" << std :: endl;
+                       PDB_COUT << "To flush query result objects: " << outputVecSize << std :: endl;  
+                       PDB_COUT << "###############################" << std :: endl;
+                       memcpy(outputToUnpin->getBytes(), myBytes, myBytes->numBytes());
+                       logger->debug(std :: string("PipelineNetwork: unpin the output page"));
+                       proxy->unpinUserPage(nodeId, outputToUnpin->getDbID(), outputToUnpin->getTypeID(),
+                          outputToUnpin->getSetID(), outputToUnpin, true);
+                       logger->debug(std :: string("PipelineNetwork: output page is unpinned"));
+                       context->setPageToUnpin(nullptr);
+                  }
                   outputVec = nullptr;
                   makeObjectAllocatorBlock (1024, true);
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
@@ -465,13 +474,18 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
     }
     //write aggregated results to output set
     PDB_COUT << "to aggregate..." << std::endl;
-    Handle<Selection<Object, Object>>  queryObject = unsafeCast<Selection<Object, Object>>(jobStage->getSelection());
     PDB_COUT << "got query object" << std::endl;
     if (queryObject->isAggregation() == true) {
         int count = 0;
         DataProxyPtr proxy = make_shared<DataProxy>(nodeId, communicatorToFrontend, shm, logger);
         PDBPagePtr output = nullptr;
         proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+        if (output == nullptr) {
+           success = false;
+           errMsg = "Error: can't pin user page";
+           std :: cout << errMsg << std :: endl;
+           return;
+        }
         makeObjectAllocatorBlock (output->getBytes(), output->getSize(), true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         try {

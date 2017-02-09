@@ -114,7 +114,7 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
-             makeObjectAllocatorBlock (context->getPageToUnpin()->getSize(), true);
+             makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);
              unbundler->loadOutputVector();
@@ -180,7 +180,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         }
         std :: string out = getAllocator().printInactiveBlocks();
         logger->info(out);
-        makeObjectAllocatorBlock (output->getSize(), true);
+        makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         context->setOutputVec(outputVec);
         outputBlock = processor->loadOutputBlock();
