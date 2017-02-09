@@ -275,7 +275,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                   }
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);
-                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+                  makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
                   Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              
                   //setup pipeline context
@@ -332,7 +332,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   }
                                   std :: string out = getAllocator().printInactiveBlocks();
                                   logger->info(out);
-                                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+                                  makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
                                   PDB_COUT << "PipelineNetwork: used new allocator block." << std :: endl;
                                   logger->debug(std :: string("PipelineNetwork: used new allocator block."));
                                   outputVec = makeObject<Vector<Handle<Object>>>();
@@ -412,7 +412,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
                                   }
                                   std :: string out = getAllocator().printInactiveBlocks();
                                   logger->info(out);
-                                  makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+                                  makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
                                   outputVec = makeObject<Vector<Handle<Object>>>();
                                   context->setOutputVec(outputVec);
                                   context->setOutputFull(false);

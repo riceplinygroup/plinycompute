@@ -114,7 +114,7 @@ bool PipelineNode :: unbundle(PipelineContextPtr context, Handle<GenericBlock> i
              }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
-             makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+             makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(outputVec);
              unbundler->loadOutputVector();
@@ -180,7 +180,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
         }
         std :: string out = getAllocator().printInactiveBlocks();
         logger->info(out);
-        makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+        makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
         Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
         context->setOutputVec(outputVec);
         outputBlock = processor->loadOutputBlock();
@@ -224,7 +224,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
              }
              std :: string out = getAllocator().printInactiveBlocks();
              logger->info(out);
-             makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+             makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
              Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
              context->setOutputVec(nullptr);
              context->setOutputVec(outputVec);
@@ -306,7 +306,7 @@ bool PipelineNode :: run(PipelineContextPtr context, Handle<GenericBlock> inputB
             }
             std :: string out = getAllocator().printInactiveBlocks();
             logger->info(out);
-            makeObjectAllocatorBlock (DEFAULT_PAGE_SIZE, true);
+            makeObjectAllocatorBlock (DEFAULT_NET_PAGE_SIZE, true);
             Handle<Vector<Handle<Object>>> outputVec = makeObject<Vector<Handle<Object>>>();
             context->setOutputVec(nullptr);
             context->setOutputVec(outputVec);
