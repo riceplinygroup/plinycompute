@@ -65,8 +65,13 @@ PDBPagePtr PartitionPageIterator::next() {
 //                  cache->getLogger()->writeInt(curPageId);      
 			PDB_COUT<<"PartitionedPageIterator: curTypeId="<<this->partitionedFile->getTypeId()<<",curSetId="<<this->partitionedFile->getSetId() <<",curPageId="<<curPageId<<"\n";
 			//page is pinned (ref count ++)
+#ifdef USE_LOCALITY_SET
 			pageToReturn = cache->getPage(this->partitionedFile, this->partitionId, this->numIteratedPages,
 					curPageId, false, set);
+#else
+                        pageToReturn = cache->getPage(this->partitionedFile, this->partitionId, this->numIteratedPages,
+                                        curPageId, false, nullptr);
+#endif
                         PDB_COUT << "PartitionedPageIterator: got page" << std :: endl;
 			this->numIteratedPages ++;
 

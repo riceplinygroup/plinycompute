@@ -319,7 +319,9 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
         //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: to get lock for evictionLock()...");
         this->evictionLock();
         //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionLock()...");
+        pthread_mutex_lock(&this->cacheMutex);
 	if (this->containsPage(key) != true) {
+                pthread_mutex_unlock(&this->cacheMutex);
                 //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: miss page in cache, so we need to load it and can unlock...");
                 this->evictionUnlock();
                 //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionLock()...");
@@ -348,6 +350,14 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
 	} else {
                 //cout<<"getPage()\n";     
 		page = this->cache->at(key); 
+                pthread_mutex_unlock(&this->cacheMutex);
+                if (page == nullptr) {
+                   std :: cout << "WARNING: PartitionPageIterator get nullptr in cache.\n" << std :: endl;
+                   logger->warn("PartitionPageIterator get nullptr in cache.");
+                   this->evictionUnlock();
+                   pthread_mutex_unlock(&this->evictionMutex);
+                   return nullptr;
+                }
 		//cout<<"hit in cache for page with pageID="<<page->getPageID()<<"\n";
                 page->setPinned(true);
                 //page->setDirty(false);
@@ -390,11 +400,21 @@ PDBPagePtr PageCache::getPage(SequenceFilePtr file, PageID pageId) {
 //Below method will cause reference count ++;
 //It will only be used in SetCachePageIterator class to get dirty pages, and will be guarded there
 PDBPagePtr PageCache::getPage(CacheKey key, LocalitySet* set) {
+       pthread_mutex_lock(&this->cacheMutex);
        if(this->containsPage(key) != true) {
+           pthread_mutex_unlock(&this->cacheMutex);
+           std :: cout << "WARNING: SetCachePageIterator get nullptr in cache.\n" << std :: endl;
+           logger->warn("SetCachePageIterator get nullptr in cache.");
            return nullptr;
        } else {
            PDBPagePtr page = this->cache->at(key);
+           pthread_mutex_unlock(&this->cacheMutex);
            //cout<<"hit in cache!\n";
+           if (page == nullptr) {
+               std :: cout << "WARNING: SetCachePageIterator get nullptr in cache.\n" << std :: endl;
+               logger->warn("SetCachePageIterator get nullptr in cache.");
+               return nullptr;
+           }
            page->incRefCount();
            pthread_mutex_lock(&this->countLock);
            page->setAccessSequenceId(this->accessCount);
@@ -669,12 +689,16 @@ bool PageCache::evictPage(CacheKey key) {
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
                             PDB_COUT << "going to unpin a clean page...\n";
                             //free the page
+                            //We use flush lock (which is a read write lock) to synchronize with getPage() that will be invoked in PartitionPageIterator;
+                            //One scenario is: PDB load old data from disk to memory through iterators while application pins new pages that requires to evict data, then an old page in checking for loading may get evicted before it is pinned.
+                            //Add flush lock is to guard for similar scenarios.
+                            this->flushLock();
 			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
                             
 			    page->setOffset(0);
 			    page->setRawBytes(nullptr);
-                            cache->erase(key);
-                            this->size--;
+                            removePage(key);
+                            this->flushUnlock();
                         }
 			PDB_COUT<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
 		}
