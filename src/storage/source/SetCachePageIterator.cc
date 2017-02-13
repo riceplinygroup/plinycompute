@@ -73,7 +73,11 @@ PDBPagePtr SetCachePageIterator::next() {
             //this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
             //this->set->getLogger()->writeInt(key.pageId);
             PDB_COUT << "SetCachePageIterator: in cache: curPageId="<<key.pageId<<"\n";
+#ifdef USE_LOCALITY_SET
             PDBPagePtr page = this->cache->getPage(key, this->set);
+#else
+            PDBPagePtr page = this->cache->getPage(key, nullptr);
+#endif
             this->cache->evictionUnlock();
             //this->set->getLogger()->writeLn("SetCachePageIterator: unlocked for evictionLock()...");
             ++iter;
@@ -87,8 +91,11 @@ PDBPagePtr SetCachePageIterator::next() {
             //this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
             //this->set->getLogger()->writeInt(pageId);
             FileSearchKey searchKey = this->iter->second;
+#ifdef USE_LOCALITY_SET
             PDBPagePtr page = this->cache->getPage(this->set->getFile(), searchKey.partitionId, searchKey.pageSeqInPartition, pageId, false, this->set);
-
+#else
+            PDBPagePtr page = this->cache->getPage(this->set->getFile(), searchKey.partitionId, searchKey.pageSeqInPartition, pageId, false, nullptr);
+#endif
             //remove iter
             //this->set->getLogger()->writeLn("SetCachePageIterator: to get lock for lockDirtyPageSet()...");
             this->set->lockDirtyPageSet();
