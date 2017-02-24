@@ -21,7 +21,7 @@
 
 #include <vector>
 #include "Lambda.h"
-#include "QueryExecutor.h"
+#include "ComputeExecutor.h"
 
 namespace pdb {
 
@@ -30,7 +30,8 @@ class MethodCallLambda : public TypedLambdaObject <Out> {
 
 public:
 
-	std::function <QueryExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutorFunc;
+	std::function <ComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutorFunc;
+	std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder;
 	std :: string inputTypeName;
 	std :: string methodName;
 	std :: string returnTypeName;
@@ -39,9 +40,14 @@ public:
 
 	// create an att access lambda; offset is the position in the input object where we are going to find the input att
 	MethodCallLambda (std :: string inputTypeName, std :: string methodName, std :: string returnTypeName, Handle <ClassType> &input, 
-		std::function <QueryExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutorFunc) :
-		getExecutorFunc (getExecutorFunc), inputTypeName (inputTypeName), methodName (methodName), returnTypeName (returnTypeName) {
-		this->getBoundInputs ().push_back ((Handle <Object> *) &input);
+		std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
+		std::function <ComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutorFunc) :
+		getExecutorFunc (getExecutorFunc), columnBuilder (columnBuilder), inputTypeName (inputTypeName), 
+		methodName (methodName), returnTypeName (returnTypeName) {
+	}
+
+	bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) override {
+		return columnBuilder (typeToMatch, addToMe, posToAddTo);
 	}
 
 	std :: string getTypeOfLambda () override {
@@ -68,13 +74,10 @@ public:
 		return nullptr;
 	}
 
-	QueryExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
+	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 		return getExecutorFunc (inputSchema, attsToOperateOn, attsToIncludeInOutput); 
 	}
 
-	QueryExecutorPtr getHasher (TupleSpec &, TupleSpec &, TupleSpec &) override {
-		return nullptr;
-	}
 };
 
 }

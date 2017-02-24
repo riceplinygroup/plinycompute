@@ -22,12 +22,10 @@
  * it has C global variables, prototypes, and comments 
  */
 
-
 %{
 
 #include "Lexer.h"
 #include "ParserHelperFunctions.h"
-//#include "Parser.h"
 #include <stdio.h>  // For fileno()
 #include <stdlib.h> // For malloc()
 #include <string.h> // For strdup()
@@ -64,15 +62,15 @@
 
 [Aa][Pp][Pp][Ll][Yy]		return APPLY;
 
-[Ii][Nn][Pp][Uu][Tt][Ss]	return INPUTS;
+[Ss][Cc][Aa][Nn]		return SCAN;
 
-[Oo][Uu][Tt][Pp][Uu][Tt][Ss]	return OUTPUTS;
+[Aa][Gg][Gg][Rr][Ee][Gg][Aa][Tt][Ee]	return AGG;
 
-[Cc][Oo][Mm][Pp][Uu][Tt][Aa][Tt][Ii][Oo][Nn][Ss] return COMPUTATIONS;
+[Jj][Oo][Ii][Nn]		return JOIN;
+
+[Oo][Uu][Tt][Pp][Uu][Tt]	return OUTPUT;
 
 "<="			return GETS;
-
-":"			return (':');
 
 ")"    	        	return (')');
 
@@ -84,8 +82,11 @@
   			return IDENTIFIER;
 			}     
 
-\"(\\.|[^"])*\"		{yylval->myChar = strdup (yytext);
-			return STRING;
+'(\\.|[^'])*'		{char *temp = strdup (yytext); /* strip the open and close quotes */
+                         temp[strlen (temp) - 1] = 0;
+			 yylval->myChar = strdup (temp + 1);
+		         free (temp);	
+			 return STRING;
 			}
 
 \n                	++yylineno;
@@ -96,9 +97,7 @@
 
 %%
 
-struct SQLStatement;
-
-void yyerror(yyscan_t scanner, struct LogicalPlan **me, const char *s) {
+void yyerror(yyscan_t scanner, struct AtomicComputationList **myStatement, const char *s) {
 	struct LexerExtra * const extra = yyget_extra (scanner);
 	snprintf (extra->errorMessage, sizeof (extra->errorMessage), "error at line %d: %s at %s\n", yyget_lineno (scanner), s, yyget_text (scanner));
 }

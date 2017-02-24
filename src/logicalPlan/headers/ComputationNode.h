@@ -16,65 +16,63 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef COMPUTATION_NODE_H
+#define COMPUTATION_NODE_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "Computation.h"
 
 namespace pdb {
 
-class Employee : public Object {
+// this stores all of the information extracted about a node in the computation plan, including
+// (a) all of the lambdas extracted from the node, and (b) a reference to the actual computation
+class ComputationNode {
 
-        Handle <String> name;
-        int age;
+private:
+
+	// allows us to access the executors for this plan node... the key is a name of a lambda
+	std :: map <std :: string, GenericLambdaObjectPtr> allLambdas;
+	
+	// the computation itself
+	Handle <Computation> me;
+
 public:
-
-        double salary;
-        String department;
-
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+		
+	ComputationNode () {
+		me = nullptr;
 	}
 
-	int getAge() {
-		return age;
+	ComputationNode (const ComputationNode &toMe) {
+		allLambdas = toMe.allLambdas;
+		me = toMe.me;	
 	}
 
-	double getSalary () {
-		return salary;
+	ComputationNode &operator = (const ComputationNode &toMe) {
+		allLambdas = toMe.allLambdas;
+		me = toMe.me;	
+		return *this;
 	}
 
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
+	// simple constructor... extracts the set of lambdas from this compuation
+	ComputationNode (Handle <Computation> &me) : me (me) {
+		me->extractLambdas (allLambdas);
 	}
 
-	bool operator == (Employee &me) const {
-		return name == me.name;
+	Computation &getComputation () {
+		return *me;
 	}
+
+	// get the particular lambda
+	GenericLambdaObjectPtr getLambda (std :: string me) {
+		if (allLambdas.count (me) == 0) {
+			std :: cout << "This is bad.  Didn't find a lambda corresponding to " << me << "\n";
+			exit (1);
+		}
+		return allLambdas[me];
+	}
+
 };
 
 }
 
 #endif
+

@@ -23,7 +23,9 @@
 #include <stdlib.h>
 #include "Parser.h"
 #include "ParserHelperFunctions.h"
-#include "ParserTypes.h"
+#include "AttList.h"
+#include "TupleSpec.h"
+#include "AtomicComputationList.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -52,84 +54,93 @@ struct AttList *pushBackAttribute (struct AttList *addToMe, char *fromMe) {
 struct TupleSpec *makeTupleSpec (char *setName, struct AttList *useMe) {
 	TupleSpec *returnVal = new TupleSpec (std :: string (setName), *useMe);
 	delete useMe;
-	return returnVal;
-}
-
-struct Computation *makeFilter (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection) {
-	std :: cout << *output << " " << *input << " " << *projection << "\n";
-	ComputationPtr returnVal = std :: make_shared <ApplyFilter> (*input, *output, *projection);;
-	returnVal->setShared (returnVal);
-	delete output;
-	delete input;
-	delete projection;
-	return returnVal.get ();
-}
-
-struct Computation *makeApply (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *name) {
-	ComputationPtr returnVal = std :: make_shared <ApplyLambda> (*input, *output, *projection, std :: string (name));
-	returnVal->setShared (returnVal);
-	delete output;
-	delete input;
-	delete projection;
-	return returnVal.get ();
-}
-
-struct ComputationList *makeComputationList (struct Computation *fromMe) {
-	struct ComputationList *returnVal = new ComputationList ();
-	returnVal->addComputation (fromMe->getShared ());
-	return returnVal;
-}
-
-struct Input *makeInput (struct TupleSpec *output, char *dbName, char *setName) {
-	struct Input *returnVal = new Input (*output, std :: string (dbName), std :: string (setName));
-	free (dbName);
 	free (setName);
-	delete output;
 	return returnVal;
 }
 
-struct InputList *makeInputList (struct Input *fromMe) {
-	struct InputList *returnVal = new InputList ();
-	returnVal->addInput (*fromMe);
-	delete fromMe;
+struct AtomicComputationList *makeAtomicComputationList (struct AtomicComputation *fromMe) {
+	struct AtomicComputationList *returnVal = new AtomicComputationList ();
+	returnVal->addAtomicComputation (fromMe->getShared ());
 	return returnVal;
 }
 
-struct InputList *pushBackInput (struct InputList *intoMe, struct Input *pushMe) {
-	intoMe->addInput (*pushMe);
-	delete pushMe;
-	return intoMe;
-}
-
-struct OutputList *makeOutputList (struct Output *fromMe) {
-	struct OutputList *returnVal = new OutputList ();
-	returnVal->addOutput (*fromMe);
-	delete fromMe;
-	return returnVal;
-}
-
-struct OutputList *pushBackOutput (struct OutputList *intoMe, struct Output *pushMe) {
-	intoMe->addOutput (*pushMe);
-	delete pushMe;
-	return intoMe;
-}
-
-struct LogicalPlan *makePlan (struct OutputList *outputs, struct InputList *inputs, struct ComputationList *computations) {
-	struct LogicalPlan *returnVal = new LogicalPlan (*outputs, *inputs, *computations);
-	return returnVal;
-}
-
-struct ComputationList *pushBackComputation (struct ComputationList *input, struct Computation *addMe) {
-	input->addComputation (addMe->getShared ());
+struct AtomicComputationList *pushBackAtomicComputation (struct AtomicComputationList *input, struct AtomicComputation *addMe) {
+	input->addAtomicComputation (addMe->getShared ());
 	return input;
 }
 
-struct Output *makeOutput (struct TupleSpec *fromMe, char *dbName, char *setName) {
-	struct Output *returnVal = new Output (*fromMe, std :: string (dbName), std :: string (setName));
+struct TupleSpec *makeEmptyTupleSpec (char *setName) {
+	TupleSpec *returnVal = new TupleSpec (std :: string (setName));
+	free (setName);
+	return returnVal;
+}
+
+struct AtomicComputation *makeFilter (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyFilter> (*input, *output, *projection, std :: string (nodeName));
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	delete projection;
+	free (nodeName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeApply (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyLambda> (*input, *output, *projection, std :: string (nodeName), std :: string (opName));
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	delete projection;
+	free (nodeName);
+	free (opName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeAgg (struct TupleSpec *output, struct TupleSpec *input, char *nodeName) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyAgg> (*input, *output, *input, std :: string (nodeName));
+	returnVal->setShared (returnVal);
+	delete output;
+	delete input;
+	free (nodeName);
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
+		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *nodeName, char *opName) {
+	AtomicComputationPtr returnVal = std :: make_shared <ApplyJoin> (*output, *lInput, *rInput, *lProjection, 
+		*rProjection, std :: string (nodeName), std :: string (opName));
+	returnVal->setShared (returnVal);
+	free (nodeName);
+	free (opName);
+	delete output;
+	delete lInput;
+	delete rInput;
+	delete lProjection;
+	delete rProjection;
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeScan (struct TupleSpec *output, char *dbName, char *setName, char *nodeName) {
+	AtomicComputationPtr returnVal = std :: make_shared <ScanSet> (*output, std :: string (dbName), std :: string (setName), std :: string (nodeName));
+	returnVal->setShared (returnVal);
 	free (dbName);
 	free (setName);
-	delete fromMe;
-	return returnVal;
+	free (nodeName);
+	delete output;
+	return returnVal.get ();
+}
+
+struct AtomicComputation *makeOutput (struct TupleSpec *output, struct TupleSpec *input,
+	char *dbName, char *setName, char *nodeName) {
+	AtomicComputationPtr returnVal = std :: make_shared <WriteSet> (*input, *output, *input, 
+		std :: string (dbName), std :: string (setName), std :: string (nodeName));
+	returnVal->setShared (returnVal);
+	free (dbName);
+	free (setName);
+	free (nodeName);
+	delete output;
+	delete input;
+	return returnVal.get ();
 }
 
 // structure that stores a list of aliases from a FROM clause

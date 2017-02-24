@@ -106,6 +106,12 @@ size_t getBytesAvailableInCurrentAllocatorBlock  ();
 // are present in the current allocation block
 unsigned getNumObjectsInCurrentAllocatorBlock  ();
 
+
+// this removes all references to all objects in the block containing forMe, and
+// it deallocates the block if needed
+void emptyOutContainingBlock (void *forMe);
+
+
 // this gets a count of the current number of individual, active objects that
 // are present in the allocation block that houses the object pointed to by
 // the supplied handle.  If the allocation block is not known to the Allocator

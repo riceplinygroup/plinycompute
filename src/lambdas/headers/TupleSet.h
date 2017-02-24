@@ -25,6 +25,48 @@
 
 namespace pdb {
 
+// this simple function automatically deferences a pointer type
+template <bool B, typename InputType>
+auto tryDereference (InputType &arg) ->
+        typename std :: enable_if_t <B, decltype (*arg) &> {
+        return *arg;
+}
+
+// called instead if we can't dereference the pointer type
+template <bool B, typename InputType>
+auto tryDereference (InputType &&arg) ->
+        typename std :: enable_if_t <!B, InputType &> {
+        return arg;
+}
+
+// this simple function finds the size of a 
+template <bool B, typename InputType>
+auto getSerializedSize () ->
+        typename std :: enable_if_t <B, size_t> {
+	return InputType :: getObjectSize ();
+}
+
+// called instead if we can't dereference the pointer type
+template <bool B, typename InputType>
+auto getSerializedSize () ->
+        typename std :: enable_if_t <!B, size_t> {
+	return sizeof (InputType);
+}
+
+// this simple function automatically takes the address of a type
+template <bool B, typename InputType>
+auto tryToObtainPointer (InputType &arg) ->
+        typename std :: enable_if_t <B, InputType*> {
+        return &arg;
+}
+
+// called instead if we can't dereference the pointer type
+template <bool B, typename InputType>
+auto tryToObtainPointer (InputType &arg) ->
+        typename std :: enable_if_t <!B, InputType &> {
+        return arg;
+}
+
 class TupleSet;
 typedef std :: shared_ptr <TupleSet> TupleSetPtr;
 
@@ -44,8 +86,20 @@ struct MaintenanceFuncs {
 	// this function writes out the column to a pdb :: Vector
 	std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector;
 
+	// used to deserialize the column
+	std :: function <void (void *, std :: vector <void *> &, size_t)> deSerialize;
+
+	// used to serialize the column
+	std :: function <void (void *, std :: vector <void *> &, size_t)> serialize;
+
+	// this is the name of the type that we contain
+	std :: string typeContained;
+
 	// tells us if we need to delete
 	bool mustDelete;
+
+	// tells us the serialized size of an object in this column
+	size_t serializedSize;
 
 	// the last value that we wrote if we are writing out this column
 	size_t lastWritten = 0;
@@ -56,8 +110,11 @@ struct MaintenanceFuncs {
 	// fill all of the fields
 	MaintenanceFuncs (std :: function <void (void *)> deleter, std :: function <void * (void *, std :: vector <bool> &)> filter,
 		std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector, 
-		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector, bool mustDelete) : 
-		deleter (deleter), filter (filter), createPDBVector (createPDBVector), writeToVector (writeToVector), mustDelete (mustDelete) {}
+		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector, 
+		std :: function <void (void *, std :: vector <void *> &, size_t)> serialize, 
+		std :: function <void (void *, std :: vector <void *> &, size_t)> deSerialize, bool mustDelete, std :: string typeContained, size_t serializedSize) : 
+		deleter (deleter), filter (filter), createPDBVector (createPDBVector), writeToVector (writeToVector), deSerialize (deSerialize),
+		serialize (serialize), typeContained (typeContained), mustDelete (mustDelete), serializedSize (serializedSize) {}
 
 };
 
@@ -79,6 +136,57 @@ public:
 		return columns.size ();
 	}
 
+	/* TODO: this will be needed to be able to do joins!!! 
+	// deep copies the set of serialized objects from the specified location, do the specified location
+	void deepCopyAndDelete (std :: vector <void *> &source, std :: vector <void *> &dest) {
+		size_t offset = 0;	
+		for (int i = 0; columns.count (i) != 0; i++) {
+			// columns[i].second.deepCopyAndDelete (source, dest, offset);
+			// offset += columns[i].second.serializedSize;
+		}	
+	}*/
+
+	// gets a list, in order, of the types of the columns in this tuple set
+	// this can be used at a later time to re-constitute the tuple set
+	std :: vector <std :: string> getTypeNames () {
+		std :: vector <std :: string> output;
+		for (int i = 0; columns.count (i) != 0; i++) {
+			output.push_back (columns[i].second.typeContained);
+		}
+		return output;
+	}
+
+	/*  TODO: this will be needed to be able to do joins!!!
+	// gets the serialized size of one row in this tuple set
+	size_t getSerializedSize () {
+		return columns[whichColumn].second.serializedSize;
+		size_t offset = 0;	
+		for (int i = 0; columns.count (i) != 0; i++) {
+			offset += columns[i].second.serializedSize;
+		}
+		return offset;
+	} */
+
+	// serialize all of the colums in this TupleSet to the positions pointed to by toHere.  Note that
+	// the length of toHere must match the number of tuples in this TupleSet
+	void serialize (std :: vector <void *> &toHere) {
+		size_t offset = 0;	
+		for (int i = 0; columns.count (i) != 0; i++) {
+			columns[i].second.serialize (columns[i].first, toHere, offset);
+			offset += columns[i].second.serializedSize;
+		}
+	}
+
+	// deserialize all of the columns in this TupleSet from the positions pointed to by fromHere.  
+	void deSerialize (std :: vector <void *> &fromHere) {
+		size_t offset = 0;
+		for (int i = 0; columns.count (i) != 0; i++) {
+			columns[i].second.deSerialize (columns[i].first, fromHere, offset);
+			offset += columns[i].second.serializedSize;
+		}
+	}
+
+	// this takes as input a vector of pointers to 
 	// return a specified column
 	template <typename ColType> 
 	std :: vector <ColType> &getColumn (int whichColumn) {
@@ -206,7 +314,7 @@ public:
 				for (auto a : whichAreValid)
 					if (a)
 						counter++;
-		
+
 				// copy the ones that need to be retained over
 				std :: vector <ColType> *newVec = new std :: vector <ColType> (counter);
 				counter = 0;
@@ -239,15 +347,72 @@ public:
 				}
 			};
 
-		// finally, the fourth creates a pdb :: Vector to hold the column
+		// the fourth lambda is responsible for writing this column to an array of positions
+		std :: function <void (void *, std :: vector <void *> &, size_t)> serialize;
+		serialize = [] (void *serializeMe, std :: vector <void *> &toHere, size_t offset) {
+
+			// get the column who we are serializing
+			std :: vector <ColType> &writeMeOut = *((std :: vector <ColType> *) serializeMe);
+
+			// make sure we have the correct number of slots to serilize to
+			int numToWrite = writeMeOut.size ();
+			if (numToWrite != toHere.size ()) {
+				std :: cout << "This is bad.  Why does the number of serialization slots not match the TupleSet size?\n";
+				exit (1);
+			}
+
+			// serialize everyone
+			for (int i = 0; i < numToWrite; i++) {
+
+				// tryDereference will return either (a) the pointed-to object if this is a Ptr <> type, or (b) the object
+				ColType *temp = nullptr;
+				typename std :: remove_reference <decltype (tryDereference <std :: is_base_of <PtrBase, ColType> :: value> (*temp))> :: type *target = 
+					(typename std :: remove_reference <decltype (tryDereference <std :: is_base_of <PtrBase, ColType> :: value> (*temp))> :: type *) 
+					(((char *) toHere[i]) + offset);
+
+				// now, copy the object over (will automatically do a deep copy if needed)
+				*target = tryDereference <std :: is_base_of <PtrBase, ColType> :: value> (writeMeOut[i]);
+			}
+		};	
+		
+		// the fifth lambda is responsible for reading this column from an array of positions
+		std :: function <void (void *, std :: vector <void *> &, size_t)> deSerialize;
+		deSerialize = [] (void *deSerializeToMe, std :: vector <void *> &fromHere, size_t offset) {
+
+			// get the column who we are deSerializing to
+			std :: vector <ColType> &writeToMe = *((std :: vector <ColType> *) deSerializeToMe);
+
+			// make sure we have the correct number of slots 
+			int numToWrite = writeToMe.size ();
+			if (numToWrite != fromHere.size ()) {
+				std :: cout << "This is bad.  Why does the number of serialization slots not match the TupleSet size?\n";
+				exit (1);
+			}
+
+			// deserialize everyone
+			for (int i = 0; i < numToWrite; i++) {
+
+				// tryDereference will return either (a) the pointed-to object if this is a Ptr <> type, or (b) the object... so source
+				// is going to be a pointer to an object type
+				typename std :: remove_reference <decltype (tryDereference <std :: is_base_of <PtrBase, ColType> :: value> (writeToMe[0]))> :: type *source = 
+					(typename std :: remove_reference <decltype (tryDereference <std :: is_base_of <PtrBase, ColType> :: value> (writeToMe[0]))> :: type *) 
+					(((char *) fromHere[i]) + offset);
+
+				// tryToObtainPointer is going to (a) return a pointer to *source if this ColType is a Ptr <> type, or else (b) *source itself
+				// if ColType is not a Ptr <> type
+				writeToMe[i] = tryToObtainPointer <std :: is_base_of <PtrBase, ColType> :: value> (*source);
+			}
+		};
+
+		// finally, the sixth creates a pdb :: Vector to hold the column
 		std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector;
 		createPDBVector = [] () {
 				Handle <Vector <Handle <ColType>>> returnVal = makeObject <Vector <Handle <ColType>>> ();
 				return unsafeCast <Vector <Handle <Object>>> (returnVal);
 			};
 	
-		// and just add the column
-		MaintenanceFuncs myFuncs (deleter, filter, createPDBVector, writeToVector, needToDelete);
+		MaintenanceFuncs myFuncs (deleter, filter, createPDBVector, writeToVector, serialize, deSerialize, 
+			needToDelete, getTypeName <ColType> (), getSerializedSize <std :: is_base_of <PtrBase, ColType> :: value, ColType> ());
 		columns [where] = std :: make_pair ((void *) addMe, myFuncs);
 	}
 };

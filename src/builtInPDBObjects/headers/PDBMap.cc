@@ -95,6 +95,13 @@ Map <KeyType, ValueType> :: ~Map () {}
 
 
 template <class KeyType, class ValueType>
+void Map <KeyType, ValueType> :: setUnused (const KeyType &clearMe) {
+        myArray->setUnused (clearMe);
+}
+
+
+
+template <class KeyType, class ValueType>
 ValueType &Map <KeyType, ValueType> :: operator [] (const KeyType &which) {
 
         //JiaNote: each time we increase size only when key doesn't exist.

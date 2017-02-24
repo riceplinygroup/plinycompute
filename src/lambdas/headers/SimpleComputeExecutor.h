@@ -16,62 +16,38 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef SIMPLE_COMPUTE_EXEC_H
+#define SIMPLE_COMPUTE_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "TupleSet.h"
+#include "ComputeExecutor.h"
+#include <memory>
 
 namespace pdb {
 
-class Employee : public Object {
+class SimpleComputeExecutor;
+typedef std :: shared_ptr <SimpleComputeExecutor> SimpleComputeExecutorPtr;
 
-        Handle <String> name;
-        int age;
+// this is a simple generic implementation of a ComputeExecutor
+class SimpleComputeExecutor : public ComputeExecutor {
+
+private:
+
+	// this is the output TupleSet that we return
+	TupleSetPtr output;
+
+	// this is a lambda that we'll call to process input
+	std :: function <TupleSetPtr (TupleSetPtr)> processInput;
+
 public:
 
-        double salary;
-        String department;
-
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+	SimpleComputeExecutor (TupleSetPtr outputIn, std :: function <TupleSetPtr (TupleSetPtr)> processInputIn) {
+		output = outputIn;
+		processInput = processInputIn;
 	}
 
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
+	TupleSetPtr process (TupleSetPtr input) override {
+		return processInput (input);
 	}
 };
 

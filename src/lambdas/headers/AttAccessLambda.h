@@ -24,7 +24,7 @@
 #include "Ptr.h"
 #include "TupleSet.h"
 #include <vector>
-#include "SimpleQueryExecutor.h"
+#include "SimpleComputeExecutor.h"
 #include "TupleSetMachine.h"
 
 namespace pdb {
@@ -45,7 +45,15 @@ public:
 	AttAccessLambda (std :: string inputTypeNameIn, std :: string attNameIn, 
 		std :: string attType, Handle <ClassType> &input, size_t offset) :
 		offsetOfAttToProcess (offset), inputTypeName (inputTypeNameIn), attName (attNameIn), attTypeName (attType) {
-		this->getBoundInputs ().push_back ((Handle <Object> *) &input);
+	}
+
+        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {  
+                if (pleaseCreateThisType == getTypeName <Ptr <Out>> ()) {  
+                        std :: vector <Ptr <Out>> *outColumn = new std :: vector <Ptr <Out>>; 
+                        input->addColumn (outAtt, outColumn, true); 
+                        return true;   
+                } 
+		return false;
 	}
 
 	std :: string getTypeOfLambda () override {
@@ -72,17 +80,13 @@ public:
 		return nullptr;
 	}
 
-        QueryExecutorPtr getHasher (TupleSpec &, TupleSpec &, TupleSpec &) override {
-                return nullptr;
-        }
-
-	QueryExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
+	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 	
 		// create the output tuple set
 		TupleSetPtr output = std :: make_shared <TupleSet> ();
 
 		// create the machine that is going to setup the output tuple set, using the input tuple set
-		TupleSetSetupMachinePtr <bool> myMachine = std :: make_shared <TupleSetSetupMachine<bool>> (inputSchema, attsToIncludeInOutput);
+		TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
 
 		// this is the input attribute that we will process    
 		std :: vector <int> matches = myMachine->match (attsToOperateOn);
@@ -91,7 +95,7 @@ public:
 		// this is the output attribute
 		int outAtt = attsToIncludeInOutput.getAtts ().size ();
 
-		return std :: make_shared <SimpleQueryExecutor> (
+		return std :: make_shared <SimpleComputeExecutor> (
 			output, 
 			[=] (TupleSetPtr input) {
 

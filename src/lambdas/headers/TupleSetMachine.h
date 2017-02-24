@@ -21,7 +21,6 @@
 
 namespace pdb {
 
-template <class OutputType>
 class TupleSetSetupMachine {
 
 	std :: vector <int> matches;
@@ -71,8 +70,7 @@ public:
 
 };
 
-template <class OutputType>
-using TupleSetSetupMachinePtr = std :: shared_ptr <TupleSetSetupMachine <OutputType>>;
+using TupleSetSetupMachinePtr = std :: shared_ptr <TupleSetSetupMachine>;
 
 }
 

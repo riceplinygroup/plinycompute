@@ -16,62 +16,57 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef FILTER_QUERY_EXEC_H
+#define FILTER_QUERY_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "ComputeExecutor.h"
+#include "TupleSetMachine.h"
+#include "TupleSet.h"
+#include <vector>
 
 namespace pdb {
 
-class Employee : public Object {
+// runs a filter operation
+class FilterExecutor : public ComputeExecutor {
 
-        Handle <String> name;
-        int age;
+private:
+
+	// this is the output TupleSet that we return
+	TupleSetPtr output;
+
+	// the attribute to operate on
+	int whichAtt;
+
+	// to setup the output tuple set
+	TupleSetSetupMachine myMachine;
+
 public:
 
-        double salary;
-        String department;
+	FilterExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) : 
+		myMachine (inputSchema, attsToIncludeInOutput) {
 
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+		output = std :: make_shared <TupleSet> ();
+	
+		// this is the input attribute that we will process
+		std :: vector <int> matches = myMachine.match (attsToOperateOn);
+		whichAtt = matches[0];
 	}
 
-	int getAge() {
-		return age;
-	}
+	TupleSetPtr process (TupleSetPtr input) override {
 
-	double getSalary () {
-		return salary;
-	}
+		// set up the output tuple set
+		myMachine.setup (input, output);
 
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
+		// get the input column to use as a filter
+		std :: vector <bool> &inputColumn = input->getColumn <bool> (whichAtt);
 
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
+		// loop over the columns and filter
+		int numColumns = output->getNumColumns ();
+		for (int i = 0; i < numColumns; i++) {
+			output->filterColumn (i, inputColumn);
+		}
 
-	bool operator == (Employee &me) const {
-		return name == me.name;
+		return output;
 	}
 };
 

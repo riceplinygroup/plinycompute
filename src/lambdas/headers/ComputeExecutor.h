@@ -16,63 +16,27 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef COMP_EXEC_H
+#define COMP_EXEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "TupleSet.h"
 
 namespace pdb {
 
-class Employee : public Object {
+// a nice little typedef to shared_ptrs to CompExecutor objects
+class ComputeExecutor;
+typedef std :: shared_ptr <ComputeExecutor> ComputeExecutorPtr;
 
-        Handle <String> name;
-        int age;
+// this is a ComputeExecutor.  By definition, it has one method that takes an input a TupleSet, and
+// then somehow transofrms it to create a new TupleSet (a TupleSet is a column-oriented list of
+// tuples). 
+class ComputeExecutor {
+
 public:
 
-        double salary;
-        String department;
+	// precess a tuple set
+	virtual TupleSetPtr process (TupleSetPtr input) = 0;
 
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
-	}
-
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
 };
 
 }

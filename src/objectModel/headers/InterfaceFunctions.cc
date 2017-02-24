@@ -86,6 +86,10 @@ inline size_t getBytesAvailableInCurrentAllocatorBlock () {
 	return getAllocator ().getBytesAvailableInCurrentAllocatorBlock ();
 }
 
+inline void emptyOutContainingBlock (void *forMe) {
+        getAllocator ().emptyOutBlock (forMe);
+}
+
 inline unsigned getNumObjectsInAllocatorBlock (void *forMe) {
 	return getAllocator ().getNumObjectsInAllocatorBlock (forMe);
 }

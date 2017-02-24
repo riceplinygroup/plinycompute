@@ -18,6 +18,8 @@
 #ifndef _LABCEXER_H_
 #define _LABCEXER_H_
 
+#include "LexerTokens.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,8 +36,8 @@ extern "C" {
 	YY_BUFFER_STATE yy_scan_string (const char *, yyscan_t);
 	void yy_delete_buffer (YY_BUFFER_STATE, yyscan_t);
 
-	struct LogicalPlan;
-	void yyerror(yyscan_t, struct LogicalPlan **myStatement, const char *);
+	struct AtomicComputationList;
+	void yyerror(yyscan_t, struct AtomicComputationList **myStatement, const char *);
 
 	//union YYSTYPE;
         typedef union
@@ -44,36 +46,13 @@ extern "C" {
         #endif
         {
         char *myChar;
-        struct LogicalPlan *myPlan;
-        struct Output *myOutput;
-        struct OutputList *myOutputList;
-        struct InputList *myInputList;
-        struct Input *myInput;
-        struct ComputationList *myComputationList;
-        struct Computation *myComputation;
+        struct AtomicComputationList *myAtomicComputationList;
+        struct AtomicComputation *myAtomicComputation;
         struct TupleSpec *myTupleSpec;
         struct AttList *myAttList;
-
         } YYSTYPE;
 
         extern YYSTYPE yylval;
-
-        /* Token type.  */
-        #ifndef YYTOKENTYPE
-        # define YYTOKENTYPE
-        enum yytokentype
-        {
-           STRING = 258,
-           IDENTIFIER = 259,
-           FILTER = 260,
-           APPLY = 261,
-           GETS = 262,
-           INPUTS = 263,
-           OUTPUTS = 264,
-           COMPUTATIONS = 265
-       };
-       #endif
-
 	int yylex(YYSTYPE *, yyscan_t);
 
 
@@ -82,3 +61,4 @@ extern "C" {
 #endif
 
 #endif	
+

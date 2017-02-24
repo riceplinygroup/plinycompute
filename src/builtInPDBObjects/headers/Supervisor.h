@@ -41,8 +41,12 @@ public:
         ~Supervisor () {}
         Supervisor () {}
 
-        Supervisor (std :: string name, int age) {
+	Supervisor (std :: string name, int age) {
                 me = makeObject <Employee> (name, age);
+	}
+
+        Supervisor (std :: string name, int age, std :: string department, double salary) {
+                me = makeObject <Employee> (name, age, department, salary);
         }
 
         Handle <Employee> &getEmp (int who) {

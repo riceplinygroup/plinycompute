@@ -15,25 +15,28 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 %{
 	#include "ParserHelperFunctions.h" 
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
 
+	#if YYBISON
+		union YYSTYPE;
+		int yylex(union YYSTYPE *, void *);
+	#endif
+
+	#define YYDEBUG 1
+
+	typedef void* yyscan_t;
+	void yyerror(yyscan_t scanner, struct AtomicComputationList **myStatement, const char *);
 %}
 
 // this stores all of the types returned by production rules
 %union {
 	char *myChar;
-	struct LogicalPlan *myPlan;
-	struct Output *myOutput;
-	struct OutputList *myOutputList;
-	struct InputList *myInputList;
-	struct Input *myInput;
-	struct ComputationList *myComputationList;
-	struct Computation *myComputation;
+	struct AtomicComputationList *myAtomicComputationList;
+	struct AtomicComputation *myAtomicComputation;
 	struct TupleSpec *myTupleSpec;
 	struct AttList *myAttList;
 };
@@ -41,24 +44,21 @@
 %pure-parser
 %lex-param {void *scanner}
 %parse-param {void *scanner}
-%parse-param {struct LogicalPlan **myPlan}
+%parse-param {struct AtomicComputationList **myPlan}
 
-%token <myChar> STRING 
-%token <myChar> IDENTIFIER
-%token FILTER
+%token FILTER 
 %token APPLY
+%token SCAN
+%token AGG 
+%token JOIN 
+%token OUTPUT 
 %token GETS
-%token INPUTS
-%token OUTPUTS
-%token COMPUTATIONS
+%token <myChar> IDENTIFIER
+%token <myChar> STRING 
 
-%type <myPlan> LogicalQueryPlan
-%type <myOutput> Output
-%type <myOutputList> OutputList
-%type <myInputList> InputList
-%type <myInput> Input
-%type <myComputationList> ComputationList
-%type <myComputation> Computation
+%type <myAtomicComputationList> LogicalQueryPlan
+%type <myAtomicComputationList> AtomicComputationList
+%type <myAtomicComputation> AtomicComputation
 %type <myTupleSpec> TupleSpec
 %type <myAttList> AttList
 
@@ -73,78 +73,60 @@
 
 %%
 
-LogicalQueryPlan : OUTPUTS ':' OutputList INPUTS ':' InputList COMPUTATIONS ':' ComputationList
+LogicalQueryPlan : AtomicComputationList
 {
-	$$ = makePlan ($3, $6, $9);
+	$$ = $1;
 	*myPlan = $$;
 }
 ; 
-
-/********************************/
-/** THIS IS A LIST OF OUTPUTS ***/
-/********************************/
-
-OutputList : OutputList ',' Output
-{
-	$$ = pushBackOutput ($1, $3);
-}
-
-| Output
-{
-	$$ = makeOutputList ($1);
-}
-;
-
-Output : '(' STRING ',' STRING ')' GETS TupleSpec
-{
-	$$ = makeOutput ($7, $2, $4);
-}
-;
-
-/*******************************/
-/** THIS IS A LIST OF INPUTS ***/
-/*******************************/
-
-InputList : InputList ',' Input
-{
-	$$ = pushBackInput ($1, $3);
-}
-
-| Input
-{
-	$$ = makeInputList ($1);
-}
-;
-
-Input : TupleSpec GETS '(' STRING ',' STRING ')' 
-{
-	$$ = makeInput ($1, $4, $6);
-}
-;
 
 /*************************************/
 /** THIS IS A LIST OF COMPUTATIONS ***/
 /*************************************/
 
-ComputationList : ComputationList  Computation
+AtomicComputationList : AtomicComputationList AtomicComputation
 {
-	$$ = pushBackComputation ($1, $2);
+	$$ = pushBackAtomicComputation ($1, $2);
 }
 
-| Computation 
+| AtomicComputation 
 {
-	$$ =  makeComputationList ($1);
+	$$ =  makeAtomicComputationList ($1);
 }
 ;
 
-Computation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ')'
+/***************************************/
+/** THIS IS A PARTICULAR COMPUTATION ***/
+/***************************************/
+
+AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
 {
-	$$ = makeApply ($1, $5, $7, $9);
+	$$ = makeApply ($1, $5, $7, $9, $11);
 }
 
-| TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ')'
+| TupleSpec GETS AGG '(' TupleSpec ',' STRING ')'
 {
-	$$ = makeFilter ($1, $5, $7);
+	$$ = makeAgg ($1, $5, $7);
+}
+
+| TupleSpec GETS SCAN '(' STRING ',' STRING ',' STRING ')'
+{
+	$$ = makeScan ($1, $5, $7, $9);
+}
+
+| TupleSpec GETS OUTPUT '(' TupleSpec ',' STRING ',' STRING ',' STRING ')'
+{
+	$$ = makeOutput ($1, $5, $7, $9, $11);
+}
+
+| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
+{
+	$$ = makeJoin ($1, $5, $7, $9, $11, $13, $15);
+}
+
+| TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ')'
+{
+	$$ = makeFilter ($1, $5, $7, $9);
 }
 ;
 
@@ -155,6 +137,11 @@ Computation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING ')'
 TupleSpec : IDENTIFIER '(' AttList ')'
 {
 	$$ = makeTupleSpec ($1, $3);
+}
+
+| IDENTIFIER '(' ')'
+{
+	$$ = makeEmptyTupleSpec ($1);
 }
 ;
 
@@ -171,4 +158,6 @@ AttList : AttList ',' IDENTIFIER
 
 
 %%
+
+int yylex(YYSTYPE *, void *);
 

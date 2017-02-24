@@ -16,65 +16,40 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef ATT_LIST_H
+#define ATT_LIST_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
+#include <iostream>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <utility>
+#include <vector>
+#include <map>
 
-//  PRELOAD %Employee%
+// this is a list of attributes... used to build up schema specifications
+struct AttList {
 
-namespace pdb {
+private:
 
-class Employee : public Object {
+	std :: vector <std :: string> atts;
 
-        Handle <String> name;
-        int age;
 public:
 
-        double salary;
-        String department;
+        ~AttList () {}
+	AttList () {}
 
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+	void appendAttribute (char *appendMe) {
+		atts.push_back (std :: string (appendMe));
 	}
-
-	int getAge() {
-		return age;
+	
+	std :: vector <std :: string> &getAtts () {
+		return atts;
 	}
+	
+	friend struct TupleSpec;
 
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
 };
 
-}
-
 #endif
+

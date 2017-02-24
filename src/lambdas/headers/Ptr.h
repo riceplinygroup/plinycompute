@@ -60,6 +60,9 @@ public:
 		return data;
 	}
 
+	static size_t getObjectSize () {
+		return sizeof (BaseType);	
+	}
 };
 
 }

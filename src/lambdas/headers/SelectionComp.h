@@ -16,63 +16,37 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef SELECTION_COMP
+#define SELECTION_COMP
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "Computation.h"
 
 namespace pdb {
 
-class Employee : public Object {
+template <class OutputClass, class InputClass>
+class SelectionComp : public Computation {
 
-        Handle <String> name;
-        int age;
-public:
+	// the computation returned by this method is called to see if a data item should be returned in the output set
+	virtual Lambda <bool> getSelection (Handle <InputClass> &checkMe) = 0;
 
-        double salary;
-        String department;
+	// the computation returned by this method is called to perfom a transformation on the input item before it
+	// is inserted into the output set
+	virtual Lambda <Handle<OutputClass>> getProjection (Handle <InputClass> &checkMe) = 0;
 
-	ENABLE_DEEP_COPY
+	// calls getProjection and getSelection to extract the lambdas
+	void extractLambdas (std :: map <std :: string, GenericLambdaObjectPtr> &returnVal) override {
+		int suffix = 0;
+		Handle <InputClass> checkMe = nullptr;
+		Lambda <bool> selectionLambda = getSelection (checkMe);
+		Lambda <Handle <OutputClass>> projectionLambda = getProjection (checkMe);
+		selectionLambda.toMap (returnVal, suffix);
+		projectionLambda.toMap (returnVal, suffix);
+	}	
 
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
+	// this is a selection computation
+        std :: string getComputationType () override {
+                return std :: string ("SelectionComp");
         }
-
-	Handle <String> &getName () {
-		return name;
-	}
-
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
 };
 
 }

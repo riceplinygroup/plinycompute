@@ -19,7 +19,7 @@
 // Added to avoid linker errors
 #ifndef DUMMY_SERVER_CC
 #define DUMMY_SERVER_CC
-
+/*
 #include <cstddef>
 #include <iostream>
 #include <fstream>
@@ -113,4 +113,5 @@ void PipelineDummyTestServer :: registerHandlers (PDBServer &forMe) {
 
 
 }
+*/
 #endif

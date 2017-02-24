@@ -24,7 +24,7 @@
 #include "PangeaStorageServer.h"
 #include "BaseQuery.h"
 #include "PipelineDummyTestServer.h"
-
+/*
 namespace pdb {
 
 
@@ -136,5 +136,5 @@ public:
 };
 
 }
-
+*/
 #endif

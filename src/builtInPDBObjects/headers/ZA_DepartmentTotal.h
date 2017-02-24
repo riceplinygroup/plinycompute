@@ -16,62 +16,43 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef ZA_DEPARTMENTAL_TOTAL_H
+#define ZA_DEPARTMENTAL_TOTAL_H
 
 #include "Object.h"
-#include "PDBVector.h"
 #include "PDBString.h"
-#include "Handle.h"
 
-//  PRELOAD %Employee%
+//  PRELOAD %ZA_DepartmentTotal%
 
 namespace pdb {
 
-class Employee : public Object {
+class ZA_DepartmentTotal : public Object {
 
-        Handle <String> name;
-        int age;
 public:
 
-        double salary;
-        String department;
-
+	double totSales;
+	String departmentName;
+	
 	ENABLE_DEEP_COPY
 
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+	bool checkSales () {
+		if ((((int) (totSales * 10)) + 5) / 10 == ((int) (totSales * 10)) / 10) {
+			return true;
+		}
+		return false;
 	}
 
-	int getAge() {
-		return age;
+	Handle <double> getTotSales () {
+		Handle <double> returnVal = makeObject <double> (totSales);
+		return returnVal;
 	}
 
-	double getSalary () {
-		return salary;
+	String &getKey () {
+		return departmentName;
 	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
+	
+	double &getValue () {
+		return totSales;
 	}
 };
 
