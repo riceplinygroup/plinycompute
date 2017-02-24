@@ -28,14 +28,16 @@
 #include <map>
 
 using std::string;
-
+#include "AttList.h"
+#include "LogicalPlan.h"
+#include "TupleSpec.h"
 /************************************************/
 /** HERE WE DEFINE ALL OF THE STRUCTS THAT ARE **/
 /** PASSED AROUND BY THE PARSER                **/
 /************************************************/
 
 // this is a list of attributes
-struct AttList {
+/*struct AttList {
 
 private:
 
@@ -472,5 +474,5 @@ inline std :: ostream& operator<<(std :: ostream& os, const LogicalPlan& printMe
 	os << "Outputs:\n" << printMe.outputs << "Inputs:\n" << printMe.inputs << "Computations:\n" << printMe.computations;
 	return os;
 }
-
+*/
 #endif

@@ -28,34 +28,31 @@ extern "C" {
 /******************************************************/
 
 struct AttList;
-struct Computation;
-struct ComputationList;
-struct Input;
-struct InputList;
-struct OutputList;
+struct AtomicComputation;
+struct AtomicComputationList;
 struct LogicalPlan;
-struct ComputationList;
+struct AtomicComputationList;
 struct TupleSpec;
-struct Output;
 
-/******************************************************/
-// C FUNCTIONS TO MANIPULATE THE VARIOUS STRUCTURES
-/******************************************************/
+/***************************************************************************/
+// C FUNCTIONS TO MANIPULATE THE VARIOUS STRUCTURES PRODUCED BY THE PARSER
+/***************************************************************************/
 
 struct AttList *makeAttList (char *fromMe);
-struct Output *makeOutput (struct TupleSpec *fromMe, char *dbName, char *setName);
+struct TupleSpec *makeEmptyTupleSpec (char *setName);
 struct AttList *pushBackAttribute (struct AttList *addToMe, char *fromMe);
-struct Computation *makeFilter (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection);
-struct Computation *makeApply (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *name);
-struct ComputationList *makeComputationList (struct Computation *fromMe);
+struct AtomicComputationList *makeAtomicComputationList (struct AtomicComputation *fromMe);
 struct TupleSpec *makeTupleSpec (char *setName, struct AttList *useMe);
-struct ComputationList *pushBackComputation (struct ComputationList *input, struct Computation *addMe);
-struct Input *makeInput (struct TupleSpec *output, char *dbName, char *setName);
-struct InputList *makeInputList (struct Input *fromMe);
-struct InputList *pushBackInput (struct InputList *intoMe, struct Input *pushMe);
-struct OutputList *makeOutputList (struct Output *fromMe);
-struct OutputList *pushBackOutput (struct OutputList *intoMe, struct Output *pushMe);
-struct LogicalPlan *makePlan (struct OutputList *outputs, struct InputList *inputs, struct ComputationList *computations);
+struct AtomicComputationList *pushBackAtomicComputation (struct AtomicComputationList *input, struct AtomicComputation *addMe);
+struct LogicalPlan *makePlan (struct AtomicComputationList *computations);
+struct AtomicComputation *makeOutput (struct TupleSpec *output, struct TupleSpec *input,
+        	char *dbName, char *setName, char *nodeName);
+struct AtomicComputation *makeScan (struct TupleSpec *output, char *dbName, char *setName, char *nodeName);
+struct AtomicComputation *makeAgg (struct TupleSpec *output, struct TupleSpec *input, char *nodeName);
+struct AtomicComputation *makeApply (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
+struct AtomicComputation *makeFilter (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName);
+struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
+                struct TupleSpec *rInput, struct TupleSpec *rProjection, char *nodeName, char *opName);
 
 #ifdef __cplusplus
 }

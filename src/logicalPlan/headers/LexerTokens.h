@@ -16,65 +16,29 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef LEX_TOKENS_H
+#define LEX_TOKENS_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
-
-namespace pdb {
-
-class Employee : public Object {
-
-        Handle <String> name;
-        int age;
-public:
-
-        double salary;
-        String department;
-
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
-	}
-
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
-};
-
-}
+       #ifdef FILTER
+		#undef FILTER
+      		#undef APPLY
+		#undef SCAN
+		#undef AGG
+		#undef JOIN
+		#undef OUTPUT
+		#undef GETS
+		#undef IDENTIFIER
+		#undef STRING
+       #endif
+ 
+       #define FILTER 258
+       #define APPLY 259
+       #define SCAN 260
+       #define AGG 261
+       #define JOIN 262
+       #define OUTPUT 263
+       #define GETS 264
+       #define IDENTIFIER 265
+       #define STRING 266
 
 #endif

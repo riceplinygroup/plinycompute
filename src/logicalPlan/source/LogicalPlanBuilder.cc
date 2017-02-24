@@ -15,6 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifdef TCAP_INTEGRATION
+
 #include "LogicalPlanBuilder.h"
 
 #include <sstream>
@@ -601,4 +603,4 @@ shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(string tcapProgram)
     return logicalPlan;
 
 }
-
+#endif

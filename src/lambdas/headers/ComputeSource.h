@@ -16,63 +16,28 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef COMPUTE_SOURCE_H
+#define COMPUTE_SOURCE_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "TupleSet.h"
 
 namespace pdb {
 
-class Employee : public Object {
+class ComputeSource;
+typedef std :: shared_ptr <ComputeSource> ComputeSourcePtr;
 
-        Handle <String> name;
-        int age;
+// this class encapsulates some source of TupleSet objects for processing...
+// it might wrap up a hash table that we are iterating over, or it might wrap
+// up an on-disk set of objects
+class ComputeSource {
+
 public:
 
-        double salary;
-        String department;
+	// this gets another tuple set for processing
+	virtual TupleSetPtr getNextTupleSet () = 0;
 
-	ENABLE_DEEP_COPY
+	virtual ~ComputeSource () {}
 
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
-	}
-
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
 };
 
 }

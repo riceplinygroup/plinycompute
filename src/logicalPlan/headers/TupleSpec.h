@@ -16,65 +16,71 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef TUPLE_SPEC_H
+#define TUPLE_SPEC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
+#include <iostream>
+#include <memory>
+#include <stdlib.h>
+#include <string>
+#include <utility>
+#include <vector>
+#include <map>
 
-//  PRELOAD %Employee%
+#include "AttList.h"
 
-namespace pdb {
+// and here is the specifier for a TupleSet... it is basically a bunch of attribute
+// names, as well as the name of the TupleSet
+struct TupleSpec {
 
-class Employee : public Object {
+private:
 
-        Handle <String> name;
-        int age;
+	std :: string setName;
+	std :: vector <std :: string> atts;
+
 public:
 
-        double salary;
-        String department;
-
-	ENABLE_DEEP_COPY
-
-        ~Employee () {}
-        Employee () {}
-
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
+	TupleSpec () {	
+		setName = std :: string ("Empty");
 	}
 
-	int getAge() {
-		return age;
+	~TupleSpec () {}
+
+	TupleSpec (std :: string setNameIn) {
+		setName = setNameIn;
 	}
 
-	double getSalary () {
-		return salary;
+	TupleSpec (std :: string setNameIn, AttList &useMe) {
+		setName = setNameIn;
+		atts = useMe.atts;
 	}
 
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
+	std :: string &getSetName () {
+		return setName;
 	}
 
-	bool operator == (Employee &me) const {
-		return name == me.name;
+	std :: vector <std :: string> &getAtts () {
+		return atts;
 	}
+	
+	bool operator == (const TupleSpec& toMe) {
+		return setName == toMe.setName;
+	}
+
+	friend std :: ostream& operator<<(std :: ostream& os, const TupleSpec& printMe);
 };
 
+inline std :: ostream& operator<<(std :: ostream& os, const TupleSpec& printMe) {
+	os << printMe.setName << " (";
+	bool first = true;
+	for (auto &a : printMe.atts) {
+		if (!first) 
+			os << ", ";
+		first = false;
+		os << a;
+	}
+	os << ")";
+	return os;
 }
 
 #endif

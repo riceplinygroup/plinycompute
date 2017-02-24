@@ -19,8 +19,10 @@
 #ifndef PIPELINE_H
 #define PIPELINE_H
 
-#include "TupleSetIterator.h"
+#include "ComputeSource.h"
+#include "ComputeSink.h"
 #include "UseTemporaryAllocationBlock.h"
+#include "Handle.h"
 #include <queue>
 
 namespace pdb {
@@ -29,32 +31,25 @@ namespace pdb {
 struct MemoryHolder {
 
 	// the output vector that this guy stores
-	Handle <Vector <Handle <Object>>> outputVector;
+	Handle <Object> outputSink;
 
 	// his memory
 	void *location;
-	size_t numBytes;
 
 	// the iteration where he was last written...
 	// we use this beause we canot delete 
 	int iteration;
 
 	void setIteration (int iterationIn) {
-		if (outputVector != nullptr)
-			getRecord (outputVector);
+		if (outputSink != nullptr)
+			getRecord (outputSink);
 		iteration = iterationIn;	
 	}
 
 	MemoryHolder (std :: pair <void *, size_t> buildMe) {
 		location = buildMe.first;
-		numBytes = buildMe.second;
-		makeObjectAllocatorBlock (location, numBytes, true);
-		outputVector = nullptr;
-	}
-
-	Handle <Vector <Handle <Object>>> &getOutputVector (TupleSetPtr curChunk, int whichColToOutput) {
-		outputVector = curChunk->getOutputVector (whichColToOutput);
-		return outputVector;
+		makeObjectAllocatorBlock (location, buildMe.second, true);
+		outputSink = nullptr;
 	}
 };
 
@@ -73,18 +68,20 @@ private:
 	// this is a function that the pipeline calls to write back a page.
 	// The first arg is the page to write back (and free), and the second
 	// is the size of the page
-	std :: function <void (void *, size_t)> writeBackPage;
+	std :: function <void (void *)> writeBackPage;
 
 	// this is a function that the pipieline calls to free a page, without
 	// writing it back (because it has no useful data)
-	std :: function <void (void *, size_t)> discardPage;
+	std :: function <void (void *)> discardPage;
 
 	// this is the source of data in the pipeline
-	TupleSetIterator dataSource;	
+	ComputeSourcePtr dataSource;	
+
+	// this is where the pipeline goes to write the data
+	ComputeSinkPtr dataSink; 
 
 	// here is our pipeline
-	std :: vector <QueryExecutorPtr> pipeline; 
-
+	std :: vector <ComputeExecutorPtr> pipeline; 
 
 	// and here is all of the pages we've not yet written back
 	std :: queue <MemoryHolderPtr> unwrittenPages;
@@ -95,13 +92,14 @@ public:
 	// the second arguement is a function to call that deals with a full output page
 	// the third argument is the iterator that will create TupleSets to process
 	Pipeline (std :: function <std :: pair <void *, size_t> ()> getNewPage, 
-		std :: function <void (void *, size_t)> writeBackPage,
-		std :: function <void (void *, size_t)> discardPage,
-		TupleSetIterator &dataSource) :
-		getNewPage (getNewPage), writeBackPage (writeBackPage), discardPage (discardPage), dataSource (dataSource) {}
+		std :: function <void (void *)> discardPage,
+		std :: function <void (void *)> writeBackPage,
+		ComputeSourcePtr dataSource, ComputeSinkPtr tupleSink) :
+		getNewPage (getNewPage), writeBackPage (writeBackPage), discardPage (discardPage), 
+		dataSource (dataSource), dataSink (tupleSink) {}
 
 	// adds a stage to the pipeline
-	void addStage (QueryExecutorPtr addMe) {
+	void addStage (ComputeExecutorPtr addMe) {
 		pipeline.push_back (addMe);
 	}
 	
@@ -129,6 +127,7 @@ public:
 
 		if (unwrittenPages.size () != 0)
 			std :: cout << "This is bad: in destructor for pipeline, still some pages with objects!!\n";
+
 	}
 
 	// writes back any unwritten pages
@@ -140,50 +139,43 @@ public:
 			
 			// in this case, the page did not have any output data written to it... it only had
 			// intermediate results, and so we will just discard it
-			if (unwrittenPages.front ()->outputVector == nullptr) {
+			if (unwrittenPages.front ()->outputSink == nullptr) {
 				if (getNumObjectsInAllocatorBlock (unwrittenPages.front ()->location) != 0) {
 
 					// this is bad... there should not be any objects here because this memory
 					// chunk does not store an output vector
-					std :: cout << "This is bad!!  Now did I find a page with objects??\n";
-				} else {
-					discardPage (unwrittenPages.front ()->location, 
-						unwrittenPages.front ()->numBytes);	
-					unwrittenPages.pop ();
+					emptyOutContainingBlock (unwrittenPages.front ()->location);
+
+					std :: cout << "This is Strange... how did I find a page with objects??\n";
 				}
+
+				discardPage (unwrittenPages.front ()->location);
+				unwrittenPages.pop ();
 
 			// in this case, the page DID have some data written to it
 			} else {
 			
-				// ask for the page to be written back
 				// and force the reference count for this guy to go to zero
-				unwrittenPages.front ()->outputVector.emptyOutContainingBlock ();
+				unwrittenPages.front ()->outputSink.emptyOutContainingBlock ();
 
-				writeBackPage (unwrittenPages.front ()->location, 
-					unwrittenPages.front ()->numBytes);	
+				// OK, because we will have invalidated the current object allocator block, we need to 
+				// create a new one, or this could cause a lot of problems!!
+				if (iteration == 999999999)
+					makeObjectAllocatorBlock (1024, true);
 
-				std :: cout << "Done killing this page.\n";
+				// make sure he is written
+				writeBackPage (unwrittenPages.front ()->location);
 
 				// and get ridda him
 				unwrittenPages.pop ();
 			}
 		}
-
-		std :: cout << "Size was " << unwrittenPages.size () << "\n";
 	}
 
 	// runs the pipeline
-	void run (int whichColToOutput) {
+	void run () {
 
-	
-		// first, we make a really small allocation block so that we can restore the existing
-		// one when we are done
-		const UseTemporaryAllocationBlock temp {1024};	
-
-		// get the actual handle to write to
-		Handle <Vector <Handle <Object>>> outputVector = nullptr;
-
-		// and the current RAM we are writing to
+		// this is where we are outputting all of our results to
 		MemoryHolderPtr myRAM = std :: make_shared <MemoryHolder> (getNewPage ());	
 
 		// and here is the chunk
@@ -193,13 +185,11 @@ public:
 		int iteration = 0;
 
 		// while there is still data
-		while ((curChunk = dataSource.getNextTupleSet ()) != nullptr) {
+		while ((curChunk = dataSource->getNextTupleSet ()) != nullptr) {
 			
 			// go through all of the pipeline stages
-			for (QueryExecutorPtr &q : pipeline) {
+			for (ComputeExecutorPtr &q : pipeline) {
 				
-				std :: cout << "Moving to next pipe stage.\n";
-
 				try { 
 					curChunk = q->process (curChunk);
 
@@ -207,7 +197,6 @@ public:
 
 					// and get a new page
 					myRAM->setIteration (iteration);
-					std :: cout << "Pushing!!\n";
 					unwrittenPages.push (myRAM);
 					myRAM = std :: make_shared <MemoryHolder> (getNewPage ());
 
@@ -216,38 +205,29 @@ public:
 				}
 			}
 
-			std :: cout << "Done pushing through pipeline.\n";
-
 			try {
 
-				if (outputVector == nullptr) {
-					outputVector = myRAM->getOutputVector (curChunk, whichColToOutput);
+				if (myRAM->outputSink == nullptr) {
+					myRAM->outputSink = dataSink->createNewOutputContainer ();
 				}
-				curChunk->writeOutColumn (whichColToOutput, outputVector, true);
+				dataSink->writeOut (curChunk, myRAM->outputSink);
 
 			} catch (NotEnoughSpace &n) {
 
 				// again, we ran out of RAM here, so write back the page and then create a new output page
 				myRAM->setIteration (iteration);
-				std :: cout << "Pushing!!\n";
 				unwrittenPages.push (myRAM);
 				myRAM = std :: make_shared <MemoryHolder> (getNewPage ());
 
 				// and again, try to write back the output
-				outputVector = myRAM->getOutputVector (curChunk, whichColToOutput);
-				curChunk->writeOutColumn (whichColToOutput, outputVector, false);
+				myRAM->outputSink = dataSink->createNewOutputContainer ();
+				dataSink->writeOut (curChunk, myRAM->outputSink);
 			}
 
 			// lastly, write back all of the output pages
 			iteration++;
 			cleanPages (iteration);
 		}
-
-		// write the results
-		std :: cout << "Cleaning!!\n";
-
-		// have to set to nullptr to be sure the only reference is in the list of pages to be cleaned
-		outputVector = nullptr;
 
 		// set the iteration
 		myRAM->setIteration (iteration);
@@ -256,6 +236,8 @@ public:
 		unwrittenPages.push (myRAM);
 	}
 };
+
+typedef std :: shared_ptr <Pipeline> PipelinePtr;
 
 }
 

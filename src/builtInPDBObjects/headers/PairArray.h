@@ -125,6 +125,9 @@ public:
 	// so this guy can look inside
 	template <class KeyTwo, class ValueTwo> friend class PDBMapIterator;
 
+        // clear an item
+         void setUnused (const KeyType &clearMe);
+
 };
 
 }

@@ -16,74 +16,47 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EQUALS_LAM_H
-#define EQUALS_LAM_H
+#ifndef DEREF_LAM_H
+#define DEREF_LAM_H
 
 #include <vector>
-#include "Lambda.h"
+#include "LambdaHelperClasses.h"
 #include "ComputeExecutor.h"
+#include "SimpleComputeExecutor.h"
 #include "TupleSetMachine.h"
 #include "TupleSet.h"
 #include "Ptr.h"
 
 namespace pdb {
 
-// only one of these four versions is going to work... used to automatically dereference a Ptr<blah>
-// type on either the LHS or RHS of an equality check
-template <class LHS, class RHS>
-std :: enable_if_t <std :: is_base_of <PtrBase, LHS> :: value && std :: is_base_of <PtrBase, RHS> :: value, bool> checkEquals (LHS &lhs, RHS &rhs) {
-	return *lhs == *rhs;
-} 
-
-template <class LHS, class RHS>
-std :: enable_if_t <std :: is_base_of <PtrBase, LHS> :: value && !(std :: is_base_of <PtrBase, RHS> :: value), bool> checkEquals (LHS &lhs, RHS &rhs) {
-	return *lhs == rhs;
-} 
-
-template <class LHS, class RHS>
-std :: enable_if_t <!(std :: is_base_of <PtrBase, LHS> :: value) && std :: is_base_of <PtrBase, RHS> :: value, bool> checkEquals (LHS &lhs, RHS &rhs) {
-	return lhs == *rhs;
-} 
-
-template <class LHS, class RHS>
-std :: enable_if_t <!(std :: is_base_of <PtrBase, LHS> :: value) && !(std :: is_base_of <PtrBase, RHS> :: value), bool> checkEquals (LHS &lhs, RHS &rhs) {
-	return lhs == rhs;
-} 
-
-template <class LeftType, class RightType> 
-class EqualsLambda : public TypedLambdaObject <bool> {
+template <class OutType>
+class DereferenceLambda : public TypedLambdaObject <OutType> {
 
 public:
 
-	LambdaTree <LeftType> lhs;
-	LambdaTree <RightType> rhs;
+	LambdaTree <Ptr <OutType>> input;
 
 public:
 
-	EqualsLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
-		lhs = lhsIn;
-		rhs = rhsIn;
-	}
+	DereferenceLambda (LambdaTree <Ptr <OutType>> &input) : input (input) {}
 
 	std :: string getTypeOfLambda () override {
-		return std :: string ("==");
+		return std :: string ("deref");
 	}
 
 	int getNumChildren () override {
-		return 2;
+		return 1;
 	}
 
 	GenericLambdaObjectPtr getChild (int which) override {
 		if (which == 0)
-			return lhs.getPtr ();
-		if (which == 1)
-			return rhs.getPtr ();
+			return input.getPtr ();
 		return nullptr;
 	}
 
         bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {
-                if (pleaseCreateThisType == getTypeName <bool> ()) {
-                        std :: vector <bool> *outColumn = new std :: vector <bool>;
+                if (pleaseCreateThisType == getTypeName <OutType> ()) {
+                        std :: vector <OutType> *outColumn = new std :: vector <OutType>;
                         input->addColumn (outAtt, outColumn, true);
                         return true;
                 }
@@ -101,7 +74,6 @@ public:
 		// these are the input attributes that we will process
 		std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
 		int firstAtt = inputAtts[0];
-		int secondAtt = inputAtts[1];
 
 		// this is the output attribute
 		int outAtt = attsToIncludeInOutput.getAtts ().size ();
@@ -114,23 +86,22 @@ public:
 				myMachine->setup (input, output);	
 
 				// get the columns to operate on
-				std :: vector <LeftType> &leftColumn = input->getColumn <LeftType> (firstAtt);
-				std :: vector <RightType> &rightColumn = input->getColumn <RightType> (secondAtt);
+				std :: vector <Ptr <OutType>> &inColumn = input->getColumn <Ptr<OutType>> (firstAtt);
 
 				// create the output attribute, if needed
 				if (!output->hasColumn (outAtt)) { 
-					std :: vector <bool> *outColumn = new std :: vector <bool>;
+					std :: vector <OutType> *outColumn = new std :: vector <OutType>;
 					output->addColumn (outAtt, outColumn, true); 
 				}
 
 				// get the output column
-				std :: vector <bool> &outColumn = output->getColumn <bool> (outAtt);
+				std :: vector <OutType> &outColumn = output->getColumn <OutType> (outAtt);
 
 				// loop down the columns, setting the output
-				int numTuples = leftColumn.size ();
+				int numTuples = inColumn.size ();
 				outColumn.resize (numTuples); 
 				for (int i = 0; i < numTuples; i++) {
-					outColumn [i] = checkEquals (leftColumn[i], rightColumn[i]);
+					outColumn[i] = *inColumn[i];
 				}
 				return output;
 			}

@@ -29,6 +29,6 @@ do
         sleep 1 
         ssh -i $pemFile $host 'ps aux | grep pdb-server'
         sleep 1
-        ssh -i $pemFile $host 'cat pdb_install/log.out | tail -n500'
+        ssh -i $pemFile $host 'cat pdb_install/log.out'
        
 done

@@ -20,11 +20,11 @@
 
 #include "Lexer.h"
 
-struct LogicalPlan;
+struct AtomicComputationList;
 
 #ifdef __cplusplus
 extern "C"
 #endif
-int yyparse (yyscan_t, struct LogicalPlan **);
+int yyparse (yyscan_t, struct AtomicComputationList **);
 
 #endif	

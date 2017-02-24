@@ -19,6 +19,7 @@
 #define NEW_EXECUTION_PIPELINE_CC
 
 #include "NewExecutionPipeline.h"
+/*
 #include "TupleSetIterator.h"
 #include "FilterQueryExecutor.h"
 
@@ -311,4 +312,5 @@ void NewExecutionPipeline::run (int whichColToOutput) {
 	}
 
 }
+*/
 #endif

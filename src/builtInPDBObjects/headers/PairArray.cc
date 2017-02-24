@@ -218,6 +218,57 @@ int PairArray <KeyType, ValueType> :: count (const KeyType &me) {
 	//exit (1);
 }
 
+template <class KeyType, class ValueType>
+void PairArray <KeyType, ValueType> :: setUnused (const KeyType &me) {
+
+        // hash this dude
+        size_t hashVal = Hasher <KeyType> :: hash (me);
+
+        // figure out which slot he goes in
+        size_t slot = hashVal & (numSlots - 1);
+
+        // in the worst case, we can loop through the entire hash table looking.  :-(
+        for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
+
+                // if we found an empty slot, then this guy was not here
+                if (GET_HASH (data, slot) == UNUSED) {
+
+                        break;
+
+                // found a non-empty slot; check for a match
+                } else if (GET_HASH (data, slot) == hashVal) {
+
+                        // potential match!!
+                        if (GET_KEY (data, slot, KeyType) == me) {
+
+                                // destruct those guys
+                                ((KeyType *) (GET_KEY_PTR (data, slot)))->~KeyType ();
+                                ((ValueType *) (GET_VALUE_PTR (data, slot)))->~ValueType ();
+                                GET_HASH (data, slot) = UNUSED;
+                                return;
+                        }
+
+                }
+
+                // if we made it here, then it means that we found a non-empty slot, but no
+                // match... so we simply loop to the next iteration... if slot == numSlots - 1, it
+                // means we've made it to the end of the hash table... go to the beginning
+                if (slot == numSlots - 1)
+                        slot = 0;
+
+                // otherwise, just go to the next slot
+                else
+                        slot++;
+        }
+
+        // we should never reach here
+        std :: cout << "Fatal Error: Ran off the end of the hash table!!\n";
+        exit (1);
+}
+
+
+
+
 template <class KeyType, class ValueType> 
 ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 	
@@ -452,6 +503,10 @@ bool PDBMapIterator <KeyType, ValueType> :: operator != (const PDBMapIterator <K
 		return true;
 	return false;
 }
+
+
+
+
 
 }
 

@@ -17,6 +17,7 @@ rm -rf pdbRoot*
 rm -rf pdbRoot
 rm -rf /tmp/CatalogDir
 rm -rf CatalogDir/*
+rm -rf CatalogDir*
 rm -rf /tmp/CatalogDir*
 rm -rf logs/*
 pkill -9 pdb-server

@@ -16,65 +16,35 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+#ifndef COMPUTE_SINK_H
+#define COMPUTE_SINK_H
 
 #include "Object.h"
-#include "PDBVector.h"
-#include "PDBString.h"
-#include "Handle.h"
-
-//  PRELOAD %Employee%
+#include "TupleSet.h"
 
 namespace pdb {
 
-class Employee : public Object {
+class ComputeSink;
+typedef std :: shared_ptr <ComputeSink> ComputeSinkPtr;
 
-        Handle <String> name;
-        int age;
+// this class encapsulates a destination for a set of TupleSet objects.  It may represent
+// a hash table that a bunch of objects are being written to, or it may represent secondary
+// storage where we are writing the output of a query
+class ComputeSink {
+
 public:
 
-        double salary;
-        String department;
+	// this creates and returns a new output containter to write to
+	virtual Handle <Object> createNewOutputContainer () = 0;
 
-	ENABLE_DEEP_COPY
+	// this writes the tuple set into the output container
+	virtual void writeOut (TupleSetPtr writeMe, Handle <Object> &writeToMe) = 0;
 
-        ~Employee () {}
-        Employee () {}
+	virtual ~ComputeSink () {}
 
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
-        }
-
-	Handle <String> &getName () {
-		return name;
-	}
-
-	int getAge() {
-		return age;
-	}
-
-	double getSalary () {
-		return salary;
-	}
-
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
-
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
 };
 
 }
 
 #endif
+

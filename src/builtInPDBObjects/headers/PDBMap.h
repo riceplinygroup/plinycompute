@@ -53,6 +53,15 @@ public:
 	// access the value at "which"; if this is undefined, define it and return a reference
 	ValueType &operator [] (const KeyType &which);
 
+        // clears the particular key from the map, destructing both the key and the value.  NOTE THAT
+        // THIS IS ONLY SAFE TO USE IF CLEARME WAS THE VERY LAST ITEM ADDED TO THE MAP.  If it is not,
+        // the hash table may be in an inconsistent state.  This is typically used when an out-of-memory
+        // exception is thrown when we try to add to the hash table, and we want to immediately clear
+        // the last item added.
+        void setUnused (const KeyType &clearMe);
+
+
+
 	// returns the number of elements in the map
 	size_t size() const;
 	
