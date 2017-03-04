@@ -34,6 +34,7 @@ public:
 class SharedEmployee : public PrintableObject {
 
         int age;
+        double salary;
 
 public:
 
@@ -59,7 +60,22 @@ public:
         SharedEmployee (std :: string nameIn, int ageIn) {
                 name = pdb :: makeObject <pdb :: String> (nameIn);
                 age = ageIn;
+                salary = 4000.0;
         }
+
+        SharedEmployee (std :: string nameIn, int ageIn, double salaryIn) {
+                name = pdb :: makeObject <pdb :: String> (nameIn);
+                age = ageIn;
+                salary = salaryIn;
+        }
+
+
+
+        double getSalary() {
+            return salary;
+        }
+
+
 };
 
 

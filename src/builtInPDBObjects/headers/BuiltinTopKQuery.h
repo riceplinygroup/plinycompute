@@ -15,46 +15,49 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#pragma once
 
-#ifndef BUILTIN_TOPK_QUERY_H
-#define BUILTIN_TOPK_QUERY_H
 
-// PRELOAD %BuiltinTopKQuery%
+//PRELOAD %BuiltinTopKQuery <Nothing>%
+
 #ifndef MAX_THREADS
-   #define MAX_THREADS 8
+   #define MAX_THREADS 16
 #endif
 
 #ifndef K
-   #define K 100
+   #define K 20
 #endif
 
 #define ACCURATE_TOPK
+
 
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
 #include "Selection.h"
 #include "PDBMap.h"
+#include <sched.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
 
-/*
- * This class is deprecated and not maintained.
- * The TopKQuery class is moved to the pliny project for easier scripting with Pliny classes
- * To find the new class TopKQuery from pliny project.
- */
-
 
 
 namespace pdb {
-class BuiltinTopKQuery : public Selection <BuiltinTopKResult, Object> {
+
+template <typename TypeContained>
+class BuiltinTopKQuery : public Selection <BuiltinTopKResult<TypeContained>, TypeContained> {
 
 public:
 
        ENABLE_DEEP_COPY
 
        BuiltinTopKQuery () { 
+         this->numK = K; 
        }
+
+       BuiltinTopKQuery (int k) {
+         this->numK = k;
+      }
 
 
        ~BuiltinTopKQuery() {
@@ -62,27 +65,25 @@ public:
        }
 
 
-       virtual double getScore(Handle<Object> object) {
+       virtual double getScore(Handle<TypeContained> object) {
            return 3.14159265359;
        };
 
-
        void initialize () {
-           counters = makeObject<Map<pthread_t, unsigned long>>(MAX_THREADS);
+           threadToken = 0;
+           counters = makeObject<Map<pthread_t, unsigned long>>(2*MAX_THREADS);
            threads = makeObject<Vector<pthread_t>>(MAX_THREADS);
-           partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult>>>(MAX_THREADS);
+           partialResults = makeObject<Map<pthread_t, Handle<BuiltinTopKResult<TypeContained>>>>(2*MAX_THREADS);
        }
 
-
-
-       SimpleLambda <bool> getSelection (Handle <Object> &checkMe) override {
+       SimpleLambda <bool> getSelection (Handle <TypeContained> &checkMe) override {
 		return makeLambda (checkMe, [&] () {
                     return false; //getSelection will not be applied in pipeline, so simply return false
 		});
        }
 
 
-       SimpleLambda <bool> getProjectionSelection (Handle<BuiltinTopKResult> &checkMe) override {
+       SimpleLambda <bool> getProjectionSelection (Handle<BuiltinTopKResult<TypeContained>> &checkMe) override {
                 return makeLambda (checkMe, [&] () {
                     #ifdef ACCURATE_TOPK
                        return false; //if we do accurate topK
@@ -98,18 +99,39 @@ public:
 
 
 
-       SimpleLambda <Handle <BuiltinTopKResult>> getProjection (Handle<Object> &checkMe) override {
+       SimpleLambda <Handle <BuiltinTopKResult<TypeContained>>> getProjection (Handle<TypeContained> &checkMe) override {
                  
 		return makeLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
+                        pthread_t expected = 0;
                         if (counters->count(threadId) == 0) {
-                            UseTemporaryAllocationBlock tempBlock{8*1024*1024};
-                            std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
-                            (*counters)[threadId] = 0;
-                            Handle<BuiltinTopKResult> partialResult = makeObject<BuiltinTopKResult> ();
-                            partialResult->initialize();
-                            (*partialResults)[threadId] = partialResult;
-                            threads->push_back(threadId);       
+                            while(threadToken != threadId) {
+                                __atomic_compare_exchange(&threadToken, &expected, &threadId,false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+                                expected = 0;
+                                /*while(threadToken != 0) {
+                                    sched_yield();
+                                }
+                                threadToken = threadId;
+                                */
+                            }
+                            if (threadToken == threadId) {
+                                UseTemporaryAllocationBlock tempBlock{12*1024*1024};
+                                std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;
+                                if (threadToken != threadId) {
+                                    //we have applied atomic_compare_exchange, this should never happen
+                                    std :: cout << "WARNING: possibly a racing condition on thread token detected, threadToken="<<threadToken<<", threadId="<<threadId << std :: endl;
+
+                                }
+                                (*counters)[threadId] = 0;
+                                std :: cout << "counter is set" << std :: endl;
+                                Handle<BuiltinTopKResult<TypeContained>> partialResult = makeObject<BuiltinTopKResult<TypeContained>> ();
+                                partialResult->initialize();
+                                PDB_COUT << "to set slot in result hashmap for threadId=" <<(unsigned long) (threadId)<<std :: endl;
+                                (*partialResults)[threadId] = partialResult;
+                                std :: cout << "result is set" << std :: endl;
+                                threads->push_back(threadId);
+                                threadToken = 0;
+                            }
                         }  
                         #ifndef ACCURATE_TOPK
                         if ((*counters)[threadId] == 10000) {
@@ -119,17 +141,19 @@ public:
                         }
                         #endif
                         double score = getScore(checkMe);
-                        (*partialResults)[threadId]->updateTopK(score, checkMe);
+                        PDB_COUT << "before update topK: score=" << score << std :: endl;
+                        Handle<BuiltinTopKResult<TypeContained>> partialResult = (*partialResults)[threadId];
+                        partialResult->updateTopK(score, checkMe);
                         (*counters)[threadId] ++;
 
-                        Handle<BuiltinTopKResult> ret = nullptr;
+                        Handle<BuiltinTopKResult<TypeContained>> ret = nullptr;
                         #ifdef ACCURATE_TOPK
                         return ret;
                         #else
                         if ((*counters)[threadId] == 10000) {
-                            ret = makeObject<BuiltinTopKResult>();
+                            ret = makeObject<BuiltinTopKResult<TypeContained>>();
                             (*ret) = *(*partialResults)[threadId];
-                            Handle<Vector<Handle<BuiltinTopKInput>>> elements = ret->getTopK();
+                            auto elements = ret->getTopK();
                             int i;
                             for (i = 0; i < elements->size(); i ++) {
                                 std::cout << "score=" << (*elements)[i]->getScore() << std::endl;
@@ -145,28 +169,55 @@ public:
 
         virtual bool isAggregation() override {   return true; }
 
-
-        Handle<Vector<Handle<BuiltinTopKResult>>>& getAggregatedResults () override  {
-            aggregationResult = makeObject<Vector<Handle<BuiltinTopKResult>>> (MAX_THREADS);          
+        Handle<Vector<Handle<BuiltinTopKResult<TypeContained>>>>& getAggregatedResults () override  {
+            this->aggregationResult = makeObject<Vector<Handle<BuiltinTopKResult<TypeContained>>>> (MAX_THREADS);          
             int i , j;
             for (i = 0; i < threads->size(); i ++) {
-                Handle<Vector<Handle<BuiltinTopKInput>>> result = (*partialResults)[(*threads)[i]]->getTopK();
+                auto result = (*partialResults)[(*threads)[i]]->getTopK();
                 for (j = 0; j < result->size(); j++) {
-                   PDB_COUT <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
+                   std::cout <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
                 }
-                Handle<BuiltinTopKResult> curResult= makeObject<BuiltinTopKResult>();
-                aggregationResult->push_back(curResult);
-                *(*aggregationResult)[i] = *((*partialResults)[(*threads)[i]]);
-                Handle<Vector<Handle<BuiltinTopKInput>>> result1 = (*aggregationResult)[i]->getTopK();
+                Handle<BuiltinTopKResult<TypeContained>> curResult= makeObject<BuiltinTopKResult<TypeContained>>();
+                this->aggregationResult->push_back(curResult);
+                *(*(this->aggregationResult))[i] = *((*partialResults)[(*threads)[i]]);
+                auto result1 = (*(this->aggregationResult))[i]->getTopK();
                 for (j = 0; j < result1->size(); j++) {
-                   PDB_COUT <<i <<"-" << j << ":"<<(*result1)[j]->getScore() << std::endl;
+                   std::cout <<i <<"-" << j << ":"<<(*result1)[j]->getScore() << std::endl;
                }
             }
             PDB_COUT << "there are " << i << " partial results" << std :: endl;
-            PDB_COUT << "aggregation result size=" << aggregationResult->size() << std :: endl;
-            return aggregationResult;
+            PDB_COUT << "aggregation result size=" << this->aggregationResult->size() << std :: endl;
+            return this->aggregationResult;
         }
 
+        Handle<Vector<Handle<BuiltinTopKResult<TypeContained>>>>& getAggregatedResultsOptimized () override  {
+            this->aggregationResult = makeObject<Vector<Handle<BuiltinTopKResult<TypeContained>>>> (1);
+            Handle<BuiltinTopKResult<TypeContained>> finalResult = makeObject<BuiltinTopKResult<TypeContained>>();
+            finalResult->initialize();
+            int i , j;
+            for (i = 0; i < threads->size(); i ++) {
+                auto result = (*partialResults)[(*threads)[i]]->getTopK();
+                for (j = 0; j < result->size(); j++) {
+                   std::cout <<i <<"-" << j << ":"<<(*result)[j]->getScore() << std::endl;
+                   finalResult->updateTopK((*result)[j]->getScore(), (*result)[j]->getObject());
+                }
+            }
+            this->aggregationResult->push_back(finalResult);
+            auto result1 = (*(this->aggregationResult))[0]->getTopK();
+            for (j = 0; j < result1->size(); j++) {
+                std::cout << j << ":"<<(*result1)[j]->getScore() << std::endl;
+            }
+            PDB_COUT << "aggregation result size=" << this->aggregationResult->size() << std :: endl;
+            return this->aggregationResult;
+        }
+
+        // gets the name of the i^th input type...
+        virtual std :: string getIthInputType (int i) override {
+                if (i == 0)
+                        return getTypeName <TypeContained> ();
+                else
+                        return "bad index";
+        }
 
 private:
 
@@ -174,9 +225,11 @@ private:
         Handle<Map<pthread_t, unsigned long>> counters;
         Handle<Vector<pthread_t>> threads;
         //current aggregated TopK values
-        //each thread has a BuiltinTopKResult instance
-        Handle<Map<pthread_t, Handle<BuiltinTopKResult>>> partialResults;
+        //each thread has a TopKResult instance
+        Handle<Map<pthread_t, Handle<BuiltinTopKResult<TypeContained>>>> partialResults;
+        //number of top elements
+        int numK;
+        pthread_t threadToken;
 };
 
 }
-#endif

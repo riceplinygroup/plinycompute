@@ -15,13 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef BUILTIN_TOPK_RESULT_H
-#define BUILTIN_TOPK_RESULT_H
+#pragma once
 
-//PRELOAD %BuiltinTopKResult%
+
+//PRELOAD %BuiltinTopKResult <Nothing>%
 
 #ifndef K
-    #define K 100
+    #define K 20
 #endif
 
 #include "Object.h"
@@ -29,44 +29,40 @@
 #include <float.h>
 #include "BuiltinTopKInput.h"
 
-/*
- * This class is deprecated and not maintained.
- * The TopKQuery class is moved to the pliny project for easier scripting with P
-liny classes
- * To find the new class TopKQuery from pliny project.
- */
-
-
-
-
-
 namespace pdb {
 
 /* A class to wrap Top K (K-largest) values obtained so far */
 /* This could be used to compute and represent partial result for each thread */
 /* This could also be used to compute and represent the final aggregated result */
 
+template <typename TypeContained>
 class BuiltinTopKResult : public Object {
 
 public:
 
    ENABLE_DEEP_COPY
 
-   BuiltinTopKResult() {}
+   BuiltinTopKResult() { 
+       this->numK = K;
+   }
+
+   BuiltinTopKResult(int numK) { 
+       this->numK = numK; 
+   }
+
    ~BuiltinTopKResult() {
        topK = nullptr;
    }
 
    void initialize() {
-
-       topK = makeObject<Vector<Handle<BuiltinTopKInput>>>(K);
+       std :: cout << "K=" << numK << std :: endl;
+       topK = makeObject<Vector<Handle<BuiltinTopKInput<TypeContained>>>>(numK);
        minIndex = -1;
        minScore = DBL_MAX;
 
    }
 
    void reset() {
-
        int i;
        for (i=0; i<topK->size(); i++) {
           (*topK)[i]=nullptr;
@@ -76,12 +72,13 @@ public:
    }
 
    //TODO: to use comparator instead of ">="
-   void updateTopK (double score, Handle<Object> element) {
+   void updateTopK (double score, Handle<TypeContained> element) {
+       PDB_COUT << "in update topK: score=" << std :: endl;
        double curScore = score;
        size_t curSize = topK->size();
        //we do not have enough elements
-       if (curSize < K) {
-           Handle<BuiltinTopKInput> newTopKElement = makeObject<BuiltinTopKInput>(curScore, element);
+       if (curSize < numK) {
+           Handle<BuiltinTopKInput<TypeContained>> newTopKElement = makeObject<BuiltinTopKInput<TypeContained>>(curScore, element);
            topK->push_back(newTopKElement);
            PDB_COUT << "add an element to topK with score="<< curScore << std::endl;
            if(curScore < minScore) {
@@ -93,8 +90,17 @@ public:
        //we have enought elements, if minScore is smaller than the cutoff value, we do nothing 
        if (curScore > minScore) {
            //Step 1. replace the minIndex using the new element
-           PDB_COUT << "add an element to topK with score="<< curScore << std::endl;
-           (*topK)[minIndex] = makeObject<BuiltinTopKInput>(curScore, element);
+           PDB_COUT << "replace an element to topK with score="<< curScore << std::endl;
+           Handle<BuiltinTopKInput<TypeContained>> oldElement = (*topK)[minIndex];
+           Handle<BuiltinTopKInput<TypeContained>> newElement = nullptr;
+           try {
+               newElement = makeObject<BuiltinTopKInput<TypeContained>>(curScore, element);
+               (*topK)[minIndex] = newElement;
+           }
+           catch (NotEnoughSpace &n) {
+               (*topK)[minIndex] = oldElement;
+               throw n;
+           }
            //Step 2. update minIndex and minScore
            size_t i;
            //Step 2.1 re-initialize 
@@ -112,22 +118,19 @@ public:
    }
 
 
-   Handle<Vector<Handle<BuiltinTopKInput>>>& getTopK() {
-
+   Handle<Vector<Handle<BuiltinTopKInput<TypeContained>>>>& getTopK() {
        return topK;
-
    }
 
    
 
 private:
 
-   Handle<Vector<Handle<BuiltinTopKInput>>> topK;//using Handle to make deepCopy easy
+   Handle<Vector<Handle<BuiltinTopKInput<TypeContained>>>> topK;//using Handle to make deepCopy easy
    int minIndex;
    double minScore;
-
+   int numK;
 };
 
 }
 
-#endif
