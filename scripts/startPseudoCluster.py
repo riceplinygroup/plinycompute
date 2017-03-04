@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  ========================================================================    
-#JiaNote: to run pseudo cluster on single node
+#to run pseudo cluster on single node
 
 
 import subprocess
@@ -38,13 +38,6 @@ if(len(sys.argv)==3) :
     sharedMemorySize = sys.argv[2]
 else:
     print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numThreads (default: 1) sizeOfSharedMemoryPool (default: 512 MB)"
-
-
-
-print("#################################")
-print("CLEAN THE TESTING ENVIRONMENT")
-print("#################################")
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
 
 print("#################################")

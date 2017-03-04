@@ -22,15 +22,16 @@
 //by Jia, Jan 4th, 2017
 
 #ifndef MAX_THREADS
-   #define MAX_THREADS 8
+   #define MAX_THREADS 16
 #endif
 
 #ifndef K
-   #define K 100
+   #define K 20
 #endif
 
 #include "PDBDebug.h"
 #include "SharedEmployee.h"
+#include "SharedEmployeeTopK.h"
 #include "InterfaceFunctions.h"
 #include "BuiltinTopKInput.h"
 #include "BuiltinTopKResult.h"
@@ -102,7 +103,7 @@ int main (int argc, char * argv[]) {
 
        string errMsg;
        catalogClient.registerType ("libraries/libSharedEmployee.so", errMsg);
-
+       catalogClient.registerType ("libraries/libSharedEmployeeTopK.so", errMsg);
 
        if (whetherToAddData == true) {
 
@@ -118,7 +119,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Object> ("topK_db", "topK_set", errMsg)) {
+            if (!temp.createSet<SharedEmployee> ("topK_db", "topK_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -142,16 +143,16 @@ int main (int argc, char * argv[]) {
                         blockSize = remainder;
                     }
                     pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    pdb::Handle<pdb::Vector<pdb::Handle<Object>>> storeMe =
-                        pdb::makeObject<pdb::Vector<pdb::Handle<Object>>> ();
+                    pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>> storeMe =
+                        pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
                     try {
                         for (int i = 0; true ; i++) {
-                            pdb :: Handle<Object> employee = pdb :: makeObject<SharedEmployee>("steve", i%100); 
+                            pdb :: Handle<SharedEmployee> employee = pdb :: makeObject<SharedEmployee>("steve", i%100, (double)i*100.0); 
                             storeMe->push_back (employee);
                             total++;
                         }
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Object>(std::pair<std::string, std::string>("topK_set", "topK_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<SharedEmployee>(std::pair<std::string, std::string>("topK_set", "topK_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -171,7 +172,7 @@ int main (int argc, char * argv[]) {
 
 
 
-        if (!temp.createSet<BuiltinTopKResult> ("topK_db", "output_set", errMsg)) {
+        if (!temp.createSet<BuiltinTopKResult<SharedEmployee>> ("topK_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -186,13 +187,14 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", clientLogger, true);
 	// make the query graph
-	Handle <Set <Object>> myInputSet = myClient.getSet <Object> ("topK_db", "topK_set");
-	Handle <BuiltinTopKQuery> myQuery = makeObject <BuiltinTopKQuery> ();
+	Handle <Set <SharedEmployee>> myInputSet = myClient.getSet <SharedEmployee> ("topK_db", "topK_set");
+	Handle <SharedEmployeeTopK> myQuery = makeObject <SharedEmployeeTopK> ();
+        std :: cout << myQuery->getIthInputType(0) << std :: endl;
         myQuery->initialize();
         std :: cout << "To set input" << std :: endl;
 	myQuery->setInput (myInputSet);
         std :: cout << "To make output object" << std :: endl;
-	Handle <QueryOutput <BuiltinTopKResult>> outputOne = makeObject <QueryOutput <BuiltinTopKResult>> ("topK_db", "output_set", myQuery);
+	Handle <QueryOutput <BuiltinTopKResult<SharedEmployee>>> outputOne = makeObject <QueryOutput <BuiltinTopKResult<SharedEmployee>>> ("topK_db", "output_set", myQuery);
         std :: cout << "made query graph" << std :: endl;
         
         auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -210,11 +212,11 @@ int main (int argc, char * argv[]) {
 	std::cout << std::endl;
 
         //to aggregate all top-K
-        SetIterator <BuiltinTopKResult> partialResults = myClient.getSetIterator <BuiltinTopKResult> ("topK_db", "output_set");
-        Handle<BuiltinTopKResult> finalResult = makeObject<BuiltinTopKResult>();
+        SetIterator <BuiltinTopKResult<SharedEmployee>> partialResults = myClient.getSetIterator <BuiltinTopKResult<SharedEmployee>> ("topK_db", "output_set");
+        Handle<BuiltinTopKResult<SharedEmployee>> finalResult = makeObject<BuiltinTopKResult<SharedEmployee>>();
         finalResult->initialize();
-        for (Handle<BuiltinTopKResult> a : partialResults) {
-            Handle<Vector<Handle<BuiltinTopKInput>>> elements = a->getTopK();
+        for (Handle<BuiltinTopKResult<SharedEmployee>> a : partialResults) {
+            Handle<Vector<Handle<BuiltinTopKInput<SharedEmployee>>>> elements = a->getTopK();
             std::cout << "to process a partialResult that contains "<< elements->size() << " elements" << std::endl;
             int i;
             for (i = 0; i < elements->size(); i ++) {
@@ -235,13 +237,12 @@ int main (int argc, char * argv[]) {
 
         //to print top-K
         if (printResult == true) {
-            Handle<Vector<Handle<BuiltinTopKInput>>> elements = finalResult->getTopK();
+            Handle<Vector<Handle<BuiltinTopKInput<SharedEmployee>>>> elements = finalResult->getTopK();
             int i;
             for (i = 0; i < elements->size(); i ++) {
 
                 std::cout << i <<":score=" << (*elements)[i]->getScore()<< std::endl;
-                Handle<Object> object = (*elements)[i]->getObject();
-                Handle<SharedEmployee> employee = unsafeCast<SharedEmployee, Object>(object);                
+                Handle<SharedEmployee> employee = (*elements)[i]->getObject();
                 employee->print();
                 std::cout << std::endl;
                   

@@ -279,6 +279,8 @@ common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/St
 common_env.SharedLibrary('libraries/libLeoQuery.so', ['build/libraries/LeoQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
+common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
+
 
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -364,5 +366,5 @@ pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so','bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

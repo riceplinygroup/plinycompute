@@ -1,9 +1,9 @@
-There are 11 servers
+There are 3 servers
 
-+++++++++++ collect info for server: 192.168.1.107
++++++++++++ collect info for server: 10.134.96.222
 [INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
+-e CPUNumber:	 16
+MemTotal:       65976340 kB
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
@@ -12,11 +12,6 @@ model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.108
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
@@ -26,10 +21,18 @@ model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 
-+++++++++++ collect info for server: 192.168.1.106
++++++++++++ collect info for server: 10.134.96.153
 [INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
+-e CPUNumber:	 16
+MemTotal:       32946212 kB
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
+model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
@@ -39,10 +42,10 @@ model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 
-+++++++++++ collect info for server: 192.168.1.165
++++++++++++ collect info for server: 10.134.96.184
 [INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
+-e CPUNumber:	 16
+MemTotal:       32946212 kB
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
@@ -51,89 +54,6 @@ model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.164
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.163
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.162
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.166
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.215
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.217
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-
-+++++++++++ collect info for server: 192.168.1.221
-[INFO] local sys collect
--e CPUNumber:	 8
-MemTotal:       16432208 kB
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)
 model name	: Intel Xeon E312xx (Sandy Bridge)

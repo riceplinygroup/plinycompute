@@ -15,45 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#pragma once
 
-//PRELOAD %BuiltinTopKInput <Nothing>%
-#include "Object.h"
-#include "InterfaceFunctions.h"
+#ifndef SHARED_EMPLOYEE_TOPK_C
+#define SHARED_EMPLOYEE_TOPK_C
 
-namespace pdb {
+#include "GetVTable.h"
+#include "SharedEmployeeTopK.h"
 
-/* A class to wrap TopK input for PDB */
-template <class TypeContained>
-class BuiltinTopKInput : public Object {
+GET_V_TABLE (SharedEmployeeTopK)
 
-public:
-
-    ENABLE_DEEP_COPY
-
-    BuiltinTopKInput() {}
-    ~BuiltinTopKInput() {}
-
-    BuiltinTopKInput(double score, Handle<TypeContained> object) {
-        this->score = score;
-        this->object = object;
-    }
-
-    double getScore() {
-        return score;
-    }
-
-    Handle<TypeContained> getObject() {
-        return object;
-    }
-
-
-private:
-
-    double score;
-    Handle<TypeContained> object;
-
-
-};
-
-}
+#endif
