@@ -16,82 +16,72 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+#ifndef SCAN_USER_SET_H
+#define SCAN_USER_SET_H
 
-//by Jia, Oct 2016
+//by Jia, Mar 2017
 
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
-
-// PRELOAD %SetIdentifier%
-
+#include "Computation.h"
+#include "PageCircularBufferIterator.h"
+#include "VectorTupleSetIterator.h"
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+template <class OutputClass>
+class ScanUserSet : public Computation {
 
 public:
 
         ENABLE_DEEP_COPY
 
-	SetIdentifier () {}
-	~SetIdentifier () {}
+        ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
+             return std :: make_shared <VectorTupleSetIterator> (
 
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){
-            setType = UserSetType;
+                 [&] () -> void * {
+                     while (this->iterator->hasNext() == true) {
+
+                        PDBPagePtr page = this->iterator->next();
+                        if(page != nullptr) {
+                            return page->getBytes();
+                        }
+                     }
+                     
+                     return nullptr;
+
+                 },
+
+                 [] (void * freeMe) -> void {
+                     free (freeMe);
+                 },
+
+                 this->batchSize
+
+            );
         }
 
-        SetIdentifier (std :: string dataBase, std :: string setName, SetType setType): dataBase(dataBase), setName(setName), setType(setType) {}
+        void setIterator(PageCircularBufferIteratorPtr iterator) {
+                this->iterator = iterator;
+        }
+
+        void setBatchSize(int batchSize) {
+                this->batchSize = batchSize;
+
+        }
 
 
-	std :: string getDatabase () {
-		return dataBase;
+	std :: string getComputationType () override {
+		return std :: string ("ScanUserSet");
 	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
-
-        SetType getSetType() {
-                return setType;
-        }
 
 private:
 
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
-        SetType setType;
+       PageCircularBufferIteratorPtr iterator;
+
+       int batchSize;
+
 };
+
+
+
 
 }
 

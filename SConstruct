@@ -267,6 +267,9 @@ all = ['build/sqlite/sqlite3.c',
        component_dir_basename_to_cc_file_paths['tcapLexer'],
        component_dir_basename_to_cc_file_paths['tcapParser'],
        component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
+       component_dir_basename_to_cc_file_paths['logicalPlan'],
+       component_dir_basename_to_cc_file_paths['lambdas'],
+       component_dir_basename_to_lexer_file_paths['logicalPlan'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
        boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
@@ -280,7 +283,9 @@ common_env.SharedLibrary('libraries/libLeoQuery.so', ['build/libraries/LeoQuery.
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
-
+common_env.SharedLibrary('libraries/libEmployeeSelection.so', ['build/libraries/EmployeeSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libScanEmployeeSet.so', ['build/libraries/ScanEmployeeSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteStringSet.so', ['build/libraries/WriteStringSet.cc'] + all)
 
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -316,7 +321,7 @@ common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
 common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
-common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
+common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all)
 common_env.Program('bin/test48', ['build/tests/Test48.cc'] + all)
 common_env.Program('bin/test49', ['build/tests/Test49.cc'] + all)
 common_env.Program('bin/test50', ['build/tests/Test50.cc'] + all)
@@ -327,6 +332,7 @@ common_env.Program('bin/test54', ['build/tests/Test54.cc'] + all)
 common_env.Program('bin/test56', ['build/tests/Test56.cc'] + all)
 common_env.Program('bin/test57', ['build/tests/Test57.cc'] + all)
 common_env.Program('bin/test58', ['build/tests/Test58.cc'] + all)
+common_env.Program('bin/test59', ['build/tests/Test59.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
@@ -350,8 +356,8 @@ common_env.Program('bin/test405', ['build/tests/Test405.cc'] + all)
 common_env.Program('bin/test600', ['build/tests/Test600.cc'] + all)
 common_env.Program('bin/test601', ['build/tests/Test601.cc'] + all)
 common_env.Program('bin/test602', ['build/tests/Test602.cc'] + all)
-common_env.Program('bin/pdb-server', ['build/tests/Test603.cc'] + all + component_dir_basename_to_cc_file_paths['dummyFolder'] +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
-common_env.Program('bin/test604', ['build/tests/Test604.cc'] + all  +  component_dir_basename_to_lexer_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['logicalPlan'] + component_dir_basename_to_cc_file_paths['lambdas'])
+common_env.Program('bin/pdb-server', ['build/tests/Test603.cc']+all)
+common_env.Program('bin/test604', ['build/tests/Test604.cc'] + all)
 common_env.Program('bin/test605', ['build/tests/Test605.cc'] + all)
 common_env.Program('bin/test606', ['build/tests/Test606.cc'] + all)
 common_env.Program('bin/pdbServer', ['build/mainServer/PDBMainServerInstance.cc'] + all)
@@ -366,5 +372,5 @@ pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so','bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', ['libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

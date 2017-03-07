@@ -33,6 +33,7 @@
 #include "PDBVector.h"
 #include "Handle.h"
 #include "ExecuteQuery.h"
+#include "TupleSetExecuteQuery.h"
 #include "RequestResources.h"
 #include "Selection.h"
 #include "SimpleRequestHandler.h"
@@ -79,7 +80,10 @@ void QuerySchedulerServer ::cleanup() {
              currentPlan[i]=nullptr;
     }
     this->currentPlan.clear();
-
+    for (int i = 0; i < queryPlan.size(); i++) {
+             queryPlan[i]=nullptr;
+    }
+    this->queryPlan.clear();
 }
 
 QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork) {
@@ -135,8 +139,8 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 
 }
 
-void QuerySchedulerServer :: scheduleNew() {
 /*
+void QuerySchedulerServer :: scheduleNew() {
     int counter = 0;
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
             [&] (PDBAlarm myAlarm, int &counter) {
@@ -165,11 +169,11 @@ void QuerySchedulerServer :: scheduleNew() {
     while(counter < this->standardResources->size()) {
         tempBuzzer->wait();
     }
-*/
 }
+*/
 
-bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
 /*
+bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
     std :: cout << "to connect to the remote node" << std :: endl;
     PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
 
@@ -196,11 +200,50 @@ bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPt
         std :: cout << errMsg << std :: endl;
         return false;
     }
+    return true;
+
+}
 */
+
+//to replace: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode)
+bool QuerySchedulerServer :: scheduleStages (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
+
+    pthread_mutex_lock(&connection_mutex);
+    PDB_COUT << "to connect to the remote node" << std :: endl;
+    PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+    PDB_COUT << "port:" << port << std :: endl;
+    PDB_COUT << "ip:" << ip << std :: endl;
+
+    string errMsg;
+    bool success;
+    if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
+        success = false;
+        std :: cout << errMsg << std :: endl;
+        pthread_mutex_unlock(&connection_mutex);
+        return success;
+    }
+    if (this->queryPlan.size() > 1) {
+        PDB_COUT << "#####################################" << std :: endl;
+        PDB_COUT << "WARNING: GraphIr generates 2 stages" << std :: endl;
+        PDB_COUT << "#####################################" << std :: endl;
+    }
+    pthread_mutex_unlock(&connection_mutex);
+    //Now we only allow one stage for each query graph
+    for (int i = 0; i < 1; i++) {
+        Handle<TupleSetJobStage> stage = queryPlan[i];
+        success = scheduleStage (stage, communicator, mode);
+        if (!success) {
+            return success;
+        }
+    }
     return true;
 
 }
 
+
+
+//deprecated
 bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
     
     pthread_mutex_lock(&connection_mutex); 
@@ -236,6 +279,50 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
 }
 
+//to replace: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
+bool QuerySchedulerServer :: scheduleStage(Handle<TupleSetJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
+        bool success;
+        std :: string errMsg;
+
+        PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
+
+        if (mode == Direct) {
+            stage->print();
+            success = communicator->sendObject<TupleSetJobStage>(stage, errMsg);
+            if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return false;
+            }
+        }else if (mode == DeepCopy) {
+             Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (stage);
+             stageToSend->print();
+             success = communicator->sendObject<TupleSetJobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             }
+        } else {
+             std :: cout << "Error: No such object creation mode supported in query scheduler" << std :: endl;
+             return false;
+        }
+        PDB_COUT << "to receive query response from the remote node" << std :: endl;
+        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        if (result != nullptr) {
+            for (int j = 0; j < result->size(); j++) {
+                PDB_COUT << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+            }
+        }
+        else {
+            PDB_COUT << "Query execute failure: can't get results" << std :: endl;
+            return false;
+        }
+
+        return true;
+
+}
+
+
+//deprecated
 bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
 
         bool success;
@@ -292,7 +379,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
              }
         } else {
              std :: cout << "Error: No such object creation mode supported in scheduler" << std :: endl;
-             exit (-1);
+             return false;
         }
         PDB_COUT << "to receive query response from the remote node" << std :: endl;
         Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
@@ -316,7 +403,41 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
         return true;
 }
 
+String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations) {
 
+        //TODO: convert below placeholder to query analysis logic
+        String myTCAPString =
+               "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
+                inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
+                inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
+                inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_0') \n\
+                filteredInput (in) <= FILTER (inputWithBool (bool), inputWithBool (in), 'SelectionComp_1') \n\
+                projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_4') \n\
+                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_3') \n\
+                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'AggregationComp_2', 'attAccess_1') \n\
+                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'AggregationComp_2', 'deref_0') \n\
+                aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'methodCall_2') \n\
+                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'AggregationComp_2') \n\
+                checkSales (aggOut, isSales) <= APPLY (agg (aggOut), agg (aggOut), 'SelectionComp_3', 'methodCall_0') \n\
+                justSales (aggOut, isSales) <= FILTER (checkSales (isSales), checkSales (aggOut), 'SelectionComp_3') \n\
+                final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
+                nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
+
+        return myTCAPString;
+}
+
+
+
+//to replace parseOptimizedQuery
+void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString) {
+    
+    Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+    //TODO: to analyze the logical plan and output a vector of TupleSetJobStage instances
+
+}
+
+
+//deprecated
 //checkSet can only be true if we deploy QuerySchedulerServer, CatalogServer and DistributedStorageManagerServer on the same machine.
 void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr queryGraph) { 
 
@@ -456,6 +577,18 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
        }
 }
 
+//to replace: printCurrentPlan()
+void QuerySchedulerServer :: printStages() {
+
+         for(int i = 0; i < this->queryPlan.size(); i++) {
+                PDB_COUT << "#########The "<< i << "-th Plan#############"<< std :: endl;
+                queryPlan[i]->print();
+         }
+
+}
+
+
+//deprecated
 void QuerySchedulerServer :: printCurrentPlan() {
 
          for (int i = 0; i < this->currentPlan.size(); i++) {
@@ -465,6 +598,42 @@ void QuerySchedulerServer :: printCurrentPlan() {
 
 }
 
+
+//to replace: schedule()
+void QuerySchedulerServer :: scheduleQuery() {
+ 
+         int counter = 0;
+         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
+                 [&] (PDBAlarm myAlarm, int &counter) {
+                       counter ++;
+                       PDB_COUT << "counter = " << counter << std :: endl;
+                 });
+         for (int i = 0; i < this->standardResources->size(); i++) {
+             PDBWorkerPtr myWorker = getWorker();
+             PDBWorkPtr myWork = make_shared <GenericWork> (
+                 [i, this, &counter] (PDBBuzzerPtr callerBuzzer) {
+                       makeObjectAllocatorBlock(1 * 1024 * 1024, true);
+                       PDB_COUT << "to schedule on the " << i << "-th node" << std :: endl;
+                       PDB_COUT << "port:" << (*(this->standardResources))[i]->getPort() << std :: endl;
+                       PDB_COUT << "ip:" << (*(this->standardResources))[i]->getAddress() << std :: endl;
+                       bool success = getFunctionality<QuerySchedulerServer>().scheduleStages ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, Recreation);
+                       if (!success) {
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                       }
+                       callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                 }
+             );
+             myWorker->execute(myWork, tempBuzzer);
+         }
+
+         while(counter < this->standardResources->size()) {
+            tempBuzzer->wait();
+         }
+}
+
+
+//deprecated
 void QuerySchedulerServer :: schedule() {
          
          int counter = 0;
@@ -498,8 +667,50 @@ void QuerySchedulerServer :: schedule() {
 
 }
 
+
+
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
-    //handler to request to schedule a query
+
+    //handler to schedule a TupleSet-based query 
+    forMe.registerHandler (TupleSetExecuteQuery_TYPEID, make_shared<SimpleRequestHandler<TupleSetExecuteQuery>> (
+         [&] (Handle <TupleSetExecuteQuery> request, PDBCommunicatorPtr sendUsingMe) {
+         
+             std :: string errMsg;
+             bool success;
+
+             //parse the query
+             const UseTemporaryAllocationBlock block {128 * 1024 * 1024};
+             PDB_COUT << "Got the TupleSetExecuteQuery object" << std :: endl;
+             Handle <Vector <Handle<Computation>>> userQuery = sendUsingMe->getNextObject<Vector<Handle<Computation>>> (success, errMsg);
+             if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return std :: make_pair (false, errMsg);
+             }
+             PDB_COUT << "To transform the ExecuteQuery object into a TCAP string" << std :: endl;
+             String tcapString = getFunctionality<QuerySchedulerServer>().transformQueryToTCAP(*userQuery);
+
+             PDB_COUT << "To transform the TCAP string into a physical plan" << std :: endl;
+             getFunctionality<QuerySchedulerServer>().parseQuery(*userQuery, tcapString);
+
+             getFunctionality<QuerySchedulerServer>().printStages();
+             PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
+             getFunctionality<QuerySchedulerServer>().initialize(true);
+             PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
+             getFunctionality<QuerySchedulerServer>().scheduleQuery();
+             PDB_COUT << "To send back response to client" << std :: endl;
+             Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
+             if (!sendUsingMe->sendObject (result, errMsg)) {
+                 return std :: make_pair (false, errMsg);
+             }
+             PDB_COUT << "to cleanup" << std :: endl;
+             getFunctionality<QuerySchedulerServer>().cleanup();
+             return std :: make_pair (true, errMsg);
+
+         }
+    ));
+
+    //deprecated
+    //handler to schedule a query
     forMe.registerHandler (ExecuteQuery_TYPEID, make_shared<SimpleRequestHandler<ExecuteQuery>> (
          [&] (Handle <ExecuteQuery> request, PDBCommunicatorPtr sendUsingMe) {
 

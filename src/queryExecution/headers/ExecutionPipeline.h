@@ -19,6 +19,8 @@
 #ifndef EXECUTION_PIPELINE_H
 #define EXECUTION_PIPELINE_H
 
+//JiaNote: deprecated
+
 #include "TupleSetIterator.h"
 #include "UseTemporaryAllocationBlock.h"
 #include <queue>

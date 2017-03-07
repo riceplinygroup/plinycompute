@@ -30,7 +30,7 @@
 #include "SimpleSingleTableQueryProcessor.h"
 #include "PDBLogger.h"
 #include "QueryGraphIr.h"
-//#include "QueriesAndPlan.h"
+#include "TupleSetJobStage.h"
 #include <vector>
 
 namespace pdb {
@@ -54,33 +54,56 @@ public:
        //initialization
        void initialize(bool isRMRunAsServer);
 
+       //deprecated
        //to transform optimized client query into a physical plan
        //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
 
+       //to replace parseOptimizedQuery to build the logic plan
+       void parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString);
+
+
+       //deprecated
        //to print parsed physical execution plan
        void printCurrentPlan();
 
+       //to replace printCurrentPlan()
+       void printStages();
+
+       //deprecated
        //to schedule the current job plan
        bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
+       //to replace: bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode)
+       //to schedule pipeline stages
+       bool scheduleStages(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
+
+       //deprecated
        //to schedule a job stage
        bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
 
+       //to replace: bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
+       //to schedule a pipeline stage
+       bool scheduleStage(Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
+
+       //deprecated
        //to schedule the current job plan on all available resources
        void schedule();
+
+       //to replace: void schedule()
+       //to schedule the query plan on all available resources
+       void scheduleQuery();
+
+
+       //to transform user query to tcap string
+       String transformQueryToTCAP(Vector<Handle<Computation>> myComputations);
+
 
        //from the serverFunctionality interface... register the resource manager handlers
        void registerHandlers (PDBServer &forMe) override;
 
        void cleanup () override;       
 
-       // For the new query execution stuff
-       //void setQueryAndPlan(Handle<QueriesAndPlan> setToMe) {newQueriesAndPlan = setToMe;}
-
-       void scheduleNew();
-
-       bool scheduleNew(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
        Handle<SetIdentifier>  getOutputSet() {
            return currentPlan[0]->getOutput();
@@ -106,8 +129,12 @@ protected:
        int port;
 
 
+       // deprecated
        // physical plan that is temporary, however each query scheduler can schedule one JobStage at each time, similar with Spark/Hadoop
        std :: vector<Handle<JobStage>> currentPlan;
+
+       // use TupleSetJobStage to replace JobStage
+       std :: vector<Handle<TupleSetJobStage>> queryPlan;
 
        // logger
        PDBLoggerPtr logger;

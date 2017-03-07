@@ -111,6 +111,18 @@ typedef enum {
     OneshotTimer
 } TimerType;
 
+typedef enum {
+    UserSetType,
+    HashSetType, //the input for first phase scan join, or the input for second phase probing of shuffle join
+    ShuffleSetType, //the input for second phase of shuffle join and aggregation
+    RepartitionSetType, //the output for first phase of shuffle join and aggregation
+    CombineSetType, //the set used to combine the first phase output of aggregation
+} SetType;
+
+
+
+
+
 typedef struct {
     DatabaseID dbId;
     UserTypeID typeId;

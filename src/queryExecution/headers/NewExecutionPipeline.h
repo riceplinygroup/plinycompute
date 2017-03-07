@@ -19,6 +19,9 @@
 #ifndef NEW_EXECUTION_PIPELINE_H
 #define NEW_EXECUTION_PIPELINE_H
 
+//JiaNote: deprecated
+
+
 #include "UseTemporaryAllocationBlock.h"
 #include <queue>
 #include "PangeaStorageServer.h"
