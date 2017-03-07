@@ -41,7 +41,9 @@
 #include "Selection.h"
 #include "QueryBase.h"
 #include "JobStage.h"
+#include "TupleSetJobStage.h"
 #include "PipelineNetwork.h"
+#include "PipelineStage.h"
 #include <vector>
 
 
@@ -288,7 +290,41 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             }
             ));
 
+    //register a handler to process the TupleSetJobStage message
+    forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler<TupleSetJobStage>> (
+            [&] (Handle<TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+                PDB_COUT << "Backend got JobStage message with Id=" << request->getStageId() << std :: endl;
+                request->print();
+                bool res = true;
+                std :: string errMsg;
+                Handle<SetIdentifier> sourceContext = request->getSourceContext();
+                if (sourceContext->getSetType() == UserSetType){
+                    if( getCurPageScanner() == nullptr) {
+                        NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
+                        pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
+                        SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
+                        ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
+                        Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, 100, conf->getNumThreads());
+                        if (request->isRepartition() == false) {
+                             pipeline->runMapPipeline(this);
+                        }                        
+                    } else {
+                        res = false;
+                        errMsg = "A Job is already running in this server";
+                    }
+                } else {
+                     res = false;
+                     errMsg = "Now only UserSet is supported as pipeline source";
+                }
 
+                PDB_COUT << "to send back reply" << std :: endl;
+                const UseTemporaryAllocationBlock block{1024};
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                // return the result
+                res = sendUsingMe->sendObject (response, errMsg);
+                return make_pair(res, errMsg);
+            }
+    ));
 
     //register a handler to process the BackendTestSetScan message
     forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetCopy>> (

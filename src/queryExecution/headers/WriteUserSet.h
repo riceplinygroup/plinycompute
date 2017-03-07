@@ -16,81 +16,31 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SET_IDENTIFIER_H
-#define SET_IDENTIFIER_H
+#ifndef WRITE_USER_SET_H
+#define WRITE_USER_SET_H
 
-//by Jia, Oct 2016
-
-#include "Object.h"
-#include "Handle.h"
-#include "PDBString.h"
-#include "DataTypes.h"
-
-// PRELOAD %SetIdentifier%
-
+#include "Computation.h"
+#include "VectorSink.h"
 namespace pdb {
 
-// encapsulates a request to add a set in storage
-class SetIdentifier  : public Object {
+template <class OutputClass>
+class WriteUserSet : public Computation {
 
 public:
 
         ENABLE_DEEP_COPY
 
-	SetIdentifier () {}
-	~SetIdentifier () {}
+        ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
+        
+             return std :: make_shared<VectorSink <OutputClass>> (consumeMe, projection);
 
-	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){
-            setType = UserSetType;
         }
 
-        SetIdentifier (std :: string dataBase, std :: string setName, SetType setType): dataBase(dataBase), setName(setName), setType(setType) {}
 
 
-	std :: string getDatabase () {
-		return dataBase;
+	std :: string getComputationType () override {
+		return std :: string ("WriteUserSet");
 	}
-
-	std :: string getSetName () {
-		return setName;
-	}
-
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
-
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
-
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
-
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
-
-        SetID getSetId() {
-                return setId;
-        }
-
-        SetType getSetType() {
-                return setType;
-        }
-
-private:
-
-	String dataBase;
-	String setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
-        SetType setType;
 };
 
 }

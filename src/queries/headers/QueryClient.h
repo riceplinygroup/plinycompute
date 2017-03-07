@@ -27,7 +27,8 @@
 #include "CatalogClient.h"
 #include "DeleteSet.h"
 #include "ExecuteQuery.h"
-
+#include "TupleSetExecuteQuery.h"
+#include "Computation.h"
 namespace pdb {
 
 class QueryClient {
@@ -124,6 +125,36 @@ public:
                         errMsg = "Error getting type name: got nothing back from catalog";
                         return false;}, databaseName, setName);
 	}
+
+
+        bool executeQuery (std :: string &errMsg, Handle<Vector<Handle<Computation>>> computations) {
+
+                        // this is the request
+                const UseTemporaryAllocationBlock myBlock {1024};
+                Handle <TupleSetExecuteQuery> executeQuery = makeObject <TupleSetExecuteQuery> ();
+
+                // this call asks the database to execute the query, and then it inserts the result set name
+                // within each of the results, as well as the database connection information
+
+                // this is for query scheduling stuff
+                return simpleDoubleRequest<TupleSetExecuteQuery, Vector<Handle<Computation>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
+                [&] (Handle<SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error in query: " + result->getRes ().second;
+                                        myLogger->error ("Error querying data: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from server";
+                        return false;
+
+
+                }, executeQuery, computations);
+
+        }
+
 
 	template <class ...Types>
 	bool execute (std :: string &errMsg, Handle <QueryBase> firstParam, Handle <Types>... args) {

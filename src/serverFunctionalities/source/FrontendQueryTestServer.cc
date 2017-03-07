@@ -44,6 +44,7 @@
 #include "DoneWithResult.h"
 #include "PangeaStorageServer.h"
 #include "JobStage.h"
+#include "TupleSetJobStage.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
 
@@ -66,6 +67,130 @@ FrontendQueryTestServer :: FrontendQueryTestServer (bool isStandalone, bool crea
 FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
+
+       // to handle a request to execute a tupleset job stage
+       forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler <TupleSetJobStage>> (
+               [&] (Handle <TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+                    getAllocator().printInactiveBlocks();
+                    std :: string errMsg;
+                    bool success;
+                    PDB_COUT << "Frontend got a request for JobStage" << std :: endl;
+                    request->print();
+                    makeObjectAllocatorBlock(24*1024*1024, true);
+                    PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                    if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                        std :: cout << errMsg << std :: endl;
+                        return std :: make_pair(false, errMsg);
+                    }
+                    PDB_COUT << "Frontend connected to backend" << std :: endl;
+                    Handle <TupleSetJobStage> newRequest = makeObject<TupleSetJobStage>(request->getStageId());
+                    PDB_COUT << "Created TupleSetJobStage object for forwarding" << std :: endl;
+                    //restructure the input information  
+                    std :: string inDatabaseName = request->getSourceContext()->getDatabase();
+                    std :: string inSetName = request->getSourceContext()->getSetName();
+                    Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                    PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
+                    SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
+                    if (inputSet == nullptr) {
+                        PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                        //TODO: move data from other servers
+                        //temporarily, we simply return;
+                        // now, we send back the result
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getSinkContext()->getSetName());
+                        PDB_COUT << "Query is done without data. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("execution complete"));
+
+                    }
+                    sourceContext->setDatabaseId(inputSet->getDbID());
+                    sourceContext->setTypeId(inputSet->getTypeID());
+                    sourceContext->setSetId(inputSet->getSetID());
+                    newRequest->setSourceContext(sourceContext);
+                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+
+                    std :: string outDatabaseName = request->getSinkContext()->getDatabase();
+                    std :: string outSetName = request->getSinkContext()->getSetName();
+                    success = true;
+                    // add the output set
+                    //TODO: check whether output set exists
+                    std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
+                    SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                    if (outputSet == nullptr) {
+                        if(createOutputSet == true) {
+                            getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
+                            outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                            PDB_COUT << "Output set is created in storage" << std :: endl;
+                            int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName (), false);
+                            // create the output set in the storage manager and in the catalog
+                            if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
+                                std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
+                                return std :: make_pair (false, std :: string("Could not create set in catalog"));;
+                            }
+                            PDB_COUT << "Output set is created in catalog" << std :: endl;
+                        } else {
+                            std :: cout << "ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
+                            errMsg = std :: string ("Output set doesn't exist");
+                            success = false;
+                            //return std :: make_pair (false, std :: string("Set doesn't exist"));;
+                        }
+
+                    }
+                    if (success == true) {
+                        Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                        PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
+                        sinkContext->setDatabaseId(outputSet->getDbID());
+                        sinkContext->setTypeId(outputSet->getTypeID());
+                        sinkContext->setSetId(outputSet->getSetID());
+                        newRequest->setSinkContext(sinkContext);
+                        newRequest->setOutputTypeName(request->getOutputTypeName());
+                        PDB_COUT << "Output is set" << std :: endl;
+
+                        Handle<ComputePlan> origPlan = request->getComputePlan();
+                        Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(origPlan);
+                        newRequest->setComputePlan(newPlan, request->getSourceTupleSetSpecifier(), request->getTargetTupleSetSpecifier(),
+                             request->getTargetComputationSpecifier());
+                        newRequest->setProbing(request->isProbing());
+                        newRequest->setRepartition(request->isRepartition());
+                        newRequest->setCombining(request->isCombining());
+                        newRequest->print();
+                        if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                            std :: cout << errMsg << std :: endl;
+                            errMsg = std::string("can't send message to backend: ") +errMsg;
+                            success = false;
+                        } else {
+                            PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                            // wait for backend to finish.
+                            communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                            if (!success) {
+                                std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                                errMsg = std::string("backend failure: ") +errMsg;
+                            }
+                        }
+                   }
+                   // now, we send back the result
+                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   if (success == true) {
+                       result->push_back (request->getSinkContext()->getSetName());
+                       PDB_COUT << "Query is done. " << std :: endl;
+                       errMsg = std :: string("execution complete");
+                   } else {
+                       std :: cout << "Query failed at server" << std :: endl;
+                   }
+                   // return the results
+                   if (!sendUsingMe->sendObject (result, errMsg)) {
+                       return std :: make_pair (false, errMsg);
+                   }
+                   if (success == false) {
+                       //TODO:restart backend
+                   }
+                   return std :: make_pair (success, errMsg);
+
+               }
+       ));
 
        // to handle a request to execute a job stage
        forMe.registerHandler (JobStage_TYPEID, make_shared <SimpleRequestHandler <JobStage>> (
