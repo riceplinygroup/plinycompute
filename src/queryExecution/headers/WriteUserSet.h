@@ -22,6 +22,8 @@
 #include "Computation.h"
 #include "VectorSink.h"
 #include "PDBString.h"
+#include "TypeName.h"
+
 namespace pdb {
 
 template <class OutputClass>
@@ -56,6 +58,12 @@ public:
 	std :: string getComputationType () override {
 		return std :: string ("WriteUserSet");
 	}
+
+        std :: string getOutputType() {
+                return getTypeName <OutputClass> ();
+        }
+
+
 
 protected:
 
