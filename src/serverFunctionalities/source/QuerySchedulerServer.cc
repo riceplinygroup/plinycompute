@@ -48,6 +48,7 @@
 #include "IrBuilder.h"
 #include "DataTypes.h"
 #include "ScanUserSet.h"
+#include "WriteUserSet.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -427,9 +428,9 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
 
         String myTCAPString = 
                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
-                checkName (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', ‘methodCall_0') \n\
-                justName (in, isFrank) <= FILTER (checkName(isFrank), checkName(in), 'SelectionComp_1') \n\
-                final (result) <= APPLY (justName (in), justName (), 'SelectionComp_1', 'methodCall_1') \n\
+                checkFrank (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
+                justFrank (in, isFrank) <= FILTER (checkFrank(isFrank), checkFrank(in), 'SelectionComp_1') \n\
+                final (result) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_1') \n\
                 nothing() <= OUTPUT (final(result), 'output_set1', 'chris_db', 'WriteUserSet_2')"; 
                 
         return myTCAPString;
@@ -451,7 +452,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
     Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
     std :: string sinkSpecifier = "WriteUserSet_2";
     Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
-    Handle<ScanUserSet<Object>> writer = unsafeCast<ScanUserSet<Object>, Computation>(sinkComputation);
+    Handle<WriteUserSet<Object>> writer = unsafeCast<WriteUserSet<Object>, Computation>(sinkComputation);
     Handle<SetIdentifier> sink = makeObject<SetIdentifier>(writer->getDatabaseName(), writer->getSetName());
     jobStage->setSourceContext(source);
     jobStage->setSinkContext(sink);
