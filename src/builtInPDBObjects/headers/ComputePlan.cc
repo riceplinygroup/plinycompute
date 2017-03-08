@@ -102,6 +102,20 @@ inline bool recurse (LogicalPlanPtr myPlan, std :: vector <AtomicComputationPtr>
 	return false;
 }
 
+
+inline std :: string ComputePlan :: getProducingComputationName(std :: string sourceTupleSetName) {
+
+        if (myPlan == nullptr) {
+                getPlan();
+        }
+
+        AtomicComputationList &allComps = myPlan->getComputations();
+
+        return allComps.getProducingAtomicComputation (sourceTupleSetName)->getComputationName();
+
+
+}
+
 inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetName, std :: string targetTupleSetName, 
 	std :: string targetComputationName,
 	std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage, 

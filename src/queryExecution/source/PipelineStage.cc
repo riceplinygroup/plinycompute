@@ -127,7 +127,7 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
              counter ++;
              //std :: cout << "counter = " << counter << std :: endl;
          });
-    
+    std :: cout << "to run pipeline with " << numThreads << " threads." << std :: endl;    
     int counter = 0;
     for (int i = 0; i < numThreads; i++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
@@ -147,9 +147,13 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
                   //setup an output page to store intermediate results and final output
                   PDBPagePtr output=nullptr;
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
+                  std :: cout << i << ": to get compute plan" << std :: endl;
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
-                  Handle<Computation> computation = plan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
+                  std :: cout << "Source tupleset name=" << sourceSpecifier << std :: endl;
+                  std :: string producerComputationName = plan->getProducingComputationName(sourceSpecifier);
+                  std :: cout << "Producer computation name=" << producerComputationName << std :: endl;
+                  Handle<Computation> computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
                   Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
                   scanner->setIterator(iter);
                   scanner->setBatchSize(batchSize);
