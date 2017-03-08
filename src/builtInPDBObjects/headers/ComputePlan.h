@@ -26,6 +26,8 @@
 #include "PDBVector.h"
 #include "Pipeline.h"
 
+// PRELOAD %ComputePlan%
+
 namespace pdb {
 
 typedef std :: shared_ptr <LogicalPlan> LogicalPlanPtr;
@@ -83,6 +85,9 @@ public:
 
 };
 
+
 }
+
+#include "ComputePlan.cc"
 
 #endif

@@ -35,7 +35,6 @@ class SharedEmployee : public PrintableObject {
 
         int age;
         double salary;
-
 public:
 
         pdb :: Handle <pdb :: String> name;
