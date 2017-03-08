@@ -21,6 +21,7 @@
 
 #include "Computation.h"
 #include "VectorSink.h"
+#include "PDBString.h"
 namespace pdb {
 
 template <class OutputClass>
@@ -36,11 +37,32 @@ public:
 
         }
 
+        void setDatabaseName (std :: string dbName) {
+            this->dbName = dbName;
+        }
 
+        std :: string getDatabaseName () {
+            return  dbName;
+        }
+
+        void setSetName (std :: string setName) {
+            this->setName = setName;
+        }
+
+        std :: string getSetName () {
+            return setName;
+        }
 
 	std :: string getComputationType () override {
 		return std :: string ("WriteUserSet");
 	}
+
+protected:
+
+        String dbName;
+        String setName;
+
+
 };
 
 }
