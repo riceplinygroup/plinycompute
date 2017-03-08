@@ -50,6 +50,10 @@ public:
 		return name;
 	}
 
+        bool isFrank() {
+                return (*name == "Frank");
+        }
+
 	int getAge() {
 		return age;
 	}
