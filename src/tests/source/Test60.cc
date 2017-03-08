@@ -118,8 +118,9 @@ int main () {
                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
                 checkFrank (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
                 justFrank (in, isFrank) <= FILTER (checkFrank(isFrank), checkFrank(in), 'SelectionComp_1') \n\
-                final (result) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_1') \n\
-                nothing() <= OUTPUT (final(result), 'output_set1', 'chris_db', 'WriteUserSet_2')";
+                projectedInputWithPtr (out) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_2') \n\
+                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_1') \n\
+                nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";
 	// and create a query object that contains all of this stuff
 	Handle <ComputePlan> myPlan = makeObject <ComputePlan> (myTCAPString, myComputations);
 

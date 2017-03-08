@@ -64,6 +64,8 @@ public:
 	//
 	LogicalPlanPtr getPlan ();
 
+        std :: string getProducingComputationName();
+
 	// Note that once getPlan () has been called, ComputePlan object contains a C++ smart pointer inside of it.
 	// IT IS VERY DANGEROUS TO SEND SUCH A POINTER ACCROSS THE NETWORK.  Hence, after calling getPlan () but before
 	// this object is sent accross the network or written to disk, the following method MUST be called to avoid
