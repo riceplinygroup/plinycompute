@@ -73,6 +73,7 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
+    this->jobStageId = 0;
 }
 
 void QuerySchedulerServer ::cleanup() {
@@ -95,6 +96,7 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
      this->standardResources = nullptr;
      this->logger = logger;
      this->usePipelineNetwork = usePipelineNetwork;
+     this->jobStageId = 0;
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
@@ -285,7 +287,8 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 bool QuerySchedulerServer :: scheduleStage(Handle<TupleSetJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
         bool success;
         std :: string errMsg;
-
+        Handle<ComputePlan> plan = stage->getComputePlan();
+        plan->nullifyPlanPointer();
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
 
         if (mode == Direct) {
