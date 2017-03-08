@@ -640,7 +640,7 @@ void QuerySchedulerServer :: scheduleQuery() {
                        PDB_COUT << "to schedule on the " << i << "-th node" << std :: endl;
                        PDB_COUT << "port:" << (*(this->standardResources))[i]->getPort() << std :: endl;
                        PDB_COUT << "ip:" << (*(this->standardResources))[i]->getAddress() << std :: endl;
-                       bool success = getFunctionality<QuerySchedulerServer>().scheduleStages ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, Recreation);
+                       bool success = getFunctionality<QuerySchedulerServer>().scheduleStages ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, DeepCopy);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
