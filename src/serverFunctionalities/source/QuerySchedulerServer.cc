@@ -456,6 +456,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
     Handle<SetIdentifier> sink = makeObject<SetIdentifier>(writer->getDatabaseName(), writer->getSetName());
     jobStage->setSourceContext(source);
     jobStage->setSinkContext(sink);
+    jobStage->setOutputTypeName(writer->getOutputType());
     this->queryPlan.push_back(jobStage);
 }
 
