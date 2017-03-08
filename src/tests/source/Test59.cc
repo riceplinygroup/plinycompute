@@ -194,7 +194,7 @@ int main (int argc, char * argv[]) {
         Handle<Vector<Handle<Computation>>> myComputations = makeObject<Vector<Handle<Computation>>>();
         Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
         Handle<Computation> myQuery = makeObject<EmployeeSelection>();
-        Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "chris_set");
+        Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");
         myComputations->push_back(myScanSet);
         myComputations->push_back(myQuery);
         myComputations->push_back(myWriteSet);
