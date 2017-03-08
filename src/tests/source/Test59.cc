@@ -191,9 +191,9 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", clientLogger, true);
         Handle<Vector<Handle<Computation>>> myComputations = makeObject<Vector<Handle<Computation>>>();
-        Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>();
+        Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
         Handle<Computation> myQuery = makeObject<EmployeeSelection>();
-        Handle<Computation> myWriteSet = makeObject<WriteStringSet>();
+        Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "chris_set");
         myComputations->push_back(myScanSet);
         myComputations->push_back(myQuery);
         myComputations->push_back(myWriteSet);

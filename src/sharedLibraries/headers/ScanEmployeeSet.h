@@ -26,8 +26,14 @@ using namespace pdb;
 class ScanEmployeeSet : public ScanUserSet <SharedEmployee> {
 
 public:
-
 	ENABLE_DEEP_COPY
+
+        ScanEmployeeSet () {}
+
+        ScanEmployeeSet (std :: string dbName, std :: string setName) {
+            this->dbName = dbName;
+            this->setName = setName;
+        }
 
 };
 

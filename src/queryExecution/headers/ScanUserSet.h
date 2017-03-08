@@ -24,6 +24,8 @@
 #include "Computation.h"
 #include "PageCircularBufferIterator.h"
 #include "VectorTupleSetIterator.h"
+#include "PDBString.h"
+
 namespace pdb {
 
 template <class OutputClass>
@@ -32,6 +34,7 @@ class ScanUserSet : public Computation {
 public:
 
         ENABLE_DEEP_COPY
+
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
              return std :: make_shared <VectorTupleSetIterator> (
@@ -57,7 +60,8 @@ public:
 
             );
         }
-
+         
+        //JiaNote: not sure whether we can include PageCircularBufferIteratorPtr in a pdb object, if it can't work, we need a way to recreate the instance with PageCircularBufferIterator at backend.
         void setIterator(PageCircularBufferIteratorPtr iterator) {
                 this->iterator = iterator;
         }
@@ -67,14 +71,37 @@ public:
 
         }
 
+        void setDatabaseName (std :: string dbName) {
+                this->dbName = dbName;
+        }
+
+        void setSetName (std :: string setName) {
+                this->setName = setName;
+        }
+
+
+        std :: string getDatabaseName () {
+                return dbName;
+        }
+
+        std :: string getSetName () {
+                return setName;
+        }
+
 
 	std :: string getComputationType () override {
 		return std :: string ("ScanUserSet");
 	}
 
-private:
+protected:
 
+       //JiaNote: not sure whether we can include PageCircularBufferIteratorPtr in a pdb object, if it can't work, we need a way to recreate the instance with PageCircularBufferIterator at backend.
        PageCircularBufferIteratorPtr iterator;
+
+       String dbName;
+ 
+       String setName;
+
 
        int batchSize;
 

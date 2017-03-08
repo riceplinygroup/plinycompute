@@ -406,7 +406,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations) {
 
         //TODO: convert below placeholder to query analysis logic
-        String myTCAPString =
+/*        String myTCAPString =
                "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
                 inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
                 inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
@@ -422,7 +422,15 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
                 justSales (aggOut, isSales) <= FILTER (checkSales (isSales), checkSales (aggOut), 'SelectionComp_3') \n\
                 final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
                 nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
+*/
 
+        String myTCAPString = 
+               "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
+                checkName (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', ‘methodCall_0') \n\
+                justName (in, isFrank) <= FILTER (checkName(isFrank), checkName(in), 'SelectionComp_1') \n\
+                final (result) <= APPLY (justName (in), justName (), 'SelectionComp_1', 'methodCall_1') \n\
+                nothing() <= OUTPUT (final(result), 'output_set1', 'chris_db', 'WriteUserSet_2')"; 
+                
         return myTCAPString;
 }
 
