@@ -21,6 +21,7 @@
 //by Jia, Sept 2016
 
 #include "ComputePlan.h"
+#include "ScanUserSet.h"
 #include "PDBDebug.h"
 #include "PipelineStage.h"
 #include "PageCircularBufferIterator.h"
@@ -146,7 +147,13 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
                   //setup an output page to store intermediate results and final output
                   PDBPagePtr output=nullptr;
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
-                  PipelinePtr curPipeline = this->jobStage->getComputePlan()->buildPipeline (
+                  Handle<ComputePlan> plan = this->jobStage->getComputePlan();
+                  std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
+                  Handle<Computation> computation = plan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
+                  Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
+                  scanner->setIterator(iter);
+                  scanner->setBatchSize(batchSize);
+                  PipelinePtr curPipeline = plan->buildPipeline (
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
