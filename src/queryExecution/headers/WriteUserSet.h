@@ -33,6 +33,10 @@ public:
 
         ENABLE_DEEP_COPY
 
+        void initialize() {
+            outputType = getTypeName <OutputClass>();
+        }
+
         ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
         
              return std :: make_shared<VectorSink <OutputClass>> (consumeMe, projection);
@@ -60,7 +64,7 @@ public:
 	}
 
         std :: string getOutputType() {
-                return getTypeName <OutputClass> ();
+                return outputType;
         }
 
 
@@ -69,7 +73,7 @@ protected:
 
         String dbName;
         String setName;
-
+        String outputType;
 
 };
 

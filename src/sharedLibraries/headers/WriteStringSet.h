@@ -29,12 +29,15 @@ public:
 
 	ENABLE_DEEP_COPY
 
-        WriteStringSet () {}
+        WriteStringSet () {
+            initialize();
+        }
 
 
         WriteStringSet (std :: string dbName, std :: string setName) {
             this->dbName = dbName;
             this->setName = setName;
+            initialize();
         }
 
 };
