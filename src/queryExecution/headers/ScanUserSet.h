@@ -35,6 +35,9 @@ public:
 
         ENABLE_DEEP_COPY
 
+        void initialize() {
+            this->iterator = nullptr;
+        }
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
              return std :: make_shared <VectorTupleSetIterator> (
