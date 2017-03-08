@@ -448,7 +448,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
     Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
     Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
     jobStageId ++;
-    jobStage->setComputePlan(myPlan, "inputData", "final", "WriteUserSet_2");
+    jobStage->setComputePlan(myPlan, "inputData", "projectedInput", "WriteUserSet_2");
     std :: string sourceSpecifier = "ScanUserSet_0";
     Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
     Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);

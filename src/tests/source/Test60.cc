@@ -51,12 +51,15 @@ public:
 	ENABLE_DEEP_COPY
 
 
-        MyWriteStringSet () {}
+        MyWriteStringSet () {
+            initialize();
+        }
 
 
         MyWriteStringSet (std :: string dbName, std :: string setName) {
             this->dbName = dbName;
             this->setName = setName;
+            initialize();
         }
 
 
@@ -84,11 +87,14 @@ public:
 
 	ENABLE_DEEP_COPY
 
-        MyScanEmployeeSet () {}
+        MyScanEmployeeSet () {
+            initialize();
+        }
 
         MyScanEmployeeSet (std :: string dbName, std :: string setName) {
             this->dbName = dbName;
             this->setName = setName;
+            initialize();
         }
 
 
@@ -123,6 +129,40 @@ int main () {
                 nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";
 	// and create a query object that contains all of this stuff
 	Handle <ComputePlan> myPlan = makeObject <ComputePlan> (myTCAPString, myComputations);
+        LogicalPlanPtr logicalPlan = myPlan->getPlan();
+        AtomicComputationList computationList = logicalPlan->getComputations();
+        std :: cout << "to print logical plan:" << std :: endl;        
+        std :: cout << computationList << std :: endl;
+
+        PipelinePtr myPipeline = myPlan->buildPipeline (
+                std :: string ("inputData"), /* this is the TupleSet the pipeline starts with */
+                std :: string ("projectedInput"), /* this is the TupleSet the pipeline ends with */
+                std :: string ("WriteUserSet_2"), /* and the Computation object that the pipeline ends with */
+
+                // this lambda supplies new temporary pages to the pipeline
+                [] () -> std :: pair <void *, size_t> {
+                        void *myPage = malloc (64 * 1024);
+                        return std :: make_pair (myPage, 64 * 1024);
+                },
+
+                // this lambda frees temporary pages that do not contain any important data
+                [] (void *page) {
+                        free (page);
+                },
+
+                // and this lambda writes out the contents of a page that is one of the final outputs...
+                // in this simple aggregation, that one page will contain the hash table with
+                // all of the aggregated data.
+                [] (void *page) {
+                        free (page);
+                }
+
+        );
+
+
+
+
+
 
         Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(0);
         jobStage->setComputePlan(myPlan, "inputData", "final", "WriteUserSet_2");

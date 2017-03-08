@@ -61,11 +61,19 @@ public:
 
 		// extract the vector from the input page
 		myRec = (Record <Vector <Handle <Object>>> *) getAnotherVector ();
-		iterateOverMe = myRec->getRootObject ();
+                
+                if (myRec != nullptr) {
 
-		// create the output vector and put it into the tuple set
-		std :: vector <Handle <Object>> *inputColumn = new std :: vector <Handle <Object>>;
-		output->addColumn (0, inputColumn, true); 
+		    iterateOverMe = myRec->getRootObject ();
+
+		    // create the output vector and put it into the tuple set
+		    std :: vector <Handle <Object>> *inputColumn = new std :: vector <Handle <Object>>;
+		    output->addColumn (0, inputColumn, true); 
+                } else {
+
+                    iterateOverMe = nullptr;
+                    output = nullptr;
+                }
 
 		// we are at position zero
 		pos = 0;
