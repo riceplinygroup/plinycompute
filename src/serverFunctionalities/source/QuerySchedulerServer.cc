@@ -47,10 +47,10 @@
 #include "FilterOperator.h"
 #include "IrBuilder.h"
 #include "DataTypes.h"
+#include "ScanUserSet.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
-
 
 namespace pdb {
 
@@ -63,6 +63,7 @@ QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClu
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
+    this->jobStageId = 0;
 }
 
 
@@ -438,10 +439,23 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
 
 //to replace parseOptimizedQuery
 void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString) {
-    
-    Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+    //TODO: to replace the below placeholder using real logic
     //TODO: to analyze the logical plan and output a vector of TupleSetJobStage instances
-
+    Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+    Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
+    jobStageId ++;
+    jobStage->setComputePlan(myPlan, "inputData", "final", "WriteUserSet_2");
+    std :: string sourceSpecifier = "ScanUserSet_0";
+    Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
+    Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);
+    Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
+    std :: string sinkSpecifier = "WriteUserSet_2";
+    Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
+    Handle<ScanUserSet<Object>> writer = unsafeCast<ScanUserSet<Object>, Computation>(sinkComputation);
+    Handle<SetIdentifier> sink = makeObject<SetIdentifier>(writer->getDatabaseName(), writer->getSetName());
+    jobStage->setSourceContext(source);
+    jobStage->setSinkContext(sink);
+    this->queryPlan.push_back(jobStage);
 }
 
 

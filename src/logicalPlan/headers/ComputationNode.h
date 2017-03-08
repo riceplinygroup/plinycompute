@@ -61,6 +61,11 @@ public:
 		return *me;
 	}
 
+        //JiaNote: add a new method to get Handle<Computation> for unsafeCast
+        Handle<Computation> getComputationHandle() {
+                return me;
+        }
+
 	// get the particular lambda
 	GenericLambdaObjectPtr getLambda (std :: string me) {
 		if (allLambdas.count (me) == 0) {

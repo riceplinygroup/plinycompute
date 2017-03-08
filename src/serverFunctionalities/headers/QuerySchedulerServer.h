@@ -147,6 +147,8 @@ protected:
 
        pthread_mutex_t connection_mutex;
 
+       JobStageID jobStageId;
+
 };
 
 
