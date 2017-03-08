@@ -28,9 +28,9 @@ extern int yydebug;
 
 namespace pdb {
 
-ComputePlan :: ComputePlan () {}
+inline ComputePlan :: ComputePlan () {}
 
-LogicalPlanPtr ComputePlan :: getPlan () {
+inline LogicalPlanPtr ComputePlan :: getPlan () {
 
 	// if we already have the plan, then just return it
 	if (myPlan != nullptr)
@@ -66,12 +66,12 @@ LogicalPlanPtr ComputePlan :: getPlan () {
 	return myPlan;
 }
 
-void ComputePlan :: nullifyPlanPointer () {
+inline void ComputePlan :: nullifyPlanPointer () {
 	myPlan = nullptr;
 }
 
 // this does a DFS, trying to find a list of computations that lead to the specified computation
-bool recurse (LogicalPlanPtr myPlan, std :: vector <AtomicComputationPtr> &listSoFar, std :: string &targetTupleSetName) {
+inline bool recurse (LogicalPlanPtr myPlan, std :: vector <AtomicComputationPtr> &listSoFar, std :: string &targetTupleSetName) {
 
 	// see if the guy at the end of the list is indeed the target
 	if (listSoFar.back ()->getOutputName () == targetTupleSetName) {
@@ -102,7 +102,7 @@ bool recurse (LogicalPlanPtr myPlan, std :: vector <AtomicComputationPtr> &listS
 	return false;
 }
 
-PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetName, std :: string targetTupleSetName, 
+inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetName, std :: string targetTupleSetName, 
 	std :: string targetComputationName,
 	std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage, 
 	std :: function <void (void *)> writeBackPage) {
@@ -216,7 +216,7 @@ PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetName, std 
 	return returnVal;
 }
 
-ComputePlan :: ComputePlan (String &TCAPComputation, Vector <Handle <Computation>> &allComputations) :
+inline ComputePlan :: ComputePlan (String &TCAPComputation, Vector <Handle <Computation>> &allComputations) :
 	TCAPComputation (TCAPComputation), allComputations (allComputations) {}
 
 

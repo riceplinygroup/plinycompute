@@ -38,7 +38,7 @@
 #include "InterfaceFunctions.h"
 #include "Employee.h"
 #include "Supervisor.h"
-#include "Company.h"
+#include "ZB_Company.h"
 
 using namespace pdb;
 
@@ -52,7 +52,7 @@ int main () {
 
         // read in the guys that we wrote out
         int filedesc = open ("testfile7", O_RDONLY);
-        Record <Company> *myCompany = (Record <Company> *) malloc (fileLen);
+        Record <ZB_Company> *myCompany = (Record <ZB_Company> *) malloc (fileLen);
 	read (filedesc, myCompany, fileLen);
 	auto myComp = myCompany->getRootObject ();
 	myComp->print ();

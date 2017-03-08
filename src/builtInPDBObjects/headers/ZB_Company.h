@@ -15,19 +15,19 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef COMPANY_H
-#define COMPANY_H
+#ifndef ZB_COMPANY_H
+#define ZB_COMPANY_H
 
 #include "Object.h"
 #include "PDBVector.h"
 #include "Supervisor.h"
 #include "Handle.h"
 
-//  PRELOAD %Company%
+//  PRELOAD %ZB_Company%
 
 namespace pdb {
 
-class Company: public Object {
+class ZB_Company: public Object {
 
 private:
 
@@ -38,9 +38,9 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	~Company() {
+	~ZB_Company() {
 	}
-	Company() {
+	ZB_Company() {
 	}
 
 	void addSupervisor(Handle<Supervisor> supToAdd, int labelToAdd) {

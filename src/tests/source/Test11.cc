@@ -38,7 +38,7 @@
 #include "InterfaceFunctions.h"
 #include "Employee.h"
 #include "Supervisor.h"
-#include "Company.h"
+#include "ZB_Company.h"
 
 using namespace pdb;
 
@@ -50,7 +50,7 @@ int main () {
 	// load up the allocator with RAM
 	makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
-	Handle <Company> myCompany = makeObject <Company> ();
+	Handle <ZB_Company> myCompany = makeObject <ZB_Company> ();
 	for (int i = 0; i < 5; i++) {
 		
 		Supervisor tempSup ("Really cool name", 23 + i);
