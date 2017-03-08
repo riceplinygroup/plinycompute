@@ -43,6 +43,9 @@ public:
              return std :: make_shared <VectorTupleSetIterator> (
 
                  [&] () -> void * {
+                     if (this->iterator == nullptr) {
+                         return nullptr;
+                     }
                      while (this->iterator->hasNext() == true) {
 
                         PDBPagePtr page = this->iterator->next();

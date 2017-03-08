@@ -235,7 +235,10 @@ int main () {
 
 	// and create a query object that contains all of this stuff
 	Handle <ComputePlan> myPlan = makeObject <ComputePlan> (myTCAPString, myComputations);
-
+        LogicalPlanPtr logicalPlan = myPlan->getPlan();
+        AtomicComputationList computationList = logicalPlan->getComputations();
+        std :: cout << "to print logical plan:" << std :: endl;
+        std :: cout << computationList << std :: endl;
 	// now, let's pretend that myPlan has been sent over the network, and we want to execute it... first we build 
 	// a pipeline into the aggregation operation
 	PipelinePtr myPipeline = myPlan->buildPipeline (

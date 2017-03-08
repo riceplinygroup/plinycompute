@@ -128,8 +128,13 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 	// get all of the computations
 	AtomicComputationList &allComps = myPlan->getComputations ();
 
+        std :: cout << "print computations:" << std :: endl;
+        std :: cout << allComps << std :: endl;
+
 	// now we get the name of the actual computation object that corresponds to the producer of this tuple set
 	std :: string producerName = allComps.getProducingAtomicComputation (sourceTupleSetName)->getComputationName ();
+
+        std :: cout << "producerName = " << producerName << std :: endl;
 
 	// and get the schema for the output TupleSet objects that it is supposed to produce
 	TupleSpec &origSpec = allComps.getProducingAtomicComputation (sourceTupleSetName)->getOutput ();

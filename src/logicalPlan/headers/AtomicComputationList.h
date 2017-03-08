@@ -48,7 +48,7 @@ public:
 	// gets the computation that builds the tuple set with the specified name
 	AtomicComputationPtr getProducingAtomicComputation (std :: string outputName) {
 		if (producers.count (outputName) == 0) {
-			std :: cout << "This is really bad... can't find the guy producing this output\n";
+			std :: cout << "This is really bad... can't find the guy producing this output:"<< outputName <<"\n";
 		}
 		return producers [outputName];
 	}
@@ -56,7 +56,7 @@ public:
 	// gets the list of comptuations that consume the tuple set with the specified name
 	std :: vector <AtomicComputationPtr> &getConsumingAtomicComputations (std :: string inputName) {
 		if (consumers.count (inputName) == 0) {
-			std :: cout << "This is really bad... can't find the guy consuming this input\n";
+			std :: cout << "This is really bad... can't find the guy consuming this input:"<< inputName <<"\n";
 		}
 		return consumers [inputName];
 	}
@@ -69,17 +69,21 @@ public:
 
 	// add an atomic computation to the graph
 	void addAtomicComputation (AtomicComputationPtr addMe) {
-
+                std :: cout << "outputName=" << addMe->getOutputName() << std :: endl;
+                std :: cout << "inputName=" << addMe->getInputName() << std :: endl;
 		if (addMe->getAtomicComputationType () == "Scan") {
+                        std :: cout << "added to scan list" << std :: endl;
 			scans.push_back (addMe);
 		}
 
 		producers[addMe->getOutputName ()] = addMe;
+                std :: cout << "producers[" << addMe->getOutputName() << "]="<< addMe << std :: endl;
 		if (consumers.count (addMe->getInputName ()) == 0) {
 			std :: vector <AtomicComputationPtr> rhs;
 			consumers[addMe->getInputName ()] = rhs;
 		}
 		consumers[addMe->getInputName ()].push_back (addMe);
+                std :: cout << "consumers[" << addMe->getInputName() << "]=" << addMe << std :: endl;
 
 		// now, see if this guy is a join; join is special, because we have to add both inputs to the 
 		// join to the consumers map
