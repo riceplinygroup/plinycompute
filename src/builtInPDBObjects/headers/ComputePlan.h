@@ -64,7 +64,7 @@ public:
 	//
 	LogicalPlanPtr getPlan ();
 
-        std :: string getProducingComputationName();
+        std :: string getProducingComputationName(std :: string sourceTupleSetName);
 
 	// Note that once getPlan () has been called, ComputePlan object contains a C++ smart pointer inside of it.
 	// IT IS VERY DANGEROUS TO SEND SUCH A POINTER ACCROSS THE NETWORK.  Hence, after calling getPlan () but before
