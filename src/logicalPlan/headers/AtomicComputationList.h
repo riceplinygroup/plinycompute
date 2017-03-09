@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 #include <map>
-
+#include "PDBDebug.h"
 #include "AtomicComputation.h"
 #include "AtomicComputationClasses.h"
 
@@ -69,21 +69,21 @@ public:
 
 	// add an atomic computation to the graph
 	void addAtomicComputation (AtomicComputationPtr addMe) {
-                std :: cout << "outputName=" << addMe->getOutputName() << std :: endl;
-                std :: cout << "inputName=" << addMe->getInputName() << std :: endl;
+                PDB_COUT << "outputName=" << addMe->getOutputName() << std :: endl;
+                PDB_COUT << "inputName=" << addMe->getInputName() << std :: endl;
 		if (addMe->getAtomicComputationType () == "Scan") {
                         std :: cout << "added to scan list" << std :: endl;
 			scans.push_back (addMe);
 		}
 
 		producers[addMe->getOutputName ()] = addMe;
-                std :: cout << "producers[" << addMe->getOutputName() << "]="<< addMe << std :: endl;
+                PDB_COUT << "producers[" << addMe->getOutputName() << "]="<< addMe << std :: endl;
 		if (consumers.count (addMe->getInputName ()) == 0) {
 			std :: vector <AtomicComputationPtr> rhs;
 			consumers[addMe->getInputName ()] = rhs;
 		}
 		consumers[addMe->getInputName ()].push_back (addMe);
-                std :: cout << "consumers[" << addMe->getInputName() << "]=" << addMe << std :: endl;
+                PDB_COUT << "consumers[" << addMe->getInputName() << "]=" << addMe << std :: endl;
 
 		// now, see if this guy is a join; join is special, because we have to add both inputs to the 
 		// join to the consumers map
