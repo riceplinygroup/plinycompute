@@ -162,15 +162,18 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
                   this->jobStage->getTargetTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
                   [] () -> std :: pair <void *, size_t> {
+                      PDB_COUT << "to get a new page for writing" << std :: endl;
                       void * myPage = malloc (DEFAULT_NET_PAGE_SIZE);
                       return std :: make_pair(myPage, DEFAULT_NET_PAGE_SIZE);
                   },
 
                   [] (void * page) {
+                      PDB_COUT << "to discard a page" << std :: endl;
                       free (page);
                   },
 
                   [&] (void * page) {
+                      PDB_COUT << "to write back a page" << std :: endl;
                       PDBPagePtr output;
                       proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                       memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
