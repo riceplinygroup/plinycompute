@@ -44,7 +44,7 @@ size_t Record <ObjType> :: rootObjectOffset () {
 
 template <class ObjType>
 Handle <ObjType> Record <ObjType> :: getRootObject () {
-        //std :: cout << "getRootObject: object offset="<<rootObjectOffset() << std :: endl;
+        PDB_COUT << "getRootObject: object offset="<<rootObjectOffset() << std :: endl;
 	// this is the location of the root object
 	char *objLoc = CHAR_PTR (this) + rootObjectOffset ();
 

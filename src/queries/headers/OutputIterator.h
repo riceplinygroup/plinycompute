@@ -83,7 +83,7 @@ public:
 
 			// get the next page
 			size_t objSize = connection->getSizeOfNextObject ();
-
+                        PDB_COUT << "to receive " << objSize << " bytes" << std :: endl;
 			// if the file is done, then we're good 
 			if (connection->getObjectTypeID () == DoneWithResult_TYPEID) {
 				connection = nullptr;
@@ -97,8 +97,10 @@ public:
 				connection = nullptr;
 				return;
 			}
+                        PDB_COUT << "received " << objSize << " bytes" << std :: endl;
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
+                        PDB_COUT << "to obtain size of vector" << std :: endl;
 			size = data->size ();
                         PDB_COUT << "got a page with size="<< size  << std :: endl;			
                         // added by Jia to fix a segfault when size=0
