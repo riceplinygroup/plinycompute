@@ -88,7 +88,7 @@ inline void VTableMap :: listVtableLabels () {
 }
 
 inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLock) {
-        //PDB_COUT << "getIDByName for " << objectTypeName << std :: endl;
+        PDB_COUT << "getIDByName for " << objectTypeName << std :: endl;
 	// one important issue is that we might need to lookup soething nasty like:
 	//
 	// pdb::PairArray<pdb::Handle<pdb::String>,pdb::Handle<pdb::Employee>>
@@ -126,7 +126,7 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLo
 		objectTypeName = prefix + std :: string ("<") + replacementString + std :: string (">");
 
 	// now, check to make sure that we have seen the given object type before
-        //PDB_COUT << "objectTypeName=" << objectTypeName << std :: endl;
+        PDB_COUT << "objectTypeName=" << objectTypeName << std :: endl;
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {
 		
 		// make sure no one is modifying the map
@@ -150,26 +150,26 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLo
 		if (identifier == -1) {
 			theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
                         //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-                        //PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+                        PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
 			return TYPE_NOT_RECOGNIZED;
 
 		// otherwise, return the ID
 		} else {
 			theVTable->objectTypeNamesList[objectTypeName] = identifier;
                         //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-                        //PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+                        PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
 			return identifier;
 		}
 
 	} else if (theVTable->objectTypeNamesList.count (objectTypeName) == 0) {
 		// we don't know this type, and we have no catalog client
 		theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-                //PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+                PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
 		return TYPE_NOT_RECOGNIZED;
 	} else {
 		// in the easy case, we have seen it before, so just return the typeID
 		int16_t identifier = theVTable->objectTypeNamesList[objectTypeName];	
-                //PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+                PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
                 return identifier;
 	}
 }
