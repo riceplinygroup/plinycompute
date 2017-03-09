@@ -156,7 +156,9 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
                   Handle<Computation> computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
                   Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
                   scanner->setIterator(iter);
+                  scanner->setProxy(proxy);
                   scanner->setBatchSize(batchSize);
+                  plan->nullifyPlanPointer();
                   PipelinePtr curPipeline = plan->buildPipeline (
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetTupleSetSpecifier(),
