@@ -145,21 +145,25 @@ void PipelineStage :: runMapPipeline (HermesExecutionServer * server) {
                   DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
                   //setup an output page to store intermediate results and final output
+                  const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
                   PDBPagePtr output=nullptr;
                   PageCircularBufferIteratorPtr iter = iterators.at(i);
                   std :: cout << i << ": to get compute plan" << std :: endl;
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
+                  plan->nullifyPlanPointer();
+                  std :: cout << i << ": to deep copy ComputePlan object" << std :: endl;
+                  Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);                  
                   std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
                   std :: cout << "Source tupleset name=" << sourceSpecifier << std :: endl;
-                  std :: string producerComputationName = plan->getProducingComputationName(sourceSpecifier);
+                  std :: string producerComputationName = newPlan->getProducingComputationName(sourceSpecifier);
                   std :: cout << "Producer computation name=" << producerComputationName << std :: endl;
-                  Handle<Computation> computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
+                  Handle<Computation> computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
                   Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
                   scanner->setIterator(iter);
                   scanner->setProxy(proxy);
                   scanner->setBatchSize(batchSize);
-                  plan->nullifyPlanPointer();
-                  PipelinePtr curPipeline = plan->buildPipeline (
+                  newPlan->nullifyPlanPointer();
+                  PipelinePtr curPipeline = newPlan->buildPipeline (
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
