@@ -606,7 +606,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                   std :: cout << errMsg << std :: endl;
                   break;
              }
-             
+             std :: cout << "sent SetScan object to " << address << std :: endl; 
              while (true) {
                  if (curPage != nullptr) {
                      free (curPage);
@@ -646,6 +646,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                      }
                  }
                  size_t objSize = communicator->getSizeOfNextObject();
+                 PDB_COUT << "Distributed storage to receive size " << objSize << std :: endl;
                  if (communicator->getObjectTypeID() == DoneWithResult_TYPEID) {
                      PDB_COUT << "got done from this slave!" << std :: endl;
                      communicator = nullptr; 
@@ -657,8 +658,12 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                      communicator = nullptr;
                      break;
                  }  
+                 Handle<Vector<Handle<Object>>> vector = curPage->getRootObject();
+                 PDB_COUT << "got vector size =" << vector->size() << std :: endl;
                  PDB_COUT << "got data from this slave!" << std :: endl;
-                 if (!sendUsingMe->sendBytes(curPage, curPage->numBytes(), errMsg)) {
+
+                 PDB_COUT << "got Record size =" << curPage->numBytes() << std :: endl;
+                 if (!sendUsingMe->sendBytes(curPage, objSize, errMsg)) {
                      std :: cout << "Problem forwarding data to client: " << errMsg << std :: endl;
                      communicator = nullptr;
                      break;
