@@ -25,6 +25,9 @@
 #include "PageCircularBufferIterator.h"
 #include "VectorTupleSetIterator.h"
 #include "PDBString.h"
+#include "DataTypes.h"
+#include "DataProxy.h"
+#include "Configuration.h"
 
 namespace pdb {
 
@@ -37,6 +40,7 @@ public:
 
         void initialize() {
             this->iterator = nullptr;
+            this->proxy = nullptr;
         }
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
@@ -58,8 +62,22 @@ public:
 
                  },
 
-                 [] (void * freeMe) -> void {
-                     free (freeMe);
+                 [&] (void * freeMe) -> void {
+                     if (this->proxy != nullptr) {
+                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+                         char * curBytes = pageRawBytes;
+                         NodeID nodeId = (NodeID) (*((NodeID *)(curBytes)));
+                         curBytes = curBytes + sizeof(NodeID);
+                         DatabaseID dbId = (DatabaseID) (*((DatabaseID *)(curBytes)));
+                         curBytes = curBytes + sizeof(DatabaseID);
+                         UserTypeID typeId = (UserTypeID) (*((UserTypeID *)(curBytes)));
+                         curBytes = curBytes + sizeof(UserTypeID);
+                         SetID setId = (SetID) (*((SetID *)(curBytes)));
+                         curBytes = curBytes + sizeof(SetID);
+                         PageID pageId = (PageID) (*((PageID *)(curBytes)));
+                         PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
+                         this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page);
+                     }
                  },
 
                  this->batchSize
@@ -67,10 +85,15 @@ public:
             );
         }
          
-        //JiaNote: not sure whether we can include PageCircularBufferIteratorPtr in a pdb object, if it can't work, we need a way to recreate the instance with PageCircularBufferIterator at backend.
+        //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
         void setIterator(PageCircularBufferIteratorPtr iterator) {
                 this->iterator = iterator;
         }
+
+        void setProxy(DataProxyPtr proxy) {
+                this->proxy = proxy;
+        }
+
 
         void setBatchSize(int batchSize) {
                 this->batchSize = batchSize;
@@ -84,7 +107,6 @@ public:
         void setSetName (std :: string setName) {
                 this->setName = setName;
         }
-
 
         std :: string getDatabaseName () {
                 return dbName;
@@ -101,13 +123,14 @@ public:
 
 protected:
 
-       //JiaNote: not sure whether we can include PageCircularBufferIteratorPtr in a pdb object, if it can't work, we need a way to recreate the instance with PageCircularBufferIterator at backend.
+       //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
        PageCircularBufferIteratorPtr iterator;
+
+       DataProxyPtr proxy;
 
        String dbName;
  
        String setName;
-
 
        int batchSize;
 
