@@ -90,6 +90,13 @@ public:
         return make_shared<AggregationProcessor<KeyClass, ValueClass>> ();
 }
 
+    std :: shared_ptr<AggOutProcessor<OutputClass, KeyClass, ValueClass>> getAggOutProcessor() {
+        return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>();
+
+}
+
+
+
     std :: string getComputationType () override {
         return std :: string ("ClusterAggregationComp");
     }
