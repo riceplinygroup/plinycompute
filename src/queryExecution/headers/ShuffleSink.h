@@ -69,9 +69,9 @@ public:
 
 		// get the map we are adding to
 		Handle <Vector <Handle<Map <KeyType, ValueType>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>> (writeToMe);
-                size_t hashVal = hasher <KeyType> :: hash (me);
+                size_t hashVal; = hasher <KeyType> 
                
-		Map <KeyType, ValueType> &myMap = *((*writeMe)[hashVal%numPartitions]);
+		Map <KeyType, ValueType> &myMap;
 
 		// get the input columns
 		std :: vector <KeyType> &keyColumn = input->getColumn <KeyType> (whichAttToHash);
@@ -80,6 +80,10 @@ public:
 		// and aggregate everyone
 		size_t length = keyColumn.size ();
 		for (size_t i = 0; i < length; i++) {
+
+                        hashVal = hasher <KeyType> :: hash(keyColumn[i]);
+
+                        myMap = *((*writeMe)[hashVal%numPartitions]);
 
 			// if this key is not already there...
 			if (myMap.count (keyColumn[i]) == 0) {
