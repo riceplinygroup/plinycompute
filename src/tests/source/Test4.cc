@@ -45,7 +45,7 @@ int main () {
       	auto begin = std::chrono::high_resolution_clock::now();
 
         // load up the allocator with RAM
-        makeObjectAllocatorBlock (1024 * 1024 * 24, false);
+        makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
 	Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> ();
 	int i = 0;
@@ -53,7 +53,7 @@ int main () {
                 // put a lot of copies of it into a vector
                 for (; true; i++) {
 
-                        //std :: cout << i << "\n";
+                        std :: cout << i << "\n";
 			Handle <Supervisor> super = makeObject <Supervisor> ("Joe Johnson", 20 + (i % 29));
                         supers->push_back (super);
                         for (int j = 0; j < 10; j++) {
