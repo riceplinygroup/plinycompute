@@ -408,7 +408,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
         return true;
 }
 
-String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations) {
+String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations, int flag) {
 
         //TODO: convert below placeholder to query analysis logic
 /*        String myTCAPString =
@@ -429,14 +429,31 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
                 nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
 */
 
-        String myTCAPString = 
+   String myTCAPString;
+   if (flag == 0) {
+        myTCAPString = 
                 "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
                 checkFrank (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
                 justFrank (in, isFrank) <= FILTER (checkFrank(isFrank), checkFrank(in), 'SelectionComp_1') \n\
                 projectedInputWithPtr (out) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_2') \n\
                 projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_1') \n\
                 nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";
-        return myTCAPString;
+   } else {
+       myTCAPString =
+                "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
+                inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
+                inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
+                inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_0') \n\
+                filteredInput (in) <= FILTER (inputWithBool (bool), inputWithBool (in), 'SelectionComp_1') \n\
+                projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_4') \n\
+                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_3') \n\
+                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'AggregationComp_2', 'attAccess_1') \n\
+                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'AggregationComp_2', 'deref_0') \n\
+                aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'methodCall_2') \n\
+                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'AggregationComp_2')";
+
+   }
+   return myTCAPString;
 }
 
 
@@ -445,22 +462,27 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
 void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString) {
     //TODO: to replace the below placeholder using real logic
     //TODO: to analyze the logical plan and output a vector of TupleSetJobStage instances
-    Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
-    Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
-    jobStageId ++;
-    jobStage->setComputePlan(myPlan, "inputData", "projectedInput", "WriteUserSet_2");
-    std :: string sourceSpecifier = "ScanUserSet_0";
-    Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
-    Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);
-    Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
-    std :: string sinkSpecifier = "WriteUserSet_2";
-    Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
-    Handle<WriteUserSet<Object>> writer = unsafeCast<WriteUserSet<Object>, Computation>(sinkComputation);
-    Handle<SetIdentifier> sink = makeObject<SetIdentifier>(writer->getDatabaseName(), writer->getSetName());
-    jobStage->setSourceContext(source);
-    jobStage->setSinkContext(sink);
-    jobStage->setOutputTypeName(writer->getOutputType());
-    this->queryPlan.push_back(jobStage);
+    std::string tcapString = myTCAPString.c_str();
+    if (tcapString.find("AGGREGATE")==std::string::npos) {
+        Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+        Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
+        jobStageId ++;
+        jobStage->setComputePlan(myPlan, "inputData", "projectedInput", "WriteUserSet_2");
+        std :: string sourceSpecifier = "ScanUserSet_0";
+        Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
+        Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);
+        Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
+        std :: string sinkSpecifier = "WriteUserSet_2";
+        Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
+        Handle<WriteUserSet<Object>> writer = unsafeCast<WriteUserSet<Object>, Computation>(sinkComputation);
+        Handle<SetIdentifier> sink = makeObject<SetIdentifier>(writer->getDatabaseName(), writer->getSetName());
+        jobStage->setSourceContext(source);
+        jobStage->setSinkContext(sink);
+        jobStage->setOutputTypeName(writer->getOutputType());
+        this->queryPlan.push_back(jobStage);
+    } else {
+
+    }
 }
 
 
@@ -713,12 +735,18 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                  std :: cout << errMsg << std :: endl;
                  return std :: make_pair (false, errMsg);
              }
-             PDB_COUT << "To transform the ExecuteQuery object into a TCAP string" << std :: endl;
-             String tcapString = getFunctionality<QuerySchedulerServer>().transformQueryToTCAP(*userQuery);
 
+             //placeholder, in future we should remove below logic.
+             String tcapString;
+             if (userQuery->size() < 4) {
+                 PDB_COUT << "To transform the ExecuteQuery object into a TCAP string" << std :: endl;
+                 tcapString = getFunctionality<QuerySchedulerServer>().transformQueryToTCAP(*userQuery);
+             } else {
+                 PDB_COUT << "To transform the ExecuteQuery object into a TCAP string" << std :: endl;
+                 tcapString = getFunctionality<QuerySchedulerServer>().transformQueryToTCAP(*userQuery, 1);
+             }
              PDB_COUT << "To transform the TCAP string into a physical plan" << std :: endl;
              getFunctionality<QuerySchedulerServer>().parseQuery(*userQuery, tcapString);
-
              getFunctionality<QuerySchedulerServer>().printStages();
              PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
              getFunctionality<QuerySchedulerServer>().initialize(true);
