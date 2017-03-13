@@ -24,7 +24,6 @@
 #include "BlockQueryProcessor.h"
 #include "DataTypes.h"
 #include "SetIdentifier.h"
-#include "RefCountedOnHeapSmallPage.h"
 #include "DataProxy.h"
 #include "PipelineContext.h"
 #include "ExecutionOperator.h"

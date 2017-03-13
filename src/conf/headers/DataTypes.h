@@ -31,6 +31,7 @@ typedef unsigned int PageIteratorsID;
 typedef unsigned int UserTypeID;
 typedef unsigned int PageID;
 typedef unsigned int NodeID;
+typedef unsigned int HashPartitionID;
 typedef unsigned int DatabaseID;
 typedef unsigned int ServerID;
 typedef unsigned int SetID;
