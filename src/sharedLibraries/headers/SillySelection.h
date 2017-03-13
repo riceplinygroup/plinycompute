@@ -15,66 +15,36 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef REFCOUNTED_ONHEAP_SMALL_PAGE_H
-#define REFCOUNTED_ONHEAP_SMALL_PAGE_H
 
-//by Jia, Sept 2016
+#ifndef SILLY_SELECT_H
+#define SILLY_SELECT_H
 
-#include <memory>
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "SelectionComp.h"
+#include "Employee.h"
+#include "Supervisor.h"
+#include "PDBVector.h"
+#include "PDBString.h"
+#include "Supervisor.h"
 
-
-namespace pdb {
-
-class RefCountedOnHeapSmallPage;
-typedef std :: shared_ptr<RefCountedOnHeapSmallPage> RefCountedOnHeapSmallPagePtr;
-
-// this is a helper class for storing intermediate data between nodes in a pipeline
-
-class RefCountedOnHeapSmallPage {
-
-private:
-
-    void * data;
-    size_t size;
+using namespace pdb;
+class SillySelection : public SelectionComp <Employee, Supervisor> {
 
 public:
-    //destructor
-    ~RefCountedOnHeapSmallPage() {
-        if (data != nullptr) {
-            free(data);
-        }
-        data = 0;
-        size = 0;
-    }
 
+	ENABLE_DEEP_COPY
 
-    //constructor
-    RefCountedOnHeapSmallPage (size_t size) {
-        this->data = (void *) malloc (size);
-        this->size = size;
-    }
+	EmployeeSelection () {}
 
-    //return memory
-    void * getData() {
-        return this->data;
-    }
+	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
+		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
+	}
 
-    size_t getSize() {
-        return this->size;
-    }
-
-   
-
-
-
-
+	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) override {
+                return makeLambdaFromMethod (checkMe, getMe);
+	}
 };
-
-
-
-}
-
-
 
 
 #endif
