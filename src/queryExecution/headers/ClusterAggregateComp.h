@@ -21,6 +21,7 @@
 #include "AggregateComp.h"
 #include "ScanUserSet.h"
 #include "CombinerProcessor.h"
+#include "AggregationProcessor.h"
 #include "DataTypes.h"
 
 namespace pdb {
@@ -32,13 +33,28 @@ public:
 
     ENABLE_DEEP_COPY
 
+    ClusterAggregateComp () {}
+
+    //Not materialize aggregation output, use MapTupleSetIterator as consumer's ComputeSource
+    ClusterAggregateComp (int numPartitions, int batchSize) {
+        this->numPartitions = numPartitions;
+        this->batchSize = batchSize;
+        this->materializeAggOut = false;
+        this->outputSetScanner = nullptr;
+        this->whereHashTableSitsForThePartition = nullptr;
+    }
+
+    //materialize aggregation output, use ScanUserSet to obtain consumer's ComputeSource
     ClusterAggregateComp (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
         this->numPartitions = numPartitions;
+        this->materializeAggOut = true;
         this->outputSetScanner = makeObject<ScanUserSet>();
         this->outputSetScanner->initialize();
         this->outputSetScanner->setBatchSize(batchSize);
+        this->batchSize = batchSize;
         this->outputSetScanner->setDatabaseName(dbName);
         this->outputSetScanner->setSetName(setName);
+        this->whereHashTableSitsForThePartition = nullptr;
     }
 
     //intermediate results written to shuffle sink
@@ -48,15 +64,31 @@ public:
 
     //aggregation results written to user set
     ComputeSourcePtr getComputeSource (TupleSpec &outputScheme, ComputePlan &plan) override {
-        if (outputSetScanner != nullptr) {
-            return outputSetScanner->getComputeSource (outputScheme, plan);
-        } 
-        return nullptr;
+        //materialize aggregation result to user set
+        if( this->materializeAggOut == true) {
+            if (outputSetScanner != nullptr) {
+                return outputSetScanner->getComputeSource (outputScheme, plan);
+            } 
+            return nullptr;
+
+        //not materialize aggregation result, keep them in hash table
+        } else {
+            if (whereHashTableSitsForThePartition != nullptr) {
+                Handle <Object> myHashTable = ((Record <Object> *) whereHashTableSitsForThePartition)->getRootObject();
+                return std :: make_shared <MapTupleSetIterator <KeyClass, ValueClass, OutputClass>> (myHashTable, batchSize);
+            }
+            return nullptr;
+
+        }
     }
 
     std :: shared_ptr<CombinerProcessor<KeyClass, ValueClass>> getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) {
         return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
     }
+
+    std :: shared_ptr<AggregationProcessor<KeyClass, ValueClass>> getAggregationProcessor() {
+        return make_shared<AggregationProcessor<KeyClass, ValueClass>> ();
+}
 
     std :: string getComputationType () override {
         return std :: string ("ClusterAggregationComp");
@@ -94,12 +126,18 @@ public:
         return this->outputSetScanner->getSetName();
     }
 
+    void setHashTable (void * hashTable) {
+        this->whereHashTableSitsForThePartition = hashTable;
+    }
+
 private:
 
     //number of partitions in the cluster
     int numPartitions;
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-
+    bool materializeAggOut;
+    int batchSize;
+    void * whereHashTableSitsForThePartition;
 }
 
 #endif
