@@ -93,7 +93,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                 try {
 
                     *temp = curValue;
-                    begin ++;
+                    ++begin;
 
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
@@ -111,7 +111,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                 try {
 
                     temp = copy + curValue;
-                    begin ++;
+                    ++begin;
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {
