@@ -69,7 +69,7 @@ public:
 
 		// get the map we are adding to
 		Handle <Vector <Handle<Map <KeyType, ValueType>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>> (writeToMe);
-                size_t hashVal; = hasher <KeyType> 
+                size_t hashVal;  
                
 		Map <KeyType, ValueType> &myMap;
 
