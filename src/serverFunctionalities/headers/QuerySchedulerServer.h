@@ -96,7 +96,7 @@ public:
 
 
        //to transform user query to tcap string
-       String transformQueryToTCAP(Vector<Handle<Computation>> myComputations);
+       String transformQueryToTCAP(Vector<Handle<Computation>> myComputations, int flag=0);
 
 
        //from the serverFunctionality interface... register the resource manager handlers

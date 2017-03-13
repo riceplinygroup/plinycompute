@@ -24,6 +24,7 @@
 #include "Object.h"
 #include "DataTypes.h"
 #include "Handle.h"
+#include "PDBVector.h"
 #include "PDBString.h"
 #include "SetIdentifier.h"
 #include "ComputePlan.h"
@@ -46,6 +47,22 @@ namespace pdb {
                 this->probeOrNot = false;
                 this->repartitionOrNot = false;
                 this->combineOrNot = false;
+                this->numNodes = 0;
+                this->numPartitions = nullptr;
+                this->ipAddresses = nullptr;
+            }
+
+            TupleSetJobStage (JobStageID stageId, int numNodes) {
+                this->id = stageId;
+                this->sharedPlan = nullptr;
+                this->sourceContext = nullptr;
+                this->sinkContext = nullptr;
+                this->probeOrNot = false;
+                this->repartitionOrNot = false;
+                this->combineOrNot = false;
+                this->numNodes = numNodes;
+                this->numPartitions = makeObject<Vector<int>> (numNodes);
+                this->ipAddresses = makeObject<Vector<String>> (numNodes);
             }
 
             ~TupleSetJobStage () {}
@@ -154,6 +171,34 @@ namespace pdb {
                 this->outputTypeName = outputTypeName;
             }
 
+            void setNumNodes (int numNodes) {
+                this->numNodes = numNodes;
+            }
+
+            int getNumNodes () {
+                return this->numNodes;
+            }
+
+            void addNumPartitions(int numPartitions) {
+                this->numPartitions->push_back(numPartitions);
+            }
+
+            int getNumPartitions (int nodeId) {
+                return (*numPartitions)[nodeId];
+            } 
+
+            String getIPAddress (int nodeId) {
+                return (*ipAddresses)[nodeId];
+            }
+
+            int getNumTotalPartitions () {
+                return this->numTotalPartitions;
+            }
+
+            void setNumTotalPartitions (int numTotalPartitions) {
+                this->numTotalPartitions = numTotalPartitions;
+            }
+
             ENABLE_DEEP_COPY
 
 
@@ -194,6 +239,19 @@ namespace pdb {
 
             //the id to identify this job stage
             JobStageID id;
+
+            // repartitioning scheme
+            int numNodes;
+
+            // number of partitions on each node
+            Handle<Vector<int>> numPartitions;
+
+            // IP for each node
+            Handle<Vector<String>> ipAddresses;
+
+            // totalPartitions, should be consistent with numPartitions
+            int numTotalPartitions;
+
 
    };
 
