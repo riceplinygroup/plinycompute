@@ -20,6 +20,8 @@
 
 #include "AggregateComp.h"
 #include "ScanUserSet.h"
+#include "CombinerProcessor.h"
+#include "DataTypes.h"
 
 namespace pdb {
 
@@ -52,7 +54,9 @@ public:
         return nullptr;
     }
 
-
+    std :: shared_ptr<CombinerProcessor<KeyClass, ValueClass>> getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) {
+        return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
+    }
 
     std :: string getComputationType () override {
         return std :: string ("ClusterAggregationComp");
