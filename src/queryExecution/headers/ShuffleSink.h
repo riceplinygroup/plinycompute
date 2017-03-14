@@ -19,6 +19,8 @@
 #ifndef SHUFFLE_SINK_H
 #define SHUFFLE_SINK_H
 
+//by Jia, Mar 2017
+
 #include "ComputeSink.h"
 #include "TupleSetMachine.h"
 #include "TupleSet.h"

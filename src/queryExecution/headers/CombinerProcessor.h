@@ -18,6 +18,8 @@
 #ifndef COMBINER_PROCESSOR_H
 #define COMBINER_PROCESSOR_H
 
+//by Jia, Mar 14, 2017
+
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBMap.h"

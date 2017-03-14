@@ -18,6 +18,9 @@
 #ifndef CLUSTER_AGG_COMP
 #define CLUSTER_AGG_COMP
 
+//by Jia, Mar 2017
+
+
 #include "AggregateComp.h"
 #include "ScanUserSet.h"
 #include "CombinerProcessor.h"
@@ -82,15 +85,15 @@ public:
         }
     }
 
-    std :: shared_ptr<CombinerProcessor<KeyClass, ValueClass>> getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) {
+    std :: shared_ptr<CombinerProcessor<KeyClass, ValueClass>> getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) override {
         return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
     }
 
-    std :: shared_ptr<AggregationProcessor<KeyClass, ValueClass>> getAggregationProcessor() {
+    std :: shared_ptr<AggregationProcessor<KeyClass, ValueClass>> getAggregationProcessor() override {
         return make_shared<AggregationProcessor<KeyClass, ValueClass>> ();
 }
 
-    std :: shared_ptr<AggOutProcessor<OutputClass, KeyClass, ValueClass>> getAggOutProcessor() {
+    std :: shared_ptr<AggOutProcessor<OutputClass, KeyClass, ValueClass>> getAggOutProcessor() override {
         return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>();
 
 }
