@@ -25,23 +25,24 @@
 #include "PDBMap.h"
 #include "PDBVector.h"
 #include "Handle.h"
+#include "SimpleSingleTableQueryProcessor.h"
 
 namespace pdb {
 
 template <class OutputClass, class KeyType, class ValueType>
-class AggOutProcessor {
+class AggOutProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
 
     ~AggOutProcessor () {};
     AggOutProcessor ();
-    void initialize ();
-    void loadInputPage (void * pageToProcess);
+    void initialize () override;
+    void loadInputPage (void * pageToProcess) override;
     void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage ();
-    void finalize ();
-    void clearOutputPage ();
-    void clearInputPage ();
+    bool fillNextOutputPage () override;
+    void finalize () override;
+    void clearOutputPage () override;
+    void clearInputPage () override;
 
 private:
 
