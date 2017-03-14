@@ -90,6 +90,7 @@ public:
 		}
 	}
 
+
 	//return the PageScanner of current job;
 	PageScannerPtr getCurPageScanner() { return this->curScanner; }
 

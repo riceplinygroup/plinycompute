@@ -20,6 +20,11 @@
 
 //by Jia, Mar 2017
 
+#include "PDBVector.h"
+#include "SimpleRequest.h"
+#include "SimpleRequestResult.h"
+#include "SimpleSendDataRequest.h"
+#include "TupleSetRepartition.h"
 #include "DataTypes.h"
 #include "PDBLogger.h"
 #include "Configuration.h"
@@ -73,23 +78,19 @@ public:
     //constructor
     PipelineStage(Handle<TupleSetJobStage> stage, SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads);
 
+    bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setNamePrefix, std :: string address, std :: string &errMsg);
+
     //return the root job stage corresponding to the pipeline 
     Handle<TupleSetJobStage> & getJobStage(); 
 
     //return the number of threads that are required to run the pipeline network
     int getNumThreads();
 
-    //run a Map pipeline with UserSet source and UserSet sink 
-    void runMapPipeline (HermesExecutionServer * server);
+    //run a pipeline with UserSet source and UserSet sink 
+    void runPipeline (HermesExecutionServer * server);
 
-    //run a Map pipeline with UserSet source and ShuffleSet sink
-    void runMapPipelineWithShuffleSink  (HermesExecutionServer * server);
-
-    //run a Reduce pipeline with ShuffleSet source and UserSet sink
-    void runReducePipeline  (HermesExecutionServer * server);
-
-    //run a Reduce pipeline with ShuffleSet source and ShuffleSet sink
-    void runReducePipelineWithShuffleSink  (HermesExecutionServer * server);
+    //run a pipeline with UserSet source and ShuffleSet sink
+    void runPipelineWithShuffleSink  (HermesExecutionServer * server);
 
 };
 

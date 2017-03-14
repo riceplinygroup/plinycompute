@@ -40,7 +40,7 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (int numClusterParti
 //initialize
 template <class KeyType, class ValueType>
 void CombinerProcessor <KeyType, ValueType> :: initialize () {
-
+    finalized = false;
 }
 
 //loads up another input page to process
@@ -96,7 +96,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     end = curMap->end();
                     curOutputMap = (*outputData)[curPartPos];
                 } else {
-                    return nullptr;
+                    return false;
                 }
             }
             KeyType curKey = (*begin).key;

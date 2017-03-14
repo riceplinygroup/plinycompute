@@ -306,8 +306,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
                         Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, 100, conf->getNumThreads());
                         if (request->isRepartition() == false) {
-                             pipeline->runMapPipeline(this);
-                        }                        
+                             pipeline->runPipeline(this);
+                        } else {
+                             pipeline->runPipelineWithShuffleSink(this);
+                        }                       
                     } else {
                         res = false;
                         errMsg = "A Job is already running in this server";

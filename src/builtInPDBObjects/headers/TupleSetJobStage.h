@@ -63,7 +63,7 @@ namespace pdb {
                 this->repartitionOrNot = false;
                 this->combineOrNot = false;
                 this->numNodes = numNodes;
-                this->numPartitions = makeObject<Vector<Handle<Vector<int>>>> (numNodes);
+                this->numPartitions = makeObject<Vector<Handle<Vector<HashPartitionID>>>> (numNodes);
                 this->ipAddresses = makeObject<Vector<String>> (numNodes);
             }
 
@@ -87,14 +87,6 @@ namespace pdb {
 
             std::string getTargetComputationSpecifier() {
                 return this->targetComputationSpecifier;
-            }
-
-            std :: string getAggComputationSpecifier() {
-                return this->aggComputationSpecifier;
-            }
-
-            void setAggComputationSpecifier (std :: string aggComputationSpecifier) {
-                this->aggComputationSpecifier = aggComputationSpecifier;
             }
 
             //to get compute plan
@@ -127,9 +119,19 @@ namespace pdb {
                 this->hashContext = hashContext;
             }
 
-            //to return sink set identifier for probing
+            //to return hash set identifier for probing
             Handle<SetIdentifier> getHashContext() {
                 return this->hashContext;
+            }
+
+            //to set combiner set identifier for combining data
+            void setCombinerContext( Handle<SetIdentifier> combinerContext ) {
+                this->combinerContext = combinerContext;
+            }
+
+            //to return combiner set identifier for combining data
+            Handle<SetIdentifier> getCombinerContext() {
+                return this->combinerContext;
             }
 
             //to set whether to probe hash table
@@ -189,11 +191,11 @@ namespace pdb {
                 return this->numNodes;
             }
 
-            void addNumPartitions(Handle<Vector<int>> numPartitions) {
+            void addNumPartitions(Handle<Vector<HashPartitionID>> numPartitions) {
                 this->numPartitions->push_back(numPartitions);
             }
 
-            Handle<Vector<int>> getNumPartitions (int nodeId) {
+            Handle<Vector<HashPartitionID>> getNumPartitions (int nodeId) {
                 return (*numPartitions)[nodeId];
             } 
 
@@ -220,6 +222,9 @@ namespace pdb {
             //Hash set information for probing
             Handle<SetIdentifier> hashContext;
 
+            //Combiner set information
+            Handle<SetIdentifier> combinerContext;
+
             //Output set information
             Handle<SetIdentifier> sinkContext;
 
@@ -238,8 +243,6 @@ namespace pdb {
             //target computation
             String targetComputationSpecifier;
 
-            //aggregation computation
-            String aggComputationSpecifier;
 
             //Does this stage require probing a hash table ?
             bool probeOrNot;
@@ -257,7 +260,7 @@ namespace pdb {
             int numNodes;
 
             // number of partitions on each node
-            Handle<Vector<Handle<Vector<int>>>> numPartitions;
+            Handle<Vector<Handle<Vector<HashPartitionID>>>> numPartitions;
 
             // IP for each node
             Handle<Vector<String>> ipAddresses;

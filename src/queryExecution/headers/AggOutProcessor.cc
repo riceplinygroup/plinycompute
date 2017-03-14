@@ -33,7 +33,7 @@ AggOutProcessor <OutputClass, KeyType, ValueType> :: AggOutProcessor () {
 //initialize
 template <class OutputClass, class KeyType, class ValueType>
 void AggOutProcessor <OutputClass, KeyType, ValueType> :: initialize () {
-
+    finalized = false;
 }
 
 //loads up another input page to process
@@ -53,6 +53,7 @@ void AggOutProcessor <OutputClass, KeyType, ValueType> :: loadOutputPage (void *
     blockPtr = nullptr;
     blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(pageToWriteTo, numBytesInPage);
     outputData = makeObject<Vector<OutputClass>> ();
+    pos = 0;
 
 }
 
@@ -67,12 +68,11 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
 
     // we are not finalized, so process the page
     try {
-        int pos = 0;
         //see if there are any more items in current map to iterate over
         while (true) {
 
             if (begin == end) {
-                    return nullptr;
+                    return false;
             }
           
             Handle<OutputType> temp = makeObject<OutputType> ();
