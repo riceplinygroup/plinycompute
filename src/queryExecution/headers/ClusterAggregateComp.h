@@ -21,16 +21,17 @@
 //by Jia, Mar 2017
 
 
-#include "AggregateComp.h"
+#include "AbstractAggregateComp.h"
 #include "ScanUserSet.h"
 #include "CombinerProcessor.h"
-#include "AggregationProcessor.h"
+#include "AggOutProcessor.h"
+#include "SimpleSingleTableQueryProcessor.h"
 #include "DataTypes.h"
 
 namespace pdb {
 
 template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
-class ClusterAggregateComp : public AggregateComp<OutputClass, InputClass, KeyClass, ValueClass> {
+class ClusterAggregateComp : public AbstractAggregateComp {
 
 public:
 
@@ -60,7 +61,22 @@ public:
         this->whereHashTableSitsForThePartition = nullptr;
     }
 
-    //intermediate results written to shuffle sink
+    // gets the operation tht extracts a key from an input object
+    virtual Lambda <KeyClass> getKeyProjection (Handle <InputClass> &aggMe) = 0;
+
+    // gets the operation that extracts a value from an input object
+    virtual Lambda <ValueClass> getValueProjection (Handle <InputClass> &aggMe) = 0;
+
+    // extract the key projection and value projection
+    void extractLambdas (std :: map <std :: string, GenericLambdaObjectPtr> &returnVal) override {
+                int suffix = 0;
+                Handle <InputClass> checkMe = nullptr;
+                Lambda <KeyClass> keyLambda = getKeyProjection (checkMe);
+                Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
+                keyLambda.toMap (returnVal, suffix);
+                valueLambda.toMap (returnVal, suffix);
+        }
+
     ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
         return std :: make_shared <ShuffleSink <KeyClass, ValueClass>> (numPartitions, consumeMe, projection);
     }
@@ -85,69 +101,21 @@ public:
         }
     }
 
-    std :: shared_ptr<CombinerProcessor<KeyClass, ValueClass>> getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) override {
+    SimpleSingleTableQueryProcessorPtr getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) override {
         return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
     }
 
-    std :: shared_ptr<AggregationProcessor<KeyClass, ValueClass>> getAggregationProcessor() override {
+    SimpleSingleTableQueryProcessorPtr getAggregationProcessor() override {
         return make_shared<AggregationProcessor<KeyClass, ValueClass>> ();
-}
+    }
 
-    std :: shared_ptr<AggOutProcessor<OutputClass, KeyClass, ValueClass>> getAggOutProcessor() override {
+    SimpleSingleTableQueryProcessorPtr getAggOutProcessor() override {
         return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>();
 
-}
-
-
-
-    std :: string getComputationType () override {
-        return std :: string ("ClusterAggregationComp");
     }
 
-    void setNumPartitions (int numPartitions) {
-        this->numPartitions = numPartitions;
-    }
-    
-    int getNumPartitions () {
-        return this->numPartitions;
-    }
+};
 
-    void setIterator(PageCircularBufferIteratorPtr iterator) {
-        this->outputSetScanner->setIterator(iterator);
-    }
-
-    void setProxy(DataProxyPtr proxy) {
-        this->outputSetScanner->setProxy(proxy);
-    }
-
-    void setDatabaseName (std :: string dbName) {
-        this->outputSetScanner->setDatabaseName(dbName);
-    }
-
-    void setSetName (std :: string setName) {
-        this->outputSetScanner->setSetName(setName);
-    }
-
-    std :: string getDatabaseName () {
-        return this->outputSetScanner->getDatabaseName();
-    }
-
-    std :: string getSetName () {
-        return this->outputSetScanner->getSetName();
-    }
-
-    void setHashTable (void * hashTable) {
-        this->whereHashTableSitsForThePartition = hashTable;
-    }
-
-private:
-
-    //number of partitions in the cluster
-    int numPartitions;
-    Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-    bool materializeAggOut;
-    int batchSize;
-    void * whereHashTableSitsForThePartition;
 }
 
 #endif
