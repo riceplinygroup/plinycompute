@@ -24,6 +24,9 @@
 #include "Computation.h"
 #include "DataTypes.h"
 #include "SimpleSingleTableQueryProcessor.h"
+#include "DataProxy.h"
+#include "PageCircularBufferIterator.h"
+#include "ScanUserSet.h"
 
 namespace pdb {
 
@@ -31,17 +34,11 @@ class AbstractAggregateComp : public Computation {
 
 public:
    
-    virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (Vector<HashPartitionID> nodePartitionIds) {
-        return nullptr;
-    }
+    virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (Vector<HashPartitionID> nodePartitionIds) = 0;
 
-    virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor () {
-        return nullptr;
-    }
+    virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor () = 0;
 
-    virtual SimpleSingleTableQueryProcessorPtr getAggOutProcessor () {
-        return nullptr;
-    }
+    virtual SimpleSingleTableQueryProcessorPtr getAggOutProcessor () = 0;
 
    void setNumPartitions (int numPartitions) {
         this->numPartitions = numPartitions;
@@ -51,29 +48,17 @@ public:
         return this->numPartitions;
     }
 
-    void setIterator(PageCircularBufferIteratorPtr iterator) {
-        this->outputSetScanner->setIterator(iterator);
-    }
+    virtual void setIterator(PageCircularBufferIteratorPtr iterator) = 0;
 
-    void setProxy(DataProxyPtr proxy) {
-        this->outputSetScanner->setProxy(proxy);
-    }
+    virtual void setProxy(DataProxyPtr proxy) = 0;
 
-    void setDatabaseName (std :: string dbName) {
-        this->outputSetScanner->setDatabaseName(dbName);
-    }
+    virtual void setDatabaseName (std :: string dbName) = 0;
 
-    void setSetName (std :: string setName) {
-        this->outputSetScanner->setSetName(setName);
-    }
+    virtual void setSetName (std :: string setName) = 0;
 
-    std :: string getDatabaseName () {
-        return this->outputSetScanner->getDatabaseName();
-    }
+    virtual std :: string getDatabaseName () = 0;
 
-    std :: string getSetName () {
-        return this->outputSetScanner->getSetName();
-    }
+    virtual std :: string getSetName () = 0;
 
     void setHashTable (void * hashTable) {
         this->whereHashTableSitsForThePartition = hashTable;
@@ -83,7 +68,6 @@ protected:
 
     //number of partitions in the cluster
     int numPartitions;
-    Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
     bool materializeAggOut;
     int batchSize;
     void * whereHashTableSitsForThePartition;

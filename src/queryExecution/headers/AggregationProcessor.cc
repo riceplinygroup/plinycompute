@@ -33,7 +33,7 @@ AggregationProcessor <KeyType, ValueType> :: AggregationProcessor () {
 //initialize
 template <class KeyType, class ValueType>
 void AggregationProcessor <KeyType, ValueType> :: initialize () {
-
+    finalized = false;
 }
 
 //loads up another input page to process
@@ -80,7 +80,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     begin = curMap->begin();
                     end = curMap->end();
                 } else {
-                    return nullptr;
+                    return false;
                 }
             }
             KeyType curKey = (*begin).key;

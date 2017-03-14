@@ -114,6 +114,35 @@ public:
 
     }
 
+    void setIterator(PageCircularBufferIteratorPtr iterator) override {
+        this->outputSetScanner->setIterator(iterator);
+    }
+
+    void setProxy(DataProxyPtr proxy) override {
+        this->outputSetScanner->setProxy(proxy);
+    }
+
+    void setDatabaseName (std :: string dbName) override {
+        this->outputSetScanner->setDatabaseName(dbName);
+    }
+
+    void setSetName (std :: string setName) override {
+        this->outputSetScanner->setSetName(setName);
+    }
+
+    std :: string getDatabaseName () override {
+        return this->outputSetScanner->getDatabaseName();
+    }
+
+    std :: string getSetName () override {
+        return this->outputSetScanner->getSetName();
+    }
+
+protected:
+
+    Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
+
+
 };
 
 }
