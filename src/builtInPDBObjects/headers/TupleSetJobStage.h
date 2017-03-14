@@ -43,6 +43,7 @@ namespace pdb {
                 this->id = stageId;
                 this->sharedPlan = nullptr;
                 this->sourceContext = nullptr;
+                this->hashContext = nullptr;
                 this->sinkContext = nullptr;
                 this->probeOrNot = false;
                 this->repartitionOrNot = false;
@@ -56,12 +57,13 @@ namespace pdb {
                 this->id = stageId;
                 this->sharedPlan = nullptr;
                 this->sourceContext = nullptr;
+                this->hashContext = nullptr;
                 this->sinkContext = nullptr;
                 this->probeOrNot = false;
                 this->repartitionOrNot = false;
                 this->combineOrNot = false;
                 this->numNodes = numNodes;
-                this->numPartitions = makeObject<Vector<int>> (numNodes);
+                this->numPartitions = makeObject<Vector<Handle<Vector<int>>>> (numNodes);
                 this->ipAddresses = makeObject<Vector<String>> (numNodes);
             }
 
@@ -85,6 +87,14 @@ namespace pdb {
 
             std::string getTargetComputationSpecifier() {
                 return this->targetComputationSpecifier;
+            }
+
+            std :: string getAggComputationSpecifier() {
+                return this->aggComputationSpecifier;
+            }
+
+            void setAggComputationSpecifier (std :: string aggComputationSpecifier) {
+                this->aggComputationSpecifier = aggComputationSpecifier;
             }
 
             //to get compute plan
@@ -112,12 +122,12 @@ namespace pdb {
                 return this->sinkContext;
             } 
 
-            //to set hash set identifier
+            //to set hash set identifier for probing
             void setHashContext( Handle<SetIdentifier> hashContext ) {
                 this->hashContext = hashContext;
             }
 
-            //to return sink set identifier
+            //to return sink set identifier for probing
             Handle<SetIdentifier> getHashContext() {
                 return this->hashContext;
             }
@@ -179,11 +189,11 @@ namespace pdb {
                 return this->numNodes;
             }
 
-            void addNumPartitions(int numPartitions) {
+            void addNumPartitions(Handle<Vector<int>> numPartitions) {
                 this->numPartitions->push_back(numPartitions);
             }
 
-            int getNumPartitions (int nodeId) {
+            Handle<Vector<int>> getNumPartitions (int nodeId) {
                 return (*numPartitions)[nodeId];
             } 
 
@@ -207,7 +217,7 @@ namespace pdb {
             //Input set information
             Handle<SetIdentifier> sourceContext;
 
-            //Hash set information
+            //Hash set information for probing
             Handle<SetIdentifier> hashContext;
 
             //Output set information
@@ -228,6 +238,9 @@ namespace pdb {
             //target computation
             String targetComputationSpecifier;
 
+            //aggregation computation
+            String aggComputationSpecifier;
+
             //Does this stage require probing a hash table ?
             bool probeOrNot;
 
@@ -244,7 +257,7 @@ namespace pdb {
             int numNodes;
 
             // number of partitions on each node
-            Handle<Vector<int>> numPartitions;
+            Handle<Vector<Handle<Vector<int>>>> numPartitions;
 
             // IP for each node
             Handle<Vector<String>> ipAddresses;

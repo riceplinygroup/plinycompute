@@ -18,6 +18,8 @@
 #ifndef AGGREGATION_PROCESSOR_H
 #define AGGREGATION_PROCESSOR_H
 
+//by Jia, Mar 13 2017
+
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBMap.h"
