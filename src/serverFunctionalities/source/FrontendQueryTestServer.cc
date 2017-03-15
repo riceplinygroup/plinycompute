@@ -157,6 +157,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         newRequest->setRepartition(request->isRepartition());
                         newRequest->setCombining(request->isCombining());
                         newRequest->print();
+                        
                         if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
                             std :: cout << errMsg << std :: endl;
                             errMsg = std::string("can't send message to backend: ") +errMsg;

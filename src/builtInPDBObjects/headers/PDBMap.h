@@ -37,6 +37,11 @@ private:
 	// this is where the data are actually stored
 	Handle <PairArray <KeyType, ValueType>> myArray;
 
+        //Jia temporarily add following member to enhance the performance of indexing a hash partition.
+        //this member will only be used in PDB aggregation
+        //TODO: move this to a layer above
+        unsigned int hashPartitionId;
+
 public:
 
 	ENABLE_DEEP_COPY
@@ -71,6 +76,12 @@ public:
         // these are used for iteration
         PDBMapIterator <KeyType, ValueType> begin ();
         PDBMapIterator <KeyType, ValueType> end ();
+
+        //Jia temporarily add following methods to enhance the performance of indexing a hash partition.
+        //TODO: move this to a layer above
+
+        unsigned int getHashPartitionId ();
+        void setHashPartitionId (unsigned int id);
 
 };
 

@@ -211,6 +211,10 @@ namespace pdb {
                 this->numTotalPartitions = numTotalPartitions;
             }
 
+            NodeID getNodeId () {
+                return this->myNodeId;
+            }
+
             ENABLE_DEEP_COPY
 
 
@@ -268,6 +272,8 @@ namespace pdb {
             // totalPartitions, should be consistent with numPartitions
             int numTotalPartitions;
 
+            // node id of the receiver of this message
+            NodeID myNodeId;
 
    };
 

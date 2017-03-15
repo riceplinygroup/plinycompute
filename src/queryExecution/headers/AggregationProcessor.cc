@@ -24,8 +24,9 @@ namespace pdb {
 
 
 template <class KeyType, class ValueType>
-AggregationProcessor <KeyType, ValueType> :: AggregationProcessor () {
+AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (int id) {
 
+    this->id = id;
     finalized = false;
 
 }
@@ -42,10 +43,19 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputPage (void * pageToPr
 
     Record <Vector<Handle<Map<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<Map<KeyType, ValueType>>>> *) pageToProcess;
     inputData = myRec->getRootObject();
-    curVecPos = 0;
-    curMap = (*inputData)[curVecPos];
-    begin = curMap->begin();
-    end = curMap->end();
+    int numPartitions = inputData->size();
+    int i;
+    for ( i = 0; i < numPartitions; i ++ ) {
+        curMap = (*inputData)[i];
+        if( curMap->getHashPartitionId() == id ) {
+            begin = curMap->begin();
+            end = curMap->end();
+            break;
+        } else {
+            //there is no hash partition for this thread
+            curMap = nullptr;
+        }
+    }
 }
 
 //loads up another output page to write results to
@@ -61,6 +71,10 @@ void AggregationProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToW
 template <class KeyType, class ValueType>
 bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
+    if (curMap == nullptr) {
+        return false;
+    }
+
     // if we are finalized, see if there are some left over records
     if (finalized) {
         getRecord (outputData);
@@ -74,14 +88,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (begin == end) {
-                if (curVecPos < inputData->size()-1) {
-                    curVecPos ++;
-                    curMap = (*inputData)[curVecPos];
-                    begin = curMap->begin();
-                    end = curMap->end();
-                } else {
-                    return false;
-                }
+                return false;
             }
             KeyType curKey = (*begin).key;
             ValueType curValue = (*begin).value;
@@ -146,7 +153,14 @@ void AggregationProcessor <KeyType, ValueType> :: clearInputPage () {
     inputData = nullptr;
 }
 
-
+template <class KeyType, class ValueType>
+bool AggregationProcessor <KeyType, ValueType> :: needsProcessInput() {
+    if (curMap == nullptr) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
 
 }

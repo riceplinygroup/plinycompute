@@ -21,6 +21,7 @@
 //by Jia, Sept 2016
 
 #include "AbstractAggregateComp.h"
+#include "StorageAddData.h"
 #include "ComputePlan.h"
 #include "ScanUserSet.h"
 #include "PDBDebug.h"
@@ -67,15 +68,15 @@ int PipelineStage :: getNumThreads () {
 }
 
 //send repartitioned data to a remote node
-bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setNamePrefix, std :: string address, std :: string & errMsg) {
-             return simpleSendDataRequest <TupleSetRepartition, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
+bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, std :: string & errMsg) {
+             return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
                          if (!result->getRes ().first) {
                              logger->error ("Error sending data: " + result->getRes ().second);
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
-                         return true;}, data, databaseName, setNamePrefix);
+                         return true;}, data, databaseName, setName, "Shuffle", false);
         }
 
 
