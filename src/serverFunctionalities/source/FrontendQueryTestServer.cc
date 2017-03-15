@@ -45,6 +45,7 @@
 #include "PangeaStorageServer.h"
 #include "JobStage.h"
 #include "TupleSetJobStage.h"
+#include "AggregationJobStage.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
 
@@ -68,7 +69,185 @@ FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
-       // to handle a request to execute a tupleset job stage
+      // to handle a request to execute an aggregation stage
+      forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler <AggregationJobStage>> (
+               [&] (Handle <AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+                    getAllocator().printInactiveBlocks();
+                    std :: string errMsg;
+                    bool success;
+                    PDB_COUT << "Frontend got a request for AggregationJobStage" << std :: endl;
+                    request->print();
+                    makeObjectAllocatorBlock(24*1024*1024, true);
+                    PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                    if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                        std :: cout << errMsg << std :: endl;
+                        return std :: make_pair(false, errMsg);
+                    }
+                    PDB_COUT << "Frontend connected to backend" << std :: endl;
+                    Handle <AggregationJobStage> newRequest = 
+                        makeObject<AggregationJobStage>(request->getStageId(), request->needsToMaterializeAggOut(), request->getAggComputation());
+                    PDB_COUT << "Created AggregationJobStage object for forwarding" << std :: endl;
+
+
+
+                    //input set
+                    //restructure the input information  
+                    std :: string inDatabaseName = request->getSourceContext()->getDatabase();
+                    std :: string inSetName = request->getSourceContext()->getSetName();
+                    Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                    PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
+                    SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
+                    if (inputSet == nullptr) {
+                        PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                        //TODO: move data from other servers
+                        //temporarily, we simply return;
+                        // now, we send back the result
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getSinkContext()->getSetName());
+                        PDB_COUT << "Query is done without data. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("execution complete"));
+
+                    }
+                    sourceContext->setDatabaseId(inputSet->getDbID());
+                    sourceContext->setTypeId(inputSet->getTypeID());
+                    sourceContext->setSetId(inputSet->getSetID());
+                    newRequest->setSourceContext(sourceContext);
+                    newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
+                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+
+
+
+                    //hash set
+                    bool needsRemoveHashSet = false;
+                    std :: string hashDatabaseName = request->getHashContext()->getDatabase();
+                    std :: string hashSetName = request->getHashContext()->getSetName();
+                    success = true;
+                    // add the output set
+                    // check whether hash set exists
+                    std :: pair <std :: string, std :: string> hashDatabaseAndSet = std :: make_pair (hashDatabaseName, hashSetName);
+                    SetPtr hashSet = getFunctionality <PangeaStorageServer> ().getSet(hashDatabaseAndSet);
+                    if (hashSet == nullptr) {
+                        success = getFunctionality <PangeaStorageServer> ().addSet(hashDatabaseName, "Hash", hashSetName);
+                        hashSet = getFunctionality <PangeaStorageServer> ().getSet(hashDatabaseAndSet);
+                        needsRemoveHashSet = true;
+                        PDB_COUT << "Output set is created in storage" << std :: endl;
+                    }
+
+                    if (success == true) {
+                        Handle<SetIdentifier> hashContext = makeObject<SetIdentifier>(hashDatabaseName, hashSetName);
+                        PDB_COUT << "Created SetIdentifier object for hash with setName=" << hashSetName << ", setId=" << hashSet->getSetID() << std :: endl;
+                        hashContext->setDatabaseId(hashSet->getDbID());
+                        hashContext->setTypeId(hashSet->getTypeID());
+                        hashContext->setSetId(hashSet->getSetID());
+                        newRequest->setHashContext(hashContext);
+                        newRequest->setNeedsRemoveHashSet(needsRemoveHashSet);
+                    } else {
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getSinkContext()->getSetName());
+                        PDB_COUT << "Query failed: not able to create hash set. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("Query failed: not able to create hash set"));
+                    }
+
+
+                   
+                    //output set
+                    std :: string outDatabaseName = request->getSinkContext()->getDatabase();
+                    std :: string outSetName = request->getSinkContext()->getSetName();
+                    success = true;
+                    // add the output set
+                    // check whether output set exists
+                    std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
+                    SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                    if (outputSet == nullptr) {
+                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
+                        outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                        PDB_COUT << "Output set is created in storage" << std :: endl;
+                    }
+
+                    if (success == true) {
+                        Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                        PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
+                        sinkContext->setDatabaseId(outputSet->getDbID());
+                        sinkContext->setTypeId(outputSet->getTypeID());
+                        sinkContext->setSetId(outputSet->getSetID());
+                        newRequest->setSinkContext(sinkContext);
+                    } else {
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getSinkContext()->getSetName());
+                        PDB_COUT << "Query failed: not able to create output set. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("Query failed: not able to create output set"));
+                    }
+
+                    
+                    //forward the request
+                    newRequest->print();
+
+                    if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                            std :: cout << errMsg << std :: endl;
+                            errMsg = std::string("can't send message to backend: ") +errMsg;
+                            success = false;
+                    } else {
+                            PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                            // wait for backend to finish.
+                            communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                            if (!success) {
+                                std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                                errMsg = std::string("backend failure: ") +errMsg;
+                            }
+                   }
+
+
+
+                    //remove sets
+                   if (needsRemoveHashSet == true) {
+                       //remove hash set
+                       getFunctionality <PangeaStorageServer> ().removeSet(hashDatabaseName, "Hash", hashSetName);
+                   }
+
+                   if (newRequest->getNeedsRemoveInputSet() == true) {
+                       //remove input set
+                       getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);
+                   }
+
+
+                    //forward result
+                   // now, we send back the result
+                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   if (success == true) {
+                       result->push_back (request->getSinkContext()->getSetName());
+                       PDB_COUT << "Query is done. " << std :: endl;
+                       errMsg = std :: string("execution complete");
+                   } else {
+                       std :: cout << "Query failed at server" << std :: endl;
+                   }
+                   // return the results
+                   if (!sendUsingMe->sendObject (result, errMsg)) {
+                       return std :: make_pair (false, errMsg);
+                   }
+                   if (success == false) {
+                       //TODO:restart backend
+                   }
+                   return std :: make_pair (success, errMsg);
+
+              }
+     ));
+
+
+
+
+       // to handle a request to execute a tupleset pipeline stage
        forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler <TupleSetJobStage>> (
                [&] (Handle <TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
                     getAllocator().printInactiveBlocks();
@@ -110,35 +289,22 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
+                    newRequest->setNeedsRemoveInputSet(request->getNeedsRemoveInputSet());
                     PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                     std :: string outDatabaseName = request->getSinkContext()->getDatabase();
                     std :: string outSetName = request->getSinkContext()->getSetName();
                     success = true;
                     // add the output set
-                    //TODO: check whether output set exists
+                    // check whether output set exists
                     std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                     SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                     if (outputSet == nullptr) {
-                        if(createOutputSet == true) {
-                            getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
-                            outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                            PDB_COUT << "Output set is created in storage" << std :: endl;
-                            int16_t outType = VTableMap :: getIDByName (request->getOutputTypeName (), false);
-                            // create the output set in the storage manager and in the catalog
-                            if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
-                                std :: cout << "Could not create the query output set in catalog for " << outDatabaseAndSet.second << ": " << errMsg << "\n";
-                                return std :: make_pair (false, std :: string("Could not create set in catalog"));;
-                            }
-                            PDB_COUT << "Output set is created in catalog" << std :: endl;
-                        } else {
-                            std :: cout << "ERROR: Output set doesn't exist on this machine, please create it correctly first" << std :: endl;
-                            errMsg = std :: string ("Output set doesn't exist");
-                            success = false;
-                            //return std :: make_pair (false, std :: string("Set doesn't exist"));;
-                        }
-
+                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
+                        outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
+                        PDB_COUT << "Output set is created in storage" << std :: endl;
                     }
+
                     if (success == true) {
                         Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName);
                         PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
@@ -146,8 +312,55 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         sinkContext->setTypeId(outputSet->getTypeID());
                         sinkContext->setSetId(outputSet->getSetID());
                         newRequest->setSinkContext(sinkContext);
+
+                    } else {
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getSinkContext()->getSetName());
+                        PDB_COUT << "Query failed: not able to create output set. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("Query failed: not able to create output set"));
+                    }
+
+
+                    bool needsRemoveCombinerSet = false;
+                    SetPtr combinerSet = nullptr;
+                    std :: string combinerDatabaseName;
+                    std :: string combinerSetName;
+                    if (request->getCombinerContext() != nullptr) {
+                        combinerDatabaseName = request->getCombinerContext()->getDatabase();
+                        combinerSetName = request->getCombinerContext()->getSetName();
+                        success = true;
+                        // add the combiner set
+                        // check whether the combiner set exists
+                        std :: pair <std :: string, std :: string> combinerDatabaseAndSet = std :: make_pair (combinerDatabaseName, combinerSetName);
+                        combinerSet = getFunctionality <PangeaStorageServer> ().getSet(combinerDatabaseAndSet);
+                        if (combinerSet == nullptr) {
+                                success = getFunctionality <PangeaStorageServer> ().addSet(combinerDatabaseName, "Combiner", combinerSetName);
+                                combinerSet = getFunctionality <PangeaStorageServer> ().getSet(combinerDatabaseAndSet);
+                                needsRemoveCombinerSet = true;
+                                PDB_COUT << "Combiner set is created in storage" << std :: endl;
+                        }
+                    }
+
+
+                    if (success == true) {
+                        if (combinerSet != nullptr) {
+                            Handle<SetIdentifier> combinerContext = makeObject<SetIdentifier>(combinerDatabaseName, combinerSetName);
+                            PDB_COUT << "Created SetIdentifier object for combiner with setName=" << combinerSetName << ", setId=" << combinerSet->getSetID() << std :: endl;
+                            combinerContext->setDatabaseId(combinerSet->getDbID());
+                            combinerContext->setTypeId(combinerSet->getTypeID());
+                            combinerContext->setSetId(combinerSet->getSetID());
+                            newRequest->setCombinerContext(combinerContext);
+                        } else {
+                            newRequest->setCombinerContext(nullptr);
+                        }
                         newRequest->setOutputTypeName(request->getOutputTypeName());
                         PDB_COUT << "Output is set" << std :: endl;
+
+                        newRequest->setNeedsRemoveCombinerSet(needsRemoveCombinerSet);
 
                         Handle<ComputePlan> origPlan = request->getComputePlan();
                         Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(origPlan);
@@ -172,6 +385,18 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                             }
                         }
                    }
+
+                   if (needsRemoveCombinerSet == true) {
+                       //remove combiner set
+                       getFunctionality <PangeaStorageServer> ().removeSet(combinerDatabaseName, "Combiner", combinerSetName);
+                   }
+
+                   if (newRequest->getNeedsRemoveInputSet() == true) {
+                       //remove input set
+                       getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);
+                   }
+
+
                    // now, we send back the result
                    Handle <Vector <String>> result = makeObject <Vector <String>> ();
                    if (success == true) {

@@ -215,6 +215,23 @@ namespace pdb {
                 return this->myNodeId;
             }
 
+            bool getNeedsRemoveInputSet () {
+                return this->needsRemoveInputSet;
+            }
+
+            void setNeedsRemoveInputSet (bool needsRemoveInputSet) {
+                this->needsRemoveInputSet = needsRemoveInputSet;
+            }
+
+            bool getNeedsRemoveCombinerSet () {
+                return this->needsRemoveCombinerSet;
+            }
+
+            void setNeedsRemoveCombinerSet (bool needsRemoveCombinerSet) {
+                this->needsRemoveCombinerSet = needsRemoveCombinerSet;
+            }
+
+
             ENABLE_DEEP_COPY
 
 
@@ -274,6 +291,13 @@ namespace pdb {
 
             // node id of the receiver of this message
             NodeID myNodeId;
+
+            // needs remove combiner set at frontend
+            bool needsRemoveCombinerSet;
+
+            // needs remove input set at frontend
+            bool needsRemoveInputSet;
+
 
    };
 

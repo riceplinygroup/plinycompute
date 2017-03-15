@@ -27,7 +27,8 @@
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "SetIdentifier.h"
-#include "Computation.h"
+#include "AbstractAggregateComp.h"
+
 
 // PRELOAD %AggregationJobStage%
 
@@ -40,12 +41,15 @@ namespace pdb {
 
             AggregationJobStage () {}
              
-            AggregationJobStage (JobStageID stageId, bool materializeOrNot) {
+            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation) {
                 this->id = stageId;
                 this->materializeOrNot = materializeOrNot; 
+                this->aggComputation = aggComputation;
             }
 
             ~AggregationJobStage () {}
+
+
 
             //to set source set identifier
             void setSourceContext( Handle<SetIdentifier> sourceContext ) {
@@ -81,6 +85,10 @@ namespace pdb {
                 return this->id;
             }
 
+            bool needsToMaterializeAggOut () {
+                return materializeOrNot;
+            } 
+
             void print() {
                 PDB_COUT << "[ID] id=" << id << std :: endl;
                 PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
@@ -96,14 +104,29 @@ namespace pdb {
                 this->outputTypeName = outputTypeName;
             }
 
-            Handle<Computation> getAggComputation() {
+            Handle<AbstractAggregateComp> getAggComputation() {
                 return aggComputation;
             }
 
-            void setAggComputation (Handle<Computation> aggComputation) {
+            void setAggComputation (Handle<AbstractAggregateComp> aggComputation) {
                 this->aggComputation = aggComputation;
             }
 
+            void setNeedsRemoveInputSet (bool needsRemoveInputSet) {
+                this->needsRemoveInputSet = needsRemoveInputSet;
+            }
+
+            bool getNeedsRemoveInputSet () {
+                return this->needsRemoveInputSet;
+            }
+
+            void setNeedsRemoveHashSet (bool needsRemoveHashSet) {
+                this->needsRemoveHashSet = needsRemoveHashSet;
+            }
+
+            bool getNeedsRemoveHashSet () {
+                return this->needsRemoveHashSet;
+            }
 
             ENABLE_DEEP_COPY
 
@@ -122,7 +145,13 @@ namespace pdb {
 
             bool materializeOrNot;
 
-            Handle<Computation> aggComputation;
+            Handle<AbstractAggregateComp> aggComputation;
+
+            bool needsRemoveInputSet;
+
+            bool needsRemoveHashSet;
+
+
    };
 
 }
