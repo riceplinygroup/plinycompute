@@ -485,6 +485,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
          combinerBuzzer->wait();
     }
 
+
     pthread_mutex_destroy(&connection_mutex);
 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
