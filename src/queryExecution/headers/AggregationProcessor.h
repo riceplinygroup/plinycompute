@@ -35,7 +35,8 @@ class AggregationProcessor : public SimpleSingleTableQueryProcessor {
 public:
 
     ~AggregationProcessor () {};
-    AggregationProcessor ();
+    AggregationProcessor () {};
+    AggregationProcessor (HashPartitionID id);   
     void initialize () override;
     void loadInputPage (void * pageToProcess) override;
     void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
@@ -43,15 +44,16 @@ public:
     void finalize () override;
     void clearOutputPage () override;
     void clearInputPage () override;
+    bool needsProcessInput() override;
 
 private:
 
     UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle <Map <KeyType, ValueType>>>> inputData;
+    Handle <Map <KeyType, ValueType>> inputData;
     Handle <Map <KeyType, ValueType>> outputData;
     bool finalized;
-    int curVecPos;
     Handle<Map<KeyType, ValueType>> curMap;
+    int id;
     
     //the iterators for current map partition
     PDBMapIterator <KeyType, ValueType> begin;

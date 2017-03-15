@@ -55,6 +55,9 @@ public:
         // must be called before free the data in input page
         virtual void clearInputPage() = 0;
 
+        //has to process input page or not
+        virtual bool needsProcessInput() { return true; }
+
 };
 
 }

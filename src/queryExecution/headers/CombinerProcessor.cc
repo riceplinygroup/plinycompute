@@ -32,7 +32,7 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (int numClusterParti
 
     int i;
     for (i = 0; i < nodePartitionIds.size(); i ++) {
-        nodePartitionIds.push_back(nodePartitionIds[i];
+        nodePartitionIds.push_back(nodePartitionIds[i]);
     }
 
 }
@@ -66,6 +66,7 @@ void CombinerProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToWrit
     int i;
     for ( i = 0; i < numNodePartitions; i ++ ) {
         Handle<Map<KeyType, ValueType>> currentMap =  makeObject<Map<KeyType, ValueType>>();
+        currentMap->setHashPartitionId (i);
         outputData->push_back(currentMap);
     }
     curOutputMap = (*outputData)[curPartPos];
