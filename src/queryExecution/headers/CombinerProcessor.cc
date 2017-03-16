@@ -34,7 +34,6 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (int numClusterParti
     for (i = 0; i < nodePartitionIds.size(); i ++) {
         nodePartitionIds.push_back(nodePartitionIds[i]);
     }
-
 }
 
 //initialize
@@ -52,8 +51,8 @@ void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProce
     curPartPos = 0;
     curPartId = nodePartitionIds[curPartPos];
     curMap = (*inputData)[curPartId];
-    begin = curMap->begin();
-    end = curMap->end();
+    begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
+    end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
 }
 
 //loads up another output page to write results to
@@ -88,20 +87,20 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         //see if there are any more items in current map to iterate over
         while (true) {
 
-            if (begin == end) {
+            if (!((*begin) != (*end))) {
                 if (curPartPos < nodePartitionIds.size()-1) {
                     curPartPos ++;
                     curPartId = nodePartitionIds[curPartPos];
                     curMap = (*inputData)[curPartId];
-                    begin = curMap->begin();
-                    end = curMap->end();
+                    begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
+                    end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
                     curOutputMap = (*outputData)[curPartPos];
                 } else {
                     return false;
                 }
             }
-            KeyType curKey = (*begin).key;
-            ValueType curValue = (*begin).value;
+            KeyType curKey = (*(*begin)).key;
+            ValueType curValue = (*(*begin)).value;
             // if the key is not there
             if (curOutputMap->count (curKey) == 0) {
                 
@@ -110,7 +109,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                 try {
 
                     *temp = curValue;
-                    begin ++;
+                    ++(*begin);
 
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
@@ -121,14 +120,14 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
             } else {
 
                 //get the value and copy of it
-                ValueType &temp = curOutputMap[curKey];
+                ValueType &temp = (*curOutputMap)[curKey];
                 ValueType copy = temp;
 
                 //and add to old value, producing a new one
                 try {
 
                     temp = copy + curValue;
-                    begin ++;
+                    ++(*begin);
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {

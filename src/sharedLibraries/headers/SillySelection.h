@@ -35,7 +35,7 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	EmployeeSelection () {}
+	SillySelection () {}
 
 	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
 		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);

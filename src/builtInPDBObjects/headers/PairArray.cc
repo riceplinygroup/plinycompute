@@ -461,19 +461,19 @@ size_t PairArray <KeyType, ValueType> :: getSize (void *forMe) {
 }
 
 template <class KeyType, class ValueType> 
-PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn, bool) : iterateMe (*iterateMeIn) {
+PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn, bool) : iterateMe (iterateMeIn) {
 	slot = 0;
 	done = false;
-	int objSize = iterateMe.objSize;
-	while (slot != iterateMe.numSlots && GET_HASH (iterateMe.data, slot) == UNUSED) 
+	int objSize = iterateMe->objSize;
+	while (slot != iterateMe->numSlots && GET_HASH (iterateMe->data, slot) == UNUSED) 
 		slot++;
 
-	if (slot == iterateMe.numSlots)
+	if (slot == iterateMe->numSlots)
 		done = true;
 }
 
 template <class KeyType, class ValueType> 
-PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn) : iterateMe (*iterateMeIn) {
+PDBMapIterator <KeyType, ValueType> :: PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn) : iterateMe (iterateMeIn) {
 	done = true;
 }
 
@@ -482,19 +482,19 @@ void PDBMapIterator <KeyType, ValueType> :: operator ++ () {
 	if (!done)
 		slot++;
 
-	int objSize = iterateMe.objSize;
-	while (slot != iterateMe.numSlots && GET_HASH (iterateMe.data, slot) == UNUSED) 
+	int objSize = iterateMe->objSize;
+	while (slot != iterateMe->numSlots && GET_HASH (iterateMe->data, slot) == UNUSED) 
 		slot++;
 
-	if (slot == iterateMe.numSlots)
+	if (slot == iterateMe->numSlots)
 		done = true;
 }
 
 template <class KeyType, class ValueType>
 MapRecordClass <KeyType, ValueType> & PDBMapIterator <KeyType, ValueType> :: operator * () {
 	
-	int objSize = iterateMe.objSize;
-	return *((MapRecordClass <KeyType, ValueType> *) GET_HASH_PTR (iterateMe.data, slot)); 
+	int objSize = iterateMe->objSize;
+	return *((MapRecordClass <KeyType, ValueType> *) GET_HASH_PTR (iterateMe->data, slot)); 
 }
 
 template <class KeyType, class ValueType>

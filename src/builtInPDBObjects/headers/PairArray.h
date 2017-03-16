@@ -40,7 +40,7 @@ template <class KeyType, class ValueType>
 class PDBMapIterator {
 
 public:
-
+        PDBMapIterator() { done = true; iterateMe = nullptr;};
 	bool operator != (const PDBMapIterator &me) const;
 	MapRecordClass <KeyType, ValueType> &operator * ();
 	void operator ++ ();
@@ -50,7 +50,7 @@ public:
 private:
 
 	uint32_t slot;
-	PairArray <KeyType, ValueType> &iterateMe;
+	Handle<PairArray <KeyType, ValueType>> iterateMe;
 	bool done;
 	
 };
