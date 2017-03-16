@@ -34,14 +34,13 @@ public:
 
         ENABLE_DEEP_COPY
 
-        SillyAggregation () {}
-
-        SillyAggregation (int numPartitions, int batchSize) {
-                initialize(numPartitions, batchSize);
+        SillyAggregation () {
+                initialize();
         }
 
-        SillyAggregation (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
-                initialize(numPartitions, batchSize, dbName, setName);
+
+        SillyAggregation (std :: string dbName, std :: string setName) {
+                initialize(dbName, setName);
         }
 
 

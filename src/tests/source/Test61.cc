@@ -228,7 +228,7 @@ int main (int argc, char * argv[]) {
 	// create all of the computation objects
 	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("chris_db", "chris_set");
 	Handle <Computation> myFilter = makeObject <SillySelection> ();
-	Handle <Computation> myAgg = makeObject <SillyAggregation> (32, 100, "chris_db", "output_set1");
+	Handle <Computation> myAgg = makeObject <SillyAggregation> ("chris_db", "output_set1");
 	
 	// put them in the list of computations
 	myComputations->push_back (myScanSet);
