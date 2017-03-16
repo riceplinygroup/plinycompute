@@ -38,12 +38,9 @@ class ClusterAggregateComp : public AbstractAggregateComp {
 
 public:
 
-    ENABLE_DEEP_COPY
-
-    ClusterAggregateComp () {}
 
     //Not materialize aggregation output, use MapTupleSetIterator as consumer's ComputeSource
-    ClusterAggregateComp (int numPartitions, int batchSize) {
+    void initialize (int numPartitions, int batchSize) {
         this->numPartitions = numPartitions;
         this->batchSize = batchSize;
         this->materializeAggOut = false;
@@ -52,7 +49,7 @@ public:
     }
 
     //materialize aggregation output, use ScanUserSet to obtain consumer's ComputeSource
-    ClusterAggregateComp (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
+    void initialize (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
         this->numPartitions = numPartitions;
         this->materializeAggOut = true;
         this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();

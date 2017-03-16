@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SCAN_SUPERVISOR_SET_H
-#define SCAN_SUPERVISOR_SET_H
+#ifndef SCAN_SUPERVISOR_SET_CC
+#define SCAN_SUPERVISOR_SET_CC
 
 #include "ScanSupervisorSet.h"
 #include "GetVTable.h"

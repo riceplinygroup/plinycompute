@@ -34,7 +34,7 @@ class CombinerProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
 
-    ~CombinerProcessor () {};
+    ~CombinerProcessor () { begin = nullptr; end = nullptr; };
     CombinerProcessor (int numClusterPartitions, int numNodePartitions, Vector<HashPartitionID> nodePartitionIds);
     void initialize () override;
     void loadInputPage (void * pageToProcess) override;
@@ -59,8 +59,8 @@ private:
     Handle<Map<KeyType, ValueType>> curOutputMap;
     
     //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> begin;
-    PDBMapIterator <KeyType, ValueType> end;
+    PDBMapIterator <KeyType, ValueType> * begin;
+    PDBMapIterator <KeyType, ValueType> * end;
 
     //partitions on this node
     std :: vector <HashPartitionID> nodePartitionIds;

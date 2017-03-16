@@ -48,12 +48,12 @@ private:
 
     UseTemporaryAllocationBlockPtr blockPtr;
     Handle <Map <KeyType, ValueType>> inputData;
-    Handle <Vector<OutputClass>> outputData;
+    Handle <Vector<Handle<OutputClass>>> outputData;
     bool finalized;
     
     //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> begin;
-    PDBMapIterator <KeyType, ValueType> end;
+    PDBMapIterator <KeyType, ValueType> * begin;
+    PDBMapIterator <KeyType, ValueType> * end;
 
     //current pos in output vector
     int pos;

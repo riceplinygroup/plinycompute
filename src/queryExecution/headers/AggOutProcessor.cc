@@ -27,7 +27,6 @@ template <class OutputClass, class KeyType, class ValueType>
 AggOutProcessor <OutputClass, KeyType, ValueType> :: AggOutProcessor () {
 
     finalized = false;
-
 }
 
 //initialize
@@ -42,8 +41,8 @@ void AggOutProcessor <OutputClass, KeyType, ValueType> :: loadInputPage (void * 
 
     Record <Map<KeyType, ValueType>> * myRec = (Record <Map<KeyType, ValueType>> *) pageToProcess;
     inputData = myRec->getRootObject();
-    begin = inputData->begin();
-    end = inputData->end();
+    begin = new PDBMapIterator <KeyType, ValueType>(inputData->getArray(), true);
+    end = new PDBMapIterator <KeyType, ValueType>(inputData->getArray());
 }
 
 //loads up another output page to write results to
@@ -52,7 +51,7 @@ void AggOutProcessor <OutputClass, KeyType, ValueType> :: loadOutputPage (void *
 
     blockPtr = nullptr;
     blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(pageToWriteTo, numBytesInPage);
-    outputData = makeObject<Vector<OutputClass>> ();
+    outputData = makeObject<Vector<Handle<OutputClass>>> ();
     pos = 0;
 
 }
@@ -71,16 +70,16 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
         //see if there are any more items in current map to iterate over
         while (true) {
 
-            if (begin == end) {
+            if (!((*begin) != (*end))) {
                     return false;
             }
           
             Handle<OutputClass> temp = makeObject<OutputClass> ();
             outputData->push_back(temp);
-            (*outputData)[pos]->getKey() = (*begin).key;
-            (*outputData)[pos]->getValue() = (*begin).value;
+            (*outputData)[pos]->getKey() = (*(*begin)).key;
+            (*outputData)[pos]->getValue() = (*(*begin)).value;
             pos++;
-            ++begin;
+            ++(*begin);
         }
 
     } catch (NotEnoughSpace &n) {

@@ -28,7 +28,6 @@ AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (HashPartition
 
     this->id = id;
     finalized = false;
-
 }
 
 //initialize
@@ -48,8 +47,8 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputPage (void * pageToPr
     for ( i = 0; i < numPartitions; i ++ ) {
         curMap = (*inputData)[i];
         if( curMap->getHashPartitionId() == id ) {
-            begin = curMap->begin();
-            end = curMap->end();
+            begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
+            end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
             break;
         } else {
             //there is no hash partition for this thread
@@ -87,11 +86,11 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         //see if there are any more items in current map to iterate over
         while (true) {
 
-            if (begin == end) {
+            if (!((*begin) != (*end))) {
                 return false;
             }
-            KeyType curKey = (*begin).key;
-            ValueType curValue = (*begin).value;
+            KeyType curKey = (*(*begin)).key;
+            ValueType curValue = (*(*begin)).value;
             // if the key is not there
             if (outputData->count (curKey) == 0) {
                 
@@ -100,7 +99,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                 try {
 
                     *temp = curValue;
-                    ++begin;
+                    ++(*begin);
 
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
@@ -111,14 +110,14 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
             } else {
 
                 //get the value and copy of it
-                ValueType &temp = outputData[curKey];
+                ValueType &temp = (*outputData)[curKey];
                 ValueType copy = temp;
 
                 //and add to old value, producing a new one
                 try {
 
                     temp = copy + curValue;
-                    ++begin;
+                    ++(*begin);
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {

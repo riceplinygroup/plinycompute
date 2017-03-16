@@ -21,6 +21,10 @@
 //by Jia, Mar 2017
 
 #include "ClusterAggregateComp.h"
+#include "ZA_DepartmentTotal.h"
+#include "Employee.h"
+#include "LambdaCreationFunctions.h"
+
 
 using namespace pdb;
 
@@ -30,12 +34,15 @@ public:
 
         ENABLE_DEEP_COPY
 
-        SillyAggregation() {}
+        SillyAggregation () {}
 
-        SillyAggregation (int numPartitions, int batchSize) : super (numPartitions, batchSize) {}
+        SillyAggregation (int numPartitions, int batchSize) {
+                initialize(numPartitions, batchSize);
+        }
 
-        SillyAggregation (int numPartitions, int batchSize, std :: string dbName, std :: string setName) 
-            : super (numPartitions, batchSize, dbName, setName) {}
+        SillyAggregation (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
+                initialize(numPartitions, batchSize, dbName, setName);
+        }
 
 
         // the key type must have == and size_t hash () defined
