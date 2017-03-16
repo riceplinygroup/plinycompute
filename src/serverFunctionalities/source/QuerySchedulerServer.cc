@@ -586,7 +586,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         jobStage->setProbing(false);
         jobStage->setRepartition(true);
         jobStage->setCombining(true);
-        jobStage->setNeedsRemoveInputSet(true);
+        jobStage->setNeedsRemoveInputSet(false);
         jobStage->setNeedsRemoveCombinerSet(true);
 
 

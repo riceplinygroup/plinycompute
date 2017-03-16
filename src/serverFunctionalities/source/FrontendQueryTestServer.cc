@@ -88,7 +88,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         makeObject<AggregationJobStage>(request->getStageId(), request->needsToMaterializeAggOut(), request->getAggComputation(), request->getNumNodePartitions());
                     PDB_COUT << "Created AggregationJobStage object for forwarding" << std :: endl;
 
-
+                    newRequest->setNumNodePartitions (request->getNumNodePartitions());
 
                     //input set
                     //restructure the input information  
@@ -135,6 +135,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     }
 
                     if (success == true) {
+                        newRequest->setOutputTypeName(request->getOutputTypeName());
                         Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName);
                         PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
                         sinkContext->setDatabaseId(outputSet->getDbID());
@@ -219,7 +220,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         return std :: make_pair(false, errMsg);
                     }
                     PDB_COUT << "Frontend connected to backend" << std :: endl;
-                    Handle <TupleSetJobStage> newRequest = makeObject<TupleSetJobStage>(request->getStageId());
+                    Handle <TupleSetJobStage> newRequest = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (request);
+
+
+
                     PDB_COUT << "Created TupleSetJobStage object for forwarding" << std :: endl;
                     //restructure the input information  
                     std :: string inDatabaseName = request->getSourceContext()->getDatabase();
@@ -246,7 +250,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
-                    newRequest->setNeedsRemoveInputSet(request->getNeedsRemoveInputSet());
                     PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                     std :: string outDatabaseName = request->getSinkContext()->getDatabase();
@@ -257,7 +260,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                     SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                     if (outputSet == nullptr) {
-                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
+                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
                         outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                         PDB_COUT << "Output set is created in storage" << std :: endl;
                     }
@@ -295,7 +298,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         std :: pair <std :: string, std :: string> combinerDatabaseAndSet = std :: make_pair (combinerDatabaseName, combinerSetName);
                         combinerSet = getFunctionality <PangeaStorageServer> ().getSet(combinerDatabaseAndSet);
                         if (combinerSet == nullptr) {
-                                success = getFunctionality <PangeaStorageServer> ().addSet(combinerDatabaseName, "Combiner", combinerSetName);
+                                success = getFunctionality <PangeaStorageServer> ().addSet(combinerDatabaseName, combinerSetName);
                                 combinerSet = getFunctionality <PangeaStorageServer> ().getSet(combinerDatabaseAndSet);
                                 needsRemoveCombinerSet = true;
                                 PDB_COUT << "Combiner set is created in storage" << std :: endl;
@@ -314,18 +317,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         } else {
                             newRequest->setCombinerContext(nullptr);
                         }
-                        newRequest->setOutputTypeName(request->getOutputTypeName());
-                        PDB_COUT << "Output is set" << std :: endl;
 
                         newRequest->setNeedsRemoveCombinerSet(needsRemoveCombinerSet);
 
-                        Handle<ComputePlan> origPlan = request->getComputePlan();
-                        Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(origPlan);
-                        newRequest->setComputePlan(newPlan, request->getSourceTupleSetSpecifier(), request->getTargetTupleSetSpecifier(),
-                             request->getTargetComputationSpecifier());
-                        newRequest->setProbing(request->isProbing());
-                        newRequest->setRepartition(request->isRepartition());
-                        newRequest->setCombining(request->isCombining());
                         newRequest->print();
                         
                         if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
