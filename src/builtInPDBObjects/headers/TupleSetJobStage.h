@@ -177,6 +177,14 @@ namespace pdb {
                 PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
                 PDB_COUT << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
                 PDB_COUT << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                PDB_COUT << "Number of cluster nodes=" << getNumNodes() << std :: endl;
+                PDB_COUT << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
+                int i; 
+                for ( i = 0; i < numNodes; i ++) {
+                    Handle<Vector<HashPartitionID>> partitions = getNumPartitions(i);
+                    PDB_COUT << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
+                    PDB_COUT << "IP address on node-" << i << " is " << getIPAddress(i);
+                }
             }
 
             std :: string getOutputTypeName () {
