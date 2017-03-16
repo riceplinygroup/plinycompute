@@ -60,9 +60,11 @@ public:
 
     virtual std :: string getSetName () = 0;
 
-    void setHashTable (void * hashTable) {
-        this->whereHashTableSitsForThePartition = hashTable;
-    }
+    virtual void setOutputType (std :: string outputType) { this->outputTypeName = outputType; }
+
+    virtual std :: string getOutputType () { return this->outputTypeName; }
+
+    void setHashTable (void * hashTableLocation) { this->whereHashTableSitsForThePartition = hashTableLocation; }
 
 protected:
 
@@ -70,6 +72,7 @@ protected:
     int numPartitions;
     bool materializeAggOut;
     int batchSize;
+    String outputTypeName;
     void * whereHashTableSitsForThePartition;
 
 };

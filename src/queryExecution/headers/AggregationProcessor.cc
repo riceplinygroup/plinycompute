@@ -24,7 +24,7 @@ namespace pdb {
 
 
 template <class KeyType, class ValueType>
-AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (int id) {
+AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (HashPartitionID id) {
 
     this->id = id;
     finalized = false;

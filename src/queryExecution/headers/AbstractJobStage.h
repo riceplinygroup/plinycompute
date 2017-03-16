@@ -15,50 +15,25 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef ABSTRACT_JOBSTAGE_H
+#define ABSTRACT_JOBSTAGE_H
 
-#ifndef ZA_DEPARTMENTAL_TOTAL_H
-#define ZA_DEPARTMENTAL_TOTAL_H
-
-#include "Object.h"
-#include "PDBString.h"
-
-//  PRELOAD %ZA_DepartmentTotal%
+//by Jia, Mar 2017
 
 namespace pdb {
 
-class ZA_DepartmentTotal : public Object {
+    class AbstractJobStage : public Object {
+    
+    public:
 
-public:
+    virtual std :: string getJobStageType() = 0;
 
-	double totSales;
-	String departmentName;
-	
-	ENABLE_DEEP_COPY
+    virtual void print() = 0;
 
-	bool checkSales () {
-		if ((((int) (totSales * 10)) + 5) / 10 == ((int) (totSales * 10)) / 10) {
-			return true;
-		}
-		return false;
-	}
+    };
 
-	Handle <double> getTotSales () {
-		Handle <double> returnVal = makeObject <double> (totSales);
-		return returnVal;
-	}
 
-	String &getKey () {
-		return departmentName;
-	}
-	
-	double &getValue () {
-		return totSales;
-	}
 
-        void print() {
-               std :: cout << departmentName << ":" << totSales << std :: endl;
-        }
-};
 
 }
 

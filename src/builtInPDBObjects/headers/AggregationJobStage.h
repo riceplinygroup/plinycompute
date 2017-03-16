@@ -28,14 +28,14 @@
 #include "PDBString.h"
 #include "SetIdentifier.h"
 #include "AbstractAggregateComp.h"
-
+#include "AbstractJobStage.h"
 
 // PRELOAD %AggregationJobStage%
 
 namespace pdb {
 
     //encapsulates a synchronous aggregation consuming job stage
-    class AggregationJobStage : public Object {
+    class AggregationJobStage : public AbstractJobStage {
         
     public:
 
@@ -50,7 +50,9 @@ namespace pdb {
 
             ~AggregationJobStage () {}
 
-
+            std :: string getJobStageType () override {
+                return "AggregationJobStage";
+            }
 
             //to set source set identifier
             void setSourceContext( Handle<SetIdentifier> sourceContext ) {
@@ -80,7 +82,7 @@ namespace pdb {
                 return materializeOrNot;
             } 
 
-            void print() {
+            void print() override {
                 PDB_COUT << "[ID] id=" << id << std :: endl;
                 PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
                 PDB_COUT << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;

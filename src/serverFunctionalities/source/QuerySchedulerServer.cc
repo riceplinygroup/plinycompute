@@ -49,6 +49,7 @@
 #include "DataTypes.h"
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
+#include "ClusterAggregateComp.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -210,7 +211,7 @@ bool QuerySchedulerServer :: scheduleNew(std :: string ip, int port, PDBLoggerPt
 */
 
 //to replace: schedule (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode)
-bool QuerySchedulerServer :: scheduleStages (std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
+bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode) {
 
     pthread_mutex_lock(&connection_mutex);
     PDB_COUT << "to connect to the remote node" << std :: endl;
@@ -233,10 +234,44 @@ bool QuerySchedulerServer :: scheduleStages (std :: string ip, int port, PDBLogg
         PDB_COUT << "#####################################" << std :: endl;
     }
     pthread_mutex_unlock(&connection_mutex);
+    int numNodes = standardResources->size();
+    int numCores = 0;
+    int i,j;
+    Handle<Vector<Handle<Vector<HashPartitionID>>>> numPartitions =
+        makeObject<Vector<Handle<Vector<HashPartitionID>>>> ();
+    HashPartitionID id = 0;
+    Handle<Vector<String>> addresses = makeObject<Vector<String>>();
+    for (i = 0; i < numNodes; i++) {
+        Handle<Vector<HashPartitionID>> partitions= makeObject<Vector<HashPartitionID>>();
+        StandardResourceInfoPtr node = standardResources->at(i);
+        int numCoresOnThisNode = node->getNumCores();
+        for (j = 0; j < numCoresOnThisNode; j++) {
+             partitions->push_back(id);
+             id ++;
+        }
+        numPartitions->push_back(partitions);
+        String addressOnThisNode = node->getAddress();
+        addresses->push_back(addressOnThisNode);
+        numCores = numCores + numCoresOnThisNode;
+   }
     //Now we only allow one stage for each query graph
-    for (int i = 0; i < 1; i++) {
-        Handle<TupleSetJobStage> stage = queryPlan[i];
-        success = scheduleStage (stage, communicator, mode);
+    for (int i = 0; i < queryPlan.size(); i++) {
+        Handle<AbstractJobStage> stage = queryPlan[i];
+        if(stage->getJobStageType() == "TupleSetJobStage") {
+            Handle<TupleSetJobStage> tupleSetStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
+            tupleSetStage->setNumNodes(numNodes);
+            tupleSetStage->setNumTotalPartitions(numCores);
+            tupleSetStage->setNumPartitions(numPartitions);
+            tupleSetStage->setIPAddresses(addresses);
+            tupleSetStage->setNodeId(i);
+            success = scheduleStage (index, tupleSetStage, communicator, mode);
+        } else if (stage->getJobStageType() == "AggregationJobStage" ) {
+            Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
+            success = scheduleStage (index, aggStage, communicator, mode); 
+        } else {
+            std :: cout << "Unrecognized job stage" << std :: endl;
+            success = false;
+        }
         if (!success) {
             return success;
         }
@@ -284,7 +319,7 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 }
 
 //to replace: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
-bool QuerySchedulerServer :: scheduleStage(Handle<TupleSetJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
+bool QuerySchedulerServer :: scheduleStage(int i, Handle<TupleSetJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
         bool success;
         std :: string errMsg;
         Handle<ComputePlan> plan = stage->getComputePlan();
@@ -323,9 +358,48 @@ bool QuerySchedulerServer :: scheduleStage(Handle<TupleSetJobStage>& stage, PDBC
         }
 
         return true;
-
 }
 
+
+
+bool QuerySchedulerServer :: scheduleStage(int i, Handle<AggregationJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
+        bool success; 
+        std :: string errMsg;
+        PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
+        
+        if (mode == Direct) {
+            stage->print();
+            success = communicator->sendObject<AggregationJobStage>(stage, errMsg);
+            if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return false;
+            } 
+        }else if (mode == DeepCopy) { 
+             Handle<AggregationJobStage> stageToSend = deepCopyToCurrentAllocationBlock<AggregationJobStage> (stage);
+             stageToSend->print();
+             success = communicator->sendObject<AggregationJobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             } 
+        } else { 
+             std :: cout << "Error: No such object creation mode supported in query scheduler" << std :: endl;
+             return false;
+        }
+        PDB_COUT << "to receive query response from the remote node" << std :: endl;
+        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        if (result != nullptr) {
+            for (int j = 0; j < result->size(); j++) {
+                PDB_COUT << "Query execute: wrote set:" << (*result)[j] << std :: endl;
+            }
+        }
+        else {
+            PDB_COUT << "Query execute failure: can't get results" << std :: endl;
+            return false;
+        }
+        
+        return true;
+}
 
 //deprecated
 bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
@@ -440,17 +514,17 @@ String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>>
                 nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";
    } else {
        myTCAPString =
-                "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
+                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
                 inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
                 inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
                 inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_0') \n\
                 filteredInput (in) <= FILTER (inputWithBool (bool), inputWithBool (in), 'SelectionComp_1') \n\
                 projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_4') \n\
                 projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_3') \n\
-                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'AggregationComp_2', 'attAccess_1') \n\
-                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'AggregationComp_2', 'deref_0') \n\
-                aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'methodCall_2') \n\
-                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'AggregationComp_2')";
+                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'ClusterAggregationComp_2', 'attAccess_1') \n\
+                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'ClusterAggregationComp_2', 'deref_0') \n\
+                aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'ClusterAggregationComp_2', 'methodCall_2') \n\
+                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'ClusterAggregationComp_2')";
 
    }
    return myTCAPString;
@@ -481,7 +555,29 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         jobStage->setOutputTypeName(writer->getOutputType());
         this->queryPlan.push_back(jobStage);
     } else {
-
+        Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+        Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
+        jobStageId ++;
+        jobStage->setComputePlan(myPlan, "inputData", "aggWithValue", "ClusterAggregationComp_2");
+        std :: string sourceSpecifier = "ScanUserSet_0";
+        Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
+        Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);
+        Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
+        std :: string sinkSpecifier = "ClusterAggregationComp_2";
+        Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
+        Handle<ClusterAggregateComp<Object, Object, Object, Object>> agg = unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(sinkComputation);
+        Handle<SetIdentifier> sink = makeObject<SetIdentifier>(agg->getDatabaseName(), agg->getSetName());
+        Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(agg->getDatabaseName(), "combinerData");
+        jobStage->setSourceContext(source);
+        jobStage->setSinkContext(sink);
+        jobStage->setCombinerContext(combiner);
+        jobStage->setOutputTypeName(agg->getOutputType());
+        jobStage->setProbing(false);
+        jobStage->setRepartition(true);
+        jobStage->setCombining(true);
+        jobStage->setNeedsRemoveInputSet(true);
+        jobStage->setNeedsRemoveCombinerSet(true);
+        this->queryPlan.push_back(jobStage);
     }
 }
 
@@ -665,7 +761,7 @@ void QuerySchedulerServer :: scheduleQuery() {
                        PDB_COUT << "to schedule on the " << i << "-th node" << std :: endl;
                        PDB_COUT << "port:" << (*(this->standardResources))[i]->getPort() << std :: endl;
                        PDB_COUT << "ip:" << (*(this->standardResources))[i]->getAddress() << std :: endl;
-                       bool success = getFunctionality<QuerySchedulerServer>().scheduleStages ((*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, DeepCopy);
+                       bool success = getFunctionality<QuerySchedulerServer>().scheduleStages (i, (*(this->standardResources))[i]->getAddress(), (*(this->standardResources))[i]->getPort(), this->logger, DeepCopy);
                        if (!success) {
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
@@ -738,7 +834,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
              //placeholder, in future we should remove below logic.
              String tcapString;
-             if (userQuery->size() < 4) {
+             if (request->getIsAggregation() == false) {
                  PDB_COUT << "To transform the ExecuteQuery object into a TCAP string" << std :: endl;
                  tcapString = getFunctionality<QuerySchedulerServer>().transformQueryToTCAP(*userQuery);
              } else {

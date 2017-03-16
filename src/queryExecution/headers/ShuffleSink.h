@@ -70,10 +70,10 @@ public:
 	void writeOut (TupleSetPtr input, Handle <Object> &writeToMe) override {
 
 		// get the map we are adding to
-		Handle <Vector <Handle<Map <KeyType, ValueType>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>> (writeToMe);
+		Handle <Vector <Handle<Map <KeyType, ValueType>>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>>> (writeToMe);
                 size_t hashVal;  
                
-		Map <KeyType, ValueType> &myMap;
+		Map <KeyType, ValueType> myMap;
 
 		// get the input columns
 		std :: vector <KeyType> &keyColumn = input->getColumn <KeyType> (whichAttToHash);
@@ -83,7 +83,7 @@ public:
 		size_t length = keyColumn.size ();
 		for (size_t i = 0; i < length; i++) {
 
-                        hashVal = hasher <KeyType> :: hash(keyColumn[i]);
+                        hashVal = Hasher <KeyType> :: hash(keyColumn[i]);
 
                         myMap = *((*writeMe)[hashVal%numPartitions]);
 
