@@ -19,7 +19,13 @@
 #ifndef SCAN_USER_SET_H
 #define SCAN_USER_SET_H
 
+//PRELOAD %ScanUserSet <Nothing>%
+
 //by Jia, Mar 2017
+
+
+
+
 
 #include "Computation.h"
 #include "PageCircularBufferIterator.h"

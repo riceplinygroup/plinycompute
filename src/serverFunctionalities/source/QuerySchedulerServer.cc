@@ -248,7 +248,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
     for (i = 0; i < numNodes; i++) {
         Handle<Vector<HashPartitionID>> partitions= makeObject<Vector<HashPartitionID>>();
         StandardResourceInfoPtr node = standardResources->at(i);
-        int numCoresOnThisNode = node->getNumCores();
+        int numCoresOnThisNode = node->getNumCores()*3/4;
         for (j = 0; j < numCoresOnThisNode; j++) {
              partitions->push_back(id);
              id ++;
@@ -271,7 +271,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
             success = scheduleStage (index, tupleSetStage, communicator, mode);
         } else if (stage->getJobStageType() == "AggregationJobStage" ) {
             Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
-            aggStage->setNumNodePartitions (standardResources->at(index)->getNumCores());
+            aggStage->setNumNodePartitions (standardResources->at(index)->getNumCores()*3/4);
             aggStage->setAggTotalPartitions (numCores);
             aggStage->setAggBatchSize(BATCH_SIZE);
             success = scheduleStage (index, aggStage, communicator, mode); 
