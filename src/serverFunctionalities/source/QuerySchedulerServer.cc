@@ -54,6 +54,10 @@
 #include <string>
 #include <unordered_map>
 
+#ifndef BATCH_SIZE
+   #define BATCH_SIZE 100
+#endif
+
 namespace pdb {
 
 QuerySchedulerServer :: ~QuerySchedulerServer () {
@@ -268,6 +272,8 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
         } else if (stage->getJobStageType() == "AggregationJobStage" ) {
             Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
             aggStage->setNumNodePartitions (standardResources->at(index)->getNumCores());
+            aggStage->setAggTotalPartitions (numCores);
+            aggStage->setAggBatchSize(BATCH_SIZE);
             success = scheduleStage (index, aggStage, communicator, mode); 
         } else {
             std :: cout << "Unrecognized job stage" << std :: endl;

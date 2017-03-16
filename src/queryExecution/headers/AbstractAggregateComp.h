@@ -40,12 +40,20 @@ public:
 
     virtual SimpleSingleTableQueryProcessorPtr getAggOutProcessor () = 0;
 
-   void setNumPartitions (int numPartitions) {
+    void setNumPartitions (int numPartitions) {
         this->numPartitions = numPartitions;
     }
 
     int getNumPartitions () {
         return this->numPartitions;
+    }
+
+    void setBatchSize (int batchSize) {
+        this->batchSize = batchSize;
+    }
+
+    int getBatchSize () {
+        return this->batchSize;
     }
 
     virtual void setIterator(PageCircularBufferIteratorPtr iterator) = 0;

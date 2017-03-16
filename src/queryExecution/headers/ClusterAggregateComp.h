@@ -40,22 +40,18 @@ public:
 
 
     //Not materialize aggregation output, use MapTupleSetIterator as consumer's ComputeSource
-    void initialize (int numPartitions, int batchSize) {
-        this->numPartitions = numPartitions;
-        this->batchSize = batchSize;
+    void initialize () {
         this->materializeAggOut = false;
         this->outputSetScanner = nullptr;
         this->whereHashTableSitsForThePartition = nullptr;
     }
 
     //materialize aggregation output, use ScanUserSet to obtain consumer's ComputeSource
-    void initialize (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
-        this->numPartitions = numPartitions;
+    void initialize (std :: string dbName, std :: string setName) {
         this->materializeAggOut = true;
         this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();
         this->outputSetScanner->initialize();
         this->outputSetScanner->setBatchSize(batchSize);
-        this->batchSize = batchSize;
         this->outputSetScanner->setDatabaseName(dbName);
         this->outputSetScanner->setSetName(setName);
         this->whereHashTableSitsForThePartition = nullptr;

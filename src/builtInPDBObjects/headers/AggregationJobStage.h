@@ -116,6 +116,14 @@ namespace pdb {
                 return aggComputation;
             }
 
+            void setAggTotalPartitions(int numPartitions) {
+                this->aggComputation->setNumPartitions(numPartitions);
+            }
+
+            void setAggBatchSize (int batchSize) {
+                this->aggComputation->setBatchSize(batchSize);
+            }
+
             void setAggComputation (Handle<AbstractAggregateComp> aggComputation) {
                 this->aggComputation = aggComputation;
             }
