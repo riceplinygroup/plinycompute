@@ -24,10 +24,13 @@
 #include "AbstractAggregateComp.h"
 #include "ScanUserSet.h"
 #include "CombinerProcessor.h"
+#include "AggregationProcessor.h"
 #include "AggOutProcessor.h"
 #include "SimpleSingleTableQueryProcessor.h"
 #include "DataTypes.h"
-
+#include "InterfaceFunctions.h"
+#include "ShuffleSink.h"
+#include "MapTupleSetIterator.h"
 namespace pdb {
 
 template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
@@ -52,7 +55,7 @@ public:
     ClusterAggregateComp (int numPartitions, int batchSize, std :: string dbName, std :: string setName) {
         this->numPartitions = numPartitions;
         this->materializeAggOut = true;
-        this->outputSetScanner = makeObject<ScanUserSet>();
+        this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();
         this->outputSetScanner->initialize();
         this->outputSetScanner->setBatchSize(batchSize);
         this->batchSize = batchSize;
@@ -110,7 +113,7 @@ public:
     }
 
     SimpleSingleTableQueryProcessorPtr getAggOutProcessor() override {
-        return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>();
+        return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>>();
 
     }
 
@@ -137,6 +140,12 @@ public:
     std :: string getSetName () override {
         return this->outputSetScanner->getSetName();
     }
+
+    // this is an aggregation comp
+    std :: string getComputationType () override {
+        return std :: string ("ClusterAggregationComp");
+    }
+
 
 protected:
 

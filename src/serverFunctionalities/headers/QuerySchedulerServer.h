@@ -31,6 +31,7 @@
 #include "PDBLogger.h"
 #include "QueryGraphIr.h"
 #include "TupleSetJobStage.h"
+#include "AggregationJobStage.h"
 #include <vector>
 
 namespace pdb {
@@ -76,7 +77,7 @@ public:
 
        //to replace: bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode)
        //to schedule pipeline stages
-       bool scheduleStages(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
+       bool scheduleStages(int index, std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
        //deprecated
        //to schedule a job stage
@@ -84,8 +85,9 @@ public:
 
        //to replace: bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
        //to schedule a pipeline stage
-       bool scheduleStage(Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
+       bool scheduleStage(int index, Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
 
+       bool scheduleStage(int index, Handle<AggregationJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
        //deprecated
        //to schedule the current job plan on all available resources
        void schedule();
@@ -128,13 +130,12 @@ protected:
        // port number
        int port;
 
-
        // deprecated
        // physical plan that is temporary, however each query scheduler can schedule one JobStage at each time, similar with Spark/Hadoop
        std :: vector<Handle<JobStage>> currentPlan;
 
-       // use TupleSetJobStage to replace JobStage
-       std :: vector<Handle<TupleSetJobStage>> queryPlan;
+       // use TupleSetJobStage/AggregationJobStage to replace JobStage
+       std :: vector<Handle<AbstractJobStage>> queryPlan;
 
        // logger
        PDBLoggerPtr logger;

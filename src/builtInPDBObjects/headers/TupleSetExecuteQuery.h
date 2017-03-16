@@ -30,10 +30,18 @@ class TupleSetExecuteQuery : public Object {
 
 public:
 
-	TupleSetExecuteQuery () {}
+	TupleSetExecuteQuery () { isAggregation = false;}
 	~TupleSetExecuteQuery () {}
 
+        TupleSetExecuteQuery (bool isAggregation) { this->isAggregation = isAggregation; }
+        bool getIsAggregation () { return isAggregation; }
+
 	ENABLE_DEEP_COPY
+
+private:
+
+        bool isAggregation;
+
 
 };
 

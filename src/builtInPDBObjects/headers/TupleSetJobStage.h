@@ -28,12 +28,13 @@
 #include "PDBString.h"
 #include "SetIdentifier.h"
 #include "ComputePlan.h"
+#include "AbstractJobStage.h"
 
 // PRELOAD %TupleSetJobStage%
 
 namespace pdb {
 
-    class TupleSetJobStage : public Object {
+    class TupleSetJobStage : public AbstractJobStage {
         
     public:
 
@@ -68,6 +69,9 @@ namespace pdb {
             }
 
             ~TupleSetJobStage () {}
+
+
+            std :: string getJobStageType() override { return "TupleSetJobStage"; }
  
             //to set compute plan
             void setComputePlan( Handle<ComputePlan> plan, std::string sourceTupleSetSpecifier, std::string targetTupleSetSpecifier, std::string targetComputationSpecifier ) {
@@ -168,7 +172,7 @@ namespace pdb {
                 return this->id;
             }
 
-            void print() {
+            void print() override {
                 PDB_COUT << "[ID] id=" << id << std :: endl;
                 PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
                 PDB_COUT << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
@@ -203,6 +207,15 @@ namespace pdb {
                 return (*ipAddresses)[nodeId];
             }
 
+            void setIPAddresses (Handle<Vector<String>> addresses) {
+                this->ipAddresses = addresses;
+            }
+
+            void setNumPartitions (Handle<Vector<Handle<Vector<HashPartitionID>>>> numPartitions) {
+                this->numPartitions = numPartitions;
+            }
+
+
             int getNumTotalPartitions () {
                 return this->numTotalPartitions;
             }
@@ -213,6 +226,10 @@ namespace pdb {
 
             NodeID getNodeId () {
                 return this->myNodeId;
+            }
+
+            void setNodeId (NodeID nodeId) {
+                this->myNodeId = nodeId;
             }
 
             bool getNeedsRemoveInputSet () {

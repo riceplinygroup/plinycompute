@@ -75,7 +75,7 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
                     return false;
             }
           
-            Handle<OutputType> temp = makeObject<OutputType> ();
+            Handle<OutputClass> temp = makeObject<OutputClass> ();
             outputData->push_back(temp);
             (*outputData)[pos]->getKey() = (*begin).key;
             (*outputData)[pos]->getValue() = (*begin).value;
@@ -92,18 +92,18 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
 }
 
 template <class OutputClass, class KeyType, class ValueType>
-void AggregationProcessor <OutputClass, KeyType, ValueType> :: finalize () {
+void AggOutProcessor <OutputClass, KeyType, ValueType> :: finalize () {
     finalized = true;
 }
 
 template <class OutputClass, class KeyType, class ValueType>
-void AggregationProcessor <OutputClass, KeyType, ValueType> :: clearOutputPage () {
+void AggOutProcessor <OutputClass, KeyType, ValueType> :: clearOutputPage () {
     blockPtr = nullptr;
     outputData = nullptr;
 }
 
 template <class OutputClass, class KeyType, class ValueType>
-void AggregationProcessor <OutputClass, KeyType, ValueType> :: clearInputPage () {
+void AggOutProcessor <OutputClass, KeyType, ValueType> :: clearInputPage () {
     inputData = nullptr;
 }
 

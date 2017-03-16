@@ -127,11 +127,18 @@ public:
 	}
 
 
-        bool executeQuery (std :: string &errMsg, Handle<Vector<Handle<Computation>>> computations) {
+        bool executeQuery (std :: string &errMsg, Handle<Vector<Handle<Computation>>> computations, bool isAggregation = false) {
 
                         // this is the request
                 const UseTemporaryAllocationBlock myBlock {1024};
-                Handle <TupleSetExecuteQuery> executeQuery = makeObject <TupleSetExecuteQuery> ();
+
+                Handle<TupleSetExecuteQuery> executeQuery;
+
+                if (isAggregation == false) {
+                      executeQuery = makeObject <TupleSetExecuteQuery> ();
+                } else {
+                      executeQuery = makeObject <TupleSetExecuteQuery> (true);
+                }
 
                 // this call asks the database to execute the query, and then it inserts the result set name
                 // within each of the results, as well as the database connection information

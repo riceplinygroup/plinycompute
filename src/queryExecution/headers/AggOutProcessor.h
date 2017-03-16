@@ -48,7 +48,7 @@ private:
 
     UseTemporaryAllocationBlockPtr blockPtr;
     Handle <Map <KeyType, ValueType>> inputData;
-    Handle <Vector<OutputClass> outputData;
+    Handle <Vector<OutputClass>> outputData;
     bool finalized;
     
     //the iterators for current map partition
