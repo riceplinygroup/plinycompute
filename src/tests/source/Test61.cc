@@ -174,8 +174,10 @@ int main (int argc, char * argv[]) {
                                      }
                                  }
                             }
+                            //std :: cout << myString << std :: endl;
                             Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
                             storeMe->push_back(myData);
+                            total++;
                             for (int j = 0; j < 10; j++) {
                                  Handle <Employee> temp;
                                  if (i % 2 == 0) {
@@ -223,7 +225,7 @@ int main (int argc, char * argv[]) {
         catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
 
 	// here is the list of computations
-	Handle<Vector <Handle <Computation>>> myComputations;
+	Handle<Vector <Handle <Computation>>> myComputations = makeObject<Vector<Handle<Computation>>> ();
 	
 	// create all of the computation objects
 	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("chris_db", "chris_set");
