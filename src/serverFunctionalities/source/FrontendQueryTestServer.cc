@@ -85,7 +85,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     }
                     PDB_COUT << "Frontend connected to backend" << std :: endl;
                     Handle <AggregationJobStage> newRequest = 
-                        makeObject<AggregationJobStage>(request->getStageId(), request->needsToMaterializeAggOut(), request->getAggComputation());
+                        makeObject<AggregationJobStage>(request->getStageId(), request->needsToMaterializeAggOut(), request->getAggComputation(), request->getNumNodePartitions());
                     PDB_COUT << "Created AggregationJobStage object for forwarding" << std :: endl;
 
 
@@ -118,44 +118,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     newRequest->setSourceContext(sourceContext);
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
                     PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
-
-
-
-                    //hash set
-                    bool needsRemoveHashSet = false;
-                    std :: string hashDatabaseName = request->getHashContext()->getDatabase();
-                    std :: string hashSetName = request->getHashContext()->getSetName();
-                    success = true;
-                    // add the output set
-                    // check whether hash set exists
-                    std :: pair <std :: string, std :: string> hashDatabaseAndSet = std :: make_pair (hashDatabaseName, hashSetName);
-                    SetPtr hashSet = getFunctionality <PangeaStorageServer> ().getSet(hashDatabaseAndSet);
-                    if (hashSet == nullptr) {
-                        success = getFunctionality <PangeaStorageServer> ().addSet(hashDatabaseName, "Hash", hashSetName);
-                        hashSet = getFunctionality <PangeaStorageServer> ().getSet(hashDatabaseAndSet);
-                        needsRemoveHashSet = true;
-                        PDB_COUT << "Output set is created in storage" << std :: endl;
-                    }
-
-                    if (success == true) {
-                        Handle<SetIdentifier> hashContext = makeObject<SetIdentifier>(hashDatabaseName, hashSetName);
-                        PDB_COUT << "Created SetIdentifier object for hash with setName=" << hashSetName << ", setId=" << hashSet->getSetID() << std :: endl;
-                        hashContext->setDatabaseId(hashSet->getDbID());
-                        hashContext->setTypeId(hashSet->getTypeID());
-                        hashContext->setSetId(hashSet->getSetID());
-                        newRequest->setHashContext(hashContext);
-                        newRequest->setNeedsRemoveHashSet(needsRemoveHashSet);
-                    } else {
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getSinkContext()->getSetName());
-                        PDB_COUT << "Query failed: not able to create hash set. " << std :: endl;
-                        // return the results
-                        if (!sendUsingMe->sendObject (result, errMsg)) {
-                            return std :: make_pair (false, errMsg);
-                        }
-                        return std :: make_pair (true, std :: string("Query failed: not able to create hash set"));
-                    }
-
 
                    
                     //output set
@@ -211,11 +173,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
 
                     //remove sets
-                   if (needsRemoveHashSet == true) {
-                       //remove hash set
-                       getFunctionality <PangeaStorageServer> ().removeSet(hashDatabaseName, "Hash", hashSetName);
-                   }
-
                    if (newRequest->getNeedsRemoveInputSet() == true) {
                        //remove input set
                        getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);

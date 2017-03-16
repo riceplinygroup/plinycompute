@@ -24,6 +24,7 @@
 #define HERMES_EXECUTION_SERVER_CC
 
 #include "PDBDebug.h"
+#include "GenericWork.h"
 #include "HermesExecutionServer.h"
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
@@ -42,6 +43,7 @@
 #include "QueryBase.h"
 #include "JobStage.h"
 #include "TupleSetJobStage.h"
+#include "AggregationJobStage.h"
 #include "PipelineNetwork.h"
 #include "PipelineStage.h"
 #include <vector>
@@ -176,7 +178,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
               }
     ));
-  
+      
     //register a handler to process the BackendTestSetScan message
     forMe.registerHandler (BackendTestSetScan_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetScan>> (
               [&] (Handle<BackendTestSetScan> request, PDBCommunicatorPtr sendUsingMe) {
@@ -290,10 +292,304 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             }
             ));
 
+
+   //register a handler to process the AggregationJobStge message
+   forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler<AggregationJobStage>> (
+          [&] (Handle<AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+              bool success;
+              std :: string errMsg;
+
+              PDB_COUT << "Backend got Aggregation JobStage message with Id=" << request->getStageId() << std :: endl;
+              request->print();
+
+              //get number of partitions
+              int numPartitions = request->getNumNodePartitions();
+
+              //create multiple page circular queues
+              int aggregationBufferSize = 2;              
+              std :: vector<PageCircularBufferPtr> hashBuffers;
+              std :: vector<PageCircularBufferIteratorPtr> hashIters;
+
+              pthread_mutex_t connection_mutex;
+              pthread_mutex_init (&connection_mutex, nullptr);
+
+              //create data proxy
+              pthread_mutex_lock(&connection_mutex);
+              PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+              pthread_mutex_unlock(&connection_mutex);
+
+
+              pthread_mutex_lock(&connection_mutex);
+              PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+              anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+              pthread_mutex_unlock(&connection_mutex);
+              DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+
+              //create a buzzer and counter
+              PDBBuzzerPtr hashBuzzer = make_shared<PDBBuzzer>(
+                   [&] (PDBAlarm myAlarm, int & hashCounter) {
+                        hashCounter ++;
+                        PDB_COUT << "hashCounter = " << hashCounter << std :: endl;
+              });
+              std :: cout << "to run aggregation with " << numPartitions << " threads." << std :: endl;
+              int hashCounter = 0;
+            
+
+              //start multiple threads
+              //each thread creates a hash set as temp set, and put key-value pairs to the hash set
+              int i;
+              for ( i = 0; i < numPartitions; i ++ ) {
+                  PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(aggregationBufferSize, logger);
+                  hashBuffers.push_back(buffer);
+                  PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, logger);
+                  hashIters.push_back(iter);
+                  PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                  PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
+                  // start threads
+                  PDBWorkPtr myWork = make_shared<GenericWork> (
+                     [&, i] (PDBBuzzerPtr callerBuzzer) {
+                         std :: string errMsg;
+
+                         //get aggregate computation 
+                         std :: cout << i << ": to get aggregation computation" << std :: endl;
+                         Handle<AbstractAggregateComp> aggComputation = request->getAggComputation();
+                         std :: cout << i << ": to deep copy aggregation computation object" << std :: endl;
+                         Handle<AbstractAggregateComp> newAgg = deepCopyToCurrentAllocationBlock<AbstractAggregateComp>(aggComputation);
+
+                         //get aggregate processor
+                         SimpleSingleTableQueryProcessorPtr aggregateProcessor =
+                                        newAgg->getAggregationProcessor((HashPartitionID)(i));
+                         aggregateProcessor->initialize();
+
+                         if (request->needsToMaterializeAggOut() == false) {
+                             //create a temp set
+                             std :: string setName = std :: string ("hash") + std :: to_string(i);
+                             SetID setId;
+                             proxy->addTempSet (setName, setId);
+
+                             PDBPagePtr outPage = nullptr;
+                             while(iter->hasNext()) {
+                                 PDBPagePtr page = iter->next();
+                                 if (page != nullptr) {
+                                     aggregateProcessor->loadInputPage(page->getBytes());
+                                     if (aggregateProcessor->needsProcessInput() == false) {
+                                         continue;
+                                     }
+                                     if (outPage == nullptr) {
+                                         proxy->addTempPage (setId, outPage);
+                                         aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
+                                     }
+                                     while (aggregateProcessor->fillNextOutputPage()) {
+                                         proxy->unpinTempPage (setId, outPage);
+                                         proxy->addTempPage (setId, outPage);
+                                         aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
+                                     }
+                                                               
+                                }
+
+                             }
+                             aggregateProcessor->finalize();
+                             aggregateProcessor->fillNextOutputPage();
+                             proxy->unpinTempPage (setId, outPage);
+                         } else {
+
+                             //get output set
+                             SetSpecifierPtr outputSet = make_shared<SetSpecifier>(request->getSinkContext()->getDatabase(), request->getSinkContext()->getSetName(), request->getSinkContext()->getDatabaseId(), request->getSinkContext()->getTypeId(), request->getSinkContext()->getSetId());
+                             PDBPagePtr output = nullptr;
+
+                             //aggregation page size
+                             size_t aggregationPageSize = 128 * 1024 * 1024;
+
+                             //allocate one output page
+                             void * aggregationPage = nullptr;
+
+                             //get aggOut processor
+                             SimpleSingleTableQueryProcessorPtr aggOutProcessor =
+                                        newAgg->getAggOutProcessor();
+                             aggOutProcessor->initialize();
+
+                             while (iter->hasNext()) {
+                                 PDBPagePtr page = iter->next();
+                                 if (page != nullptr) {
+                                     aggregateProcessor->loadInputPage(page->getBytes());
+                                     if (aggregateProcessor->needsProcessInput() == false) {
+                                         continue;
+                                     }
+                                     if (aggregationPage == nullptr) {
+                                         aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
+                                         aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
+                                     }
+                                     while (aggregateProcessor->fillNextOutputPage()) {
+                                         
+                                         //write to output set
+                                         //load input page
+                                         aggOutProcessor->loadInputPage(aggregationPage);
+                                         //get output page
+                                         if (output == nullptr) {
+                                             proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                             aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                         }
+                                         while (aggOutProcessor->fillNextOutputPage()) {
+                                             //unpin the output page
+                                             proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                             //pin a new output page
+                                             proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                             //load output
+                                             aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                         }
+
+                                         free (aggregationPage);
+                                     }
+                                     //unpin the input page 
+                                     page->decRefCount();
+                                     if (page->getRefCount() == 0) {
+                                         proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);     
+                                     }  
+                                 }
+                             }
+                             if (aggregationPage != nullptr) {
+                                 //finalize()
+                                 aggregateProcessor->finalize();
+                                 //load input page
+                                 aggOutProcessor->loadInputPage(aggregationPage);
+                                 //get output page
+                                 if (output == nullptr) {
+                                      proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                      aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                 }
+                                 while (aggOutProcessor->fillNextOutputPage()) {
+                                      //unpin the output page
+                                      proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                      //pin a new output page
+                                      proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                      //load output
+                                      aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                 }
+
+                                 //finalize() and unpin last output page
+                                 aggOutProcessor->finalize();
+                                 proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                 //free aggregation page
+                                 free (aggregationPage);
+                            }//aggregationPage != nullptr
+
+                         }//request->needsToMaterializeAggOut() == true
+                         callerBuzzer->buzz(PDBAlarm :: WorkAllDone, hashCounter);
+                         
+                     }
+                );
+                worker->execute(myWork, hashBuzzer);
+
+              }  //for            
+
+             //start single-thread scanner
+             //the thread iterates page, and put each page to all queues, in the end close all buffers
+
+             int backendCircularBufferSize = numPartitions;
+             int numThreads = 1;
+             PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, logger, numThreads, backendCircularBufferSize, nodeId);
+             if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                 success = false;
+                 errMsg = "Error: A job is already running!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+
+             //get iterators
+             PDB_COUT << "To send GetSetPages message" << std :: endl;
+             std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, request->getSourceContext()->getDatabaseId(), request->getSourceContext()->getTypeId(), request->getSourceContext()->getSetId());
+             PDB_COUT << "GetSetPages message is sent" << std :: endl;
+             int numIteratorsReturned = iterators.size();
+             if (numIteratorsReturned != numThreads) {
+                 success = false;
+                 errMsg = "Error: number of iterators doesn't match number of threads!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+
+             //create a buzzer and counter
+             PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                [&] (PDBAlarm myAlarm, int & counter) {
+                counter ++;
+                //std :: cout << "counter = " << counter << std :: endl;
+             });
+             int counter = 0;
+ 
+             for (int i = 0; i < numThreads; i++) {
+                PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                PDB_COUT << "to run the " << i << "-th scan work..." << std :: endl;
+                //start threads
+                PDBWorkPtr myWork = make_shared<GenericWork> (
+                [&, i] (PDBBuzzerPtr callerBuzzer) {
+                     //setup an output page to store intermediate results and final output
+                     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+                     PageCircularBufferIteratorPtr iter = iterators.at(i);
+                     PDBPagePtr page = nullptr;
+                     while (iter->hasNext()) {
+                         if (page != nullptr) {
+                             int k;
+                             for (k = 0; k < numPartitions; k++) {
+                                hashBuffers[k]->addPageToTail(page);
+                                page->incRefCount(); 
+                             }
+                       
+                         }
+                     }
+                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                } 
+                );
+
+                worker->execute(myWork, tempBuzzer);
+             }
+             
+             while (counter < numThreads) {
+                tempBuzzer->wait();
+             }
+
+             int k;
+             for ( k = 0; k < numPartitions; k ++) {
+                PageCircularBufferPtr buffer = hashBuffers[k];
+                buffer->close();
+             }
+
+
+             //wait for multiple threads to return
+             while (hashCounter < numPartitions) {
+                 hashBuzzer->wait();
+             }
+             
+             // return result to frontend
+             PDB_COUT << "to send back reply" << std :: endl;
+             const UseTemporaryAllocationBlock block{1024};
+             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+             // return the result
+             success = sendUsingMe->sendObject (response, errMsg);
+             return make_pair(success, errMsg); 
+
+
+           }
+
+
+    ));
+
+
     //register a handler to process the TupleSetJobStage message
     forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler<TupleSetJobStage>> (
             [&] (Handle<TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
-                PDB_COUT << "Backend got JobStage message with Id=" << request->getStageId() << std :: endl;
+                PDB_COUT << "Backend got Tuple JobStage message with Id=" << request->getStageId() << std :: endl;
                 request->print();
                 bool res = true;
                 std :: string errMsg;

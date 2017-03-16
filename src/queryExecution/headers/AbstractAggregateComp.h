@@ -36,7 +36,7 @@ public:
    
     virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (Vector<HashPartitionID> nodePartitionIds) = 0;
 
-    virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor () = 0;
+    virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor (HashPartitionID id) = 0;
 
     virtual SimpleSingleTableQueryProcessorPtr getAggOutProcessor () = 0;
 
