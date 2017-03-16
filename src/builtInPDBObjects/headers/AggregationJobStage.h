@@ -41,10 +41,11 @@ namespace pdb {
 
             AggregationJobStage () {}
              
-            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation) {
+            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation, int numNodePartitions) {
                 this->id = stageId;
                 this->materializeOrNot = materializeOrNot; 
                 this->aggComputation = aggComputation;
+                this->numNodePartitions = numNodePartitions;
             }
 
             ~AggregationJobStage () {}
@@ -70,16 +71,6 @@ namespace pdb {
             Handle<SetIdentifier> getSinkContext() {
                 return this->sinkContext;
             } 
-
-            //to set hash set identifier to store hash table
-            void setHashContext( Handle<SetIdentifier> hashContext ) {
-                this->hashContext = hashContext;
-            }
-
-            //to return hash set identifier
-            Handle<SetIdentifier> getHashContext() {
-                return this->hashContext;
-            }
 
             JobStageID getStageId() {
                 return this->id;
@@ -120,12 +111,9 @@ namespace pdb {
                 return this->needsRemoveInputSet;
             }
 
-            void setNeedsRemoveHashSet (bool needsRemoveHashSet) {
-                this->needsRemoveHashSet = needsRemoveHashSet;
-            }
 
-            bool getNeedsRemoveHashSet () {
-                return this->needsRemoveHashSet;
+            int getNumNodePartitions () {
+                return this->numNodePartitions;
             }
 
             ENABLE_DEEP_COPY
@@ -137,7 +125,6 @@ namespace pdb {
 
             Handle<SetIdentifier> sinkContext;
 
-            Handle<SetIdentifier> hashContext;
 
             JobStageID id;
 
@@ -149,8 +136,7 @@ namespace pdb {
 
             bool needsRemoveInputSet;
 
-            bool needsRemoveHashSet;
-
+            int numNodePartitions;
 
    };
 

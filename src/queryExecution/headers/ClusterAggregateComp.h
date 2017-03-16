@@ -105,8 +105,8 @@ public:
         return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
     }
 
-    SimpleSingleTableQueryProcessorPtr getAggregationProcessor() override {
-        return make_shared<AggregationProcessor<KeyClass, ValueClass>> ();
+    SimpleSingleTableQueryProcessorPtr getAggregationProcessor(HashPartitionID id) override {
+        return make_shared<AggregationProcessor<KeyClass, ValueClass>> (id);
     }
 
     SimpleSingleTableQueryProcessorPtr getAggOutProcessor() override {

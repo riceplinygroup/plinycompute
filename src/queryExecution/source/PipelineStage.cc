@@ -271,9 +271,6 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  //create logger instance
-                  std :: string loggerName = std :: string("Combiner_")+std :: to_string(i); 
-                  PDBLoggerPtr curCombinerLogger = make_shared<PDBLogger>(loggerName);
                   std :: string errMsg;
 
                   //get the i-th address
