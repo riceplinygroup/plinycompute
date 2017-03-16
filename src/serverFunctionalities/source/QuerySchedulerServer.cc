@@ -230,7 +230,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
     }
     if (this->queryPlan.size() > 1) {
         PDB_COUT << "#####################################" << std :: endl;
-        PDB_COUT << "WARNING: GraphIr generates 2 stages" << std :: endl;
+        PDB_COUT << "WARNING: GraphIr generates "<< this->queryPlan.size() <<" stages" << std :: endl;
         PDB_COUT << "#####################################" << std :: endl;
     }
     pthread_mutex_unlock(&connection_mutex);
@@ -267,6 +267,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
             success = scheduleStage (index, tupleSetStage, communicator, mode);
         } else if (stage->getJobStageType() == "AggregationJobStage" ) {
             Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
+            aggStage->setNumNodePartitions (standardResources->at(index)->getNumCores());
             success = scheduleStage (index, aggStage, communicator, mode); 
         } else {
             std :: cout << "Unrecognized job stage" << std :: endl;
@@ -556,6 +557,9 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         this->queryPlan.push_back(jobStage);
     } else {
         Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
+        
+        //aggregation phase 1
+
         Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
         jobStageId ++;
         jobStage->setComputePlan(myPlan, "inputData", "aggWithValue", "ClusterAggregationComp_2");
@@ -565,19 +569,33 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         Handle<SetIdentifier> source = makeObject<SetIdentifier>(scanner->getDatabaseName(), scanner->getSetName());
         std :: string sinkSpecifier = "ClusterAggregationComp_2";
         Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
-        Handle<ClusterAggregateComp<Object, Object, Object, Object>> agg = unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(sinkComputation);
+        Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(sinkComputation);
         Handle<SetIdentifier> sink = makeObject<SetIdentifier>(agg->getDatabaseName(), agg->getSetName());
+        Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(agg->getDatabaseName(), "aggregatorData");
         Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(agg->getDatabaseName(), "combinerData");
         jobStage->setSourceContext(source);
-        jobStage->setSinkContext(sink);
+        jobStage->setSinkContext(aggregator);
         jobStage->setCombinerContext(combiner);
-        jobStage->setOutputTypeName(agg->getOutputType());
+        jobStage->setOutputTypeName("Aggregation");
         jobStage->setProbing(false);
         jobStage->setRepartition(true);
         jobStage->setCombining(true);
         jobStage->setNeedsRemoveInputSet(true);
         jobStage->setNeedsRemoveCombinerSet(true);
+
+
+        //aggregation phase 2
+
+        Handle<AggregationJobStage> aggStage = makeObject<AggregationJobStage>(jobStageId, true, agg);
+        aggStage->setSourceContext(aggregator);
+        aggStage->setSinkContext(sink);
+        aggStage->setOutputTypeName(agg->getOutputType());
+        aggStage->setNeedsRemoveInputSet(true);
+        
+
         this->queryPlan.push_back(jobStage);
+        this->queryPlan.push_back(aggStage);
+        
     }
 }
 

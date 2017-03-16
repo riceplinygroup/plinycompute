@@ -41,6 +41,12 @@ namespace pdb {
 
             AggregationJobStage () {}
              
+            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation) {
+                this->id = stageId;
+                this->materializeOrNot = materializeOrNot;
+                this->aggComputation = aggComputation;
+            }
+
             AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation, int numNodePartitions) {
                 this->id = stageId;
                 this->materializeOrNot = materializeOrNot; 
@@ -49,6 +55,15 @@ namespace pdb {
             }
 
             ~AggregationJobStage () {}
+
+            void setNumNodePartitions (int numNodePartitions) {
+                this->numNodePartitions = numNodePartitions;
+            }
+
+            int getNumNodePartitions () {
+                return this->numNodePartitions;
+            }
+
 
             std :: string getJobStageType () override {
                 return "AggregationJobStage";
@@ -113,10 +128,6 @@ namespace pdb {
                 return this->needsRemoveInputSet;
             }
 
-
-            int getNumNodePartitions () {
-                return this->numNodePartitions;
-            }
 
             ENABLE_DEEP_COPY
 

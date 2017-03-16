@@ -146,6 +146,11 @@ public:
         return std :: string ("ClusterAggregationComp");
     }
 
+    std :: string getOutputType () override {
+        return getTypeName<OutputClass>();
+    }
+
+
 
 protected:
 
