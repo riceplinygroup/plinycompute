@@ -278,6 +278,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                   //get aggregate computation 
                   std :: cout << i << ": to get compute plan" << std :: endl;
+                  const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   plan->nullifyPlanPointer();
                   std :: cout << i << ": to deep copy ComputePlan object" << std :: endl;

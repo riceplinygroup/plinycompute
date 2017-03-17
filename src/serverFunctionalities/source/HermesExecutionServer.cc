@@ -349,6 +349,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                   // start threads
                   PDBWorkPtr myWork = make_shared<GenericWork> (
                      [&, i] (PDBBuzzerPtr callerBuzzer) {
+
+                         const UseTemporaryAllocationBlock block{4*1024*1024};
                          std :: string errMsg;
 
                          //get aggregate computation 
@@ -593,6 +595,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 request->print();
                 bool res = true;
                 std :: string errMsg;
+                const UseTemporaryAllocationBlock block1 {4 * 1024 * 1024};
                 Handle<SetIdentifier> sourceContext = request->getSourceContext();
                 if (sourceContext->getSetType() == UserSetType){
                     if( getCurPageScanner() == nullptr) {
@@ -616,7 +619,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 }
 
                 PDB_COUT << "to send back reply" << std :: endl;
-                const UseTemporaryAllocationBlock block{1024};
+                const UseTemporaryAllocationBlock block2 {1024};
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 // return the result
                 res = sendUsingMe->sendObject (response, errMsg);
