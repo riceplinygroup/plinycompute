@@ -207,12 +207,16 @@ namespace pdb {
                 this->numPartitions->push_back(numPartitions);
             }
 
-            Handle<Vector<HashPartitionID>> getNumPartitions (int nodeId) {
-                return (*numPartitions)[nodeId];
+            Handle<Vector<HashPartitionID>> & getNumPartitions (int nodeId) {
+                    return (*numPartitions)[nodeId];
             } 
 
             String getIPAddress (int nodeId) {
-                return (*ipAddresses)[nodeId];
+                if ((unsigned int) nodeId < numPartitions->size()) {
+                    return (*ipAddresses)[nodeId];
+                } else {
+                    return nullptr;
+                }
             }
 
             void setIPAddresses (Handle<Vector<String>> addresses) {

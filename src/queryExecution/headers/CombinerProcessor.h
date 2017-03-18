@@ -36,7 +36,7 @@ class CombinerProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
 
-    ~CombinerProcessor () {};
+    ~CombinerProcessor () { blockPtr = nullptr; begin = nullptr; end = nullptr; };
     CombinerProcessor (std :: vector<HashPartitionID>& partitions);
     void initialize () override;
     void loadInputPage (void * pageToProcess) override;
