@@ -69,7 +69,9 @@ int PipelineStage :: getNumThreads () {
 
 //send repartitioned data to a remote node
 bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, std :: string & errMsg) {
-             return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
+        
+       PDB_COUT << "store shuffle data with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
                          if (!result->getRes ().first) {
@@ -77,7 +79,6 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
                          return true;}, data, databaseName, setName, "Aggregation", false);
-             PDB_COUT << "store shuffle data with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
         }
 
 
