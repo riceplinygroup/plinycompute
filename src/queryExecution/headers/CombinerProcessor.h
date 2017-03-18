@@ -26,6 +26,8 @@
 #include "PDBVector.h"
 #include "Handle.h"
 #include "SimpleSingleTableQueryProcessor.h"
+#include "DataTypes.h"
+#include <vector>
 
 namespace pdb {
 
@@ -34,8 +36,8 @@ class CombinerProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
 
-    ~CombinerProcessor () { begin = nullptr; end = nullptr; };
-    CombinerProcessor (int numClusterPartitions, int numNodePartitions, Vector<HashPartitionID> nodePartitionIds);
+    ~CombinerProcessor () {};
+    CombinerProcessor (std :: vector<HashPartitionID>& partitions);
     void initialize () override;
     void loadInputPage (void * pageToProcess) override;
     void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
@@ -51,7 +53,6 @@ private:
     Handle <Vector<Handle <Map <KeyType, ValueType>>>> inputData;
     Handle <Vector<Handle <Map <KeyType, ValueType>>>> outputData;
     bool finalized;
-    int numClusterPartitions;
     int numNodePartitions;
     HashPartitionID curPartId;
     int curPartPos;
