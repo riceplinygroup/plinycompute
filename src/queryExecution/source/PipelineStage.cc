@@ -76,7 +76,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
                              logger->error ("Error sending data: " + result->getRes ().second);
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
-                         return true;}, data, databaseName, setName, "Shuffle", false);
+                         return true;}, data, databaseName, setName, "Aggregation", false);
         }
 
 
@@ -230,7 +230,6 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server) {
 }
 
 void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server) {
-    //std :: cout << "Pipeline network is running" << std :: endl;
     bool success;
     std :: string errMsg;
 
@@ -238,6 +237,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
     size_t combinerPageSize = 128 * 1024 * 1024;
     //each queue has multiple producers and one consumer
     int combinerBufferSize = numThreads / numNodes + 1;
+    std :: cout << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
     std :: vector <PageCircularBufferPtr> combinerBuffers;
     std :: vector <PageCircularBufferIteratorPtr> combinerIters;
 
@@ -267,7 +267,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
         PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, logger);
         combinerIters.push_back(iter);
         PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-        PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
+        PDB_COUT << "to run the " << i << "-th combining work..." << std :: endl;
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
@@ -287,11 +287,18 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   std :: cout << "target computation name=" << targetSpecifier << std :: endl;
                   Handle<Computation> computation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
                   Handle<AbstractAggregateComp> aggregate = unsafeCast<AbstractAggregateComp, Computation> (computation);
-                  Handle<Vector<HashPartitionID>> nodePartitionIds = this->jobStage->getNumPartitions(i);
-
+                  Handle<Vector<HashPartitionID>> partitions = this->jobStage->getNumPartitions(i);
+                  std :: vector<HashPartitionID> stdPartitions;
+                  int numPartitionsOnTheNode = partitions->size();
+                  std :: cout << "num partitions on this node:" << numPartitionsOnTheNode << std :: endl;
+                  for (int i = 0; i < numPartitionsOnTheNode; i ++) {
+                      std :: cout << i << ":" << (*partitions)[i] << std :: endl;
+                      stdPartitions.push_back((*partitions)[i]);
+                  }
                   //get combiner processor
-                  SimpleSingleTableQueryProcessorPtr combinerProcessor = 
-                      aggregate->getCombinerProcessor(*nodePartitionIds);
+                  SimpleSingleTableQueryProcessorPtr combinerProcessor =
+                      aggregate->getCombinerProcessor(stdPartitions);
+
                   
                   void * combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
                   combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
