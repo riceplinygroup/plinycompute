@@ -101,9 +101,14 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     curPartPos ++;
                     curPartId = nodePartitionIds[curPartPos];
                     curMap = (*inputData)[curPartId];
-                    begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
-                    end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
-                    curOutputMap = (*outputData)[curPartPos];
+                    if (curMap->size() > 0) {
+                        begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
+                        end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
+                        curOutputMap = (*outputData)[curPartPos];
+                    }
+                    else {
+                        continue;
+                    }
                 } else {
                     return false;
                 }
