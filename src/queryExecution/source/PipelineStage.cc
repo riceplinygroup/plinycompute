@@ -77,6 +77,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
                          return true;}, data, databaseName, setName, "Aggregation", false);
+             PDB_COUT << "store shuffle data with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
         }
 
 
