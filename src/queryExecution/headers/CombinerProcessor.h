@@ -65,7 +65,7 @@ private:
 
     //partitions on this node
     std :: vector <HashPartitionID> nodePartitionIds;
-
+    int count;
 };
 
 }

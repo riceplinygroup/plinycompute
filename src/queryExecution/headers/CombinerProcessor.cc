@@ -35,7 +35,7 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <Hash
         std :: cout << i << ":" << partitions[i] << std :: endl;
         nodePartitionIds.push_back(partitions[i]);
     }
-
+    count = 0;
     curPartPos = 0;
 }
 
@@ -52,6 +52,7 @@ void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProce
     Record <Vector<Handle<Map<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<Map<KeyType, ValueType>>>> *) pageToProcess;
     inputData = myRec->getRootObject();
     curPartPos = 0;
+    count = 0;
     curPartId = nodePartitionIds[curPartPos];
     curMap = (*inputData)[curPartId];
     begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
@@ -98,6 +99,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
             if (!((*begin) != (*end))) {
                 PDB_COUT << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
                 if (curPartPos < numNodePartitions-1) {
+                    count = 0;
                     curPartPos ++;
                     std :: cout << "curPartPos=" << curPartPos << std :: endl;
                     curPartId = nodePartitionIds[curPartPos];
@@ -107,7 +109,13 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     if (curMap->size() > 0) {
                         begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
                         end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
-                        curOutputMap = (*outputData)[curPartPos];
+
+                        if ((*begin) != (*end)) {
+                            curOutputMap = (*outputData)[curPartPos];
+                        } else {
+                            std :: cout << "this is strage: map size > 0 but begin == end" << std :: endl;
+                            continue;
+                        }
                     }
                     else {
                         continue;
@@ -127,7 +135,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                     *temp = curValue;
                     ++(*begin);
-
+                    count ++;
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
                     curOutputMap->setUnused (curKey);
@@ -145,6 +153,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                     temp = copy + curValue;
                     ++(*begin);
+                    count ++;
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {
