@@ -23,16 +23,17 @@
 namespace pdb {
 
 
-template <class KeyType, class ValueType>
-CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (int numClusterPartitions, int numNodePartitions, Vector<HashPartitionID> nodePartitionIds) {
 
-    this->numClusterPartitions = numClusterPartitions;
-    this->numNodePartitions = numNodePartitions;
+template <class KeyType, class ValueType>
+CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <HashPartitionID>& partitions) {
+    std :: cout << "running CombinerProcessor constructor" << std :: endl;
+    this->numNodePartitions = partitions.size();
     finalized = false;
 
     int i;
-    for (i = 0; i < nodePartitionIds.size(); i ++) {
-        nodePartitionIds.push_back(nodePartitionIds[i]);
+    for (i = 0; i < partitions.size(); i ++) {
+        std :: cout << i << ":" << partitions[i] << std :: endl;
+        nodePartitionIds.push_back(partitions[i]);
     }
 }
 

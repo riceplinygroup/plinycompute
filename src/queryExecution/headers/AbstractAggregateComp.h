@@ -27,6 +27,9 @@
 #include "DataProxy.h"
 #include "PageCircularBufferIterator.h"
 #include "ScanUserSet.h"
+#include "DataTypes.h"
+#include <vector>
+
 
 namespace pdb {
 
@@ -34,7 +37,7 @@ class AbstractAggregateComp : public Computation {
 
 public:
    
-    virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (Vector<HashPartitionID> nodePartitionIds) = 0;
+    virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (std :: vector <HashPartitionID> nodePartitionIds) = 0;
 
     virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor (HashPartitionID id) = 0;
 
@@ -76,7 +79,6 @@ protected:
 
     //number of partitions in the cluster
     int numPartitions;
-    bool materializeAggOut;
     int batchSize;
     void * whereHashTableSitsForThePartition;
 

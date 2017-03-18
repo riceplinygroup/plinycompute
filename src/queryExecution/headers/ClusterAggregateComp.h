@@ -97,8 +97,8 @@ public:
         }
     }
 
-    SimpleSingleTableQueryProcessorPtr getCombinerProcessor(Vector<HashPartitionID> nodePartitionIds) override {
-        return make_shared<CombinerProcessor<KeyClass, ValueClass>> (this->numPartitions, nodePartitionIds.size(), nodePartitionIds);
+    SimpleSingleTableQueryProcessorPtr getCombinerProcessor(std :: vector<HashPartitionID> partitions) override {
+        return make_shared<CombinerProcessor<KeyClass, ValueClass>> (partitions);
     }
 
     SimpleSingleTableQueryProcessorPtr getAggregationProcessor(HashPartitionID id) override {
@@ -148,7 +148,7 @@ public:
 protected:
 
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-
+    bool materializeAggOut;
 
 };
 
