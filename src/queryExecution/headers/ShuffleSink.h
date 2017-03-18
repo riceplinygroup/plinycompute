@@ -73,7 +73,6 @@ public:
 		Handle <Vector <Handle<Map <KeyType, ValueType>>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>>> (writeToMe);
                 size_t hashVal;  
                
-		Map <KeyType, ValueType> myMap;
 
 		// get the input columns
 		std :: vector <KeyType> &keyColumn = input->getColumn <KeyType> (whichAttToHash);
@@ -85,7 +84,7 @@ public:
 
                         hashVal = Hasher <KeyType> :: hash(keyColumn[i]);
 
-                        myMap = *((*writeMe)[hashVal%numPartitions]);
+                        Map <KeyType, ValueType> & myMap = *((*writeMe)[hashVal%numPartitions]);
 			// if this key is not already there...
 			if (myMap.count (keyColumn[i]) == 0) {
 
@@ -148,6 +147,12 @@ public:
 				}
 			}
 		}
+                int i;
+                for (i = 0; i < numPartitions; i++) {
+                     Map <KeyType, ValueType> & myMap = *((*writeMe)[i]);
+                     std :: cout << "partition-" << i << ": " << myMap.size() << " elements" << std :: endl;
+                }
+
 	}
 
 	~ShuffleSink () {}
