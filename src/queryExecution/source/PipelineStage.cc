@@ -434,6 +434,17 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   scanner->setIterator(iter);
                   scanner->setProxy(proxy);
                   scanner->setBatchSize(batchSize);
+
+                  std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
+                  std :: cout << "target computation name=" << targetSpecifier << std :: endl;
+                  Handle<Computation> aggComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
+                  Handle<AbstractAggregateComp> aggregate = unsafeCast<AbstractAggregateComp, Computation> (aggComputation);
+                  int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
+                  std :: cout << "num partitions in the cluster is " << numPartitionsInCluster << std :: endl;
+                  aggregate->setNumPartitions (numPartitionsInCluster);
+                  aggregate->setBatchSize (this->batchSize);
+
+
                   newPlan->nullifyPlanPointer();
                   PipelinePtr curPipeline = newPlan->buildPipeline (
                   this->jobStage->getSourceTupleSetSpecifier(),
