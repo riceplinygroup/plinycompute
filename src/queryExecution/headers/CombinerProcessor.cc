@@ -26,7 +26,7 @@ namespace pdb {
 
 template <class KeyType, class ValueType>
 CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <HashPartitionID>& partitions) {
-    std :: cout << "running CombinerProcessor constructor" << std :: endl;
+    PDB_COUT << "running CombinerProcessor constructor" << std :: endl;
     this->numNodePartitions = partitions.size();
     finalized = false;
 
@@ -35,6 +35,8 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <Hash
         std :: cout << i << ":" << partitions[i] << std :: endl;
         nodePartitionIds.push_back(partitions[i]);
     }
+
+    curPartPos = 0;
 }
 
 //initialize
@@ -65,12 +67,17 @@ void CombinerProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToWrit
     outputData = makeObject<Vector<Handle<Map<KeyType, ValueType>>>> (this->numNodePartitions);
     int i;
     for ( i = 0; i < numNodePartitions; i ++ ) {
+        PDB_COUT << "to create the " << i << "-th partition on this node" << std :: endl;
         Handle<Map<KeyType, ValueType>> currentMap =  makeObject<Map<KeyType, ValueType>>();
+        HashPartitionID currentPartitionId = nodePartitionIds[i];
+        PDB_COUT << "currentPartitionId=" << currentPartitionId << std :: endl;
+        //however we only use the relative/local hash partition id
         currentMap->setHashPartitionId (i);
         outputData->push_back(currentMap);
     }
+    PDB_COUT << "curPartPos=" << curPartPos << std :: endl;
     curOutputMap = (*outputData)[curPartPos];
-
+   
 }
 
 template <class KeyType, class ValueType>

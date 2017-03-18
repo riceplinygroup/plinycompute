@@ -296,9 +296,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                       stdPartitions.push_back((*partitions)[i]);
                   }
                   //get combiner processor
-                  SimpleSingleTableQueryProcessorPtr combinerProcessor =
+                  SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
-
                   
                   void * combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
                   combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
