@@ -86,7 +86,6 @@ public:
                         hashVal = Hasher <KeyType> :: hash(keyColumn[i]);
 
                         myMap = *((*writeMe)[hashVal%numPartitions]);
-                        std :: cout << "write to shuffle sink partition id=" << hashVal%numPartitions << std :: endl;
 			// if this key is not already there...
 			if (myMap.count (keyColumn[i]) == 0) {
 
