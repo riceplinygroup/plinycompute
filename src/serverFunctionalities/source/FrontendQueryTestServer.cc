@@ -259,9 +259,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                     SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                     if (outputSet == nullptr) {
-                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, outSetName);
+                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, "Aggregation", outSetName);
                         outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                        PDB_COUT << "Output set is created in storage" << std :: endl;
+                        PDB_COUT << "Output set is created in storage with database="<< outDatabaseName << ", set=" << outSetName << ", type=Aggregation" << std :: endl;
                     }
 
                     if (success == true) {
@@ -338,7 +338,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                    if (needsRemoveCombinerSet == true) {
                        //remove combiner set
-                       getFunctionality <PangeaStorageServer> ().removeSet(combinerDatabaseName, "Combiner", combinerSetName);
+                       getFunctionality <PangeaStorageServer> ().removeSet(combinerDatabaseName,  combinerSetName);
                    }
 
                    if (newRequest->getNeedsRemoveInputSet() == true) {

@@ -577,7 +577,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         Handle<Computation> sinkComputation = myPlan->getPlan()->getNode(sinkSpecifier).getComputationHandle();
         Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(sinkComputation);
         Handle<SetIdentifier> sink = makeObject<SetIdentifier>(agg->getDatabaseName(), agg->getSetName());
-        Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(agg->getDatabaseName(), "aggregatorData");
+        Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(agg->getDatabaseName(), "aggregationData");
         Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(agg->getDatabaseName(), "combinerData");
         jobStage->setSourceContext(source);
         jobStage->setSinkContext(aggregator);
