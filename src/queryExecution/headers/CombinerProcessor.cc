@@ -99,8 +99,11 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                 PDB_COUT << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
                 if (curPartPos < numNodePartitions-1) {
                     curPartPos ++;
+                    std :: cout << "curPartPos=" << curPartPos << std :: endl;
                     curPartId = nodePartitionIds[curPartPos];
+                    std :: cout << "curPartId=" << curPartId << std :: endl;
                     curMap = (*inputData)[curPartId];
+                    std :: cout << "(*inputData)[" << curPartId << "].size()=" << curMap->size() << std :: endl;
                     if (curMap->size() > 0) {
                         begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
                         end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
