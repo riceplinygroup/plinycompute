@@ -88,7 +88,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         makeObject<AggregationJobStage>(request->getStageId(), request->needsToMaterializeAggOut(), request->getAggComputation(), request->getNumNodePartitions());
                     PDB_COUT << "Created AggregationJobStage object for forwarding" << std :: endl;
 
-                    newRequest->setNumNodePartitions (request->getNumNodePartitions());
 
                     //input set
                     //restructure the input information  

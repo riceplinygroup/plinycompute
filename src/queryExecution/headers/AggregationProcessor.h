@@ -59,6 +59,7 @@ private:
     PDBMapIterator <KeyType, ValueType> * begin;
     PDBMapIterator <KeyType, ValueType> * end;
 
+    int count;
 };
 
 }
