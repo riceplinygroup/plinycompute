@@ -48,7 +48,7 @@ void CombinerProcessor <KeyType, ValueType> :: initialize () {
 //loads up another input page to process
 template <class KeyType, class ValueType>
 void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProcess) {
-
+    std :: cout << "CombinerProcessor: to load a new input page" << std :: endl;
     Record <Vector<Handle<Map<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<Map<KeyType, ValueType>>>> *) pageToProcess;
     inputData = myRec->getRootObject();
     curPartPos = 0;
@@ -96,7 +96,8 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                if (curPartPos < nodePartitionIds.size()-1) {
+                PDB_COUT << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
+                if (curPartPos < numNodePartitions-1) {
                     curPartPos ++;
                     curPartId = nodePartitionIds[curPartPos];
                     curMap = (*inputData)[curPartId];
