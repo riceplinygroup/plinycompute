@@ -71,6 +71,7 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
         while (true) {
 
             if (!((*begin) != (*end))) {
+                    PDB_COUT << "AggOutProcessor: processed " << pos << " elements in the input page" << std :: endl;
                     return false;
             }
           

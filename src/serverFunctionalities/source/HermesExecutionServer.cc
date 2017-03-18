@@ -394,6 +394,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              aggregateProcessor->finalize();
                              aggregateProcessor->fillNextOutputPage();
                              proxy->unpinTempPage (setId, outPage);
+                             //TODO : how to remove the tempset created in above code???
+
                          } else {
 
                              //get output set
@@ -416,6 +418,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  if (page != nullptr) {
                                      aggregateProcessor->loadInputPage(page->getBytes());
                                      if (aggregateProcessor->needsProcessInput() == false) {
+                                         //unpin the input page 
+                                         page->decRefCount();
+                                         if (page->getRefCount() == 0) {
+                                             proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                         }
                                          continue;
                                      }
                                      if (aggregationPage == nullptr) {
@@ -440,7 +447,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              //load output
                                              aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
                                          }
-
+                                         
                                          free (aggregationPage);
                                      }
                                      //unpin the input page 
@@ -453,6 +460,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              if (aggregationPage != nullptr) {
                                  //finalize()
                                  aggregateProcessor->finalize();
+                                 aggregateProcessor->fillNextOutputPage();
                                  //load input page
                                  aggOutProcessor->loadInputPage(aggregationPage);
                                  //get output page
@@ -471,6 +479,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
                                  //finalize() and unpin last output page
                                  aggOutProcessor->finalize();
+                                 aggOutProcessor->fillNextOutputPage();
                                  proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                  //free aggregation page
                                  free (aggregationPage);

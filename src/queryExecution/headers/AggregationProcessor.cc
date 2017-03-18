@@ -28,6 +28,7 @@ AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (HashPartition
 
     this->id = id;
     finalized = false;
+    count = 0;
 }
 
 //initialize
@@ -46,7 +47,11 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputPage (void * pageToPr
     int i;
     for ( i = 0; i < numPartitions; i ++ ) {
         curMap = (*inputData)[i];
+        HashPartitionID hashIdForCurrentMap = curMap->getHashPartitionId();
+        std :: cout << i << "-th map's partitionId is " << hashIdForCurrentMap << std :: endl;
         if( curMap->getHashPartitionId() == id ) {
+            std :: cout << "this map has my id = " << id << std :: endl;
+            count = 0;
             begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
             end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
             break;
@@ -71,6 +76,7 @@ template <class KeyType, class ValueType>
 bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
     if (curMap == nullptr) {
+        std :: cout << "this page doesn't have my map with id = " << id << std :: endl; 
         return false;
     }
 
@@ -87,6 +93,8 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (!((*begin) != (*end))) {
+                std :: cout << "Aggregation processed " << count << " elements in this page" << std :: endl;
+                count = 0;
                 return false;
             }
             KeyType curKey = (*(*begin)).key;
@@ -100,7 +108,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                     *temp = curValue;
                     ++(*begin);
-
+                    count ++;
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
                     outputData->setUnused (curKey);
@@ -118,6 +126,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                     temp = copy + curValue;
                     ++(*begin);
+                    count++;
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {

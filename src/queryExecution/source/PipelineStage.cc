@@ -326,15 +326,12 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                       }
                   }
                   combinerProcessor->finalize();
+                  combinerProcessor->fillNextOutputPage();
                   //send the output page
                   Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
                   this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, errMsg);
                   //free the output page
                   free(combinerPage);
-                  //allocate a new page
-                  combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
-                  //load the new page as output vector
-                  combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
 
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
              }
