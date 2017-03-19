@@ -158,6 +158,7 @@ void AggregationProcessor <KeyType, ValueType> :: clearOutputPage () {
 
 template <class KeyType, class ValueType>
 void AggregationProcessor <KeyType, ValueType> :: clearInputPage () {
+    curMap = nullptr;
     inputData = nullptr;
 }
 

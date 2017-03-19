@@ -320,12 +320,6 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               pthread_mutex_unlock(&connection_mutex);
 
 
-              pthread_mutex_lock(&connection_mutex);
-              PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-              anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
-              pthread_mutex_unlock(&connection_mutex);
-              DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
-
               //create a buzzer and counter
               PDBBuzzerPtr hashBuzzer = make_shared<PDBBuzzer>(
                    [&] (PDBAlarm myAlarm, int & hashCounter) {
@@ -351,6 +345,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                   PDBWorkPtr myWork = make_shared<GenericWork> (
                      [&, i] (PDBBuzzerPtr callerBuzzer) {
 
+                         pthread_mutex_lock(&connection_mutex);
+                         PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                         pthread_mutex_unlock(&connection_mutex);
+                         DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+                     
                          const UseTemporaryAllocationBlock block{4*1024*1024};
                          std :: string errMsg;
 
@@ -454,7 +454,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              //load output
                                              aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
                                          }
-                                         
+                                         aggregateProcessor->clearOutputPage();
+                                         aggOutProcessor->clearInputPage();
+               
                                          free (aggregationPage);
                                      }
                                      //unpin the input page 
@@ -493,6 +495,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  PDB_COUT << i <<": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
                                  proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                  //free aggregation page
+                                 aggregateProcessor->clearOutputPage();
+                                 aggOutProcessor->clearInputPage();
                                  free (aggregationPage);
                             }//aggregationPage != nullptr
 
