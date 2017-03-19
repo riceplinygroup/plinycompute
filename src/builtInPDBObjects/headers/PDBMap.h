@@ -83,7 +83,7 @@ public:
         unsigned int getHashPartitionId ();
         void setHashPartitionId (unsigned int id);
 
-        Handle <PairArray <KeyType, ValueType>> getArray(); 
+        Handle <PairArray <KeyType, ValueType>>& getArray(); 
 
 };
 
