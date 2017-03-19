@@ -246,13 +246,6 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
     pthread_mutex_t connection_mutex;
     pthread_mutex_init(&connection_mutex, nullptr);
 
-    //create data proxy
-    pthread_mutex_lock(&connection_mutex);
-    PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-    anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
-    pthread_mutex_unlock(&connection_mutex);
-    DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
-
     //create a buzzer and counter
     PDBBuzzerPtr combinerBuzzer = make_shared<PDBBuzzer>(
          [&] (PDBAlarm myAlarm, int & combinerCounter) {
@@ -274,6 +267,13 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
                   std :: string errMsg;
+
+                  //create data proxy
+                  pthread_mutex_lock(&connection_mutex);
+                  PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+                  anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                  pthread_mutex_unlock(&connection_mutex);
+                  DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
@@ -313,6 +313,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                               Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
                               this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, errMsg); 
                               //free the output page
+                              combinerProcessor->clearOutputPage();
                               free(combinerPage);
                               //allocate a new page
                               combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
@@ -321,6 +322,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                           }
                           //unpin the input page
+                          combinerProcessor->clearInputPage();
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
                                proxy->unpinUserPage (nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
@@ -333,6 +335,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
                   this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, errMsg);
                   //free the output page
+                  combinerProcessor->clearOutputPage();
                   free(combinerPage);
 
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
