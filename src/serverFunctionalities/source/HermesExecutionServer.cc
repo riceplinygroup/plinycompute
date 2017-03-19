@@ -549,6 +549,16 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              PDB_COUT << "GetSetPages message is sent" << std :: endl;
              int numIteratorsReturned = iterators.size();
              if (numIteratorsReturned != numThreads) {
+                 int k;
+                 for ( k = 0; k < numPartitions; k ++) {
+                     PageCircularBufferPtr buffer = hashBuffers[k];
+                     buffer->close();
+                 }
+
+                 while (hashCounter < numPartitions) {
+                    hashBuzzer->wait();
+                 }
+                 pthread_mutex_destroy(&connection_mutex);
                  success = false;
                  errMsg = "Error: number of iterators doesn't match number of threads!";
                  std :: cout << errMsg << std :: endl;
@@ -608,13 +618,23 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 PageCircularBufferPtr buffer = hashBuffers[k];
                 buffer->close();
              }
-
-
+            
+         
              //wait for multiple threads to return
              while (hashCounter < numPartitions) {
                  hashBuzzer->wait();
              }
-             
+
+             //reset scanner
+             pthread_mutex_destroy(&connection_mutex);
+
+             if (getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
+                 success = false;
+                 errMsg = "Error: No job is running!";
+                 std :: cout << errMsg << std :: endl;
+             }
+
+    
              // return result to frontend
              PDB_COUT << "to send back reply" << std :: endl;
              const UseTemporaryAllocationBlock block{1024};
@@ -647,17 +667,21 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
                         Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, 100, conf->getNumThreads());
                         if (request->isRepartition() == false) {
+                             PDB_COUT << "run pipeline..." << std :: endl;
                              pipeline->runPipeline(this);
                         } else {
+                             PDB_COUT << "run pipeline with shuffling..." << std :: endl;
                              pipeline->runPipelineWithShuffleSink(this);
                         }                       
                     } else {
                         res = false;
                         errMsg = "A Job is already running in this server";
+                        std :: cout << errMsg << std :: endl;
                     }
                 } else {
                      res = false;
                      errMsg = "Now only UserSet is supported as pipeline source";
+                     std :: cout << errMsg << std :: endl;
                 }
 
                 PDB_COUT << "to send back reply" << std :: endl;
