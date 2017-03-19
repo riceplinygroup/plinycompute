@@ -93,7 +93,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                std :: cout << "Aggregation processed " << count << " elements in this page" << std :: endl;
+                std :: cout << id << ": Aggregation processed " << count << " elements in this page" << std :: endl;
                 count = 0;
                 return false;
             }

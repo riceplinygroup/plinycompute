@@ -24,6 +24,7 @@
 #ifndef PAGECIRCULARBUFFERITERATOR_CC
 #define PAGECIRCULARBUFFERITERATOR_CC
 
+#include "PDBDebug.h"
 #include "PageCircularBufferIterator.h"
 #include "PageCircularBuffer.h"
 #include <iostream>
@@ -55,7 +56,7 @@ PDBPagePtr PageCircularBufferIterator::next() {
  */ 
 bool PageCircularBufferIterator::hasNext() {
     bool ret= ((!this->buffer->isClosed()) || (!this->buffer->isEmpty()));
-//    cout << "iter Id="<<this->id<<",ret="<<ret<<"\n";
+    PDB_COUT << "iter Id="<<this->id<<",ret="<<ret<<"\n";
     return ret;
 }
 
