@@ -84,10 +84,12 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
 void QuerySchedulerServer ::cleanup() {
 
     free(this->standardResources);
+
     for (int i = 0; i < currentPlan.size(); i++) {
              currentPlan[i]=nullptr;
     }
     this->currentPlan.clear();
+
     for (int i = 0; i < queryPlan.size(); i++) {
              queryPlan[i]=nullptr;
     }
