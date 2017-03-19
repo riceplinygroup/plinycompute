@@ -150,7 +150,7 @@ void Map <KeyType, ValueType> :: setHashPartitionId (unsigned int partitionId) {
 }
 
 template <class KeyType, class ValueType>
-Handle <PairArray <KeyType, ValueType>> Map <KeyType, ValueType> :: getArray() {
+Handle <PairArray <KeyType, ValueType>> & Map <KeyType, ValueType> :: getArray() {
     return myArray;
 }
 }
