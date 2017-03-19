@@ -340,9 +340,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               //each thread creates a hash set as temp set, and put key-value pairs to the hash set
               int i;
               for ( i = 0; i < numPartitions; i ++ ) {
-                  PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(aggregationBufferSize, logger);
+                  PDBLoggerPtr myLogger = make_shared<PDBLogger>(std :: string("aggregation-")+std :: to_string(i));
+                  PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(aggregationBufferSize, myLogger);
                   hashBuffers.push_back(buffer);
-                  PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, logger);
+                  PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, myLogger);
                   hashIters.push_back(iter);
                   PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
                   PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
@@ -363,7 +364,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          SimpleSingleTableQueryProcessorPtr aggregateProcessor =
                                         newAgg->getAggregationProcessor((HashPartitionID)(i));
                          aggregateProcessor->initialize();
-
+                         PageCircularBufferIteratorPtr myIter = hashIters[i];
                          if (request->needsToMaterializeAggOut() == false) {
                              //create a temp set
                              std :: string setName = std :: string ("hash") + std :: to_string(i);
@@ -371,8 +372,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              proxy->addTempSet (setName, setId);
 
                              PDBPagePtr outPage = nullptr;
-                             while(iter->hasNext()) {
-                                 PDBPagePtr page = iter->next();
+                             while(myIter->hasNext()) {
+                                 PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
                                      aggregateProcessor->loadInputPage(page->getBytes());
                                      if (aggregateProcessor->needsProcessInput() == false) {
@@ -397,7 +398,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              //TODO : how to remove the tempset created in above code???
 
                          } else {
-
+                             PDB_COUT << "to run aggregation threads" << std :: endl;
                              //get output set
                              SetSpecifierPtr outputSet = make_shared<SetSpecifier>(request->getSinkContext()->getDatabase(), request->getSinkContext()->getSetName(), request->getSinkContext()->getDatabaseId(), request->getSinkContext()->getTypeId(), request->getSinkContext()->getSetId());
                              PDBPagePtr output = nullptr;
@@ -412,9 +413,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              SimpleSingleTableQueryProcessorPtr aggOutProcessor =
                                         newAgg->getAggOutProcessor();
                              aggOutProcessor->initialize();
-
-                             while (iter->hasNext()) {
-                                 PDBPagePtr page = iter->next();
+                             PageCircularBufferIteratorPtr myIter = hashIters[i];
+                             while (myIter->hasNext()) {
+                                 PDB_COUT << "AggregationProcessor: got a page" << std :: endl;
+                                 PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
                                      PDB_COUT << "AggregationProcessor: got a non-null page for aggregation" << std :: endl;
                                      aggregateProcessor->loadInputPage(page->getBytes());
@@ -545,7 +547,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
                 [&] (PDBAlarm myAlarm, int & counter) {
                 counter ++;
-                //std :: cout << "counter = " << counter << std :: endl;
+                PDB_COUT << "counter = " << counter << std :: endl;
              });
              int counter = 0;
  
@@ -561,10 +563,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                      PDBPagePtr page = nullptr;
                      while (iter->hasNext()) {
                          if (page != nullptr) {
+                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
                              int k;
                              for (k = 0; k < numPartitions; k++) {
-                                hashBuffers[k]->addPageToTail(page);
                                 page->incRefCount(); 
+                                PDB_COUT << "add page to the " << k << "-th buffer" << std :: endl;
+                                hashBuffers[k]->addPageToTail(page);
                              }
                        
                          }
