@@ -384,16 +384,24 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
                                      }
                                      while (aggregateProcessor->fillNextOutputPage()) {
+                                         aggregateProcessor->clearOutputPage();
                                          proxy->unpinTempPage (setId, outPage);
                                          proxy->addTempPage (setId, outPage);
                                          aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
                                      }
                                                                
                                 }
+                                //unpin user page
+                                aggregateProcessor->clearInputPage();
+                                page->decRefCount();
+                                if (page->getRefCount() == 0) {
+                                     proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                }
 
                              }
                              aggregateProcessor->finalize();
                              aggregateProcessor->fillNextOutputPage();
+                             aggregateProcessor->clearOutputPage();
                              proxy->unpinTempPage (setId, outPage);
                              //TODO : how to remove the tempset created in above code???
 
@@ -441,12 +449,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          aggOutProcessor->loadInputPage(aggregationPage);
                                          //get output page
                                          if (output == nullptr) {
-                                             PDB_COUT << i << ":AggOutProcessor: we now pin an output page" << std :: endl;
+                                             PDB_COUT << i << ": AggOutProcessor: we now pin an output page" << std :: endl;
                                              proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                              aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
                                          }
                                          while (aggOutProcessor->fillNextOutputPage()) {
-                                             PDB_COUT << i << "AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
+                                             aggOutProcessor->clearOutputPage();
+                                             PDB_COUT << i << ": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
                                              //unpin the output page
                                              proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                              //pin a new output page
@@ -456,9 +465,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          }
                                          aggregateProcessor->clearOutputPage();
                                          aggOutProcessor->clearInputPage();
-               
-                                         //free (aggregationPage);
+                                         free(aggregationPage);
+                                         PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
+                                         aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
+                                         aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                      }
+                                     aggregateProcessor->clearInputPage();
                                      //unpin the input page 
                                      page->decRefCount();
                                      if (page->getRefCount() == 0) {
@@ -480,7 +492,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                       aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
                                  }
                                  while (aggOutProcessor->fillNextOutputPage()) {
-                                      PDB_COUT << i << "AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
+                                      aggOutProcessor->clearOutputPage();
+                                      PDB_COUT << i << ": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
                                       //unpin the output page
                                       proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                       //pin a new output page
@@ -492,12 +505,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  //finalize() and unpin last output page
                                  aggOutProcessor->finalize();
                                  aggOutProcessor->fillNextOutputPage();
+                                 aggOutProcessor->clearOutputPage();
                                  PDB_COUT << i <<": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
                                  proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                  //free aggregation page
-                                 aggregateProcessor->clearOutputPage();
                                  aggOutProcessor->clearInputPage();
-                                 //free (aggregationPage);
+                                 aggregateProcessor->clearOutputPage();
+                                 free (aggregationPage);
                             }//aggregationPage != nullptr
 
                          }//request->needsToMaterializeAggOut() == true
