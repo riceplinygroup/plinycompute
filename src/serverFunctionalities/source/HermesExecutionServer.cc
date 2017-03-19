@@ -562,6 +562,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                      PageCircularBufferIteratorPtr iter = iterators.at(j);
                      PDBPagePtr page = nullptr;
                      while (iter->hasNext()) {
+                         page = iter->next();
                          if (page != nullptr) {
                              PDB_COUT << "Scanner got a non-null page" << std :: endl;
                              int k;

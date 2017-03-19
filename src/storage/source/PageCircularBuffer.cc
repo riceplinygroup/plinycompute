@@ -25,6 +25,7 @@
 #ifndef PAGE_CIRCULAR_BUFFER_CC
 #define PAGE_CIRCULAR_BUFFER_CC
 
+#include "PDBDebug.h"
 #include "PageCircularBuffer.h"
 #include <string>
 #include <iostream>
@@ -103,6 +104,7 @@ PDBPagePtr PageCircularBuffer::popPageFromHead() {
         pthread_cond_wait(&(this->cond), &(this->mutex));
     }
     if(!this->isEmpty()) {
+        this->logger->debug("PageCircularBuffer: not empty, return the head element");
         this->pageArrayHead = (this->pageArrayHead + 1) % this->maxArraySize;
         PDBPagePtr ret = this->pageArray[this->pageArrayHead];
         this->pageArray[this->pageArrayHead] = nullptr;
@@ -121,6 +123,10 @@ bool PageCircularBuffer::isFull() {
 //not thread-safe
 
 bool PageCircularBuffer::isEmpty() {
+    PDB_COUT << "this->pageArrayHead=" << this->pageArrayHead << std :: endl;
+    this->logger->debug (std :: string("this->pageArrayHead=")+std :: to_string(this->pageArrayHead));
+    this->logger->debug (std :: string("this->pageArrayTail=")+std :: to_string(this->pageArrayTail));
+    PDB_COUT << "this->pageArrayTail=" << this->pageArrayTail << std :: endl;
     return (this->pageArrayHead == this->pageArrayTail);
 }
 //not thread-safe
