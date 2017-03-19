@@ -143,7 +143,7 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
         page = this->iter->next();
         if (page != nullptr) {
             //send PagePinned object to backend
-                //std :: cout << "PDBScanWork: pin page with pageId ="<<page->getPageID()<<"\n";
+                PDB_COUT << "PDBScanWork: pin page with pageId ="<<page->getPageID()<<"\n";
                 retry = 0;
                
                 while (retry < MAX_RETRIES) {
@@ -155,7 +155,7 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
                         continue;
                     } 
                     //receive ack object from backend
-                    //std :: cout << "PDBScanWork: waiting for ack..." << std :: endl;
+                    PDB_COUT << "PDBScanWork: waiting for ack..." << std :: endl;
         	    logger->debug("PDBScanWork: waiting for ack... ");
         	    ret = this->acceptPagePinnedAck(communicatorToBackEnd, wasError, info, errMsg);
                     if (ret == false) {
@@ -164,13 +164,13 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
                         continue;
                     }
         	    logger->debug("PDBScanWork: ack received ");
+                    PDB_COUT << "PDBScanWork: got ack!" << std :: endl;
                     break;
-                    //std :: cout << "PDBScanWork: got ack!" << std :: endl;
                 }
         }
     }
     //close the connection
-    //std :: cout << "PDBScanWork to close the loop" << std :: endl;
+    PDB_COUT << "PDBScanWork to close the loop" << std :: endl;
     logger->debug("PDBScanWork to close the loop");
     retry = 0;
     while (retry < MAX_RETRIES) {
@@ -187,7 +187,7 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
             continue;
         }
         //notify the caller that this scan thread has finished work.
-        //std :: cout << "PDBScanWork finished.\n";
+        PDB_COUT << "PDBScanWork finished.\n";
         logger->debug("PDBScanWork finished.\n");
         break;
     }
