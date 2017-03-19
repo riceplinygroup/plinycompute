@@ -37,6 +37,8 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <Hash
     }
     count = 0;
     curPartPos = 0;
+    begin = nullptr;
+    end = nullptr;
 }
 
 //initialize
@@ -55,6 +57,12 @@ void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProce
     count = 0;
     curPartId = nodePartitionIds[curPartPos];
     curMap = (*inputData)[curPartId];
+    if (begin != nullptr) {
+        delete begin;
+    }
+    if (end != nullptr) {
+        delete end;
+    }
     begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
     end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
 }

@@ -29,6 +29,8 @@ AggregationProcessor <KeyType, ValueType> :: AggregationProcessor (HashPartition
     this->id = id;
     finalized = false;
     count = 0;
+    begin = nullptr;
+    end = nullptr;
 }
 
 //initialize
@@ -52,6 +54,12 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputPage (void * pageToPr
         if( curMap->getHashPartitionId() == id ) {
             std :: cout << "this map has my id = " << id << std :: endl;
             count = 0;
+            if (begin != nullptr) {
+                 delete begin;
+            }
+            if (end != nullptr) {
+                 delete end;
+            }
             begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
             end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
             break;
@@ -75,16 +83,18 @@ void AggregationProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToW
 template <class KeyType, class ValueType>
 bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
-    if (curMap == nullptr) {
-        std :: cout << "this page doesn't have my map with id = " << id << std :: endl; 
-        return false;
-    }
-
     // if we are finalized, see if there are some left over records
     if (finalized) {
         getRecord (outputData);
         return false;
     }
+
+
+    if (curMap == nullptr) {
+        std :: cout << "this page doesn't have my map with id = " << id << std :: endl; 
+        return false;
+    }
+
 
     // we are not finalized, so process the page
     try {

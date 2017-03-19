@@ -27,6 +27,8 @@ template <class OutputClass, class KeyType, class ValueType>
 AggOutProcessor <OutputClass, KeyType, ValueType> :: AggOutProcessor () {
 
     finalized = false;
+    begin = nullptr;
+    end = nullptr;
 }
 
 //initialize
@@ -41,6 +43,12 @@ void AggOutProcessor <OutputClass, KeyType, ValueType> :: loadInputPage (void * 
 
     Record <Map<KeyType, ValueType>> * myRec = (Record <Map<KeyType, ValueType>> *) pageToProcess;
     inputData = myRec->getRootObject();
+    if (begin != nullptr) {
+        delete begin;
+    }
+    if (end != nullptr) {
+        delete end;
+    }
     begin = new PDBMapIterator <KeyType, ValueType>(inputData->getArray(), true);
     end = new PDBMapIterator <KeyType, ValueType>(inputData->getArray());
 }
