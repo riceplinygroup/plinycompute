@@ -457,7 +457,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          aggregateProcessor->clearOutputPage();
                                          aggOutProcessor->clearInputPage();
                
-                                         free (aggregationPage);
+                                         //free (aggregationPage);
                                      }
                                      //unpin the input page 
                                      page->decRefCount();
@@ -497,7 +497,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  //free aggregation page
                                  aggregateProcessor->clearOutputPage();
                                  aggOutProcessor->clearInputPage();
-                                 free (aggregationPage);
+                                 //free (aggregationPage);
                             }//aggregationPage != nullptr
 
                          }//request->needsToMaterializeAggOut() == true

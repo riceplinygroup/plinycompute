@@ -167,7 +167,7 @@ inline Allocator :: Allocator (size_t numBytesIn) {
         #endif
         // JiaNote: malloc check
         if (putMeHere == nullptr) {
-            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory" << std :: endl;
+            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory with size=" << numBytesIn << std :: endl;
             exit(-1);
         }
         setupBlock (putMeHere, numBytesIn, true);
@@ -537,7 +537,7 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t num
         #endif
         // JiaNote: malloc check
         if (putMeHere == nullptr) {
-            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory" << std :: endl;
+            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory with size=" << numBytesAvailable << std :: endl;
             exit(-1);
         }
 	setupBlock (putMeHere, numBytesAvailable, true);
