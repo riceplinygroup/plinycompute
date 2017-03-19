@@ -94,6 +94,7 @@ void QuerySchedulerServer ::cleanup() {
              queryPlan[i]=nullptr;
     }
     this->queryPlan.clear();
+    this->jobStageId = 0;
 }
 
 QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork) {
