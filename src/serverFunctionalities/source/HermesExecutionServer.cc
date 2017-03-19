@@ -149,7 +149,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                 errMsg = "Fatal Error: No job is running in execution server.";
                                 std :: cout << errMsg << std :: endl;
                        } else {
-                                //std :: cout << "to throw pinned pages to a circular buffer!" << std :: endl;
+                                PDB_COUT << "StoragePagePinned handler: to throw pinned pages to a circular buffer!" << std :: endl;
                                 scanner->recvPagesLoop(request, sendUsingMe);
                                 res = true;
                        }
