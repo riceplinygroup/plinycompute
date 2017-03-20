@@ -23,8 +23,10 @@
 #include "SimpleRequest.h"
 #include "DistributedStorageAddDatabase.h"
 #include "DistributedStorageAddSet.h"
+#include "DistributedStorageAddTempSet.h"
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
+#include "DistributedStorageRemoveTempSet.h"
 #include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
 
@@ -54,6 +56,13 @@ namespace pdb {
                                                                                     generateResponseHandler("Could not add set to distributed storage manager:", errMsg), databaseName, setName, typeName);
     }
 
+    bool DistributedStorageManagerClient::createTempSet(const std::string& databaseName, const std::string& setName,
+                                                    const std::string& typeName, std::string& errMsg) {
+        return simpleRequest <DistributedStorageAddTempSet, SimpleRequestResult, bool> (logger, port, address, false, 1024,
+
+    generateResponseHandler("Could not add temp set to distributed storage manager:", errMsg), databaseName, setName, typeName);
+    }
+
     bool DistributedStorageManagerClient::removeDatabase(const std::string& databaseName, std::string & errMsg) {
         return simpleRequest<DistributedStorageRemoveDatabase, SimpleRequestResult, bool> (logger, port, address, false,
                                                                                            1024, generateResponseHandler("Could not remove database from distributed storage manager", errMsg), databaseName);
@@ -62,6 +71,12 @@ namespace pdb {
     bool DistributedStorageManagerClient::removeSet(const std::string& databaseName, const std::string& setName, std::string & errMsg) {
         return simpleRequest<DistributedStorageRemoveSet, SimpleRequestResult, bool> (logger, port, address, false,
                                                                                       1024, generateResponseHandler("Could not remove set to distributed storage manager", errMsg), databaseName, setName);
+    }
+
+    bool DistributedStorageManagerClient::removeTempSet(const std::string& databaseName, const std::string& setName,
+                                                     const std :: string& typeName, std::string & errMsg) {
+        return simpleRequest<DistributedStorageRemoveTempSet, SimpleRequestResult, bool> (logger, port, address, false,
+                                                                                      1024, generateResponseHandler("Could not remove temp set to distributed storage manager", errMsg), databaseName, setName, typeName);
     }
 
     bool DistributedStorageManagerClient::clearSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg) {

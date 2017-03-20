@@ -212,7 +212,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     getAllocator().printInactiveBlocks();
                     std :: string errMsg;
                     bool success;
-                    PDB_COUT << "Frontend got a request for JobStage" << std :: endl;
+                    PDB_COUT << "Frontend got a request for TupleSetJobStage" << std :: endl;
                     request->print();
                     makeObjectAllocatorBlock(24*1024*1024, true);
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
