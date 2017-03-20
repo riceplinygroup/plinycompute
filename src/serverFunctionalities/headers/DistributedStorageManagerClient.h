@@ -40,6 +40,10 @@ namespace pdb {
         bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
                        std::string& errMsg);
 
+        // createTempSet added by Jia (only go through storage)
+        bool createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
+                       std::string& errMsg);
+
         // templated createSet added by Jia
         template <class DataType>
         bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg);
@@ -54,7 +58,8 @@ namespace pdb {
         // clearSet added by Jia
         bool clearSet(const std::string& databaseName, const std::string& setName, const std::string & typeName, std::string & errMsg);
 
-
+        // removeTempSet added by Jia (only go through storage)
+        bool removeTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg);
 
     private:
         std::function<bool (Handle<SimpleRequestResult>)> generateResponseHandler(std::string description, std::string & errMsg);

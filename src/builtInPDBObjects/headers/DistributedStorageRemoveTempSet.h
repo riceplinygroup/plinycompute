@@ -15,27 +15,29 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef DISTRIBUTEDSTORAGEREMOVESET_H
-#define DISTRIBUTEDSTORAGEREMOVESET_H
+#ifndef DISTRIBUTEDSTORAGEREMOVETEMPSET_H
+#define DISTRIBUTEDSTORAGEREMOVETEMPSET_H
+
+//by Jia, Mar 2017
 
 #include "Object.h"
 #include "Handle.h"
 #include "PDBString.h"
 
-// PRELOAD %DistributedStorageRemoveSet%
+// PRELOAD %DistributedStorageRemoveTempSet%
 
 namespace pdb {
 
 // encapsulates a request to remove a set in storage
-    class DistributedStorageRemoveSet  : public Object {
+    class DistributedStorageRemoveTempSet  : public Object {
 
     public:
 
-        DistributedStorageRemoveSet () {}
-        ~DistributedStorageRemoveSet () {}
+        DistributedStorageRemoveTempSet () {}
+        ~DistributedStorageRemoveTempSet () {}
 
-        DistributedStorageRemoveSet (std :: string dataBase, std :: string setName)
-                : dataBase (dataBase), setName (setName) {}
+        DistributedStorageRemoveTempSet (std :: string dataBase, std :: string setName, std :: string typeName)
+                : dataBase (dataBase), setName (setName), typeName (typeName) {}
 
         std :: string getDatabase () {
             return dataBase;
@@ -45,15 +47,19 @@ namespace pdb {
             return setName;
         }
 
+        std :: string getTypeName () {
+            return typeName;
+        }
+
         ENABLE_DEEP_COPY
 
     private:
 
         String dataBase;
         String setName;
-
+        String typeName;
     };
 
 }
 
-#endif //DISTRIBUTEDSTORAGEREMOVESET_H
+#endif //DISTRIBUTEDSTORAGEREMOVETEMPSET_H

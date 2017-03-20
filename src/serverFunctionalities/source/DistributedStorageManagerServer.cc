@@ -30,8 +30,10 @@
 
 #include "DistributedStorageAddDatabase.h"
 #include "DistributedStorageAddSet.h"
+#include "DistributedStorageAddTempSet.h"
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
+#include "DistributedStorageRemoveTempSet.h"
 #include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
 
@@ -199,6 +201,62 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 return make_pair (res, errMsg);
             }
     ));
+
+
+    forMe.registerHandler(DistributedStorageAddTempSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddTempSet>> (
+            [&] (Handle <DistributedStorageAddTempSet> request, PDBCommunicatorPtr sendUsingMe) {
+                const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
+                auto begin = std :: chrono :: high_resolution_clock :: now();
+
+                PDB_COUT << "received DistributedStorageAddSet message" << std ::endl;
+                std::string errMsg;
+                mutex lock;
+
+                auto successfulNodes = std::vector<std::string>();
+                auto failureNodes = std::vector<std::string>();
+                auto nodesToBroadcast = std::vector<std::string>();
+
+                std::string database = request->getDatabase();
+                std::string set = request->getSetName();
+                std::string fullSetName = database + "." + set;
+                PDB_COUT << "set to create is " << fullSetName << std::endl;
+                std::string value;
+
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+               nodesToBroadcast = allNodes;
+
+               Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
+                                                                             request->getSetName(), request->getTypeName());
+
+
+               getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
+                                                                      generateAckHandler(successfulNodes, failureNodes, lock));
+
+               auto storageAddSetEnd = std :: chrono :: high_resolution_clock :: now();
+               PDB_COUT << "Time Duration for adding temp set:\t " <<
+                   std::chrono::duration_cast<std::chrono::duration<float>>(storageAddSetEnd - begin).count() << " secs." << std::endl;
+              
+               bool res = true;
+               if (failureNodes.size() > 0) {
+                   res = false;
+                   errMsg = "";
+                   for (int i = 0; i < failureNodes.size(); i ++ ) {
+                       errMsg += failureNodes[i] + std :: string(";");
+                   }
+               } 
+               Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+               res = sendUsingMe->sendObject (response, errMsg);
+               return make_pair (res, errMsg);
+
+            }
+    ));
+
     forMe.registerHandler(DistributedStorageAddSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageAddSet>> (
             [&] (Handle <DistributedStorageAddSet> request, PDBCommunicatorPtr sendUsingMe) {
                 const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
@@ -369,6 +427,56 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 return make_pair (res, errMsg);
             }
     ));
+
+    forMe.registerHandler(DistributedStorageRemoveTempSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageRemoveTempSet>> (
+            [&] (Handle <DistributedStorageRemoveTempSet> request, PDBCommunicatorPtr sendUsingMe) {
+                const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
+                auto begin = std :: chrono :: high_resolution_clock :: now();
+
+                std::string errMsg;
+                mutex lock;
+                auto successfulNodes = std::vector<std::string>();
+                auto failureNodes = std::vector<std::string>();
+                auto nodesToBroadcast = std::vector<std::string>();
+
+                std::string database = request->getDatabase();
+                std::string set = request->getSetName();
+                std::string fullSetName = database + "." + set;
+                std::vector<std::string> allNodes;
+                const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+                for (int i = 0; i < nodes->size(); i++) {
+                    std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                    std::string port = std::to_string((*nodes)[i]->getPort());
+                    allNodes.push_back(address + ":" + port);
+                }
+                nodesToBroadcast = allNodes;
+
+                PDB_COUT << "to broadcast StorageRemoveUserSet" << std :: endl;
+                Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
+                    request->getSetName(), request->getTypeName());
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
+                    nodesToBroadcast,
+                    generateAckHandler(successfulNodes, failureNodes, lock));
+
+                auto storageRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
+
+                PDB_COUT << "Time Duration for storage removing set:\t " <<
+                    std::chrono::duration_cast<std::chrono::duration<float>>(storageRemoveSetEnd-begin).count() << " secs." << std::endl;
+
+                bool res = true;
+                if (failureNodes.size() > 0) {
+                    res = false;
+                    errMsg = "";
+                    for (int i = 0; i < failureNodes.size(); i ++ ) {
+                        errMsg += failureNodes[i] + std :: string(";");
+                    }
+                } 
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                res = sendUsingMe->sendObject (response, errMsg);
+                return make_pair (res, errMsg);
+            }
+    ));
+
 
     forMe.registerHandler(DistributedStorageRemoveSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageRemoveSet>> (
             [&] (Handle <DistributedStorageRemoveSet> request, PDBCommunicatorPtr sendUsingMe) {
