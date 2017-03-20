@@ -412,6 +412,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              cout << errMsg << endl;
                          } else {
                              //int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
+                             #ifdef CHECK_TYPE
                              int16_t typeID = VTableMap :: getIDByName(request->getTypeName(), false);
                              PDB_COUT << "TypeID ="<< typeID << std :: endl;
                              // make sure the type is registered in the catalog
@@ -419,7 +420,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                 errMsg = "Could not find type " + request->getTypeName();
                                 cout << errMsg << endl;
                                 res = false;
-                              }
+                             }
+                             #endif
                          }
                       }
                       // make the response

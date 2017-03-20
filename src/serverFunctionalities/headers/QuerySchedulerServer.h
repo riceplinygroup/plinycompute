@@ -137,6 +137,10 @@ protected:
        // use TupleSetJobStage/AggregationJobStage to replace JobStage
        std :: vector<Handle<AbstractJobStage>> queryPlan;
 
+       //set identifiers for shuffle set, we need to create and remove them at scheduler, so that they exist at any node when any other node needs to write to it
+       std :: vector<Handle<SetIdentifier>> aggregationSets;
+
+
        // logger
        PDBLoggerPtr logger;
 
