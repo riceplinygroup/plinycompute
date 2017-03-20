@@ -70,7 +70,7 @@ int PipelineStage :: getNumThreads () {
 //send repartitioned data to a remote node
 bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, std :: string & errMsg) {
         
-       PDB_COUT << "store shuffle data with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       PDB_COUT << "store shuffle data to address=" << address << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
        return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
@@ -266,6 +266,9 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
+
+                  //to combine data for node-i
+
                   std :: string errMsg;
 
                   //create data proxy
@@ -277,7 +280,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
-
+                  std :: cout << "address = " << address << std :: endl;
                   //get aggregate computation 
                   std :: cout << i << ": to get compute plan" << std :: endl;
                   const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};

@@ -118,6 +118,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
+                    newRequest->setNeedsRemoveInputSet (false);
                     PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                    
@@ -186,10 +187,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                    Handle <Vector <String>> result = makeObject <Vector <String>> ();
                    if (success == true) {
                        result->push_back (request->getSinkContext()->getSetName());
-                       PDB_COUT << "Query is done. " << std :: endl;
+                       PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
                    } else {
-                       std :: cout << "Query failed at server" << std :: endl;
+                       std :: cout << "Stage failed at server" << std :: endl;
                    }
                    // return the results
                    if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -239,7 +240,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         // now, we send back the result
                         Handle <Vector <String>> result = makeObject <Vector <String>> ();
                         result->push_back (request->getSinkContext()->getSetName());
-                        PDB_COUT << "Query is done without data. " << std :: endl;
+                        PDB_COUT << "Stage is done without data. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
                             return std :: make_pair (false, errMsg);
@@ -263,7 +264,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                     SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                     if (outputSet == nullptr) {
-                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, "Aggregation", outSetName);
+                        success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                         outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                         PDB_COUT << "Output set is created in storage with database="<< outDatabaseName << ", set=" << outSetName << ", type=Aggregation" << std :: endl;
                     }
@@ -275,11 +276,12 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         sinkContext->setTypeId(outputSet->getTypeID());
                         sinkContext->setSetId(outputSet->getSetID());
                         newRequest->setSinkContext(sinkContext);
+                        newRequest->setOutputTypeName (request->getOutputTypeName());
 
                     } else {
                         Handle <Vector <String>> result = makeObject <Vector <String>> ();
                         result->push_back (request->getSinkContext()->getSetName());
-                        PDB_COUT << "Query failed: not able to create output set. " << std :: endl;
+                        PDB_COUT << "Stage failed: not able to create output set. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
                             return std :: make_pair (false, errMsg);
@@ -355,10 +357,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                    Handle <Vector <String>> result = makeObject <Vector <String>> ();
                    if (success == true) {
                        result->push_back (request->getSinkContext()->getSetName());
-                       PDB_COUT << "Query is done. " << std :: endl;
+                       PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
                    } else {
-                       std :: cout << "Query failed at server" << std :: endl;
+                       std :: cout << "Stage failed at server" << std :: endl;
                    }
                    // return the results
                    if (!sendUsingMe->sendObject (result, errMsg)) {
