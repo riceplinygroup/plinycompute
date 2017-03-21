@@ -98,7 +98,7 @@ void QuerySchedulerServer ::cleanup() {
     for (int i = 0; i < aggregationSets.size(); i++) {
              aggregationSets[i]=nullptr;
     }
-    this->queryPlan.clear();
+    this->aggregationSets.clear();
 
     this->jobStageId = 0;
 }
@@ -758,7 +758,7 @@ void QuerySchedulerServer :: scheduleQuery() {
                  PDBWorkerPtr myWorker = getWorker();
                  PDBWorkPtr myWork = make_shared <GenericWork> (
                      [&, i, j] (PDBBuzzerPtr callerBuzzer) {
-                          const UseTemporaryAllocationBlock block(1 * 1024 * 1024); 
+                          const UseTemporaryAllocationBlock block(4 * 1024 * 1024); 
 
                           PDB_COUT << "to schedule the " << i << "-th stage on the " << j << "-th node" << std :: endl;
 
@@ -911,11 +911,6 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              getFunctionality<QuerySchedulerServer>().initialize(true);
              PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
              getFunctionality<QuerySchedulerServer>().scheduleQuery();
-             PDB_COUT << "To send back response to client" << std :: endl;
-             Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
-             if (!sendUsingMe->sendObject (result, errMsg)) {
-                 return std :: make_pair (false, errMsg);
-             }
 
              //to remove aggregation sets:
              PDB_COUT << "to remove aggregation sets" << std :: endl;
@@ -929,6 +924,14 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                      PDB_COUT << "Removed set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
                  }
              }
+             PDB_COUT << "To send back response to client" << std :: endl;
+             Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, std :: string ("successfully executed query"));
+             if (!sendUsingMe->sendObject (result, errMsg)) {
+                 PDB_COUT << "to cleanup" << std :: endl;
+                 getFunctionality<QuerySchedulerServer>().cleanup();
+                 return std :: make_pair (false, errMsg);
+             }
+
             
              PDB_COUT << "to cleanup" << std :: endl;
              getFunctionality<QuerySchedulerServer>().cleanup();

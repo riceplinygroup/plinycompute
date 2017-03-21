@@ -147,12 +147,12 @@ public:
 				}
 			}
 		}
-                int i;
+/*                int i;
                 for (i = 0; i < numPartitions; i++) {
                      Map <KeyType, ValueType> & myMap = *((*writeMe)[i]);
                      std :: cout << "partition-" << i << ": " << myMap.size() << " elements" << std :: endl;
                 }
-
+*/
 	}
 
 	~ShuffleSink () {}

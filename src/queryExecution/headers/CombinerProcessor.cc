@@ -63,6 +63,7 @@ void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProce
     if (end != nullptr) {
         delete end;
     }
+    std :: cout << "CombinerProcessor: loaded a page with first partition id=" << curPartId << " and size=" << curMap->size() << std :: endl;
     begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
     end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
 }

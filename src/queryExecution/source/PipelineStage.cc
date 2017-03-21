@@ -296,9 +296,9 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   std :: vector<HashPartitionID> stdPartitions;
                   int numPartitionsOnTheNode = partitions->size();
                   std :: cout << "num partitions on this node:" << numPartitionsOnTheNode << std :: endl;
-                  for (int i = 0; i < numPartitionsOnTheNode; i ++) {
-                      std :: cout << i << ":" << (*partitions)[i] << std :: endl;
-                      stdPartitions.push_back((*partitions)[i]);
+                  for (int m = 0; m < numPartitionsOnTheNode; m ++) {
+                      std :: cout << m << ":" << (*partitions)[m] << std :: endl;
+                      stdPartitions.push_back((*partitions)[m]);
                   }
                   //get combiner processor
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
@@ -306,8 +306,11 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   
                   void * combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
                   combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
-                  while (iter->hasNext()) {
-                      PDBPagePtr page = iter->next();
+
+                  PageCircularBufferIteratorPtr myIter = combinerIters[i];
+
+                  while (myIter->hasNext()) {
+                      PDBPagePtr page = myIter->next();
                       if (page != nullptr) {
                           //to load input page
                           combinerProcessor->loadInputPage(page->getBytes());
@@ -406,12 +409,12 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
          });
     std :: cout << "to run pipeline with " << numThreads << " threads." << std :: endl;
     int counter = 0;
-    for (int i = 0; i < numThreads; i++) {
+    for (int j = 0; j < numThreads; j++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-         PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
+         PDB_COUT << "to run the " << j << "-th work..." << std :: endl;
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
-             [&, i] (PDBBuzzerPtr callerBuzzer) {
+             [&, j] (PDBBuzzerPtr callerBuzzer) {
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineStage_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
@@ -424,11 +427,11 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //setup an output page to store intermediate results and final output
                   const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
                   PDBPagePtr output=nullptr;
-                  PageCircularBufferIteratorPtr iter = iterators.at(i);
-                  std :: cout << i << ": to get compute plan" << std :: endl;
+                  PageCircularBufferIteratorPtr iter = iterators.at(j);
+                  std :: cout << j << ": to get compute plan" << std :: endl;
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   plan->nullifyPlanPointer();
-                  std :: cout << i << ": to deep copy ComputePlan object" << std :: endl;
+                  std :: cout << j << ": to deep copy ComputePlan object" << std :: endl;
                   Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
                   std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
                   std :: cout << "Source tupleset name=" << sourceSpecifier << std :: endl;
