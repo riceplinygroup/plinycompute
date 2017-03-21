@@ -25,46 +25,49 @@
 
 #include "SharedEmployee.h"
 
+/**
+ * This test stores lots of SharedEmployee Objects to the storage.
+ */
+
 int main(int argc, char * argv[]) {
 
-	int numOfMb = 1024;
+	int numIterations = 1000;
+	int numObjectInEachIterations = 100;
 
-
-	if (argc > 1) {
-		numOfMb = atoi(argv[1]);
-	}
-
-	std::cout << "to add data with size: " << numOfMb << "MB" << std::endl;
 
 	// register the shared employee class
 	pdb::StorageClient temp(8108, "localhost", make_shared<pdb::PDBLogger>("clientLog"), true);
 
 	string errMsg;
 
-	int numIterations = numOfMb;
-
 	for (int num = 0; num < numIterations; ++num) {
-		// now, create a bunch of data
+
 		pdb::makeObjectAllocatorBlock(1024 * 1024 * 1, true);
 		pdb::Handle<pdb::Vector<pdb::Handle<SharedEmployee>>>storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle <SharedEmployee>>> ();
-		int i;
+
+		// now, create a bunch of data
+		// and store them in vector of 100 Objects
 		try {
 
-			for (i = 0; true; i++) {
+			for (int i = 0; i < numObjectInEachIterations; i++) {
 				pdb::Handle<SharedEmployee> myData = pdb::makeObject<SharedEmployee>("Joe Johnson" + to_string(i), i + 45);
 				storeMe->push_back(myData);
 			}
 
 		} catch (pdb::NotEnoughSpace &n) {
-			// we got here, so go ahead and store the vector
-			if (!temp.storeData<SharedEmployee>(storeMe, "chris_db", "chris_set", errMsg)) {
-				cout << "Not able to store data: " + errMsg;
-				return 0;
-			}
-			std::cout << i << " stored the data!!\n";
-
+			cout << "Out of Memory. We should not get here. " + errMsg;
 		}
-	}
+
+		// we got here, so go ahead and store the vector
+		if (!temp.storeData<SharedEmployee>(storeMe, "chris_db", "chris_set", errMsg)) {
+			cout << "Not able to store data: " + errMsg;
+			return 0;
+		}
+
+		cout << "Stored " << num * numObjectInEachIterations << "  Objects." << endl;
+
+
+	}		// End of ForLoop.
+
 }
 #endif
-
