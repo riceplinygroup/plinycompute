@@ -115,3 +115,26 @@ if you define it to non empty like "y" or "yes", it will run as before and bring
 by default, it is not defined, and it will run in background using nohup (I saw Carlos also used this in his contributed "launchWorkers.sh"), which means it will not be interrupted by ssh.
 
 
+
+## Compiling shared libraries
+
+(1) Add your shared library header file and source file like following example:
+https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/headers/ChrisSelection.h
+https://svn.rice.edu/r/software_0/ObjectQueryModel/src/sharedLibraries/source/ChrisSelection.cc
+
+Note, it MUST be a pdb :: Object instance, and follow all rules of pdb :: Object (Please search Object Model FAQ in the PDB google group). For example, you must include the ENABLE_DEEP_COPY macro in the public statements. You must include the header file "GetVTable.h", and have the GET_V_TABLE macro in the source file.
+
+
+(2) Build your shared library.
+Now you can build it by adding following to SConstruct(https://svn.rice.edu/r/software_0/ObjectQueryModel/SConstruct):
+
+common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
+
+Then add 'libraries/libChrisSelection.so' to "main=common_env.Alias(...)"
+
+In future, shared library should be able to be compiled at client side via a PDB client library.
+
+
+
+
+
