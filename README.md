@@ -112,7 +112,7 @@ by default, it is defined to be "-o StrictHostKeyChecking=no"
 
 if you define it to non empty like "y" or "yes", it will run as before and bring all output to your ssh terminal;
 
-by default, it is not defined, and it will run in background using nohup (I saw Carlos also used this in his contributed "launchWorkers.sh"), which means it will not be interrupted by ssh.
+by default, it is not defined, and it will run in background using nohup, which means it will not be interrupted by ssh.
 
 
 
