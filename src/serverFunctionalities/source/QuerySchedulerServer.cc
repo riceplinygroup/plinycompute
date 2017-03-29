@@ -433,47 +433,46 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
 String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations, int flag) {
 
-        //TODO: convert below placeholder to query analysis logic
-/*        String myTCAPString =
-               "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
-                inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
-                inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
-                inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_0') \n\
-                filteredInput (in) <= FILTER (inputWithBool (bool), inputWithBool (in), 'SelectionComp_1') \n\
-                projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_4') \n\
-                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_3') \n\
-                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'AggregationComp_2', 'attAccess_1') \n\
-                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'AggregationComp_2', 'deref_0') \n\
-                aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'methodCall_2') \n\
-                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'AggregationComp_2') \n\
-                checkSales (aggOut, isSales) <= APPLY (agg (aggOut), agg (aggOut), 'SelectionComp_3', 'methodCall_0') \n\
-                justSales (aggOut, isSales) <= FILTER (checkSales (isSales), checkSales (aggOut), 'SelectionComp_3') \n\
-                final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
-                nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
-*/
 
    String myTCAPString;
    if (flag == 0) {
         myTCAPString = 
-                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
+/*                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
                 checkFrank (in, isFrank) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
                 justFrank (in, isFrank) <= FILTER (checkFrank(isFrank), checkFrank(in), 'SelectionComp_1') \n\
-                projectedInputWithPtr (out) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_2') \n\
-                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_1') \n\
-                nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";
+                projectedInputWithPtr (out) <= APPLY (justFrank (in), justFrank (), 'SelectionComp_1', 'methodCall_1') \n\
+                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_2') \n\
+                nothing() <= OUTPUT (projectedInput (out), 'output_set1', 'chris_db', 'WriteUserSet_2')";*/
+                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0')\n\
+methodCall_0OutForSelectionComp1(in,methodCall_isFrank) <= APPLY (inputData(in), inputData(in), 'SelectionComp_1', 'methodCall_0') \n\
+filteredInputForSelectionComp1(in) <= FILTER (methodCall_0OutForSelectionComp1(methodCall_isFrank), methodCall_0OutForSelectionComp1(in), 'SelectionComp_1')\n\
+methodCall_1OutForSelectionComp1(in, methodCall_getName) <= APPLY (filteredInputForSelectionComp1(in), filteredInputForSelectionComp1(in), 'SelectionComp_1', 'methodCall_1')\n\
+derefOutForSelectionComp1 (methodCall_getName) <= APPLY (methodCall_1OutForSelectionComp1(methodCall_getName), methodCall_1OutForSelectionComp1(), 'SelectionComp_1', 'deref_2')\n\
+out() <= OUTPUT (derefOutForSelectionComp1 (methodCall_getName), 'output_set1', 'chris_db', 'WriteUserSet_2')";
    } else {
        myTCAPString =
-                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
-                inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_1') \n\
-                inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_2') \n\
-                inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_0') \n\
+/*                "inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0') \n\
+                inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
+                inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_1') \n\
+                inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_2') \n\
                 filteredInput (in) <= FILTER (inputWithBool (bool), inputWithBool (in), 'SelectionComp_1') \n\
-                projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_4') \n\
-                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_3') \n\
-                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'ClusterAggregationComp_2', 'attAccess_1') \n\
-                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'ClusterAggregationComp_2', 'deref_0') \n\
+                projectedInputWithPtr (out) <= APPLY (filteredInput (in), filteredInput (), 'SelectionComp_1', 'methodCall_3') \n\
+                projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_4') \n\
+                aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'ClusterAggregationComp_2', 'attAccess_0') \n\
+                aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'ClusterAggregationComp_2', 'deref_1') \n\
                 aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'ClusterAggregationComp_2', 'methodCall_2') \n\
-                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'ClusterAggregationComp_2')";
+                agg (aggOut) <= AGGREGATE (aggWithValue (key, value), 'ClusterAggregationComp_2')" ;*/
+"inputData (in) <= SCAN ('chris_set', 'chris_db', 'ScanUserSet_0')\n\
+methodCall_0OutForSelectionComp1(in,methodCall_getSteve) <= APPLY (inputData(in), inputData(in), 'SelectionComp_1', 'methodCall_0')\n\
+attAccessOutForSelectionComp1(in,methodCall_getSteve,att_me) <= APPLY (methodCall_0OutForSelectionComp1(in), methodCall_0OutForSelectionComp1(in,methodCall_getSteve), 'SelectionComp_1', 'attAccess_1')\n\
+equals_2OutForSelectionComp1(in,methodCall_getSteve,att_me,bool_2_1) <= APPLY (attAccessOutForSelectionComp1(methodCall_getSteve,att_me), attAccessOutForSelectionComp1(in,methodCall_getSteve,att_me), 'SelectionComp_1', '==_2')\n\
+filteredInputForSelectionComp1(in) <= FILTER (equals_2OutForSelectionComp1(bool_2_1), equals_2OutForSelectionComp1(in), 'SelectionComp_1')\n\
+methodCall_3OutForSelectionComp1(in,methodCall_getMe) <= APPLY (filteredInputForSelectionComp1(in), filteredInputForSelectionComp1(in), 'SelectionComp_1', 'methodCall_3')\n\
+derefOutForSelectionComp1 (methodCall_getMe) <= APPLY (methodCall_3OutForSelectionComp1(methodCall_getMe), methodCall_3OutForSelectionComp1(), 'SelectionComp_1', 'deref_4')\n\
+attAccessOutForClusterAggregationComp2(methodCall_getMe,att_department) <= APPLY (derefOutForSelectionComp1(methodCall_getMe), derefOutForSelectionComp1(methodCall_getMe), 'ClusterAggregationComp_2', 'attAccess_0')\n\
+derefOutForClusterAggregationComp2(methodCall_getMe,att_department) <= APPLY (attAccessOutForClusterAggregationComp2(att_department), attAccessOutForClusterAggregationComp2(methodCall_getMe), 'ClusterAggregationComp_2', 'deref_1')\n\
+methodCall_2OutForClusterAggregationComp2(att_department,methodCall_getSalary) <= APPLY (derefOutForClusterAggregationComp2(methodCall_getMe), derefOutForClusterAggregationComp2(att_department), 'ClusterAggregationComp_2', 'methodCall_2')\n\
+aggOutForClusterAggregationComp2(aggOut) <= AGGREGATE (methodCall_2OutForClusterAggregationComp2 (att_department, methodCall_getSalary), 'ClusterAggregationComp_2')";
 
    }
    return myTCAPString;
@@ -490,7 +489,8 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
         Handle<ComputePlan> myPlan = makeObject<ComputePlan> (myTCAPString, myComputations);
         Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
         jobStageId ++;
-        jobStage->setComputePlan(myPlan, "inputData", "projectedInput", "WriteUserSet_2");
+//        jobStage->setComputePlan(myPlan, "inputData", "projectedInput", "WriteUserSet_2");
+        jobStage->setComputePlan(myPlan, "inputData", "derefOutForSelectionComp1", "WriteUserSet_2");
         std :: string sourceSpecifier = "ScanUserSet_0";
         Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
         Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);
@@ -510,7 +510,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
 
         Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage>(jobStageId);
         jobStageId ++;
-        jobStage->setComputePlan(myPlan, "inputData", "aggWithValue", "ClusterAggregationComp_2");
+        jobStage->setComputePlan(myPlan, "inputData", "methodCall_2OutForClusterAggregationComp2", "ClusterAggregationComp_2");
         std :: string sourceSpecifier = "ScanUserSet_0";
         Handle<Computation> sourceComputation = myPlan->getPlan()->getNode(sourceSpecifier).getComputationHandle();
         Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(sourceComputation);

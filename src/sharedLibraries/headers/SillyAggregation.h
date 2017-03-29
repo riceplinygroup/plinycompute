@@ -34,13 +34,12 @@ public:
 
         ENABLE_DEEP_COPY
 
-        SillyAggregation () {
-                initialize();
-        }
+        SillyAggregation () {}
 
-
+        //the below constructor is NOT REQUIRED
+        //user can also set output later by invoking the setOutput (std :: string dbName, std :: string setName)  method
         SillyAggregation (std :: string dbName, std :: string setName) {
-                initialize(dbName, setName);
+                this->setOutput(dbName, setName);
         }
 
 

@@ -29,13 +29,11 @@ public:
 	ENABLE_DEEP_COPY
 
         ScanEmployeeSet () {
-            initialize();
         }
 
         ScanEmployeeSet (std :: string dbName, std :: string setName) {
             this->dbName = dbName;
             this->setName = setName;
-            initialize();
         }
 
 };
