@@ -29,13 +29,11 @@ public:
 	ENABLE_DEEP_COPY
 
         ScanSupervisorSet () {
-            initialize();
         }
 
         ScanSupervisorSet (std :: string dbName, std :: string setName) {
             this->dbName = dbName;
             this->setName = setName;
-            initialize();
         }
 
 };

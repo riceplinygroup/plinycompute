@@ -52,14 +52,11 @@ public:
 
 
         MyWriteStringSet () {
-            initialize();
         }
 
 
         MyWriteStringSet (std :: string dbName, std :: string setName) {
-            this->dbName = dbName;
-            this->setName = setName;
-            initialize();
+            this->setOutput(dbName, setName);
         }
 
 
@@ -88,13 +85,10 @@ public:
 	ENABLE_DEEP_COPY
 
         MyScanEmployeeSet () {
-            initialize();
         }
 
         MyScanEmployeeSet (std :: string dbName, std :: string setName) {
-            this->dbName = dbName;
-            this->setName = setName;
-            initialize();
+            this->setOutput(dbName, setName);
         }
 
 

@@ -23,6 +23,7 @@
 #include "Lambda.h"
 #include "ComputeSource.h"
 #include "ComputeSink.h"
+#include "InputTupleSetSpecifier.h"
 #include <map>
 
 namespace pdb {
@@ -55,6 +56,90 @@ public:
 
 	// returns the type of this Computation
 	virtual std :: string getComputationType () = 0;
+
+        //JiaNote: below function returns a TCAP string for this Computation
+        virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) = 0;
+
+        //JiaNote: below functions are added to construct a query graph
+        //Those functions are borrowed from Chris' QueryBase class
+
+        // gets the name of the i^th input type...
+        virtual std :: string getIthInputType (int i) = 0;
+
+        bool hasInput()
+        {
+            return !inputs.isNullPtr();
+        }
+
+        // get a handle to the i^th input to this query, which is also a query
+        Handle<Computation> & getIthInput (int i) const {
+             return (*inputs)[i];
+        }
+
+        // get the number of inputs to this query type
+        virtual int getNumInputs() = 0;
+
+        // gets the output type of this query as a string
+        virtual std :: string getOutputType () = 0;
+
+
+        // set the first slot, by default
+        bool setInput (Handle<Computation> toMe) {
+             return setInput (0, toMe);
+        }
+
+        // sets the i^th input to be the output of a specific query... returns
+        // true if this is OK, false if it is not
+        bool setInput (int whichSlot, Handle <Computation> toMe) {
+             
+             // set the array of inputs if it is a nullptr
+             if (inputs == nullptr) {
+                 inputs = makeObject <Vector<Handle<Computation>>> (getNumInputs());
+                 for (int i = 0; i < getNumInputs(); i++) {
+                      inputs->push_back(nullptr);
+                 } 
+             }
+
+             // if we are adding this query to a valid slot
+             if (whichSlot < getNumInputs ()) {
+                 
+                 //make sure the output type of the guy we are accepting meets the input type
+                 if (getIthInputType (whichSlot) != toMe->getOutputType()) {
+                      std :: cout << "Cannot set output of query node with output of type " << toMe->getOutputType () << " to be the input";
+                      std :: cout << " of a query with input type " << getIthInputType (whichSlot) << ".\n";
+                      return false;
+                 }
+                 (*inputs)[whichSlot] = toMe;
+
+             } else {
+
+                 return false;
+
+             }
+             return true;
+        }
+
+        bool isTraversed () { 
+
+            return traversed; 
+
+        }
+
+        void setTraversed (bool traversed) {
+
+            this->traversed = traversed;
+
+        }
+
+private:
+
+        //JiaNote: added to construct query graph
+
+        Handle <Vector <Handle <Computation>>> inputs = nullptr;
+
+        bool traversed = false;
+
+
 };
 
 }

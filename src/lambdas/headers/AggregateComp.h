@@ -21,6 +21,8 @@
 
 #include "Computation.h"
 
+
+
 namespace pdb {
 
 // this aggregates items of type InputClass.  To aggregate an item, the result of getKeyProjection () is
@@ -56,6 +58,68 @@ class AggregateComp : public Computation {
 	// this is an aggregation comp
         std :: string getComputationType () override {
                 return std :: string ("AggregationComp");
+        }
+
+        int getNumInputs() override {
+                return 1;
+        }
+
+
+        // gets the name of the i^th input type...
+        std :: string getIthInputType (int i) override {
+                if (i == 0) {
+                    return getTypeName<InputClass> ();
+                } else {
+                    return "";
+                }
+        }
+
+        // gets the output type of this query as a string
+        std :: string getOutputType () override {
+                return getTypeName<OutputClass> ();
+        }
+
+        // below function implements the interface for parsing computation into a TCAP string
+        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+              
+    if (inputTupleSets.size() == 0) {
+        return "";
+    }
+    InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
+    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+ } 
+
+
+        // to return Aggregate tcap string
+        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
+                std :: string tcapString = "";
+                Handle<InputClass> checkMe = nullptr;
+                Lambda <KeyClass> keyLambda = getKeyProjection (checkMe);
+                std :: string tupleSetName;
+                std :: vector<std :: string> columnNames;
+                std :: string addedColumnName;
+                int lambdaLabel = 0;
+                tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, false);
+                Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
+                std :: vector<std :: string> columnsToApply;
+                columnsToApply.push_back(addedColumnName);
+                tcapString += valueLambda.toTCAPString(tupleSetName, columnNames, columnsToApply, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, false); 
+                std :: string newTupleSetName = "aggOutFor"+getComputationType()+ std :: to_string(computationLabel);
+                /*
+                tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+ outputColumnNames[0];
+                for (int i = 1; i < outputColumnNames.size(); i++) {
+                     tcapString + ", ";
+                     tcapString + outputColumnNames[i];
+                } 
+                tcapString += "), '";
+                */
+                tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')";
+                outputTupleSetName = newTupleSetName;
+                outputColumnNames.clear();
+                outputColumnNames.push_back("aggOut");
+                addedOutputColumnName = "aggOut";
+                return tcapString;
         }
 
 };

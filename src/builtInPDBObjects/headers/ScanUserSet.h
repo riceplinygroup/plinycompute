@@ -26,7 +26,7 @@
 
 
 
-
+#include "TypeName.h"
 #include "Computation.h"
 #include "PageCircularBufferIterator.h"
 #include "VectorTupleSetIterator.h"
@@ -44,10 +44,6 @@ public:
 
         ENABLE_DEEP_COPY
 
-        void initialize() {
-            this->iterator = nullptr;
-            this->proxy = nullptr;
-        }
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
              return std :: make_shared <VectorTupleSetIterator> (
@@ -106,6 +102,11 @@ public:
 
         }
 
+        void setOutput (std :: string dbName, std :: string setName) {
+                this->dbName = dbName;
+                this->setName = setName;
+        }
+
         void setDatabaseName (std :: string dbName) {
                 this->dbName = dbName;
         }
@@ -127,12 +128,46 @@ public:
 		return std :: string ("ScanUserSet");
 	}
 
+
+        // below function implements the interface for parsing computation into a TCAP string
+        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+
+    InputTupleSetSpecifier inputTupleSet;
+    if (inputTupleSets.size() > 0) {
+        inputTupleSet = inputTupleSets[0];
+    }
+    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+ }
+
+
+        // below function returns a TCAP string for this Computation
+        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
+
+                std :: string ret = std :: string("inputData (in) <= SCAN ('") + std :: string(setName) + "', '" + std :: string(dbName) + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
+                outputTupleSetName = "inputData";
+                outputColumnNames.push_back("in");
+                addedOutputColumnName = "in";
+                return ret;
+       }
+
+        int getNumInputs() override {
+               return 0;
+        }
+
+        std :: string getIthInputType (int i) override{
+               return "";
+        }
+
+        std :: string getOutputType () override {
+               return getTypeName <OutputClass> ();
+        }
+
 protected:
 
        //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
-       PageCircularBufferIteratorPtr iterator;
+       PageCircularBufferIteratorPtr iterator=nullptr;
 
-       DataProxyPtr proxy;
+       DataProxyPtr proxy=nullptr;
 
        String dbName;
  

@@ -28,6 +28,7 @@
 #include "DeleteSet.h"
 #include "ExecuteQuery.h"
 #include "TupleSetExecuteQuery.h"
+#include "ExecuteComputation.h"
 #include "Computation.h"
 namespace pdb {
 
@@ -235,6 +236,62 @@ public:
          
 	}
 
+        //JiaNote: to execute computations
+        template <class ...Types>
+        bool executeComputations (std :: string &errMsg, Handle <Computation> firstParam, Handle <Types>... args) {
+                queryGraph->push_back (firstParam);
+                return executeComputations (errMsg, args...);
+        }
+
+       bool executeComputations (std :: string &errMsg) {
+
+                // this is the request
+                const UseTemporaryAllocationBlock myBlock {1024};
+                Handle <ExecuteComputation> executeComputation = makeObject <ExecuteComputation> ();
+
+                // this call asks the database to execute the query, and then it inserts the result set name
+                // within each of the results, as well as the database connection information
+
+                // this is for query scheduling stuff
+                if (useScheduler == true) {
+                     return simpleDoubleRequest<ExecuteComputation, Vector<Handle<Computation>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
+                [&] (Handle<SimpleRequestResult> result) {
+                        if (result != nullptr) {
+                                if (!result->getRes ().first) {
+                                        errMsg = "Error in query: " + result->getRes ().second;
+                                        myLogger->error ("Error querying data: " + result->getRes ().second);
+                                        return false;
+                                }
+                                return true;
+                        }
+                        errMsg = "Error getting type name: got nothing back from server";
+                        return false;
+
+
+                }, executeComputation, queryGraph);
+
+
+                } else {
+                     return simpleDoubleRequest <ExecuteComputation, Vector <Handle <Computation>>, Vector <String>, bool> (myLogger, port,
+                address, false, 124 * 1024,
+                [&] (Handle <Vector <String>> result) {
+                        if (result != nullptr) {
+
+                                // make sure we got the correct number of results
+                                if (result->size () != runUs->size ()) {
+                                        errMsg = "Got a strange result size from execute";
+                                        myLogger->error ("QueryErr: " + errMsg);
+                                        return false;
+                                }
+
+                                return true;
+                        }
+                        errMsg = "Error getting query execution results";
+                        return false;}, executeComputation, queryGraph);
+                 }
+          }
+
+
         void setUseScheduler(bool useScheduler) {
                 this->useScheduler = useScheduler;
         }
@@ -244,8 +301,13 @@ private:
 	// how we connect to the catalog
 	CatalogClient myHelper;
 
+        // deprecated
 	// this is the query graph we'll execute
 	Handle <Vector <Handle <QueryBase>>> runUs;
+
+        // JiaNote: the Computation-based query graph to execute
+        Handle <Vector <Handle <Computation>>> queryGraph;
+
 
 	// connection info
 	int port;
@@ -254,6 +316,7 @@ private:
 	// for logging
 	PDBLoggerPtr myLogger;
 
+        //JiaNote: whether to run in distributed mode
         bool useScheduler;
 
 };

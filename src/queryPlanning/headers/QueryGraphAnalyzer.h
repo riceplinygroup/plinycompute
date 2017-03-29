@@ -15,30 +15,50 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#ifndef WRITE_STRING_SET_H
-#define WRITE_STRING_SET_H
+#ifndef QUERY_GRAPH_ANALYZER_HEADER
+#define QUERY_GRAPH_ANALYZER_HEADER
 
 //by Jia, Mar 2017
 
-#include "WriteUserSet.h"
-#include "PDBString.h"
+#include "Handle.h"
+#include "Computation.h"
+#include "InputTupleSetSpecifier.h"
+#include <vector>
 
-using namespace pdb;
-class WriteStringSet : public WriteUserSet <String> {
+
+namespace pdb {
+
+
+/*
+ * This class encapsulates the analyzer to user query graph
+ */
+class QueryGraphAnalyzer {
 
 public:
 
-	ENABLE_DEEP_COPY
+    //constructor
+    QueryGraphAnalyzer ( std :: vector <Handle<Computation>> queryGraph );
 
-        WriteStringSet () {}
+    //to convert user query to a tcap string
+    std :: string parseTCAPString();
 
-        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-        WriteStringSet (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
+    //traverse from a graph sink
+    void traverse(std :: vector<std :: string> & tcapStrings, Handle<Computation> sink, std :: vector <InputTupleSetSpecifier>  inputTupleSets, int & computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName);
+
+private:
+
+    //user query graph
+    std :: vector <Handle<Computation>> queryGraph;
+
+
 
 };
+
+
+
+
+}
+
 
 
 #endif

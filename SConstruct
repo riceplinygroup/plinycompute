@@ -29,7 +29,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -259,6 +259,7 @@ all = ['build/sqlite/sqlite3.c',
        component_dir_basename_to_cc_file_paths['pdbServer'],
        component_dir_basename_to_cc_file_paths['objectModel'],
        component_dir_basename_to_cc_file_paths['queryExecution'],
+       component_dir_basename_to_cc_file_paths['queryPlanning'],
        component_dir_basename_to_cc_file_paths['queryIntermediaryRep'], 
        component_dir_basename_to_cc_file_paths['work'],
        component_dir_basename_to_cc_file_paths['memory'],
@@ -338,6 +339,10 @@ common_env.Program('bin/test58', ['build/tests/Test58.cc'] + all)
 common_env.Program('bin/test59', ['build/tests/Test59.cc'] + all)
 common_env.Program('bin/test60', ['build/tests/Test60.cc'] + all)
 common_env.Program('bin/test61', ['build/tests/Test61.cc'] + all)
+common_env.Program('bin/test62', ['build/tests/Test62.cc'] + all)
+common_env.Program('bin/test63', ['build/tests/Test63.cc'] + all)
+common_env.Program('bin/test64', ['build/tests/Test64.cc'] + all)
+common_env.Program('bin/test65', ['build/tests/Test65.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
@@ -377,5 +382,5 @@ pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, ['bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test61', 'bin/test60', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test65', 'bin/test64', 'bin/test63', 'bin/test62', 'bin/test61', 'bin/test60', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

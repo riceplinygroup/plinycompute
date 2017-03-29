@@ -33,45 +33,61 @@
 
 namespace pdb {
 
+/*
+ * This class defines the interfaces for AggregateComp
+ * This class is used in backend when type information is unknown
+ */
+
 class AbstractAggregateComp : public Computation {
 
 public:
-   
+
+    //to get combiner processor
     virtual SimpleSingleTableQueryProcessorPtr getCombinerProcessor (std :: vector <HashPartitionID> nodePartitionIds) = 0;
 
+    //to get aggregation processor
     virtual SimpleSingleTableQueryProcessorPtr getAggregationProcessor (HashPartitionID id) = 0;
 
+    //to get the agg out processor
     virtual SimpleSingleTableQueryProcessorPtr getAggOutProcessor () = 0;
 
+    //to set number of partitions
     void setNumPartitions (int numPartitions) {
         this->numPartitions = numPartitions;
     }
 
+    //to get the number of partitions
     int getNumPartitions () {
         return this->numPartitions;
     }
 
+    //to set the batch size
     void setBatchSize (int batchSize) {
         this->batchSize = batchSize;
     }
 
+    //to get the batch size
     int getBatchSize () {
         return this->batchSize;
     }
 
+    //to set iterator for reading from output
     virtual void setIterator(PageCircularBufferIteratorPtr iterator) = 0;
 
+    //to set proxy for reading from output
     virtual void setProxy(DataProxyPtr proxy) = 0;
 
+    //to set database name
     virtual void setDatabaseName (std :: string dbName) = 0;
 
+    //to set the set name
     virtual void setSetName (std :: string setName) = 0;
+
 
     virtual std :: string getDatabaseName () = 0;
 
     virtual std :: string getSetName () = 0;
 
-    virtual std :: string getOutputType () = 0;
 
     void setHashTable (void * hashTableLocation) { this->whereHashTableSitsForThePartition = hashTableLocation; }
 
@@ -80,7 +96,7 @@ protected:
     //number of partitions in the cluster
     int numPartitions;
     int batchSize;
-    void * whereHashTableSitsForThePartition;
+    void * whereHashTableSitsForThePartition = nullptr;
 
 };
 

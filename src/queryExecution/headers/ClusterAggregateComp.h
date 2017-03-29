@@ -31,26 +31,32 @@
 #include "InterfaceFunctions.h"
 #include "ShuffleSink.h"
 #include "MapTupleSetIterator.h"
+
+
 namespace pdb {
+
+// this aggregates items of type InputClass.  To aggregate an item, the result of getKeyProjection () is
+// used to extract a key from on input, and the result of getValueProjection () is used to extract a
+// value from an input.  Then, all values having the same key are aggregated using the += operation over values.
+// Note that keys must have operation == as well has hash () defined.  Also, note that values must have the
+// + operation defined.
+// 
+// Once aggregation is completed, the key-value pairs are converted into OutputClass objects.  An object
+// of type OutputClass must have two methods defined: KeyClass &getKey (), as well as ValueClass &getValue ().
+// To convert a key-value pair into an OutputClass object, the result of getKey () is set to the desired key,
+// and the result of getValue () is set to the desired value.
+//
+
 
 template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 class ClusterAggregateComp : public AbstractAggregateComp {
 
 public:
 
-
-    //Not materialize aggregation output, use MapTupleSetIterator as consumer's ComputeSource
-    void initialize () {
-        this->materializeAggOut = false;
-        this->outputSetScanner = nullptr;
-        this->whereHashTableSitsForThePartition = nullptr;
-    }
-
     //materialize aggregation output, use ScanUserSet to obtain consumer's ComputeSource
-    void initialize (std :: string dbName, std :: string setName) {
+    void setOutput (std :: string dbName, std :: string setName) {
         this->materializeAggOut = true;
         this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();
-        this->outputSetScanner->initialize();
         this->outputSetScanner->setBatchSize(batchSize);
         this->outputSetScanner->setDatabaseName(dbName);
         this->outputSetScanner->setSetName(setName);
@@ -73,11 +79,12 @@ public:
                 valueLambda.toMap (returnVal, suffix);
         }
 
+    //sink for aggregation producing phase output, shuffle data will be combined from the sink
     ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
         return std :: make_shared <ShuffleSink <KeyClass, ValueClass>> (numPartitions, consumeMe, projection);
     }
 
-    //aggregation results written to user set
+    //source for consumer to read aggregation results, aggregation results are written to user set
     ComputeSourcePtr getComputeSource (TupleSpec &outputScheme, ComputePlan &plan) override {
         //materialize aggregation result to user set
         if( this->materializeAggOut == true) {
@@ -97,39 +104,57 @@ public:
         }
     }
 
+    //to return processor for combining data written to shuffle sink
+    //the combiner processor is used in the end of aggregation producing phase
+    //the input is data written to shuffle sink
+    //the output is data for shuffling
     SimpleSingleTableQueryProcessorPtr getCombinerProcessor(std :: vector<HashPartitionID> partitions) override {
         return make_shared<CombinerProcessor<KeyClass, ValueClass>> (partitions);
     }
 
+    //to return processor for aggregating on shuffle data
+    //the aggregation processor is used in the  aggregation consuming phase
+    //the input is shuffle data
+    //the output are intermediate pages of arbitrary size allocated on heap
     SimpleSingleTableQueryProcessorPtr getAggregationProcessor(HashPartitionID id) override {
         return make_shared<AggregationProcessor<KeyClass, ValueClass>> (id);
     }
 
+    //to return processor for writing aggregation results to a user set
+    //the agg out processor is used in the aggregation consuming phase for materializing aggregation results to user set
+    //the input is the output of aggregation processor
+    //the output is written to a user set
     SimpleSingleTableQueryProcessorPtr getAggOutProcessor() override {
         return make_shared<AggOutProcessor<OutputClass, KeyClass, ValueClass>>();
 
     }
 
+    //to set iterator for scanning the materialized aggregation output that is stored in a user set
     void setIterator(PageCircularBufferIteratorPtr iterator) override {
         this->outputSetScanner->setIterator(iterator);
     }
-
+    
+    //to set data proxy for scanning the materialized aggregation output that is stored in a user set
     void setProxy(DataProxyPtr proxy) override {
         this->outputSetScanner->setProxy(proxy);
     }
 
+    //to set the database name
     void setDatabaseName (std :: string dbName) override {
         this->outputSetScanner->setDatabaseName(dbName);
     }
 
+    //to set the set name
     void setSetName (std :: string setName) override {
         this->outputSetScanner->setSetName(setName);
     }
 
+    //to return the database name
     std :: string getDatabaseName () override {
         return this->outputSetScanner->getDatabaseName();
     }
 
+    //to return the set name
     std :: string getSetName () override {
         return this->outputSetScanner->getSetName();
     }
@@ -139,16 +164,77 @@ public:
         return std :: string ("ClusterAggregationComp");
     }
 
+    // to get output type
     std :: string getOutputType () override {
         return getTypeName<OutputClass>();
     }
+
+    // get the number of inputs to this query type
+    int getNumInputs() override {
+        return 1;
+    }
+
+    // get the name of the i^th input type...
+    std :: string getIthInputType (int i) override {
+        if (i == 0) {
+             return getTypeName<InputClass>();
+        } else {
+             return "";
+        }
+    }
+
+        // below function implements the interface for parsing computation into a TCAP string
+        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+              
+    if (inputTupleSets.size() == 0) {
+        return "";
+    }
+    InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
+    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+ } 
+
+
+    // to return Aggregate tcap string
+    std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
+                std :: string tcapString = "";
+                Handle<InputClass> checkMe = nullptr;
+                Lambda <KeyClass> keyLambda = getKeyProjection (checkMe);
+                std :: string tupleSetName;
+                std :: vector<std :: string> columnNames;
+                std :: string addedColumnName;
+                int lambdaLabel = 0;
+                tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, false);
+                Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
+                std :: vector<std :: string> columnsToApply;
+                for (int i = 0; i < inputColumnNames.size(); i++) {
+                    columnsToApply.push_back(inputColumnNames[i]);
+                }
+                std :: vector<std :: string> columnsToKeep;
+                columnsToKeep.push_back(addedColumnName);
+                tcapString += valueLambda.toTCAPString(tupleSetName, columnsToKeep, columnsToApply, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, false);
+                std :: string newTupleSetName = "aggOutFor"+getComputationType()+std :: to_string(computationLabel);
+                /*tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+ outputColumnNames[0];
+                for (int i = 1; i < outputColumnNames.size(); i++) {
+                     tcapString + ", ";
+                     tcapString + outputColumnNames[i];
+                }
+                tcapString += "), '";*/
+                tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')";
+                outputTupleSetName = newTupleSetName;
+                outputColumnNames.clear();
+                outputColumnNames.push_back("aggOut");
+                addedOutputColumnName = "aggOut";
+                return tcapString;
+   }
+
 
 
 
 protected:
 
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-    bool materializeAggOut;
+    bool materializeAggOut = false;
 
 };
 
