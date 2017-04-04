@@ -42,7 +42,7 @@ public:
 
         }
 
-        void setOutput (std :: string dbName, std :: string setName) {
+        void setOutput (std :: string dbName, std :: string setName) override {
               this->dbName = dbName;
               this->setName = setName;
         }
@@ -51,7 +51,7 @@ public:
             this->dbName = dbName;
         }
 
-        std :: string getDatabaseName () {
+        std :: string getDatabaseName () override {
             return  dbName;
         }
 
@@ -59,7 +59,7 @@ public:
             this->setName = setName;
         }
 
-        std :: string getSetName () {
+        std :: string getSetName () override {
             return setName;
         }
 
@@ -100,7 +100,14 @@ public:
               outputTupleSetName = "out";
               outputColumnNames.push_back("");
               addedOutputColumnName = "";
+              this->setTraversed (true);
+              this->setOutputTupleSetName (outputTupleSetName);
+              this->setOutputColumnToApply (addedOutputColumnName);
               return ret;
+        }
+
+        bool needsMaterializeOutput () override {
+            return true;
         }
 
 protected:

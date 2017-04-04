@@ -97,12 +97,12 @@ public:
         }
 
 
-        void setBatchSize(int batchSize) {
+        void setBatchSize(int batchSize) override {
                 this->batchSize = batchSize;
 
         }
 
-        void setOutput (std :: string dbName, std :: string setName) {
+        void setOutput (std :: string dbName, std :: string setName) override {
                 this->dbName = dbName;
                 this->setName = setName;
         }
@@ -115,11 +115,11 @@ public:
                 this->setName = setName;
         }
 
-        std :: string getDatabaseName () {
+        std :: string getDatabaseName () override {
                 return dbName;
         }
 
-        std :: string getSetName () {
+        std :: string getSetName () override {
                 return setName;
         }
 
@@ -143,10 +143,13 @@ public:
         // below function returns a TCAP string for this Computation
         std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
 
-                std :: string ret = std :: string("inputData (in) <= SCAN ('") + std :: string(setName) + "', '" + std :: string(dbName) + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
-                outputTupleSetName = "inputData";
-                outputColumnNames.push_back("in");
+                outputTupleSetName = "inputDataFor"+getComputationType()+std :: string("_")+std :: to_string(computationLabel);
                 addedOutputColumnName = "in";
+                outputColumnNames.push_back(addedOutputColumnName);
+                std :: string ret = outputTupleSetName + std :: string("(" + addedOutputColumnName + ") <= SCAN ('") + std :: string(setName) + "', '" + std :: string(dbName) + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
+                this->setTraversed (true);
+                this->setOutputTupleSetName (outputTupleSetName);
+                this->setOutputColumnToApply (addedOutputColumnName);
                 return ret;
        }
 
@@ -160,6 +163,10 @@ public:
 
         std :: string getOutputType () override {
                return getTypeName <OutputClass> ();
+        }
+
+        bool needsMaterializeOutput () override {
+               return false;
         }
 
 protected:

@@ -173,17 +173,18 @@ namespace pdb {
             }
 
             void print() override {
-                PDB_COUT << "[ID] id=" << id << std :: endl;
-                PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
-                PDB_COUT << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
-                PDB_COUT << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
-                PDB_COUT << "Number of cluster nodes=" << getNumNodes() << std :: endl;
-                PDB_COUT << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
+                std::cout << "[JOB ID] jobId=" << jobId << std :: endl;
+                std::cout << "[STAGE ID] id=" << id << std :: endl;
+                std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
+                std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
+                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                std::cout << "Number of cluster nodes=" << getNumNodes() << std :: endl;
+                std::cout << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
                 int i; 
                 for ( i = 0; i < numNodes; i ++) {
                     Handle<Vector<HashPartitionID>> partitions = getNumPartitions(i);
-                    PDB_COUT << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
-                    PDB_COUT << "IP address on node-" << i << " is " << getIPAddress(i);
+                    std::cout << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
+                    std::cout << "IP address on node-" << i << " is " << getIPAddress(i) << std :: endl;
                 }
             }
 

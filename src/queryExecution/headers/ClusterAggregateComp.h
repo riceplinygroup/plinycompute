@@ -54,7 +54,7 @@ class ClusterAggregateComp : public AbstractAggregateComp {
 public:
 
     //materialize aggregation output, use ScanUserSet to obtain consumer's ComputeSource
-    void setOutput (std :: string dbName, std :: string setName) {
+    void setOutput (std :: string dbName, std :: string setName) override {
         this->materializeAggOut = true;
         this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();
         this->outputSetScanner->setBatchSize(batchSize);
@@ -219,12 +219,15 @@ public:
                      tcapString + outputColumnNames[i];
                 }
                 tcapString += "), '";*/
-                tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                addedOutputColumnName = "aggOutFor" + getComputationType() + "_"+std::to_string(computationLabel);
+                tcapString += newTupleSetName += "("+ addedOutputColumnName +") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
                 tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')";
                 outputTupleSetName = newTupleSetName;
                 outputColumnNames.clear();
-                outputColumnNames.push_back("aggOut");
-                addedOutputColumnName = "aggOut";
+                outputColumnNames.push_back(addedOutputColumnName);
+                this->setTraversed (true);
+                this->setOutputTupleSetName (outputTupleSetName);
+                this->setOutputColumnToApply (addedOutputColumnName);
                 return tcapString;
    }
 
@@ -234,7 +237,6 @@ public:
 protected:
 
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-    bool materializeAggOut = false;
 
 };
 

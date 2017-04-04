@@ -29,6 +29,7 @@
 #include "ExecuteQuery.h"
 #include "TupleSetExecuteQuery.h"
 #include "ExecuteComputation.h"
+#include "QueryGraphAnalyzer.h"
 #include "Computation.h"
 namespace pdb {
 
@@ -47,7 +48,6 @@ public:
                 this->useScheduler = useScheduler;
 	}
 
-        //added by Jia
         ~QueryClient() {
                 runUs = nullptr;
        }
@@ -127,7 +127,7 @@ public:
                         return false;}, databaseName, setName);
 	}
 
-
+        //deprecated
         bool executeQuery (std :: string &errMsg, Handle<Vector<Handle<Computation>>> computations, bool isAggregation = false) {
 
                         // this is the request
@@ -163,7 +163,7 @@ public:
 
         }
 
-
+        //deprecated
 	template <class ...Types>
 	bool execute (std :: string &errMsg, Handle <QueryBase> firstParam, Handle <Types>... args) {
 		if (firstParam->wasError ()) {
@@ -179,6 +179,7 @@ public:
 		return execute (errMsg, args...);	
 	}
 
+        //deprecated
 	bool execute (std :: string &errMsg) {
 
 		// this is the request
@@ -246,8 +247,16 @@ public:
        bool executeComputations (std :: string &errMsg) {
 
                 // this is the request
-                const UseTemporaryAllocationBlock myBlock {1024};
-                Handle <ExecuteComputation> executeComputation = makeObject <ExecuteComputation> ();
+                const UseTemporaryAllocationBlock myBlock {12*1024*1024};
+                QueryGraphAnalyzer queryAnalyzer (this->queryGraph);
+                std :: string tcapString = queryAnalyzer.parseTCAPString();
+                std :: vector<Handle<Computation>> computations;
+                queryAnalyzer.parseComputations(computations);
+                Handle<Vector<Handle<Computation>>> computationsToSend = makeObject<Vector<Handle<Computation>>>();
+                for (int i = 0; i < computations.size(); i++) {
+                    computationsToSend->push_back(computations[i]);
+                }
+                Handle <ExecuteComputation> executeComputation = makeObject <ExecuteComputation> (tcapString);
 
                 // this call asks the database to execute the query, and then it inserts the result set name
                 // within each of the results, as well as the database connection information
@@ -268,27 +277,13 @@ public:
                         return false;
 
 
-                }, executeComputation, queryGraph);
+                }, executeComputation, computationsToSend);
 
 
                 } else {
-                     return simpleDoubleRequest <ExecuteComputation, Vector <Handle <Computation>>, Vector <String>, bool> (myLogger, port,
-                address, false, 124 * 1024,
-                [&] (Handle <Vector <String>> result) {
-                        if (result != nullptr) {
-
-                                // make sure we got the correct number of results
-                                if (result->size () != runUs->size ()) {
-                                        errMsg = "Got a strange result size from execute";
-                                        myLogger->error ("QueryErr: " + errMsg);
-                                        return false;
-                                }
-
-                                return true;
-                        }
-                        errMsg = "Error getting query execution results";
-                        return false;}, executeComputation, queryGraph);
-                 }
+                     errMsg = "This query must be sent to QuerySchedulerServer, but it seems QuerySchedulerServer is not supported";
+                     return false;
+                }
           }
 
 

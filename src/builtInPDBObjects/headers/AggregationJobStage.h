@@ -98,10 +98,11 @@ namespace pdb {
             } 
 
             void print() override {
-                PDB_COUT << "[ID] id=" << id << std :: endl;
-                PDB_COUT << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
-                PDB_COUT << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
-                PDB_COUT << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                std::cout << "[JOB ID] jobId=" << jobId << std :: endl;
+                std::cout << "[STAGE ID] id=" << id << std :: endl;
+                std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
+                std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
+                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
             }
 
             std :: string getOutputTypeName () {

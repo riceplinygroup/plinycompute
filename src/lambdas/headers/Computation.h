@@ -24,6 +24,7 @@
 #include "ComputeSource.h"
 #include "ComputeSink.h"
 #include "InputTupleSetSpecifier.h"
+#include "PDBString.h"
 #include <map>
 
 namespace pdb {
@@ -119,17 +120,63 @@ public:
              return true;
         }
 
+
+        //JiaNote: below methods are added to facilitate analyzing the query graph
+
+       
+        //whether the node has been traversed or not
         bool isTraversed () { 
 
             return traversed; 
 
         }
 
+        //set the node to have been traversed
         void setTraversed (bool traversed) {
 
             this->traversed = traversed;
 
         }
+
+        //get output TupleSet name if the node has been traversed already
+        std :: string getOutputTupleSetName() {
+
+            if (traversed == true) {
+                return outputTupleSetName;
+            }
+            return ""; 
+        }
+
+        //set output TupleSet name. This method should be invoked by the TCAP string generation method
+        void setOutputTupleSetName (std :: string outputTupleSetName) {
+             this->outputTupleSetName = outputTupleSetName;
+        }
+
+        //get output column name to apply if the node has been traversed already
+        std :: string getOutputColumnToApply() {
+
+            if (traversed == true) {
+                return outputColumnToApply;
+            }
+            return "";
+        }
+
+        //set output column name to apply. This method should be invoked by the TCAP string generation method
+        void setOutputColumnToApply (std :: string outputColumnToApply) {
+            this->outputColumnToApply = outputColumnToApply;
+        }
+
+        //set user set for output when necessary (e.g. results need to be materialized)
+        //by default it do nothing, subclasses shall override this function to handle the case when results need to be materialized.
+        virtual void setOutput (std :: string dbName, std :: string setName) {}
+
+        virtual std :: string getDatabaseName() { return ""; }
+
+        virtual std :: string getSetName() { return ""; }
+
+        virtual bool needsMaterializeOutput () = 0;
+
+        virtual void setBatchSize(int batchSize) {}
 
 private:
 
@@ -139,6 +186,9 @@ private:
 
         bool traversed = false;
 
+        String outputTupleSetName = "";
+
+        String outputColumnToApply = "";
 
 };
 
