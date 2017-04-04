@@ -127,7 +127,8 @@ public:
        std :: string getNextJobId() {
            time_t currentTime = time(NULL);
            struct tm *local = localtime(&currentTime);
-           return "Job-"+std::to_string(local->tm_year+1900)+"_"+std::to_string(local->tm_mon+1)+"_"+std::to_string(local->tm_mday)+"_"+std::to_string(local->tm_hour)+"_"+std::to_string(local->tm_min)+"_"+std::to_string(local->tm_sec)+"_"+std::to_string(seqId.getNextSequenceID());
+           this->jobId = "Job-"+std::to_string(local->tm_year+1900)+"_"+std::to_string(local->tm_mon+1)+"_"+std::to_string(local->tm_mday)+"_"+std::to_string(local->tm_hour)+"_"+std::to_string(local->tm_min)+"_"+std::to_string(local->tm_sec)+"_"+std::to_string(seqId.getNextSequenceID());
+           return this->jobId;
        }
 
 protected:
@@ -170,6 +171,7 @@ protected:
 
        SequenceID seqId;
 
+       std :: string jobId;
 };
 
 
