@@ -173,18 +173,21 @@ namespace pdb {
             }
 
             void print() override {
-                std::cout << "[JOB ID] jobId=" << jobId << std :: endl;
-                std::cout << "[STAGE ID] id=" << id << std :: endl;
-                std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
-                std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
-                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
-                std::cout << "Number of cluster nodes=" << getNumNodes() << std :: endl;
-                std::cout << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
+                std :: cout << "[JOB ID] jobId=" << jobId << std :: endl;
+                std :: cout << "[STAGE ID] id=" << id << std :: endl;
+                std :: cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
+                std :: cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
+                std :: cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                std :: cout << "[SOURCE TUPLESET] sourceTupleSetSpecifier=" << this->sourceTupleSetSpecifier << std :: endl;
+                std :: cout << "[TARGET TUPLESET] targetTupleSetSpecifier=" << this->targetTupleSetSpecifier << std :: endl;
+                std :: cout << "[TARGET COMPUTATION] targetComputationSpecifier=" << this->targetComputationSpecifier << std :: endl;
+                std :: cout << "Number of cluster nodes=" << getNumNodes() << std :: endl;
+                std :: cout << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
                 int i; 
                 for ( i = 0; i < numNodes; i ++) {
                     Handle<Vector<HashPartitionID>> partitions = getNumPartitions(i);
-                    std::cout << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
-                    std::cout << "IP address on node-" << i << " is " << getIPAddress(i) << std :: endl;
+                    std :: cout << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
+                    std :: cout << "IP address on node-" << i << " is " << getIPAddress(i) << std :: endl;
                 }
             }
 

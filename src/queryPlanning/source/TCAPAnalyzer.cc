@@ -156,7 +156,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             //to create the producing job stage for aggregation
             Handle<SetIdentifier>aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
             Handle<SetIdentifier>combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, curSource->getOutputName(), outputName, mySpecifier,"Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false); 
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier,"Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false); 
             //to push back the job stage
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
@@ -169,7 +169,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             return true;
 
         } else if ((myComputation->getComputationType() == "WriteUserSet") || (myComputation->getComputationType() == "SelectionComp")) {
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), outputName, mySpecifier, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false);
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false);
             physicalPlanToOutput.push_back(jobStage);
             return true;
         } else {
@@ -190,7 +190,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             Handle<SetIdentifier> sink = makeObject<SetIdentifier> (dbName, setName);
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
             Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), outputName, mySpecifier, "Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false);
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, "Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
@@ -230,12 +230,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             sink = makeObject<SetIdentifier> (dbName, setName);
         }
         if (myComputation->getComputationType() == "SelectionComp") {
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), outputName, mySpecifier, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false);
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false);
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
             Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), outputName, mySpecifier, "Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false);
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, "Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
