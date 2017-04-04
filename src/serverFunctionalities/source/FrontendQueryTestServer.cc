@@ -155,7 +155,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         return std :: make_pair (true, std :: string("Query failed: not able to create output set"));
                     }
 
-                    
+                    newRequest->setJobId(request->getJobId());                    
                     //forward the request
                     newRequest->print();
 
