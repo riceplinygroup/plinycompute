@@ -95,6 +95,9 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
     // if we are finalized, see if there are some left over records
     if (finalized) {
+        for (int i = 0; i < numNodePartitions; i++) {
+            std :: cout << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
+        }
         getRecord (outputData);
         return false;
     }
@@ -130,6 +133,8 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                         continue;
                     }
                 } else {
+                    //JiaNote: this is important, we need make sure when we load next page, we start output from the 0-th partition
+                    curOutputMap = (*outputData)[0];
                     return false;
                 }
             }
@@ -174,6 +179,9 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         }
 
     } catch (NotEnoughSpace &n) {
+        for (int i = 0; i < numNodePartitions; i++) {
+            std :: cout << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
+        }
         getRecord (outputData);
         return true;
     }
