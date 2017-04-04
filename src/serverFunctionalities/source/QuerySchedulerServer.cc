@@ -896,35 +896,39 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                  //create aggregation sets:
                  PDB_COUT << "to create aggregation sets" << std :: endl;
                  DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
-                 for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
-                    std :: string errMsg;
-                    Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
-                    bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
-                    if (res != true) {
-                        std :: cout << "can't create temp set: " <<errMsg << std :: endl;
-                    } else {
-                     PDB_COUT << "Created set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
+                 //create the database first
+                 success = dsmClient.createDatabase(this->jobId, errMsg);
+                 if (success == true) {
+                    for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                        std :: string errMsg;
+                        Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
+                        bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
+                        if (res != true) {
+                            std :: cout << "can't create temp set: " <<errMsg << std :: endl;
+                        } else {
+                            PDB_COUT << "Created set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
+                        }
                     }
-                 }
 
-                 getFunctionality<QuerySchedulerServer>().printStages();
-                 PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
-                 getFunctionality<QuerySchedulerServer>().initialize(true);
-                 PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
-                 getFunctionality<QuerySchedulerServer>().scheduleQuery();
+                    getFunctionality<QuerySchedulerServer>().printStages();
+                    PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
+                    getFunctionality<QuerySchedulerServer>().initialize(true);
+                    PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
+                    getFunctionality<QuerySchedulerServer>().scheduleQuery();
 
-                 //to remove aggregation sets:
-                 PDB_COUT << "to remove aggregation sets" << std :: endl;
-                 for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
-                     std :: string errMsg;
-                     Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
-                     bool res = dsmClient.removeTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
-                     if (res != true) {
-                         std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
-                     } else {
-                         PDB_COUT << "Removed set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
-                     }
-                 }
+                    //to remove aggregation sets:
+                    PDB_COUT << "to remove aggregation sets" << std :: endl;
+                    for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                        std :: string errMsg;
+                        Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
+                        bool res = dsmClient.removeTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
+                        if (res != true) {
+                            std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                        } else {
+                            PDB_COUT << "Removed set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
+                        }
+                    }
+                }
              }
            }
            PDB_COUT << "To send back response to client" << std :: endl;

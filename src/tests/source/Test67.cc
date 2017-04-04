@@ -115,7 +115,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("chris_db", errMsg)) {
+            if (!temp.createDatabase ("test67_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -123,7 +123,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("chris_db", "chris_set", errMsg)) {
+            if (!temp.createSet<Supervisor> ("test67_db", "test67_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -191,7 +191,7 @@ int main (int argc, char * argv[]) {
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test67_set", "test67_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -207,7 +207,7 @@ int main (int argc, char * argv[]) {
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<ZA_DepartmentTotal> ("chris_db", "output_set1", errMsg)) {
+        if (!temp.createSet<ZA_DepartmentTotal> ("test67_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -225,10 +225,10 @@ int main (int argc, char * argv[]) {
 
 	
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("chris_db", "chris_set");
+	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test67_db", "test67_set");
 	Handle <Computation> myFilter = makeObject <SillySelection> ();
         myFilter->setInput(myScanSet);
-	Handle <Computation> myAgg = makeObject <SillyAggregation> ("chris_db", "output_set1");
+	Handle <Computation> myAgg = makeObject <SillyAggregation> ("test67_db", "output_set1");
 	myAgg->setInput(myFilter);
 
         auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -247,7 +247,7 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <ZA_DepartmentTotal> result = myClient.getSetIterator <ZA_DepartmentTotal> ("chris_db", "output_set1");
+            SetIterator <ZA_DepartmentTotal> result = myClient.getSetIterator <ZA_DepartmentTotal> ("test67_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
@@ -257,14 +257,14 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":";
                      a->print();
             }
-            std :: cout << "selection output count:" << count << "\n";
+            std :: cout << "aggregation output count:" << count << "\n";
         }
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("chris_db", "output_set1");
+            myClient.deleteSet ("test67_db", "output_set1");
         } else {
-            if (!temp.removeSet ("chris_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test67_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {
