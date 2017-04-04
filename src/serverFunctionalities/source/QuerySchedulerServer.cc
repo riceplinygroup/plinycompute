@@ -34,6 +34,7 @@
 #include "Handle.h"
 #include "ExecuteQuery.h"
 #include "TupleSetExecuteQuery.h"
+#include "ExecuteComputation.h"
 #include "RequestResources.h"
 #include "Selection.h"
 #include "SimpleRequestHandler.h"
@@ -50,6 +51,8 @@
 #include "ScanUserSet.h"
 #include "WriteUserSet.h"
 #include "ClusterAggregateComp.h"
+#include "QueryGraphAnalyzer.h"
+#include "TCAPAnalyzer.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -95,10 +98,10 @@ void QuerySchedulerServer ::cleanup() {
     }
     this->queryPlan.clear();
 
-    for (int i = 0; i < aggregationSets.size(); i++) {
-             aggregationSets[i]=nullptr;
+    for (int i = 0; i < interGlobalSets.size(); i++) {
+             interGlobalSets[i]=nullptr;
     }
-    this->aggregationSets.clear();
+    this->interGlobalSets.clear();
 
     this->jobStageId = 0;
 }
@@ -431,6 +434,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
         return true;
 }
 
+//deprecated
 String QuerySchedulerServer :: transformQueryToTCAP (Vector<Handle<Computation>> myComputations, int flag) {
 
 
@@ -479,8 +483,13 @@ aggOutForClusterAggregationComp2(aggOut) <= AGGREGATE (methodCall_2OutForCluster
 }
 
 
+bool QuerySchedulerServer :: parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString) {
+    std :: string jobId = this->getNextJobId();
+    TCAPAnalyzer tcapAnalyzer(jobId, myComputations, myTCAPString, this->logger);
+    return tcapAnalyzer.analyze(this->queryPlan, this->interGlobalSets);
+}
 
-//to replace parseOptimizedQuery
+//deprecated
 void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString) {
     //TODO: to replace the below placeholder using real logic
     //TODO: to analyze the logical plan and output a vector of TupleSetJobStage instances
@@ -543,7 +552,7 @@ void QuerySchedulerServer :: parseQuery(Vector<Handle<Computation>> myComputatio
 
         this->queryPlan.push_back(jobStage);
         this->queryPlan.push_back(aggStage);
-        this->aggregationSets.push_back(aggregator); 
+        this->interGlobalSets.push_back(aggregator); 
     }
 }
 
@@ -863,6 +872,77 @@ void QuerySchedulerServer :: schedule() {
 
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
+   //handler to schedule a Computation-based query graph
+   forMe.registerHandler (ExecuteComputation_TYPEID, make_shared<SimpleRequestHandler<ExecuteComputation>> (
+
+       [&] (Handle<ExecuteComputation> request, PDBCommunicatorPtr sendUsingMe) {
+
+           std :: string errMsg;
+           bool success;
+
+           //parse the query
+           const UseTemporaryAllocationBlock block { 128 * 1024 * 1024 };
+           PDB_COUT << "Got the ExecuteComputation object" << std :: endl;
+           Handle <Vector <Handle<Computation>>> computations = sendUsingMe->getNextObject<Vector<Handle<Computation>>> (success, errMsg);
+           std :: string tcapString = request->getTCAPString();
+           if (success == true) {
+
+             //TODO: parse TCAPString and computations into a physical plan    
+             success = parseTCAPString(computations, tcapString); 
+             if (success == false) {
+                 errMsg = "FATAL ERROR in QuerySchedulerServer: can't parse TCAP string.\n"+tcapString;
+             }
+             else {
+                 //create aggregation sets:
+                 PDB_COUT << "to create aggregation sets" << std :: endl;
+                 DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
+                 for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                    std :: string errMsg;
+                    Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
+                    bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
+                    if (res != true) {
+                        std :: cout << "can't create temp set: " <<errMsg << std :: endl;
+                    } else {
+                     PDB_COUT << "Created set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
+                    }
+                 }
+
+                 getFunctionality<QuerySchedulerServer>().printStages();
+                 PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
+                 getFunctionality<QuerySchedulerServer>().initialize(true);
+                 PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
+                 getFunctionality<QuerySchedulerServer>().scheduleQuery();
+
+                 //to remove aggregation sets:
+                 PDB_COUT << "to remove aggregation sets" << std :: endl;
+                 for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                     std :: string errMsg;
+                     Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
+                     bool res = dsmClient.removeTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
+                     if (res != true) {
+                         std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                     } else {
+                         PDB_COUT << "Removed set with database=" << aggregationSet->getDatabase() << ", set=" << aggregationSet->getSetName() << std :: endl;
+                     }
+                 }
+             }
+           }
+           PDB_COUT << "To send back response to client" << std :: endl;
+           Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (success, errMsg);
+           if (!sendUsingMe->sendObject (result, errMsg)) {
+                 PDB_COUT << "to cleanup" << std :: endl;
+                 getFunctionality<QuerySchedulerServer>().cleanup();
+                 return std :: make_pair (false, errMsg);
+           }
+           PDB_COUT << "to cleanup" << std :: endl;
+           getFunctionality<QuerySchedulerServer>().cleanup();
+           return std :: make_pair (true, errMsg);
+       }
+
+   ));
+
+
+    //deprecated
     //handler to schedule a TupleSet-based query 
     forMe.registerHandler (TupleSetExecuteQuery_TYPEID, make_shared<SimpleRequestHandler<TupleSetExecuteQuery>> (
          [&] (Handle <TupleSetExecuteQuery> request, PDBCommunicatorPtr sendUsingMe) {
@@ -895,9 +975,9 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
              PDB_COUT << "to create aggregation sets" << std :: endl;
              DistributedStorageManagerClient dsmClient(this->port, "localhost", logger);
-             for ( int i = 0; i < this->aggregationSets.size(); i++ ) {
+             for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
                  std :: string errMsg;
-                 Handle<SetIdentifier> aggregationSet = this->aggregationSets[i];
+                 Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
                  bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
                  if (res != true) {
                      std :: cout << "can't create temp set: " <<errMsg << std :: endl;
@@ -914,9 +994,9 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
              //to remove aggregation sets:
              PDB_COUT << "to remove aggregation sets" << std :: endl;
-             for ( int i = 0; i < this->aggregationSets.size(); i++ ) {
+             for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
                  std :: string errMsg;
-                 Handle<SetIdentifier> aggregationSet = this->aggregationSets[i];
+                 Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
                  bool res = dsmClient.removeTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "Aggregation", errMsg);
                  if (res != true) {
                      std :: cout << "can't remove temp set: " <<errMsg << std :: endl;

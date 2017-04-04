@@ -46,6 +46,12 @@ class ScanSet : public Computation {
                 return getTypeName<OutputClass>();
         }
 
+        bool needsMaterializeOutput () override {
+                return false;
+        }
+
+        
+
         // below function implements the interface for parsing computation into a TCAP string
         std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
 
@@ -63,6 +69,9 @@ class ScanSet : public Computation {
                 outputTupleSetName = "inputData";
                 outputColumnNames.push_back("in");
                 addedOutputColumnName = "in";
+                this->setTraversed (true);
+                this->setOutputTupleSetName (outputTupleSetName);
+                this->setOutputColumnToApply (addedOutputColumnName);
                 return ret;
        }
 

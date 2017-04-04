@@ -33,6 +33,12 @@ QueryGraphAnalyzer ::  QueryGraphAnalyzer ( std :: vector <Handle<Computation>> 
    }
 }
 
+QueryGraphAnalyzer :: QueryGraphAnalyzer ( Handle<Vector<Handle<Computation>>> queryGraph ) {
+   for (int i = 0; i < queryGraph->size(); i ++) {
+       this->queryGraph.push_back((*queryGraph)[i]);
+   }
+}
+
 std :: string QueryGraphAnalyzer :: parseTCAPString () {
 
     Handle <Computation> curSink;
@@ -60,6 +66,7 @@ std :: string QueryGraphAnalyzer :: parseTCAPString () {
 
 }
 
+
 void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings, Handle<Computation> sink, std :: vector <InputTupleSetSpecifier>  inputTupleSets, int & computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName) {
   
     int numInputs = sink->getNumInputs();
@@ -68,12 +75,18 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
         std :: vector <InputTupleSetSpecifier> inputTupleSetsForMe;
         for (int i = 0; i < numInputs; i++) {
             Handle<Computation> curSink = sink->getIthInput(i);
-            traverse(tcapStrings, curSink, inputTupleSets, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-        
+            if(curSink->isTraversed() == false) {
+                traverse(tcapStrings, curSink, inputTupleSets, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+                curSink->setTraversed(true);
+            } else {
+                //we met a materialized node
+                outputTupleSetName = curSink->getOutputTupleSetName();
+                addedOutputColumnName = curSink->getOutputColumnToApply();
+                outputColumnNames.push_back(addedOutputColumnName);
+            }
             std :: vector <std :: string> addedOutputColumns;
             addedOutputColumns.push_back(addedOutputColumnName);
             InputTupleSetSpecifier curOutput (outputTupleSetName, outputColumnNames, addedOutputColumns);
-            
             inputTupleSetsForMe.push_back(curOutput);
         }
         outputColumnNames.clear();
@@ -88,6 +101,51 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
         tcapStrings.push_back(curTcapString);
         computationLabel ++;
         
+    }
+
+}
+
+void QueryGraphAnalyzer :: clearGraphMarks (Handle<Computation> sink) {
+
+    sink->setTraversed(false);
+    int numInputs = sink->getNumInputs();
+    for (int i = 0; i < numInputs; i ++) {
+        Handle<Computation> curNode = sink->getIthInput(i);
+        clearGraphMarks(curNode);
+    }
+
+}
+
+
+void QueryGraphAnalyzer :: clearGraphMarks() {
+
+    for (int i = 0; i < this->queryGraph.size(); i++) {
+        Handle<Computation> sink = this->queryGraph[i];
+        clearGraphMarks(sink);
+    }
+
+}
+
+
+void QueryGraphAnalyzer :: parseComputations ( std :: vector <Handle<Computation>> & computations, Handle<Computation> sink ) {
+
+    int numInputs = sink->getNumInputs();
+    for (int i = 0; i < numInputs; i ++) {
+        Handle<Computation> curNode = sink->getIthInput(i);
+        parseComputations(computations, curNode);
+    }
+    if(sink->isTraversed() == false) {
+        computations.push_back(sink);
+        sink->setTraversed(true);
+    }
+
+} 
+
+void QueryGraphAnalyzer :: parseComputations ( std :: vector <Handle<Computation>> & computations) {
+    this->clearGraphMarks();
+    for (int i = 0; i < this->queryGraph.size(); i++) {
+        Handle<Computation> sink = this->queryGraph[i];
+        parseComputations(computations, sink);
     }
 
 }

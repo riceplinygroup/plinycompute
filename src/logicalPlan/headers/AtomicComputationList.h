@@ -48,7 +48,8 @@ public:
 	// gets the computation that builds the tuple set with the specified name
 	AtomicComputationPtr getProducingAtomicComputation (std :: string outputName) {
 		if (producers.count (outputName) == 0) {
-			std :: cout << "This is really bad... can't find the guy producing this output:"<< outputName <<"\n";
+			//std :: cout << "This is really bad... can't find the guy producing this output:"<< outputName <<"\n";
+                        std :: cout << "This is a source node: " << outputName << "\n";
 		}
 		return producers [outputName];
 	}
@@ -56,7 +57,8 @@ public:
 	// gets the list of comptuations that consume the tuple set with the specified name
 	std :: vector <AtomicComputationPtr> &getConsumingAtomicComputations (std :: string inputName) {
 		if (consumers.count (inputName) == 0) {
-			std :: cout << "This is really bad... can't find the guy consuming this input:"<< inputName <<"\n";
+			//std :: cout << "This is really bad... can't find the guy consuming this input:"<< inputName <<"\n";
+                        std :: cout << "This is a sink node: " << inputName << "\n";
 		}
 		return consumers [inputName];
 	}

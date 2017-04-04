@@ -20,12 +20,16 @@
 #define SELECTION_COMP
 
 #include "Computation.h"
+#include "VectorSink.h"
+#include "ScanUserSet.h"
 #include "TypeName.h"
 
 namespace pdb {
 
 template <class OutputClass, class InputClass>
 class SelectionComp : public Computation {
+
+public:
 
 	// the computation returned by this method is called to see if a data item should be returned in the output set
 	virtual Lambda <bool> getSelection (Handle <InputClass> &checkMe) = 0;
@@ -111,8 +115,64 @@ tcapString << std :: endl;
                 PDB_COUT << "TO GET TCAP STRING FOR PROJECTION LAMBDA" << std :: endl;
                 PDB_COUT << "lambdaLabel=" << lambdaLabel << std :: endl;
                 tcapString += projectionLambda.toTCAPString(newTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, true);
+                this->setTraversed (true);
+                this->setOutputTupleSetName (outputTupleSetName);
+                this->setOutputColumnToApply (addedOutputColumnName);
                 return tcapString;
         }
+
+    void setOutput (std :: string dbName, std :: string setName) override {
+        this->materializeSelectionOut = true;
+        this->outputSetScanner = makeObject<ScanUserSet<OutputClass>>();
+        this->outputSetScanner->setDatabaseName(dbName);
+        this->outputSetScanner->setSetName(setName);
+    }
+
+    void setBatchSize(int batchSize) override {
+        if (this->outputSetScanner != nullptr) {
+            this->outputSetScanner->setBatchSize(batchSize);
+        }
+    }
+
+    //to return the database name
+    std :: string getDatabaseName () override {
+        return this->outputSetScanner->getDatabaseName();
+    }
+
+    //to return the set name
+    std :: string getSetName () override {
+        return this->outputSetScanner->getSetName();
+    }
+
+    //source for consumer to read selection output, which has been written to a user set
+    ComputeSourcePtr getComputeSource (TupleSpec &outputScheme, ComputePlan &plan) override {
+
+        if (this->materializeSelectionOut == true) {
+            if(this->outputSetScanner != nullptr) {
+                return outputSetScanner->getComputeSource (outputScheme, plan);
+            }
+        }
+        return nullptr;
+    }
+
+    //sink to write selection output
+    ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
+
+        if (this->materializeSelectionOut == true) {
+            return std :: make_shared<VectorSink<OutputClass>> (consumeMe, projection);
+        }
+        return nullptr;
+    }
+
+    bool needsMaterializeOutput () override {
+       return materializeSelectionOut;
+    }
+
+
+private:
+
+    bool materializeSelectionOut = false;
+    Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
 
 };
 

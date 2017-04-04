@@ -32,6 +32,7 @@
 #include "QueryGraphIr.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
+#include "SequenceID.h"
 #include <vector>
 
 namespace pdb {
@@ -60,8 +61,12 @@ public:
        //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
 
-       //to replace parseOptimizedQuery to build the logic plan
+       //deprecated
+       //to replace parseOptimizedQuery to build the physical plan
        void parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString);
+
+       //to replace above two methods to automatically build the physical plan based on TCAP string and computations
+       bool parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString);
 
 
        //deprecated
@@ -88,6 +93,7 @@ public:
        bool scheduleStage(int index, Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
 
        bool scheduleStage(int index, Handle<AggregationJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
+
        //deprecated
        //to schedule the current job plan on all available resources
        void schedule();
@@ -97,6 +103,7 @@ public:
        void scheduleQuery();
 
 
+       //deprecated
        //to transform user query to tcap string
        String transformQueryToTCAP(Vector<Handle<Computation>> myComputations, int flag=0);
 
@@ -106,15 +113,22 @@ public:
 
        void cleanup () override;       
 
-
+       //deprecated
        Handle<SetIdentifier>  getOutputSet() {
            return currentPlan[0]->getOutput();
        }
 
+       //deprecated
        std :: string getOutputTypeName() {
            return currentPlan[0]->getOutputTypeName();
        }
 
+
+       std :: string getNextJobId() {
+           time_t currentTime = time(NULL);
+           struct tm *local = localtime(&currentTime);
+           return "Job-"+std::to_string(local->tm_year+1900)+"_"+std::to_string(local->tm_mon+1)+"_"+std::to_string(local->tm_mday)+"_"+std::to_string(local->tm_hour)+"_"+std::to_string(local->tm_min)+"_"+std::to_string(local->tm_sec)+"_"+std::to_string(seqId.getNextSequenceID());
+       }
 
 protected:
 
@@ -138,7 +152,7 @@ protected:
        std :: vector<Handle<AbstractJobStage>> queryPlan;
 
        //set identifiers for shuffle set, we need to create and remove them at scheduler, so that they exist at any node when any other node needs to write to it
-       std :: vector<Handle<SetIdentifier>> aggregationSets;
+       std :: vector<Handle<SetIdentifier>> interGlobalSets;
 
 
        // logger
@@ -153,6 +167,8 @@ protected:
        pthread_mutex_t connection_mutex;
 
        JobStageID jobStageId;
+
+       SequenceID seqId;
 
 };
 

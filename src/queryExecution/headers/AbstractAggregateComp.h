@@ -61,8 +61,7 @@ public:
         return this->numPartitions;
     }
 
-    //to set the batch size
-    void setBatchSize (int batchSize) {
+    void setBatchSize (int batchSize) override {
         this->batchSize = batchSize;
     }
 
@@ -84,12 +83,16 @@ public:
     virtual void setSetName (std :: string setName) = 0;
 
 
-    virtual std :: string getDatabaseName () = 0;
+    bool needsMaterializeOutput () override {
+        return this->materializeAggOut;
+    }
 
-    virtual std :: string getSetName () = 0;
 
+    void setHashTable (void * hashTableLocation) { 
+        this->materializeAggOut = false;
+        this->whereHashTableSitsForThePartition = hashTableLocation; 
+    }
 
-    void setHashTable (void * hashTableLocation) { this->whereHashTableSitsForThePartition = hashTableLocation; }
 
 protected:
 
@@ -97,7 +100,7 @@ protected:
     int numPartitions;
     int batchSize;
     void * whereHashTableSitsForThePartition = nullptr;
-
+    bool materializeAggOut = false;
 };
 
 

@@ -20,6 +20,7 @@
 #define EXEC_COMPUTATION_H
 
 #include "Object.h"
+#include "PDBString.h"
 
 // PRELOAD %ExecuteComputation%
 
@@ -33,7 +34,23 @@ public:
 	ExecuteComputation () {}
 	~ExecuteComputation () {}
 
+        ExecuteComputation (std :: string tcapString) {
+            this->tcapString = tcapString;
+        }
+
+        void setTCAPString (std :: string tcapString) {
+            this->tcapString = tcapString;
+        }
+
+        std :: string getTCAPString () {
+            return tcapString;
+        }
+
 	ENABLE_DEEP_COPY
+
+private:
+
+        String tcapString;
 
 };
 

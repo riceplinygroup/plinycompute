@@ -24,11 +24,23 @@ namespace pdb {
 
     class AbstractJobStage : public Object {
     
-    public:
+public:
+
+    void setJobId(std :: string jobId) {
+        this->jobId = jobId;
+    }
+
+    std :: string getJobId() {
+        return this->jobId;
+    }
 
     virtual std :: string getJobStageType() = 0;
 
     virtual void print() = 0;
+
+protected:
+
+    String jobId;
 
     };
 

@@ -19,7 +19,7 @@
 #define TEST_63_H
 
 //by Jia, Mar 2017
-
+//to test TCAP generation
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -51,8 +51,6 @@
 #include <fcntl.h>
 
 
-// to run the aggregate, the system first passes each through the hash operation...
-// then the system 
 using namespace pdb;
 
 int main (int argc, char * argv[]) {

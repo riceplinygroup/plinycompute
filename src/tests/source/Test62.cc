@@ -21,7 +21,7 @@
 
 
 //by Jia, Mar 2017
-//to test ChrisSelection using new pipeline stuff
+//to test TCAP generation
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -43,10 +43,6 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* This test uses data and selection of builtInType to demonstrate a distributed query with distributed storage */
-
-/*  Note that data size must be larger than #numTotalThreadsInCluster*#PageSize */
-/*  Below test case is tested using 8GB data in 4-node cluster, each node run 12 threads */
 using namespace pdb;
 int main (int argc, char * argv[]) {
 

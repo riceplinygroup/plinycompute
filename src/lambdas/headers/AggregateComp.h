@@ -113,14 +113,22 @@ class AggregateComp : public Computation {
                 } 
                 tcapString += "), '";
                 */
-                tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                addedOutputColumnName = "aggOutFor"+getComputationType()+"_"+std::to_string(computationLabel);
+                tcapString += newTupleSetName += "(" + addedOutputColumnName + ") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
                 tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')";
                 outputTupleSetName = newTupleSetName;
                 outputColumnNames.clear();
-                outputColumnNames.push_back("aggOut");
-                addedOutputColumnName = "aggOut";
+                outputColumnNames.push_back(addedOutputColumnName);
+                this->setTraversed (true);
+                this->setOutputTupleSetName (outputTupleSetName);
+                this->setOutputColumnToApply (addedOutputColumnName);
                 return tcapString;
         }
+
+        bool needsMaterializeOutput () override {
+            return false;
+        }
+
 
 };
 
