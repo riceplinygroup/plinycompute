@@ -45,11 +45,13 @@ public:
 		address = addressIn;
 		myLogger = myLoggerIn;
 		runUs = makeObject <Vector <Handle <QueryBase>>> ();
+                queryGraph = makeObject <Vector <Handle <Computation>>> ();
                 this->useScheduler = useScheduler;
 	}
 
         ~QueryClient() {
                 runUs = nullptr;
+                queryGraph = nullptr;
        }
 
 	// access a set in the database
@@ -247,7 +249,7 @@ public:
        bool executeComputations (std :: string &errMsg) {
 
                 // this is the request
-                const UseTemporaryAllocationBlock myBlock {12*1024*1024};
+                const UseTemporaryAllocationBlock myBlock {36*1024*1024};
                 QueryGraphAnalyzer queryAnalyzer (this->queryGraph);
                 std :: string tcapString = queryAnalyzer.parseTCAPString();
                 std :: vector<Handle<Computation>> computations;
