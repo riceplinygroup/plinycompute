@@ -31,7 +31,6 @@
 int main (int argc, char * argv[] ) {
 
        std :: cout << "Starting up a PDB server!!\n";
-       std :: cout << "First run this, then run bin/test46 in another window, then run this again, then run bin/test44 in another window" << std :: endl;
        std :: cout << "[Usage] #numThreads(optional) #sharedMemSize(optional, unit: MB) #masterIp(optional) #localIp(optional)" << std :: endl;
        
        ConfigurationPtr conf = make_shared < Configuration > ();

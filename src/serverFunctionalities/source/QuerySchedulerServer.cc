@@ -67,21 +67,23 @@ QuerySchedulerServer :: ~QuerySchedulerServer () {
     pthread_mutex_destroy(&connection_mutex);
 }
 
-QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode) {
+QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode, double partitionToCoreRatio) {
     this->port =8108;
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
     this->jobStageId = 0;
+    this->partitionToCoreRatio = partitionToCoreRatio;
 }
 
 
-QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode) {
+QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode, double partitionToCoreRatio) {
     this->port =port;
     this->logger = logger;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
     this->jobStageId = 0;
+    this->partitionToCoreRatio = partitionToCoreRatio;
 }
 
 void QuerySchedulerServer ::cleanup() {
@@ -106,7 +108,7 @@ void QuerySchedulerServer ::cleanup() {
     this->jobStageId = 0;
 }
 
-QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork) {
+QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork, double partitionToCoreRatio) {
 
      this->resourceManagerIp = resourceManagerIp;
      this->port = port;
@@ -114,6 +116,7 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
      this->logger = logger;
      this->usePipelineNetwork = usePipelineNetwork;
      this->jobStageId = 0;
+     this->partitionToCoreRatio = partitionToCoreRatio;
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
@@ -194,7 +197,10 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
     for (i = 0; i < numNodes; i++) {
         Handle<Vector<HashPartitionID>> partitions= makeObject<Vector<HashPartitionID>>();
         StandardResourceInfoPtr node = standardResources->at(i);
-        int numCoresOnThisNode = node->getNumCores()*3/4;
+        int numCoresOnThisNode = (int)((double)(node->getNumCores())*partitionToCoreRatio);
+        if (numCoresOnThisNode == 0) {
+            numCoresOnThisNode = 1;
+        }
         for (j = 0; j < numCoresOnThisNode; j++) {
              partitions->push_back(id);
              id ++;
@@ -216,7 +222,11 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
             success = scheduleStage (index, tupleSetStage, communicator, mode);
         } else if (stage->getJobStageType() == "AggregationJobStage" ) {
             Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
-            aggStage->setNumNodePartitions (standardResources->at(index)->getNumCores()*3/4);
+            int numNodePartitions = (int)((double)(standardResources->at(index)->getNumCores())*partitionToCoreRatio);
+            if (numNodePartitions == 0) {
+                numNodePartitions = 1;
+            }
+            aggStage->setNumNodePartitions (numNodePartitions);
             aggStage->setAggTotalPartitions (numCores);
             aggStage->setAggBatchSize(BATCH_SIZE);
             success = scheduleStage (index, aggStage, communicator, mode); 
@@ -750,7 +760,10 @@ void QuerySchedulerServer :: scheduleQuery() {
          for (x = 0; x < numNodes; x++) {
              Handle<Vector<HashPartitionID>> partitions= makeObject<Vector<HashPartitionID>>();
              StandardResourceInfoPtr node = standardResources->at(x);
-             int numCoresOnThisNode = node->getNumCores()*3/4; //a ratio to reduce the number of partitions
+             int numCoresOnThisNode = (int)((double)(node->getNumCores())*partitionToCoreRatio); //a ratio to reduce the number of partitions
+             if (numCoresOnThisNode == 0) {
+                 numCoresOnThisNode = 1;
+             }
              for (y = 0; y < numCoresOnThisNode; y++) {
                  partitions->push_back(id);
                  id ++;
@@ -807,7 +820,11 @@ void QuerySchedulerServer :: scheduleQuery() {
                               success = scheduleStage (j, tupleSetStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "AggregationJobStage" ) {
                               Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
-                              aggStage->setNumNodePartitions (standardResources->at(j)->getNumCores()*3/4);
+                              int numPartitionsOnThisNode = (int)((double)(standardResources->at(j)->getNumCores())*partitionToCoreRatio);
+                              if(numPartitionsOnThisNode == 0) {
+                                  numPartitionsOnThisNode = 1;
+                              }
+                              aggStage->setNumNodePartitions (numPartitionsOnThisNode);
                               aggStage->setAggTotalPartitions (numCores);
                               aggStage->setAggBatchSize(BATCH_SIZE);
                               success = scheduleStage (j, aggStage, communicator, DeepCopy);
