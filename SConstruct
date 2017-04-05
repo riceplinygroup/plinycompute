@@ -29,7 +29,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -382,7 +382,7 @@ common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
-common_env.Depends(pdbTest, ['bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
+common_env.Depends(pdbTest, ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','bin/test52', 'bin/test66', 'bin/test67', 'bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
 common_env.Alias('tests', pdbTest)
 main=common_env.Alias('main', ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test67', 'bin/test66', 'bin/test65', 'bin/test64', 'bin/test63', 'bin/test62', 'bin/test61', 'bin/test60', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test13', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

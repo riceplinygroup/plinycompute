@@ -45,13 +45,16 @@ public:
        ~QuerySchedulerServer ();
 
        //constructor for the case when query scheduler is co-located with resource manager       
-       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false);
+       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75);
 
-       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false);
+       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75);
 
 
        //constructor for the case when query scheduler and resource manager are in two different nodes
-       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false);
+       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75);
+
+
+
 
        //initialization
        void initialize(bool isRMRunAsServer);
@@ -172,6 +175,9 @@ protected:
        SequenceID seqId;
 
        std :: string jobId;
+
+       double partitionToCoreRatio;
+
 };
 
 
