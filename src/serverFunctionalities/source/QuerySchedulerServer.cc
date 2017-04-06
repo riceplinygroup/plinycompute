@@ -206,7 +206,9 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
              id ++;
         }
         numPartitions->push_back(partitions);
-        String addressOnThisNode = node->getAddress();
+        std :: string curAddress = node->getAddress()+":"+ std :: to_string(node->getPort());
+        std :: cout << "Current address =" << curAddress << std :: endl;
+        String addressOnThisNode = String(curAddress);
         addresses->push_back(addressOnThisNode);
         numCores = numCores + numCoresOnThisNode;
    }
@@ -769,7 +771,9 @@ void QuerySchedulerServer :: scheduleQuery() {
                  id ++;
              }
              numPartitions->push_back(partitions);
-             String addressOnThisNode = node->getAddress();
+             std :: string curAddress = node->getAddress() + ":" + std :: to_string(node->getPort());
+             std :: cout << "current address is " << curAddress << std :: endl;  
+             String addressOnThisNode = String(curAddress);
              addresses->push_back(addressOnThisNode);
              numCores = numCores + numCoresOnThisNode;
          }

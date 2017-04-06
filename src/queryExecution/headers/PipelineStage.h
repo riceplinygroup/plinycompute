@@ -77,7 +77,7 @@ public:
     //constructor
     PipelineStage(Handle<TupleSetJobStage> stage, SharedMemPtr shm, PDBLoggerPtr logger, ConfigurationPtr conf, NodeID nodeId, size_t batchSize, int numThreads);
 
-    bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, std :: string &errMsg);
+    bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
 
     //return the root job stage corresponding to the pipeline 
     Handle<TupleSetJobStage> & getJobStage(); 

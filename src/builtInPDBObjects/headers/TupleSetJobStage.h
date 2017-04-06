@@ -29,6 +29,7 @@
 #include "SetIdentifier.h"
 #include "ComputePlan.h"
 #include "AbstractJobStage.h"
+#include <stdlib.h> 
 
 // PRELOAD %TupleSetJobStage%
 
@@ -188,6 +189,10 @@ namespace pdb {
                     Handle<Vector<HashPartitionID>> partitions = getNumPartitions(i);
                     std :: cout << "Number of partitions on node-" << i << " is " << partitions->size()<< std :: endl;
                     std :: cout << "IP address on node-" << i << " is " << getIPAddress(i) << std :: endl;
+                    int port;
+                    if ((port = getPort(i)) > 0) {
+                        std :: cout << "Port on node-" << i << " is " << port << std :: endl;
+                    }
                 }
             }
 
@@ -217,12 +222,35 @@ namespace pdb {
 
             String getIPAddress (int nodeId) {
                 if ((unsigned int) nodeId < numPartitions->size()) {
-                    return (*ipAddresses)[nodeId];
+                    std :: string ipStr = (*ipAddresses)[nodeId];
+                    if (ipStr.find(':') != std::string::npos) {
+                        std :: string ip = ipStr.substr(0,ipStr.find(':'));
+                        return String(ip);
+                    }
+                    else {
+                        return String(ipStr);
+                    }
                 } else {
                     return nullptr;
                 }
             }
 
+            int getPort (int nodeId) {
+                if ((unsigned int) nodeId < numPartitions->size()) {
+                    std :: string ipStr = (*ipAddresses)[nodeId];
+                    if (ipStr.find(':') != std::string::npos) {
+                        int port = atoi((ipStr.substr(ipStr.find(':')+1)).c_str());
+                        return port;
+                    }
+                    else {
+                        return -1;
+                    }
+                } else {
+                    return -1;
+                }
+            }
+        
+            //each address could be simply an IP address like 10.134.96.50, or IP address and port pair like localhost:8109
             void setIPAddresses (Handle<Vector<String>> addresses) {
                 this->ipAddresses = addresses;
             }
