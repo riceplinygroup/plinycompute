@@ -144,8 +144,12 @@ int main (int argc, char * argv[]) {
                         pdb::makeObject<pdb::Vector<pdb::Handle<SharedEmployee>>> ();
                     try {
                         for (int i = 0; true ; i++) {
-                            pdb :: Handle <SharedEmployee> myData =
-                                pdb::makeObject <SharedEmployee> ("Joe Johnson" + to_string (i), i + 45);
+                            pdb :: Handle <SharedEmployee> myData;
+                            if (i%100 == 0) {
+                               myData = pdb :: makeObject<SharedEmployee> ("Frank", i);
+                            }else {
+                               myData = pdb :: makeObject<SharedEmployee> ("Joe Johnson" + to_string(i), i+45);
+                            }
                             storeMe->push_back (myData);
                             total++;
                         }
