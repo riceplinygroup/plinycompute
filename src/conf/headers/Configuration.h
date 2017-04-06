@@ -58,6 +58,10 @@ using namespace std;
 #define DEFAULT_NUM_THREADS 2
 #endif
 
+#ifndef DEFAULT_BATCH_SIZE
+#define DEFAULT_BATCH_SIZE 100
+#endif
+
 // create a smart pointer for Configuration objects
 class Configuration;
 typedef shared_ptr<Configuration> ConfigurationPtr;
@@ -83,7 +87,7 @@ private:
 	string dataTempDirs;
 	unsigned int numThreads;
 	string backEndIpcFile;
-
+        int batchSize;
 
 	bool isMaster;
 	string masterNodeHostName;
@@ -111,6 +115,7 @@ public:
 	    numThreads = DEFAULT_NUM_THREADS;
 	    ipcFile = "/tmp/ipcFile";
 	    backEndIpcFile = "/tmp/backEndIpcFile";
+            batchSize = DEFAULT_BATCH_SIZE;
             isMaster = false;
             initDirs();
 	}
@@ -332,7 +337,13 @@ public:
         return this->usePangea;
     }
 
+    int getBatchSize() {
+        return this->batchSize;
+    }
 
+    void setBatchSize(int batchSize) {
+        this->batchSize = batchSize;
+    }
 
     void printOut(){
 		cout<< "nodeID: "  << nodeId<<endl;
@@ -357,7 +368,7 @@ public:
 		cout<< "masterNodeHostName: "  << masterNodeHostName<<endl;
 		cout<< "masterNodePort: "  << masterNodePort<<endl;
 		cout<< "logEnabled: "  << logEnabled<<endl;
-
+                cout<< "batchSize: " << batchSize << endl;
 
 	}
 };

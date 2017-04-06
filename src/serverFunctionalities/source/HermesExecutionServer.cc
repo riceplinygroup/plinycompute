@@ -266,7 +266,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
 
 
-                PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, 100, conf->getNumThreads());
+                PipelineNetworkPtr network = make_shared<PipelineNetwork>(shm, logger, conf, nodeId, conf->getBatchSize(), conf->getNumThreads());
                 PDB_COUT << "initialize the pipeline network" << std :: endl;
                 network->initialize(request);
                 PDB_COUT << "running source node" << std :: endl;

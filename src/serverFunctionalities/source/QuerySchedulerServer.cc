@@ -53,13 +53,11 @@
 #include "ClusterAggregateComp.h"
 #include "QueryGraphAnalyzer.h"
 #include "TCAPAnalyzer.h"
+#include "Configuration.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
 
-#ifndef BATCH_SIZE
-   #define BATCH_SIZE 100
-#endif
 
 namespace pdb {
 
@@ -230,7 +228,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
             }
             aggStage->setNumNodePartitions (numNodePartitions);
             aggStage->setAggTotalPartitions (numCores);
-            aggStage->setAggBatchSize(BATCH_SIZE);
+            aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
             success = scheduleStage (index, aggStage, communicator, mode); 
         } else {
             std :: cout << "Unrecognized job stage" << std :: endl;
@@ -830,7 +828,7 @@ void QuerySchedulerServer :: scheduleQuery() {
                               }
                               aggStage->setNumNodePartitions (numPartitionsOnThisNode);
                               aggStage->setAggTotalPartitions (numCores);
-                              aggStage->setAggBatchSize(BATCH_SIZE);
+                              aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
                               success = scheduleStage (j, aggStage, communicator, DeepCopy);
                           } else {
                               errMsg = "Unrecognized job stage";
