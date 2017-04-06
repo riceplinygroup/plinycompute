@@ -68,10 +68,12 @@ int PipelineStage :: getNumThreads () {
 }
 
 //send repartitioned data to a remote node
-bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, std :: string & errMsg) {
-        
-       PDB_COUT << "store shuffle data to address=" << address << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
-       return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, conf->getPort(), address, false, 1024,
+bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string & errMsg) {
+       if(port <= 0) {
+           port = conf->getPort();
+       } 
+       PDB_COUT << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
                          if (!result->getRes ().first) {
@@ -281,6 +283,11 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
                   std :: cout << "address = " << address << std :: endl;
+
+                  //get the i-th port
+                  int port = this->jobStage->getPort(i);
+    
+                  std :: cout << "port = " << port << std :: endl;
                   //get aggregate computation 
                   std :: cout << i << ": to get compute plan" << std :: endl;
                   const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
@@ -317,7 +324,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           while (combinerProcessor->fillNextOutputPage()) {
                               //send out the output page
                               Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
-                              this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, errMsg); 
+                              this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg); 
                               //free the output page
                               combinerProcessor->clearOutputPage();
                               free(combinerPage);
@@ -339,7 +346,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   combinerProcessor->fillNextOutputPage();
                   //send the output page
                   Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
-                  this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, errMsg);
+                  this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+
                   //free the output page
                   combinerProcessor->clearOutputPage();
                   free(combinerPage);
