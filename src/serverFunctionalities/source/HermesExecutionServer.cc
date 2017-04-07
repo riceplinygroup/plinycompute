@@ -665,7 +665,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
                         SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
-                        Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, 100, conf->getNumThreads());
+                        Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, conf->getBatchSize(), conf->getNumThreads());
                         if (request->isRepartition() == false) {
                              PDB_COUT << "run pipeline..." << std :: endl;
                              pipeline->runPipeline(this);

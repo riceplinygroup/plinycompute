@@ -245,7 +245,7 @@ void PipelineNetwork :: runSource (int sourceNode, HermesExecutionServer * serve
          });
     
     int counter = 0;
-    int batchSize = 2000;
+    int batchSize = this->batchSize;
     //int totalInputObjects = 0;
     //int totalOutputObjects = 0;
     for (int i = 0; i < numThreads; i++) {
