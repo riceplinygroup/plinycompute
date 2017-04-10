@@ -97,6 +97,7 @@ public:
         } else {
             if (whereHashTableSitsForThePartition != nullptr) {
                 Handle <Object> myHashTable = ((Record <Object> *) whereHashTableSitsForThePartition)->getRootObject();
+                std :: cout << "ClusterAggregate: getComputeSource: BATCHSIZE=" << batchSize << std :: endl;
                 return std :: make_shared <MapTupleSetIterator <KeyClass, ValueClass, OutputClass>> (myHashTable, batchSize);
             }
             return nullptr;
