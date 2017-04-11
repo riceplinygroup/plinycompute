@@ -390,12 +390,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
                                      }
                                                                
-                                }
-                                //unpin user page
-                                aggregateProcessor->clearInputPage();
-                                page->decRefCount();
-                                if (page->getRefCount() == 0) {
-                                     proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                     //unpin user page
+                                     aggregateProcessor->clearInputPage();
+                                     page->decRefCount();
+                                     if (page->getRefCount() == 0) {
+                                         proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                     }
                                 }
 
                              }

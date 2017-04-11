@@ -92,6 +92,9 @@ int main (int argc, char * argv[] ) {
             std :: cout << "We are now running in distribution mode" << std :: endl;
             std :: cout << "Master IP:" << masterIp << std :: endl;
             std :: cout << "Master Port:" << masterPort << std :: endl;
+            conf->setIsMaster(false);
+            conf->setMasterNodeHostName(masterIp);
+            conf->setMasterNodePort(masterPort);
             std :: cout << "Local IP:" << localIp << std :: endl;
             std :: cout << "Local Port:" << localPort << std :: endl;
        }

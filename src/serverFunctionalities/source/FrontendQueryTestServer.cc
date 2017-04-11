@@ -688,19 +688,18 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 								return std :: make_pair (true, std :: string ("everything OK!"));
 						}
                                }
-
+                               //to evict this page
+                               PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
+                               CacheKey key;
+                               key.dbId = nextPage->getDbID();
+                               key.typeId = nextPage->getTypeID();
+                               key.setId = nextPage->getSetID();
+                               key.pageId = nextPage->getPageID();
+                               cache->decPageRefCount(key);
+                               cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
 		            } else {
                               PDB_COUT << "We've got a null page!!!" << std :: endl;
                     }
-                    //to evict this page
-                    PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
-                    CacheKey key;
-                    key.dbId = nextPage->getDbID();
-                    key.typeId = nextPage->getTypeID();
-                    key.setId = nextPage->getSetID();
-                    key.pageId = nextPage->getPageID();
-                    cache->decPageRefCount(key);
-                    cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
 		        }
 			}
                     loopingSet->setPinned(false);

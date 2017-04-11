@@ -34,6 +34,7 @@
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
 #include "DistributedStorageRemoveTempSet.h"
+#include "DistributedStorageExportSet.h"
 #include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
 
@@ -41,6 +42,7 @@
 #include "StorageAddSet.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveUserSet.h"
+#include "StorageExportSet.h"
 #include "StorageClearSet.h"
 #include "StorageCleanup.h"
 #include "Configuration.h"
@@ -451,7 +453,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
                 nodesToBroadcast = allNodes;
 
-                PDB_COUT << "to broadcast StorageRemoveUserSet" << std :: endl;
+                PDB_COUT << "to broadcast StorageRemoveTempSet" << std :: endl;
                 Handle<StorageRemoveUserSet> storageCmd = makeObject<StorageRemoveUserSet>(request->getDatabase(),
                     request->getSetName(), request->getTypeName());
                 getFunctionality<DistributedStorageManagerServer>().broadcast<StorageRemoveUserSet, Object, SimpleRequestResult>(storageCmd, nullptr,
@@ -618,6 +620,55 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
 
                bool res = true;
+               if (failureNodes.size() > 0) {
+                    res = false;
+                    errMsg = "";
+                    for (int i = 0; i < failureNodes.size(); i ++ ) {
+                        errMsg += failureNodes[i] + std :: string(";");
+                    }
+               }
+               Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+               res = sendUsingMe->sendObject (response, errMsg);
+               return make_pair (res, errMsg);
+
+
+          }
+
+   ));
+
+    //JiaNote: Below handler is to process DistributedStorageExportSet message, this handler is to write back records on all slaves
+    forMe.registerHandler (DistributedStorageExportSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageExportSet>> (
+
+          [&] (Handle <DistributedStorageExportSet> request, PDBCommunicatorPtr sendUsingMe) {
+               const UseTemporaryAllocationBlock tempBlock{1 * 1024 * 1024};
+               PDB_COUT << "received DistributedStorageExportSet" << std :: endl;
+               std::string errMsg;
+               mutex lock;
+               auto successfulNodes = std::vector<std::string>();
+               auto failureNodes = std::vector<std::string>();
+
+               std::vector<std::string> allNodes;
+               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+               for (int i = 0; i < nodes->size(); i++) {
+                   std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
+                   std::string port = std::to_string((*nodes)[i]->getPort());
+                   allNodes.push_back(address + ":" + port);
+               }
+
+               Handle<StorageExportSet> storageCmd = makeObject<StorageExportSet>(request->getDbName(),
+                                        request->getSetName(), request->getOutputFilePath(), request->getFormat());
+
+               getFunctionality<DistributedStorageManagerServer>().broadcast<StorageExportSet, Object, SimpleRequestResult>(storageCmd, nullptr, allNodes,
+                                                                      generateAckHandler(successfulNodes, failureNodes, lock));
+
+               bool res = true;
+               if (failureNodes.size() > 0) {
+                    res = false;
+                    errMsg = "";
+                    for (int i = 0; i < failureNodes.size(); i ++ ) {
+                        errMsg += failureNodes[i] + std :: string(";");
+                    }
+               }
                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                res = sendUsingMe->sendObject (response, errMsg);
                return make_pair (res, errMsg);

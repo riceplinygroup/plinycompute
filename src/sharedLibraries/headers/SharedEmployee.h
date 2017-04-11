@@ -23,15 +23,10 @@
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "Handle.h"
+#include "ExportableObject.h"
+#include <vector>
 
-class PrintableObject : public pdb :: Object {
-
-public:
-
-	virtual void print () = 0;
-};
-
-class SharedEmployee : public PrintableObject {
+class SharedEmployee : public ExportableObject {
 
         int age;
         double salary;
@@ -47,6 +42,30 @@ public:
         void print () override {
                 std :: cout << "name is: " << *name << " age is: " << age;
         }
+
+        std :: string toSchemaString ( std :: string format ) override {
+                if (format == "csv") {
+                    return "name, age, salary\n";
+                } else {
+                    return "";
+                }
+        }
+
+        std :: string toValueString ( std :: string format ) override {
+                if (format == "csv") {
+                    return std :: string(*name) + ", " + std :: to_string (age) + ", " + std :: to_string (salary) + "\n";
+                } else {
+                    return "";
+                }
+        }
+
+
+        std :: vector < std :: string > getSupportedFormats () override {
+               std :: vector < std :: string> ret;
+               ret.push_back("csv");
+               return ret;
+        }
+
 
 	pdb :: Handle <pdb :: String> &getName () {
 		return name;
