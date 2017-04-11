@@ -29,8 +29,8 @@
 #include "UserSet.h"
 #include "PartitionPageIterator.h"
 #include "SetCachePageIterator.h"
+#include <string>
 #include <string.h>
-
 /**
  * Create a UserSet instance, need to set file, and open file later
  */
@@ -225,7 +225,6 @@ void UserSet::dump (char * buffer) {
 }
 
 
-
 //thread-safe
 void UserSet::cleanDirtyPageSet() {
     this->lockDirtyPageSet();
@@ -260,5 +259,8 @@ void UserSet::flushDirtyPages() {
     }
     //this->unlockDirtyPageSet();
 }
+
+
+
 
 #endif

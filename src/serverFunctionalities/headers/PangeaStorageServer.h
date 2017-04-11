@@ -23,7 +23,6 @@
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
 #include "Record.h"
-#include <vector>
 #include "PDBVector.h"
 #include "Configuration.h"
 #include "DataTypes.h"
@@ -32,7 +31,7 @@
 #include "SharedMem.h"
 #include "TempSet.h"
 #include "PDBWork.h"
-
+#include <vector>
 #include <string>
 #include <map>
 #include <boost/filesystem.hpp>
@@ -244,6 +243,12 @@ public:
 
    // cleaner to be invoked in destructor
     void cleanup() override;
+
+   //export to a local file 
+   bool  exportToFile (std :: string dbName, std :: string setName, std :: string path, std :: string format, std :: string & errMsg); 
+
+   //export to a HDFS partition
+   bool  exportToHDFSFile (std :: string dbName, std :: string setName, std :: string hdfsNameNodeIp, int hdfsNameNodePort, std :: string path, std :: string format, std :: string & errMsg);
 
 protected:
 

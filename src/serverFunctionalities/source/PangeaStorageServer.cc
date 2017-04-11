@@ -42,6 +42,7 @@
 #include "StorageAddTempSetResult.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveTempSet.h"
+#include "StorageExportSet.h"
 #include "StorageRemoveUserSet.h"
 #include "StorageCleanup.h"
 #include "PDBScanWork.h"
@@ -55,7 +56,9 @@
 #include "SharedMem.h"
 #include "PDBFlushProducerWork.h"
 #include "PDBFlushConsumerWork.h"
-
+#include "ExportableObject.h"
+//#include <hdfs/hdfs.h>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <iostream>
@@ -325,6 +328,139 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
 	PDB_COUT << "Now all the records are back.\n";
 	sizes[databaseAndSet] = numBytesToProcess;
+}
+
+
+//export to a local file
+bool PangeaStorageServer :: exportToFile (std :: string dbName, std :: string setName, std :: string path, std :: string format, std :: string & errMsg) {
+
+    FILE * myFile = fopen(path.c_str(), "w+");
+    if (myFile == NULL) {
+        errMsg = "Error opening file for writing: " + path;
+        return false;
+    }
+
+    SetPtr setToExport = getFunctionality<PangeaStorageServer>().getSet(std :: make_pair (dbName, setName));
+    if (setToExport == nullptr) {
+        errMsg = "Error in exportToFile: set doesn't exist: " + dbName + ":" + setName;
+        return false;
+    }
+
+    bool isHeadWritten = false;
+    setToExport->setPinned(true);
+    std :: vector<PageIteratorPtr> * pageIters = setToExport->getIterators();
+    int numIterators = pageIters->size();
+    for (int i = 0; i < numIterators; i++) {
+        PageIteratorPtr iter = pageIters->at(i);
+        while (iter->hasNext()) {
+            PDBPagePtr nextPage = iter->next();
+            if (nextPage != nullptr) {
+                Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
+                Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                int vecSize = inputVec->size();
+                for ( int j = 0; j < vecSize; j++) {
+                    Handle<ExportableObject> objectToExport = unsafeCast<ExportableObject, Object>((*inputVec)[j]);
+                    if (isHeadWritten == false) {
+                        std :: string header = objectToExport->toSchemaString(format);
+                        if (header != "") {
+                            fwrite(header.c_str(), sizeof(char), header.length()+1, myFile); 
+                        }
+                        isHeadWritten = true;
+                    }
+                    std :: string value = objectToExport->toValueString(format);
+                    if (value != "") {
+                        fwrite(value.c_str(), sizeof(char), value.length()+1, myFile);
+                    }
+                    
+                }
+                //to evict this page
+                PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
+                CacheKey key;
+                key.dbId = nextPage->getDbID();
+                key.typeId = nextPage->getTypeID();
+                key.setId = nextPage->getSetID();
+                key.pageId = nextPage->getPageID();
+                cache->decPageRefCount(key);
+                cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
+            }
+        }
+    }
+    setToExport->setPinned(false);
+    delete pageIters;
+    fflush(myFile);
+    fclose(myFile);
+    return true;
+}
+
+//export to a HDFS partition
+bool  PangeaStorageServer :: exportToHDFSFile (std :: string dbName, std :: string setName, std :: string hdfsNameNodeIp, int hdfsNameNodePort, std :: string path, std :: string format, std :: string & errMsg) {
+    //hdfsFS fs = hdfsConnect (hdfsNameNodeIp, hdfsNameNodePort);
+
+    /*    
+    struct hdfsBuilder * builder = hdfsNewBuilder();
+    hdfsBuilderSetNameNode(builder, hdfsNameNodeIp);
+    hdfsBuilderSetNameNodePort(builder, hdfsNameNodePort);
+    hdfsFS fs = hdfsBuilderConnect(builder);
+    hdfsFile myFile = hdfsOpenFile(fs, path.c_str(), O_WRONLY|O_CREAT, 0, 0, 0);
+    if (!writeFile) {
+        errMsg = "Error opening file for writing: " + path;
+        return false;
+    }
+
+    SetPtr setToExport = getFunctionality<PangeaStorageServer>().getSet(std :: make_pair (dbName, setName));
+    if (setToExport == nullptr) {
+        errMsg = "Error in exportToFile: set doesn't exist: " + dbName + ":" + setName;
+        return false;
+    }
+
+    bool isHeadWritten = false;
+    setToExport->setPinned(true);
+    std :: vector<PageIteratorPtr> * pageIters = setToExport->getIterators();
+    int numIterators = pageIters->size();
+    for (int i = 0; i < numIterators; i++) {
+        PageIteratorPtr iter = pageIters->at(i);
+        while (iter->hasNext()) {
+            PDBPagePtr nextPage = iter->next();
+            if (nextPage != nullptr) {
+                Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
+                Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+                int vecSize = inputVec->size();
+                for ( int j = 0; j < vecSize; j++) {
+                    Handle<ExportableObject> objectToExport = unsafeCast<ExportableObject, Object>((*inputVec)[j]);
+                    if (isHeadWritten == false) {
+                        std :: string header = objectToExport->toSchemaString();
+                        if (header != "") {
+                            hdfsWrite(fs, myFile, header.c_str(), header.length()+1);
+                        }
+                        isHeadWritten = true;
+                    }
+                    std :: string value = objectToExport->toValueString();
+                    if (value != "") {
+                        hdfsWrite(fs, myFile, value.c_str(), value.length()+1);
+                    }
+
+                }
+                //to evict this page
+                PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
+                CacheKey key;
+                key.dbId = nextPage->getDbID();
+                key.typeId = nextPage->getTypeID();
+                key.setId = nextPage->getSetID();
+                key.pageId = nextPage->getPageID();
+                cache->decPageRefCount(key);
+                cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
+            }
+        }
+    }
+    setToExport->setPinned(false);
+    delete pageIters;
+    hdfsFlush(fs, myFile);
+    hdfsCloseFile(fs, myFile);
+    return true;
+    */
+
+    return false;
+
 }
 
 void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
@@ -610,6 +746,23 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          // return the result
                          res = sendUsingMe->sendObject (response, errMsg);
                          return make_pair (res, errMsg);
+               }
+       ));
+
+       // this handler requests to export a set to a local file
+       forMe.registerHandler (StorageExportSet_TYPEID, make_shared<SimpleRequestHandler<StorageExportSet>> (
+               [&] (Handle <StorageExportSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         bool res = getFunctionality<PangeaStorageServer>().exportToFile(request->getDbName(), request->getSetName(),
+                                                   request->getOutputFilePath(), request->getFormat(), errMsg);
+                         // make the response
+                         const UseTemporaryAllocationBlock tempBlock{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+
+                         // return the result
+                         res = sendUsingMe->sendObject (response, errMsg);
+                         return make_pair (res, errMsg);
+
                }
        ));
 

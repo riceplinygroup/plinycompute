@@ -27,6 +27,7 @@
 #include "DistributedStorageRemoveDatabase.h"
 #include "DistributedStorageRemoveSet.h"
 #include "DistributedStorageRemoveTempSet.h"
+#include "DistributedStorageExportSet.h"
 #include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
 
@@ -78,6 +79,13 @@ namespace pdb {
         return simpleRequest<DistributedStorageRemoveTempSet, SimpleRequestResult, bool> (logger, port, address, false,
                                                                                       1024, generateResponseHandler("Could not remove temp set to distributed storage manager", errMsg), databaseName, setName, typeName);
     }
+
+
+    bool DistributedStorageManagerClient::exportSet (const std :: string & databaseName, const std :: string & setName, const std :: string & outputFilePath, const std :: string & format, std :: string & errMsg) {
+        return simpleRequest<DistributedStorageExportSet, SimpleRequestResult, bool> (logger, port, address, false, 
+                                                                                     1024, generateResponseHandler("Could not export set", errMsg), databaseName, setName, outputFilePath, format); 
+    }
+
 
     bool DistributedStorageManagerClient::clearSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg) {
         return simpleRequest<DistributedStorageClearSet, SimpleRequestResult, bool> (logger, port, address, false,

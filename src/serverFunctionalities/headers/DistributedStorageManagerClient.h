@@ -61,6 +61,11 @@ namespace pdb {
         // removeTempSet added by Jia (only go through storage)
         bool removeTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg);
 
+        // export set added by Jia
+        // Note that the objects in set must be instances of ExportableObject
+        bool exportSet (const std :: string & databaseName, const std :: string & setName, const std :: string & outputFilePath, const std :: string & format, std :: string & errMsg);
+
+
     private:
         std::function<bool (Handle<SimpleRequestResult>)> generateResponseHandler(std::string description, std::string & errMsg);
 
