@@ -153,6 +153,12 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server) {
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
+                  std :: string out = getAllocator().printInactiveBlocks();
+                  logger->warn(out);
+                  PDB_COUT << out << std :: endl;
+                  //getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                  //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineStage_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
@@ -268,6 +274,12 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
+
+                  std :: string out = getAllocator().printInactiveBlocks();
+                  logger->warn(out);
+                  PDB_COUT << out << std :: endl;                  
+                  //getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                  //getAllocator().cleanInactiveBlocks((size_t)(12582912));
 
                   //to combine data for node-i
 
@@ -423,6 +435,13 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
          //TODO: start threads
          PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, j] (PDBBuzzerPtr callerBuzzer) {
+
+                  std :: string out = getAllocator().printInactiveBlocks();
+                  logger->warn(out);
+                  PDB_COUT << out << std :: endl;                  
+                  //getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                  //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+
                   //create a data proxy
                   std :: string loggerName = std :: string("PipelineStage_")+std :: to_string(i);
                   PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);

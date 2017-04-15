@@ -345,6 +345,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                   PDBWorkPtr myWork = make_shared<GenericWork> (
                      [&, i] (PDBBuzzerPtr callerBuzzer) {
 
+                         std :: string out = getAllocator().printInactiveBlocks();
+                         logger->warn(out);
+                         PDB_COUT << out << std :: endl;                  
+                         //getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                         //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+
                          pthread_mutex_lock(&connection_mutex);
                          PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
                          anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
