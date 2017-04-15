@@ -289,7 +289,7 @@ inline void Allocator :: emptyOutBlock (void *here) {
 		LAST_USED = HEADER_SIZE;	
 		ALLOCATOR_REF_COUNT = 0;
 
-		std :: cout << "Killed the current block.\n";
+		PDB_COUT << "Killed the current block.\n";
 		return;
 	}
 
@@ -300,11 +300,11 @@ inline void Allocator :: emptyOutBlock (void *here) {
 	if (i != allInactives.end () && !(*i > here)) {
 
 		allInactives.erase (i);	
-		std :: cout << "Killed an old block block.\n";
+		PDB_COUT << "Killed an old block block.\n";
 		return;
 	}
 
-	std :: cout << "This is kind of bad.  You asked me to empty out a block, and I cannot find it.\n";
+	PDB_COUT << "This is kind of bad.  You asked me to empty out a block, and I cannot find it.\n";
 }
 
 // free some RAM

@@ -780,7 +780,7 @@ void FrontendQueryTestServer :: doSelection (std :: string setNameToUse, Handle 
 		// create the output set in the storage manager and in the catalog
 		int16_t outType = getFunctionality <CatalogServer> ().searchForObjectTypeName (myQuery->getOutputType ());
 		if (!getFunctionality <CatalogServer> ().addSet (outType, outDatabaseAndSet.first, outDatabaseAndSet.second, errMsg)) {
-			//std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";	
+			std :: cout << "Could not create the query output set " << outDatabaseAndSet.second << ": " << errMsg << "\n";	
 			exit (1);
 		}
 

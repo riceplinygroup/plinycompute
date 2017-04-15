@@ -208,6 +208,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server) {
                       proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                       memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                       proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                      free(page);
                   }
 );
                   std :: cout << "\nRunning Pipeline\n";
@@ -506,7 +507,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           PageCircularBufferPtr buffer = combinerBuffers[k];
                           buffer->addPageToTail(output);
                           output->incRefCount();
-                      } 
+                      }
+                      free(page);
                   }
 );
                   std :: cout << "\nRunning Pipeline\n";

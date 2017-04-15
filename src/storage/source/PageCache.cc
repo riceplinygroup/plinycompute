@@ -35,7 +35,7 @@ using namespace std;
 
 #define WARN_THRESHOLD 0.9
 #ifndef EVICT_STOP_THRESHOLD
-    #define EVICT_STOP_THRESHOLD 0.25
+    #define EVICT_STOP_THRESHOLD 0.9
 #endif
 
 PageCache::PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, PageCircularBufferPtr flushBuffer,
@@ -54,6 +54,13 @@ PageCache::PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, Pa
 	this->size = 0;
 	this->warnSize = (this->maxSize) * WARN_THRESHOLD;
 	this->evictStopSize = (this->maxSize) * EVICT_STOP_THRESHOLD;
+        while (this->evictStopSize >= (shm->getShmSize()/conf->getPageSize()-4)) {
+           this->evictStopSize --;
+           if((this->evictStopSize <= 1) || (this->evictStopSize == (shm->getShmSize()/conf->getPageSize()-6))) {
+               break;
+           }
+        }
+        std :: cout << "PageCache: EVICT_STOP_SIZE is automatically tuned to be " << this->evictStopSize << std :: endl;
         this->flushBuffer = flushBuffer;
 	this->logger = logger;
 	this->shm = shm;
@@ -188,6 +195,7 @@ PDBPagePtr PageCache::buildPageFromSharedMemoryData(PDBFilePtr file,
 			this->conf->getPageSize(), shm->computeOffset(pageData), internalOffset);
 	if (page == nullptr) {
 		this->logger->error("Fatal Error: PageCache: out of memory in heap.");
+                std :: cout << "FATAL ERROR: PageCache out of memory" << std :: endl;
 		exit(-1);
 	}
 	//page->setNumObjects(numObjects);
