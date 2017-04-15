@@ -1867,6 +1867,7 @@ void PangeaStorageServer::addDatabaseBySequenceFiles(string dbName, DatabaseID d
                         this->cache, this->flushBuffer);
         if (db == nullptr) {
                 this->logger->writeLn("PDBStorage: Out of Memory.");
+                std :: cout << "FATAL ERROR: PDBStorage Out of Memory" << std :: endl;
                 exit(1);
         }
         //initialize it
@@ -1901,6 +1902,7 @@ void PangeaStorageServer::addDatabaseByPartitionedFiles(string dbName, DatabaseI
                         this->cache, this->flushBuffer);
         if (db == nullptr) {
                 this->logger->writeLn("PDBStorage: Out of Memory.");
+                std :: cout << "FATAL ERROR: PDBStorage Out of Memory" << std :: endl;
                 exit(-1);
         }
         //initialize it
