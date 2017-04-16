@@ -633,6 +633,21 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string typeName = request->getTypeName ();
                          std :: string setName = request->getSetName();
                          bool res = true;
+                         #ifdef REMOVE_SET_WITH_EVICTION
+                         SetPtr setToRemove = getSet(std :: pair <std :: string, std :: string>(databaseName, setName));
+                         if (setToRemove == nullptr) {
+                              // make the response
+                              const UseTemporaryAllocationBlock tempBlock{1024};
+                              errMsg = "Set doesn't exist.";
+                              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (false, errMsg);
+
+                              // return the result
+                              res = sendUsingMe->sendObject (response, errMsg);
+                              return make_pair (res, errMsg);
+                         } else {
+                              setToRemove->evictPages();
+                         }
+                         #endif
                          if (standalone == true) {
                              res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
                              if (res == false) {

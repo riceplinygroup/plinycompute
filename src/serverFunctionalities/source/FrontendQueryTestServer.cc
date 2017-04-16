@@ -696,7 +696,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                key.setId = nextPage->getSetID();
                                key.pageId = nextPage->getPageID();
                                cache->decPageRefCount(key);
+                               #ifndef REMOVE_SET_WITH_EVICTION
                                cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
+                               #endif
 		            } else {
                               PDB_COUT << "We've got a null page!!!" << std :: endl;
                     }

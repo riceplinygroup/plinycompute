@@ -45,7 +45,7 @@ void PDBFlushConsumerWork :: stop() {
 void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
 	PageCircularBufferPtr flushBuffer = this->server->getFlushBuffer();
 	PDBPagePtr page;
-        SetPtr set;
+        SetPtr set = nullptr;
 	while(!isStopped) {
 		if((page = flushBuffer->popPageFromHead()) != nullptr) {
 			//got a page from flush buffer
@@ -106,6 +106,7 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                                 //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for lockDirtyPageSet()...");
 				PDB_COUT<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
                          }
+
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
                              //remove the page from cache!
                              PDB_COUT << "to free the page!\n";

@@ -135,8 +135,11 @@ public:
 
 		// take care of getting rid of any pages... but only get rid of those from two iterations ago...
 		// pages from the last iteration may still have pointers into them 
-		while (unwrittenPages.size () > 0 && iteration > unwrittenPages.front ()->iteration + 1) {
-			
+	        PDB_COUT << "to clean page for iteration-" << iteration << std :: endl;
+                PDB_COUT << "unwrittenPages.size() =" << unwrittenPages.size() << std :: endl;
+
+         	while (unwrittenPages.size () > 0 && iteration > unwrittenPages.front ()->iteration + 1) {
+		        PDB_COUT << "unwrittenPages.front()->iteration=" << unwrittenPages.front()->iteration << std :: endl;	
 			// in this case, the page did not have any output data written to it... it only had
 			// intermediate results, and so we will just discard it
 			if (unwrittenPages.front ()->outputSink == nullptr) {
@@ -154,8 +157,8 @@ public:
 
 			// in this case, the page DID have some data written to it
 			} else {
-			
 				// and force the reference count for this guy to go to zero
+                                PDB_COUT << "to empty out containing block" << std :: endl;
 				unwrittenPages.front ()->outputSink.emptyOutContainingBlock ();
 
 				// OK, because we will have invalidated the current object allocator block, we need to 

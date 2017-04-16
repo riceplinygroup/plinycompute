@@ -293,6 +293,8 @@ public:
  */
    void dump (char * buffer);
 
+   void evictPages();
+
    bool getPinned() { return this->isPinned; }
 
 /*

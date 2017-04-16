@@ -361,6 +361,7 @@ inline void Allocator :: freeRAM (void *here) {
 		// if he is done, delete him
 		if (i->areNoReferences ()) {
 			i->freeBlock ();
+                        PDB_COUT << "Killed an old block naturally." << std :: endl;
 			allInactives.erase (i);	
 		}	
 
