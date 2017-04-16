@@ -35,7 +35,8 @@ elif  common_env['PLATFORM'] == 'posix':
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
-common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=200')
+common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
+common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 #common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')

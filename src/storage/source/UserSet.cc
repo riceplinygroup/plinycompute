@@ -224,6 +224,30 @@ void UserSet::dump (char * buffer) {
    delete iterators;
 }
 
+void UserSet::evictPages() {
+   setPinned(true);
+   vector<PageIteratorPtr> * iterators = this->getIterators();
+   int numIterators = iterators->size();
+   int i;
+   for (i = 0; i < numIterators; i++) {
+       PageIteratorPtr curIter = iterators->at(i);
+       while(curIter->hasNext()) {
+           PDBPagePtr curPage = curIter->next();
+           if(curPage != nullptr) {
+               CacheKey key;
+               key.dbId = this->getDbID();
+               key.typeId = this->getTypeID();
+               key.setId = this->getSetID();
+               key.pageId = curPage->getPageID();
+               curPage->decRefCount();
+               this->pageCache->evictPage(key, false);
+           }
+       }
+   }
+   setPinned(false);
+   delete iterators;
+
+}
 
 //thread-safe
 void UserSet::cleanDirtyPageSet() {

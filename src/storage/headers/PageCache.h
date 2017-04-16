@@ -195,7 +195,7 @@ public:
     void evict();
 
     //Evict page specified by cachekey from cache.
-    bool evictPage(CacheKey key);
+    bool evictPage(CacheKey key, bool tryFlushOrNot = true);
 
     //Compute the threshold when to trigger eviction.
     void getAndSetWarnSize(unsigned int numSets, double warnThreshold);

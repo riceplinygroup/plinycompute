@@ -642,6 +642,8 @@ int PageCache::evictAllDirtyPages() {
     return numEvicted;
 }
 
+
+
 //Flush a page.
 bool PageCache::flushPageWithoutEviction(CacheKey key) {
         if(this->containsPage(key) == true) {
@@ -666,7 +668,10 @@ bool PageCache::flushPageWithoutEviction(CacheKey key) {
         return true;
 }
 
-bool PageCache::evictPage(CacheKey key) {
+
+//Evict a page
+
+bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
 	if (this->containsPage(key) == true) {
                 //cout << "find the key!\n";
 		PDBPagePtr page = this->cache->at(key);
@@ -680,7 +685,7 @@ bool PageCache::evictPage(CacheKey key) {
 		} else {
                         
                         page->setPinned(false);
-                        if((page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
+                        if((tryFlushOrNot == true) && (page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
                             PDB_COUT << "going to unpin a dirty page...\n";
                             //update counter
                             //page->updateCounterInRawBytes(); 
