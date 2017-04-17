@@ -45,7 +45,7 @@ public:
 
         std :: string toSchemaString ( std :: string format ) override {
                 if (format == "csv") {
-                    return "name, age, salary\n";
+                    return "name,age,salary\n";
                 } else {
                     return "";
                 }
@@ -53,7 +53,9 @@ public:
 
         std :: string toValueString ( std :: string format ) override {
                 if (format == "csv") {
-                    return std :: string(*name) + ", " + std :: to_string (age) + ", " + std :: to_string (salary) + "\n";
+                    char buffer[65535];
+                    sprintf(buffer, "%s,%d,%f\n", name->c_str(), age, salary);
+                    return buffer;
                 } else {
                     return "";
                 }

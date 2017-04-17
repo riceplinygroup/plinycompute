@@ -363,13 +363,13 @@ bool PangeaStorageServer :: exportToFile (std :: string dbName, std :: string se
                     if (isHeadWritten == false) {
                         std :: string header = objectToExport->toSchemaString(format);
                         if (header != "") {
-                            fwrite(header.c_str(), sizeof(char), header.length()+1, myFile); 
+                            fprintf(myFile, "%s", header.c_str()); 
                         }
                         isHeadWritten = true;
                     }
                     std :: string value = objectToExport->toValueString(format);
                     if (value != "") {
-                        fwrite(value.c_str(), sizeof(char), value.length()+1, myFile);
+                        fprintf(myFile, "%s", value.c_str());
                     }
                     
                 }
