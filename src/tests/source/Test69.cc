@@ -112,7 +112,7 @@ int main (int argc, char * argv[]) {
 
        string errMsg;
 
-       if (whetherToAddData == true) {
+   if (whetherToAddData == true) {
 
             
             //Step 1. Create Database and Set
@@ -140,7 +140,7 @@ int main (int argc, char * argv[]) {
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
             int total = 0;       
-             int numFranks = (int)((double)selectionRatio * (double)(100));
+            int numFranks = (int)((double)selectionRatio * (double)(100));
             if (numOfMb > 0) {
                 int numIterations = numOfMb/64;
                 int remainder = numOfMb - 64*numIterations;
@@ -179,7 +179,9 @@ int main (int argc, char * argv[]) {
                 //to write back all buffered records        
                 temp.flushData( errMsg );
           }
-        }
+    }
+
+    if (strcmp(argv[5],"JustStoreData") != 0) {
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
         if (!temp.createSet<String> ("chris_db", "output_set1", errMsg)) {
@@ -244,9 +246,10 @@ int main (int argc, char * argv[]) {
                 cout << "Removed set.\n";
             }
         }
-        system ("scripts/cleanupSoFiles.sh");
         std::cout << "Time Duration: " <<
                 std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+     }
+     system ("scripts/cleanupSoFiles.sh");
 }
 
 #endif
