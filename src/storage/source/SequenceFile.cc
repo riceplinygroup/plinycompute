@@ -166,7 +166,10 @@ size_t SequenceFile::getPageSizeInMeta() {
     if (this->seekPageSizeInMeta() == 0) {
         size_t pageSize;
         this->logger->writeLn("SequenceFile: get page size from file meta:");
-        fread((size_t *) (&(pageSize)), sizeof (size_t), 1, this->file);
+        size_t sizeRead=fread((size_t *) (&(pageSize)), sizeof (size_t), 1, this->file);
+        if (sizeRead == 0) {
+            return 0;
+        }
         this->logger->writeInt(pageSize);
         return pageSize;
     } else {
@@ -191,7 +194,11 @@ unsigned int SequenceFile::getAndSetNumFlushedPages() {
             this->numFlushedPages = 0;
         }
         this->logger->writeLn("SequenceFile: set numFlushedPages:");
-        fread((PageID *) (&(this->lastFlushedId)), sizeof (PageID), 1, this->file);
+        size_t sizeRead = fread((PageID *) (&(this->lastFlushedId)), sizeof (PageID), 1, this->file);
+        if (sizeRead == 0) {
+            std :: cout << "SequenceFile: Read failed" << std :: endl;
+            return 0;
+        }
         this->numFlushedPages = this->lastFlushedId + 1;
         this->logger->writeInt(this->lastFlushedId);
     } else {

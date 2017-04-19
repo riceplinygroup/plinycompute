@@ -608,7 +608,11 @@ PageID PartitionedFile::loadPageIdFromCurPos(FilePartitionID partitionId, unsign
 	}
 	if(pageSeqInPartition < this->getMetaData()->getPartition(partitionId)->getNumPages()) {
 		PageID pageId;
-		fread(&pageId, sizeof (char), sizeof(PageID), curFile);
+		size_t size = fread(&pageId, sizeof (char), sizeof(PageID), curFile);
+                if (size == 0) {
+                    std :: cout << "PartitionedFile: Read failed" << std :: endl;
+                    return (PageID)(-1);
+                }
 		return pageId;
 	} else {
 		return (PageID)(-1);
@@ -627,13 +631,17 @@ unsigned int PartitionedFile::getAndSetNumFlushedPages() {
     if (this->seekNumFlushedPagesInMeta() == 0) {
         this->logger->writeLn("PartitionedFile: get numFlushedPages from meta partition:");
         unsigned int numFlushedPages;
-        fread((unsigned int *) (&numFlushedPages), sizeof (unsigned int), 1, this->metaFile);
+        size_t size = fread((unsigned int *) (&numFlushedPages), sizeof (unsigned int), 1, this->metaFile);
+        if (size == 0) {
+            std :: cout << "PartitionedFile: Read failed" << std :: endl;
+            return 0;
+        }
         this->getMetaData()->setNumFlushedPages(numFlushedPages);
         this->logger->writeInt(this->getMetaData()->getNumFlushedPages());
         return this->getMetaData()->getNumFlushedPages();
     }
     else {
-    	return -1;
+    	return 0;
     }
 }
 
@@ -737,13 +745,15 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	//get meta partition size;
 	fseek(this->metaFile, 0, SEEK_SET);
 	size_t size;
-	fread((size_t *)(&(size)), sizeof(size_t), 1, this->metaFile);
-	//cout <<"metaPartition size: "<<size<<"\n";
-
+	size_t sizeRead=fread((size_t *)(&(size)), sizeof(size_t), 1, this->metaFile);
+        if (sizeRead == 0) {
+            std :: cout << "PartitionedFile: Read meta size failed" << std :: endl;
+            exit(-1);
+        }
 	//load meta partition to memory
 	fseek(this->metaFile, sizeof(size_t), SEEK_SET);
 	char * buf = (char*)malloc(size*sizeof(char));
-	int sizeRead = fread((void *)buf, sizeof (char), size, this->metaFile);
+	sizeRead = fread((void *)buf, sizeof (char), size, this->metaFile);
         if(sizeRead < size) {
              cout << "Metadata corrupted, please remove storage folders and try again...\n";
              this->logger->error( "Fatal Error: Metadata corrupted, please remove storage folders and try again...");
@@ -863,7 +873,11 @@ size_t PartitionedFile::getPageSizeInMeta() {
     if (this->seekPageSizeInMeta() == 0) {
         size_t pageSize;
         this->logger->writeLn("PartitionedFile: get page size from meta partition:");
-        fread((size_t *) (&(pageSize)), sizeof (size_t), 1, this->metaFile);
+        size_t sizeRead = fread((size_t *) (&(pageSize)), sizeof (size_t), 1, this->metaFile);
+        if (sizeRead ==0) {
+            std :: cout << "PartitionedFile: Read failed" << std :: endl;
+            return 0;
+        }
         this->logger->writeInt(pageSize);
         return pageSize;
     } else {

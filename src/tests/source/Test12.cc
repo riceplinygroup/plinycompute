@@ -53,7 +53,11 @@ int main () {
         // read in the guys that we wrote out
         int filedesc = open ("testfile7", O_RDONLY);
         Record <ZB_Company> *myCompany = (Record <ZB_Company> *) malloc (fileLen);
-	read (filedesc, myCompany, fileLen);
+        //added by Jia to remove warnings
+	size_t sizeRead = read (filedesc, myCompany, fileLen);
+        if (sizeRead == 0) {
+            std :: cout << "Read failed" << std :: endl;
+        }
 	auto myComp = myCompany->getRootObject ();
 	myComp->print ();
 	
@@ -69,7 +73,10 @@ int main () {
 	Handle <Vector <Supervisor>> myHandle = getHandle (mySups);
         auto myBytes = getRecord (myHandle);
         filedesc = open ("testfile8", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-        write (filedesc, myBytes, myBytes->numBytes ());
+        size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
+        if (sizeWritten == 0) {
+            std :: cout << "Write failed" << std :: endl;
+        }
         close (filedesc);
 
 	// now finally, we will read him in 
@@ -77,7 +84,11 @@ int main () {
         fileLen = in3.tellg();
         filedesc = open ("testfile8", O_RDONLY);
         Record <Vector <Supervisor>> *allSups = (Record <Vector <Supervisor>> *) malloc (fileLen);
-	read (filedesc, allSups, fileLen);
+        //added by Jia to remove warnings
+	sizeRead = read (filedesc, allSups, fileLen);
+        if (sizeRead == 0) {
+            std :: cout << "Read failed" << std :: endl;
+        }
 	auto mySupervisors = allSups->getRootObject ();
 
 	for (int i = 0; i < mySupervisors->size (); i++) {

@@ -90,7 +90,11 @@ int main() {
 	Record<Vector<Handle<Supervisor>>>*myBytes = getRecord <Vector <Handle <Supervisor>>> (supers);
 
 	int filedesc = open("testfile", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	write(filedesc, myBytes, myBytes->numBytes());
+        //added by Jia
+	size_t sizeWritten = write(filedesc, myBytes, myBytes->numBytes());
+        if (sizeWritten == 0) {
+            std :: cout << "Write failed" << std :: endl;
+        }
 	close(filedesc);
 
 
@@ -109,8 +113,11 @@ int main() {
 	int filedesc2 = open("testfile", O_RDONLY);
 
 	Record<Vector<Handle<Supervisor>>>*myNewBytes = (Record <Vector <Handle <Supervisor>>> *) malloc (fileLen2);
-	read(filedesc2, myNewBytes, fileLen2);
-
+	size_t sizeRead = read(filedesc2, myNewBytes, fileLen2);
+        //added by Jia
+        if (sizeRead == 0) {
+            std :: cout << "Read failed" << std :: endl;
+        }
 	// get the root object
 	Handle<Vector<Handle<Supervisor>>> mySupers = myNewBytes->getRootObject ();
 

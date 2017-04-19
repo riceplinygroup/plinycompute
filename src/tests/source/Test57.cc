@@ -255,8 +255,10 @@ int main (int argc, char * argv[]) {
                 cout << "Removed set.\n";
         }
 
-
-        system ("scripts/cleanupSoFiles.sh");
+        int code = system ("scripts/cleanupSoFiles.sh");
+        if (code < 0) {
+            std :: cout << "Can't cleanup so files" << std :: endl;
+        }
 }
 
 #endif

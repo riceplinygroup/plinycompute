@@ -72,7 +72,11 @@ int main () {
 
 	auto myBytes = getRecord (myCompany);
 	int filedesc = open ("testfile7", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	write (filedesc, myBytes, myBytes->numBytes ());
+        //added by Jia to remove warnings
+	size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
+        if (sizeWritten == 0) {
+            std :: cout << "Write failed" << std :: endl;
+        }
 	close (filedesc);
 
 	end = std::chrono::high_resolution_clock::now();

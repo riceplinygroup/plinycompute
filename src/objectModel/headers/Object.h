@@ -38,14 +38,12 @@ namespace pdb {
 //
 class Object {
 
-private:
+public:
 
 	// these all just error out since they should never be called
 	static void * operator new (size_t sz, const std::nothrow_t& tag);
 	static void * operator new (size_t sz);
 	static void operator delete (void *me);
-
-public:
 	static void * operator new (std::size_t count, void *ptr);
 	void setVTablePtr (void *setToMe);
 	void *getVTablePtr ();

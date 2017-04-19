@@ -49,7 +49,10 @@ int main () {
 	// read in the serialized record
 	int filedesc = open ("testfile2", O_RDONLY);
 	Record <Vector <Handle <Employee>>> *myNewBytes = (Record <Vector <Handle <Employee>>> *) malloc (fileLen);
-	read (filedesc, myNewBytes, fileLen);
+	size_t sizeRead = read (filedesc, myNewBytes, fileLen);
+        if (sizeRead == 0) {
+            std :: cout << "Read failed" << std :: endl;
+        }
 
 	// get the root object
 	Handle <Vector <Handle <Employee>>> myEmps = myNewBytes->getRootObject ();

@@ -86,7 +86,10 @@ void ResourceManagerServer :: initialize (std :: string pathToServerList) {
         //to run a script to obtain all system resources
         std :: string command = std::string("scripts/collect_proc.sh ") + this->pemFile;
         PDB_COUT << command << std :: endl;
-        system (command.c_str());    
+        int ret = system (command.c_str()); 
+        if (ret < 0) {
+            std :: cout << "Resource manager: failed to collect cluster information, try to use the default one" << std :: endl;
+        }   
         analyzeResources ("conf/cluster/cluster_info.txt");
     }
 }
