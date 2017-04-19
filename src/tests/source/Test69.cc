@@ -249,7 +249,10 @@ int main (int argc, char * argv[]) {
         std::cout << "Time Duration: " <<
                 std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
      }
-     system ("scripts/cleanupSoFiles.sh");
+        int code = system ("scripts/cleanupSoFiles.sh");
+        if (code < 0) {
+           std :: cout << "Can't cleanup so files" << std :: endl;
+        }
 }
 
 #endif

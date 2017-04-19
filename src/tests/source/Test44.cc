@@ -171,7 +171,10 @@ int main (int argc, char * argv[]) {
 	    // and delete the sets
 	    myClient.deleteSet ("chris_db", "output_set1");
         }
-        system ("scripts/cleanupSoFiles.sh");      
+        int code = system ("scripts/cleanupSoFiles.sh"); 
+        if (code < 0) {
+            std :: cout << "Can't clean up so files" << std :: endl;
+        }     
         return 0;
         
 }

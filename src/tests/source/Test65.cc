@@ -90,8 +90,10 @@ int main (int argc, char * argv[]) {
             std :: cout << "to print the " << i << "-th plan" << std :: endl;
             queryPlan[i]->print();
         }
-        system ("scripts/cleanupSoFiles.sh");
-
+        int ret = system ("scripts/cleanupSoFiles.sh");
+        if (ret < 0) {
+            std :: cout << "Can't cleanup so files" << std :: endl;
+        }
 
 
 

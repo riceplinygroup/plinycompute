@@ -69,7 +69,10 @@ int main () {
 
         Record <Vector <Vector <Employee>>> *myBytes = getRecord <Vector <Vector <Employee>>> (data);
         int filedesc = open ("testfile6", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-        write (filedesc, myBytes, myBytes->numBytes ());
+        size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
+        if (sizeWritten == 0) {
+            std :: cout << "Write failed" << std :: endl;
+        }
         close (filedesc);
 }
 	

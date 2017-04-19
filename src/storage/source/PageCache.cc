@@ -171,7 +171,11 @@ void PageCache::flushUnlock() {
 PDBPagePtr PageCache::buildAndCachePageFromFileHandle(int handle, size_t size, NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId, PageID pageId) {
      int offset;
      char * buffer = allocateBufferFromSharedMemoryBlocking(this->conf->getPageSize(), offset);
-     read(handle, buffer, size);
+     ssize_t readSize = read(handle, buffer, size);
+     if (readSize <= 0) {
+         std :: cout << "PageCache: Read failed" << std :: endl;
+         return nullptr;
+     }
      PDBPagePtr page = make_shared<PDBPage>(buffer, nodeId, dbId, typeId, setId, pageId, this->conf->getPageSize(), shm->computeOffset(buffer), offset);
      return page;
 }

@@ -52,7 +52,11 @@ int main () {
         // read in the serialized record
         int filedesc = open ("testfile3", O_RDONLY);
         Record <Vector <Handle <Supervisor>>> *myNewBytes = (Record <Vector <Handle <Supervisor>>> *) malloc (fileLen);
-        read (filedesc, myNewBytes, fileLen);
+        //added by Jia to remove warnings
+        size_t sizeRead = read (filedesc, myNewBytes, fileLen);
+        if (sizeRead == 0) {
+            std :: cout << "Read failed" << std :: endl;
+        }
 	close (filedesc);
 
         // get the root object
@@ -76,7 +80,10 @@ int main () {
 		Record <Supervisor> *mySuper = getRecord <Supervisor> ((*mySupers)[i], space, 1024 * 1024 * 24);
 
 		// and write to the file
-		write (filedescOut, mySuper, mySuper->numBytes ());
+		size_t sizeWritten = write (filedescOut, mySuper, mySuper->numBytes ());
+                if (sizeWritten == 0) {
+                    std :: cout << i << ": Write failed" << std :: endl;
+                }
 		position += mySuper->numBytes ();
 		positions.push_back (position);
         }
@@ -101,7 +108,10 @@ int main () {
 	for (int i = 0; i < positions.size (); i += 100) {
 		std :: cout << positions[i] << "\n";
 		lseek (filedesc, positions[i], SEEK_SET);
-		read (filedesc, mySuper, positions[i + 1] - positions[i]);
+		sizeRead = read (filedesc, mySuper, positions[i + 1] - positions[i]);
+                if(sizeRead == 0) {
+                    std :: cout << i << ": read failed" << std :: endl;
+                }
 		Handle <Supervisor> res = mySuper->getRootObject ();
 		res->print ();	
 	}

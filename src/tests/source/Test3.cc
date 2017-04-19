@@ -52,8 +52,10 @@ int main () {
 	// read in the serialized record
 	int filedesc = open ("testfile", O_RDONLY);
 	Record <Vector <Handle <Supervisor>>> *myNewBytes = (Record <Vector <Handle <Supervisor>>> *) malloc (fileLen);
-	read (filedesc, myNewBytes, fileLen);
-
+	size_t sizeRead = read (filedesc, myNewBytes, fileLen);
+        if (sizeRead == 0) {
+           std :: cout << "Read failed." << std :: endl;
+        }
 	// get the root object
 	Handle <Vector <Handle <Supervisor>>> mySupers = myNewBytes->getRootObject ();
 
@@ -69,7 +71,10 @@ int main () {
 
 	Record <Vector <Handle <Employee>>> *myBytes = getRecord <Vector <Handle <Employee>>> (result);
 	filedesc = open ("testfile2", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	write (filedesc, myBytes, myBytes->numBytes ());
+	size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
+        if (sizeWritten == 0) {
+           std :: cout << "Write failed." << std :: endl;
+        }
 	close (filedesc);
 	std :: cout << "Wrote " << myBytes->numBytes () << " bytes to the file.\n";
 

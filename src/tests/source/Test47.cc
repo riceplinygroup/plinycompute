@@ -26,6 +26,7 @@
 #include "SetWriter.h"
 #include "SelectionComp.h"
 #include "AggregateComp.h"
+#include "ScanUserSet.h"
 #include "ScanSet.h"
 #include "ZA_DepartmentTotal.h"
 #include "VectorSink.h"
@@ -116,7 +117,7 @@ public:
 	}
 };
 
-class SillyRead : public ScanSet <Supervisor> {
+class SillyRead : public ScanUserSet <Supervisor> {
 
 	ENABLE_DEEP_COPY
 
@@ -217,7 +218,7 @@ int main () {
 
 	// now we create the TCAP string
         String myTCAPString =
-	       "inputData (in) <= SCAN ('mySet', 'myData', 'ScanSet_0') \n\
+	       "inputData (in) <= SCAN ('mySet', 'myData', 'ScanUserSet_0') \n\
 		inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
 		inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_1') \n\
 		inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_2') \n\
