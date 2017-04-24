@@ -15,27 +15,22 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_61_H
-#define TEST_61_H
+#ifndef TEST_71_H
+#define TEST_71_H
 
-//by Jia, Mar 2017
+//by Jia, Apr 2017
 
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
-#include "Supervisor.h"
-#include "Employee.h"
+#include "SimpleEmployee.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
-#include "SelectionComp.h"
-#include "AggregateComp.h"
-#include "ScanSupervisorSet.h"
-#include "SillyAggregation.h"
-#include "SillySelection.h"
+#include "ScanSimpleEmployeeSet.h"
+#include "SimpleAggregation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -110,12 +105,13 @@ int main (int argc, char * argv[]) {
        CatalogClient catalogClient (8108, masterIp, clientLogger);
 
        string errMsg;
+       catalogClient.registerType ("libraries/libSimpleEmployee.so", errMsg);
 
        if (whetherToAddData == true) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("chris_db", errMsg)) {
+            if (!temp.createDatabase ("test71_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -123,7 +119,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("chris_db", "chris_set", errMsg)) {
+            if (!temp.createSet<SimpleEmployee> ("test71_db", "test71_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -134,7 +130,7 @@ int main (int argc, char * argv[]) {
             //Step 2. Add data
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-           int total = 0;
+            int total = 0;
             if (numOfMb > 0) {
                 int numIterations = numOfMb/64;
                 int remainder = numOfMb - 64*numIterations;
@@ -145,8 +141,8 @@ int main (int argc, char * argv[]) {
                         blockSize = remainder;
                     }
                     makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<Supervisor>>> storeMe =
-                        makeObject<Vector<Handle<Supervisor>>> ();
+                    Handle<Vector<Handle<SimpleEmployee>>> storeMe =
+                        makeObject<Vector<Handle<SimpleEmployee>>> ();
                     char first = 'A', second = 'B', third = 'C', fourth = 'D';
                     char myString[5];
                     myString[4]=0;
@@ -175,23 +171,13 @@ int main (int argc, char * argv[]) {
                                  }
                             }
                             //std :: cout << myString << std :: endl;
-                            Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
+                            Handle <SimpleEmployee> myData = makeObject <SimpleEmployee> ("Steve Stevens", 20 + (i % 29), i * 34.4, std :: string(myString));
                             storeMe->push_back(myData);
                             total++;
-                            for (int j = 0; j < 10; j++) {
-                                 Handle <Employee> temp;
-                                 if (i % 2 == 0) {
-                                     temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-                                 }
-                                 else {
-                                     temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-                                 }
-                                 (*storeMe)[i]->addEmp (temp);
-                            }
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<SimpleEmployee>(std::pair<std::string, std::string>("test71_set", "test71_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -207,7 +193,7 @@ int main (int argc, char * argv[]) {
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<DepartmentTotal> ("chris_db", "output_set1", errMsg)) {
+        if (!temp.createSet<DepartmentTotal> ("test71_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -217,29 +203,21 @@ int main (int argc, char * argv[]) {
         QueryClient myClient (8108, "localhost", clientLogger, true);
 	
 	// this is the object allocation block where all of this stuff will reside
-       	makeObjectAllocatorBlock (1024 * 1024, true);
-
+        const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libSillySelection.so", errMsg);
-        catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
-        catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
+        catalogClient.registerType ("libraries/libScanSimpleEmployeeSet.so", errMsg);
+        catalogClient.registerType ("libraries/libSimpleAggregation.so", errMsg);
 
-	// here is the list of computations
-	Handle<Vector <Handle <Computation>>> myComputations = makeObject<Vector<Handle<Computation>>> ();
 	
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("chris_db", "chris_set");
-	Handle <Computation> myFilter = makeObject <SillySelection> ();
-	Handle <Computation> myAgg = makeObject <SillyAggregation> ("chris_db", "output_set1");
-	
-	// put them in the list of computations
-	myComputations->push_back (myScanSet);
-	myComputations->push_back (myFilter);
-	myComputations->push_back (myAgg);
+	Handle <Computation> myScanSet = makeObject <ScanSimpleEmployeeSet> ("test71_db", "test71_set");
+	Handle <Computation> myAgg = makeObject <SimpleAggregation> ();
+	myAgg->setInput(myScanSet);
+        myAgg->setOutput("test71_db", "output_set1");
 
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
-        if (!myClient.executeQuery(errMsg, myComputations, true)) {
+        if (!myClient.executeComputations(errMsg, myAgg)) {
             std :: cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -253,7 +231,7 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <DepartmentTotal> result = myClient.getSetIterator <DepartmentTotal> ("chris_db", "output_set1");
+            SetIterator <DepartmentTotal> result = myClient.getSetIterator <DepartmentTotal> ("test71_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
@@ -263,14 +241,14 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":";
                      a->print();
             }
-            std :: cout << "selection output count:" << count << "\n";
+            std :: cout << "aggregation output count:" << count << "\n";
         }
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("chris_db", "output_set1");
+            myClient.deleteSet ("test71_db", "output_set1");
         } else {
-            if (!temp.removeSet ("chris_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test71_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {

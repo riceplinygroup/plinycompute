@@ -37,8 +37,11 @@ extern bool inSharedLibrary;							\
 extern "C" {									\
 										\
 char *getObjectTypeName () {							\
+        std :: cout << "TYPE-NAME" << #TYPE_NAME << std :: endl;                \
 	std :: string typeString = getTypeName <TYPE_NAME> ();			\
+        std :: cout << "TYPEString:" << typeString << std :: endl;              \
 	memmove (typeName, typeString.c_str (), typeString.size () + 1);	\
+        std :: cout << "TYPEName:" << typeName << std :: endl;                  \
 	return typeName;							\
 }										\
 										\

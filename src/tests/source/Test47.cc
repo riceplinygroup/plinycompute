@@ -28,7 +28,7 @@
 #include "AggregateComp.h"
 #include "ScanUserSet.h"
 #include "ScanSet.h"
-#include "ZA_DepartmentTotal.h"
+#include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
@@ -53,17 +53,17 @@ public:
 	}
 };
 
-class FinalQuery : public SelectionComp <double, ZA_DepartmentTotal> {
+class FinalQuery : public SelectionComp <double, DepartmentTotal> {
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	Lambda <bool> getSelection (Handle <ZA_DepartmentTotal> &checkMe) override {
+	Lambda <bool> getSelection (Handle <DepartmentTotal> &checkMe) override {
 		return makeLambdaFromMethod (checkMe, checkSales);
 	}
 
-	Lambda <Handle <double>> getProjection (Handle <ZA_DepartmentTotal> &checkMe) override {
+	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> &checkMe) override {
 		return makeLambdaFromMethod (checkMe, getTotSales);
 	}
 };
@@ -72,7 +72,7 @@ public:
 void *whereHashTableSits;
 
 // aggregate relies on having two methods in the output type: getKey () and getValue ()
-class SillyAgg : public AggregateComp <ZA_DepartmentTotal, Employee, String, double> {
+class SillyAgg : public AggregateComp <DepartmentTotal, Employee, String, double> {
 
 public:
 	
@@ -98,7 +98,7 @@ public:
 	// same thing... this method is here only for demonstration purposes!!
 	ComputeSourcePtr getComputeSource (TupleSpec &outputSchema, ComputePlan &plan) override {
 		Handle <Object> myHashTable = ((Record <Object> *) whereHashTableSits)->getRootObject ();
-		return std :: make_shared <MapTupleSetIterator <String, double, ZA_DepartmentTotal>> (myHashTable, 24);
+		return std :: make_shared <MapTupleSetIterator <String, double, DepartmentTotal>> (myHashTable, 24);
 	}
 };
 

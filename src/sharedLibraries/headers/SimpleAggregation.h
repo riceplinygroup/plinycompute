@@ -15,55 +15,38 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef SIMPLE_AGG_H
+#define SIMPLE_AGG_H
 
-#ifndef PDBSTRING_H
-#define PDBSTRING_H
+//by Jia, Mar 2017
 
-#include "Array.h"
-#include <iostream>
-#include <string>
+#include "ClusterAggregateComp.h"
+#include "DepartmentTotal.h"
+#include "SimpleEmployee.h"
+#include "LambdaCreationFunctions.h"
 
-// PRELOAD %String%
 
-namespace pdb {
+using namespace pdb;
 
-class String : public Object {
+class SimpleAggregation : public ClusterAggregateComp <DepartmentTotal, SimpleEmployee, String, double> {
 
-	Handle <Array <char>> data;
-	
 public:
 
-	ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-	String ();
-	String &operator = (const char *toMe);
-	String &operator = (const std :: string &s);
-	String (const char *fromMe);
-	String (const char* s, size_t n);
-	String (const std :: string &s);
-	char &operator [] (int whichOne);
-	operator std :: string () const;
-	char *c_str ();
-	size_t size () const;
-	size_t hash () const;
-	friend std::ostream& operator<< (std::ostream& stream, const String &printMe);
-	bool operator == (const String &toMe);
-	bool operator == (const char *toMe);
-	bool operator == (const std :: string &toMe);
-	bool operator != (const String &toMe);
-	bool operator != (const std :: string &toMe);
-	bool operator != (const char *toMe);
-        //JiaNote: TODO: following C++11 style
-        //http://www.cplusplus.com/reference/string/string/find/
-        //size_t find (const std :: string & str, size_t pos = 0) const noexcept;
-        //size_t find (char c, size_t pos = 0) const noexcept;
-        //JiaNote: below method is to tokenize a string by delimiters 
-        //std :: vector<String> tokenize (const std :: string & str = " ");
-        //std :: vector<String> tokenize (char c = ' ');
+        SimpleAggregation () {}
+
+        // the key type must have == and size_t hash () defined
+        Lambda <String> getKeyProjection (Handle <SimpleEmployee> &aggMe) override {
+                return makeLambdaFromMember (aggMe, department);
+        }
+
+        // the value type must have + defined
+        Lambda <double> getValueProjection (Handle <SimpleEmployee> &aggMe) override {
+                return makeLambdaFromMember (aggMe, salary);
+        }
+
 };
 
-}
-
-#include "PDBString.cc"
 
 #endif

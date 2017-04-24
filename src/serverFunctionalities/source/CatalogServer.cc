@@ -689,21 +689,23 @@ namespace pdb {
         // handles a request to register a shared library
         forMe.registerHandler (CatRegisterType_TYPEID, make_shared <SimpleRequestHandler <CatRegisterType>> (
             [&] (Handle <CatRegisterType> request, PDBCommunicatorPtr sendUsingMe) {
-
+                PDB_COUT << "Got a CatRegisterType request" << std :: endl;
                 // in practice, we can do better than simply locking the whole catalog, but good enough for now...
                 const LockGuard guard{workingMutex};
+                PDB_COUT << "Got lockGuard" << std :: endl;
                 const UseTemporaryAllocationBlock block{1024*1024};
 
                 // get the next object... this holds the shared library file... it could be big, so be careful!!
                 size_t objectSize = sendUsingMe->getSizeOfNextObject ();
-
+                PDB_COUT << "Got objectSize=" << objectSize << std :: endl;
                 bool res;
                 std :: string errMsg;
                 void *memory = malloc (objectSize);
                 Handle <Vector <char>> myFile = sendUsingMe->getNextObject <Vector <char>> (memory, res, errMsg);
-
+                PDB_COUT << "Received all data" << std :: endl;
                 if (res) {
                     string soFile( myFile->c_ptr(), objectSize);
+                    PDB_COUT << "Create a large string on stack" << std :: endl; 
                     res = (addObjectType (-1, soFile, errMsg) >= 0);
                 }
                 free (memory);
@@ -836,7 +838,8 @@ namespace pdb {
         // read the bytes from the temporary extracted file and copy to output parameter
         string tempFile = catalogDirectory + "/tmp_so_files/temp.so";
         int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-        write (filedesc, soFile.data (), soFile.size ());
+        size_t sizeWritten = write (filedesc, soFile.data (), soFile.size ());
+        std :: cout << "addObjectType: sizeWritten=" << sizeWritten << std :: endl; 
         close (filedesc);
 
         // check to make sure it is valid Shared Library
@@ -846,6 +849,7 @@ namespace pdb {
             const char* dlsym_error = dlerror();
             dlclose (so_handle);
             errMsg = "Cannot process shared library. " + string (dlsym_error) + '\n';
+            std :: cout << "CatalogServer: " << errMsg << std :: endl;
             return -1;
         }
 
