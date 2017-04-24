@@ -16,50 +16,27 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef ZA_DEPARTMENTAL_TOTAL_H
-#define ZA_DEPARTMENTAL_TOTAL_H
+#ifndef SCAN_SIMPLE_EMPLOYEE_SET_H
+#define SCAN_SIMPLE_EMPLOYEE_SET_H
 
-#include "Object.h"
-#include "PDBString.h"
+#include "ScanUserSet.h"
+#include "SimpleEmployee.h"
 
-//  PRELOAD %ZA_DepartmentTotal%
-
-namespace pdb {
-
-class ZA_DepartmentTotal : public Object {
+using namespace pdb;
+class ScanSimpleEmployeeSet : public ScanUserSet <SimpleEmployee> {
 
 public:
-
-	double totSales;
-	String departmentName;
-	
 	ENABLE_DEEP_COPY
 
-	bool checkSales () {
-		if ((((int) (totSales * 10)) + 5) / 10 == ((int) (totSales * 10)) / 10) {
-			return true;
-		}
-		return false;
-	}
-
-	Handle <double> getTotSales () {
-		Handle <double> returnVal = makeObject <double> (totSales);
-		return returnVal;
-	}
-
-	String &getKey () {
-		return departmentName;
-	}
-	
-	double &getValue () {
-		return totSales;
-	}
-
-        void print() {
-               std :: cout << departmentName << ":" << totSales << std :: endl;
+        ScanSimpleEmployeeSet () {
         }
+
+        ScanSimpleEmployeeSet (std :: string dbName, std :: string setName) {
+            this->dbName = dbName;
+            this->setName = setName;
+        }
+
 };
 
-}
 
 #endif

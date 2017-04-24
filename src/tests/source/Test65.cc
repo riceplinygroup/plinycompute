@@ -37,7 +37,7 @@
 #include "ScanSupervisorSet.h"
 #include "SillyAggregation.h"
 #include "SillySelection.h"
-#include "ZA_DepartmentTotal.h"
+#include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"

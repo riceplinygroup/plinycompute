@@ -44,7 +44,7 @@ public:
     void clearOutputPage () override;
     void clearInputPage () override;
 
-private:
+protected:
 
     UseTemporaryAllocationBlockPtr blockPtr;
     Handle <Map <KeyType, ValueType>> inputData;

@@ -36,7 +36,7 @@
 #include "ScanSupervisorSet.h"
 #include "SillyAggregation.h"
 #include "SillySelection.h"
-#include "ZA_DepartmentTotal.h"
+#include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
@@ -207,7 +207,7 @@ int main (int argc, char * argv[]) {
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<ZA_DepartmentTotal> ("test67_db", "output_set1", errMsg)) {
+        if (!temp.createSet<DepartmentTotal> ("test67_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -247,7 +247,7 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <ZA_DepartmentTotal> result = myClient.getSetIterator <ZA_DepartmentTotal> ("test67_db", "output_set1");
+            SetIterator <DepartmentTotal> result = myClient.getSetIterator <DepartmentTotal> ("test67_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
