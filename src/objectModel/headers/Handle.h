@@ -86,6 +86,8 @@ class RefCountedObject;
 //      Handles can be written to disk and then read back again by another process,
 //      and there won't be any problem.
 
+class GenericHandle;
+
 // Here is the Handle class....
 template <class ObjType> 
 class Handle : public Object {
@@ -111,6 +113,10 @@ public:
 	Handle (const std :: nullptr_t rhs);
 	Handle <ObjType> &operator = (const std :: nullptr_t rhs);
 
+	// makes a handle out of an GenericHandle object... this is done so that we can initialize the Handle
+	// object that we send to getSelection or getProjection when setting up a join
+	Handle (GenericHandle rhs);
+	
 	// see if we are null
 	friend bool operator == (const Handle <ObjType> &lhs, std :: nullptr_t rhs) {return lhs.isNullPtr ();}
 	friend bool operator == (std :: nullptr_t rhs, const Handle <ObjType> &lhs) {return lhs.isNullPtr ();}
@@ -221,6 +227,27 @@ private:
 	template <class Obj, class... Args> friend RefCountedObject <Obj> * makeObject (Args&&... args);
 	template <class OutObjType, class InObjType> friend Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
 	template <class Obj> friend class Record;
+};
+
+// this weird little class is used to initialize the handle objects that go into getSelection and getProjection
+// in a join object
+class GenericHandle {
+
+	PDBTemplateBase myBase;
+public:
+
+	// in this way, we encode initValue within myBase
+	GenericHandle (int initValue) {
+		myBase.set (-initValue);
+	}
+
+	GenericHandle () {
+		myBase.set (-1);
+	}
+
+	PDBTemplateBase &getMyBase () {
+		return myBase;
+	}
 };
 
 // equality on handles checks for equality of the underlying objects... 

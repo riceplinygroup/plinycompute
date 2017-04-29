@@ -24,6 +24,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <climits>
 #include <cstring>
 
 #include "Allocator.h"
@@ -34,16 +35,34 @@ namespace pdb {
 
 template <class ObjType>
 void RefCountedObject <ObjType> :: setRefCount (unsigned toMe) {
+
+	// don't change the ref count for an un-managed object
+        if(!getAllocator().isManaged(this)) {
+            return;
+        } 
+
 	NUM_COPIES = toMe;
 }
 
 template <class ObjType>
 unsigned RefCountedObject <ObjType> :: getRefCount () {
+
+	// an un-managed ref count is always huge
+        if(!getAllocator().isManaged(this)) {
+            return UINT_MAX;
+        } 
+
 	return NUM_COPIES;
 }
 
 template <class ObjType>
 void RefCountedObject <ObjType> :: incRefCount () {
+
+	// don't change the ref count for an un-managed object
+        if(!getAllocator().isManaged(this)) {
+            return;
+        } 
+
 	NUM_COPIES++;
 }
 
@@ -51,9 +70,11 @@ void RefCountedObject <ObjType> :: incRefCount () {
 template <class ObjType>
 void RefCountedObject <ObjType> :: decRefCount (PDBTemplateBase &typeInfo) {
 
-        if(! getAllocator().isManaged(this)) {
+	// don't change the ref count for an un-managed object
+        if(!getAllocator().isManaged(this)) {
             return;
         } 
+
 	NUM_COPIES--;
 
 	// if the ref count goes to zero, free the pointed-to object

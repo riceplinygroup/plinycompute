@@ -41,6 +41,11 @@ inline PDBTemplateBase &PDBTemplateBase :: operator = (const PDBTemplateBase &to
 }
 
 // set up the type
+inline void PDBTemplateBase :: set (int32_t toMe) {
+	info = toMe;
+}
+
+// set up the type
 template <class ObjType>
 void PDBTemplateBase :: setup () {
 

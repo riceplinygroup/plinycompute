@@ -53,6 +53,9 @@ public:
 	template <class ObjType>
 	void setup ();
 
+	// set the info value explicitly
+	void set (int32_t toMe);
+
 	// this runs the destructor associated with this type, on the object at deletMe
 	void deleteConstituentObject (void *deleteMe) const;
 

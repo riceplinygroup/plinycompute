@@ -71,16 +71,22 @@ inline void *Object :: getVTablePtr () {
 
 inline void Object :: setUpAndCopyFrom (void *target, void *source) const {       
 	std :: cerr << "Bad: you are trying to do a deep Object copy without the ENABLE_DEEP_COPY macro.\n";
+        int *a = 0;
+        *a = 12;
 	exit (1);
 }                                                                
                                                                  
 inline void Object :: deleteObject (void *deleteMe) {
 	std :: cerr << "Bad: you are trying to do a deep Object copy without the ENABLE_DEEP_COPY macro.\n";
+        int *a = 0;
+        *a = 12;
 	exit (1);
 }
 
 inline size_t Object :: getSize (void *forMe) {
 	std :: cerr << "Bad: you are trying to do a deep Object copy without the ENABLE_DEEP_COPY macro.\n";
+        int *a = 0;
+        *a = 12;
 	exit (1);
 }
 
