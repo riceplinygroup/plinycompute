@@ -52,7 +52,5 @@ VTableMap *theVTable = &globalVTable;
 // the exception thrown when we run out of data
 NotEnoughSpace myException;
 
-//Jia Note: to uncomment following line to enable debugging mode of object model, which also means significant performance degradation.
-//#define DEBUG_OBJECT_MODEL
 
 #endif

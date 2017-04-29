@@ -82,6 +82,12 @@ void Handle <ObjType> :: emptyOutContainingBlock () {
 	}
 }
 
+template <class ObjType>
+Handle <ObjType> :: Handle (GenericHandle rhs) {
+        typeInfo = rhs.getMyBase ();
+        offset = -1;
+}
+
 
 template <class ObjType>
 Handle <ObjType> :: Handle (const std :: nullptr_t rhs) {
