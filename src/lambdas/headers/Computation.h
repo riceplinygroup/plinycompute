@@ -53,7 +53,13 @@ public:
 	// method will return the compute sink object associated with the computation.  It requires the
 	// TupleSpec that should be processed, as well as the projection of that TupleSpec that will
 	// be put into the sink
-	virtual ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) {return nullptr;}
+	virtual ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) {
+             return nullptr;
+}
+
+        virtual ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) {
+             return getComputeSink(consumeMe, projection, plan);
+        }
 
 	// returns the type of this Computation
 	virtual std :: string getComputationType () = 0;
@@ -174,7 +180,7 @@ public:
 
         virtual std :: string getSetName() { return ""; }
 
-        virtual bool needsMaterializeOutput () = 0;
+        virtual bool needsMaterializeOutput () { return false; }
 
         virtual void setBatchSize(int batchSize) {}
 

@@ -32,20 +32,20 @@ public:
 	ENABLE_DEEP_COPY
 
 	SimpleLambda <bool> getSelection (Handle <String> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
 			return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
 		});
 	}
 
         SimpleLambda <bool> getProjectionSelection (Handle <String> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
+                return makeSimpleLambda (checkMe, [&] () {
                         return (*(checkMe) == "Joe Johnson488") ||  (*(checkMe) == "Joe Johnson489");
                 });
         }
 
 
 	SimpleLambda <Handle <String>> getProjection (Handle <String> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
 			return checkMe;
 		});
 	}

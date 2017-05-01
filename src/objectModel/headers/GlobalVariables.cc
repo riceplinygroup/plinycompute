@@ -40,7 +40,6 @@ Allocator *mainAllocatorPtr = &mainAllocator;
 // is located
 void *stackBase = nullptr;
 void *stackEnd = nullptr;
-
 // there is one VTableMap, used throughout the process.  This is it
 VTableMap globalVTable;
 

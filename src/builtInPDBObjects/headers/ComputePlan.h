@@ -25,6 +25,7 @@
 #include "LogicalPlan.h"
 #include "PDBVector.h"
 #include "Pipeline.h"
+#include "ComputeInfo.h"
 
 // PRELOAD %ComputePlan%
 
@@ -64,6 +65,7 @@ public:
 	//
 	LogicalPlanPtr getPlan ();
 
+        //JiaNote: get producing computation name
         std :: string getProducingComputationName(std :: string sourceTupleSetName);
 
 	// Note that once getPlan () has been called, ComputePlan object contains a C++ smart pointer inside of it.
@@ -80,6 +82,13 @@ public:
 	// by getPage will remain pinned until either discardTempPage or writeBackPage are called.  The former is
 	// called if the page can safely be destroyed because it has no useful data.  The latter is called if the
 	// page stores a pdb :: Object that contains the result of the computation.
+
+        PipelinePtr buildPipeline (std :: string sourceTupleSetName,
+                std :: string targetTupleSetName, std :: string targetComputationName,
+                std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+                std :: function <void (void *)> writeBackPage, std :: map <std :: string, ComputeInfoPtr> &params);
+
+
 	PipelinePtr buildPipeline (std :: string sourceTupleSetName, 
 		std :: string targetTupleSetName, std :: string targetComputationName,
 		std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,

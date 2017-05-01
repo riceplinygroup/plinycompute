@@ -15,37 +15,37 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LEO_QUERY_H
-#define LEO_QUERY_H
 
-#include "BaseQuery.h"
-#include "Supervisor.h"
-#include "Employee.h"
-#include "LambdaCreationFunctions.h"
+#ifndef STRING_INT_PAIR_H
+#define STRING_INT_PAIR_H
 
-using namespace pdb;
+#include "Object.h"
+#include "PDBString.h"
+#include "Handle.h"
 
-class LeoQuery : public BaseQuery {
+//  PRELOAD %StringIntPair%
+
+namespace pdb {
+
+class StringIntPair : public Object {
 
 public:
 
+        Handle <String> myString;
+        int myInt;
+
 	ENABLE_DEEP_COPY
 
-	LeoQuery() {}
+        ~StringIntPair () {}
+        StringIntPair () {}
 
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
+	StringIntPair (std :: string fromMe, int meTo) {
+		myString = makeObject <String> (fromMe);
+		myInt = meTo;
 	}
 
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
-
-	virtual void toMap(std :: map <std :: string, GenericLambdaObjectPtr> &fillMe, int &identifier) override {
-		Handle <Supervisor> temp = nullptr;
-    	getSelection(temp).toMap (fillMe, identifier);
-    	getProjection(temp).toMap (fillMe, identifier);
-    }
 };
+
+}
 
 #endif

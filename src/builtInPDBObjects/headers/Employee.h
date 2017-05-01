@@ -41,7 +41,9 @@ public:
 
         ~Employee () {}
         Employee () {}
-
+        size_t hash () {
+           return name->hash();
+        }
         void print () {
                 std :: cout << "name is: " << *name << " age is: " << age;
         }

@@ -92,14 +92,14 @@ public:
 
 
 	SimpleLambda <bool> getSelection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
                     return false; //getSelection will not be applied in pipeline, so simply return false
 		});
 	}
 
 
         SimpleLambda <bool> getProjectionSelection (Handle<PartialResult> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
+                return makeSimpleLambda (checkMe, [&] () {
                         if (checkMe == nullptr) {
                             return false;
                         } else {
@@ -112,7 +112,7 @@ public:
 
 	SimpleLambda <Handle <PartialResult>> getProjection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
                  
-		return makeLambda (checkMe, [&] {
+		return makeSimpleLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
                         if (counters->count(threadId) == 0) {
                             (*counters)[threadId] = 0;

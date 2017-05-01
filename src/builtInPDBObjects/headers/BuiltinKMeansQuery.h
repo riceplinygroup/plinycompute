@@ -98,14 +98,14 @@ public:
 
 
 	SimpleLambda <bool> getSelection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
                     return false; //getSelection will not be applied in pipeline, so simply return false
 		});
 	}
 
 
         SimpleLambda <bool> getProjectionSelection (Handle<BuiltinPartialResult> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
+                return makeSimpleLambda (checkMe, [&] () {
                         if (checkMe == nullptr) {
                             return false;
                         } else {
@@ -118,7 +118,7 @@ public:
 
 	SimpleLambda <Handle <BuiltinPartialResult>> getProjection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
                  
-		return makeLambda (checkMe, [&] {
+		return makeSimpleLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
                         if (counters->count(threadId) == 0) {
                             std::cout << "to allocate slot for thread:"<<(unsigned long)(threadId)<<std::endl;

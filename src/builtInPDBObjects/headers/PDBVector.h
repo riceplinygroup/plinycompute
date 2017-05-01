@@ -65,6 +65,7 @@ public:
 	TypeContained &operator [] (uint32_t which) const;
 	void assign (uint32_t which, const TypeContained& val);
 	void push_back (const TypeContained& val);
+        void push_back ();
 	void pop_back ();
 	void clear ();
 	TypeContained *c_ptr () const;

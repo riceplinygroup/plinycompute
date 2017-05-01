@@ -207,7 +207,13 @@ void Array <TypeContained> :: push_back (const TypeContained &val) {
 }
 
 
+template <class TypeContained>
+void Array <TypeContained> :: push_back () {
 
+        // need a placement new
+        new ((void *) &(((TypeContained *) (data))[usedSlots])) TypeContained ();
+        usedSlots++;
+}
 
 
 

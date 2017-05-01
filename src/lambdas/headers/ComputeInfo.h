@@ -15,37 +15,24 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LEO_QUERY_H
-#define LEO_QUERY_H
 
-#include "BaseQuery.h"
-#include "Supervisor.h"
-#include "Employee.h"
-#include "LambdaCreationFunctions.h"
+#ifndef COMPUTE_INFO_H
+#define COMPUTE_INFO_H
 
-using namespace pdb;
+#include <memory>
 
-class LeoQuery : public BaseQuery {
+namespace pdb {
+
+// this is the base class for parameters that are sent into a pipeline when it is built
+class ComputeInfo {
 
 public:
 
-	ENABLE_DEEP_COPY
-
-	LeoQuery() {}
-
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
-
-	virtual void toMap(std :: map <std :: string, GenericLambdaObjectPtr> &fillMe, int &identifier) override {
-		Handle <Supervisor> temp = nullptr;
-    	getSelection(temp).toMap (fillMe, identifier);
-    	getProjection(temp).toMap (fillMe, identifier);
-    }
+	virtual ~ComputeInfo () {}
 };
+
+typedef std :: shared_ptr <ComputeInfo> ComputeInfoPtr;
+
+}
 
 #endif

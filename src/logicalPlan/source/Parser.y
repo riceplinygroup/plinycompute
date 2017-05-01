@@ -53,6 +53,8 @@
 %token JOIN 
 %token OUTPUT 
 %token GETS
+%token HASHLEFT
+%token HASHRIGHT
 %token <myChar> IDENTIFIER
 %token <myChar> STRING 
 
@@ -119,14 +121,24 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 	$$ = makeOutput ($1, $5, $7, $9, $11);
 }
 
-| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
+| TupleSpec GETS JOIN '(' TupleSpec ',' TupleSpec ',' TupleSpec ',' TupleSpec ',' STRING ')'
 {
-	$$ = makeJoin ($1, $5, $7, $9, $11, $13, $15);
+	$$ = makeJoin ($1, $5, $7, $9, $11, $13);
 }
 
 | TupleSpec GETS FILTER '(' TupleSpec ',' TupleSpec ',' STRING ')'
 {
 	$$ = makeFilter ($1, $5, $7, $9);
+}
+
+| TupleSpec GETS HASHLEFT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
+{
+	$$ = makeHashLeft ($1, $5, $7, $9, $11);
+}
+
+| TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
+{
+	$$ = makeHashRight ($1, $5, $7, $9, $11);
 }
 ;
 

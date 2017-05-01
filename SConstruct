@@ -10,7 +10,7 @@ import glob
 from os import path
 
 common_env = Environment(CXX = 'clang++')
-common_env.Append(YACCFLAGS='-d')
+#common_env.Append(YACCFLAGS='-d')
 common_env.Append(CFLAGS='-std=c11')
 
 # the following variables are used for output coloring to see errors and warnings better.
@@ -29,7 +29,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif  common_env['PLATFORM'] == 'posix':
     print 'Compiling on Linux'
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
@@ -282,7 +282,6 @@ all = ['build/sqlite/sqlite3.c',
 common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
 common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libLeoQuery.so', ['build/libraries/LeoQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
@@ -333,6 +332,10 @@ common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
 common_env.Program('bin/test45', ['build/tests/Test45.cc'] + all)
 common_env.Program('bin/test46', ['build/tests/Test46.cc'] + all)
 common_env.Program('bin/test47', ['build/tests/Test47.cc'] + all)
+common_env.Program('bin/test47Join', ['build/tests/Test47Join.cc'] + all)
+common_env.Program('bin/test47JoinB', ['build/tests/Test47JoinB.cc'] + all)
+common_env.Program('bin/test47JoinC', ['build/tests/Test47JoinC.cc'] + all)
+common_env.Program('bin/test47JoinD', ['build/tests/Test47JoinD.cc'] + all)
 common_env.Program('bin/test48', ['build/tests/Test48.cc'] + all)
 common_env.Program('bin/test49', ['build/tests/Test49.cc'] + all)
 common_env.Program('bin/test50', ['build/tests/Test50.cc'] + all)
@@ -393,7 +396,7 @@ common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
-common_env.Depends(pdbTest, ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','bin/test52', 'bin/test66', 'bin/test67', 'bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so'])
+common_env.Depends(pdbTest, ['libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','bin/test52', 'bin/test66', 'bin/test67', 'bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libScanSimpleEmployeeSet.so', 'libraries/libSimpleEmployee.so', 'libraries/libSimpleAggregation.so', 'libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test71', 'bin/test70', 'bin/test69', 'bin/test68', 'bin/test67', 'bin/test66', 'bin/test65', 'bin/test64', 'bin/test63', 'bin/test62', 'bin/test61', 'bin/test60', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'libraries/libLeoQuery.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', ['libraries/libScanSimpleEmployeeSet.so', 'libraries/libSimpleEmployee.so', 'libraries/libSimpleAggregation.so', 'libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'bin/test71', 'bin/test70', 'bin/test69', 'bin/test68', 'bin/test67', 'bin/test66', 'bin/test65', 'bin/test64', 'bin/test63', 'bin/test62', 'bin/test61', 'bin/test60', 'bin/test59', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47Join', 'bin/test47JoinB', 'bin/test47JoinC','bin/test47JoinD','bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
 Default(main)

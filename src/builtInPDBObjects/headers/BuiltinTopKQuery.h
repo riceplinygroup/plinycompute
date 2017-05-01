@@ -77,14 +77,14 @@ public:
        }
 
        SimpleLambda <bool> getSelection (Handle <TypeContained> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
                     return false; //getSelection will not be applied in pipeline, so simply return false
 		});
        }
 
 
        SimpleLambda <bool> getProjectionSelection (Handle<BuiltinTopKResult<TypeContained>> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
+                return makeSimpleLambda (checkMe, [&] () {
                     #ifdef ACCURATE_TOPK
                        return false; //if we do accurate topK
                     #else
@@ -101,7 +101,7 @@ public:
 
        SimpleLambda <Handle <BuiltinTopKResult<TypeContained>>> getProjection (Handle<TypeContained> &checkMe) override {
                  
-		return makeLambda (checkMe, [&] {
+		return makeSimpleLambda (checkMe, [&] {
                         pthread_t threadId = pthread_self();
                         pthread_t expected = 0;
                         if (counters->count(threadId) == 0) {

@@ -28,6 +28,7 @@
 #include "Ptr.h"
 #include "TupleSpec.h"
 #include "ComputeExecutor.h"
+#include "ComputeInfo.h"
 
 namespace pdb {
 
@@ -104,6 +105,37 @@ public:
 
 	// this gets an executor that appends the result of running this lambda to the end of each tuple
 	virtual ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) = 0;
+
+        // this gets an executor that appends the result of running this lambda to the end of each tuple; also accepts a parameter
+        // in the default case the parameter is ignored and the "regular" version of the executor is created
+        virtual ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getExecutor (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+        // this gets an executor that appends a hash value to the end of each tuple; implemented, for example, by ==
+        virtual ComputeExecutorPtr getLeftHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
+                std :: cout << "getLeftHasher not implemented for this type!!\n";
+                exit (1);
+        }
+
+        // version of the above that accepts ComputeInfo
+        virtual ComputeExecutorPtr getLeftHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getLeftHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+        // this gets an executor that appends a hash value to the end of each tuple; implemented, for example, by ==
+        virtual ComputeExecutorPtr getRightHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
+                std :: cout << "getRightHasher not implemented for this type!!\n";
+                exit (1);
+        }
+
+        // version of the above that accepts ComputeInfo
+        virtual ComputeExecutorPtr getRightHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getRightHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+
+
 	
 	// returns the name of this LambdaBase type, as a string
 	virtual std :: string getTypeOfLambda () = 0;
@@ -123,7 +155,7 @@ public:
 	// the tuple set to build, the tuple set to add the column to, and the position where the
 	// column will be added.  If the GenericLambdaObject cannot build the column (it has no knowledge
 	// of that type) a false is returned.  Otherwise, a true is returned.
-	virtual bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) = 0;
+	//virtual bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) = 0;
 
 	// returns the number of children of this Lambda type
 	virtual int getNumChildren () = 0;
@@ -132,6 +164,8 @@ public:
 	virtual GenericLambdaObjectPtr getChild (int which) = 0;
 
         // gets TCAP string corresponding to this Lambda
+        // JiaNote: below is just a default implementation for Lambdas to "Apply"
+        // you can override this implementation in your subclasses
         virtual std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName) {
 
                 std :: string tcapString = "";

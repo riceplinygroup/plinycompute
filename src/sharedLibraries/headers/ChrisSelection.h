@@ -36,7 +36,7 @@ public:
 	ChrisSelection () {}
 
 	SimpleLambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
-		return makeLambda (checkMe, [&] () {
+		return makeSimpleLambda (checkMe, [&] () {
 			//std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
 			return (checkMe->isFrank());
 		});
@@ -44,7 +44,7 @@ public:
 
 
         SimpleLambda <bool> getProjectionSelection (Handle<String> &checkMe) override {
-                return makeLambda (checkMe, [&] () {
+                return makeSimpleLambda (checkMe, [&] () {
                         //std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
                         return ((*checkMe) == "Frank");
                 });
@@ -53,7 +53,7 @@ public:
 
 
 	SimpleLambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
-		return makeLambda (checkMe, [&] {
+		return makeSimpleLambda (checkMe, [&] {
 			//std :: cout << *(checkMe->getName ()) << std :: endl;
 			return checkMe->getName ();
 		});

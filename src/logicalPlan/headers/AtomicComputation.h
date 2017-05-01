@@ -50,6 +50,12 @@ public:
 	// returns the type of this computation
 	virtual std :: string getAtomicComputationType () = 0;
 
+	// sometimes, we'll need to figure out the type of a particular attribute in a tuple set.  What this does is to
+	// compute, for a particular attribute in the output of the AtomicComputation, what (computationName, lambdaName) 
+	// pair is that is responsible for creating this attribute... then, we can ask that pair what the type of the
+	// atribute is. 
+	virtual std :: pair <std :: string, std :: string> findSource (std :: string attName, AtomicComputationList &allComps) = 0;
+
 	// virtual destructor
 	virtual ~AtomicComputation () {}
 
@@ -106,6 +112,25 @@ public:
 
 	// for printing
 	friend std :: ostream& operator<<(std :: ostream& os, const AtomicComputationList& printMe);
+
+	// this finds the position of the specified attribute in all of the output attributes
+	int findPosInOutputAtts (std :: string &findMe) {
+                // find where the attribute appears in the outputs
+                int counter = 0;
+                for (auto &a : getOutput ().getAtts ()) {
+                        if (a == findMe) {
+                                break;
+                        }
+                        counter++;
+                }
+
+		if (getOutput ().getAtts ().size () == counter) {
+			std :: cout << "This is bad... could not find the attribute that you were asking for!!\n";
+			exit (1);
+		}
+
+		return counter;
+	}
 };
 
 #endif

@@ -61,7 +61,7 @@ std :: string QueryGraphAnalyzer :: parseTCAPString () {
     for (int i = 0; i < tcapStrings.size(); i++) {
         tcapStringToReturn += tcapStrings[i];
     }
-    //std :: cout << tcapStringToReturn << std :: endl;
+    std :: cout << tcapStringToReturn << std :: endl;
     return tcapStringToReturn;
 
 }

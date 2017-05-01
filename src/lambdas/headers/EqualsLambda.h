@@ -25,8 +25,23 @@
 #include "TupleSetMachine.h"
 #include "TupleSet.h"
 #include "Ptr.h"
-
+#include "PDBMap.h"
 namespace pdb {
+
+// only one of these two versions is going to work... used to automatically hash on the underlying type
+// in the case of a Ptr<> type
+template <class MyType>
+std :: enable_if_t <std :: is_base_of <PtrBase, MyType> :: value, size_t> hashHim (MyType &him) {
+        return Hasher <decltype (*him)> :: hash (*him);
+}
+
+template <class MyType>
+std :: enable_if_t <!std :: is_base_of <PtrBase, MyType> :: value, size_t> hashHim (MyType &him) {
+        return Hasher <MyType> :: hash (him);
+}
+
+
+
 
 // only one of these four versions is going to work... used to automatically dereference a Ptr<blah>
 // type on either the LHS or RHS of an equality check
@@ -114,14 +129,14 @@ public:
 		return nullptr;
 	}
 
-        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {
+        /* bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {
                 if (pleaseCreateThisType == getTypeName <bool> ()) {
                         std :: vector <bool> *outColumn = new std :: vector <bool>;
                         input->addColumn (outAtt, outColumn, true);
                         return true;
                 }
                 return false;
-        }
+        } */
 
 	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 	
@@ -170,6 +185,99 @@ public:
 		);
 		
 	}
+
+        ComputeExecutorPtr getRightHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
+
+                // create the output tuple set
+                TupleSetPtr output = std :: make_shared <TupleSet> ();
+
+                // create the machine that is going to setup the output tuple set, using the input tuple set
+                TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
+
+                // these are the input attributes that we will process
+                std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
+                int secondAtt = inputAtts[0];
+
+                // this is the output attribute
+                int outAtt = attsToIncludeInOutput.getAtts ().size ();
+
+                return std :: make_shared <SimpleComputeExecutor> (
+                        output,
+                        [=] (TupleSetPtr input) {
+
+                                // set up the output tuple set
+                                myMachine->setup (input, output);
+
+                                // get the columns to operate on
+                                std :: vector <RightType> &rightColumn = input->getColumn <RightType> (secondAtt);
+
+                                // create the output attribute, if needed
+                                if (!output->hasColumn (outAtt)) {
+                                        std :: vector <size_t> *outColumn = new std :: vector <size_t>;
+                                        output->addColumn (outAtt, outColumn, true);
+                                }
+
+                                // get the output column
+                                std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
+
+                                // loop down the columns, setting the output
+                                int numTuples = rightColumn.size ();
+                                outColumn.resize (numTuples);
+                                for (int i = 0; i < numTuples; i++) {
+                                        outColumn [i] = hashHim (rightColumn[i]);
+                                }
+                                return output;
+                        }
+                );
+        }
+
+        ComputeExecutorPtr getLeftHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
+
+                // create the output tuple set
+                TupleSetPtr output = std :: make_shared <TupleSet> ();
+
+                // create the machine that is going to setup the output tuple set, using the input tuple set
+                TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
+
+                // these are the input attributes that we will process
+                std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
+                int firstAtt = inputAtts[0];
+
+                // this is the output attribute
+                int outAtt = attsToIncludeInOutput.getAtts ().size ();
+
+                return std :: make_shared <SimpleComputeExecutor> (
+                        output,
+                        [=] (TupleSetPtr input) {
+
+                                // set up the output tuple set
+                                myMachine->setup (input, output);
+
+                                // get the columns to operate on
+                                std :: vector <LeftType> &leftColumn = input->getColumn <LeftType> (firstAtt);
+
+                                // create the output attribute, if needed
+                                if (!output->hasColumn (outAtt)) {
+                                        std :: vector <size_t> *outColumn = new std :: vector <size_t>;
+                                        output->addColumn (outAtt, outColumn, true);
+                                }
+
+                                // get the output column
+                                std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
+
+                                // loop down the columns, setting the output
+                                int numTuples = leftColumn.size ();
+                                outColumn.resize (numTuples);
+                                for (int i = 0; i < numTuples; i++) {
+                                        outColumn [i] = hashHim (leftColumn[i]);
+                                }
+                                return output;
+                        }
+                );
+        }
+
+
+
 };
 
 }
