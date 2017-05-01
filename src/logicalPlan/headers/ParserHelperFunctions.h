@@ -48,11 +48,19 @@ struct LogicalPlan *makePlan (struct AtomicComputationList *computations);
 struct AtomicComputation *makeOutput (struct TupleSpec *output, struct TupleSpec *input,
         	char *dbName, char *setName, char *nodeName);
 struct AtomicComputation *makeScan (struct TupleSpec *output, char *dbName, char *setName, char *nodeName);
+//JiaNote: add one more parameter char* nodeName based on Chris' Join code
 struct AtomicComputation *makeAgg (struct TupleSpec *output, struct TupleSpec *input, char *nodeName);
 struct AtomicComputation *makeApply (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
 struct AtomicComputation *makeFilter (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName);
+
+//JiaNote: remove one parameter char* nodeName based on Chris' Join code
 struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
-                struct TupleSpec *rInput, struct TupleSpec *rProjection, char *nodeName, char *opName);
+                struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName);
+
+
+struct AtomicComputation *makeHashRight (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
+struct AtomicComputation *makeHashLeft (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
+
 
 #ifdef __cplusplus
 }

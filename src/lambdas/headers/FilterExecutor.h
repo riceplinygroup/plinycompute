@@ -42,12 +42,21 @@ private:
 
 public:
 
+	// currently, we just ignore the extra parameter to the filter if we get it
+	FilterExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) :
+                myMachine (inputSchema, attsToIncludeInOutput) {
+		
+		// this is the input attribute that we will process
+		output = std :: make_shared <TupleSet> ();
+		std :: vector <int> matches = myMachine.match (attsToOperateOn);
+		whichAtt = matches[0];
+	}
+
 	FilterExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) : 
 		myMachine (inputSchema, attsToIncludeInOutput) {
 
-		output = std :: make_shared <TupleSet> ();
-	
 		// this is the input attribute that we will process
+		output = std :: make_shared <TupleSet> ();
 		std :: vector <int> matches = myMachine.match (attsToOperateOn);
 		whichAtt = matches[0];
 	}

@@ -46,9 +46,9 @@ public:
 		methodName (methodName), returnTypeName (returnTypeName) {
 	}
 
-	bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) override {
+	/* bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) override {
 		return columnBuilder (typeToMatch, addToMe, posToAddTo);
-	}
+	} */
 
 	std :: string getTypeOfLambda () override {
 		return std :: string ("methodCall");

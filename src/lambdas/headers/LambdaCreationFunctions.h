@@ -22,18 +22,66 @@
 #include "Lambda.h"
 #include "Ptr.h"
 #include "AttAccessLambda.h"
+#include "AndLambda.h"
+#include "SelfLambda.h"
 #include "MethodCallLambda.h"
 #include "EqualsLambda.h"
 #include "SimpleComputeExecutor.h"
+#include "CPlusPlusLambda.h"
 #include "TypeName.h"
 
 namespace pdb {
 
+// these next four functions are used to create PDB Lambdas out of C++ lambdas
+
+template <typename ParamOne, typename F>
+auto makeLambda (Handle <ParamOne> pOne, F arg) {
+        return LambdaTree <decltype (arg (pOne))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne)), ParamOne>> (arg));
+}
+
+template <typename ParamOne, typename ParamTwo, typename F>
+auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, F arg) {
+        return LambdaTree <decltype (arg (pOne, pTwo))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo)), ParamOne, ParamTwo>> (arg));
+}
+
+template <typename ParamOne, typename ParamTwo, typename ParamThree, typename F>
+auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, F arg) {
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree))> 
+		(std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree)), ParamOne, ParamTwo, ParamThree>> (arg));
+}
+
+template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename F>
+auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, F arg) {
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour))> 
+		(std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour)), ParamOne, ParamTwo, ParamThree, ParamFour>> (arg));
+}
+
+template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename ParamFive, typename F>
+auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, Handle <ParamFive> pFive, F arg) {
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour, pFive))> 
+		(std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour, pFive)), ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive>> (arg));
+}
+
+
+// creates a PDB lambda out of an == operator
 template <typename LeftType, typename RightType> 
 LambdaTree <bool> operator == (LambdaTree <LeftType> lhs, LambdaTree <RightType> rhs) {
 	return LambdaTree <bool> (std :: make_shared <EqualsLambda <LeftType, RightType>> (lhs, rhs));
 }
 
+// creates a PDB lambda from an && operator
+template <typename LeftType, typename RightType> 
+LambdaTree <bool> operator && (LambdaTree <LeftType> lhs, LambdaTree <RightType> rhs) {
+	return LambdaTree <bool> (std :: make_shared <AndLambda <LeftType, RightType>> (lhs, rhs));
+}
+
+// creates a PDB lambda that simply returns the argument itself
+template <typename ClassType>
+LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> &var) {
+	return LambdaTree <Ptr<ClassType>> (std :: make_shared <SelfLambda <ClassType>> (var));
+}
+
+// creates a PDB lambda that returns a member of a C++ class
 template <typename ReturnType, typename ClassType>
 LambdaTree <Ptr<ReturnType>> makeLambdaUsingMember (std :: string inputTypeName, std :: string attName, std :: string attType,
 	Handle <ClassType> &var, ReturnType *member, size_t offset) {

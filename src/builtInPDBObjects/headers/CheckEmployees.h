@@ -50,7 +50,7 @@ public:
 	}
 
 	SimpleLambda<bool> getSelection(Handle<Supervisor> &checkMe) override {
-		return makeLambda(checkMe, [&] () -> bool {
+		return makeSimpleLambda(checkMe, [&] () -> bool {
 			int numEmployees = checkMe->getNumEmployees ();
 			for (unsigned int i = 0; i < numEmployees; i++) {
 				if (*(checkMe->getEmp (i)->getName ()) != nameToExclude) {
@@ -62,7 +62,7 @@ public:
 	}
 
 	SimpleLambda<bool> getProjectionSelection(Handle<Vector<Handle<Employee>>>&checkMe) override {
-		return makeLambda (checkMe, [&] () -> bool {
+		return makeSimpleLambda (checkMe, [&] () -> bool {
 			size_t numEmployees = checkMe->size();
 			//std :: cout << "numEmployees=" << numEmployees << std :: endl;
 			for (size_t i = 0; i < numEmployees; i++) {
@@ -76,7 +76,7 @@ public:
 	}
 
 	SimpleLambda <Handle <Vector <Handle <Employee>>>> getProjection (Handle <Supervisor> &checkMe) override {
-		return makeLambda (checkMe, [&] {
+		return makeSimpleLambda (checkMe, [&] {
 			Handle <Vector <Handle <Employee>>> returnVal = makeObject <Vector <Handle <Employee>>> (10);
 			size_t numEmployees = checkMe->getNumEmployees ();
 			//std :: cout << "numEmployees=" << numEmployees << std :: endl;

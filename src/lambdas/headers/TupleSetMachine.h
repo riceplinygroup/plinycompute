@@ -23,12 +23,18 @@ namespace pdb {
 
 class TupleSetSetupMachine {
 
+	// there is one entry here for each item in attsToIncludeInOutput
+	// that entry tells us where to find that attribute in the input
 	std :: vector <int> matches;
+
 	TupleSpec &inputSchema;
 
 public:
 
+	TupleSetSetupMachine (TupleSpec &inputSchema) : inputSchema (inputSchema) {}
+
 	TupleSetSetupMachine (TupleSpec &inputSchema, TupleSpec &attsToIncludeInOutput) : inputSchema (inputSchema) {
+		std :: cout << "input schema: " << inputSchema << " and outputs to include: " << attsToIncludeInOutput << "\n";
 		matches = match (attsToIncludeInOutput);
 	}	
 	
@@ -67,6 +73,17 @@ public:
 			output->copyColumn (input, i, counter++);
 		}
 	}
+
+	// this is used by a join to replicate a bunch of input columns
+	void replicate (TupleSetPtr input, TupleSetPtr output, std :: vector <uint32_t> &counts, int offset) {
+
+		// first, do a shallow copy of all of the atts that are being copied over
+		int counter = 0;
+		for (auto &i : matches) {
+			output->replicate (input, i, counter + offset, counts);
+			counter++;
+		}
+	}	
 
 };
 

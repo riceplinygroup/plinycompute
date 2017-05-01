@@ -26,6 +26,7 @@
 #include "AttList.h"
 #include "TupleSpec.h"
 #include "AtomicComputationList.h"
+#include "AtomicComputationClasses.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -106,11 +107,10 @@ struct AtomicComputation *makeAgg (struct TupleSpec *output, struct TupleSpec *i
 }
 
 struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *lInput, struct TupleSpec *lProjection,
-		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *nodeName, char *opName) {
+		struct TupleSpec *rInput, struct TupleSpec *rProjection, char *opName) {
 	AtomicComputationPtr returnVal = std :: make_shared <ApplyJoin> (*output, *lInput, *rInput, *lProjection, 
-		*rProjection, std :: string (nodeName), std :: string (opName));
+		*rProjection, std :: string (opName));
 	returnVal->setShared (returnVal);
-	free (nodeName);
 	free (opName);
 	delete output;
 	delete lInput;
@@ -119,6 +119,29 @@ struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *
 	delete rProjection;
 	return returnVal.get ();
 }
+
+struct AtomicComputation *makeHashLeft (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashLeft> (*input, *output, *projection, std :: string (nodeName), std :: string (opName));
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        free (opName);
+        return returnVal.get ();
+}
+
+struct AtomicComputation *makeHashRight (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashRight> (*input, *output, *projection, std :: string (nodeName), std :: string (opName));
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        free (opName);
+        return returnVal.get ();
+}
+
 
 struct AtomicComputation *makeScan (struct TupleSpec *output, char *dbName, char *setName, char *nodeName) {
 	AtomicComputationPtr returnVal = std :: make_shared <ScanSet> (*output, std :: string (dbName), std :: string (setName), std :: string (nodeName));

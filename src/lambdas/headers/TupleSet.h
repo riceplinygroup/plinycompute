@@ -80,6 +80,10 @@ struct MaintenanceFuncs {
 	// this is a filter function for a particular column
 	std :: function <void * (void *, std :: vector <bool> &)> filter;
 
+        // this replicates instances of a column to run a join
+        std :: function <void * (void *, std :: vector <uint32_t> &)> replicate;
+
+
 	// this is a function that creates and returns a pdb :: Vector for a column
 	std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector;
 
@@ -109,11 +113,12 @@ struct MaintenanceFuncs {
 
 	// fill all of the fields
 	MaintenanceFuncs (std :: function <void (void *)> deleter, std :: function <void * (void *, std :: vector <bool> &)> filter,
+                std :: function <void * (void *, std :: vector <uint32_t> &)> replicate,
 		std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector, 
 		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector, 
 		std :: function <void (void *, std :: vector <void *> &, size_t)> serialize, 
 		std :: function <void (void *, std :: vector <void *> &, size_t)> deSerialize, bool mustDelete, std :: string typeContained, size_t serializedSize) : 
-		deleter (deleter), filter (filter), createPDBVector (createPDBVector), writeToVector (writeToVector), deSerialize (deSerialize),
+		deleter (deleter), filter (filter), replicate (replicate), createPDBVector (createPDBVector), writeToVector (writeToVector), deSerialize (deSerialize),
 		serialize (serialize), typeContained (typeContained), mustDelete (mustDelete), serializedSize (serializedSize) {}
 
 };
@@ -196,6 +201,9 @@ public:
 		return *((std :: vector <ColType> *) columns[whichColumn].first);
 	}
 
+
+
+
 	// writes out a specified column... the boolean argument is true when we want to start from scratch; false
 	// if we want to continue the last write
 	void writeOutColumn (int whichColumn, Handle <Vector <Handle <Object>>> &writeToMe, bool startFromScratch) {
@@ -257,6 +265,35 @@ public:
 
 		std :: cout << "This is really bad... trying to filter a non-existing column";
 	}
+
+        // creates a replication of the column from another tuple set, copying each item a specified
+        // number of times and deleting the target, if necessary
+        void replicate (TupleSetPtr fromMe, int whichColInFromMe, int whichColToCopyTo, std :: vector <uint32_t> &replications) {
+
+                // kill the old one so we don't have a memory leak
+                if (hasColumn (whichColToCopyTo)) {
+                        // delete the existing column, if necessary
+                        auto &value = columns[whichColToCopyTo];
+                        if (value.second.mustDelete) {
+                                value.second.deleter (value.first);
+                        }
+                }
+
+                // create a copy of the maintenance funcs
+                auto &value = fromMe->columns[whichColInFromMe];
+                MaintenanceFuncs temp = value.second;
+
+                // remember that this is a deep copy... so we need to delete
+                temp.mustDelete = true;
+
+                // and go ahead and replicate the column
+                void *newCol = temp.replicate (value.first, replications);
+
+                // and go ahead and remember the column
+                columns[whichColToCopyTo] = std :: make_pair (newCol, temp);
+        }
+
+
 
 	// copies a column from another TupleSet, deleting the target, if necessary
 	void copyColumn (TupleSetPtr fromMe, int whichColInFromMe, int whichColToCopyTo) {
@@ -326,6 +363,30 @@ public:
 				// and return the result
 				return (void *) newVec;
 			};
+                std :: function <void * (void *, std :: vector <uint32_t> &)> replicate;
+                replicate = [] (void *replicate, std :: vector <uint32_t> &timesToReplicate) {
+
+                                std :: vector <ColType> &replicateMe = *((std :: vector <ColType> *) replicate);
+
+                                // count the number of rows that need to be retained
+                                int counter = 0;
+                                for (auto &a : timesToReplicate)
+                                        counter += a;
+
+                                // copy the ones that need to be retained over
+                                std :: vector <ColType> *newVec = new std :: vector <ColType> (counter);
+                                counter = 0;
+                                for (int i = 0; i < timesToReplicate.size (); i++) {
+                                        for (int j = 0; j < timesToReplicate[i]; j++) {
+                                                (*newVec)[counter] = replicateMe[i];
+                                                counter++;
+                                        }
+                                }
+
+                                // and return the result
+                                return (void *) newVec;
+                        };
+
 	
 		// the third lambda is responsible for writing this column to an output vector
 		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector;
@@ -411,7 +472,7 @@ public:
 				return unsafeCast <Vector <Handle <Object>>> (returnVal);
 			};
 	
-		MaintenanceFuncs myFuncs (deleter, filter, createPDBVector, writeToVector, serialize, deSerialize, 
+		MaintenanceFuncs myFuncs (deleter, filter, replicate, createPDBVector, writeToVector, serialize, deSerialize, 
 			needToDelete, getTypeName <ColType> (), getSerializedSize <std :: is_base_of <PtrBase, ColType> :: value, ColType> ());
 		columns [where] = std :: make_pair ((void *) addMe, myFuncs);
 	}

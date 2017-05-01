@@ -47,7 +47,7 @@ public:
 		offsetOfAttToProcess (offset), inputTypeName (inputTypeNameIn), attName (attNameIn), attTypeName (attType) {
 	}
 
-        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {  
+/*        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {  
                 if (pleaseCreateThisType == getTypeName <Ptr <Out>> ()) {  
                         std :: vector <Ptr <Out>> *outColumn = new std :: vector <Ptr <Out>>; 
                         input->addColumn (outAtt, outColumn, true); 
@@ -55,7 +55,7 @@ public:
                 } 
 		return false;
 	}
-
+*/
 	std :: string getTypeOfLambda () override {
 		return std :: string ("attAccess");
 	}

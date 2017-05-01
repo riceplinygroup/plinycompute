@@ -98,7 +98,7 @@ public:
 		return nullptr;
 	}
 
-        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {
+        /* bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {
                 if (pleaseCreateThisType == getTypeName <OutType> ()) {
                         std :: vector <OutType> *outColumn = new std :: vector <OutType>;
                         input->addColumn (outAtt, outColumn, true);
@@ -106,6 +106,7 @@ public:
                 }
                 return false;
         }
+        */
 
 	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 	

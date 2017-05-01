@@ -81,7 +81,7 @@ public:
 	}
 
 	template <typename ClassType>
-	static SimpleLambda <Out> makeLambdaUsingMember (ClassType &, Out &) {
+	static SimpleLambda <Out> makeSimpleLambdaUsingMember (ClassType &, Out &) {
 		SimpleLambda <Out> temp;
 		temp.myData = nullptr;
 		return temp;
@@ -94,27 +94,27 @@ public:
 
 // this helper function allows us to easily create Lambda objects
 template <typename T, typename F>
-auto makeLambda(T&& val, F&& func) {
+auto makeSimpleLambda(T&& val, F&& func) {
     return SimpleLambda <decltype(func())> (val, func);
 }
 
 template <typename F>
-auto makeLambda(F&& func) {
+auto makeSimpleLambda(F&& func) {
     return SimpleLambda <decltype(func())> (func);
 }
 
 template <typename ReturnType, typename ClassType>
-auto makeLambdaUsingMethod (std :: string, Handle <ClassType> var, ReturnType (ClassType:: *arg) ()) {
+auto makeSimpleLambdaUsingMethod (std :: string, Handle <ClassType> var, ReturnType (ClassType:: *arg) ()) {
 	return SimpleLambda <ReturnType> (var, arg);
 }
 
 template <typename ReturnType, typename ClassType>
-auto makeLambdaUsingMember (std :: string, ClassType &var, ReturnType &member) {
-	return SimpleLambda <ReturnType> :: makeLambdaUsingMember (var, member);
+auto makeSimpleLambdaUsingMember (std :: string, ClassType &var, ReturnType &member) {
+	return SimpleLambda <ReturnType> :: makeSimpleLambdaUsingMember (var, member);
 }
 
-#define makeLambdaFromMethod(VAR,METHOD) (makeLambdaUsingMethod (std :: string (#METHOD), VAR, &std::remove_reference<decltype(*VAR)>::type::METHOD))
+#define makeSimpleLambdaFromMethod(VAR,METHOD) (makeSimpleLambdaUsingMethod (std :: string (#METHOD), VAR, &std::remove_reference<decltype(*VAR)>::type::METHOD))
 
-#define makeLambdaFromMember(VAR,MEMBER) (makeLambdaUsingMember (std :: string (#MEMBER), VAR, VAR->MEMBER))
+#define makeSimpleLambdaFromMember(VAR,MEMBER) (makeSimpleLambdaUsingMember (std :: string (#MEMBER), VAR, VAR->MEMBER))
 }
 #endif

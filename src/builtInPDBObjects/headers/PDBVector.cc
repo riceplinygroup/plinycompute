@@ -77,6 +77,15 @@ void Vector <TypeContained> :: assign (uint32_t which, const TypeContained& val)
 }
 
 template <class TypeContained>
+void Vector <TypeContained> :: push_back () {
+        if (myArray->isFull ()) {
+                myArray = myArray->doubleSize ();
+        }
+
+        myArray->push_back ();
+}
+
+template <class TypeContained>
 void Vector <TypeContained> :: push_back (const TypeContained& val) {
 	if (myArray->isFull ()) {
 		myArray = myArray->doubleSize ();

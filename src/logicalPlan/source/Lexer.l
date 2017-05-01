@@ -48,6 +48,7 @@
 %option bison-bridge
 %option extra-type="struct LexerExtra *"
 %option reentrant
+%x C_COMMENT
 
 /******************************************************************************
  * SECTION 3
@@ -58,9 +59,18 @@
 
 %%
 
+"/*"            { BEGIN(C_COMMENT); }
+<C_COMMENT>"*/" { BEGIN(INITIAL); }
+<C_COMMENT>.    { }
+<C_COMMENT>\n   { }
+
 [Ff][Ii][Ll][Tt][Ee][Rr]	return FILTER;
 
 [Aa][Pp][Pp][Ll][Yy]		return APPLY;
+
+[Hh][Aa][Ss][Hh][Ll][Ee][Ff][Tt] return HASHLEFT;
+
+[Hh][Aa][Ss][Hh][Rr][Ii][Gg][Hh][Tt]  return HASHRIGHT;
 
 [Ss][Cc][Aa][Nn]		return SCAN;
 

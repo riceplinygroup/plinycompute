@@ -15,37 +15,24 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LEO_QUERY_H
-#define LEO_QUERY_H
+#ifndef  JOINCOMPBASE_H
+#define JOINCOMPBASE_H
 
-#include "BaseQuery.h"
-#include "Supervisor.h"
-#include "Employee.h"
-#include "LambdaCreationFunctions.h"
+#include "Computation.h"
 
-using namespace pdb;
+namespace pdb {
 
-class LeoQuery : public BaseQuery {
+class JoinCompBase : public Computation {
 
 public:
 
-	ENABLE_DEEP_COPY
+        virtual ComputeExecutorPtr getExecutor (bool needToSwapAtts, TupleSpec &hashedInputSchema, TupleSpec &pipelinedInputSchema,
+                TupleSpec &pipelinedAttsToOperateOn, TupleSpec &pipelinedAttsToIncludeInOutput, ComputeInfoPtr arg) = 0;
 
-	LeoQuery() {}
-
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
-
-	virtual void toMap(std :: map <std :: string, GenericLambdaObjectPtr> &fillMe, int &identifier) override {
-		Handle <Supervisor> temp = nullptr;
-    	getSelection(temp).toMap (fillMe, identifier);
-    	getProjection(temp).toMap (fillMe, identifier);
-    }
+        virtual ComputeExecutorPtr getExecutor (bool needToSwapAtts, TupleSpec &hashedInputSchema, TupleSpec &pipelinedInputSchema,
+                TupleSpec &pipelinedAttsToOperateOn, TupleSpec &pipelinedAttsToIncludeInOutput) = 0;
 };
+
+}
 
 #endif

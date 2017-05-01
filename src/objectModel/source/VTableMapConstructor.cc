@@ -61,7 +61,6 @@ namespace pdb {
 
 	// the global variables all live here!!
 	#include "GlobalVariables.cc"
-
 } /* namespace pdb */
 
 

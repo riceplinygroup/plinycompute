@@ -94,6 +94,9 @@ public:
 	// add to the end
 	void push_back (const TypeContained &val);
 
+        // add an empty item at the end
+        void push_back ();
+
 	// remove from the end and shrink the number of used slots
 	void pop_back ();
 
