@@ -205,9 +205,12 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 			// we found the consuming computation
 			if (targetSpec == a->getInput ()) {
 				targetProjection = a->getProjection ();
+
+                                //added following to merge join code
                                 if(targetComputationName.find("JoinComp") == std :: string :: npos) {
                                     targetSpec = targetProjection;
                                 }
+
                                 targetAttsToOpOn = a->getInput();
 				break;
 			}	
