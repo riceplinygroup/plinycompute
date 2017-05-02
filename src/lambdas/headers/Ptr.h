@@ -45,8 +45,17 @@ public:
 		data = fromMe;
 	} 
 
+	Ptr (BaseType &fromMe) {
+		data = &fromMe;
+	}
+
 	Ptr &operator = (BaseType *fromMe) {
 		data = fromMe;
+		return *this;
+	}
+
+	Ptr &operator = (BaseType &fromMe) {
+		data = &fromMe;
 		return *this;
 	}
 
