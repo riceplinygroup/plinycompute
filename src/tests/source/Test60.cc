@@ -68,11 +68,11 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	Lambda <bool> getSelection (Handle <Employee> &checkMe) override {
+	Lambda <bool> getSelection (Handle <Employee> checkMe) override {
 		return makeLambdaFromMethod (checkMe, isFrank);
 	}
 
-	Lambda <Handle <String>> getProjection (Handle <Employee> &checkMe) override {
+	Lambda <Handle <String>> getProjection (Handle <Employee> checkMe) override {
 		return makeLambdaFromMethod (checkMe, getName);
 	}
 };

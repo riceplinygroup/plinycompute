@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef EMPLOYEE_SELECT_H
-#define EMPLOYEE_SELECT_H
+#ifndef ALL_SELECT_H
+#define ALL_SELECT_H
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -29,16 +29,16 @@
 #include "SharedEmployee.h"
 
 using namespace pdb;
-class EmployeeSelection : public SelectionComp <String, SharedEmployee> {
+class AllSelection : public SelectionComp <String, SharedEmployee> {
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	EmployeeSelection () {}
+	AllSelection () {}
 
 	Lambda <bool> getSelection (Handle <SharedEmployee> checkMe) override {
-		return makeLambdaFromMethod (checkMe, isFrank);
+                return makeLambdaFromTrue (checkMe);
 	}
 
 	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> checkMe) override {

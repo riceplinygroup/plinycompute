@@ -43,8 +43,12 @@ public:
 
 	// create an att access lambda; offset is the position in the input object where we are going to find the input att
 	AttAccessLambda (std :: string inputTypeNameIn, std :: string attNameIn, 
-		std :: string attType, Handle <ClassType> &input, size_t offset) :
+		std :: string attType, Handle <ClassType> & input, size_t offset) :
 		offsetOfAttToProcess (offset), inputTypeName (inputTypeNameIn), attName (attNameIn), attTypeName (attType) {
+
+            std :: cout << "AttAccessLambda: input type code = " << input.getExactTypeInfoValue() << std :: endl;
+
+
 	}
 
 /*        bool addColumnToTupleSet (std :: string &pleaseCreateThisType, TupleSetPtr input, int outAtt) override {  

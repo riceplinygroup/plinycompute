@@ -59,11 +59,11 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	Lambda <bool> getSelection (Handle <DepartmentTotal> &checkMe) override {
+	Lambda <bool> getSelection (Handle <DepartmentTotal> checkMe) override {
 		return makeLambdaFromMethod (checkMe, checkSales);
 	}
 
-	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> &checkMe) override {
+	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> checkMe) override {
 		return makeLambdaFromMethod (checkMe, getTotSales);
 	}
 };
@@ -79,12 +79,12 @@ public:
 	ENABLE_DEEP_COPY
 
 	// the key type must have == and size_t hash () defined
-	Lambda <String> getKeyProjection (Handle <Employee> &aggMe) override {
+	Lambda <String> getKeyProjection (Handle <Employee> aggMe) override {
 		return makeLambdaFromMember (aggMe, department);	
 	}
 
 	// the value type must have + defined
-	Lambda <double> getValueProjection (Handle <Employee> &aggMe) override {
+	Lambda <double> getValueProjection (Handle <Employee> aggMe) override {
 		return makeLambdaFromMethod (aggMe, getSalary);	
 	}
 
@@ -108,11 +108,11 @@ public:
 
 	ENABLE_DEEP_COPY
 
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
+	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
 		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
 	}
 
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) override {
+	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> checkMe) override {
 		return makeLambdaFromMethod (checkMe, getMe);
 	}
 };

@@ -39,11 +39,14 @@ public:
 public:
 
 	// create an att access lambda; offset is the position in the input object where we are going to find the input att
-	MethodCallLambda (std :: string inputTypeName, std :: string methodName, std :: string returnTypeName, Handle <ClassType> &input, 
+	MethodCallLambda (std :: string inputTypeName, std :: string methodName, std :: string returnTypeName, Handle <ClassType> & input, 
 		std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
 		std::function <ComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutorFunc) :
 		getExecutorFunc (getExecutorFunc), columnBuilder (columnBuilder), inputTypeName (inputTypeName), 
 		methodName (methodName), returnTypeName (returnTypeName) {
+
+             std :: cout << "MethodCallLambda: input type code is " << input.getExactTypeInfoValue() << std :: endl;
+
 	}
 
 	/* bool addColumnToTupleSet (std :: string &typeToMatch, TupleSetPtr addToMe, int posToAddTo) override {

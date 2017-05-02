@@ -76,6 +76,10 @@ public:
 
 	// returns the type code
 	int16_t getTypeCode () const;
+
+        // returns the exact value of field info
+        int32_t getExactTypeInfoValue() const;
+
 };
 
 }

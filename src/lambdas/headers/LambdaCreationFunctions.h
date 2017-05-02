@@ -24,6 +24,7 @@
 #include "AttAccessLambda.h"
 #include "AndLambda.h"
 #include "SelfLambda.h"
+#include "TrueLambda.h"
 #include "MethodCallLambda.h"
 #include "EqualsLambda.h"
 #include "SimpleComputeExecutor.h"
@@ -77,14 +78,24 @@ LambdaTree <bool> operator && (LambdaTree <LeftType> lhs, LambdaTree <RightType>
 
 // creates a PDB lambda that simply returns the argument itself
 template <typename ClassType>
-LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> &var) {
+LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> & var) {
+        std :: cout << "makeLambdaFromSelf: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr<ClassType>> (std :: make_shared <SelfLambda <ClassType>> (var));
 }
+
+// creates a PDB lambda that simply returns true
+template <typename ClassType>
+LambdaTree <bool> makeLambdaFromTrue (Handle <ClassType> & var) {
+        std :: cout << "makeLambdaFromTrue: input type code is " << var.getExactTypeInfoValue() << std :: endl;
+        return LambdaTree <bool> (std :: make_shared <TrueLambda <ClassType>> (var));
+}
+
 
 // creates a PDB lambda that returns a member of a C++ class
 template <typename ReturnType, typename ClassType>
 LambdaTree <Ptr<ReturnType>> makeLambdaUsingMember (std :: string inputTypeName, std :: string attName, std :: string attType,
-	Handle <ClassType> &var, ReturnType *member, size_t offset) {
+	Handle <ClassType> & var, ReturnType *member, size_t offset) {
+        std :: cout << "makeLambdaUsingMember: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr<ReturnType>> (std :: make_shared <AttAccessLambda <ReturnType, ClassType>> 
 		(inputTypeName, attName, attType, var, offset));
 }
@@ -101,9 +112,10 @@ void *someRandomPointer;
 // rather than actually copying the method's output
 template <typename ReturnType, typename ClassType>
 LambdaTree <std :: enable_if_t <std :: is_reference <ReturnType>::value, Ptr <typename std :: remove_reference <ReturnType> :: type>>> makeLambdaUsingMethod (
-	std :: string inputTypeName, std :: string methodName, Handle <ClassType> &var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
+	std :: string inputTypeName, std :: string methodName, Handle <ClassType> & var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
 	std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
 	std::function <SimpleComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutor) {
+        std :: cout << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr <typename std :: remove_reference <ReturnType> :: type>> 
 		(std :: make_shared <MethodCallLambda <Ptr <typename std :: remove_reference <ReturnType> :: type>, ClassType>>
 		(inputTypeName, methodName, returnTypeName, var, columnBuilder, getExecutor));
@@ -111,9 +123,10 @@ LambdaTree <std :: enable_if_t <std :: is_reference <ReturnType>::value, Ptr <ty
 
 template <typename ReturnType, typename ClassType>
 LambdaTree <std :: enable_if_t <!(std :: is_reference <ReturnType>::value), ReturnType>> makeLambdaUsingMethod (
-	std :: string inputTypeName, std :: string methodName, Handle <ClassType> &var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
+	std :: string inputTypeName, std :: string methodName, Handle <ClassType> & var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
 	std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
 	std::function <SimpleComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutor) {
+        std :: cout << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <ReturnType> (std :: make_shared <MethodCallLambda <ReturnType, ClassType>>
 		(inputTypeName, methodName, returnTypeName, var, columnBuilder, getExecutor));
 }
