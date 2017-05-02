@@ -24,7 +24,6 @@
 #include "AttAccessLambda.h"
 #include "AndLambda.h"
 #include "SelfLambda.h"
-#include "TrueLambda.h"
 #include "MethodCallLambda.h"
 #include "EqualsLambda.h"
 #include "SimpleComputeExecutor.h"
@@ -81,13 +80,6 @@ template <typename ClassType>
 LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> & var) {
         std :: cout << "makeLambdaFromSelf: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr<ClassType>> (std :: make_shared <SelfLambda <ClassType>> (var));
-}
-
-// creates a PDB lambda that simply returns true
-template <typename ClassType>
-LambdaTree <bool> makeLambdaFromTrue (Handle <ClassType> & var) {
-        std :: cout << "makeLambdaFromTrue: input type code is " << var.getExactTypeInfoValue() << std :: endl;
-        return LambdaTree <bool> (std :: make_shared <TrueLambda <ClassType>> (var));
 }
 
 
