@@ -36,8 +36,8 @@ typename std :: enable_if <!std :: is_base_of <Nothing, ParamOne> :: value &&
 			   std :: is_base_of <Nothing, ParamTwo> :: value &&
 			   std :: is_base_of <Nothing, ParamThree> :: value &&
 			   std :: is_base_of <Nothing, ParamFour> :: value &&
-			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, ReturnType &assignToMe, int which, void **args) {
-	assignToMe = func (CAST (ParamOne, 0));	
+			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, std :: vector <ReturnType> &assignToMe, int which, void **args) {
+	assignToMe[which] = func (CAST (ParamOne, 0));	
 }
 
 template <typename F, typename ReturnType, typename ParamOne, 
@@ -49,8 +49,8 @@ typename std :: enable_if <!std :: is_base_of <Nothing, ParamOne> :: value &&
 			   !std :: is_base_of <Nothing, ParamTwo> :: value &&
 			   std :: is_base_of <Nothing, ParamThree> :: value &&
 			   std :: is_base_of <Nothing, ParamFour> :: value &&
-			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, ReturnType &assignToMe, int which, void **args) {
-	assignToMe = func (CAST (ParamOne, 0), CAST (ParamTwo, 1));	
+			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, std :: vector <ReturnType> &assignToMe, int which, void **args) {
+	assignToMe[which] = func (CAST (ParamOne, 0), CAST (ParamTwo, 1));	
 }
 
 template <typename F, typename ReturnType, typename ParamOne, 
@@ -62,8 +62,8 @@ typename std :: enable_if <!std :: is_base_of <Nothing, ParamOne> :: value &&
 			   !std :: is_base_of <Nothing, ParamTwo> :: value &&
 			   !std :: is_base_of <Nothing, ParamThree> :: value &&
 			   std :: is_base_of <Nothing, ParamFour> :: value &&
-			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, ReturnType &assignToMe, int which, void **args) {
-	assignToMe = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2));	
+			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, std :: vector <ReturnType> &assignToMe, int which, void **args) {
+	assignToMe[which] = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2));	
 }
 
 template <typename F, typename ReturnType, typename ParamOne, 
@@ -75,8 +75,8 @@ typename std :: enable_if <!std :: is_base_of <Nothing, ParamOne> :: value &&
 			   !std :: is_base_of <Nothing, ParamTwo> :: value &&
 			   !std :: is_base_of <Nothing, ParamThree> :: value &&
 			   !std :: is_base_of <Nothing, ParamFour> :: value &&
-			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, ReturnType &assignToMe, int which, void **args) {
-	assignToMe = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2), CAST (ParamFour, 3));	
+			   std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, std :: vector <ReturnType> &assignToMe, int which, void **args) {
+	assignToMe[which] = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2), CAST (ParamFour, 3));	
 }
 
 template <typename F, typename ReturnType, typename ParamOne, 
@@ -88,8 +88,8 @@ typename std :: enable_if <!std :: is_base_of <Nothing, ParamOne> :: value &&
 			   !std :: is_base_of <Nothing, ParamTwo> :: value &&
 			   !std :: is_base_of <Nothing, ParamThree> :: value &&
 			   !std :: is_base_of <Nothing, ParamFour> :: value &&
-			   !std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, ReturnType &assignToMe, int which, void **args) {
-	assignToMe = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2), CAST (ParamFour, 3), CAST (ParamFive, 4));	
+			   !std :: is_base_of <Nothing, ParamFive> :: value, void> :: type callLambda (F &func, std :: vector <ReturnType> &assignToMe, int which, void **args) {
+	assignToMe[which] = func (CAST (ParamOne, 0), CAST (ParamTwo, 1), CAST (ParamThree, 2), CAST (ParamFour, 3), CAST (ParamFive, 4));	
 }
 
 template <typename F, typename ReturnType, typename ParamOne = Nothing,
@@ -169,7 +169,7 @@ public:
 				outColumn.resize (numTuples);
 				for (int i = 0; i < numTuples; i++) {
 					callLambda <F, ReturnType, ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive> 
-						(myFunc, outColumn[i], i, inAtts);						
+						(myFunc, outColumn, i, inAtts);						
 				}
 
 				return output;
