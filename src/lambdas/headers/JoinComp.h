@@ -121,8 +121,23 @@ public:
 
         //JiaNote: Returning a TCAP string for this Join computation
         virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
-                //TODO
-                return "";
+                if (inputTupleSets.size()  == getNumInputs()) {
+                    std :: string tcapString = "";
+
+                    //update tupleset name for input sets                    
+                    for (unsigned int i = 0; i < inputTupleSets.size(); i++) {
+                        //setTupleSetNameForIthInput(i, inputTupleSets[i]);
+                    }
+                    Lambda <bool> selectionLambda = callGetSelection (*this);
+                    //tcapString += selectionLambda.toJoinSelectionTCAPString (...);
+                    Lambda <Handle <Out>> projectionLambda = callGetProjection (*this);
+                    //tcapString += projectionLambda.toTCAPString (...);
+                    return tcapString;
+                     
+                } else {
+                    std :: cout << "ERROR: inputTupleSet size is " << inputTupleSets.size() << " and not equivalent with Join's inputs " << getNumInputs() << std :: endl;
+                    return "";
+                }
         }
  
         // JiaNote: returns the latest tuple set name that contains the i-th input

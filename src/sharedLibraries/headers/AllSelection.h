@@ -38,7 +38,7 @@ public:
 	AllSelection () {}
 
 	Lambda <bool> getSelection (Handle <SharedEmployee> checkMe) override {
-                return makeLambdaFromTrue (checkMe);
+                return makeLambda (checkMe, [] (Handle<SharedEmployee> & checkMe) {return true;});
 	}
 
 	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> checkMe) override {
