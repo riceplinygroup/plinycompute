@@ -44,12 +44,12 @@ public:
 
 
         // the key type must have == and size_t hash () defined
-        Lambda <String> getKeyProjection (Handle <Employee> &aggMe) override {
+        Lambda <String> getKeyProjection (Handle <Employee> aggMe) override {
                 return makeLambdaFromMember (aggMe, department);
         }
 
         // the value type must have + defined
-        Lambda <double> getValueProjection (Handle <Employee> &aggMe) override {
+        Lambda <double> getValueProjection (Handle <Employee> aggMe) override {
                 return makeLambdaFromMethod (aggMe, getSalary);
         }
 

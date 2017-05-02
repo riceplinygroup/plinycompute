@@ -209,6 +209,8 @@ public:
 	// get the type code
 	int16_t getTypeCode ();
 
+        int32_t getExactTypeInfoValue ();
+
 	// so we can perform a deep copy over handles
 	ENABLE_DEEP_COPY
 

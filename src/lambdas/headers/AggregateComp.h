@@ -40,10 +40,10 @@ template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 class AggregateComp : public Computation {
 
 	// gets the operation tht extracts a key from an input object
-	virtual Lambda <KeyClass> getKeyProjection (Handle <InputClass> &aggMe) = 0;
+	virtual Lambda <KeyClass> getKeyProjection (Handle <InputClass> aggMe) = 0;
 	
 	// gets the operation that extracts a value from an input object
-	virtual Lambda <ValueClass> getValueProjection (Handle <InputClass> &aggMe) = 0;
+	virtual Lambda <ValueClass> getValueProjection (Handle <InputClass> aggMe) = 0;
 
 	// extract the key projection and value projection
 	void extractLambdas (std :: map <std :: string, GenericLambdaObjectPtr> &returnVal) override {

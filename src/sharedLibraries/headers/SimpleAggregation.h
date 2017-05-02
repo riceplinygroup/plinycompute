@@ -37,12 +37,12 @@ public:
         SimpleAggregation () {}
 
         // the key type must have == and size_t hash () defined
-        Lambda <String> getKeyProjection (Handle <SimpleEmployee> &aggMe) override {
+        Lambda <String> getKeyProjection (Handle <SimpleEmployee> aggMe) override {
                 return makeLambdaFromMember (aggMe, department);
         }
 
         // the value type must have + defined
-        Lambda <double> getValueProjection (Handle <SimpleEmployee> &aggMe) override {
+        Lambda <double> getValueProjection (Handle <SimpleEmployee> aggMe) override {
                 return makeLambdaFromMember (aggMe, salary);
         }
 

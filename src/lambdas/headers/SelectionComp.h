@@ -32,11 +32,11 @@ class SelectionComp : public Computation {
 public:
 
 	// the computation returned by this method is called to see if a data item should be returned in the output set
-	virtual Lambda <bool> getSelection (Handle <InputClass> &checkMe) = 0;
+	virtual Lambda <bool> getSelection (Handle <InputClass> checkMe) = 0;
 
 	// the computation returned by this method is called to perfom a transformation on the input item before it
 	// is inserted into the output set
-	virtual Lambda <Handle<OutputClass>> getProjection (Handle <InputClass> &checkMe) = 0;
+	virtual Lambda <Handle<OutputClass>> getProjection (Handle <InputClass> checkMe) = 0;
 
 	// calls getProjection and getSelection to extract the lambdas
 	void extractLambdas (std :: map <std :: string, GenericLambdaObjectPtr> &returnVal) override {

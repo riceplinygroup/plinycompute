@@ -35,6 +35,11 @@ inline int16_t PDBTemplateBase :: getTypeCode () const {
 		return -1;
 }
 
+inline int32_t PDBTemplateBase :: getExactTypeInfoValue() const {
+        return info;
+}
+
+
 inline PDBTemplateBase &PDBTemplateBase :: operator = (const PDBTemplateBase &toMe) {
 	info = toMe.info;
 	return *this;

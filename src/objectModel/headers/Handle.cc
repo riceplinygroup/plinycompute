@@ -47,6 +47,12 @@ int16_t Handle <ObjType> :: getTypeCode () {
 }
 
 template <class ObjType>
+int32_t Handle <ObjType> :: getExactTypeInfoValue () {
+        return typeInfo.getExactTypeInfoValue ();
+}
+
+
+template <class ObjType>
 Handle <ObjType> :: ~Handle () {
 
 	// if we are not null, then dec the reference count

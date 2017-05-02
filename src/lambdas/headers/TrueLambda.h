@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SELF_LAM_H
-#define SELF_LAM_H
+#ifndef TRUE_LAM_H
+#define TRUE_LAM_H
 
 #include "Handle.h"
 #include <string>
@@ -30,7 +30,7 @@
 namespace pdb {
 
 template <class ClassType> 
-class SelfLambda : public TypedLambdaObject <Ptr <ClassType>> {
+class TrueLambda : public TypedLambdaObject <bool> {
 
 public:
 
@@ -39,13 +39,13 @@ public:
 public:
 
 	// create an att access lambda; offset is the position in the input object where we are going to find the input att
-	SelfLambda (Handle <ClassType> & input) {
+	TrueLambda (Handle <ClassType> & input) {
 		inputTypeName = getTypeName <ClassType> ();		
-                std :: cout << "SelfLambda: input class is " << input.getExactTypeInfoValue() << std :: endl;
+                std :: cout << "TrueLambda: input class is " << input.getExactTypeInfoValue() << std :: endl;
 	}
 
 	std :: string getTypeOfLambda () override {
-		return std :: string ("self");
+		return std :: string ("true");
 	}
 
 	std :: string typeOfAtt () {
@@ -91,18 +91,18 @@ public:
 
                                 // setup the output column, if it is not already set up
                                 if (!output->hasColumn (outAtt)) {
-                                        std :: vector <Ptr <ClassType>> *outputCol = new std :: vector <Ptr <ClassType>>;
+                                        std :: vector <bool> *outputCol = new std :: vector <bool>;
                                         output->addColumn (outAtt, outputCol, true);
                                 }
 
                                 // get the output column
-                                std :: vector <Ptr <ClassType>> &outColumn = output->getColumn <Ptr <ClassType>> (outAtt);
+                                std :: vector <bool> &outColumn = output->getColumn <bool> (outAtt);
 
                                 // loop down the columns, setting the output
                                 int numTuples = inputColumn.size ();
                                 outColumn.resize (numTuples);
                                 for (int i = 0; i < numTuples; i++) {
-                                        outColumn [i] = (ClassType *) &(*(inputColumn[i]));
+                                        outColumn [i] = true;
                                 }
 
                                 return output;

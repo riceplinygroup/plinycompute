@@ -37,11 +37,11 @@ public:
 
 	SillySelection () {}
 
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) override {
+	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
 		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
 	}
 
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) override {
+	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> checkMe) override {
                 return makeLambdaFromMethod (checkMe, getMe);
 	}
 };
