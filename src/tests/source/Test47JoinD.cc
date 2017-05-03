@@ -74,25 +74,6 @@ public:
 				return res;
 			});
 	}
-
-        int getNumInputs() override {
-                return 4;
-        }
-
-        std :: string getIthInputType(int i) override {
-                if (i == 0) {
-                     return getTypeName<int>();
-                } else if (i == 1) {
-                     return getTypeName<StringIntPair>();
-                } else if (i == 2) {
-                     return getTypeName<String>();
-                } else if (i == 3) {
-                     return getTypeName<int>();
-                }else {
-                     return "";
-                }
-        }
-
 };
 
 class SillyReadOfA : public ScanSet <int> {

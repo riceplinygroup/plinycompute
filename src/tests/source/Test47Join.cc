@@ -71,22 +71,6 @@ public:
 		return makeLambdaFromMember (in2, myString);	
 	}
 
-        int getNumInputs() override {
-                return 3;
-        }
-
-        std :: string getIthInputType(int i) override {
-                if (i == 0) {
-                     return getTypeName<int>();
-                } else if (i == 1) {
-                     return getTypeName<StringIntPair>();
-                } else if (i == 2) {
-                     return getTypeName<String>();
-                } else {
-                     return "";
-                }
-        }
-
 };
 
 class SillyReadOfA : public ScanSet <int> {
