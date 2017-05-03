@@ -74,6 +74,37 @@ public:
 		return getTypeName <Out> ();
 	}
 
+	// count the number of inputs
+        int getNumInputs() final {
+		const int extras = sizeof...(Rest);
+		return extras + 2;
+        }
+
+	template <typename First, typename ...Others> 
+	typename std :: enable_if<sizeof ...(Others) == 0, std :: string> :: type getIthInputType (int i) {
+		if (i == 0) {
+			return getTypeName <First> ();	
+		} else {
+			std :: cout << "Asked for an input type that didn't exist!";
+			exit (1);
+		}
+	}
+
+	// helper function to get a particular intput type
+	template <typename First, typename ...Others> 
+	typename std :: enable_if<sizeof ...(Others) != 0, std :: string> :: type getIthInputType (int i) {
+		if (i == 0) {
+			return getTypeName <First> ();	
+		} else {
+			return getIthInputType <Others...> (i - 1);
+		}
+	}
+	
+	// from the interface: get the i^th input type
+	std :: string getIthInputType (int i) final {
+		return getIthInputType <In1, In2, Rest...> (i);
+	}
+	
 	// this gets a compute sink
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
 		
