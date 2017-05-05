@@ -35,88 +35,96 @@ namespace pdb {
 // these next ten functions are used to create PDB Lambdas out of C++ lambdas
 
 template <typename ParamOne, typename F>
-auto makeLambda (Handle <ParamOne> pOne, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		std :: is_reference <decltype (arg (pOne))>::value, 
 		Ptr <typename std :: remove_reference <decltype (arg (pOne))>::type>>> {
+        Handle<Nothing> p2, p3, p4, p5;
         return LambdaTree <Ptr <typename std :: remove_reference <decltype (arg (pOne))>::type>> 
-		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne))>::type>, ParamOne>> (arg));
+		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne))>::type>, ParamOne>> (arg, pOne, p2, p3, p4, p5));
 }
 
 template <typename ParamOne, typename F>
-auto makeLambda (Handle <ParamOne> pOne, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		!std :: is_reference <decltype (arg (pOne))>::value, 
 		decltype (arg (pOne))>> {
-        return LambdaTree <decltype (arg (pOne))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne)), ParamOne>> (arg));
+        Handle<Nothing> p2, p3, p4, p5;
+        return LambdaTree <decltype (arg (pOne))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne)), ParamOne>> (arg, pOne, p2, p3, p4, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		std :: is_reference <decltype (arg (pOne, pTwo))>::value, 
 		Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo))>::type>>> {
+        Handle<Nothing> p3, p4, p5;
         return LambdaTree <Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo))>::type>> 
-		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo))>::type>, ParamOne, ParamTwo>> (arg));
+		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo))>::type>, ParamOne, ParamTwo>> (arg, pOne, pTwo, p3, p4, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		!std :: is_reference <decltype (arg (pOne, pTwo))>::value, 
 		decltype (arg (pOne, pTwo))>> {
-        return LambdaTree <decltype (arg (pOne, pTwo))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo)), ParamOne, ParamTwo>> (arg));
+        Handle<Nothing> p3, p4, p5;
+        return LambdaTree <decltype (arg (pOne, pTwo))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo)), ParamOne, ParamTwo>> (arg, pOne, pTwo, p3, p4, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> pThree, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		std :: is_reference <decltype (arg (pOne, pTwo, pThree))>::value, 
 		Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree))>::type>>> {
+        Handle<Nothing> p4, p5;
         return LambdaTree <Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree))>::type>> 
-		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree))>::type>, ParamOne, ParamTwo, ParamThree>> (arg));
+		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree))>::type>, ParamOne, ParamTwo, ParamThree>> (arg, pOne, pTwo, pThree, p4, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> & pThree, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		!std :: is_reference <decltype (arg (pOne, pTwo, pThree))>::value, 
 		decltype (arg (pOne, pTwo, pThree))>> {
-        return LambdaTree <decltype (arg (pOne, pTwo, pThree))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree)), ParamOne, ParamTwo, ParamThree>> (arg));
+        Handle<Nothing> p4, p5;
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree)), ParamOne, ParamTwo, ParamThree>> (arg, pOne, pTwo, pThree, p4, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> & pThree, Handle <ParamFour> & pFour, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		std :: is_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::value, 
 		Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::type>>> {
+        Handle<Nothing> p5;
         return LambdaTree <Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::type>> 
-		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::type>, ParamOne, ParamTwo, ParamThree, ParamFour>> (arg));
+		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::type>, ParamOne, ParamTwo, ParamThree, ParamFour>> (arg, pOne, pTwo, pThree, pFour, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> & pThree, Handle <ParamFour> & pFour, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		!std :: is_reference <decltype (arg (pOne, pTwo, pThree, pFour))>::value, 
 		decltype (arg (pOne, pTwo, pThree, pFour))>> {
-        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour)), ParamOne, ParamTwo, ParamThree, ParamFour>> (arg));
+        Handle<Nothing> p5; 
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour)), ParamOne, ParamTwo, ParamThree, ParamFour>> (arg, pOne, pTwo, pThree, pFour, p5));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename ParamFive, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, Handle <ParamFive> pFive, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> & pThree, Handle <ParamFour> & pFour, Handle <ParamFive> & pFive, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		std :: is_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::value, 
 		Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::type>>> {
         return LambdaTree <Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::type>> 
-		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::type>, ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive>> (arg));
+		(std :: make_shared <CPlusPlusLambda <F, Ptr <typename std :: remove_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::type>, ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive>> (arg, pOne, pTwo, pThree, pFour, pFive));
 }
 
 template <typename ParamOne, typename ParamTwo, typename ParamThree, typename ParamFour, typename ParamFive, typename F>
-auto makeLambda (Handle <ParamOne> pOne, Handle <ParamTwo> pTwo, Handle <ParamThree> pThree, Handle <ParamFour> pFour, Handle <ParamFive> pFive, F arg) -> LambdaTree <
+auto makeLambda (Handle <ParamOne> & pOne, Handle <ParamTwo> & pTwo, Handle <ParamThree> & pThree, Handle <ParamFour> & pFour, Handle <ParamFive> & pFive, F arg) -> LambdaTree <
 	std :: enable_if_t <
 		!std :: is_reference <decltype (arg (pOne, pTwo, pThree, pFour, pFive))>::value, 
 		decltype (arg (pOne, pTwo, pThree, pFour, pFive))>> {
-        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour, pFive))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour, pFive)), ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive>> (arg));
+        return LambdaTree <decltype (arg (pOne, pTwo, pThree, pFour, pFive))> (std :: make_shared <CPlusPlusLambda <F, decltype (arg (pOne, pTwo, pThree, pFour, pFive)), ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive>> (arg, pOne, pTwo, pThree, pFour, pFive));
 }
 
 // creates a PDB lambda out of an == operator

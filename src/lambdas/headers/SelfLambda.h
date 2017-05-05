@@ -42,6 +42,7 @@ public:
 	SelfLambda (Handle <ClassType> & input) {
 		inputTypeName = getTypeName <ClassType> ();		
                 std :: cout << "SelfLambda: input class is " << input.getExactTypeInfoValue() << std :: endl;
+                this->setInputIndex(0, -((input.getExactTypeInfoValue()+1)));
 	}
 
 	std :: string getTypeOfLambda () override {
@@ -55,6 +56,10 @@ public:
 	std :: string getInputType () {
 		return inputTypeName;
 	}
+
+        unsigned int getNumInputs() override {
+            return 1;
+        }
 
 	int getNumChildren () override {
 		return 0;

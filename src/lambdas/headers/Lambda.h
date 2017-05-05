@@ -29,7 +29,7 @@
 #include "ComputeExecutor.h"
 #include "LambdaHelperClasses.h"
 #include "DereferenceLambda.h"
-
+#include "MultiInputsBase.h"
 namespace pdb {
 
 template <class ReturnType>
@@ -56,39 +56,106 @@ private:
                 fillMe[myName] = root;
 	}
 
+        void getInputs ( std :: vector <std :: string>& allInputs, GenericLambdaObjectPtr root, MultiInputsBase * multiInputsBase) {
+            for (int i = 0; i < root->getNumChildren(); i++) {
+                GenericLambdaObjectPtr child = root->getChild (i);
+                getInputs(allInputs, child, multiInputsBase);    
+            }
+            if (root->getNumChildren() == 0) {
+                std :: string myName = multiInputsBase->getNameForIthInput(root->getInputIndex(0));
+                auto iter = std :: find(allInputs.begin(), allInputs.end(), myName);
+                if (iter == allInputs.end()) {
+                    allInputs.push_back(myName);
+                }
+            }
+        }
+
 
         //JiaNote: below function is to generate a sequence of TCAP Strings for this Lambda tree
-        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: string &inputTupleSetName, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName) {
+        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
 
                 std :: vector <std :: string> columnsToApply;
+                std :: vector <std :: string> childrenLambdas;
+                std :: vector <std :: string> inputNames;
+                std :: vector <std :: string> inputColumns;
                 if (root->getNumChildren() > 0) {
                         for (int i = 0; i < inputColumnsToApply.size(); i++) {
                                 columnsToApply.push_back(inputColumnsToApply[i]);
                         }
                         inputColumnsToApply.clear();
+                        for (int i = 0; i < childrenLambdaNames.size(); i++) {
+                                childrenLambdas.push_back(childrenLambdaNames[i]);
+                        }
+                        childrenLambdaNames.clear();
+                        for (int i = 0; i < inputTupleSetNames.size(); i++) {
+                                auto iter = std :: find(inputNames.begin(), inputNames.end(), inputTupleSetNames[i]);
+                                if (iter == inputNames.end()) {
+                                    inputNames.push_back(inputTupleSetNames[i]);
+                                }
+                        }
+                        inputTupleSetNames.clear();
+                        for (int i = 0; i < inputColumnNames.size(); i++) {
+                                inputColumns.push_back(inputColumnNames[i]);
+                        }
+                        inputColumnNames.clear();
                 }
+
+                std :: string myTypeName = root->getTypeOfLambda ();
+                PDB_COUT << "\tExtracted lambda named: " << myTypeName << "\n";
+                std :: string myName = myTypeName + "_" + std :: to_string (lambdaLabel);
+                
+                bool isLeftChildOfEqualLambda = false;
+                bool isRightChildOfEqualLambda = false;
                 for (int i = 0; i < root->getNumChildren (); i++) {
                         GenericLambdaObjectPtr child = root->getChild (i);
-                        getTCAPString (tcapStrings, inputTupleSetName, inputColumnNames, columnsToApply, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName);
+                        if (myTypeName == "==") {
+                            if (i == 0) {
+                                isLeftChildOfEqualLambda = true;
+                            }
+                            if (i == 1) {
+                                isRightChildOfEqualLambda = true;
+                            }
+                        }        
+                        getTCAPString (tcapStrings, inputNames, inputColumns, columnsToApply, childrenLambdas, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, isLeftChildOfEqualLambda, isRightChildOfEqualLambda, myName);
                         inputColumnsToApply.push_back(addedOutputColumnName);
+                        childrenLambdaNames.push_back(myLambdaName);
+                        if (multiInputsComp != nullptr) {
+                            auto iter = std :: find(inputTupleSetNames.begin(), inputTupleSetNames.end(), outputTupleSetName);
+                            if (iter == inputTupleSetNames.end()) {
+                                inputTupleSetNames.push_back(outputTupleSetName);
+                            }
+                        } else {
+                             inputTupleSetNames.clear();
+                             inputTupleSetNames.push_back(outputTupleSetName);
+                             inputColumnNames.clear();
+                        }
+                        for (int j = 0; j < inputColumns.size(); j++) {
+                             inputColumnNames.push_back(inputColumns[j]);
+                        }
+                        isLeftChildOfEqualLambda = false;
+                        isRightChildOfEqualLambda = false;
                 }
-                std :: string myName = root->getTypeOfLambda ();
-                myName = myName + "_" + std :: to_string (lambdaLabel);
-                PDB_COUT << "\tExtracted lambda named: " << myName << "\n";
-                std :: string outputTupleSetName;
                 std :: vector<std :: string> outputColumns;
-                std :: string tcapString = root->toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName);
+                std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName);
+                std :: cout << tcapString << std :: endl;
                 tcapStrings.push_back(tcapString);
-                inputTupleSetName = outputTupleSetName;
+                lambdaLabel++;
+                if (multiInputsComp == nullptr) {
+                        inputTupleSetNames.clear();
+                        inputTupleSetNames.push_back(outputTupleSetName);
+                }
                 inputColumnNames.clear();
                 for (int i = 0; i < outputColumns.size(); i++) {
-                         inputColumnNames.push_back(outputColumns[i]);
+                        inputColumnNames.push_back(outputColumns[i]);
                 }
-                lambdaLabel++;
 
         }
 
 public:
+
+        unsigned int getInputIndex() {
+            return tree->getInputIndex();
+        }
 
 	// create a lambda tree that returns a pointer
 	Lambda (LambdaTree <Ptr<ReturnType>> treeWithPointer) {
@@ -107,11 +174,23 @@ public:
 		traverse (returnVal, tree, suffix);
 	}
 
+
+        std :: vector < std :: string> getAllInputs ( MultiInputsBase * multiInputsBase) {
+             std :: cout << "All inputs in this lambda tree:" << std :: endl;
+             std :: vector < std :: string > ret;
+             this->getInputs(ret, tree, multiInputsBase);
+             for (int i = 0; i < ret.size(); i++) {
+                 std :: cout << ret[i] << std :: endl;
+             }
+             return ret;
+        }
+
         //to get the TCAPString for this lambda tree
-        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, bool whetherToRemoveUnusedOutputColumns) {
+        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector <std :: string> childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr) {
             std :: vector<std :: string> tcapStrings;
             std :: string outputTCAPString;
-            std :: string tupleSetName = inputTupleSetName;
+            std :: vector<std :: string> inputTupleSetNames;
+            inputTupleSetNames.push_back(inputTupleSetName);
             std :: vector<std :: string> columnNames;
             for (int i = 0; i < inputColumnNames.size(); i ++) {
                     columnNames.push_back(inputColumnNames[i]);
@@ -120,9 +199,12 @@ public:
             for (int i = 0; i < inputColumnsToApply.size(); i ++) {
                     columnsToApply.push_back(inputColumnsToApply[i]);
             }
-            getTCAPString (tcapStrings, tupleSetName, columnNames, columnsToApply, tree, lambdaLabel, computationName, computationLabel, addedOutputColumnName);
+            std :: vector<std :: string> childrenLambdas;
+            for (int i = 0; i < childrenLambdaNames.size(); i++) {
+                    childrenLambdas.push_back(childrenLambdaNames[i]);
+            }
+            getTCAPString (tcapStrings, inputTupleSetNames, columnNames, columnsToApply, childrenLambdas, tree, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp);
             PDB_COUT << "Lambda: lambdaLabel=" << lambdaLabel << std :: endl;
-            outputTupleSetName = tupleSetName;
             bool isOutputInInput = false;
             if (whetherToRemoveUnusedOutputColumns == false) { 
                 for (int i = 0; i < columnNames.size(); i ++) {

@@ -86,12 +86,14 @@ class AggregateComp : public Computation {
         return "";
     }
     InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
-    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+    std :: vector < std :: string> childrenLambdaNames;
+    std :: string myLambdaName;
+    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), childrenLambdaNames, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName);
  } 
 
 
         // to return Aggregate tcap string
-        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
+        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName, std :: string &myLambdaName)  {
                 std :: string tcapString = "";
                 Handle<InputClass> checkMe = nullptr;
                 Lambda <KeyClass> keyLambda = getKeyProjection (checkMe);
@@ -99,11 +101,11 @@ class AggregateComp : public Computation {
                 std :: vector<std :: string> columnNames;
                 std :: string addedColumnName;
                 int lambdaLabel = 0;
-                tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, false);
+                tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, myLambdaName, false);
                 Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
                 std :: vector<std :: string> columnsToApply;
                 columnsToApply.push_back(addedColumnName);
-                tcapString += valueLambda.toTCAPString(tupleSetName, columnNames, columnsToApply, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, false); 
+                tcapString += valueLambda.toTCAPString(tupleSetName, columnNames, columnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false); 
                 std :: string newTupleSetName = "aggOutFor"+getComputationType()+ std :: to_string(computationLabel);
                 /*
                 tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+ outputColumnNames[0];
