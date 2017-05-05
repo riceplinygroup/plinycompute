@@ -34,12 +34,13 @@
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
 #include "StringIntPair.h"
+#include "QueryGraphAnalyzer.h"
 
 // to run the aggregate, the system first passes each through the hash operation...
 // then the system 
 using namespace pdb;
 
-class SillyWrite : public SetWriter <double> {
+class SillyWrite : public SetWriter <String> {
 
 public:
 
@@ -49,7 +50,7 @@ public:
 	// iterate through pages that are pulled from disk/RAM by the system... a programmer
 	// should not provide this particular method
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <VectorSink <double>> (consumeMe, projection);
+		return std :: make_shared <VectorSink <String>> (consumeMe, projection);
 	}
 };
 
@@ -251,12 +252,30 @@ int main () {
 	Handle <Computation> myJoin = makeObject <SillyJoin> ();
 	Handle <Computation> myWriter = makeObject <SillyWrite> ();
 	
-	// put them in the list of computations
-	myComputations.push_back (readA);
-	myComputations.push_back (readB);
-	myComputations.push_back (readC);
-	myComputations.push_back (myJoin);
-	myComputations.push_back (myWriter);
+
+        std :: cout << "##############################" << std :: endl;
+
+        myJoin->setInput(0, readA);
+        myJoin->setInput(1, readB);
+        myJoin->setInput(2, readC);
+        myWriter->setInput(myJoin);
+        std :: vector <Handle<Computation>> queryGraph;
+        queryGraph.push_back(myWriter);
+        QueryGraphAnalyzer queryAnalyzer(queryGraph);
+        std :: string tcapString = queryAnalyzer.parseTCAPString();
+        std :: cout << "TCAP OUTPUT:" << std :: endl;
+        std :: cout << tcapString << std :: endl;
+
+        std :: cout << "#################################" << std :: endl;
+
+
+        // put them in the list of computations
+        myComputations.push_back (readA);
+        myComputations.push_back (readB);
+        myComputations.push_back (readC);
+        myComputations.push_back (myJoin);
+        myComputations.push_back (myWriter);
+
 
 	// now we create the TCAP string
         String myTCAPString =

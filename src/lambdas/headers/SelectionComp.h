@@ -79,12 +79,14 @@ public:
         return "";
     }
     InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
-    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+    std :: vector<std :: string> childrenLambdaNames;
+    std :: string myLambdaName;
+    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), childrenLambdaNames, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName);
  } 
 
 
         // to return Selection tcap string
-        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
+        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName, std :: string& myLambdaName)  {
                 PDB_COUT << "To GET TCAP STRING FOR SELECTION" << std :: endl;
                 std :: string tcapString = "";
                 Handle<InputClass> checkMe = nullptr;
@@ -94,7 +96,7 @@ public:
                 std :: vector<std :: string> columnNames;
                 std :: string addedColumnName;
                 int lambdaLabel = 0;
-                tcapString += selectionLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, false);
+                tcapString += selectionLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, myLambdaName, false);
                 PDB_COUT << "tcapString after parsing selection lambda: " << 
 tcapString << std :: endl;
                 PDB_COUT << "lambdaLabel=" << lambdaLabel << std :: endl;
@@ -114,7 +116,7 @@ tcapString << std :: endl;
                 Lambda <Handle<OutputClass>> projectionLambda = getProjection (checkMe);
                 PDB_COUT << "TO GET TCAP STRING FOR PROJECTION LAMBDA" << std :: endl;
                 PDB_COUT << "lambdaLabel=" << lambdaLabel << std :: endl;
-                tcapString += projectionLambda.toTCAPString(newTupleSetName, inputColumnNames, inputColumnsToApply, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, true);
+                tcapString += projectionLambda.toTCAPString(newTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true);
                 this->setTraversed (true);
                 this->setOutputTupleSetName (outputTupleSetName);
                 this->setOutputColumnToApply (addedOutputColumnName);

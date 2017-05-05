@@ -18,7 +18,6 @@
 #ifndef  JOINCOMPBASE_H
 #define JOINCOMPBASE_H
 
-#include "Computation.h"
 
 namespace pdb {
 
@@ -31,6 +30,8 @@ public:
 
         virtual ComputeExecutorPtr getExecutor (bool needToSwapAtts, TupleSpec &hashedInputSchema, TupleSpec &pipelinedInputSchema,
                 TupleSpec &pipelinedAttsToOperateOn, TupleSpec &pipelinedAttsToIncludeInOutput) = 0;
+
+
 };
 
 }

@@ -102,10 +102,52 @@ class CPlusPlusLambda : public TypedLambdaObject <ReturnType> {
 private:
 
 	F myFunc;
-
+        int numInputs = 0;
 public:
 
-	CPlusPlusLambda (F arg) : myFunc (arg) {}
+        //JiaNote: I changed CPlusPlusLambda constructor interface to obtain input information for query graph analysis.
+	CPlusPlusLambda (F arg, Handle<ParamOne>  & input1, Handle<ParamTwo> & input2, Handle<ParamThree> & input3,
+                  Handle<ParamFour> & input4, Handle<ParamFive> & input5) : myFunc (arg) {
+
+            std :: cout << "CPlusPlusLambda:" << std :: endl;
+            if (getTypeName<ParamOne>() != "pdb::Nothing") {
+                 std :: cout << getTypeName<ParamOne>() << std :: endl;
+                 std :: cout << "input1 type code is " << input1.getExactTypeInfoValue() << std :: endl;
+                 this->numInputs ++;
+                 this->setInputIndex(0, -((input1.getExactTypeInfoValue()+1)));
+            }
+            if (getTypeName<ParamTwo>() != "pdb::Nothing") {
+                 std :: cout << getTypeName<ParamTwo>() << std :: endl;
+                 std :: cout << "input2 type code is " << input2.getExactTypeInfoValue() << std :: endl;
+                 this->numInputs ++;
+                 this->setInputIndex(1, -((input2.getExactTypeInfoValue()+1)));
+            }
+            if (getTypeName<ParamThree>() != "pdb::Nothing") {
+                 std :: cout << getTypeName<ParamThree>() << std :: endl;
+                 std :: cout << "input3 type code is " << input3.getExactTypeInfoValue() << std :: endl;
+                 this->numInputs ++;
+                 this->setInputIndex(2, -((input3.getExactTypeInfoValue()+1)));
+            }
+            if (getTypeName<ParamFour>() != "pdb::Nothing") {
+                 std :: cout << getTypeName<ParamFour>() << std :: endl;
+                 std :: cout << "input4 type code is " << input4.getExactTypeInfoValue() << std :: endl;
+                 this->numInputs ++;
+                 this->setInputIndex(3, -((input4.getExactTypeInfoValue()+1)));
+            }
+            if (getTypeName<ParamFive>() != "pdb::Nothing") {
+                 std :: cout << getTypeName<ParamFive>() << std :: endl;
+                 std :: cout << "input5 type code is " << input5.getExactTypeInfoValue() << std :: endl;
+                 this->numInputs ++;
+                 this->setInputIndex(4, -((input5.getExactTypeInfoValue()+1)));
+            }
+
+
+        }
+
+
+        unsigned int getNumInputs() override {
+            return this->numInputs;
+        }
 
 	std :: string getTypeOfLambda () override {
 		return std :: string ("native_lambda");
@@ -120,6 +162,7 @@ public:
 	}
 	
 	~CPlusPlusLambda () {}
+
 
 	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 

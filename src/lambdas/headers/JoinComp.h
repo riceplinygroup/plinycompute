@@ -24,6 +24,7 @@
 #include "ComputePlan.h"
 #include "JoinTuple.h"
 #include "JoinCompBase.h"
+#include "MultiInputsBase.h"
 
 namespace pdb {
 
@@ -47,12 +48,42 @@ public:
 template <typename Out, typename In1, typename In2, typename ...Rest>
 class JoinComp  : public JoinCompBase {
 
-
 private:
 
-       std :: vector < std :: string> tupleSetNamesForInputs;
+       //this is used to pass to lambda tree to update pipeline information for each input
+       MultiInputsBase * multiInputsBase = new MultiInputsBase();
 
 public:
+
+        MultiInputsBase * getMultiInputBase () {
+            return multiInputsBase;
+        }
+
+        virtual ~ JoinComp() {
+            free(multiInputsBase);
+        }
+
+        void analyzeInputSets(std :: vector < std :: string> inputNames) {
+            //Step 1. setup all input names (the column name corresponding to input in tuple set)
+            for (int i = 0; i < inputNames.size(); i++) {
+                this->multiInputsBase->setNameForIthInput(i, inputNames[i]);
+            }
+
+            //Step 2. analyze selectionLambda to find all inputs in predicates
+            Lambda<bool> selectionLambda = callGetSelection(*this);
+            std :: vector <std :: string> inputsInPredicates = selectionLambda.getAllInputs(this->multiInputsBase);
+            for (int i = 0; i < inputsInPredicates.size(); i++) {
+                this->multiInputsBase->addInputNameToPredicates(inputsInPredicates[i]);
+            }
+            //Step 3. analyze projectionLambda to find all inputs in projection
+            Lambda<Handle<Out>> projectionLambda = callGetProjection(*this);
+            std :: vector <std :: string> inputsInProjection = projectionLambda.getAllInputs(this->multiInputsBase);
+            for (int i = 0; i < inputsInProjection.size(); i++) {
+                this->multiInputsBase->addInputNameToProjection(inputsInProjection[i]);
+            }
+
+        }
+
 
 	// the computation returned by this method is called to see if a data item should be returned in the output set
 	virtual Lambda <bool> getSelection (Handle <In1> in1, Handle <In2> in2, Handle <Rest> ...otherArgs) = 0;
@@ -152,17 +183,45 @@ public:
 
         //JiaNote: Returning a TCAP string for this Join computation
         virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+
+                std :: cout << "to get TCAPString for Computation: JoinComp_" << computationLabel << " with " << inputTupleSets.size() << "inputs" << std :: endl;
                 if (inputTupleSets.size()  == getNumInputs()) {
                     std :: string tcapString = "";
-
+                    multiInputsBase->setNumInputs(this->getNumInputs());
+                    std :: vector < std :: string > inputNames;
                     //update tupleset name for input sets                    
                     for (unsigned int i = 0; i < inputTupleSets.size(); i++) {
-                        //setTupleSetNameForIthInput(i, inputTupleSets[i]);
+                       this->multiInputsBase->setTupleSetNameForIthInput(i, inputTupleSets[i].getTupleSetName());
+                       this->multiInputsBase->setInputColumnsForIthInput(i, inputTupleSets[i].getColumnNamesToKeep());
+                       this->multiInputsBase->setInputColumnsToApplyForIthInput(i, inputTupleSets[i].getColumnNamesToApply());
+                       inputNames.push_back(inputTupleSets[i].getColumnNamesToApply()[0]);
                     }
+                    analyzeInputSets(inputNames);
                     Lambda <bool> selectionLambda = callGetSelection (*this);
-                    //tcapString += selectionLambda.toJoinSelectionTCAPString (...);
+                    std :: string inputTupleSetName = "";
+                    std :: vector<std :: string> inputColumnNames;
+                    std :: vector<std :: string> inputColumnsToApply;
+                    std :: vector<std :: string> childrenLambdaNames;
+                    int lambdaLabel = 0;
+                    std :: string myLambdaName;
+                    MultiInputsBase * multiInputsComp = this->getMultiInputBase();
+                    tcapString += selectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false, multiInputsComp);
+                    
+
+                    //std :: cout << tcapString << std :: endl;
+
                     Lambda <Handle <Out>> projectionLambda = callGetProjection (*this);
-                    //tcapString += projectionLambda.toTCAPString (...);
+                    inputTupleSetName = outputTupleSetName;
+                    inputColumnNames.clear();
+                    for (int i = 0; i < outputColumnNames.size(); i++) {
+                        inputColumnNames.push_back(outputColumnNames[i]);
+                    }
+                    inputColumnsToApply.clear();
+                    childrenLambdaNames.clear();
+                    tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp);
+                    //std :: cout << tcapString << std :: endl;
+                    //std :: cout << "JoinComp: outputTupleSetName: " << outputTupleSetName << std :: endl;
+                    //std :: cout << "JoinComp: addedOutputColumnName: " << addedOutputColumnName << std :: endl;
                     return tcapString;
                      
                 } else {
@@ -171,27 +230,6 @@ public:
                 }
         }
  
-        // JiaNote: returns the latest tuple set name that contains the i-th input
-        std :: string getTupleSetNameForIthInput (int i) {
-                if (i > this->getNumInputs()) {
-                    return "";
-                }
-                return tupleSetNamesForInputs[i];
-        }
-
-        // JiaNote: set the latest tuple set name that contains the i-th input
-        void setTupleSetNameForIthInput (int i, std::string name) {
-                int numInputs = this->getNumInputs();
-                if (tupleSetNamesForInputs.size() != numInputs) {
-                    tupleSetNamesForInputs.resize(numInputs, 0);
-                } 
-                if (i < numInputs) {
-                     tupleSetNamesForInputs[i] = name;
-                }
-        }
-
-
-
 
 	// gets an execute that can run a scan join... needToSwapAtts is true if the atts that are currently stored in the hash table need to
 	// come SECOND in the output tuple sets... hashedInputSchema tells us the schema for the attributes that are currently stored in the

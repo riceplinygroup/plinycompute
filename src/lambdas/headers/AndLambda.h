@@ -63,11 +63,19 @@ public:
 	AndLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
+                std :: cout << "LHS index is " << lhs.getInputIndex(0) << std :: endl;
+                std :: cout << "RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                this->setInputIndex (0, lhs.getInputIndex(0));
+                this->setInputIndex (1, rhs.getInputIndex(0));
 	}
 
 	std :: string getTypeOfLambda () override {
 		return std :: string ("&&");
 	}
+
+        unsigned int getNumInputs() override {
+            return 2;
+        }
 
 	int getNumChildren () override {
 		return 2;
@@ -82,15 +90,6 @@ public:
 	}
 
 
-        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName) override {
-                 //it doesn't do anything for Join selection
-                 if (computationName == "JoinComp") {
-                      return "";
-                 }
-                 //TODO
-                 return "";
-
-        }
 
 	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 	

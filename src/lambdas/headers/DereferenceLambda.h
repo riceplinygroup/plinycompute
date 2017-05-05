@@ -38,15 +38,41 @@ public:
 
 public:
 
-	DereferenceLambda (LambdaTree <Ptr <OutType>> &input) : input (input) {}
+
+        unsigned int getInputIndex(int i) override {
+            return input.getInputIndex(i);
+        }
+
+	DereferenceLambda (LambdaTree <Ptr <OutType>> &input) : input (input) {
+        }
+
+        unsigned int getNumInputs() override {
+            return 1;
+        }
 
 	std :: string getTypeOfLambda () override {
 		return std :: string ("deref");
 	}
 
-        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName) override {
+        std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
                 std :: string tcapString = "";
-                outputTupleSetName = "deref_"+ std :: to_string(lambdaLabel) +"OutFor"+computationName+std :: to_string(computationLabel);
+                myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
+                std :: string inputTupleSetName = inputTupleSetNames[0];
+                std :: string tupleSetMidTag = "";
+                int myIndex;
+                if (multiInputsComp == nullptr) {
+                    tupleSetMidTag = "OutFor";
+                } else {
+                    tupleSetMidTag = "ExtractedFor";
+                    myIndex = this->getInputIndex(0);
+                    inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
+                    inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
+                    inputColumnsToApply = multiInputsComp->getInputColumnsToApplyForIthInput(myIndex);
+                    multiInputsComp->setLambdasForIthInputAndPredicate(myIndex, parentLambdaName, myLambdaName);
+                }
+
+                
+                outputTupleSetName = "deref_"+ std :: to_string(lambdaLabel) +tupleSetMidTag+computationName+std :: to_string(computationLabel);
 
                 outputColumnName = inputColumnsToApply[0];
                 PDB_COUT << "OuputColumnName: " <<outputColumnName << std :: endl;  
@@ -82,7 +108,49 @@ public:
                     tcapString += ",";
                     tcapString += inputColumnsToKeep[i];
                 }
-                tcapString += "), '" + computationName + "_" + std :: to_string(computationLabel) + "', '"+ getTypeOfLambda() + "_" + std :: to_string(lambdaLabel) +"')\n";
+                tcapString += "), '" + computationName + "_" + std :: to_string(computationLabel) + "', '"+ myLambdaName +"')\n";
+                if (multiInputsComp != nullptr) {
+                    if (amILeftChildOfEqualLambda || amIRightChildOfEqualLambda) {
+                        inputTupleSetName = outputTupleSetName;
+                        inputColumnNames.clear();
+                        for (int i = 0; i < outputColumns.size(); i++) {
+                            //we want to remove the extracted value column from here
+                            if (outputColumns[i] != outputColumnName) {
+                                inputColumnNames.push_back(outputColumns[i]);
+                            }
+                        }
+                        inputColumnsToApply.clear();
+                        inputColumnsToApply.push_back(outputColumnName);
+
+                        std :: string hashOperator = "";
+                        if (amILeftChildOfEqualLambda == true) {
+                            hashOperator = "HASHLEFT";
+                        } else {
+                            hashOperator = "HASHRIGHT";
+                        }
+                        outputTupleSetName =outputTupleSetName+"_hashed";
+                        outputColumnName = outputColumnName+"_hash";
+                        outputColumns.clear();
+
+                        for (int i = 0; i < inputColumnNames.size(); i++) {
+                            outputColumns.push_back(inputColumnNames[i]);
+                        }
+                        outputColumns.push_back(outputColumnName);
+                        std :: string computationNameWithLabel = computationName+std :: to_string(computationLabel);
+                        tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, hashOperator, computationNameWithLabel, parentLambdaName);;
+                    }
+                    for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
+                        std :: string curInput = multiInputsComp->getNameForIthInput(index);
+                        auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);
+                        if (iter != outputColumns.end()) {
+                            multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
+                            multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
+                            multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
+                        }
+                    }
+                }
+
+
                 return tcapString;
 
 

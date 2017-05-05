@@ -65,10 +65,10 @@ class ScanSet : public Computation {
         // below function returns a TCAP string for this Computation
         std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
 
-                std :: string ret = std :: string("inputData (in) <= SCAN ('") + std :: string("empty()") + "', '" + std :: string("empty()") + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')");
-                outputTupleSetName = "inputData";
-                outputColumnNames.push_back("in");
-                addedOutputColumnName = "in";
+                addedOutputColumnName = "in"+std :: to_string(computationLabel);
+                outputTupleSetName = "inputData"+std :: to_string(computationLabel);
+                std :: string ret = outputTupleSetName + "(" + addedOutputColumnName + std :: string(") <= SCAN ('") + std :: string("empty()") + "', '" + std :: string("empty()") + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
+                outputColumnNames.push_back(addedOutputColumnName);
                 this->setTraversed (true);
                 this->setOutputTupleSetName (outputTupleSetName);
                 this->setOutputColumnToApply (addedOutputColumnName);
