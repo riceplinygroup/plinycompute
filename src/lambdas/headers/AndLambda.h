@@ -219,15 +219,23 @@ public:
                        tcapString += this->getTCAPString(rightTupleSetName, rhsColumnNames, rightColumnsToApply, rightOutputTupleSetName, rightOutputColumns, rightOutputColumnName, "HASHONE", myComputationName, "");
 
                        //cartesian join lhs and rhs
+                       tcapString += "\n/* CartesianJoin ( " + lhsInputNames[0];
+
                        outputTupleSetName = "CartesianJoined_[" + lhsInputNames[0];
                        for (unsigned int i = 1; i < lhsInputNames.size(); i++) {
                            outputTupleSetName += "_" + lhsInputNames[i];
+                           tcapString += " " + lhsInputNames[i];
                        }
                        outputTupleSetName += "]_[" + rhsInputNames[0];
+                       tcapString += " ) and ( " + rhsInputNames[0];
                        for (unsigned int i = 1; i < rhsInputNames.size(); i++) {
                            outputTupleSetName += "_" + rhsInputNames[i];
+                           tcapString += " " + rhsInputNames[i];
                        }
                        outputTupleSetName += "]";
+                       tcapString += " ) */\n";
+
+                       //TODO: push down projection here
                        outputColumns.clear();
                        tcapString += outputTupleSetName + "(" + lhsColumnNames[0];
                        outputColumns.push_back(lhsColumnNames[0]);

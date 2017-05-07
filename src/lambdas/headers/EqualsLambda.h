@@ -102,29 +102,24 @@ public:
                         outputColumns.push_back(inputColumnNames[i]);
                     }
                     outputColumns.push_back(outputColumnName);
-                    
+                    tcapString += "\n/* Apply selection predicate on " + inputColumnsToApply[0] + " and " + inputColumnsToApply[1] + "*/\n";
                     tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, "APPLY", computationNameWithLabel, myLambdaName);
 
                 } else {
-
-                //We want to generate something like following:
-                
-                ///* now, join the two of them */ \n\
-                AandBJoined (a, aAndC) <= JOIN (AHashed (hash), AHashed (a), BHashedOnA (hash), BHashedOnA (aAndC), 'JoinComp_3') \n\
-                                \n\
-                /* and extract the two atts and check for equality */ \n\
-                AandBJoinedWithAExtracted (a, aAndC, aExtracted) <= APPLY (AandBJoined (a), AandBJoined (a, aAndC), 'JoinComp_3', 'self_0') \n\
-                AandBJoinedWithBothExtracted (a, aAndC, aExtracted, otherA) <= APPLY (AandBJoinedWithAExtracted (aAndC), \n\
-                        AandBJoinedWithAExtracted (a, aAndC, aExtracted), 'JoinComp_3', 'attAccess_1') \n\
-                AandBJoinedWithBool (aAndC, a, bool) <= APPLY (AandBJoinedWithBothExtracted (aExtracted, otherA), AandBJoinedWithBothExtracted (aAndC, a), \n\
-                        'JoinComp_3', '==_2') \n\
-                AandBJoinedFiltered (a, aAndC) <= FILTER (AandBJoinedWithBool (bool), AandBJoinedWithBool (a, aAndC), 'JoinComp_3') \n\
-
-                //AandBJoined (a, aAndC) <= JOIN (AHashed (hash), AHashed (a), BHashedOnA (hash), BHashedOnA (aAndC), 'JoinComp_3')
-                //BandCJoined (a, aAndC, c) <= JOIN (BHashedOnC (hash), BHashedOnC (a, aAndC), CHashedOnC (hash), CHashedOnC (c), 'JoinComp_3')
+                    tcapString += "\n/* Join ( " + inputColumnNames[0] ;
+                    int indexOfMid;
+                    for (unsigned int i = 1; i < inputColumnNames.size()-1; i++) {
+                         if (inputColumnNames[i] == inputColumnsToApply[0]) {
+                             tcapString += " ) and (";
+                         } else {
+                             tcapString += " "+inputColumnNames[i];
+                         }
+                    }
+                    tcapString += " ) */\n";
                     outputTupleSetName = "JoinedFor_"+myLambdaName+computationNameWithLabel;
                     std :: string tupleSetNamePrefix = outputTupleSetName;
-                    outputColumns.clear(); 
+                    outputColumns.clear();
+                    //TODO: push down projection here 
                     for (int i = 0; i < inputColumnNames.size(); i++) {
                         auto iter = std :: find(inputColumnsToApply.begin(), inputColumnsToApply.end(), inputColumnNames[i]);
                         if (iter == inputColumnsToApply.end()) {
@@ -132,6 +127,7 @@ public:
                         }
                     }
                     outputColumnName = "";
+                    
                     tcapString += outputTupleSetName + "(" + outputColumns[0];
                     for (int i = 1; i < outputColumns.size(); i++) {
                         tcapString += ", " + outputColumns[i];
@@ -158,8 +154,6 @@ public:
 
                     tcapString += "), '" + computationNameWithLabel + "')\n";
                 
-                //AandBJoinedWithAExtracted (a, aAndC, aExtracted) <= APPLY (AandBJoined (a), AandBJoined (a, aAndC), 'JoinComp_3', 'self_0')
-                //BandCJoinedWithCExtracted (a, aAndC, c, cFromLeft) <= APPLY (BandCJoined (aAndC), BandCJoined (a, aAndC, c), 'JoinComp_3', 'attAccess_3')
                     inputTupleSetName = outputTupleSetName;
                     inputColumnNames.clear();
                     for (int i = 0; i < outputColumns.size(); i++) {
