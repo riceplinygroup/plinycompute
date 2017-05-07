@@ -184,31 +184,6 @@ public:
                 return getOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
         }
 
-        // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by &&
-        virtual ComputeExecutorPtr getLeftOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
-                std :: cout << "getOneHasher not implemented for this type!!\n";
-                exit (1);
-        }
-
-
-        // version of the above that accepts ComputeInfo
-        virtual ComputeExecutorPtr getLeftOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
-                return getLeftOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
-        }
-
-        // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by &&
-        virtual ComputeExecutorPtr getRightOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
-                std :: cout << "getOneHasher not implemented for this type!!\n";
-                exit (1);
-        }
-
-
-        // version of the above that accepts ComputeInfo
-        virtual ComputeExecutorPtr getRightOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
-                return getRightOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
-        }
-
-
 
 	// returns the name of this LambdaBase type, as a string
 	virtual std :: string getTypeOfLambda () = 0;
