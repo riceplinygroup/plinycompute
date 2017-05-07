@@ -209,11 +209,16 @@ public:
                     
 
                     //std :: cout << tcapString << std :: endl;
-
+                    std :: vector <std :: string> inputsInProjection = multiInputsComp->getInputsInProjection ();
+                    tcapString += "\n/* run Join projection on ( " + inputsInProjection[0];
+                    for (unsigned int i = 1; i < inputsInProjection.size(); i++) {
+                        tcapString += " "+inputsInProjection[i];
+                    }
+                    tcapString += " )*/\n";
                     Lambda <Handle <Out>> projectionLambda = callGetProjection (*this);
                     inputTupleSetName = outputTupleSetName;
                     inputColumnNames.clear();
-                    for (int i = 0; i < outputColumnNames.size(); i++) {
+                    for (unsigned int i = 0; i < outputColumnNames.size(); i++) {
                         inputColumnNames.push_back(outputColumnNames[i]);
                     }
                     inputColumnsToApply.clear();
