@@ -83,6 +83,8 @@ struct MaintenanceFuncs {
         // this replicates instances of a column to run a join
         std :: function <void * (void *, std :: vector <uint32_t> &)> replicate;
 
+        // JiaNote: this gets count for a particular column
+        std :: function <size_t (void *)> getCount;
 
 	// this is a function that creates and returns a pdb :: Vector for a column
 	std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector;
@@ -108,6 +110,7 @@ struct MaintenanceFuncs {
 	// fill all of the fields
 	MaintenanceFuncs (std :: function <void (void *)> deleter, std :: function <void * (void *, std :: vector <bool> &)> filter,
                 std :: function <void * (void *, std :: vector <uint32_t> &)> replicate,
+                std :: function <size_t (void *)> getCount,
 		std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector, 
 		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector, 
 		bool mustDelete, std :: string typeContained, size_t serializedSize) : 
@@ -265,6 +268,15 @@ public:
                 columns[whichColToCopyTo] = std :: make_pair (newCol, temp);
         }
 
+        //JiaNote: to get number of rows in a particular column
+        // returns -1 if column doesn't exist
+        int getNumRows (int whichColumn) {
+            if (hasColumn(whichColumn) == false) {
+                return -1;
+            }
+            return columns[whichColumn].second.getCount(columns[whichColumn].first);
+        } 
+
 
 
 	// copies a column from another TupleSet, deleting the target, if necessary
@@ -358,7 +370,12 @@ public:
                                 // and return the result
                                 return (void *) newVec;
                         };
-
+                //JiaNote: add getCount to get number of rows for a particular column at runtime
+                std :: function <size_t (void *)> getCount;
+                getCount = [] (void * countMe) {
+                                 std :: vector <ColType> * toCountRowsOfMe = (std :: vector <ColType> *)countMe;
+                                 return toCountRowsOfMe->size();
+                        };
 	
 		// the third lambda is responsible for writing this column to an output vector
 		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector;
@@ -388,7 +405,7 @@ public:
 				return unsafeCast <Vector <Handle <Object>>> (returnVal);
 			};
 	
-		MaintenanceFuncs myFuncs (deleter, filter, replicate, createPDBVector, writeToVector,  
+		MaintenanceFuncs myFuncs (deleter, filter, replicate, getCount, createPDBVector, writeToVector,  
 			needToDelete, getTypeName <ColType> (), getSerializedSize <std :: is_base_of <PtrBase, ColType> :: value, ColType> ());
 		columns [where] = std :: make_pair ((void *) addMe, myFuncs);
 	}
