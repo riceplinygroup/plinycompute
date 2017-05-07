@@ -62,11 +62,13 @@ private:
                 getInputs(allInputs, child, multiInputsBase);    
             }
             if (root->getNumChildren() == 0) {
-                std :: string myName = multiInputsBase->getNameForIthInput(root->getInputIndex(0));
-                auto iter = std :: find(allInputs.begin(), allInputs.end(), myName);
-                if (iter == allInputs.end()) {
-                    allInputs.push_back(myName);
-                }
+                for (int i = 0; i < root->getNumInputs(); i++) {
+                   std :: string myName = multiInputsBase->getNameForIthInput(root->getInputIndex(i));
+                   auto iter = std :: find(allInputs.begin(), allInputs.end(), myName);
+                   if (iter == allInputs.end()) {
+                       allInputs.push_back(myName);
+                   }
+               }
             }
         }
 

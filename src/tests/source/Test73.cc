@@ -124,6 +124,33 @@ public:
 
 
 
+// this plan has three tables: A (a: int), B (a: int, c: String), C (c: int)
+// it first joins A with B, and then joins the result with C
+class SillyCoolJoin : public JoinComp <String, int, StringIntPair, String> {
+
+public:
+
+        ENABLE_DEEP_COPY
+
+        Lambda <bool> getSelection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
+                std :: cout << "SillyCartesianJoin selection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+                return makeLambda (in1, in2, in3, [] (Handle <int> & in1,  Handle <StringIntPair> &in2, Handle <String> &in3) {
+                      return true;
+                });
+        }
+
+
+        Lambda <Handle <String>> getProjection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
+                 std :: cout << "SillyJoin projection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+                 return makeLambda (in1, in2, in3, [] (Handle <int> &in1, Handle <StringIntPair> &in2, Handle <String> &in3) {
+                                std::ostringstream oss;
+                                oss << "Got int " << *in1 << " and StringIntPair (" << in2->myInt << ", '" << *(in2->myString) << "') and String '" << *in3 << "'";
+                                Handle <String> res = makeObject <String> (oss.str ());
+                                return res;
+                        });
+        }
+
+};
 
 class SillyReadOfA : public ScanSet <int> {
 
@@ -350,5 +377,26 @@ int main () {
         std :: cout << tcapString2 << std :: endl;
 
         std :: cout << "#################################" << std :: endl;
+
+        // create all of the computation objects
+        readA = makeObject <SillyReadOfA> ();
+        readB = makeObject <SillyReadOfB> ();
+        readC = makeObject <SillyReadOfC> ();
+        Handle <Computation> myCoolJoin = makeObject <SillyCoolJoin> ();
+        myWriter = makeObject <SillyWrite> ();
+        myCoolJoin->setInput(0, readA);
+        myCoolJoin->setInput(1, readB);
+        myCoolJoin->setInput(2, readC);
+        myWriter->setInput(0, myCoolJoin);
+        std :: vector <Handle<Computation>> queryGraph3;
+        queryGraph3.push_back(myWriter);
+        QueryGraphAnalyzer queryAnalyzer3(queryGraph3);
+        std :: string tcapString3 = queryAnalyzer3.parseTCAPString();
+        std :: cout << "TCAP OUTPUT:" << std :: endl;
+        std :: cout << tcapString3 << std :: endl;
+
+        std :: cout << "#################################" << std :: endl;
+
+
 
 }
