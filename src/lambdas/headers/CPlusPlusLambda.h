@@ -245,7 +245,7 @@ public:
                                 myMachine->setup (input, output);
 
                                 // get the columns to get size of tuples
-                                std :: vector <Handle<ParamOne>> & firstColumn = input->getColumn<Handle<ParamOne>> (firstAtt);
+                                //std :: vector <Handle<ParamOne>> & firstColumn = input->getColumn<Handle<ParamOne>> (firstAtt);
 
                                 // create the output attribute, if needed
                                 if (!output->hasColumn (outAtt)) {
@@ -257,7 +257,8 @@ public:
                                 std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
 
                                 // loop down the columns, setting the output
-                                int numTuples = firstColumn.size();
+                                //int numTuples = firstColumn.size();
+                                int numTuples = input->getNumRows(firstAtt);
                                 outColumn.resize (numTuples);
                                 for (int i = 0; i < numTuples; i++) {
                                         outColumn [i] = 1;
