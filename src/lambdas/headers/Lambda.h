@@ -72,7 +72,7 @@ private:
 
 
         //JiaNote: below function is to generate a sequence of TCAP Strings for this Lambda tree
-        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
+        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
 
                 std :: vector <std :: string> columnsToApply;
                 std :: vector <std :: string> childrenLambdas;
@@ -116,7 +116,7 @@ private:
                                 isRightChildOfEqualLambda = true;
                             }
                         }        
-                        getTCAPString (tcapStrings, inputNames, inputColumns, columnsToApply, childrenLambdas, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, isLeftChildOfEqualLambda, isRightChildOfEqualLambda, myName);
+                        getTCAPString (tcapStrings, inputNames, inputColumns, columnsToApply, childrenLambdas, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, amIPartOfJoinPredicate, isLeftChildOfEqualLambda, isRightChildOfEqualLambda, myName);
                         inputColumnsToApply.push_back(addedOutputColumnName);
                         childrenLambdaNames.push_back(myLambdaName);
                         if (multiInputsComp != nullptr) {
@@ -136,7 +136,7 @@ private:
                         isRightChildOfEqualLambda = false;
                 }
                 std :: vector<std :: string> outputColumns;
-                std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName);
+                std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amIPartOfJoinPredicate, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName);
                 std :: cout << tcapString << std :: endl;
                 tcapStrings.push_back(tcapString);
                 lambdaLabel++;
@@ -186,7 +186,7 @@ public:
         }
 
         //to get the TCAPString for this lambda tree
-        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector <std :: string> childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr) {
+        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector <std :: string> childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false) {
             std :: vector<std :: string> tcapStrings;
             std :: string outputTCAPString;
             std :: vector<std :: string> inputTupleSetNames;
@@ -203,7 +203,7 @@ public:
             for (int i = 0; i < childrenLambdaNames.size(); i++) {
                     childrenLambdas.push_back(childrenLambdaNames[i]);
             }
-            getTCAPString (tcapStrings, inputTupleSetNames, columnNames, columnsToApply, childrenLambdas, tree, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp);
+            getTCAPString (tcapStrings, inputTupleSetNames, columnNames, columnsToApply, childrenLambdas, tree, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, amIPartOfJoinPredicate);
             PDB_COUT << "Lambda: lambdaLabel=" << lambdaLabel << std :: endl;
             bool isOutputInInput = false;
             if (whetherToRemoveUnusedOutputColumns == false) { 

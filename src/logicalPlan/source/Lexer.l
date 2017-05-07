@@ -72,6 +72,8 @@
 
 [Hh][Aa][Ss][Hh][Rr][Ii][Gg][Hh][Tt]  return HASHRIGHT;
 
+[Hh][Aa][Ss][Hh][Oo][Nn][Ee]    return HASHONE;
+
 [Ss][Cc][Aa][Nn]		return SCAN;
 
 [Aa][Gg][Gg][Rr][Ee][Gg][Aa][Tt][Ee]	return AGG;

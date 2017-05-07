@@ -300,6 +300,19 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                                         ((HashLeft *) a.get ())->getLambdaToApply ())->getRightHasher (
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
+                } else if (a->getAtomicComputationType () == "HashOne") {
+                        std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
+
+                        // if we have an available parameter, send it
+                        if (params.count (a->getOutput ().getSetName ()) == 0)
+                                returnVal->addStage (myPlan->getNode (a->getComputationName ()).getLambda (
+                                        ((HashLeft *) a.get ())->getLambdaToApply ())->getRightHasher (
+                                        lastOne->getOutput (), a->getInput (), a->getProjection ()));
+                        else
+                                returnVal->addStage (myPlan->getNode (a->getComputationName ()).getLambda (
+                                        ((HashLeft *) a.get ())->getLambdaToApply ())->getRightHasher (
+                                        lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
+
                 } else if (a->getAtomicComputationType () == "JoinSets") { 
                         std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
 

@@ -205,7 +205,7 @@ public:
                     int lambdaLabel = 0;
                     std :: string myLambdaName;
                     MultiInputsBase * multiInputsComp = this->getMultiInputBase();
-                    tcapString += selectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false, multiInputsComp);
+                    tcapString += selectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false, multiInputsComp, true);
                     
 
                     //std :: cout << tcapString << std :: endl;
@@ -218,7 +218,7 @@ public:
                     }
                     inputColumnsToApply.clear();
                     childrenLambdaNames.clear();
-                    tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp);
+                    tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp, false);
                     //std :: cout << tcapString << std :: endl;
                     //std :: cout << "JoinComp: outputTupleSetName: " << outputTupleSetName << std :: endl;
                     //std :: cout << "JoinComp: addedOutputColumnName: " << addedOutputColumnName << std :: endl;

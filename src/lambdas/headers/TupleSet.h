@@ -201,9 +201,6 @@ public:
 		return *((std :: vector <ColType> *) columns[whichColumn].first);
 	}
 
-
-
-
 	// writes out a specified column... the boolean argument is true when we want to start from scratch; false
 	// if we want to continue the last write
 	void writeOutColumn (int whichColumn, Handle <Vector <Handle <Object>>> &writeToMe, bool startFromScratch) {
