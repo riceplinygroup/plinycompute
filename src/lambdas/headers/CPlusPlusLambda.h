@@ -323,7 +323,7 @@ public:
                     for (unsigned int i = 0; i < inputTupleSetNames.size() - 1; i++) {
                         if (i == 0) {
                             //HashOne for the 0-th tupleset
-                            std :: string curLeftInputTupleSetName = inputTupleSetNames[i];
+                            std :: string curLeftInputTupleSetName = inputTupleSetNames[0];
                             curLeftIndexes = inputPartitions[curLeftInputTupleSetName];
                             curLeftColumnsToKeep = inputColumnNames[0];
                             std :: vector < std :: string > curInputColumnsToApply = inputColumnsToApply[0];
@@ -404,7 +404,7 @@ public:
                         if (i+1 < inputTupleSetNames.size()-1) {
                             tcapString += ", " + curOutputColumnName;
                         }
-                        tcapString += "), " + myComputationName + ")\n";
+                        tcapString += "), '" + myComputationName + "')\n";
                         
                         
                         //update counters
@@ -417,6 +417,11 @@ public:
                         }
                         curLeftHashColumnName = curOutputColumnName;
                     }
+                } else {
+
+                    curLeftTupleSetName = inputTupleSetNames[0];
+                    curLeftColumnsToKeep = inputColumnNames[0];
+
                 } 
 
                 //Step 3. do an apply to add a boolean column
@@ -449,7 +454,7 @@ public:
                 for (unsigned int i = 1; i < curLeftColumnsToKeep.size(); i++) {
                     tcapString += ", " + curLeftColumnsToKeep[i];
                 }
-                tcapString += "), " + myComputationName + ")\n";
+                tcapString += "), '" + myComputationName + "')\n";
 
                 //Step 5. update tupleset names, columns and columns to apply in multiInputsComp
                 for (unsigned int i = 0; i < multiInputsComp->getNumInputs(); i++) {

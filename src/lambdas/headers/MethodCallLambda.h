@@ -88,8 +88,8 @@ public:
                     myIndex = this->getInputIndex(0);
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
-                    inputColumnsToApply = multiInputsComp->getInputColumnsToApplyForIthInput(myIndex);
-                    multiInputsComp->setLambdasForIthInputAndPredicate(myIndex, parentLambdaName, myLambdaName);
+                    inputColumnsToApply.clear();
+                    inputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(myIndex));
                 }
 
 

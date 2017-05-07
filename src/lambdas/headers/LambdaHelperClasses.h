@@ -276,9 +276,11 @@ public:
                     myIndex = this->getInputIndex(0);
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
+                                           
+                    inputColumnsToApply.clear();
 
                     if (this->getNumInputs() == 1) {
-                        inputColumnsToApply = multiInputsComp->getInputColumnsToApplyForIthInput(myIndex);
+                        inputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(myIndex));
                     } else {
                         for (int i = 0; i < this->getNumInputs(); i++) {
                            int index = this->getInputIndex(i);
