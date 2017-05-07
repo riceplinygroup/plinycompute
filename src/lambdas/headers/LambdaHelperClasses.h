@@ -28,8 +28,10 @@
 #include "Ptr.h"
 #include "TupleSpec.h"
 #include "ComputeExecutor.h"
+#include "SimpleComputeExecutor.h"
 #include "ComputeInfo.h"
 #include "MultiInputsBase.h"
+#include "TupleSetMachine.h"
 
 namespace pdb {
 
@@ -170,8 +172,44 @@ public:
         }
 
 
-
+        // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by CPlusPlusLambda, and all one input lambdas that may return boolean
+        virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
+                std :: cout << "getOneHasher not implemented for this type!!\n";
+                exit (1);
+        }
 	
+
+        // version of the above that accepts ComputeInfo
+        virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+        // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by &&
+        virtual ComputeExecutorPtr getLeftOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
+                std :: cout << "getOneHasher not implemented for this type!!\n";
+                exit (1);
+        }
+
+
+        // version of the above that accepts ComputeInfo
+        virtual ComputeExecutorPtr getLeftOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getLeftOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+        // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by &&
+        virtual ComputeExecutorPtr getRightOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
+                std :: cout << "getOneHasher not implemented for this type!!\n";
+                exit (1);
+        }
+
+
+        // version of the above that accepts ComputeInfo
+        virtual ComputeExecutorPtr getRightOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
+                return getRightOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
+        }
+
+
+
 	// returns the name of this LambdaBase type, as a string
 	virtual std :: string getTypeOfLambda () = 0;
 
@@ -223,16 +261,28 @@ public:
                 return tcapString;
         } 
 
+        virtual std :: string toTCAPStringForCartesianJoin(int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp) {
+                 std :: cout << "toTCAPStringForCartesianJoin() should not be implemented here!" << std :: endl;
+                 exit (1);
+        }
 
         // gets TCAP string corresponding to this Lambda
         // JiaNote: below is just a default implementation for Lambdas to "Apply"
         // you can override this implementation in your subclasses
-        virtual std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
+        virtual std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
                 std :: string tcapString = "";
                 std :: string lambdaType = getTypeOfLambda();
                 if ((lambdaType.find("==") != std :: string :: npos) || (lambdaType.find("&&") != std :: string :: npos)) {
                       return "";
                 }
+
+                if ((lambdaType.find("native_lambda") != std :: string :: npos) && (multiInputsComp != nullptr) && (amIPartOfJoinPredicate == true) && (amIRightChildOfEqualLambda == false) && (amIRightChildOfEqualLambda == false) && ((parentLambdaName == "") || (parentLambdaName.find("&&") != std :: string :: npos))) {
+
+                      return toTCAPStringForCartesianJoin (lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, outputColumnName, myLambdaName, multiInputsComp);
+
+                } 
+
+
                 std :: string computationNameWithLabel = computationName + "_"  + std :: to_string(computationLabel);
                 myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
                 std :: string inputTupleSetName = inputTupleSetNames[0];

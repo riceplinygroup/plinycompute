@@ -219,6 +219,247 @@ public:
 			}
 		);	
 	}
+
+        //Jia Note: add 1 to each tuple set for cartesian join        
+        ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
+
+                // create the output tuple set
+                TupleSetPtr output = std :: make_shared <TupleSet> ();
+
+                // create the machine that is going to setup the output tuple set, using the input tuple set
+                TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
+
+                // these are the input attributes that we will process
+                std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
+                int firstAtt = inputAtts[0];
+                                
+
+                // this is the output attribute
+                int outAtt = attsToIncludeInOutput.getAtts ().size ();
+
+                return std :: make_shared <SimpleComputeExecutor> (
+                        output,
+                        [=] (TupleSetPtr input) {
+
+                                // set up the output tuple set
+                                myMachine->setup (input, output);
+
+                                // get the columns to get size of tuples
+                                std :: vector <Handle<ParamOne>> & firstColumn = input->getColumn<Handle<ParamOne>> (firstAtt);
+
+                                // create the output attribute, if needed
+                                if (!output->hasColumn (outAtt)) {
+                                        std :: vector <size_t> *outColumn = new std :: vector <size_t>;
+                                        output->addColumn (outAtt, outColumn, true);
+                                }
+
+                                // get the output column
+                                std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
+
+                                // loop down the columns, setting the output
+                                int numTuples = firstColumn.size();
+                                outColumn.resize (numTuples);
+                                for (int i = 0; i < numTuples; i++) {
+                                        outColumn [i] = 1;
+                                }
+                                return output;
+                        }
+                );
+        }
+
+
+        //JiaNote: we need this to generate TCAP for a cartesian join
+        std :: string toTCAPStringForCartesianJoin(int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp) override {
+
+                std :: string tcapString = "";
+                myLambdaName = "native_lambda_" + std :: to_string (lambdaLabel);
+                std :: string myComputationName = computationName + "_" + std :: to_string (computationLabel); 
+                if (multiInputsComp == nullptr) {
+                    return tcapString;
+                }
+                
+                std :: cout << "I am a native lambda with label " << lambdaLabel << std :: endl;
+
+                //Step 1. for each input get its current tupleset name;
+                unsigned int numInputs = this->getNumInputs();
+                std :: vector < std :: string > inputTupleSetNames;
+                std :: map < std :: string, std :: vector <unsigned int>> inputPartitions;
+                std :: vector < std :: vector < std :: string >> inputColumnNames;
+                std :: vector < std :: vector < std :: string >> inputColumnsToApply;
+                for (unsigned int i = 0; i < numInputs; i++) {
+                    unsigned int index = this->getInputIndex(i);
+                    std :: string curTupleSetName = multiInputsComp->getTupleSetNameForIthInput (index);
+                    auto iter = std :: find (inputTupleSetNames.begin(), inputTupleSetNames.end(), curTupleSetName);
+                    if (iter == inputTupleSetNames.end()) {
+                        inputTupleSetNames.push_back(curTupleSetName);
+                        inputColumnNames.push_back(multiInputsComp->getInputColumnsForIthInput(index));
+                        inputColumnsToApply.push_back(multiInputsComp->getInputColumnsToApplyForIthInput(index));
+                    } 
+                    inputPartitions[curTupleSetName].push_back(index);     
+                    
+                }
+ 
+                std :: cout << "input partitions: " << std :: endl;
+                for (unsigned int i = 0; i < inputTupleSetNames.size(); i++) {
+                     std :: string curTupleSetName = inputTupleSetNames[i];
+                     std :: cout << curTupleSetName << ": ";
+                     std :: vector <unsigned int> curVec = inputPartitions[curTupleSetName];
+                     for (unsigned int j = 0; j < curVec.size(); j++) {
+                         std :: cout << curVec[j] << " ";
+                     }
+                     std :: cout << std :: endl;
+                }
+
+
+                std :: string curLeftTupleSetName;
+                std :: vector < std :: string> curLeftColumnsToKeep;
+                std :: string curLeftHashColumnName;
+                std :: vector < unsigned int > curLeftIndexes;
+                //Step 2. if there are more than one input tuplesets, we need to do cartesian join for all of them
+                if (inputTupleSetNames.size() > 1) {
+                    for (unsigned int i = 0; i < inputTupleSetNames.size() - 1; i++) {
+                        if (i == 0) {
+                            //HashOne for the 0-th tupleset
+                            std :: string curLeftInputTupleSetName = inputTupleSetNames[i];
+                            curLeftIndexes = inputPartitions[curLeftInputTupleSetName];
+                            curLeftColumnsToKeep = inputColumnNames[0];
+                            std :: vector < std :: string > curInputColumnsToApply = inputColumnsToApply[0];
+                            std :: string curPrefix = "hashOneFor";
+                            if (curLeftIndexes.size() > 1) {
+                                curPrefix += "Joined";
+                            }
+                            curLeftTupleSetName = curPrefix + "_" + multiInputsComp->getNameForIthInput(curLeftIndexes[0]);
+                            for (unsigned int j = 1; j < curLeftIndexes.size(); j++) {
+                                curLeftTupleSetName += "_" + multiInputsComp->getNameForIthInput(curLeftIndexes[j]);
+                            }
+                            curLeftHashColumnName = "OneFor_0_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
+                            std :: vector < std :: string > curOutputColumnNames;
+                            for (unsigned int j = 0; j < curLeftColumnsToKeep.size(); j++) {
+                                curOutputColumnNames.push_back(curLeftColumnsToKeep[j]);
+                            }
+                            curOutputColumnNames.push_back(curLeftHashColumnName);
+                            tcapString += this->getTCAPString (curLeftInputTupleSetName, curLeftColumnsToKeep, curInputColumnsToApply,
+                                            curLeftTupleSetName, curOutputColumnNames, curLeftHashColumnName, "HASHONE", myComputationName, 
+                                            myLambdaName);
+                        }
+
+                        //HashOne for the (i+1)-th table
+                        std :: string curInputTupleSetName = inputTupleSetNames[i+1];
+                        std :: vector < std :: string > curInputColumnNames = inputColumnNames[i+1];
+                        std :: vector < std :: string > curInputColumnsToApply = inputColumnsToApply[i+1];
+                        std :: vector <unsigned int> curIndexes = inputPartitions[curInputTupleSetName];
+                        std :: string curPrefix = "hashOneFor";
+                        if (curIndexes.size() > 1) {
+                            curPrefix += "Joined";
+                        }
+                        std :: string curOutputTupleSetName = curPrefix + "_" + multiInputsComp->getNameForIthInput(curIndexes[0]);
+                        for (unsigned int j = 1; j < curIndexes.size(); j++) {
+                            curOutputTupleSetName += "_" + multiInputsComp->getNameForIthInput(curIndexes[j]);
+                        }
+                        std :: string curOutputColumnName = "OneFor_" + std :: to_string (i+1) + "_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
+                        std :: vector < std :: string > curOutputColumnNames;
+                        for (unsigned int j = 0; j < curInputColumnNames.size(); j++) {
+                            curOutputColumnNames.push_back(curInputColumnNames[j]);
+                        }
+                        curOutputColumnNames.push_back(curOutputColumnName);
+                        tcapString += this->getTCAPString (curInputTupleSetName, curInputColumnNames, curInputColumnsToApply,
+                                            curOutputTupleSetName, curOutputColumnNames, curOutputColumnName, "HASHONE", myComputationName,
+                                            myLambdaName);
+
+
+                        //Join the two tables
+                        std :: string outputTupleSetName = "CartesianJoined_["+multiInputsComp->getNameForIthInput(curLeftIndexes[0]);
+                        for (unsigned int j = 1; j < curLeftIndexes.size(); j++) {
+                            outputTupleSetName += "_" + multiInputsComp->getNameForIthInput(curLeftIndexes[j]);
+                        }
+                        outputTupleSetName += "]_[" + multiInputsComp->getNameForIthInput(curIndexes[0]);
+                        for (unsigned int j = 1; j < curIndexes.size(); j++) {
+                            outputTupleSetName += "_" + multiInputsComp->getNameForIthInput(curIndexes[j]);
+                        }
+                        outputTupleSetName += "]";
+                        tcapString += outputTupleSetName + "(" + curLeftColumnsToKeep[0];
+                        for (unsigned int j = 1; j < curLeftColumnsToKeep.size(); j++) {
+                            tcapString += ", " + curLeftColumnsToKeep[j];
+                        } 
+                        for (unsigned int j = 0; j < curInputColumnNames.size(); j++) {
+                            tcapString += ", " + curInputColumnNames[j];
+                        }
+                        if (i+1 < inputTupleSetNames.size()-1) {
+                            tcapString += ", " + curOutputColumnName;
+                        }
+                        tcapString += ") <= JOIN (" + curLeftTupleSetName + "(" + curLeftHashColumnName + "), ";
+                        tcapString += curLeftTupleSetName + "(" + curLeftColumnsToKeep[0];
+                        for (unsigned int j = 1; j < curLeftColumnsToKeep.size(); j++) {
+                            tcapString += ", " + curLeftColumnsToKeep[j];
+                        }
+                        tcapString += "), ";
+                        tcapString += curOutputTupleSetName + "(" + curOutputColumnName + "), ";
+                        tcapString += curOutputTupleSetName + "(" + curInputColumnNames[0];
+                        for (unsigned int j = 1; j < curInputColumnNames.size(); j++) {
+                            tcapString += ", " + curInputColumnNames[j];
+                        }
+                        if (i+1 < inputTupleSetNames.size()-1) {
+                            tcapString += ", " + curOutputColumnName;
+                        }
+                        tcapString += "), " + myComputationName + ")\n";
+                        
+                        
+                        //update counters
+                        curLeftTupleSetName = outputTupleSetName;
+                        for (unsigned int j = 0; j < curInputColumnNames.size(); j++) {
+                            curLeftColumnsToKeep.push_back(curInputColumnNames[j]);
+                        }
+                        for (unsigned int j = 0; j < curIndexes.size(); j++) {
+                            curLeftIndexes.push_back(curIndexes[j]);
+                        }
+                        curLeftHashColumnName = curOutputColumnName;
+                    }
+                } 
+
+                //Step 3. do an apply to add a boolean column
+                std :: vector < std :: string > curInputColumnsToApply;
+                for (int i = 0; i < numInputs; i ++) {
+                    unsigned int index = this->getInputIndex(i);
+                    curInputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(index));
+                }
+                std :: string curOutputTupleSetName = "nativOutFor_"+myLambdaName+"_"+myComputationName;
+                std :: string curOutputColumnName = "nativOut_"+ std :: to_string (lambdaLabel) + "_" + std :: to_string (computationLabel);
+                std :: vector < std :: string > curOutputColumnNames;
+                for (unsigned int i = 0; i < curLeftColumnsToKeep.size(); i++) {
+                    curOutputColumnNames.push_back(curLeftColumnsToKeep[i]);
+                }
+                curOutputColumnNames.push_back(curOutputColumnName);
+                tcapString += this->getTCAPString (curLeftTupleSetName, curLeftColumnsToKeep, curInputColumnsToApply, curOutputTupleSetName, 
+                        curOutputColumnNames, curOutputColumnName, "APPLY", myComputationName, myLambdaName);
+
+                //Step 4. do a filter to remove false rows
+                std :: string finalOutputTupleSetName = "filtedOutFor_"+myLambdaName+"_"+myComputationName;
+                tcapString += finalOutputTupleSetName + "(" + curLeftColumnsToKeep[0];
+                for (unsigned int i = 1; i < curLeftColumnsToKeep.size(); i++) {
+                    tcapString += ", " + curLeftColumnsToKeep[i];
+                }
+                tcapString += ") <= FILTER (" + curOutputTupleSetName + "(" + curOutputColumnName + "), ";
+                tcapString += curOutputTupleSetName + "(" + curLeftColumnsToKeep[0];
+                for (unsigned int i = 1; i < curLeftColumnsToKeep.size(); i++) {
+                    tcapString += ", " + curLeftColumnsToKeep[i];
+                }
+                tcapString += "), " + myComputationName + ")\n";
+
+                //Step 5. update tupleset names, columns and columns to apply in multiInputsComp
+                for (unsigned int i = 0; i < multiInputsComp->getNumInputs(); i++) {
+                    std :: string curInput = multiInputsComp->getNameForIthInput(i);
+                    auto iter = std :: find (curLeftColumnsToKeep.begin(), curLeftColumnsToKeep.end(), curInput);
+                    if (iter != curLeftColumnsToKeep.end()) {
+                        multiInputsComp->setTupleSetNameForIthInput(i, finalOutputTupleSetName);
+                        multiInputsComp->setInputColumnsForIthInput(i, curLeftColumnsToKeep);
+                        multiInputsComp->setInputColumnsToApplyForIthInput(i, curInputColumnsToApply);
+                    }
+                }
+                return tcapString;
+
+        }
+
+
 };
 
 }

@@ -31,6 +31,7 @@
 	#undef STRING
 	#undef HASHLEFT
 	#undef HASHRIGHT
+        #undef HASHONE
 #endif
  
 #define FILTER 258
@@ -42,7 +43,8 @@
 #define GETS 264
 #define HASHLEFT 265
 #define HASHRIGHT 266
-#define IDENTIFIER 267
-#define STRING 268
+#define HASHONE 267
+#define IDENTIFIER 268
+#define STRING 269
 
 #endif

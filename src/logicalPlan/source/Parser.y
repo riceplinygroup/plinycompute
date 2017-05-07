@@ -55,6 +55,7 @@
 %token GETS
 %token HASHLEFT
 %token HASHRIGHT
+%token HASHONE
 %token <myChar> IDENTIFIER
 %token <myChar> STRING 
 
@@ -139,6 +140,11 @@ AtomicComputation: TupleSpec GETS APPLY '(' TupleSpec ',' TupleSpec ',' STRING '
 | TupleSpec GETS HASHRIGHT '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
 {
 	$$ = makeHashRight ($1, $5, $7, $9, $11);
+}
+
+| TupleSpec GETS HASHONE '(' TupleSpec ',' TupleSpec ',' STRING ',' STRING ')'
+{
+        $$ = makeHashOne ($1, $5, $7, $9, $11);
 }
 ;
 
