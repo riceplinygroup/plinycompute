@@ -220,6 +220,8 @@ public:
 		);	
 	}
 
+//JiaNote: comment below, because now HashOne is a separate TCAP executor
+/*
         //Jia Note: add 1 to each tuple set for cartesian join        
         ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 
@@ -266,8 +268,8 @@ public:
                                 return output;
                         }
                 );
-        }
-
+       }
+*/
 
         //JiaNote: we need this to generate TCAP for a cartesian join
         std :: string toTCAPStringForCartesianJoin(int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp) override {
@@ -341,7 +343,7 @@ public:
                             curOutputColumnNames.push_back(curLeftHashColumnName);
                             tcapString += this->getTCAPString (curLeftInputTupleSetName, curLeftColumnsToKeep, curInputColumnsToApply,
                                             curLeftTupleSetName, curOutputColumnNames, curLeftHashColumnName, "HASHONE", myComputationName, 
-                                            myLambdaName);
+                                            "");
                         }
 
                         //HashOne for the (i+1)-th table
@@ -365,7 +367,7 @@ public:
                         curOutputColumnNames.push_back(curOutputColumnName);
                         tcapString += this->getTCAPString (curInputTupleSetName, curInputColumnNames, curInputColumnsToApply,
                                             curOutputTupleSetName, curOutputColumnNames, curOutputColumnName, "HASHONE", myComputationName,
-                                            myLambdaName);
+                                            "");
 
 
                         //Join the two tables

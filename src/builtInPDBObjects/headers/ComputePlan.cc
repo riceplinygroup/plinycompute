@@ -21,6 +21,7 @@
 
 #include "ComputePlan.h"
 #include "FilterExecutor.h"
+#include "HashOneExecutor.h"
 #include "AtomicComputationClasses.h"
 #include "EqualsLambda.h"
 #include "JoinCompBase.h"
@@ -301,17 +302,16 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                 } else if (a->getAtomicComputationType () == "HashOne") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        std :: cout << "Adding: " << a->getProjection () << " + hashone [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        if (params.count(a->getOutput ().getSetName ()) == 0)    {
+                            returnVal->addStage (std :: make_shared <HashOneExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
+                        } else {
 
-                        // if we have an available parameter, send it
-                        if (params.count (a->getOutput ().getSetName ()) == 0)
-                                returnVal->addStage (myPlan->getNode (a->getComputationName ()).getLambda (
-                                        ((HashLeft *) a.get ())->getLambdaToApply ())->getRightHasher (
-                                        lastOne->getOutput (), a->getInput (), a->getProjection ()));
-                        else
-                                returnVal->addStage (myPlan->getNode (a->getComputationName ()).getLambda (
-                                        ((HashLeft *) a.get ())->getLambdaToApply ())->getRightHasher (
-                                        lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
+                            returnVal->addStage (std :: make_shared <HashOneExecutor> (lastOne->getOutput (), a->getInput (),
+                                        a->getProjection (), params[a->getOutput ().getSetName ()]));
+
+                        }
+
 
                 } else if (a->getAtomicComputationType () == "JoinSets") { 
                         std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";

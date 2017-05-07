@@ -171,7 +171,9 @@ public:
                 return getRightHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
         }
 
+//JiaNote: we do not need this, because HashOne is now a separate executor
 
+/*
         // this gets an executor that appends 1 to the end of each tuple; implemented, for example, by CPlusPlusLambda, and all one input lambdas that may return boolean
         virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) {
                 std :: cout << "getOneHasher not implemented for this type!!\n";
@@ -183,7 +185,7 @@ public:
         virtual ComputeExecutorPtr getOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, ComputeInfoPtr) {
                 return getOneHasher (inputSchema, attsToOperateOn, attsToIncludeInOutput);
         }
-
+*/
 
 	// returns the name of this LambdaBase type, as a string
 	virtual std :: string getTypeOfLambda () = 0;
@@ -231,7 +233,11 @@ public:
                     tcapString += ",";
                     tcapString += inputColumnNames[i];
                 }
-                tcapString += "), '" + computationNameAndLabel + "', '"+ lambdaNameAndLabel +"')\n";
+                if (lambdaNameAndLabel != "") {
+                    tcapString += "), '" + computationNameAndLabel + "', '"+ lambdaNameAndLabel +"')\n";
+                } else {
+                    tcapString += "), '" + computationNameAndLabel + "')\n";
+                }
 
                 return tcapString;
         } 
