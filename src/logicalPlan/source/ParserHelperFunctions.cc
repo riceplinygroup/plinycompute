@@ -142,14 +142,13 @@ struct AtomicComputation *makeHashRight (struct TupleSpec *output, struct TupleS
         return returnVal.get ();
 }
 
-struct AtomicComputation *makeHashOne (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName) {
-        AtomicComputationPtr returnVal = std :: make_shared <HashOne> (*input, *output, *projection, std :: string (nodeName), std :: string (opName));
+struct AtomicComputation *makeHashOne (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName) {
+        AtomicComputationPtr returnVal = std :: make_shared <HashOne> (*input, *output, *projection, std :: string (nodeName));
         returnVal->setShared (returnVal);
         delete output;
         delete input;
         delete projection;
         free (nodeName);
-        free (opName);
         return returnVal.get ();
 }
 

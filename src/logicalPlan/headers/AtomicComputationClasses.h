@@ -168,29 +168,21 @@ public:
 };
 
 
-
-// this is a computation that apply a lambda to  a tuple set
+// this is a computation that adds 1  to each tuple of a tuple set
 struct HashOne : public AtomicComputation {
 
-private:
-
-        std :: string lambdaName;
 
 public:
 
         ~HashOne () {}
 
-        HashOne (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName, std :: string lambdaNameIn) :
-                AtomicComputation (input, output, projection, nodeName), lambdaName (lambdaNameIn) {}
+        HashOne (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName) :
+                AtomicComputation (input, output, projection, nodeName) {}
 
         std :: string getAtomicComputationType () override {
                 return std :: string ("HashOne");
         }
 
-        // returns the name of the lambda we are supposed to apply
-        std :: string &getLambdaToApply () {
-                return lambdaName;
-        }
 
         std :: pair <std :: string, std :: string> findSource (std :: string attName, AtomicComputationList &allComps) override {
 
@@ -201,13 +193,6 @@ public:
 
                 // find where the attribute appears in the outputs
                 int counter = findPosInOutputAtts (attName);
-
-                // if the attribute we are asking for is at the end (where the result of the lambda application goes)
-                // then we asked for it
-                if (counter == getOutput ().getAtts ().size () - 1) {
-                        std :: cout << "Why are you trying to find the origin of a hash value??\n";
-                        exit (1);
-                }
 
                 // otherwise, find our parent
                 return allComps.getProducingAtomicComputation (getProjection ().getSetName ())->findSource
