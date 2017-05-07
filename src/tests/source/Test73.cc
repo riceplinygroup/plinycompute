@@ -73,6 +73,33 @@ public:
 
 };
 
+
+// this plan has three tables: A (a: int), B (a: int, c: String), C (c: int)
+// it first joins A with B, and then joins the result with C
+class SillyTrickyJoin : public JoinComp <String, int, StringIntPair, String> {
+
+public:
+
+        ENABLE_DEEP_COPY
+
+        Lambda <bool> getSelection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
+                std :: cout << "SillyJoin selection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+                return (makeLambdaFromSelf (in1) == makeLambdaFromMember (in2, myInt)) && makeLambda (in3, [] ( Handle<String> & in3) { 
+                  return true;
+                  });
+        }
+
+        Lambda <Handle <String>> getProjection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
+                 std :: cout << "SillyJoin projection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
+                return makeLambdaFromMember (in2, myString);
+        }
+
+};
+
+
+
+
+
 // this plan has three tables: A (a: int), B (a: int, c: String), C (c: int)
 // it first joins A with B, and then joins the result with C
 class SillyCartesianJoin : public JoinComp <String, int, StringIntPair, String> {
@@ -305,6 +332,23 @@ int main () {
 
         std :: cout << "#################################" << std :: endl;
 
-	
+        // create all of the computation objects
+        readA = makeObject <SillyReadOfA> ();
+        readB = makeObject <SillyReadOfB> ();
+        readC = makeObject <SillyReadOfC> ();
+        Handle <Computation> myTrickyJoin = makeObject <SillyTrickyJoin> ();
+        myWriter = makeObject <SillyWrite> ();
+        myTrickyJoin->setInput(0, readA);
+        myTrickyJoin->setInput(1, readB);
+        myTrickyJoin->setInput(2, readC);
+        myWriter->setInput(0, myTrickyJoin);
+        std :: vector <Handle<Computation>> queryGraph2;
+        queryGraph2.push_back(myWriter);
+        QueryGraphAnalyzer queryAnalyzer2(queryGraph2);
+        std :: string tcapString2 = queryAnalyzer2.parseTCAPString();
+        std :: cout << "TCAP OUTPUT:" << std :: endl;
+        std :: cout << tcapString2 << std :: endl;
+
+        std :: cout << "#################################" << std :: endl;
 
 }
