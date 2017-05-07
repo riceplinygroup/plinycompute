@@ -433,10 +433,13 @@ public:
                         curOutputColumnNames, curOutputColumnName, "APPLY", myComputationName, myLambdaName);
 
                 //Step 4. do a filter to remove false rows
-                std :: string finalOutputTupleSetName = "filtedOutFor_"+myLambdaName+"_"+myComputationName;
-                tcapString += finalOutputTupleSetName + "(" + curLeftColumnsToKeep[0];
+                outputColumns.clear();
+                outputTupleSetName = "filtedOutFor_"+myLambdaName+"_"+myComputationName;
+                tcapString += outputTupleSetName + "(" + curLeftColumnsToKeep[0];
+                outputColumns.push_back(curLeftColumnsToKeep[0]);
                 for (unsigned int i = 1; i < curLeftColumnsToKeep.size(); i++) {
                     tcapString += ", " + curLeftColumnsToKeep[i];
+                    outputColumns.push_back(curLeftColumnsToKeep[0]);
                 }
                 tcapString += ") <= FILTER (" + curOutputTupleSetName + "(" + curOutputColumnName + "), ";
                 tcapString += curOutputTupleSetName + "(" + curLeftColumnsToKeep[0];
@@ -450,7 +453,7 @@ public:
                     std :: string curInput = multiInputsComp->getNameForIthInput(i);
                     auto iter = std :: find (curLeftColumnsToKeep.begin(), curLeftColumnsToKeep.end(), curInput);
                     if (iter != curLeftColumnsToKeep.end()) {
-                        multiInputsComp->setTupleSetNameForIthInput(i, finalOutputTupleSetName);
+                        multiInputsComp->setTupleSetNameForIthInput(i, outputTupleSetName);
                         multiInputsComp->setInputColumnsForIthInput(i, curLeftColumnsToKeep);
                         multiInputsComp->setInputColumnsToApplyForIthInput(i, curInputColumnsToApply);
                     }

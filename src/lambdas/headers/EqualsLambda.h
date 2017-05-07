@@ -78,8 +78,8 @@ public:
 	EqualsLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
-                std :: cout << "LHS index is " << lhs.getInputIndex(0) << std :: endl;
-                std :: cout << "RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                std :: cout << "EqualsLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
+                std :: cout << "EqualsLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
                 this->setInputIndex (0, lhs.getInputIndex(0));
                 this->setInputIndex (1, rhs.getInputIndex(0));
 	}
@@ -122,7 +122,7 @@ public:
 
                 //AandBJoined (a, aAndC) <= JOIN (AHashed (hash), AHashed (a), BHashedOnA (hash), BHashedOnA (aAndC), 'JoinComp_3')
                 //BandCJoined (a, aAndC, c) <= JOIN (BHashedOnC (hash), BHashedOnC (a, aAndC), CHashedOnC (hash), CHashedOnC (c), 'JoinComp_3')
-                    outputTupleSetName = "joinedOutFor_"+myLambdaName+computationNameWithLabel;
+                    outputTupleSetName = "JoinedFor_"+myLambdaName+computationNameWithLabel;
                     std :: string tupleSetNamePrefix = outputTupleSetName;
                     outputColumns.clear(); 
                     for (int i = 0; i < inputColumnNames.size(); i++) {

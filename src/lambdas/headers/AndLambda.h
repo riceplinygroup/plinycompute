@@ -63,8 +63,10 @@ public:
 	AndLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
-                std :: cout << "LHS index is " << lhs.getInputIndex(0) << std :: endl;
-                std :: cout << "RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                std :: cout << "ANDLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
+                std :: cout << "ANDLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                std :: cout << "ANDLambda: LHS type is " << getTypeName<LeftType>() << std :: endl;
+                std :: cout << "ANDLambda: RHS type is " << getTypeName<RightType>() << std :: endl;
                 this->setInputIndex (0, lhs.getInputIndex(0));
                 this->setInputIndex (1, rhs.getInputIndex(0));
 	}
@@ -139,99 +141,44 @@ public:
 		
 	}
 
-        ComputeExecutorPtr getRightOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
 
-                // create the output tuple set
-                TupleSetPtr output = std :: make_shared <TupleSet> ();
+        std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string& myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
+               if ((multiInputsComp != nullptr) && (amIPartOfJoinPredicate == true)) {
+                   std :: string tcapString = "";
+                   //Step 1. get list of input names in LHS
+                   std :: vector < std :: string> lhsInputNames;
 
-                // create the machine that is going to setup the output tuple set, using the input tuple set
-                TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
+                   //Step 2. get list of input names in RHS
+                   std :: vector < std :: string> rhsInputNames;
 
-                // these are the input attributes that we will process
-                std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
-                int secondAtt = inputAtts[0];
+                   //Step 3. if two lists are disjoint do a cartesian join, otherwise return ""
+                   std :: vector < std :: string> inputNamesIntersection;
 
-                // this is the output attribute
-                int outAtt = attsToIncludeInOutput.getAtts ().size ();
+                   for (unsigned int i = 0; i < lhsInputNames.size(); i++) {
+                       for (unsigned int j = 0; j < rhsInputNames.size(); j++) {
+                           if (lhsInputNames[i] == rhsInputNames[j]) {
+                               inputNamesIntersection.push_back(lhsInputNames[i]);
+                           }
+                       }
+                   }
+                   
+                   if (inputNamesIntersection.size() == 0) {
+                       return "";
+                   } else {
+                       return "";
+                       //TODO
+                       
+                       //we need a cartesian join
+                       //get input tupleset name for lhs
+                       //get input column to apply for lhs (LeftType)
+                   }
 
-                return std :: make_shared <SimpleComputeExecutor> (
-                        output,
-                        [=] (TupleSetPtr input) {
+               } else {
+                   return "";
+               }
 
-                                // set up the output tuple set
-                                myMachine->setup (input, output);
 
-                                // get the columns to operate on
-                                std :: vector <RightType> &rightColumn = input->getColumn <RightType> (secondAtt);
-
-                                // create the output attribute, if needed
-                                if (!output->hasColumn (outAtt)) {
-                                        std :: vector <size_t> *outColumn = new std :: vector <size_t>;
-                                        output->addColumn (outAtt, outColumn, true);
-                                }
-
-                                // get the output column
-                                std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
-
-                                // loop down the columns, setting the output
-                                int numTuples = rightColumn.size ();
-                                outColumn.resize (numTuples);
-                                for (int i = 0; i < numTuples; i++) {
-                                        outColumn [i] = 1;
-                                }
-                                return output;
-                        }
-                );
         }
-
-
-
-
-        ComputeExecutorPtr getLeftOneHasher (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
-
-                // create the output tuple set
-                TupleSetPtr output = std :: make_shared <TupleSet> ();
-
-                // create the machine that is going to setup the output tuple set, using the input tuple set
-                TupleSetSetupMachinePtr myMachine = std :: make_shared <TupleSetSetupMachine> (inputSchema, attsToIncludeInOutput);
-
-                // these are the input attributes that we will process
-                std :: vector <int> inputAtts = myMachine->match (attsToOperateOn);
-                int firstAtt = inputAtts[0];
-
-                // this is the output attribute
-                int outAtt = attsToIncludeInOutput.getAtts ().size ();
-
-                return std :: make_shared <SimpleComputeExecutor> (
-                        output,
-                        [=] (TupleSetPtr input) {
-
-                                // set up the output tuple set
-                                myMachine->setup (input, output);
-
-                                // get the columns to operate on
-                                std :: vector <LeftType> &leftColumn = input->getColumn <LeftType> (firstAtt);
-
-                                // create the output attribute, if needed
-                                if (!output->hasColumn (outAtt)) {
-                                        std :: vector <size_t> *outColumn = new std :: vector <size_t>;
-                                        output->addColumn (outAtt, outColumn, true);
-                                }
-
-                                // get the output column
-                                std :: vector <size_t> &outColumn = output->getColumn <size_t> (outAtt);
-
-                                // loop down the columns, setting the output
-                                int numTuples = leftColumn.size ();
-                                outColumn.resize (numTuples);
-                                for (int i = 0; i < numTuples; i++) {
-                                        outColumn [i] = 1;
-                                }
-                                return output;
-                        }
-                );
-        }
-
 
 
 
