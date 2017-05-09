@@ -46,7 +46,6 @@ TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputa
 //destructor
 ~TCAPAnalyzer ();
 
-
 //to analyze the TCAP strings and get physical plan 
 bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets);
 

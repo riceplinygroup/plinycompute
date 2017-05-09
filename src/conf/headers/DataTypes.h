@@ -121,9 +121,6 @@ typedef enum {
 } SetType;
 
 
-
-
-
 typedef struct {
     DatabaseID dbId;
     UserTypeID typeId;

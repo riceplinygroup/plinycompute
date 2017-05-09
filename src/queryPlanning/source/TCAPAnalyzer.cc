@@ -53,6 +53,7 @@ TCAPAnalyzer::~TCAPAnalyzer () {
     
 }
 
+
 bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets) {
     int jobStageId = 0;
     for (int i = 0; i < this->sources.size(); i++) {

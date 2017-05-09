@@ -38,9 +38,9 @@ namespace pdb {
     class TupleSetJobStage : public AbstractJobStage {
         
     public:
-
+            //constructor
             TupleSetJobStage () {}
-             
+            //constructor 
             TupleSetJobStage (JobStageID stageId) {
                 this->id = stageId;
                 this->sharedPlan = nullptr;
@@ -50,11 +50,12 @@ namespace pdb {
                 this->probeOrNot = false;
                 this->repartitionOrNot = false;
                 this->combineOrNot = false;
+                this->broadcastOrNot = false;
                 this->numNodes = 0;
                 this->numPartitions = nullptr;
                 this->ipAddresses = nullptr;
             }
-
+            //constructor
             TupleSetJobStage (JobStageID stageId, int numNodes) {
                 this->id = stageId;
                 this->sharedPlan = nullptr;
@@ -63,6 +64,7 @@ namespace pdb {
                 this->sinkContext = nullptr;
                 this->probeOrNot = false;
                 this->repartitionOrNot = false;
+                this->broadcastOrNot = false;
                 this->combineOrNot = false;
                 this->numNodes = numNodes;
                 this->numPartitions = makeObject<Vector<Handle<Vector<HashPartitionID>>>> (numNodes);
@@ -81,15 +83,15 @@ namespace pdb {
                 this->targetTupleSetSpecifier = targetTupleSetSpecifier;
                 this->targetComputationSpecifier = targetComputationSpecifier;
             } 
-
+            //to get source tupleset name for this pipeline stage
             std::string getSourceTupleSetSpecifier() {
                 return this->sourceTupleSetSpecifier;
             }
-
+            //to get target tupleset name for this pipeline stage
             std::string getTargetTupleSetSpecifier() {
                 return this->targetTupleSetSpecifier;
             }
-
+            //to get target computation name for this pipeline stage
             std::string getTargetComputationSpecifier() {
                 return this->targetComputationSpecifier;
             }
@@ -147,6 +149,16 @@ namespace pdb {
             //to return whether this stage requires to probe hash table
             bool isProbing() {
                 return this->probeOrNot;
+            }
+
+            //to set whether to broadcast hash table
+            void setBroadcasting (bool broadcastOrNot) {
+                this->broadcastOrNot = broadcastOrNot;
+            }
+
+            //to return whether to broadcast hash table
+            bool isBroadcasting() {
+                return this->broadcastOrNot;
             }
 
             //to set whether to repartition the output
@@ -219,6 +231,14 @@ namespace pdb {
             Handle<Vector<HashPartitionID>> & getNumPartitions (int nodeId) {
                     return (*numPartitions)[nodeId];
             } 
+
+            Handle<Map<String, Handle<SetIdentifier>>> & getHashSets() {
+                    return this->hashSetsToProbe;
+            }
+
+            void addHashSetToProbe(String targetTupleSetName, Handle<SetIdentifier> hashSetName) {
+                    (*hashSetsToProbe)[targetTupleSetName] = hashSetName;
+            }
 
             String getIPAddress (int nodeId) {
                 if ((unsigned int) nodeId < numPartitions->size()) {
@@ -301,7 +321,7 @@ namespace pdb {
             //Input set information
             Handle<SetIdentifier> sourceContext;
 
-            //Hash set information for probing
+            //Hash set information for probing aggregation set
             Handle<SetIdentifier> hashContext;
 
             //Combiner set information
@@ -334,6 +354,12 @@ namespace pdb {
 
             //Does this stage require combining repartitioned results?
             bool combineOrNot;
+
+            //Does this stage require broadcasting results?
+            bool broadcastOrNot;
+
+            //hash set names to probe for join
+            Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe;
 
             //the id to identify this job stage
             JobStageID id;
