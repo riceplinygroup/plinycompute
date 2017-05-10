@@ -20,14 +20,19 @@
 
 //by Jia, May 2017
 
+#include "AbstractHashSet.h"
+
 namespace pdb {
+
+class SharedHashSet;
+typedef std :: shared_ptr <SharedHashSet> SharedHashSetPtr;
 
 /*
  * This class encapsulates a shared hash set, which is one unmanaged block, which contains a PDBMap.
  * In the end, this class will be removed and replaced by Pangea hash set
  */
 
-class SharedHashSet {
+class SharedHashSet : public AbstractHashSet {
 
 private:
 
@@ -56,7 +61,7 @@ public:
     }
 
     //get type of this hash set
-    std :: string getHashSetType () {
+    std :: string getHashSetType () override {
         return "SharedHashSet";
     }
 
@@ -72,11 +77,11 @@ public:
 
     //get page for a particular partition
     void * getPage () {
-        return pagedata;
+        return pageData;
     }
 
     //cleanup
-    void cleanup () {
+    void cleanup () override {
         if (pageData != nullptr) {
             free(pageData);
             pageData = nullptr;

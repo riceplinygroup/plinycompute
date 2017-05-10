@@ -62,6 +62,11 @@ using namespace std;
 #define DEFAULT_BATCH_SIZE 100
 #endif
 
+
+#ifndef DEFAULT_HASH_PAGE_SIZE
+#define DEFAULT_HASH_PAGE_SIZE (128*1024*1024)
+#endif
+
 // create a smart pointer for Configuration objects
 class Configuration;
 typedef shared_ptr<Configuration> ConfigurationPtr;
@@ -88,7 +93,7 @@ private:
 	unsigned int numThreads;
 	string backEndIpcFile;
         int batchSize;
-
+        unsigned int hashPageSize;
 	bool isMaster;
 	string masterNodeHostName;
 	int masterNodePort;
@@ -117,6 +122,7 @@ public:
 	    backEndIpcFile = "/tmp/backEndIpcFile";
             batchSize = DEFAULT_BATCH_SIZE;
             isMaster = false;
+            hashPageSize = DEFAULT_HASH_PAGE_SIZE;
             initDirs();
 	}
 
@@ -160,6 +166,10 @@ public:
 	unsigned int getPageSize() const {
 		return pageSize;
 	}
+
+        unsigned int getHashPageSize() const {
+                return hashPageSize;
+        }
 
 	int getPort() const {
 		return port;
@@ -224,6 +234,10 @@ public:
 	void setPageSize(unsigned int pageSize) {
 		this->pageSize = pageSize;
 	}
+
+        void setHashPageSize (unsigned int hashPageSize) {
+                this->hashPageSize = hashPageSize;
+        }
 
 	void setPort(int port) {
 		this->port = port;
@@ -356,6 +370,7 @@ public:
 		cout<< "ipcFile: "  << ipcFile<<endl;
 		cout<< "logFile: "  << logFile<<endl;
 		cout<< "pageSize: "  << pageSize<<endl;
+                cout << "hashPageSize: " << hashPageSize << endl;
 		cout<< "useUnixDomainSock: "  << useUnixDomainSock<<endl;
 		cout<< "shmSize: "  << shmSize<<endl;
 		cout<< "dataDirs: "  << dataDirs<<endl;

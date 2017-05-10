@@ -20,14 +20,21 @@
 
 //by Jia, May 2017
 
+#include "AbstractHashSet.h"
+
 namespace pdb {
+
+class PartitionedHashSet;
+typedef std :: shared_ptr <PartitionedHashSet> PartitionedHashSetPtr;
+
+
 
 /*
  * This class encapsulates a partitioned hash set, which is a collection of managed blocks, and each block contains a PDBMap.
  * In the end, this class will be removed and replaced by Pangea hash set
  */
 
-class PartitionedHashSet {
+class PartitionedHashSet : public AbstractHashSet{
 
 private:
 
@@ -59,7 +66,7 @@ public:
     }
 
     //get type of this hash set
-    std :: string getHashSetType () {
+    std :: string getHashSetType () override {
         return "PartitionedHashSet";
     }
 
@@ -75,7 +82,7 @@ public:
 
     //get page for a particular partition
     void * getPage (unsigned int partitionId) {
-        return partitionPages[i];
+        return partitionPages[partitionId];
     }
 
     //get number of pages
@@ -93,7 +100,7 @@ public:
     }
 
     //clean up all pages
-    void cleanup() {
+    void cleanup() override {
         if (isCleaned == false) {
             for (int i = 0; i < partitionPages.size(); i ++) {
                 free(partitionPages[i]);

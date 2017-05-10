@@ -101,7 +101,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
     return true;
 }
 
-Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isProbing, bool isRepartitioning, bool needsRemoveInputSet) {
+Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet) {
     Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage> (jobStageId);
     jobStageId ++;
     jobStage->setComputePlan(this->computePlan, sourceTupleSetName, targetTupleSetName, targetComputationName);
@@ -113,15 +113,20 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
         jobStage->setCombining(true);
         jobStage->setNeedsRemoveCombinerSet(true);
     }
-    jobStage->setProbing(isProbing);
-    jobStage->setRepartition(isRepartitioning);
     jobStage->setNeedsRemoveInputSet(needsRemoveInputSet);
+    if (sourceContext->isAggregationResult() == true) {
+        jobStage->setProbing(true);
+        jobStage->setInputAggHashOut(true);
+        jobStage->setNeedsRemoveInputSet(true);//aggregation output should not be kept across stages; if an aggregation has more than one consumers, we need materialize aggregation results.
+    }    
+    jobStage->setBroadcasting(isBroadcasting);
+    jobStage->setRepartition(isRepartitioning);
     jobStage->setJobId(this->jobId);
     return jobStage;
 }
 
-Handle<AggregationJobStage>  TCAPAnalyzer::createAggregationJobStage(int & jobStageId,  Handle<AbstractAggregateComp> aggComp, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> sinkContext, std :: string outputTypeName) {
-    Handle<AggregationJobStage> aggStage = makeObject<AggregationJobStage>(jobStageId, true, aggComp);
+Handle<AggregationJobStage>  TCAPAnalyzer::createAggregationJobStage(int & jobStageId,  Handle<AbstractAggregateComp> aggComp, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> sinkContext, std :: string outputTypeName, bool materializeResultOrNot) {
+    Handle<AggregationJobStage> aggStage = makeObject<AggregationJobStage>(jobStageId, materializeResultOrNot, aggComp);
     jobStageId ++;
     aggStage->setSourceContext(sourceContext);
     aggStage->setSinkContext(sinkContext);
@@ -162,7 +167,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
-            Handle<AggregationJobStage> aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType());
+            Handle<AggregationJobStage> aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType(), true);
             //to push back the aggregation stage;
             physicalPlanToOutput.push_back(aggStage);
             //to push back the aggregator set
@@ -185,17 +190,24 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         //if I am aggregation or join, I am a pipeline breaker
         //we currently do not support join
         if (curNode->getAtomicComputationType() == "Aggregate") {
-            //to get my output set 
-            std :: string dbName = myComputation->getDatabaseName();
-            std :: string setName = myComputation->getSetName();
-            Handle<SetIdentifier> sink = makeObject<SetIdentifier> (dbName, setName);
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
             Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, "Aggregation", curInputSetIdentifier, combiner, aggregator, false, true, false);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
+            Handle<AggregationJobStage> aggStage;
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
-            Handle<AggregationJobStage> aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType());
+            Handle<SetIdentifier> sink;
+            if (myComputation->needsMaterializeOutput() == true) {
+                //to get my output set
+                std :: string dbName = myComputation->getDatabaseName();
+                std :: string setName = myComputation->getSetName();
+                sink = makeObject<SetIdentifier> (dbName, setName);
+                aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType(), true);
+            } else {
+                sink = makeObject<SetIdentifier> (this->jobId, outputName+"_aggregationResult", PartitionedHashSetType, true);
+                aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType(), false);
+            }
             //to push back the aggregation stage;
             physicalPlanToOutput.push_back(aggStage);
             //to push back the aggregator set
@@ -240,7 +252,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
-            Handle<AggregationJobStage> aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType());
+            Handle<AggregationJobStage> aggStage = createAggregationJobStage(jobStageId, agg, aggregator, sink, agg->getOutputType(), myComputation->needsMaterializeOutput());
             //to push back the aggregation stage;
             physicalPlanToOutput.push_back(aggStage);
             //to push back the aggregator set

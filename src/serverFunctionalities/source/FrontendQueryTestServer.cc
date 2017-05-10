@@ -205,8 +205,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
      ));
 
 
-
-
        // to handle a request to execute a tupleset pipeline stage
        forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler <TupleSetJobStage>> (
                [&] (Handle <TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
@@ -224,37 +222,39 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     PDB_COUT << "Frontend connected to backend" << std :: endl;
                     Handle <TupleSetJobStage> newRequest = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (request);
 
-
-
                     PDB_COUT << "Created TupleSetJobStage object for forwarding" << std :: endl;
-                    //restructure the input information  
                     std :: string inDatabaseName = request->getSourceContext()->getDatabase();
                     std :: string inSetName = request->getSourceContext()->getSetName();
-                    Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
-                    PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
-                    SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
-                    if (inputSet == nullptr) {
-                        PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
-                        //TODO: move data from other servers
-                        //temporarily, we simply return;
-                        // now, we send back the result
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getSinkContext()->getSetName());
-                        PDB_COUT << "Stage is done without data. " << std :: endl;
-                        // return the results
-                        if (!sendUsingMe->sendObject (result, errMsg)) {
-                            return std :: make_pair (false, errMsg);
-                        }
-                        return std :: make_pair (true, std :: string("execution complete"));
+                    if (request->isInputAggHashOut() == false ) {
+                        //restructure the input information  
+                        Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                        PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
+                        SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
+                        if (inputSet == nullptr) {
+                             PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                             //TODO: move data from other servers
+                             //temporarily, we simply return;
+                             // now, we send back the result
+                             Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                             result->push_back (request->getSinkContext()->getSetName());
+                             PDB_COUT << "Stage is done without data. " << std :: endl;
+                             // return the results
+                             if (!sendUsingMe->sendObject (result, errMsg)) {
+                                 return std :: make_pair (false, errMsg);
+                             }
+                             return std :: make_pair (true, std :: string("execution complete"));
 
+                         } else {
+                             getFunctionality<PangeaStorageServer>().cleanup();
+                         }
+                         sourceContext->setDatabaseId(inputSet->getDbID());
+                         sourceContext->setTypeId(inputSet->getTypeID());
+                         sourceContext->setSetId(inputSet->getSetID());
+                         newRequest->setSourceContext(sourceContext);
+                         PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
                     } else {
-                        getFunctionality<PangeaStorageServer>().cleanup();
+                         PDB_COUT << "Input is hash table output from aggregation" << std :: endl;
                     }
-                    sourceContext->setDatabaseId(inputSet->getDbID());
-                    sourceContext->setTypeId(inputSet->getTypeID());
-                    sourceContext->setSetId(inputSet->getSetID());
-                    newRequest->setSourceContext(sourceContext);
-                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                     std :: string outDatabaseName = request->getSinkContext()->getDatabase();
                     std :: string outSetName = request->getSinkContext()->getSetName();
@@ -347,7 +347,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                        getFunctionality <PangeaStorageServer> ().removeSet(combinerDatabaseName,  combinerSetName);
                    }
 
-                   if (newRequest->getNeedsRemoveInputSet() == true) {
+                   if ((newRequest->getNeedsRemoveInputSet() == true) && (request->isInputAggHashOut() == false)) {
                        //remove input set
                        getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);
                    }
