@@ -106,7 +106,7 @@ public:
 
                 outputTupleSetName = "attAccess_"+ std :: to_string(lambdaLabel) +tupleSetMidTag+computationName+std :: to_string(computationLabel);
 
-                outputColumnName = "att_"+tupleSetMidTag+attName;
+                outputColumnName = "att_"+tupleSetMidTag+"_"+attName;
                 outputColumns.clear();
                 for (unsigned int i = 0; i < inputColumnNames.size(); i++) {
                     outputColumns.push_back(inputColumnNames[i]);

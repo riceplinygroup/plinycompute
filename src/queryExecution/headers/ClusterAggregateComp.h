@@ -211,6 +211,7 @@ public:
                 std :: vector<std :: string> columnNames;
                 std :: string addedColumnName;
                 int lambdaLabel = 0;
+                tcapString += "\n/* Extract key for aggregation */\n";
                 tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, myLambdaName, false);
                 Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
                 std :: vector<std :: string> columnsToApply;
@@ -219,17 +220,19 @@ public:
                 }
                 std :: vector<std :: string> columnsToKeep;
                 columnsToKeep.push_back(addedColumnName);
+                tcapString += "\n/* Extract key for aggregation */\n";
                 tcapString += valueLambda.toTCAPString(tupleSetName, columnsToKeep, columnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false);
-                std :: string newTupleSetName = "aggOutFor"+getComputationType()+std :: to_string(computationLabel);
+                std :: string newTupleSetName = "aggOutFor"+getComputationType()+"_"+std :: to_string(computationLabel);
                 /*tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+ outputColumnNames[0];
                 for (int i = 1; i < outputColumnNames.size(); i++) {
                      tcapString + ", ";
                      tcapString + outputColumnNames[i];
                 }
                 tcapString += "), '";*/
-                addedOutputColumnName = "aggOutFor" + getComputationType() + "_"+std::to_string(computationLabel);
-                tcapString += newTupleSetName += "("+ addedOutputColumnName +") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
-                tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')";
+                tcapString += "\n/* Apply aggregation */\n";
+                addedOutputColumnName = "aggOutFor" + std::to_string(computationLabel);
+                tcapString += newTupleSetName + "("+ addedOutputColumnName +") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')\n";
                 outputTupleSetName = newTupleSetName;
                 outputColumnNames.clear();
                 outputColumnNames.push_back(addedOutputColumnName);

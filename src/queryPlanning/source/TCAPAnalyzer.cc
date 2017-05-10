@@ -115,7 +115,6 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     }
     jobStage->setNeedsRemoveInputSet(needsRemoveInputSet);
     if (sourceContext->isAggregationResult() == true) {
-        jobStage->setProbing(true);
         jobStage->setInputAggHashOut(true);
         jobStage->setNeedsRemoveInputSet(true);//aggregation output should not be kept across stages; if an aggregation has more than one consumers, we need materialize aggregation results.
     }    

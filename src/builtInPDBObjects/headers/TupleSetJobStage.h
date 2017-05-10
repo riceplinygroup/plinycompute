@@ -378,7 +378,7 @@ namespace pdb {
             bool inputAggHashOutOrNot;
 
             //hash set names to probe for join
-            Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe;
+            Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe = nullptr;
 
             //the id to identify this job stage
             JobStageID id;
