@@ -40,6 +40,7 @@ namespace pdb {
     public:
             //constructor
             TupleSetJobStage () {}
+
             //constructor 
             TupleSetJobStage (JobStageID stageId) {
                 this->id = stageId;
@@ -51,10 +52,12 @@ namespace pdb {
                 this->repartitionOrNot = false;
                 this->combineOrNot = false;
                 this->broadcastOrNot = false;
+                this->inputAggHashOutOrNot = false;
                 this->numNodes = 0;
                 this->numPartitions = nullptr;
                 this->ipAddresses = nullptr;
             }
+
             //constructor
             TupleSetJobStage (JobStageID stageId, int numNodes) {
                 this->id = stageId;
@@ -66,6 +69,7 @@ namespace pdb {
                 this->repartitionOrNot = false;
                 this->broadcastOrNot = false;
                 this->combineOrNot = false;
+                this->inputAggHashOutOrNot = false;
                 this->numNodes = numNodes;
                 this->numPartitions = makeObject<Vector<Handle<Vector<HashPartitionID>>>> (numNodes);
                 this->ipAddresses = makeObject<Vector<String>> (numNodes);
@@ -150,6 +154,18 @@ namespace pdb {
             bool isProbing() {
                 return this->probeOrNot;
             }
+
+            
+            //to set whether to probe hash table
+            void setInputAggHashOut (bool inputAggHashOutOrNot) {
+                this->inputAggHashOutOrNot = inputAggHashOutOrNot;
+            }
+
+            //to return whether this stage requires to probe hash table
+            bool isInputAggHashOut() {
+                return this->inputAggHashOutOrNot;
+            }
+
 
             //to set whether to broadcast hash table
             void setBroadcasting (bool broadcastOrNot) {
@@ -357,6 +373,9 @@ namespace pdb {
 
             //Does this stage require broadcasting results?
             bool broadcastOrNot;
+
+            //Does this stage consume aggregation hash output?
+            bool inputAggHashOutOrNot;
 
             //hash set names to probe for join
             Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe;

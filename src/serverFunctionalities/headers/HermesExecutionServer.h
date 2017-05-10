@@ -30,6 +30,7 @@
 #include "Configuration.h"
 #include "PageScanner.h"
 #include "DataTypes.h"
+#include "HashSetManager.h"
 #include <string>
 
 namespace pdb {
@@ -109,6 +110,21 @@ public:
 	// destructor
 	~HermesExecutionServer () {}
 
+        //get hash set
+        AbstractHashSetPtr getHashSet (std :: string name) {
+            return this->hashSetMgr.getHashSet(name);
+        }
+
+        //add hash set
+        bool addHashSet (std :: string name, AbstractHashSetPtr hashSet) {
+            return this->hashSetMgr.addHashSet(name, hashSet);
+        }
+
+        //remove hash set
+        bool removeHashSet (std ::string name) {
+            return this->hashSetMgr.removeHashSet(name);
+        }
+
 private:
 
         ConfigurationPtr conf;
@@ -117,6 +133,7 @@ private:
         NodeID nodeId;
         PageScannerPtr curScanner;
         pdb :: PDBLoggerPtr logger;		
+        HashSetManager hashSetMgr;
 };
 
 }

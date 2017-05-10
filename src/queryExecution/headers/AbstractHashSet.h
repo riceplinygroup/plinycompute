@@ -42,6 +42,9 @@ public:
     //return the hash set type
     virtual std :: string getHashSetType() = 0;
 
+    //clean up
+    virtual void cleanup() = 0;
+
 };
 
 

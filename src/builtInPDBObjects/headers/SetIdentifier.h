@@ -42,9 +42,10 @@ public:
 
 	SetIdentifier (std :: string dataBase, std :: string setName) : dataBase (dataBase), setName (setName){
             setType = UserSetType;
+            isAggregationResultOrNot = false;
         }
 
-        SetIdentifier (std :: string dataBase, std :: string setName, SetType setType): dataBase(dataBase), setName(setName), setType(setType) {}
+        SetIdentifier (std :: string dataBase, std :: string setName, SetType setType, bool isProbingAggregationResult): dataBase(dataBase), setName(setName), setType(setType), isAggregationResultOrNot(isProbingAggregationResult) {}
 
 
 	std :: string getDatabase () {
@@ -83,6 +84,11 @@ public:
                 return setType;
         }
 
+
+        bool isAggregationResult() {
+                return this->isAggregationResultOrNot;
+        }
+
 private:
 
 	String dataBase;
@@ -91,6 +97,7 @@ private:
         UserTypeID typeId;
         SetID setId;
         SetType setType;
+        bool isAggregationResultOrNot;
 };
 
 }

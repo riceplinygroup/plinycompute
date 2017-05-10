@@ -46,6 +46,8 @@
 #include "AggregationJobStage.h"
 #include "PipelineNetwork.h"
 #include "PipelineStage.h"
+#include "PartitionedHashSet.h"
+#include "SharedHashSet.h"
 #include <vector>
 
 
@@ -328,6 +330,17 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               });
               std :: cout << "to run aggregation with " << numPartitions << " threads." << std :: endl;
               int hashCounter = 0;
+
+              std :: string hashSetName = "";
+              PartitionedHashSetPtr aggregationSet = nullptr;
+              if (request->needsToMaterializeAggOut() == false) {
+                  Handle<SetIdentifier> sinkSetIdentifier = request->getSinkContext();
+                  std :: string dbName = sinkSetIdentifier->getDatabase();
+                  std :: string setName = sinkSetIdentifier->getSetName();
+                  hashSetName = dbName + ":" + setName;
+                  aggregationSet = make_shared<PartitionedHashSet> (hashSetName, this->conf->getHashPageSize());  
+                  this->addHashSet(hashSetName, aggregationSet);
+              }
             
 
               //start multiple threads
@@ -372,10 +385,6 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          aggregateProcessor->initialize();
                          PageCircularBufferIteratorPtr myIter = hashIters[i];
                          if (request->needsToMaterializeAggOut() == false) {
-                             //create a temp set
-                             std :: string setName = std :: string ("hash") + std :: to_string(i);
-                             SetID setId;
-                             proxy->addTempSet (setName, setId);
 
                              PDBPagePtr outPage = nullptr;
                              while(myIter->hasNext()) {
@@ -386,14 +395,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          continue;
                                      }
                                      if (outPage == nullptr) {
-                                         proxy->addTempPage (setId, outPage);
-                                         aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
+                                         //create a new partition
+                                         void * bytes = aggregationSet->addPage();                                          
+                                         aggregateProcessor->loadOutputPage(bytes, aggregationSet->getPageSize());
                                      }
                                      while (aggregateProcessor->fillNextOutputPage()) {
                                          aggregateProcessor->clearOutputPage();
-                                         proxy->unpinTempPage (setId, outPage);
-                                         proxy->addTempPage (setId, outPage);
-                                         aggregateProcessor->loadOutputPage(outPage->getBytes(), outPage->getSize());
+                                         void * bytes = aggregationSet->addPage();
+                                         aggregateProcessor->loadOutputPage(bytes, aggregationSet->getPageSize());
                                      }
                                                                
                                      //unpin user page
@@ -408,8 +417,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              aggregateProcessor->finalize();
                              aggregateProcessor->fillNextOutputPage();
                              aggregateProcessor->clearOutputPage();
-                             proxy->unpinTempPage (setId, outPage);
-                             //TODO : how to remove the tempset created in above code???
+                            
 
                          } else {
                              //get output set
@@ -417,7 +425,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              PDBPagePtr output = nullptr;
 
                              //aggregation page size
-                             size_t aggregationPageSize = 128 * 1024 * 1024;
+                             size_t aggregationPageSize = conf->getHashPageSize();
 
                              //allocate one output page
                              void * aggregationPage = nullptr;
@@ -665,8 +673,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 std :: string errMsg;
                 const UseTemporaryAllocationBlock block1 {4 * 1024 * 1024};
                 Handle<SetIdentifier> sourceContext = request->getSourceContext();
-                if (sourceContext->getSetType() == UserSetType){
-                    if( getCurPageScanner() == nullptr) {
+                if( getCurPageScanner() == nullptr) {
                         NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
                         pdb :: PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
                         SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
@@ -679,17 +686,20 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              PDB_COUT << "run pipeline with shuffling..." << std :: endl;
                              pipeline->runPipelineWithShuffleSink(this);
                         }                       
-                    } else {
+                        //TODO: if input is a hash table we remove it
+                        if ((sourceContext->isAggregationResult() == true) && (sourceContext->getSetType() == PartitionedHashSetType)) {
+                             std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
+                             AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
+                             hashSet->cleanup(); 
+                             this->removeHashSet(hashSetName);
+                        }
+                
+                } else {
                         res = false;
                         errMsg = "A Job is already running in this server";
                         std :: cout << errMsg << std :: endl;
-                    }
-                } else {
-                     res = false;
-                     errMsg = "Now only UserSet is supported as pipeline source";
-                     std :: cout << errMsg << std :: endl;
+                        //We do not remove the hash table, so that we can try again.
                 }
-
                 PDB_COUT << "to send back reply" << std :: endl;
                 const UseTemporaryAllocationBlock block2 {1024};
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);

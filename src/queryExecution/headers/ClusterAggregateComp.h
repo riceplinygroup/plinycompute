@@ -63,6 +63,11 @@ public:
         this->whereHashTableSitsForThePartition = nullptr;
     }
 
+    //set hash table pointer
+    void setHashTablePointer(void * hashTablePointer) {
+        this->whereHashTableSitsForThePartition = hashTablePointer;
+    }
+
     // gets the operation tht extracts a key from an input object
     virtual Lambda <KeyClass> getKeyProjection (Handle <InputClass> aggMe) = 0;
 
