@@ -232,7 +232,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
     //handle probing
     std :: map < std :: string, ComputeInfoPtr > info;
-    if (this->jobStage->isProbing() == true) {
+    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr)){
         Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe = this->jobStage->getHashSets();
         for (PDBMapIterator<String, Handle<SetIdentifier>> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
