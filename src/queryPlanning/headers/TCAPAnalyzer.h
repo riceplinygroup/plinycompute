@@ -27,6 +27,7 @@
 #include "PDBLogger.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
+#include "BroadcastJoinBuildHTJobStage.h"
 
 namespace pdb {
 
@@ -55,6 +56,9 @@ bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std
 //to create tuple set job stage
 Handle<TupleSetJobStage>  createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet);
 
+//to create broadcast join stage
+Handle<BroadcastJoinBuildHTJobStage> createBroadcastJoinBuildHTJobStage (int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName,  Handle<SetIdentifier> sourceContext, std :: string hashSetName, bool needsRemoveInputSet); 
+
 //to create aggregation job stage
 Handle<AggregationJobStage>  createAggregationJobStage(int & jobStageId,  Handle<AbstractAggregateComp> aggComp, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> sinkContext, std :: string outputTypeName, bool materializeOrNot);
 
@@ -62,6 +66,10 @@ Handle<AggregationJobStage>  createAggregationJobStage(int & jobStageId,  Handle
 bool analyze (std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<Computation> sourceComputation, Handle<SetIdentifier> curInputSetIdentifier, AtomicComputationPtr curNode, int &jobStageId);
 
 private:
+
+//hash sets to probe in current stage
+//needs to be cleared after execution of each stage
+Handle<Map<String, String>> hashSetsToProbe;
 
 //input computations
 Handle<Vector<Handle<Computation>>> computations;

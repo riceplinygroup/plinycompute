@@ -233,11 +233,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     //handle probing
     std :: map < std :: string, ComputeInfoPtr > info;
     if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr)){
-        Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe = this->jobStage->getHashSets();
-        for (PDBMapIterator<String, Handle<SetIdentifier>> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
+        Handle<Map<String, String>> hashSetsToProbe = this->jobStage->getHashSets();
+        for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
-            Handle<SetIdentifier> value = (*mapIter).value;
-            std :: string hashSetName = value->getDatabase() + ":" + value->getSetName();
+            std :: string hashSetName = (*mapIter).value;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet->getHashSetType() == "SharedHashSet") {
                 SharedHashSetPtr sharedHashSet = std :: dynamic_pointer_cast<SharedHashSet> (hashSet);

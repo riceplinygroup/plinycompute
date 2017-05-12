@@ -342,7 +342,9 @@ struct ApplyJoin : public AtomicComputation {
 
 	TupleSpec rightInput;
 	TupleSpec rightProjection;
-
+        //JiaNote: added below for physical planning
+        //if traversed is set to true, we know that one input has been processed, and the other input can go through the pipeline
+        bool traversed;
 public:
 
 	ApplyJoin (TupleSpec &output, TupleSpec &lInput, TupleSpec &rInput, TupleSpec &lProjection,
@@ -362,6 +364,14 @@ public:
 		return std :: string ("JoinSets");
 	}
 	
+        bool isTraversed () {
+                return this->traversed;
+        }
+
+        void setTraversed (bool traversed) {
+                this->traversed = traversed;
+        }
+
         std :: pair <std :: string, std :: string> findSource (std :: string attName, AtomicComputationList &allComps) override {
 
                 // The output from the join should be

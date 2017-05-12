@@ -25,6 +25,7 @@
 #ifndef PDBPAGE_H
 #define	PDBPAGE_H
 
+#include "PDBDebug.h"
 #include "PDBObject.h"
 #include "DataTypes.h"
 #include "PDBLogger.h"
@@ -90,7 +91,7 @@ public:
             //there is a problem:
             //reference count should always >= 0
             pthread_mutex_unlock(&this->refCountMutex);
-            std :: cout << "Error: page reference count < 0" << std :: endl;
+            PDB_COUT << "Error: page reference count < 0" << std :: endl;
             this->setPinned(false);
             this->refCount = 0;
         } else if (this->refCount == 0) {
