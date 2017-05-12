@@ -280,12 +280,12 @@ bool QuerySchedulerServer :: schedule (std :: string ip, int port, PDBLoggerPtr 
 
 }
 
+
+//JiaNote TODO: consolidate below three functions into a template function
 //to replace: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
 bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
         bool success;
         std :: string errMsg;
-        Handle<ComputePlan> plan = stage->getComputePlan();
-        plan->nullifyPlanPointer();
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
         if (mode == Direct) {
@@ -322,7 +322,44 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& 
         return true;
 }
 
+bool QuerySchedulerServer :: scheduleStage(int index, Handle<BroadcastJoinBuildHTJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
+        bool success;
+        std :: string errMsg;
+        PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
+        if (mode == Direct) {
+            stage->print();
+            success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stage, errMsg);
+            if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return false;
+            }
+        }else if (mode == DeepCopy) {
+             Handle<BroadcastJoinBuildHTJobStage> stageToSend = deepCopyToCurrentAllocationBlock<BroadcastJoinBuildHTJobStage> (stage);
+             stageToSend->print();
+             success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             }
+        } else {
+             std :: cout << "Error: No such object creation mode supported in query scheduler" << std :: endl;
+             return false;
+        }
+        PDB_COUT << "to receive query response from the "<< index << "-th remote node" << std :: endl;
+        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        if (result != nullptr) {
+            for (int j = 0; j < result->size(); j++) {
+                PDB_COUT << "BroadcastJoinBuildHTJobStage execute: wrote set:" << (*result)[j] << std :: endl;
+            }
+        }
+        else {
+            PDB_COUT << "BroadcastJoinBuildHTJobStage execute failure: can't get results" << std :: endl;
+            return false;
+        }
+
+        return true;
+}
 
 bool QuerySchedulerServer :: scheduleStage(int index, Handle<AggregationJobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
         bool success; 
@@ -830,7 +867,11 @@ void QuerySchedulerServer :: scheduleQuery() {
                               aggStage->setAggTotalPartitions (numCores);
                               aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
                               success = scheduleStage (j, aggStage, communicator, DeepCopy);
-                          } else {
+                          } else if (stage->getJobStageType() == "BroadcastJoinBuildHTJobStage" ) {
+                              Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage = unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage> (stage);
+                              success = scheduleStage (j, broadcastJoinStage, communicator, DeepCopy);
+
+                          }else {
                               errMsg = "Unrecognized job stage";
                               std :: cout << errMsg << std :: endl;
                               success = false;

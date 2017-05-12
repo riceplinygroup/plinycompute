@@ -32,6 +32,7 @@
 #include "QueryGraphIr.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
+#include "BroadcastJoinBuildHTJobStage.h"
 #include "SequenceID.h"
 #include <vector>
 
@@ -91,12 +92,12 @@ public:
        //to schedule a job stage
        bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
 
+       //Jia: one TODO is to consolidate below three functions into one function.
        //to replace: bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
        //to schedule a pipeline stage
        bool scheduleStage(int index, Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-
        bool scheduleStage(int index, Handle<AggregationJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-
+       bool scheduleStage(int index, Handle<BroadcastJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
        //deprecated
        //to schedule the current job plan on all available resources
        void schedule();

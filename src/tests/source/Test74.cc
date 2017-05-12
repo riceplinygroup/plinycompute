@@ -117,7 +117,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test67_db", errMsg)) {
+            if (!temp.createDatabase ("test74_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -125,7 +125,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("test67_db", "test67_set", errMsg)) {
+            if (!temp.createSet<Supervisor> ("test74_db", "test74_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -193,7 +193,7 @@ int main (int argc, char * argv[]) {
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test67_set", "test67_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test74_set", "test74_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -209,7 +209,7 @@ int main (int argc, char * argv[]) {
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<double> ("test67_db", "output_set1", errMsg)) {
+        if (!temp.createSet<double> ("test74_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -227,14 +227,14 @@ int main (int argc, char * argv[]) {
         catalogClient.registerType ("libraries/libFinalSelection.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteDoubleSet.so", errMsg);
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test67_db", "test67_set");
+	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test74_db", "test74_set");
 	Handle <Computation> myFilter = makeObject <SillySelection> ();
         myFilter->setInput(myScanSet);
 	Handle <Computation> myAgg = makeObject <SillyAggregation> ();
 	myAgg->setInput(myFilter);
         Handle <Computation> mySelection = makeObject <FinalSelection> ();
         mySelection->setInput(myAgg);
-        Handle <Computation> myWriter = makeObject<WriteDoubleSet>("test67_db", "output_set1");
+        Handle <Computation> myWriter = makeObject<WriteDoubleSet>("test74_db", "output_set1");
         myWriter->setInput(mySelection);
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
@@ -252,23 +252,23 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <double> result = myClient.getSetIterator <double> ("test67_db", "output_set1");
+            SetIterator <double> result = myClient.getSetIterator <double> ("test74_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)
             {
                      count ++;
-                     std :: cout << count << ":" << *a;
+                     std :: cout << count << ":" << *a << ";";
             }
             std :: cout << "aggregation output count:" << count << "\n";
         }
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test67_db", "output_set1");
+            myClient.deleteSet ("test74_db", "output_set1");
         } else {
-            if (!temp.removeSet ("test67_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test74_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {
