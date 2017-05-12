@@ -90,6 +90,19 @@ JoinMapIterator <ValueType> JoinMap <ValueType> :: end () {
 	return returnVal;	
 }
 
+template <class ValueType>
+size_t JoinMap <ValueType> :: getObjectSize () {
+        return this->objectSize; 
+}
+
+template <class ValueType>
+void JoinMap <ValueType> :: setObjectSize () {
+        JoinMapRecordClass <ValueType> temp;
+        size_t objSize = temp.getObjSize ();
+        this->objectSize = objSize;
+}
+
+
 }
 
 #endif

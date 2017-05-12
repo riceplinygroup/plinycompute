@@ -46,6 +46,7 @@
 #include "JobStage.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
+#include "BroadcastJoinBuildHTJobStage.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
 
@@ -68,6 +69,112 @@ FrontendQueryTestServer :: FrontendQueryTestServer (bool isStandalone, bool crea
 FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
+
+     //to handle a request to execute a job stage for building hash table for broadcast join
+     forMe.registerHandler (BroadcastJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler <BroadcastJoinBuildHTJobStage>> (
+               [&] (Handle<BroadcastJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+
+                    std :: string errMsg;
+                    bool success;
+                    PDB_COUT << "Frontend got a request for BroadcastJoinBuildHTJobStage" << std :: endl;
+                    request->print();
+
+                    makeObjectAllocatorBlock(4*1024*1024, true);
+                    PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                    if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                        std :: cout << errMsg << std :: endl;
+                        return std :: make_pair(false, errMsg);
+                    }
+                    PDB_COUT << "Frontend connected to backend" << std :: endl;
+    
+                    Handle<BroadcastJoinBuildHTJobStage> newRequest =
+                         deepCopyToCurrentAllocationBlock<BroadcastJoinBuildHTJobStage> (request);
+                    PDB_COUT << "Created BroadcastJoinBuildHTJobStage object for forwarding" << std :: endl;
+
+                    //check input set
+                    //input set
+                    //restructure the input information  
+                    std :: string inDatabaseName = request->getSourceContext()->getDatabase();
+                    std :: string inSetName = request->getSourceContext()->getSetName();
+                    Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                    PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
+                    SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
+                    if (inputSet == nullptr) {
+                        PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                        //TODO: move data from other servers
+                        //temporarily, we simply return;
+                        // now, we send back the result
+                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                        result->push_back (request->getHashSetName());
+                        PDB_COUT << "Query is done without data. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("execution complete"));
+
+                    } else {
+                        getFunctionality <PangeaStorageServer> ().cleanup();
+                    }
+                    sourceContext->setDatabaseId(inputSet->getDbID());
+                    sourceContext->setTypeId(inputSet->getTypeID());
+                    sourceContext->setSetId(inputSet->getSetID());
+                    newRequest->setSourceContext(sourceContext);
+                    newRequest->setNumPages(inputSet->getNumPages());
+                    newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
+                    newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set
+                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+
+
+
+                    //forward the request
+                    newRequest->print();
+
+                    if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                            std :: cout << errMsg << std :: endl;
+                            errMsg = std::string("can't send message to backend: ") +errMsg;
+                            success = false;
+                    } else {
+                            PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                            // wait for backend to finish.
+                            communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                            if (!success) {
+                                std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                                errMsg = std::string("backend failure: ") +errMsg;
+                            }
+                   }
+
+                   //remove sets
+                   if (newRequest->getNeedsRemoveInputSet() == true) {
+                       //remove input set
+                       getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);
+                   }
+
+
+                   //forward result
+                   //now, we send back the result
+                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   if (success == true) {
+                       result->push_back (request->getHashSetName());
+                       PDB_COUT << "Stage is done. " << std :: endl;
+                       errMsg = std :: string("execution complete");
+                   } else {
+                       std :: cout << "Stage failed at server" << std :: endl;
+                   }
+                   // return the results
+                   if (!sendUsingMe->sendObject (result, errMsg)) {
+                       return std :: make_pair (false, errMsg);
+                   }
+                   if (success == false) {
+                       //TODO:restart backend
+                   }
+                   return std :: make_pair (success, errMsg);
+
+               }
+
+     ));
+
+
 
       // to handle a request to execute an aggregation stage
       forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler <AggregationJobStage>> (
@@ -118,7 +225,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
-                    newRequest->setNeedsRemoveInputSet (false);
+                    newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set
                     PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
                    

@@ -44,10 +44,12 @@
 #include "JobStage.h"
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
+#include "BroadcastJoinBuildHTJobStage.h"
 #include "PipelineNetwork.h"
 #include "PipelineStage.h"
 #include "PartitionedHashSet.h"
 #include "SharedHashSet.h"
+#include "JoinMap.h"
 #include <vector>
 
 
@@ -294,6 +296,125 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             }
             ));
 
+   //register a handler to process the BroadcastJoinBuildHTJobStage message
+   forMe.registerHandler (BroadcastJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler<BroadcastJoinBuildHTJobStage>>(
+          [&] (Handle<BroadcastJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+             bool success;
+             std :: string errMsg;
+             PDB_COUT << "Backend got Broadcast JobStage message with Id=" << request->getStageId() << std :: endl;
+             request->print();
+
+             //create a SharedHashSet instance 
+             size_t hashSetSize = conf->getPageSize()*request->getNumPages();
+             SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
+             if (sharedHashSet == nullptr) {
+                 success = false;
+                 errMsg = "Error: heap memory becomes insufficient";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+
+             }
+             this->addHashSet(request->getHashSetName(), sharedHashSet);
+             //make allocator block and allocate the JoinMap
+             UseTemporaryAllocationBlock (sharedHashSet->getPage(), hashSetSize);
+            
+             //to get the sink merger
+             std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
+             std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
+             std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
+             Handle<ComputePlan> myComputePlan = request->getComputePlan();
+             SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
+             Handle<Object> myMap = merger->createNewOutputContainer();
+ 
+             //tune backend circular buffer size
+             int numThreads = 1;
+             int backendCircularBufferSize = 1;
+             if (conf->getShmSize()/conf->getPageSize()-2 < 2+2*numThreads+backendCircularBufferSize) {
+                 success = false;
+                 errMsg = "Error: Not enough buffer pool size to run the query!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+             backendCircularBufferSize = (conf->getShmSize()/conf->getPageSize()-4-2*numThreads);
+             if (backendCircularBufferSize > 10) {
+                 backendCircularBufferSize = 10;
+             }
+             success = true;
+             PDB_COUT << "backendCircularBufferSize is tuned to be " << backendCircularBufferSize << std :: endl;
+
+ 
+             //get scanner and iterators
+             PDBLoggerPtr scanLogger = make_shared<PDBLogger>("agg-scanner.log");
+             PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+             communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+             PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scanLogger, numThreads, backendCircularBufferSize, nodeId);
+             if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                 success = false;
+                 errMsg = "Error: A job is already running!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+
+             //get iterators
+             PDB_COUT << "To send GetSetPages message" << std :: endl;
+             std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, request->getSourceContext()->getDatabaseId(), request->getSourceContext()->getTypeId(), request->getSourceContext()->getSetId());
+             PDB_COUT << "GetSetPages message is sent" << std :: endl;
+
+             PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+             PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(nullptr);
+             //start threads
+             PDBWorkPtr myWork = make_shared<GenericWork> (
+                [&] (PDBBuzzerPtr callerBuzzer) {
+                     //setup an output page to store intermediate results and final output
+                     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+                     PageCircularBufferIteratorPtr iter = iterators.at(0);
+                     PDBPagePtr page = nullptr;
+                     while (iter->hasNext()) {
+                         page = iter->next();
+                         if (page != nullptr) {
+                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
+                             //to get the map on the page 
+                             void * bytes = page->getBytes();
+                             Handle<Object> theOtherMap = ((Record <Handle<Object>> *) bytes)->getRootObject();
+                             //to merge the two maps
+                             merger->writeOut(theOtherMap, myMap);
+                         }
+                     }
+                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
+                }
+                );
+
+             worker->execute(myWork, tempBuzzer);
+             tempBuzzer->wait();
+
+             // return result to frontend
+             PDB_COUT << "to send back reply" << std :: endl;
+             const UseTemporaryAllocationBlock block{1024};
+             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+             // return the result
+             success = sendUsingMe->sendObject (response, errMsg);
+             return make_pair(success, errMsg);
+
+          }
+   ));
 
    //register a handler to process the AggregationJobStge message
    forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler<AggregationJobStage>> (

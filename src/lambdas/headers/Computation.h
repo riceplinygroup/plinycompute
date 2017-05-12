@@ -23,6 +23,7 @@
 #include "Lambda.h"
 #include "ComputeSource.h"
 #include "ComputeSink.h"
+#include "SinkMerger.h"
 #include "InputTupleSetSpecifier.h"
 #include "PDBString.h"
 #include <map>
@@ -55,10 +56,20 @@ public:
 	// be put into the sink
 	virtual ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) {
              return nullptr;
-}
+        }
 
         virtual ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) {
              return getComputeSink(consumeMe, projection, plan);
+        }
+
+        // JiaNote: add below interface for merging multiple join map sinks for broadcast join
+        virtual SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) {
+             return nullptr;
+        }
+
+
+        virtual SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) {
+             return getSinkMerger(consumeMe, projection, plan);
         }
 
 	// returns the type of this Computation

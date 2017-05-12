@@ -136,6 +136,46 @@ public:
 		return getIthInputType <In1, In2, Rest...> (i);
 	}
 	
+        // this gets a sink merger
+        SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
+                // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
+                std :: vector <std :: string> typeList;
+                AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
+                std :: cout << "consumeMe was: " << consumeMe << "\n";
+                std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
+                std :: cout << "projection was: " << projection << "\n";
+                for (auto &a : projection.getAtts ()) {
+
+                        // find the identity of the producing computation
+                        std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n";
+                        std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());
+                        std :: cout << "got " << res.first << " " << res.second << "\n";
+
+                        // and find its type... in the first case, there is not a particular lambda that we need to ask for
+                        if (res.second == "") {
+                                typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
+                        } else {
+                                typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ()+">");
+                        }
+                }
+
+                for (auto &aa : typeList) {
+                        std :: cout << "Got type " << aa << "\n";
+                }
+
+                // now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
+                std :: vector <int> whereEveryoneGoes;
+                JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
+
+                for (auto &aa : whereEveryoneGoes) {
+                        std :: cout << aa << " ";
+                }
+                std :: cout << "\n";
+
+                return correctJoinTuple->getMerger ();
+
+        }
+
 	// this gets a compute sink
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
 		

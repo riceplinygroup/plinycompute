@@ -19,6 +19,7 @@
 #include "Object.h"
 #include "PDBTemplateBase.h"
 #include "Handle.h"
+#include "PDBVector.h"
 
 #ifndef JOIN_PAIR_ARRAY_H
 #define JOIN_PAIR_ARRAY_H
@@ -82,7 +83,7 @@ class JoinMapIterator {
 public:
 
 	bool operator != (const JoinMapIterator &me) const;
-	JoinRecordList <ValueType> &operator * ();
+	JoinRecordList <ValueType> * operator * ();
 	void operator ++ ();
 	JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn, bool);
 	JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn);
