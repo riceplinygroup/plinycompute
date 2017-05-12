@@ -2,7 +2,16 @@
 
 ## Building PDB
 
-Requirements:  scons http://scons.org/
+Requirements:  
+Software:
+
+scons http://scons.org/
+bison
+flex
+clang++3.8
+
+
+OS: Ubuntu-16, MacOS
 
 Run: scons 
 
