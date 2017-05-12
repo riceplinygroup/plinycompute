@@ -96,6 +96,7 @@ public:
                 std :: vector<std :: string> columnNames;
                 std :: string addedColumnName;
                 int lambdaLabel = 0;
+                tcapString += "\n/* Apply selection filtering */\n";
                 tcapString += selectionLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, myLambdaName, false);
                 PDB_COUT << "tcapString after parsing selection lambda: " << 
 tcapString << std :: endl;
@@ -116,6 +117,7 @@ tcapString << std :: endl;
                 Lambda <Handle<OutputClass>> projectionLambda = getProjection (checkMe);
                 PDB_COUT << "TO GET TCAP STRING FOR PROJECTION LAMBDA" << std :: endl;
                 PDB_COUT << "lambdaLabel=" << lambdaLabel << std :: endl;
+                tcapString += "\n/* Apply selection projection */\n";
                 tcapString += projectionLambda.toTCAPString(newTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true);
                 this->setTraversed (true);
                 this->setOutputTupleSetName (outputTupleSetName);

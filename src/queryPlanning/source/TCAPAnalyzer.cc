@@ -43,6 +43,7 @@ TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computatio
         this->logicalPlan = nullptr;
         this->sources.clear();
     }
+    hashSetsToProbe = nullptr;
 }
 
 TCAPAnalyzer::~TCAPAnalyzer () {
@@ -50,7 +51,7 @@ TCAPAnalyzer::~TCAPAnalyzer () {
     this->logicalPlan = nullptr;
     this->computePlan->nullifyPlanPointer();
     this->computePlan = nullptr;
-    
+    this->hashSetsToProbe = nullptr;
 }
 
 
@@ -108,6 +109,11 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     jobStage->setSourceContext(sourceContext);
     jobStage->setSinkContext(sinkContext);
     jobStage->setOutputTypeName(outputTypeName);
+    if (hashSetsToProbe != nullptr) {
+        jobStage->setProbing(true);
+        jobStage->setHashSetsToProbe(this->hashSetsToProbe);
+        this->hashSetsToProbe = nullptr;
+    }
     if (combinerContext != nullptr) {
         jobStage->setCombinerContext(combinerContext);
         jobStage->setCombining(true);
@@ -134,6 +140,16 @@ Handle<AggregationJobStage>  TCAPAnalyzer::createAggregationJobStage(int & jobSt
     aggStage->setJobId(this->jobId);
     return aggStage;
 }
+
+Handle<BroadcastJoinBuildHTJobStage> TCAPAnalyzer::createBroadcastJoinBuildHTJobStage (int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, Handle<SetIdentifier> sourceContext, std :: string hashSetName, bool needsRemoveInputSet) {
+    Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage = makeObject<BroadcastJoinBuildHTJobStage> (this->jobId, jobStageId, hashSetName);
+    jobStageId ++;
+    broadcastJoinStage->setComputePlan (this->computePlan, sourceTupleSetName, targetTupleSetName, targetComputationName);
+    broadcastJoinStage->setSourceContext (sourceContext);
+    broadcastJoinStage->setNeedsRemoveInputSet (needsRemoveInputSet); 
+    return broadcastJoinStage;
+}
+
 
 
 bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<Computation> sourceComputation, Handle<SetIdentifier> curInputSetIdentifier, AtomicComputationPtr curNode, int &jobStageId) {
@@ -216,14 +232,45 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             return analyze(physicalPlanToOutput, interGlobalSets, curNode, myComputation, sink, nextNode, jobStageId);
 
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
-            //if all my inputs are processed, I am not a pipeline breaker, we should create a TupleSetJobStage, and set the correct hash set names for probing
-            
+            std :: shared_ptr<ApplyJoin> joinNode = dynamic_pointer_cast<ApplyJoin> (curNode);
+            if (joinNode->isTraversed() == false) {
+                //if the other input has not been processed, I am a pipeline breaker.
+                //We first need to create a TupleSetJobStage with a broadcasting sink
 
-            //if at least one of my inputs are not processed, I am a pipeline breaker.
-            //We first need to create a TupleSetJobStage with a broadcasting sink
-            //We then create a BroadcastJoinBuildHTStage
-            //We should not go further, we set it to untraversed and leave it to other join inputs, and simply return
-            return false;
+                //sourceSet (curInputSetIdentifier)
+                //sinkSet
+                Handle<SetIdentifier> sink = makeObject<SetIdentifier>(this->jobId, outputName+"_broadcastData");
+
+                //computePlan
+                //sourceTupleSetName
+                //sinkTupleSetName
+                //sinkComputationName
+                
+                //isBroadcasting = true
+                //isRepartitioning = false
+                //collect probing information
+                //isCombining = fase
+                Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, "Broadcasting", curInputSetIdentifier, nullptr, sink, true, false, false);
+                physicalPlanToOutput.push_back(joinPrepStage);
+                interGlobalSets.push_back(sink);
+
+                //We then create a BroadcastJoinBuildHTStage
+                std :: string hashSetName = sink->getDatabase() + ":" + sink->getSetName();
+                Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, sink, hashSetName, false);
+                
+                //set the probe information
+                if (hashSetsToProbe == nullptr) {
+                    hashSetsToProbe = makeObject<Map<String, String>> ();
+                }
+                (*hashSetsToProbe)[outputName] = hashSetName;
+                //We should not go further, we set it to traversed and leave it to other join inputs, and simply return
+                joinNode->setTraversed(true);
+                return true;
+            } else {
+                //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
+                
+                return analyze(physicalPlanToOutput, interGlobalSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId);
+            }
 
         } else {
             //I am not a pipeline breaker

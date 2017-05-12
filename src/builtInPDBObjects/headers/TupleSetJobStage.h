@@ -248,12 +248,19 @@ namespace pdb {
                     return (*numPartitions)[nodeId];
             } 
 
-            Handle<Map<String, Handle<SetIdentifier>>> & getHashSets() {
+            Handle<Map<String, String>> & getHashSets() {
                     return this->hashSetsToProbe;
             }
 
-            void addHashSetToProbe(String targetTupleSetName, Handle<SetIdentifier> hashSetName) {
+            void addHashSetToProbe(String targetTupleSetName, String hashSetName) {
+                    if (hashSetsToProbe == nullptr) {
+                        hashSetsToProbe = makeObject<Map<String, String>>();
+                    }
                     (*hashSetsToProbe)[targetTupleSetName] = hashSetName;
+            }
+
+            void setHashSetsToProbe (Handle<Map<String, String>> hashSetsToProbe) {
+                   this->hashSetsToProbe = hashSetsToProbe;
             }
 
             String getIPAddress (int nodeId) {
@@ -378,7 +385,7 @@ namespace pdb {
             bool inputAggHashOutOrNot;
 
             //hash set names to probe for join
-            Handle<Map<String, Handle<SetIdentifier>>> hashSetsToProbe = nullptr;
+            Handle<Map<String, String>> hashSetsToProbe = nullptr;
 
             //the id to identify this job stage
             JobStageID id;
