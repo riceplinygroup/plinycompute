@@ -480,9 +480,9 @@ void JoinMapIterator <ValueType> :: operator ++ () {
 }
 
 template <class ValueType>
-JoinRecordList <ValueType> &JoinMapIterator <ValueType> :: operator * () {
+JoinRecordList <ValueType> * JoinMapIterator <ValueType> :: operator * () {
 	
-	JoinRecordList <ValueType> returnVal (slot, iterateMe);
+	JoinRecordList <ValueType> * returnVal = new JoinRecordList<ValueType>(slot, iterateMe);
 	return returnVal; 
 }
 

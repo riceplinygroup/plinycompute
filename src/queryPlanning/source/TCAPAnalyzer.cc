@@ -216,8 +216,13 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             return analyze(physicalPlanToOutput, interGlobalSets, curNode, myComputation, sink, nextNode, jobStageId);
 
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
-            std :: cout << "Computation Type: " << myComputation->getComputationType() << " are not supported right now" << std :: endl;
-            this->logger->fatal("Computation Type: " + myComputation->getComputationType() + " are not supported right now");
+            //if all my inputs are processed, I am not a pipeline breaker, we should create a TupleSetJobStage, and set the correct hash set names for probing
+            
+
+            //if at least one of my inputs are not processed, I am a pipeline breaker.
+            //We first need to create a TupleSetJobStage with a broadcasting sink
+            //We then create a BroadcastJoinBuildHTStage
+            //We should not go further, we set it to untraversed and leave it to other join inputs, and simply return
             return false;
 
         } else {
@@ -258,8 +263,8 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             interGlobalSets.push_back(aggregator);
 
         } else {
-            std :: cout << "Computation Type: " << myComputation->getComputationType() << " are not supported right now" << std :: endl;
-            this->logger->fatal("Computation Type: " + myComputation->getComputationType() + " are not supported right now");
+            std :: cout << "Computation Type: " << myComputation->getComputationType() << " are not supported to have more than one consumers right now" << std :: endl;
+            this->logger->fatal("Computation Type: " + myComputation->getComputationType() + " are not supported to have more than one consumers right now");
             return false;
         }
         //now I am a source

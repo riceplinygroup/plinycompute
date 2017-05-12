@@ -39,7 +39,9 @@ private:
 
 	// this is where the data are actually stored
 	Handle <JoinPairArray <ValueType>> myArray;
-
+      
+        // size of ValueType
+        size_t objectSize;
 public:
 
 	ENABLE_DEEP_COPY
@@ -74,6 +76,10 @@ public:
         // these are used for iteration
         JoinMapIterator <ValueType> begin ();
         JoinMapIterator <ValueType> end ();
+
+        // JiaNote: add this to enable combination of two JoinMaps
+        size_t getObjectSize();
+        void setObjectSize ();
 
 };
 

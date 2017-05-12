@@ -26,6 +26,7 @@
 #include "PDBVector.h"
 #include "Pipeline.h"
 #include "ComputeInfo.h"
+#include "SinkMerger.h"
 
 // PRELOAD %ComputePlan%
 
@@ -93,6 +94,9 @@ public:
 		std :: string targetTupleSetName, std :: string targetComputationName,
 		std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
 		std :: function <void (void *)> writeBackPage);
+
+        //JiaNote: add this to get sink merger
+        SinkMergerPtr getMerger (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName);
 
 };
 

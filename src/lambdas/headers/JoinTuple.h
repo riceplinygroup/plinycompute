@@ -20,6 +20,7 @@
 #define JOIN_TUPLE_H
 
 #include "JoinMap.h"
+#include "SinkMerger.h"
 
 namespace pdb {
 
@@ -29,8 +30,18 @@ void copyFrom (T &out, Handle <T> &in) {
 }
 
 template <typename T>
+void copyFrom (T &out, T &in) {
+        out = in;
+}
+
+template <typename T>
 void copyFrom (Handle <T> &out, Handle <T> &in) {
         out = in;
+}
+
+template <typename T>
+void copyFrom (Handle<T> &out, T &in) {
+        *out = in;
 }
 
 template <typename T>
@@ -61,7 +72,9 @@ struct IsAbstract {
 };
 
 // all join tuples decend from this
-class JoinTupleBase {};
+class JoinTupleBase {
+
+};
 
 // this template is used to hold a tuple made of one row from each of a number of columns in a TupleSet
 template <typename HoldMe, typename MeTo>
@@ -81,6 +94,15 @@ public:
 		processMe.addColumn (where, me, true);
 		return me;	
 	}
+
+        //JiaNote: add the below two functions to facilitate JoinMap merging for broadcast join
+        void copyDataFrom (Handle<HoldMe> me) {
+                pdb :: copyFrom (myData, me);
+        }
+
+        void copyDataFrom (HoldMe me) {
+                pdb :: copyFrom (myData, me);
+        }
 
 	void copyFrom (void *input, int whichPos) {
 		// std :: cout << "Packing column for type " << getTypeName <decltype (IsAbstract <HoldMe> :: val)> () << " at position " << whichPos << "\n";
@@ -112,6 +134,8 @@ public:
 	
 };
 
+
+
 /***** CODE TO CREATE A SET OF ATTRIBUTES IN A TUPLE SET *****/
 
 // this adds a new column to processMe of type TypeToCreate.  This is added at position offset + positions[whichPos]
@@ -128,6 +152,24 @@ typename std :: enable_if<sizeof (TypeToCreate :: myOtherData) != 0, void>::type
 	putUsHere[whichPos] = TypeToCreate :: allocate (processMe, offset + positions[whichPos]);
 	createCols <decltype (TypeToCreate :: myOtherData)> (putUsHere, processMe, offset, whichPos + 1, positions);
 }
+
+//JiaNote: add below two functions to c a join tuple from another join tuple
+/**** CODE TO COPY A JOIN TUPLE FROM ANOTHER JOIN TUPLE ****/
+
+//this is the non-recursive version of packData; called if the type does NOT have a field called myOtherData, in which case
+// we can just directly copy the data
+template <typename TypeToPackData>
+typename std :: enable_if<(sizeof (TypeToPackData :: myOtherData) == 0)&& (sizeof (TypeToPackData :: myData) != 0), void>::type packData (TypeToPackData &arg, TypeToPackData data) {
+        arg.copyDataFrom (data.myData);
+}
+
+//this is the recursive version of packData; called if the type has a field called myOtherData to which we can recursively pack values to.
+template <typename TypeToPackData>
+typename std :: enable_if<(sizeof (TypeToPackData :: myOtherData) != 0) && (sizeof (TypeToPackData :: myData) != 0), void>::type packData (TypeToPackData &arg, TypeToPackData data) {
+        arg.copyDataFrom (data.myData);
+        packData (arg.myOtherData, data.myOtherData);
+}
+
 
 /***** CODE TO PACK A JOIN TUPLE FROM A SET OF VALUES SPREAD ACCROSS COLUMNS *****/
 
@@ -304,6 +346,70 @@ public:
 	}
 };
 
+
+//JiaNote: this class is used to create a SinkMerger object that merges multiple JoinSinks for broadcast join
+template <typename RHSType>
+class JoinSinkMerger : public SinkMerger {
+
+
+public:
+
+
+        ~JoinSinkMerger () {
+        }
+
+        JoinSinkMerger () {
+        }
+
+        Handle <Object> createNewOutputContainer () override {
+
+                // we simply create a new map to store the output
+                Handle <JoinMap <RHSType>> returnVal = makeObject <JoinMap <RHSType>> ();
+                return returnVal;
+        }
+
+        void writeOut (Handle<Object> mergeMe, Handle <Object> &mergeToMe) override {
+
+                // get the map we are adding to
+                Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
+                JoinMap <RHSType> &myMap = *mergedMap;
+
+                Handle <JoinMap <RHSType>> mapToMerge = unsafeCast <JoinMap <RHSType>> (mergeMe);
+                JoinMap <RHSType> &theOtherMap = *mapToMerge;
+
+                for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
+                    JoinRecordList<RHSType> * myList = *iter;
+                    size_t mySize = myList->size();
+                    if (mySize > 0) {
+                        size_t myHash = myList->getHash();
+                        if (myMap.count(myHash) == 0) {
+
+                            RHSType &temp = myMap.push(myHash);
+                            packData (temp, ((*myList)[0]));
+
+                        } else {
+                            
+                            RHSType * temp = &(myMap.push(myHash));
+                            packData (*temp, ((*myList)[0])); 
+
+                        }
+                        for (size_t i = 1; i < mySize; i++) {
+                        
+                            RHSType * temp = &(myMap.push(myHash));
+                            packData (*temp, ((*myList)[i]));
+
+                        }
+                    }
+                    free (myList);
+                }
+         }
+
+
+};
+
+
+
+
 // this class is used to create a ComputeSink object that stores special objects that wrap up multiple columns of a tuple
 template <typename RHSType> 
 class JoinSink : public ComputeSink {
@@ -436,6 +542,9 @@ public:
                 TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, bool needToSwapLHSAndRhs) = 0;
 
 	virtual ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> whereEveryoneGoes) = 0;
+
+        virtual SinkMergerPtr getMerger() = 0;
+
 };
 
 // this is an actual class 
@@ -457,6 +566,11 @@ public:
 	// creates a compute sink for this particular type
         ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> whereEveryoneGoes) override {
 		return std :: make_shared <JoinSink <HoldMe>> (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+        }
+
+        //create a merger
+        SinkMergerPtr getMerger () override {
+                return std :: make_shared <JoinSinkMerger <HoldMe>> ();
         }
 };
 
