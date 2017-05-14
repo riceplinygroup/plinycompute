@@ -849,7 +849,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                       errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
                       everythingOK = false;
                  }
-
+                 free (readToHere);
                  //std :: cout << "Making response object.\n";
                  const UseTemporaryAllocationBlock block{1024};
                  Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
