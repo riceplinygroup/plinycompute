@@ -820,12 +820,26 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              PDB_COUT << "run pipeline with shuffling..." << std :: endl;
                              pipeline->runPipelineWithShuffleSink(this);
                         }                       
-                        //TODO: if input is a hash table we remove it
                         if ((sourceContext->isAggregationResult() == true) && (sourceContext->getSetType() == PartitionedHashSetType)) {
                              std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
                              AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
                              hashSet->cleanup(); 
                              this->removeHashSet(hashSetName);
+                        }
+
+                        //if this stage scans hash tables we need remove those hash tables
+                        if (request->isProbing() == true) {
+                             Handle<Map<String, String>> hashTables = request->getHashSets();
+                             if (hashTables != nullptr) {
+                                 for (PDBMapIterator<String, String> mapIter = hashTables->begin(); mapIter != hashTables->end(); ++mapIter) {
+                                     std :: string key = (*mapIter).key;
+                                     std :: string hashSetName = (*mapIter).value;
+                                     std :: cout << key << ":" << hashSetName << std :: endl;
+                                     AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
+                                     hashSet->cleanup();
+                                     this->removeHashSet(hashSetName);
+                                 }
+                             }
                         }
                 
                 } else {
