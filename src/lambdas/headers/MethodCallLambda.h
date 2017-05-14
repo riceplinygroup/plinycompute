@@ -45,7 +45,7 @@ public:
 		getExecutorFunc (getExecutorFunc), columnBuilder (columnBuilder), inputTypeName (inputTypeName), 
 		methodName (methodName), returnTypeName (returnTypeName) {
 
-             std :: cout << "MethodCallLambda: input type code is " << input.getExactTypeInfoValue() << std :: endl;
+             PDB_COUT << "MethodCallLambda: input type code is " << input.getExactTypeInfoValue() << std :: endl;
              this->setInputIndex(0, -(input.getExactTypeInfoValue()+1));
 
 	}
@@ -81,6 +81,8 @@ public:
                 std :: string inputTupleSetName = inputTupleSetNames[0];
                 std :: string tupleSetMidTag = "";
                 int myIndex;
+                std :: string originalInputColumnToApply;
+
                 if (multiInputsComp == nullptr) {
                     tupleSetMidTag = "OutFor_";
                 } else {
@@ -90,6 +92,7 @@ public:
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
                     inputColumnsToApply.clear();
                     inputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(myIndex));
+                    originalInputColumnToApply = multiInputsComp->getNameForIthInput(myIndex);
                 }
 
 
@@ -139,6 +142,11 @@ public:
                         std :: string curInput = multiInputsComp->getNameForIthInput(index);
                         auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);
                         if (iter != outputColumns.end()) {
+                            multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
+                            multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
+                            multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
+                        }
+                        if (originalInputColumnToApply == curInput) {
                             multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
                             multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
                             multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);

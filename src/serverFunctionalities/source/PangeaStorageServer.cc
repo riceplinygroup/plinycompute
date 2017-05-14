@@ -20,10 +20,12 @@
 #define PANGEA_STORAGE_SERVER_C
 
 #include "PDBDebug.h"
+#include "JoinMap.h"
 #include "PangeaStorageServer.h"
 #include "SimpleRequestResult.h"
 #include "CatalogServer.h"
 #include "StorageAddData.h"
+#include "StorageAddObject.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
 #include "StorageClearSet.h"
@@ -257,11 +259,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                         // comment the following three lines of code to allow Pangea to manage pages
 			PDB_COUT << "Write all of the bytes in the record.\n";
                         getRecord(data);
-			//myPage->wroteBytes ();
-			//myPage->flush ();
 
-
-			//myPage->unpin ();
                         CacheKey key;
                         key.dbId = myPage->getDbID();
                         key.typeId = myPage->getTypeID();
@@ -792,6 +790,77 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
        ));
        */
+
+
+        // this handler accepts a request to store one large object (e.g. JoinMap) in one page
+        forMe.registerHandler (StorageAddObject_TYPEID, make_shared <SimpleRequestHandler <StorageAddObject>> (
+                [&] (Handle <StorageAddObject> request, PDBCommunicatorPtr sendUsingMe) {
+
+                std :: string errMsg;
+                bool everythingOK = true;
+                bool typeCheckOrNot = request->isTypeCheck();
+                if (typeCheckOrNot == true) {
+#ifdef DEBUG_SET_TYPE
+                        // first, check with the catalog to make sure that the given database, set, and type are correct
+                        int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabase (), request->getSetName ());
+                        if (typeID < 0) {
+                                everythingOK = false;
+                        }
+                                // if we made it here, the type is correct, as is the database and the set
+                        //else if (typeID != getFunctionality <CatalogServer> ().searchForObjectTypeName (request->getType ())) {
+                        else if (typeID != VTableMap :: getIDByName (request->getType(), false)) {
+                                everythingOK = false;
+                        }
+#endif
+
+                 }
+
+                 // get the record
+                 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+                 void *readToHere = malloc (numBytes);
+                 everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
+                 Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
+                 Handle<JoinMap<Object>> objectToStore = record->getRootObject();
+                 std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
+                 if (everythingOK) {
+                      auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
+                                                        (std :: string) request->getSetName ());
+                      // now, get a page to write to
+                      PDBPagePtr myPage = getNewPage (databaseAndSet);
+                      if (myPage == nullptr) {
+                          std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
+                          std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
+                          std :: cout << "setName" << databaseAndSet.second << std :: endl;
+                          return make_pair(false, std :: string("FATAL ERROR: set to store data doesn't exist!"));
+                      }
+                      size_t pageSize = myPage->getSize();
+                      PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+                      memcpy (myPage->getBytes(), readToHere, numBytes);
+                       
+                      CacheKey key;
+                      key.dbId = myPage->getDbID();
+                      key.typeId = myPage->getTypeID();
+                      key.setId = myPage->getSetID();
+                      key.pageId = myPage->getPageID();
+                      this->getCache()->decPageRefCount(key);
+
+                 }
+                 else {
+                      errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
+                      everythingOK = false;
+                 }
+
+                 //std :: cout << "Making response object.\n";
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+
+                 // return the result
+                 //std :: cout << "Sending response object.\n";
+                 bool res = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair (res, errMsg);
+             }
+        ));
+
 
 
 	// this handler accepts a request to store some data

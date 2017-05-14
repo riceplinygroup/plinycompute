@@ -86,7 +86,7 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
 
 void QuerySchedulerServer ::cleanup() {
 
-    free(this->standardResources);
+    delete this->standardResources;
 
     for (int i = 0; i < currentPlan.size(); i++) {
              currentPlan[i]=nullptr;
@@ -205,7 +205,7 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
         }
         numPartitions->push_back(partitions);
         std :: string curAddress = node->getAddress()+":"+ std :: to_string(node->getPort());
-        std :: cout << "Current address =" << curAddress << std :: endl;
+        PDB_COUT << "Current address =" << curAddress << std :: endl;
         String addressOnThisNode = String(curAddress);
         addresses->push_back(addressOnThisNode);
         numCores = numCores + numCoresOnThisNode;
@@ -807,7 +807,7 @@ void QuerySchedulerServer :: scheduleQuery() {
              }
              numPartitions->push_back(partitions);
              std :: string curAddress = node->getAddress() + ":" + std :: to_string(node->getPort());
-             std :: cout << "current address is " << curAddress << std :: endl;  
+             PDB_COUT << "current address is " << curAddress << std :: endl;  
              String addressOnThisNode = String(curAddress);
              addresses->push_back(addressOnThisNode);
              numCores = numCores + numCoresOnThisNode;

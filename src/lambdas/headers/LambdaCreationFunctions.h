@@ -142,7 +142,7 @@ LambdaTree <bool> operator && (LambdaTree <LeftType> lhs, LambdaTree <RightType>
 // creates a PDB lambda that simply returns the argument itself
 template <typename ClassType>
 LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> & var) {
-        std :: cout << "makeLambdaFromSelf: input type code is " << var.getExactTypeInfoValue() << std :: endl;
+        PDB_COUT << "makeLambdaFromSelf: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr<ClassType>> (std :: make_shared <SelfLambda <ClassType>> (var));
 }
 
@@ -151,7 +151,7 @@ LambdaTree <Ptr<ClassType>> makeLambdaFromSelf (Handle <ClassType> & var) {
 template <typename ReturnType, typename ClassType>
 LambdaTree <Ptr<ReturnType>> makeLambdaUsingMember (std :: string inputTypeName, std :: string attName, std :: string attType,
 	Handle <ClassType> & var, ReturnType *member, size_t offset) {
-        std :: cout << "makeLambdaUsingMember: input type code is " << var.getExactTypeInfoValue() << std :: endl;
+        PDB_COUT << "makeLambdaUsingMember: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr<ReturnType>> (std :: make_shared <AttAccessLambda <ReturnType, ClassType>> 
 		(inputTypeName, attName, attType, var, offset));
 }
@@ -171,7 +171,7 @@ LambdaTree <std :: enable_if_t <std :: is_reference <ReturnType>::value, Ptr <ty
 	std :: string inputTypeName, std :: string methodName, Handle <ClassType> & var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
 	std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
 	std::function <SimpleComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutor) {
-        std :: cout << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
+        PDB_COUT << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <Ptr <typename std :: remove_reference <ReturnType> :: type>> 
 		(std :: make_shared <MethodCallLambda <Ptr <typename std :: remove_reference <ReturnType> :: type>, ClassType>>
 		(inputTypeName, methodName, returnTypeName, var, columnBuilder, getExecutor));
@@ -182,7 +182,7 @@ LambdaTree <std :: enable_if_t <!(std :: is_reference <ReturnType>::value), Retu
 	std :: string inputTypeName, std :: string methodName, Handle <ClassType> & var, std :: string returnTypeName, ReturnType (ClassType:: *arg) (),
 	std::function <bool (std :: string &, TupleSetPtr, int)> columnBuilder,
 	std::function <SimpleComputeExecutorPtr (TupleSpec &, TupleSpec &, TupleSpec &)> getExecutor) {
-        std :: cout << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
+        PDB_COUT << "makeLambdaFromMethod: input type code is " << var.getExactTypeInfoValue() << std :: endl;
 	return LambdaTree <ReturnType> (std :: make_shared <MethodCallLambda <ReturnType, ClassType>>
 		(inputTypeName, methodName, returnTypeName, var, columnBuilder, getExecutor));
 }

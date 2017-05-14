@@ -8,7 +8,7 @@ Software:
 scons http://scons.org/
 bison
 flex
-clang++3.8
+LLVM/clang++3.8
 
 
 OS: Ubuntu-16, MacOS

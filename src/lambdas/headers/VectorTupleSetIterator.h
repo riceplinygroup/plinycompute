@@ -65,7 +65,7 @@ public:
                 if (myRec != nullptr) {
 
 		    iterateOverMe = myRec->getRootObject ();
-
+                    PDB_COUT << "Got iterateOverMe" << std :: endl;
 		    // create the output vector and put it into the tuple set
 		    std :: vector <Handle <Object>> *inputColumn = new std :: vector <Handle <Object>>;
 		    output->addColumn (0, inputColumn, true); 
@@ -85,10 +85,16 @@ public:
 	// returns the next tuple set to process, or nullptr if there is not one to process
 	TupleSetPtr getNextTupleSet () override {
 
+                //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
+                if (iterateOverMe == nullptr) {
+                     return nullptr;
+                }
+
 		// if we made it here with lastRec being a valid pointer, then it means
 		// that we have gone through an entire cycle, and so all of the data that
 		// we will ever reference stored in lastRec has been fluhhed through the
 		// pipeline; hence, we can kill it
+
 		if (lastRec != nullptr) {
 			doneWithVector (lastRec);
 			lastRec = nullptr;

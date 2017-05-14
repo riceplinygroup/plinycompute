@@ -104,7 +104,7 @@ private:
 
                 std :: string myTypeName = root->getTypeOfLambda ();
                 PDB_COUT << "\tExtracted lambda named: " << myTypeName << "\n";
-                std :: string myName = myTypeName + "_" + std :: to_string (lambdaLabel);
+                std :: string myName = myTypeName + "_" + std :: to_string (lambdaLabel+root->getNumChildren());
                 
                 bool isLeftChildOfEqualLambda = false;
                 bool isRightChildOfEqualLambda = false;

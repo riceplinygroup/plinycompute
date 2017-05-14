@@ -40,6 +40,7 @@ public:
 
 
         unsigned int getInputIndex(int i) override {
+
             return input.getInputIndex(i);
         }
 
@@ -59,31 +60,42 @@ public:
                 myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
                 std :: string inputTupleSetName = inputTupleSetNames[0];
                 std :: string tupleSetMidTag = "";
+
+
                 int myIndex;
                 if (multiInputsComp == nullptr) {
                     tupleSetMidTag = "OutFor";
                 } else {
                     tupleSetMidTag = "ExtractedFor";
                     myIndex = this->getInputIndex(0);
+                    std :: cout << "myIndex for " << myLambdaName << " is " << myIndex << std :: endl;
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
-                    inputColumnsToApply.clear();
-                    inputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(myIndex));
+                    inputColumnsToApply = multiInputsComp->getInputColumnsToApplyForIthInput(myIndex);
+                  
                 }
 
                 
                 outputTupleSetName = "deref_"+ std :: to_string(lambdaLabel) +tupleSetMidTag+computationName+std :: to_string(computationLabel);
 
                 outputColumnName = inputColumnsToApply[0];
-                PDB_COUT << "OuputColumnName: " <<outputColumnName << std :: endl;  
+                PDB_COUT << "OuputColumnName: " << outputColumnName << std :: endl;  
                 outputColumns.clear();
                 for (int i = 0; i < inputColumnNames.size(); i++) {
-                    outputColumns.push_back(inputColumnNames[i]);
+                    if (inputColumnNames[i] != outputColumnName) {
+                        outputColumns.push_back(inputColumnNames[i]);
+                    }
                 }
-                tcapString += outputTupleSetName + "(" + outputColumns[0];
-                for (int i = 1; i < outputColumns.size(); i++) {
-                    tcapString += ",";
-                    tcapString += outputColumns[i];
+                outputColumns.push_back(outputColumnName);
+                if (outputColumns.size() > 0) {
+                    tcapString += outputTupleSetName + "(" + outputColumns[0];
+                    for (int i = 1; i < outputColumns.size(); i++) {
+                       tcapString += ",";
+                       tcapString += outputColumns[i];
+                    }
+                }
+                else {
+                    tcapString += outputTupleSetName + "(";
                 }
                 tcapString += ") <= APPLY (";
                 tcapString += inputTupleSetName + "(" + inputColumnsToApply[0];
@@ -103,10 +115,14 @@ public:
                         inputColumnsToKeep.push_back(inputColumnNames[i]);
                     }
                 }
-                tcapString += "), " + inputTupleSetName + "(" + inputColumnsToKeep[0];
-                for (int i = 1; i < inputColumnsToKeep.size(); i++) {
-                    tcapString += ",";
-                    tcapString += inputColumnsToKeep[i];
+                if (inputColumnsToKeep.size() > 0) {
+                    tcapString += "), " + inputTupleSetName + "(" + inputColumnsToKeep[0];
+                    for (int i = 1; i < inputColumnsToKeep.size(); i++) {
+                        tcapString += ",";
+                        tcapString += inputColumnsToKeep[i];
+                    }
+                } else {
+                    tcapString += "), " + inputTupleSetName + "(";
                 }
                 tcapString += "), '" + computationName + "_" + std :: to_string(computationLabel) + "', '"+ myLambdaName +"')\n";
                 if (multiInputsComp != nullptr) {
@@ -147,6 +163,7 @@ public:
                             multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
                             multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
                         }
+                        
                     }
                 }
 

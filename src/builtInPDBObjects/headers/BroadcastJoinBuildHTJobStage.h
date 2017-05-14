@@ -37,7 +37,7 @@ private:
     Handle<SetIdentifier> sourceContext;
 
     //name for output hash table
-    std :: string sharedHashSetName;
+    String sharedHashSetName;
 
     //job stage id
     JobStageID id;

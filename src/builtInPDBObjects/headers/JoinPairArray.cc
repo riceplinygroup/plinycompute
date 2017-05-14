@@ -376,9 +376,12 @@ JoinPairArray <ValueType> :: ~JoinPairArray () {
 
 template <class ValueType>
 Handle <JoinPairArray <ValueType>> JoinPairArray <ValueType> :: doubleArray () {
-
+        std :: cout << "bytes available in current allocator block: " << getAllocator().getBytesAvailableInCurrentAllocatorBlock () << std :: endl;
+        std :: string out = getAllocator().printInactiveBlocks();       
+        std :: cout << "inactive blocks: " << out << std :: endl;
+        std :: cout << "usedSlots = " << usedSlots << ", maxSlots = " << maxSlots << std :: endl;
 	uint32_t howMany = numSlots * 2;
-
+        std :: cout << "doubleArray to " << howMany << std :: endl;
 	// allocate the new Array
 	Handle <JoinPairArray <ValueType>> tempArray = 
 		makeObjectWithExtraStorage <JoinPairArray <ValueType>> (objSize * howMany, howMany);

@@ -839,7 +839,7 @@ namespace pdb {
         string tempFile = catalogDirectory + "/tmp_so_files/temp.so";
         int filedesc = open (tempFile.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
         size_t sizeWritten = write (filedesc, soFile.data (), soFile.size ());
-        std :: cout << "addObjectType: sizeWritten=" << sizeWritten << std :: endl; 
+        PDB_COUT << "addObjectType: sizeWritten=" << sizeWritten << std :: endl; 
         close (filedesc);
 
         // check to make sure it is valid Shared Library

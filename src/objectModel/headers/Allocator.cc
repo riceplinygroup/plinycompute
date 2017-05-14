@@ -146,6 +146,10 @@ inline Allocator :: Allocator () {
 
 	// now, setup the active block
 	setupBlock (malloc (1024), 1024, true);
+   
+        // JiaNote: by default, we optimize for space
+        optimizeSpeed = false;
+
 }
 
 inline Allocator :: Allocator (size_t numBytesIn) {
@@ -171,6 +175,10 @@ inline Allocator :: Allocator (size_t numBytesIn) {
             exit(-1);
         }
         setupBlock (putMeHere, numBytesIn, true);
+
+        //by default, we optimize for space
+        optimizeSpeed = false;
+
 }
 
 // returns true if and only if the RAM is in the current allocation block
@@ -197,7 +205,11 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 
 #ifdef DEBUG_OBJECT_MODEL
        std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
-#endif	
+#endif
+
+        //JiaNote: optimizeSpeed is a flag set to optimize allocator for speed at the cost of space.	
+        if (optimizeSpeed == false) {
+
 	// loop through all of the free chunks
 	// Lets say that someone asks for 54 bytes.  In binary, this is ...000110110 and so there are 26 leading zeros
 	// in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
@@ -223,6 +235,8 @@ inline void *Allocator :: getRAM (size_t howMuch) {
                                 return retAddress;
 			}
                  }
+        }
+
         }
 	// if we got here, then we cannot fit, and we need to carve out a bit at the end
 	// if there is not enough RAM
@@ -623,6 +637,16 @@ inline void Allocator :: cleanInactiveBlocks( size_t size ) {
         }
         return;
 }
+
+//those functions are for performance optimization
+inline void Allocator :: setOptimizationForSpeed (bool optimizationForSpeed) {
+        optimizeSpeed = optimizationForSpeed;
+}
+
+inline bool Allocator :: isOptimizationForSpeed () {
+        return optimizeSpeed;
+}
+
 
 extern void *stackBase;
 extern void *stackEnd;

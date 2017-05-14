@@ -63,10 +63,10 @@ public:
 	AndLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
-                std :: cout << "ANDLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
-                std :: cout << "ANDLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
-                std :: cout << "ANDLambda: LHS type is " << getTypeName<LeftType>() << std :: endl;
-                std :: cout << "ANDLambda: RHS type is " << getTypeName<RightType>() << std :: endl;
+                PDB_COUT << "ANDLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
+                PDB_COUT << "ANDLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                PDB_COUT << "ANDLambda: LHS type is " << getTypeName<LeftType>() << std :: endl;
+                PDB_COUT << "ANDLambda: RHS type is " << getTypeName<RightType>() << std :: endl;
                 this->setInputIndex (0, lhs.getInputIndex(0));
                 this->setInputIndex (1, rhs.getInputIndex(0));
 	}

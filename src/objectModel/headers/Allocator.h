@@ -159,6 +159,9 @@ private:
 
         //std :: unordered_map<void *, int16_t> remainingReferences; 
 
+        //JiaNote: whether to optimize allocation speed, instead of space
+        bool optimizeSpeed;
+
 public:
 	
 	// return true if allocations should not fail due to not enough RAM...
@@ -252,6 +255,12 @@ public:
         void cleanInactiveBlocks();
 
         void cleanInactiveBlocks( size_t size );
+
+        // Jia Note: this function is used to set whether to optimize allocation for speed
+        void setOptimizationForSpeed (bool optimizationForSpeed);
+
+        bool isOptimizationForSpeed ();
+        
 
 private:
 
