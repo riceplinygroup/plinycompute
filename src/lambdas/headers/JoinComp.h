@@ -51,19 +51,34 @@ class JoinComp  : public JoinCompBase {
 private:
 
        //this is used to pass to lambda tree to update pipeline information for each input
-       MultiInputsBase * multiInputsBase = new MultiInputsBase();
+       MultiInputsBase * multiInputsBase = nullptr;
 
 public:
 
-        MultiInputsBase * getMultiInputBase () {
+        MultiInputsBase * getMultiInputsBase () {
+            if (multiInputsBase == nullptr) {
+                multiInputsBase = new MultiInputsBase();
+            }
             return multiInputsBase;
         }
 
         virtual ~ JoinComp() {
-            free(multiInputsBase);
+            if (multiInputsBase == nullptr) {
+                delete (multiInputsBase);
+            }
+        }
+
+        void setMultiInputsBaseToNull () {
+            if (multiInputsBase == nullptr) {
+                delete (multiInputsBase);
+            }
+            multiInputsBase = nullptr;
         }
 
         void analyzeInputSets(std :: vector < std :: string> inputNames) {
+            if (multiInputsBase == nullptr) {
+                multiInputsBase = new MultiInputsBase();
+            }
             //Step 1. setup all input names (the column name corresponding to input in tuple set)
             for (int i = 0; i < inputNames.size(); i++) {
                 this->multiInputsBase->setNameForIthInput(i, inputNames[i]);
@@ -227,6 +242,9 @@ public:
                 std :: cout << "to get TCAPString for Computation: JoinComp_" << computationLabel << " with " << inputTupleSets.size() << "inputs" << std :: endl;
                 if (inputTupleSets.size()  == getNumInputs()) {
                     std :: string tcapString = "";
+                    if (multiInputsBase == nullptr) {
+                        multiInputsBase = new MultiInputsBase(); 
+                    }
                     multiInputsBase->setNumInputs(this->getNumInputs());
                     std :: vector < std :: string > inputNames;
                     //update tupleset name for input sets                    
@@ -244,7 +262,7 @@ public:
                     std :: vector<std :: string> childrenLambdaNames;
                     int lambdaLabel = 0;
                     std :: string myLambdaName;
-                    MultiInputsBase * multiInputsComp = this->getMultiInputBase();
+                    MultiInputsBase * multiInputsComp = this->getMultiInputsBase();
                     tcapString += selectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false, multiInputsComp, true);
                     
 
@@ -258,15 +276,14 @@ public:
                     Lambda <Handle <Out>> projectionLambda = callGetProjection (*this);
                     inputTupleSetName = outputTupleSetName;
                     inputColumnNames.clear();
-                    for (unsigned int i = 0; i < outputColumnNames.size(); i++) {
-                        inputColumnNames.push_back(outputColumnNames[i]);
-                    }
                     inputColumnsToApply.clear();
                     childrenLambdaNames.clear();
+                    for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
+                        multiInputsComp->setInputColumnsForIthInput(index, inputColumnNames);
+                    }
+
                     tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp, false);
-                    //std :: cout << tcapString << std :: endl;
-                    //std :: cout << "JoinComp: outputTupleSetName: " << outputTupleSetName << std :: endl;
-                    //std :: cout << "JoinComp: addedOutputColumnName: " << addedOutputColumnName << std :: endl;
+                    setMultiInputsBaseToNull(); 
                     return tcapString;
                      
                 } else {

@@ -241,7 +241,7 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":";
                      a->print();
             }
-            std :: cout << "aggregation output count:" << count << "\n";
+            std :: cout << "output count:" << count << "\n";
         }
 
         if (clusterMode == false) {

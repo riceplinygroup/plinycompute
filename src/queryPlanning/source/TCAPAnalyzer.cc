@@ -256,8 +256,9 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
 
                 //We then create a BroadcastJoinBuildHTStage
                 std :: string hashSetName = sink->getDatabase() + ":" + sink->getSetName();
+                std :: cout << "TCAPAnalyzer: hashSetName = " << hashSetName << std :: endl;
                 Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, sink, hashSetName, false);
-                
+                physicalPlanToOutput.push_back(joinBroadcastStage);                
                 //set the probe information
                 if (hashSetsToProbe == nullptr) {
                     hashSetsToProbe = makeObject<Map<String, String>> ();

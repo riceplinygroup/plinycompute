@@ -120,6 +120,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
+                    std :: cout << "Broadcasted data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
                     newRequest->setNumPages(inputSet->getNumPages());
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
                     newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set

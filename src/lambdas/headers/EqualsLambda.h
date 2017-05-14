@@ -78,8 +78,8 @@ public:
 	EqualsLambda (LambdaTree <LeftType> lhsIn, LambdaTree <RightType> rhsIn) {
 		lhs = lhsIn;
 		rhs = rhsIn;
-                std :: cout << "EqualsLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
-                std :: cout << "EqualsLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
+                PDB_COUT << "EqualsLambda: LHS index is " << lhs.getInputIndex(0) << std :: endl;
+                PDB_COUT << "EqualsLambda: RHS index is " << rhs.getInputIndex(0) << std :: endl;
                 this->setInputIndex (0, lhs.getInputIndex(0));
                 this->setInputIndex (1, rhs.getInputIndex(0));
 	}
@@ -116,7 +116,7 @@ public:
                          }
                     }
                     tcapString += " ) */\n";
-                    outputTupleSetName = "JoinedFor_"+myLambdaName+computationNameWithLabel;
+                    outputTupleSetName = "JoinedFor_equals"+std :: to_string(lambdaLabel)+computationName+std :: to_string(computationLabel);
                     std :: string tupleSetNamePrefix = outputTupleSetName;
                     outputColumns.clear();
                     //TODO: push down projection here 

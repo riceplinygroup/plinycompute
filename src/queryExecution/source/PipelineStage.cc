@@ -22,6 +22,7 @@
 
 #include "AbstractAggregateComp.h"
 #include "StorageAddData.h"
+#include "StorageAddObject.h"
 #include "ComputePlan.h"
 #include "ScanUserSet.h"
 #include "PDBDebug.h"
@@ -41,6 +42,7 @@
 #include "ClusterAggregateComp.h"
 #include "SharedHashSet.h"
 #include "JoinComp.h"
+#include "SimpleSendObjectRequest.h"
 
 namespace pdb {
 
@@ -87,41 +89,24 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
         }
 
 //broadcast data
-bool PipelineStage :: broadcastData (HermesExecutionServer * server, Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string &errMsg) {
-
+bool PipelineStage :: broadcastData (HermesExecutionServer * server, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+    if (data == nullptr) {
+        return false;
+    }
     int numNodes = this->jobStage->getNumNodes();
-    //create a buzzer and counter
-    int counter;
-    PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
-         [&] (PDBAlarm myAlarm, int & counter) {
-             counter ++;
-             //std :: cout << "counter = " << counter << std :: endl;
-         });
+    UseTemporaryAllocationBlock tempBlock {4*1024*1024};
     for (int i = 0; i < numNodes; i++) {
-        PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-        PDBWorkPtr myWork = make_shared<GenericWork> (
-             [&, i] (PDBBuzzerPtr callerBuzzer) {
-
+                  PDBCommunicator temp;
+                  bool success;
+                  std :: string errMsg;
                   std :: string address = this->jobStage->getIPAddress (i);
                   int port = this->jobStage->getPort (i);
-                  return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
-                 [&] (Handle <SimpleRequestResult> result) {
-                     if (result != nullptr)
-                         if (!result->getRes ().first) {
-                             logger->error ("Error sending data: " + result->getRes ().second);
-                             errMsg = "Error sending data: " + result->getRes ().second;
-                         }
-                         return true;}, data, databaseName, setName, "Broadcasting", false);
-
-                  callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
-             }
-
-         );
-         worker->execute(myWork, tempBuzzer);
-    }
-
-    while (counter < numThreads) {
-         tempBuzzer->wait();
+                  std :: cout << "address=" << address << ", port=" << port << std :: endl;
+                  temp.connectToInternetServer (logger, port, address, errMsg);
+                  Handle<StorageAddObject> request = makeObject <StorageAddObject> (databaseName, setName, "Broadcasting", false);
+                  temp.sendObject(request, errMsg);
+                  temp.sendBytes(data, size, errMsg);
+                  Handle<SimpleRequestResult> result = temp.getNextObject<SimpleRequestResult>(success, errMsg);
     }
     return true;
 
@@ -237,6 +222,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
             std :: string hashSetName = (*mapIter).value;
+            std :: cout << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet->getHashSetType() == "SharedHashSet") {
                 SharedHashSetPtr sharedHashSet = std :: dynamic_pointer_cast<SharedHashSet> (hashSet);
@@ -284,9 +270,16 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           std :: cout << "to broadcast a page" << std :: endl;
                           //to handle a broadcast join
                           //get the objects
-                          Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)page;
+                          Record<Object> * record = (Record<Object> *)page;
                           //broadcast the objects
-                          broadcastData (server, record->getRootObject(), outputSet->getDatabase(), outputSet->getSetName(), errMsg);
+                          if (record != nullptr) {
+                              Handle<Object> objectToSend = record->getRootObject();
+                              Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
+                              std :: cout << "Map size: " << map->size() << std :: endl;
+                              if (objectToSend != nullptr) {
+                                  broadcastData (server, page, DEFAULT_NET_PAGE_SIZE, outputSet->getDatabase(), outputSet->getSetName(), errMsg);
+                              }
+                          }
                           free (page);
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {

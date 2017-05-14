@@ -101,7 +101,7 @@ int main (int argc, char * argv[]) {
             std :: cout << "int is " << (*myList)[i].myOtherData.myData << std :: endl;
             std :: cout << "double is " << (*myList)[i].myOtherData.myOtherData.myData << std :: endl;
         }
-        free (myList);
+        delete (myList);
    }   
 
 

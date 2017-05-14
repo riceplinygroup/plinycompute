@@ -145,7 +145,7 @@ public:
         std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
 
                 outputTupleSetName = "inputDataFor"+getComputationType()+std :: string("_")+std :: to_string(computationLabel);
-                addedOutputColumnName = "in";
+                addedOutputColumnName = "in" + std :: to_string(computationLabel);
                 outputColumnNames.push_back(addedOutputColumnName);
                 std :: string ret = outputTupleSetName + std :: string("(" + addedOutputColumnName + ") <= SCAN ('") + std :: string(setName) + "', '" + std :: string(dbName) + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
                 this->setTraversed (true);

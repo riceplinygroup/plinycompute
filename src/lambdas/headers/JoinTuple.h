@@ -373,34 +373,24 @@ public:
                 // get the map we are adding to
                 Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
                 JoinMap <RHSType> &myMap = *mergedMap;
-
+                std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
                 Handle <JoinMap <RHSType>> mapToMerge = unsafeCast <JoinMap <RHSType>> (mergeMe);
                 JoinMap <RHSType> &theOtherMap = *mapToMerge;
+                std :: cout << "The map to merge size: " << theOtherMap.size() << std :: endl;
 
                 for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
                     JoinRecordList<RHSType> * myList = *iter;
                     size_t mySize = myList->size();
+                    size_t myHash = myList->getHash();
                     if (mySize > 0) {
-                        size_t myHash = myList->getHash();
-                        if (myMap.count(myHash) == 0) {
-
-                            RHSType &temp = myMap.push(myHash);
-                            packData (temp, ((*myList)[0]));
-
-                        } else {
-                            
-                            RHSType * temp = &(myMap.push(myHash));
-                            packData (*temp, ((*myList)[0])); 
-
-                        }
-                        for (size_t i = 1; i < mySize; i++) {
+                        for (size_t i = 0; i < mySize; i++) {
                         
                             RHSType * temp = &(myMap.push(myHash));
                             packData (*temp, ((*myList)[i]));
 
                         }
                     }
-                    free (myList);
+                    delete (myList);
                 }
          }
 

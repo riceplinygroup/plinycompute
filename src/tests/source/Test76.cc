@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_74_H
-#define TEST_74_H
+#ifndef TEST_76_H
+#define TEST_76_H
 
 //by Jia, May 2017
 
@@ -25,8 +25,6 @@
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
-#include "Supervisor.h"
-#include "Employee.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
@@ -34,15 +32,18 @@
 #include "SelectionComp.h"
 #include "FinalSelection.h"
 #include "AggregateComp.h"
-#include "ScanSupervisorSet.h"
-#include "SillyAggregation.h"
-#include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
-#include "WriteDoubleSet.h"
+#include "StringIntPair.h"
+#include "ScanIntSet.h"
+#include "ScanStringSet.h"
+#include "ScanStringIntPairSet.h"
+#include "SillyJoin.h"
+#include "WriteStringSet.h"
+#include "PDBString.h"
 #include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
@@ -86,9 +87,9 @@ int main (int argc, char * argv[]) {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
 
-       int numOfMb = 1024; //by default we add 1024MB data
+       int numOfMb = 256; //by default we add 1024MB data
        if (argc > 3) {
-           numOfMb = atoi(argv[3]);
+           numOfMb = atoi(argv[3])/3;
        }
        std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
@@ -117,26 +118,43 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test74_db", errMsg)) {
+            if (!temp.createDatabase ("test76_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Created database.\n";
             }
 
-            // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("test74_db", "test74_set", errMsg)) {
+            // now, create the int set in that database
+            if (!temp.createSet<int> ("test76_db", "test76_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
-                cout << "Created set.\n";
+                cout << "Created input set 1.\n";
+            }
+
+            // now, create the StringIntPair set in that database
+            if (!temp.createSet<StringIntPair> ("test76_db", "test76_set2", errMsg)) {
+                cout << "Not able to create set: " + errMsg;
+                exit (-1);
+            } else {
+                cout << "Created input set 2.\n";
+            }
+
+            // now, create the String set in that database
+            if (!temp.createSet<String> ("test76_db", "test76_set3", errMsg)) {
+                cout << "Not able to create set: " + errMsg;
+                exit (-1);
+            } else {
+                cout << "Created input set 3.\n";
             }
 
 
-            //Step 2. Add data
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-           int total = 0;
+            //Step 2. Add data to set1
+            int total = 0;
+            int i = 0;
             if (numOfMb > 0) {
                 int numIterations = numOfMb/64;
                 int remainder = numOfMb - 64*numIterations;
@@ -147,53 +165,19 @@ int main (int argc, char * argv[]) {
                         blockSize = remainder;
                     }
                     makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<Supervisor>>> storeMe =
-                        makeObject<Vector<Handle<Supervisor>>> ();
-                    char first = 'A', second = 'B', third = 'C', fourth = 'D';
-                    char myString[5];
-                    myString[4]=0;
+                    Handle<Vector<Handle<int>>> storeMe =
+                        makeObject<Vector<Handle<int>>> ();
                     try {
-                        for (int i = 0; true ; i++) {
+                        for (i=0; true ; i++) {
 
-                            myString[0] = first;
-                            myString[1] = second;
-                            myString[2] = third;
-                            myString[3] = fourth;
-
-                            first++;
-                            if (first == 'Z') {
-                                 first = 'A';
-                                 second++;
-                                 if (second == 'Z') {
-                                     second = 'A';
-                                     third++;
-                                     if (third == 'Z') {
-                                         third = 'A';
-                                         fourth++;
-                                         if (fourth == 'Z') {
-                                             fourth = 'A';
-                                         }
-                                     }
-                                 }
-                            }
-                            //std :: cout << myString << std :: endl;
-                            Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
+                            Handle <int> myData = makeObject <int> (i);
                             storeMe->push_back(myData);
                             total++;
-                            for (int j = 0; j < 10; j++) {
-                                 Handle <Employee> temp;
-                                 if (i % 2 == 0) {
-                                     temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-                                 }
-                                 else {
-                                     temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-                                 }
-                                 (*storeMe)[i]->addEmp (temp);
-                            }
-                       }
+                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test74_set", "test74_db"), storeMe, errMsg)) {
+                        std :: cout << "got to " << i << " when producing data for input set 1.\n";
+                        if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("test76_set1", "test76_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -201,15 +185,99 @@ int main (int argc, char * argv[]) {
                    PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
                 }
 
-                std :: cout << "total=" << total << std :: endl;
+                std :: cout << "input set 1: total=" << total << std :: endl;
 
                 //to write back all buffered records        
                 temp.flushData( errMsg );
-          }
+            }
+
+            //Step 3. Add data to set2
+            total = 0;
+            i = 0;
+            if (numOfMb > 0) {
+                int numIterations = numOfMb/64;
+                int remainder = numOfMb - 64*numIterations;
+                if (remainder > 0) { numIterations = numIterations + 1; }
+                for (int num = 0; num < numIterations; num++) {
+                    int blockSize = 64;
+                    if ((num == numIterations - 1) && (remainder > 0)){
+                        blockSize = remainder;
+                    }
+                    makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+                    Handle<Vector<Handle<StringIntPair>>> storeMe =
+                        makeObject<Vector<Handle<StringIntPair>>> ();
+                    try {
+                        for (i=0; true ; i++) {
+                            std :: ostringstream oss;
+                            oss << "My string is " << i;
+                            oss.str(); 
+                            Handle <StringIntPair> myData = makeObject <StringIntPair> (oss.str(), i);
+                            storeMe->push_back(myData);
+                            total++;
+                        }
+
+                    } catch (pdb :: NotEnoughSpace &n) {
+                        std :: cout << "got to " << i << " when producing data for input set 2.\n";
+                        if (!dispatcherClient.sendData<StringIntPair>(std::pair<std::string, std::string>("test76_set2", "test76_db"), storeMe, errMsg)) {
+                            std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                            return -1;
+                        }
+                   }
+                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+                }
+
+                std :: cout << "input set 2: total=" << total << std :: endl;
+
+                //to write back all buffered records        
+                temp.flushData( errMsg );
+            }
+
+            //Step 4. Add data to set3
+            total = 0;
+            i = 0;
+            if (numOfMb > 0) {
+                int numIterations = numOfMb/64;
+                int remainder = numOfMb - 64*numIterations;
+                if (remainder > 0) { numIterations = numIterations + 1; }
+                for (int num = 0; num < numIterations; num++) {
+                    int blockSize = 64;
+                    if ((num == numIterations - 1) && (remainder > 0)){
+                        blockSize = remainder;
+                    }
+                    makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+                    Handle<Vector<Handle<String>>> storeMe =
+                        makeObject<Vector<Handle<String>>> ();
+                    try {
+                        for (i=0; true ; i++) {
+                            std :: ostringstream oss;
+                            oss << "My string is " << i;
+                            oss.str();
+                            Handle <String> myData = makeObject <String> (oss.str());
+                            storeMe->push_back(myData);
+                            total++;
+                        }
+
+                    } catch (pdb :: NotEnoughSpace &n) {
+                        std :: cout << "got to " << i << " when producing data for input set 3.\n";
+                        if (!dispatcherClient.sendData<String>(std::pair<std::string, std::string>("test76_set3", "test76_db"), storeMe, errMsg)) {
+                            std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                            return -1;
+                        }
+                   }
+                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+                }
+
+                std :: cout << "input set 3: total=" << total << std :: endl;
+
+                //to write back all buffered records        
+                temp.flushData( errMsg );
+            }
+
+
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<double> ("test74_db", "output_set1", errMsg)) {
+        if (!temp.createSet<String> ("test76_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -221,21 +289,21 @@ int main (int argc, char * argv[]) {
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libSillySelection.so", errMsg);
-        catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
-        catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
-        catalogClient.registerType ("libraries/libFinalSelection.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteDoubleSet.so", errMsg);
+        catalogClient.registerType ("libraries/libSillyJoin.so", errMsg);
+        catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanStringIntPairSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanStringSet.so", errMsg);
+	catalogClient.registerType ("libraries/libWriteStringSet.so", errMsg);
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test74_db", "test74_set");
-	Handle <Computation> myFilter = makeObject <SillySelection> ();
-        myFilter->setInput(myScanSet);
-	Handle <Computation> myAgg = makeObject <SillyAggregation> ();
-	myAgg->setInput(myFilter);
-        Handle <Computation> mySelection = makeObject <FinalSelection> ();
-        mySelection->setInput(myAgg);
-        Handle <Computation> myWriter = makeObject<WriteDoubleSet>("test74_db", "output_set1");
-        myWriter->setInput(mySelection);
+	Handle <Computation> myScanSet1 = makeObject <ScanIntSet> ("test76_db", "test76_set1");
+        Handle <Computation> myScanSet2 = makeObject <ScanStringIntPairSet> ("test76_db", "test76_set2");
+        Handle <Computation> myScanSet3 = makeObject <ScanStringSet> ("test76_db", "test76_set3");
+	Handle <Computation> myJoin = makeObject <SillyJoin> ();
+        myJoin->setInput(0, myScanSet1);
+        myJoin->setInput(1, myScanSet2);
+        myJoin->setInput(2, myScanSet3);
+        Handle <Computation> myWriter = makeObject<WriteStringSet>("test76_db", "output_set1");
+        myWriter->setInput(myJoin);
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
         if (!myClient.executeComputations(errMsg, myWriter)) {
@@ -252,7 +320,7 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <double> result = myClient.getSetIterator <double> ("test74_db", "output_set1");
+            SetIterator <String> result = myClient.getSetIterator <String> ("test76_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
@@ -261,14 +329,14 @@ int main (int argc, char * argv[]) {
                      count ++;
                      std :: cout << count << ":" << *a << ";";
             }
-            std :: cout << "output count:" << count << "\n";
+            std :: cout << "join output count:" << count << "\n";
         }
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test74_db", "output_set1");
+            myClient.deleteSet ("test76_db", "output_set1");
         } else {
-            if (!temp.removeSet ("test74_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test76_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {

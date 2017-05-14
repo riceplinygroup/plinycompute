@@ -305,7 +305,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              request->print();
 
              //create a SharedHashSet instance 
-             size_t hashSetSize = conf->getPageSize()*request->getNumPages();
+             std :: cout << "pageSize = " << conf->getPageSize() << ", numPages = " << request->getNumPages() << std :: endl;
+             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages());
+             std :: cout << "BroadcastJoinBuildHTJobStage: hashSetSize=" << hashSetSize << std :: endl;
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              if (sharedHashSet == nullptr) {
                  success = false;
@@ -321,17 +323,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              }
              this->addHashSet(request->getHashSetName(), sharedHashSet);
-             //make allocator block and allocate the JoinMap
-             UseTemporaryAllocationBlock (sharedHashSet->getPage(), hashSetSize);
-            
-             //to get the sink merger
-             std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
-             std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
-             std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
-             Handle<ComputePlan> myComputePlan = request->getComputePlan();
-             SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
-             Handle<Object> myMap = merger->createNewOutputContainer();
- 
+             std :: cout << "BroadcastJoinBuildHTJobStage: hashSetName=" << request->getHashSetName() << std :: endl; 
              //tune backend circular buffer size
              int numThreads = 1;
              int backendCircularBufferSize = 1;
@@ -366,7 +358,6 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                  std :: cout << errMsg << std :: endl;
                  // return result to frontend
                  PDB_COUT << "to send back reply" << std :: endl;
-                 const UseTemporaryAllocationBlock block{1024};
                  Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
                  // return the result
                  success = sendUsingMe->sendObject (response, errMsg);
@@ -378,33 +369,55 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, request->getSourceContext()->getDatabaseId(), request->getSourceContext()->getTypeId(), request->getSourceContext()->getSetId());
              PDB_COUT << "GetSetPages message is sent" << std :: endl;
 
-             PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-             PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(nullptr);
-             //start threads
-             PDBWorkPtr myWork = make_shared<GenericWork> (
-                [&] (PDBBuzzerPtr callerBuzzer) {
-                     //setup an output page to store intermediate results and final output
-                     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
-                     PageCircularBufferIteratorPtr iter = iterators.at(0);
-                     PDBPagePtr page = nullptr;
-                     while (iter->hasNext()) {
-                         page = iter->next();
-                         if (page != nullptr) {
-                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
-                             //to get the map on the page 
-                             void * bytes = page->getBytes();
-                             Handle<Object> theOtherMap = ((Record <Handle<Object>> *) bytes)->getRootObject();
-                             //to merge the two maps
-                             merger->writeOut(theOtherMap, myMap);
-                         }
-                     }
-                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone);
-                }
-                );
+             //get data proxy
+             PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+             anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+             DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
-             worker->execute(myWork, tempBuzzer);
-             tempBuzzer->wait();
+             //make allocator block and allocate the JoinMap
+             const UseTemporaryAllocationBlock tempBlock (sharedHashSet->getPage(), hashSetSize) ;
+             std :: cout << "hashSetSize = " << hashSetSize << std :: endl;
+             getAllocator().setOptimizationForSpeed(true);
+             //to get the sink merger
+             std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
+             std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
+             std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
+             Handle<ComputePlan> myComputePlan = request->getComputePlan();
+             SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
+             Handle<Object> myMap = merger->createNewOutputContainer();
 
+             //setup an output page to store intermediate results and final output
+             PageCircularBufferIteratorPtr iter = iterators.at(0);
+             PDBPagePtr page = nullptr;
+             while (iter->hasNext()) {
+                page = iter->next();
+                if (page != nullptr) {
+                    PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                    //to get the map on the page 
+                    void * bytes = page->getBytes();
+                    Handle<Object> theOtherMap = ((Record <Handle<Object>> *) bytes)->getRootObject();
+                    Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
+                    //to merge the two maps
+                    PDB_COUT << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
+                    merger->writeOut(theOtherMap, myMap);
+                    PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                    proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                    PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+
+               } else {
+                    PDB_COUT << "####Scanner got a null page" << std :: endl;
+               }
+             }
+             PDB_COUT << "To get record" << std :: endl;
+             getRecord(myMap);
+
+             getAllocator().setOptimizationForSpeed(false);
+
+             if (this->setCurPageScanner(nullptr) == false) {
+                success = false;
+                errMsg = "Error: No job is running!";
+                std :: cout << errMsg << std :: endl;
+             }
              // return result to frontend
              PDB_COUT << "to send back reply" << std :: endl;
              const UseTemporaryAllocationBlock block{1024};
