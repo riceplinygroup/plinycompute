@@ -32,8 +32,8 @@ public:
         }
 
         ScanEmployeeSet (std :: string dbName, std :: string setName) {
-            this->dbName = dbName;
-            this->setName = setName;
+            setDatabaseName( dbName );
+            setSetName ( setName );
         }
 
 };

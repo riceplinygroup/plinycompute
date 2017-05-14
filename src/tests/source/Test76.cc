@@ -89,7 +89,7 @@ int main (int argc, char * argv[]) {
 
        int numOfMb = 256; //by default we add 1024MB data
        if (argc > 3) {
-           numOfMb = atoi(argv[3])/4;
+           numOfMb = atoi(argv[3])/8;
        }
        std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
