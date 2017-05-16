@@ -249,6 +249,7 @@ public:
 	void restoreAllocationBlock (AllocatorState &restoreMe);
 
         // Jia Note: for debugging object model memory management
+        std::string printCurrentBlock();
         std::string printInactiveBlocks();
 
         // Jia Note: this function should only be used for debugging purposes.

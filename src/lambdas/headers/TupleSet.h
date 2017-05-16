@@ -114,7 +114,7 @@ struct MaintenanceFuncs {
 		std :: function <Handle <Vector <Handle <Object>>> ()> createPDBVector, 
 		std :: function <void (Handle <Vector <Handle <Object>>> &, void *, size_t &)> writeToVector, 
 		bool mustDelete, std :: string typeContained, size_t serializedSize) : 
-		deleter (deleter), filter (filter), replicate (replicate), createPDBVector (createPDBVector), writeToVector (writeToVector), 
+		deleter (deleter), filter (filter), replicate (replicate), getCount (getCount), createPDBVector (createPDBVector), writeToVector (writeToVector), 
                 typeContained (typeContained), mustDelete (mustDelete), serializedSize (serializedSize) {}
 
 };

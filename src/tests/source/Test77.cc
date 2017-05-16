@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_76_H
-#define TEST_76_H
+#ifndef TEST_77_H
+#define TEST_77_H
 
 //by Jia, May 2017
 
@@ -41,8 +41,8 @@
 #include "ScanIntSet.h"
 #include "ScanStringSet.h"
 #include "ScanStringIntPairSet.h"
-#include "SillyJoin.h"
-#include "WriteStringSet.h"
+#include "CartesianJoin.h"
+#include "WriteStringIntPairSet.h"
 #include "PDBString.h"
 #include <ctime>
 #include <unistd.h>
@@ -51,10 +51,10 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* distributed join test case */
+
 using namespace pdb;
 
-
+/* distributed join test case */
 int main (int argc, char * argv[]) {
 
 
@@ -85,11 +85,10 @@ int main (int argc, char * argv[]) {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
 
-       int numOfMb = 256; //by default we add 1024MB data
+       int numOfObjects = 1024; //by default we add 1024MB data
        if (argc > 3) {
-           numOfMb = atoi(argv[3])/8;
+           numOfObjects = atoi(argv[3]); //this is a Cartesian join and results will be exploaded!
        }
-       std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
        std :: string masterIp = "localhost";
        if (argc > 4) {
@@ -116,7 +115,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test76_db", errMsg)) {
+            if (!temp.createDatabase ("test77_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -124,158 +123,86 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create the int set in that database
-            if (!temp.createSet<int> ("test76_db", "test76_set1", errMsg)) {
+            if (!temp.createSet<int> ("test77_db", "test77_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Created input set 1.\n";
             }
 
-            // now, create the StringIntPair set in that database
-            if (!temp.createSet<StringIntPair> ("test76_db", "test76_set2", errMsg)) {
+            // now, create the String set in that database
+            if (!temp.createSet<String> ("test77_db", "test77_set2", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Created input set 2.\n";
             }
 
-            // now, create the String set in that database
-            if (!temp.createSet<String> ("test76_db", "test76_set3", errMsg)) {
-                cout << "Not able to create set: " + errMsg;
-                exit (-1);
-            } else {
-                cout << "Created input set 3.\n";
-            }
-
 
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
             //Step 2. Add data to set1
-            int total = 0;
-            int i = 0;
-            if (numOfMb > 0) {
-                int numIterations = numOfMb/64;
-                int remainder = numOfMb - 64*numIterations;
-                if (remainder > 0) { numIterations = numIterations + 1; }
-                for (int num = 0; num < numIterations; num++) {
-                    int blockSize = 64;
-                    if ((num == numIterations - 1) && (remainder > 0)){
-                        blockSize = remainder;
-                    }
-                    makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<int>>> storeMe =
+            size_t totalSize = 256 * numOfObjects;
+            if (totalSize > 1024 * 1024) {
+                std :: cout << "Too many objects which may cause Cartesian join run too long time" << std :: endl;
+                exit (-1);
+            } 
+            makeObjectAllocatorBlock(totalSize, true);
+            Handle<Vector<Handle<int>>> storeMe =
                         makeObject<Vector<Handle<int>>> ();
-                    try {
-                        for (i=0; true ; i++) {
+            int i = 0;
+            for (; i < numOfObjects ; i++) {
 
-                            Handle <int> myData = makeObject <int> (i);
-                            storeMe->push_back(myData);
-                            total++;
-                        }
-                         
-                    } catch (pdb :: NotEnoughSpace &n) {
-                        std :: cout << "got to " << i << " when producing data for input set 1.\n";
-                        if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("test76_set1", "test76_db"), storeMe, errMsg)) {
-                            std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                            return -1;
-                        }
-                   }
-                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-                }
-
-                std :: cout << "input set 1: total=" << total << std :: endl;
-
-                //to write back all buffered records        
-                temp.flushData( errMsg );
+                   Handle <int> myData = makeObject <int> (i);
+                   storeMe->push_back(myData);
             }
+                         
+            std :: cout << "got to " << i << " when producing data for input set 1.\n";
+            if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("test77_set1", "test77_db"), storeMe, errMsg)) {
+                   std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                   return -1;
+            }
+
+            std :: cout << "input set 1: total=" << i << std :: endl;
+
+            //to write back all buffered records        
+            temp.flushData( errMsg );
+
 
             //Step 3. Add data to set2
-            total = 0;
+            totalSize = 512 * numOfObjects;
+            if (totalSize > 1024 * 1024) {
+                std :: cout << "Too many objects which may cause Cartesian join run too long time" <<
+ std :: endl;
+                exit (-1);
+            }
+            makeObjectAllocatorBlock(totalSize, true);
+            Handle<Vector<Handle<String>>> storeMeStr = makeObject<Vector<Handle<String>>> ();
             i = 0;
-            if (numOfMb > 0) {
-                int numIterations = numOfMb/64;
-                int remainder = numOfMb - 64*numIterations;
-                if (remainder > 0) { numIterations = numIterations + 1; }
-                for (int num = 0; num < numIterations; num++) {
-                    int blockSize = 64;
-                    if ((num == numIterations - 1) && (remainder > 0)){
-                        blockSize = remainder;
-                    }
-                    makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<StringIntPair>>> storeMe =
-                        makeObject<Vector<Handle<StringIntPair>>> ();
-                    try {
-                        for (i=0; true ; i++) {
-                            std :: ostringstream oss;
-                            oss << "My string is " << i;
-                            oss.str(); 
-                            Handle <StringIntPair> myData = makeObject <StringIntPair> (oss.str(), i);
-                            storeMe->push_back(myData);
-                            total++;
-                        }
-
-                    } catch (pdb :: NotEnoughSpace &n) {
-                        std :: cout << "got to " << i << " when producing data for input set 2.\n";
-                        if (!dispatcherClient.sendData<StringIntPair>(std::pair<std::string, std::string>("test76_set2", "test76_db"), storeMe, errMsg)) {
-                            std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                            return -1;
-                        }
-                   }
-                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-                }
-
-                std :: cout << "input set 2: total=" << total << std :: endl;
-
-                //to write back all buffered records        
-                temp.flushData( errMsg );
+            for (; i < numOfObjects ; i++) {
+                    std :: ostringstream oss;
+                    oss << "My string is " << i;
+                    oss.str();
+                    Handle <String> myData = makeObject <String> (oss.str());
+                    storeMeStr->push_back(myData);
             }
 
-            //Step 4. Add data to set3
-            total = 0;
-            i = 0;
-            if (numOfMb > 0) {
-                int numIterations = numOfMb/64;
-                int remainder = numOfMb - 64*numIterations;
-                if (remainder > 0) { numIterations = numIterations + 1; }
-                for (int num = 0; num < numIterations; num++) {
-                    int blockSize = 64;
-                    if ((num == numIterations - 1) && (remainder > 0)){
-                        blockSize = remainder;
-                    }
-                    makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<String>>> storeMe =
-                        makeObject<Vector<Handle<String>>> ();
-                    try {
-                        for (i=0; true ; i++) {
-                            std :: ostringstream oss;
-                            oss << "My string is " << i;
-                            oss.str();
-                            Handle <String> myData = makeObject <String> (oss.str());
-                            storeMe->push_back(myData);
-                            total++;
-                        }
-
-                    } catch (pdb :: NotEnoughSpace &n) {
-                        std :: cout << "got to " << i << " when producing data for input set 3.\n";
-                        if (!dispatcherClient.sendData<String>(std::pair<std::string, std::string>("test76_set3", "test76_db"), storeMe, errMsg)) {
+            std :: cout << "got to " << i << " when producing data for input set 2.\n";
+            if (!dispatcherClient.sendData<String>(std::pair<std::string, std::string>("test77_set2", "test77_db"), storeMeStr, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
-                        }
-                   }
-                   PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-                }
-
-                std :: cout << "input set 3: total=" << total << std :: endl;
-
-                //to write back all buffered records        
-                temp.flushData( errMsg );
             }
 
+            std :: cout << "input set 2: total=" << i << std :: endl;
+
+            //to write back all buffered records        
+            temp.flushData( errMsg );
 
         }
+
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<String> ("test76_db", "output_set1", errMsg)) {
+        if (!temp.createSet<StringIntPair> ("test77_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -287,20 +214,19 @@ int main (int argc, char * argv[]) {
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libSillyJoin.so", errMsg);
+        catalogClient.registerType ("libraries/libCartesianJoin.so", errMsg);
         catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
-        catalogClient.registerType ("libraries/libScanStringIntPairSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanStringSet.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteStringSet.so", errMsg);
+	catalogClient.registerType ("libraries/libWriteStringIntPairSet.so", errMsg);
 	// create all of the computation objects
-	Handle <Computation> myScanSet1 = makeObject <ScanIntSet> ("test76_db", "test76_set1");
-        Handle <Computation> myScanSet2 = makeObject <ScanStringIntPairSet> ("test76_db", "test76_set2");
-        Handle <Computation> myScanSet3 = makeObject <ScanStringSet> ("test76_db", "test76_set3");
-	Handle <Computation> myJoin = makeObject <SillyJoin> ();
+	Handle <Computation> myScanSet1 = makeObject <ScanIntSet> ("test77_db", "test77_set1");
+        myScanSet1->setBatchSize(100);
+        Handle <Computation> myScanSet2 = makeObject <ScanStringSet> ("test77_db", "test77_set2");
+        myScanSet2->setBatchSize(16);
+	Handle <Computation> myJoin = makeObject <CartesianJoin> ();
         myJoin->setInput(0, myScanSet1);
         myJoin->setInput(1, myScanSet2);
-        myJoin->setInput(2, myScanSet3);
-        Handle <Computation> myWriter = makeObject<WriteStringSet>("test76_db", "output_set1");
+        Handle <Computation> myWriter = makeObject<WriteStringIntPairSet>("test77_db", "output_set1");
         myWriter->setInput(myJoin);
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
@@ -318,23 +244,23 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <String> result = myClient.getSetIterator <String> ("test76_db", "output_set1");
+            SetIterator <StringIntPair> result = myClient.getSetIterator <StringIntPair> ("test77_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)
             {
                      count ++;
-                     std :: cout << count << ":" << *a << ";";
+                     std :: cout << count << ":" << *(a->myString) << ", " << a->myInt << ";";
             }
             std :: cout << "join output count:" << count << "\n";
         }
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test76_db", "output_set1");
+            myClient.deleteSet ("test77_db", "output_set1");
         } else {
-            if (!temp.removeSet ("test76_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test77_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {

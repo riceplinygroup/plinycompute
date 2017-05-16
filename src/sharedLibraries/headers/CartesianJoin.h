@@ -15,54 +15,43 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef CARTESIAN_JOIN_H
+#define CARTESIAN_JOIN_H
 
-#ifndef SIMPLE_COMPUTE_EXEC_H
-#define SIMPLE_COMPUTE_EXEC_H
+//by Jia, Mar 2017
 
-#include "TupleSet.h"
-#include "ComputeExecutor.h"
-#include <memory>
+#include "JoinComp.h"
+#include "PDBString.h"
+#include "StringIntPair.h"
+#include "LambdaCreationFunctions.h"
 
-namespace pdb {
 
-class SimpleComputeExecutor;
-typedef std :: shared_ptr <SimpleComputeExecutor> SimpleComputeExecutorPtr;
+using namespace pdb;
 
-// this is a simple generic implementation of a ComputeExecutor
-class SimpleComputeExecutor : public ComputeExecutor {
-
-private:
-
-	// this is the output TupleSet that we return
-	TupleSetPtr output;
-
-	// this is a lambda that we'll call to process input
-	std :: function <TupleSetPtr (TupleSetPtr)> processInput;
-
-        // JiaNote: this is for debugging purpose
-        std :: string myType;
-
+class CartesianJoin : public JoinComp <StringIntPair, int, String> {
 
 public:
 
-	SimpleComputeExecutor (TupleSetPtr outputIn, std :: function <TupleSetPtr (TupleSetPtr)> processInputIn, std :: string myTypeIn = "SimpleComputeExecutor") {
-		output = outputIn;
-		processInput = processInputIn;
-                myType = myTypeIn;
-	}
+        ENABLE_DEEP_COPY
 
-        
+        CartesianJoin () {}
 
-	TupleSetPtr process (TupleSetPtr input) override {
-		return processInput (input);
-	}
+        Lambda <bool> getSelection (Handle <int> in1, Handle <String> in2) override {
+                std :: cout << "CartesianJoin selection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue()  << std :: endl;
+                return makeLambda (in1, in2, [] (Handle<int> & in1, Handle<String> & in2) {
+                    return true;
+                });
+        }
 
-        std :: string getType() override {
-                return myType;
+        Lambda <Handle <StringIntPair>> getProjection (Handle <int> in1, Handle <String> in2) override {
+                 std :: cout << "CartesianJoin projection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << std :: endl;
+                return makeLambda (in1, in2, [] (Handle<int> & in1, Handle<String> & in2) {
+                    Handle<StringIntPair> pair = makeObject<StringIntPair> ((*in2), (*in1));
+                    return pair;
+                });
         }
 
 };
 
-}
 
 #endif

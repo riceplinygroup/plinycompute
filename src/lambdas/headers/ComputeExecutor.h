@@ -33,9 +33,12 @@ typedef std :: shared_ptr <ComputeExecutor> ComputeExecutorPtr;
 class ComputeExecutor {
 
 public:
-
+        
 	// precess a tuple set
 	virtual TupleSetPtr process (TupleSetPtr input) = 0;
+
+        // JiaNote: add below function for debugging
+        virtual std :: string getType() {  return "UNKNOWN"; };
 
 };
 

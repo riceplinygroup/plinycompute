@@ -77,6 +77,12 @@ public:
 
 		return output;
 	}
+
+        std :: string getType () override {
+                return "FILTER";
+        }
+
+
 };
 
 }

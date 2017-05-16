@@ -16,53 +16,29 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SIMPLE_COMPUTE_EXEC_H
-#define SIMPLE_COMPUTE_EXEC_H
+#ifndef WRITE_STRING_INT_PAIR_SET_H
+#define WRITE_STRING_INT_PAIR_SET_H
 
-#include "TupleSet.h"
-#include "ComputeExecutor.h"
-#include <memory>
+//by Jia, Mar 2017
 
-namespace pdb {
+#include "WriteUserSet.h"
+#include "StringIntPair.h"
 
-class SimpleComputeExecutor;
-typedef std :: shared_ptr <SimpleComputeExecutor> SimpleComputeExecutorPtr;
-
-// this is a simple generic implementation of a ComputeExecutor
-class SimpleComputeExecutor : public ComputeExecutor {
-
-private:
-
-	// this is the output TupleSet that we return
-	TupleSetPtr output;
-
-	// this is a lambda that we'll call to process input
-	std :: function <TupleSetPtr (TupleSetPtr)> processInput;
-
-        // JiaNote: this is for debugging purpose
-        std :: string myType;
-
+using namespace pdb;
+class WriteStringIntPairSet : public WriteUserSet <StringIntPair> {
 
 public:
 
-	SimpleComputeExecutor (TupleSetPtr outputIn, std :: function <TupleSetPtr (TupleSetPtr)> processInputIn, std :: string myTypeIn = "SimpleComputeExecutor") {
-		output = outputIn;
-		processInput = processInputIn;
-                myType = myTypeIn;
-	}
+	ENABLE_DEEP_COPY
 
-        
+        WriteStringIntPairSet () {}
 
-	TupleSetPtr process (TupleSetPtr input) override {
-		return processInput (input);
-	}
-
-        std :: string getType() override {
-                return myType;
+        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
+        WriteStringIntPairSet (std :: string dbName, std :: string setName) {
+            this->setOutput(dbName, setName);
         }
 
 };
 
-}
 
 #endif

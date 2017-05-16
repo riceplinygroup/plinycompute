@@ -96,14 +96,14 @@ public:
                 } else {
                     tupleSetMidTag = "ExtractedFor";
                     myIndex = this->getInputIndex(0);
-                    std :: cout << myLambdaName << ": myIndex=" << myIndex << std :: endl;
+                    PDB_COUT << myLambdaName << ": myIndex=" << myIndex << std :: endl;
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
-                    std :: cout << "inputTupleSetName=" << inputTupleSetName << std :: endl;
+                    PDB_COUT << "inputTupleSetName=" << inputTupleSetName << std :: endl;
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
                     inputColumnsToApply.clear();
                     inputColumnsToApply.push_back(multiInputsComp->getNameForIthInput(myIndex));
                     originalInputColumnToApply = multiInputsComp->getNameForIthInput(myIndex);
-                    std :: cout << "originalInputColumnToApply=" << originalInputColumnToApply << std :: endl;
+                    PDB_COUT << "originalInputColumnToApply=" << originalInputColumnToApply << std :: endl;
                 }
 
 
@@ -152,13 +152,13 @@ public:
                         std :: string curInput = multiInputsComp->getNameForIthInput(index);
                         auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);
                         if (iter != outputColumns.end()) {
-                            std :: cout << "MultiInputBase for index=" << index << " is updated" << std :: endl;
+                            PDB_COUT << "MultiInputBase for index=" << index << " is updated" << std :: endl;
                             multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
                             multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
                             multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
                         }
                         if (originalInputColumnToApply == curInput) {
-                            std :: cout << "MultiInputBase for index=" << index << " is updated" << std
+                            PDB_COUT << "MultiInputBase for index=" << index << " is updated" << std
  :: endl;
 
                             multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
@@ -223,7 +223,8 @@ public:
 				}
 				
 				return output;
-			}
+			},
+                        "attAccessLambda"
 		);
 		
 	}

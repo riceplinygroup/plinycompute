@@ -111,7 +111,8 @@ public:
                                 }
 
                                 return output;
-                        }
+                        },
+                        "selfLambda"
                 );
 
         }

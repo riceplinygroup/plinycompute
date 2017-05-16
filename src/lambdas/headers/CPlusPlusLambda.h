@@ -216,7 +216,8 @@ public:
 				}
 
 				return output;
-			}
+			},
+                        "nativeLambda"
 		);	
 	}
 
@@ -372,18 +373,18 @@ public:
 
                         //Join the two tables
                         tcapString += "\n/* CartesianJoin ( " + multiInputsComp->getNameForIthInput(curLeftIndexes[0]);
-                        std :: string outputTupleSetName = "CartesianJoined_["+multiInputsComp->getNameForIthInput(curLeftIndexes[0]);
+                        std :: string outputTupleSetName = "CartesianJoined__"+multiInputsComp->getNameForIthInput(curLeftIndexes[0]);
                         for (unsigned int j = 1; j < curLeftIndexes.size(); j++) {
                             outputTupleSetName += "_" + multiInputsComp->getNameForIthInput(curLeftIndexes[j]);
                             tcapString += " " + multiInputsComp->getNameForIthInput(curLeftIndexes[j]);
                         }
-                        outputTupleSetName += "]_[" + multiInputsComp->getNameForIthInput(curIndexes[0]);
+                        outputTupleSetName += "___" + multiInputsComp->getNameForIthInput(curIndexes[0]);
                         tcapString += " ) and ( " + multiInputsComp->getNameForIthInput(curIndexes[0]);
                         for (unsigned int j = 1; j < curIndexes.size(); j++) {
                             outputTupleSetName += "_" + multiInputsComp->getNameForIthInput(curIndexes[j]);
                             tcapString += " " + multiInputsComp->getNameForIthInput(curIndexes[j]);
                         }
-                        outputTupleSetName += "]";
+                        outputTupleSetName += "_";
                         tcapString += " ) */\n";
                         //push down projection here
                         tcapString += outputTupleSetName + "(" + curLeftColumnsToKeep[0];

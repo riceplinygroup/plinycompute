@@ -292,7 +292,9 @@ public:
 					outColumn [i] = checkEquals (leftColumn[i], rightColumn[i]);
 				}
 				return output;
-			}
+			},
+
+                        "equalsLambda"
 		);
 		
 	}

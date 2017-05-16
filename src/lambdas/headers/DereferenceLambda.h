@@ -234,7 +234,9 @@ public:
 					outColumn[i] = *inColumn[i];
 				}
 				return output;
-			}
+			},
+
+                        "dereferenceLambda"
 		);
 		
 	}
