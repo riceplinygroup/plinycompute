@@ -70,6 +70,8 @@ public:
 
 	TupleSetPtr process (TupleSetPtr input) override {
 
+                //std :: cout << "HashOneExecutor: to process a tuple set" << std :: endl;
+
 		// set up the output tuple set
 		myMachine.setup (input, output);
 
@@ -79,16 +81,27 @@ public:
                     output->addColumn(outAtt, outColumn, true);
                 }
 
+                //std :: cout << "HashOneExecutor: added a column at " << outAtt << std :: endl;
+
                 // get the output column
                 std :: vector <size_t> &outColumn = output->getColumn<size_t>(outAtt);
 		// loop over the columns and set the output to be 1
-		int numColumns = output->getNumRows (whichAtt);
-		for (int i = 0; i < numColumns; i++) {
+		int numRows = output->getNumRows (whichAtt);
+                outColumn.resize (numRows);
+		for (int i = 0; i < numRows; i++) {
 			outColumn[i] = 1;
 		}
 
+                //std :: cout << "HashOneExecutor: added 1 to " << numRows << " rows" << std :: endl;
+
 		return output;
 	}
+
+
+        std :: string getType () override {
+                return "HASHONE";
+        }
+
 };
 
 }

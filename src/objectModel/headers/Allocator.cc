@@ -244,7 +244,9 @@ inline void *Allocator :: getRAM (size_t howMuch) {
 
 		// see how we are supposed to react...
 		if (myState.throwException) {
-
+                        PDB_COUT << "Allocator: LAST_USED=" << LAST_USED << std :: endl;
+                        PDB_COUT << "Allocator: bytesNeeded=" << bytesNeeded << std :: endl;
+                        PDB_COUT << "Allocator: numBytes=" << myState.numBytes << std :: endl;
 			// either we throw an exception...
 			throw myException;
 
@@ -589,6 +591,17 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 }
 
 //added by Jia to facilitate debugging
+inline std :: string Allocator :: printCurrentBlock() {
+        std :: string out = "Allocator: address= ";
+        std :: stringstream stream;
+        stream << myState.activeRAM;
+        out = out + stream.str();
+        out = out + ", size=" ;
+        out = out + std :: to_string(myState.numBytes);
+        PDB_COUT << out << std :: endl;
+        return out;
+}
+
 inline std::string Allocator :: printInactiveBlocks() {
 
         int i;

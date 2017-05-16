@@ -103,6 +103,10 @@ public:
 
         }
 
+        int getBatchSize () {
+                return this->batchSize;
+        }
+
         void setOutput (std :: string dbName, std :: string setName) override {
                 this->dbName = dbName;
                 this->setName = setName;

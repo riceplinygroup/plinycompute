@@ -206,7 +206,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
         scanner->setIterator(iterators.at(i));
         scanner->setProxy(proxy);
-        scanner->setBatchSize(batchSize);
+        if ((scanner->getBatchSize() <= 0) || (scanner->getBatchSize() > 100)) {
+            scanner->setBatchSize(batchSize);
+        }
+        PDB_COUT << "SCANNER BATCH SIZE: " << scanner->getBatchSize() << std :: endl;
     } else {
         //input are hash tables
         Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator = 
@@ -224,6 +227,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             std :: string hashSetName = (*mapIter).value;
             std :: cout << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
+            if (hashSet == nullptr) {
+                std :: cout << "ERROR in pipeline execution: broadcast data not found!" << std :: endl;
+                return;
+            }
             if (hashSet->getHashSetType() == "SharedHashSet") {
                 SharedHashSetPtr sharedHashSet = std :: dynamic_pointer_cast<SharedHashSet> (hashSet);
                 info[key] = std :: make_shared <JoinArg>(*newPlan, sharedHashSet->getPage());
@@ -255,6 +262,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       //TODO: move this to Pangea
                       PDB_COUT << "to get a new page for writing" << std :: endl;
                       void * myPage = malloc (DEFAULT_NET_PAGE_SIZE);
+                      if (myPage == nullptr) {
+                          std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                      }
                       return std :: make_pair(myPage, DEFAULT_NET_PAGE_SIZE);
                   },
 

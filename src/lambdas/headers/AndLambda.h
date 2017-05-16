@@ -136,7 +136,9 @@ public:
 					outColumn [i] = checkAnd (leftColumn[i], rightColumn[i]);
 				}
 				return output;
-			}
+			},
+
+                        "andLambda"
 		);
 		
 	}
@@ -221,18 +223,18 @@ public:
                        //cartesian join lhs and rhs
                        tcapString += "\n/* CartesianJoin ( " + lhsInputNames[0];
 
-                       outputTupleSetName = "CartesianJoined_[" + lhsInputNames[0];
+                       outputTupleSetName = "CartesianJoined__" + lhsInputNames[0];
                        for (unsigned int i = 1; i < lhsInputNames.size(); i++) {
                            outputTupleSetName += "_" + lhsInputNames[i];
                            tcapString += " " + lhsInputNames[i];
                        }
-                       outputTupleSetName += "]_[" + rhsInputNames[0];
+                       outputTupleSetName += "___" + rhsInputNames[0];
                        tcapString += " ) and ( " + rhsInputNames[0];
                        for (unsigned int i = 1; i < rhsInputNames.size(); i++) {
                            outputTupleSetName += "_" + rhsInputNames[i];
                            tcapString += " " + rhsInputNames[i];
                        }
-                       outputTupleSetName += "]";
+                       outputTupleSetName += "_";
                        tcapString += " ) */\n";
 
                        //TODO: push down projection here

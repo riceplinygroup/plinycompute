@@ -308,6 +308,10 @@ public:
 
 	}
 
+        std :: string getType() override {
+                return "JoinProbe";
+        }
+
 	TupleSetPtr process (TupleSetPtr input) override {
 
 		std :: vector <size_t> inputHash = input->getColumn <size_t> (whichAtt);
@@ -440,14 +444,14 @@ public:
 	}
 
 	Handle <Object> createNewOutputContainer () override {
-		
+                PDB_COUT << "JoinSink: to create new JoinMap instance" << std :: endl;		
 		// we simply create a new map to store the output
 		Handle <JoinMap <RHSType>> returnVal = makeObject <JoinMap <RHSType>> ();
 		return returnVal;
 	}
 
 	void writeOut (TupleSetPtr input, Handle <Object> &writeToMe) override {
-
+                PDB_COUT << "JoinSink: write out tuples in this tuple set" << std :: endl;
 		// get the map we are adding to
 		Handle <JoinMap <RHSType>> writeMe = unsafeCast <JoinMap <RHSType>> (writeToMe);
 		JoinMap <RHSType> &myMap = *writeMe;

@@ -177,9 +177,11 @@ public:
 
 	// runs the pipeline
 	void run () {
-
+                //PDB_COUT << "start running pipeline..." << std :: endl;
 		// this is where we are outputting all of our results to
 		MemoryHolderPtr myRAM = std :: make_shared <MemoryHolder> (getNewPage ());	
+
+                //PDB_COUT << "got a new page" << std :: endl;
 
 		// and here is the chunk
 		TupleSetPtr curChunk;
@@ -193,18 +195,33 @@ public:
 			// go through all of the pipeline stages
 			for (ComputeExecutorPtr &q : pipeline) {
 				
+                                //std :: cout << "current executor type is " << q->getType() << std :: endl;
 				try { 
 					curChunk = q->process (curChunk);
 
 				} catch (NotEnoughSpace &n) {
-
+                                        //std :: cout << "Not enough space when processing chunk-" << iteration << std :: endl; 
 					// and get a new page
 					myRAM->setIteration (iteration);
 					unwrittenPages.push (myRAM);
+                                        //std :: cout << "before get new page:" <<
+//getAllocator().printInactiveBlocks() << std :: endl;
 					myRAM = std :: make_shared <MemoryHolder> (getNewPage ());
+                                        //std :: cout << "after get new page:" <<
+//getAllocator().printInactiveBlocks() << std :: endl;
+                                        if (myRAM->location == nullptr) {
+                                            std :: cout << "ERROR: insufficient memory in heap" << std :: endl;
+                                            return;
 
+                                        }
 					// then try again
-					curChunk = q->process (curChunk);
+					try {
+                                            curChunk = q->process (curChunk);
+                                        } 
+                                        catch (NotEnoughSpace &n) {
+                                            std :: cout << "Error: Batch memory exceeds page size, consider to reduce batch size" << std :: endl;
+                                            return;
+                                        }
 				}
 			}
 
@@ -218,6 +235,7 @@ public:
 			} catch (NotEnoughSpace &n) {
 
 				// again, we ran out of RAM here, so write back the page and then create a new output page
+                                //PDB_COUT << "pipeline runs out of RAM" << std :: endl;
 				myRAM->setIteration (iteration);
 				unwrittenPages.push (myRAM);
 				myRAM = std :: make_shared <MemoryHolder> (getNewPage ());
