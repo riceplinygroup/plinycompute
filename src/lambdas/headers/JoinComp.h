@@ -283,6 +283,14 @@ public:
                     }
 
                     tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp, false);
+                    std :: cout << "after Join projection" << std :: endl;
+                    std :: cout << "outputTupleSetName=" << outputTupleSetName << std :: endl;
+                    for (int i = 0; i < outputColumnNames.size(); i++) {
+                         std :: cout << "outputColumnNames[" << i << "]=" << outputColumnNames[i] << std :: endl;
+                    }
+                    std :: cout << "addedOutputColumnName=" << addedOutputColumnName << std :: endl;
+                 
+
                     setMultiInputsBaseToNull(); 
                     return tcapString;
                      

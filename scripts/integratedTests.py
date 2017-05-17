@@ -67,7 +67,7 @@ def startPseudoCluster():
 
 
 print("#################################")
-print("CLEAN THE TESTING ENVIRONMENT")
+print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
 numTotal = 5

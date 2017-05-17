@@ -316,7 +316,6 @@ public:
                 outputColumns.push_back(outputColumnName);
 
 
-
                 tcapString += getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, "APPLY", computationNameWithLabel, myLambdaName);
 
                 if (multiInputsComp != nullptr) {
@@ -370,7 +369,12 @@ public:
                     }
 
                 }
-                
+                std :: cout << "after Apply Lambda:" << myLambdaName << std :: endl;
+                std :: cout <<  "outputTupleSetName=" << outputTupleSetName << std :: endl;
+                for (int i = 0; i < outputColumns.size(); i++) {
+                     std :: cout << "outputColumns[" << i << "]=" << outputColumns[i] << std :: endl;
+                }                
+                std :: cout << "outputColumnName=" << outputColumnName << std :: endl;
                 return tcapString;
 
 

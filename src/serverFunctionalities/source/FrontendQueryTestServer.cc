@@ -228,6 +228,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                     } else {
                         getFunctionality <PangeaStorageServer> ().cleanup();
+                        PDB_COUT << "input set size=" << inputSet->getNumPages() << std :: endl;
                     }
                     sourceContext->setDatabaseId(inputSet->getDbID());
                     sourceContext->setTypeId(inputSet->getTypeID());
@@ -363,6 +364,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                          } else {
                              getFunctionality<PangeaStorageServer>().cleanup();
                          }
+                         std :: cout << "number of pages in set " << inSetName << " is " << inputSet->getNumPages() << std :: endl;
                          sourceContext->setDatabaseId(inputSet->getDbID());
                          sourceContext->setTypeId(inputSet->getTypeID());
                          sourceContext->setSetId(inputSet->getSetID());

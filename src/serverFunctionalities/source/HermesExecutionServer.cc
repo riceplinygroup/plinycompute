@@ -524,12 +524,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              while(myIter->hasNext()) {
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
+                                     PDB_COUT << "aggregation without materialization: got one page" << std :: endl;
                                      aggregateProcessor->loadInputPage(page->getBytes());
                                      if (aggregateProcessor->needsProcessInput() == false) {
                                          continue;
                                      }
                                      if (outPage == nullptr) {
                                          //create a new partition
+                                         std :: cout << "aggregation without materialization: add output page" << std :: endl; 
                                          void * bytes = aggregationSet->addPage();                                          
                                          aggregateProcessor->loadOutputPage(bytes, aggregationSet->getPageSize());
                                      }

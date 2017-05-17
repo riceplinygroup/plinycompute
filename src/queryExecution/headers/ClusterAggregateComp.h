@@ -211,16 +211,37 @@ public:
                 std :: vector<std :: string> columnNames;
                 std :: string addedColumnName;
                 int lambdaLabel = 0;
+                std :: cout << "To extract key for aggregation" << std :: endl;
+                std :: cout << "inputTupleSetName = " << inputTupleSetName << std :: endl;
+      
+                for (int i = 0; i < inputColumnNames.size(); i++) {
+                    std :: cout << "inputColumns[" << i << "]=" << inputColumnNames[i] << std :: endl;              
+                }
+
+                for (int i = 0; i < inputColumnsToApply.size(); i++) {
+                    std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;             
+                }
+                std :: vector<std :: string> columnsToApply;
+                for (int i = 0; i < inputColumnsToApply.size(); i++) {
+                    columnsToApply.push_back(inputColumnsToApply[i]);
+                }
                 tcapString += "\n/* Extract key for aggregation */\n";
                 tcapString += keyLambda.toTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, tupleSetName, columnNames, addedColumnName, myLambdaName, false);
                 Lambda <ValueClass> valueLambda = getValueProjection (checkMe);
-                std :: vector<std :: string> columnsToApply;
-                for (int i = 0; i < inputColumnNames.size(); i++) {
-                    columnsToApply.push_back(inputColumnNames[i]);
-                }
                 std :: vector<std :: string> columnsToKeep;
                 columnsToKeep.push_back(addedColumnName);
-                tcapString += "\n/* Extract key for aggregation */\n";
+
+                std :: cout << "To extract value for aggregation" << std :: endl;
+                std :: cout << "inputTupleSetName = " << tupleSetName << std :: endl;
+                for (int i = 0; i < columnsToKeep.size(); i++) {
+                    std :: cout << "inputColumns[" << i << "]=" << columnsToKeep[i] << std :: endl;
+                }
+
+                for (int i = 0; i < columnsToApply.size(); i++) {
+                    std :: cout << "inputColumnsToApply[" << i << "]=" << columnsToApply[i] << std :: endl;          
+                }
+
+                tcapString += "\n/* Extract value for aggregation */\n";
                 tcapString += valueLambda.toTCAPString(tupleSetName, columnsToKeep, columnsToApply, childrenLambdaNames, lambdaLabel, getComputationType(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, false);
                 std :: string newTupleSetName = "aggOutFor"+getComputationType()+"_"+std :: to_string(computationLabel);
                 /*tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+ outputColumnNames[0];
