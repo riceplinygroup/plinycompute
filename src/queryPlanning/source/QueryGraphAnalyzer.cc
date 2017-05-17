@@ -72,6 +72,7 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
     int numInputs = sink->getNumInputs();
     std :: string computationName = sink->getComputationType();
     if (numInputs > 0) {
+        std :: cout << "numInputs=" << numInputs << std :: endl;
         std :: vector <InputTupleSetSpecifier> inputTupleSetsForMe;
         for (int i = 0; i < numInputs; i++) {
             Handle<Computation> curSink = sink->getIthInput(i);
@@ -82,12 +83,23 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
                 //we met a materialized node
                 outputTupleSetName = curSink->getOutputTupleSetName();
                 addedOutputColumnName = curSink->getOutputColumnToApply();
-                outputColumnNames.push_back(addedOutputColumnName);
+                int j = 0;
+                for (; j < outputColumnNames.size(); j++) {
+                    if (addedOutputColumnName == outputColumnNames[j]) {
+                        break;
+                    }
+                }
+                if (j == outputColumnNames.size()) {
+                    outputColumnNames.push_back(addedOutputColumnName);
+                }
             }
             std :: vector <std :: string> addedOutputColumns;
             addedOutputColumns.push_back(addedOutputColumnName);
-            PDB_COUT << "outputTupleSetName: " << outputTupleSetName << std :: endl;
-            PDB_COUT << "addedOutputColumns: " << addedOutputColumnName << std :: endl;
+            PDB_COUT << i << ": outputTupleSetName: " << outputTupleSetName << std :: endl;
+            PDB_COUT << i << ": addedOutputColumns: " << addedOutputColumnName << std :: endl;
+            for (int j = 0; j < outputColumnNames.size(); j++) {
+                  PDB_COUT << outputColumnNames[j] << std :: endl;
+            }
             InputTupleSetSpecifier curOutput (outputTupleSetName, outputColumnNames, addedOutputColumns);
             inputTupleSetsForMe.push_back(curOutput);
         }
@@ -101,6 +113,10 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
             std :: vector < std :: string > columnsToApply = curSet.getColumnNamesToApply();
             for (int j = 0; j < columnsToApply.size(); j++) {
                 PDB_COUT << j << ":" << columnsToApply[j] << std :: endl;
+            }
+            std :: vector < std :: string > columnsToKeep = curSet.getColumnNamesToKeep();
+            for (int j = 0; j < columnsToKeep.size(); j++) {
+                PDB_COUT << j << ":" << columnsToKeep[j] << std :: endl;
             }
         }
         PDB_COUT << "######################" << std :: endl;
