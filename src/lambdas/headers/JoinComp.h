@@ -250,9 +250,14 @@ public:
                     //update tupleset name for input sets                    
                     for (unsigned int i = 0; i < inputTupleSets.size(); i++) {
                        this->multiInputsBase->setTupleSetNameForIthInput(i, inputTupleSets[i].getTupleSetName());
+                       std :: cout << i << "-th input tuple set name is " << inputTupleSets[i].getTupleSetName() << std :: endl;
                        this->multiInputsBase->setInputColumnsForIthInput(i, inputTupleSets[i].getColumnNamesToKeep());
+                       for (unsigned int j = 0; j < inputTupleSets[i].getColumnNamesToKeep().size(); j++) {
+                           std :: cout << i << ": " << j << "-th column to keep is " << (inputTupleSets[i].getColumnNamesToKeep())[j] << std :: endl;
+                       }
                        this->multiInputsBase->setInputColumnsToApplyForIthInput(i, inputTupleSets[i].getColumnNamesToApply());
                        inputNames.push_back(inputTupleSets[i].getColumnNamesToApply()[0]);
+                       std :: cout << i << "-th column to apply is " << inputTupleSets[i].getColumnNamesToApply()[0] << std :: endl;
                     }
                     analyzeInputSets(inputNames);
                     Lambda <bool> selectionLambda = callGetSelection (*this);

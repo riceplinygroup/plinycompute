@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_76_H
-#define TEST_76_H
+#ifndef TEST_79_H
+#define TEST_79_H
 
 //by Jia, May 2017
 
@@ -42,6 +42,9 @@
 #include "ScanStringSet.h"
 #include "ScanStringIntPairSet.h"
 #include "SillyJoin.h"
+#include "IntAggregation.h"
+#include "IntSelectionOfStringIntPair.h"
+#include "WriteIntSet.h"
 #include "WriteStringSet.h"
 #include "PDBString.h"
 #include <ctime>
@@ -116,7 +119,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test76_db", errMsg)) {
+            if (!temp.createDatabase ("test79_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -124,7 +127,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create the int set in that database
-            if (!temp.createSet<int> ("test76_db", "test76_set1", errMsg)) {
+            if (!temp.createSet<int> ("test79_db", "test79_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -132,7 +135,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create the StringIntPair set in that database
-            if (!temp.createSet<StringIntPair> ("test76_db", "test76_set2", errMsg)) {
+            if (!temp.createSet<StringIntPair> ("test79_db", "test79_set2", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -140,7 +143,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create the String set in that database
-            if (!temp.createSet<String> ("test76_db", "test76_set3", errMsg)) {
+            if (!temp.createSet<String> ("test79_db", "test79_set3", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -175,7 +178,7 @@ int main (int argc, char * argv[]) {
                          
                     } catch (pdb :: NotEnoughSpace &n) {
                         std :: cout << "got to " << i << " when producing data for input set 1.\n";
-                        if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("test76_set1", "test76_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("test79_set1", "test79_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -216,7 +219,7 @@ int main (int argc, char * argv[]) {
 
                     } catch (pdb :: NotEnoughSpace &n) {
                         std :: cout << "got to " << i << " when producing data for input set 2.\n";
-                        if (!dispatcherClient.sendData<StringIntPair>(std::pair<std::string, std::string>("test76_set2", "test76_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<StringIntPair>(std::pair<std::string, std::string>("test79_set2", "test79_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -257,7 +260,7 @@ int main (int argc, char * argv[]) {
 
                     } catch (pdb :: NotEnoughSpace &n) {
                         std :: cout << "got to " << i << " when producing data for input set 3.\n";
-                        if (!dispatcherClient.sendData<String>(std::pair<std::string, std::string>("test76_set3", "test76_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<String>(std::pair<std::string, std::string>("test79_set3", "test79_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -273,9 +276,19 @@ int main (int argc, char * argv[]) {
 
 
         }
+
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<String> ("test76_db", "output_set1", errMsg)) {
+        if (!temp.createSet<int> ("test79_db", "output_set1", errMsg)) {
+                cout << "Not able to create set: " + errMsg;
+                exit (-1);
+        } else {
+                cout << "Created set.\n";
+        }
+
+        // now, create a new set in that database to store output data
+        PDB_COUT << "to create a new set for storing output data" << std :: endl;
+        if (!temp.createSet<String> ("test79_db", "output_set2", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -286,25 +299,34 @@ int main (int argc, char * argv[]) {
 	
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
+
         // register this query class
         catalogClient.registerType ("libraries/libSillyJoin.so", errMsg);
         catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanStringIntPairSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanStringSet.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteStringSet.so", errMsg);
+        catalogClient.registerType ("libraries/libIntSelectionOfStringIntPair.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteIntSet.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteStringSet.so", errMsg);
+
 	// create all of the computation objects
-	Handle <Computation> myScanSet1 = makeObject <ScanIntSet> ("test76_db", "test76_set1");
-        Handle <Computation> myScanSet2 = makeObject <ScanStringIntPairSet> ("test76_db", "test76_set2");
-        Handle <Computation> myScanSet3 = makeObject <ScanStringSet> ("test76_db", "test76_set3");
+	Handle <Computation> myScanSet1 = makeObject <ScanIntSet> ("test79_db", "test79_set1");
+        Handle <Computation> myScanSet2 = makeObject <ScanStringIntPairSet> ("test79_db", "test79_set2");
+        Handle <Computation> myScanSet3 = makeObject <ScanStringSet> ("test79_db", "test79_set3");
 	Handle <Computation> myJoin = makeObject <SillyJoin> ();
         myJoin->setInput(0, myScanSet1);
         myJoin->setInput(1, myScanSet2);
         myJoin->setInput(2, myScanSet3);
-        Handle <Computation> myWriter = makeObject<WriteStringSet>("test76_db", "output_set1");
+        Handle <Computation> myWriter = makeObject<WriteStringSet>("test79_db", "output_set2");
         myWriter->setInput(myJoin);
+        Handle <Computation> myIntSelection = makeObject <IntSelectionOfStringIntPair>();
+        myIntSelection->setInput(myScanSet2);
+        Handle <Computation> myIntWriter = makeObject<WriteIntSet> ("test79_db", "output_set1");
+        myIntWriter->setInput(myIntSelection);
+
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
-        if (!myClient.executeComputations(errMsg, myWriter)) {
+        if (!myClient.executeComputations(errMsg, myIntWriter, myWriter)) {
             std :: cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -317,29 +339,57 @@ int main (int argc, char * argv[]) {
         std::cout << std::endl;
         // print the resuts
         if (printResult == true) {
-            std :: cout << "to print result..." << std :: endl;
-            SetIterator <String> result = myClient.getSetIterator <String> ("test76_db", "output_set1");
 
-            std :: cout << "Query results: ";
-            int count = 0;
-            for (auto a : result)
             {
+                std :: cout << "to print result in set1..." << std :: endl;
+                SetIterator <int> result = myClient.getSetIterator <int> ("test79_db", "output_set1");
+
+                std :: cout << "Query results: ";
+                int count = 0;
+                for (auto a : result)
+                {
                      count ++;
                      std :: cout << count << ":" << *a << ";";
+                }
+                std :: cout << "selection output count:" << count << "\n";
             }
-            std :: cout << "join output count:" << count << "\n";
+
+            { 
+                std :: cout << "to print result in set2..." << std :: endl;
+                SetIterator <String> result = myClient.getSetIterator <String> ("test79_db", "output_set2");
+
+                std :: cout << "Query results: ";
+                int count = 0;
+                for (auto a : result)
+                {
+                     count ++;
+                     std :: cout << count << ":" << *a << ";";
+                }
+                std :: cout << "aggregation output count:" << count << "\n";
+            }
+
         }
+
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test76_db", "output_set1");
+            myClient.deleteSet ("test79_db", "output_set1");
+            myClient.deleteSet ("test79_db", "output_set2");
         } else {
-            if (!temp.removeSet ("test76_db", "output_set1", errMsg)) {
-                cout << "Not able to remove set: " + errMsg;
+            if (!temp.removeSet ("test79_db", "output_set1", errMsg)) {
+                cout << "Not able to remove set1: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Removed set.\n";
             }
+
+            if (!temp.removeSet ("test79_db", "output_set2", errMsg)) {
+                cout << "Not able to remove set2: " + errMsg;
+                exit (-1);
+            } else {
+                cout << "Removed set.\n";
+            }
+
         }
         int code = system ("scripts/cleanupSoFiles.sh");
         if (code < 0) {

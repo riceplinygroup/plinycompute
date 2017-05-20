@@ -97,7 +97,9 @@ public:
 
         // below function returns a TCAP string for this Computation
        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
+              std :: cout << "\n/*Write to output set*/\n";
               std :: string ret = std :: string("out() <= OUTPUT (") + inputTupleSetName + " (" + inputColumnsToApply[0] + ")" + std :: string(", '") + std :: string(setName) + std :: string("', '") +  std :: string(dbName) + std :: string ("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel)  + std :: string("')");
+              ret = ret + "\n";
               outputTupleSetName = "out";
               outputColumnNames.push_back("");
               addedOutputColumnName = "";
