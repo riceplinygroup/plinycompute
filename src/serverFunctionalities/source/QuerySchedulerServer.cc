@@ -57,7 +57,12 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-
+#include <ctime>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <chrono>
+#include <fcntl.h>
 
 namespace pdb {
 
@@ -211,6 +216,8 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
         numCores = numCores + numCoresOnThisNode;
    }
     for (int i = 0; i < queryPlan.size(); i++) {
+        //begin time of this stage
+        auto begin = std :: chrono :: high_resolution_clock :: now();
         Handle<AbstractJobStage> stage = queryPlan[i];
         if(stage->getJobStageType() == "TupleSetJobStage") {
             Handle<TupleSetJobStage> tupleSetStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
@@ -234,6 +241,12 @@ bool QuerySchedulerServer :: scheduleStages (int index, std :: string ip, int po
             std :: cout << "Unrecognized job stage" << std :: endl;
             success = false;
         }
+
+        //end time of this stage
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Time Duration for the " << i << "-th stage: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+
         if (!success) {
             return success;
         }

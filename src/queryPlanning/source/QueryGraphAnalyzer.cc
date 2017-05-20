@@ -84,6 +84,7 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
                 outputTupleSetName = curSink->getOutputTupleSetName();
                 addedOutputColumnName = curSink->getOutputColumnToApply();
                 int j = 0;
+                outputColumnNames.clear();
                 for (; j < outputColumnNames.size(); j++) {
                     if (addedOutputColumnName == outputColumnNames[j]) {
                         break;
@@ -126,13 +127,19 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
         tcapStrings.push_back(curTcapString);
         computationLabel ++;
     } else {
-        outputColumnNames.clear();
-        addedOutputColumnName = "";
-        std :: string curTcapString = sink->toTCAPString(inputTupleSets, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-        PDB_COUT << curTcapString  << std :: endl;
-        tcapStrings.push_back(curTcapString);
-        computationLabel ++;
-        
+        if(sink->isTraversed() == false) {
+            outputColumnNames.clear();
+            addedOutputColumnName = "";
+            std :: string curTcapString = sink->toTCAPString(inputTupleSets, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
+            PDB_COUT << curTcapString  << std :: endl;
+            tcapStrings.push_back(curTcapString);
+            computationLabel ++;
+        } else {
+            outputTupleSetName = sink->getOutputTupleSetName();
+            addedOutputColumnName = sink->getOutputColumnToApply();
+            outputColumnNames.clear();
+            outputColumnNames.push_back(addedOutputColumnName);
+        }
     }
 
 }

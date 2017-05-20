@@ -142,7 +142,10 @@ private:
                              inputColumnNames.clear();
                         }
                         for (int j = 0; j < inputColumns.size(); j++) {
-                             inputColumnNames.push_back(inputColumns[j]);
+                             auto iter = std :: find (inputColumnNames.begin(), inputColumnNames.end(), inputColumns[j]);
+                             if (iter == inputColumnNames.end()) {
+                                 inputColumnNames.push_back(inputColumns[j]);
+                             }
                         }
                         isLeftChildOfEqualLambda = false;
                         isRightChildOfEqualLambda = false;
