@@ -153,6 +153,7 @@ public:
 	
         // this gets a sink merger
         SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
+                std :: cout << "to get sink merger" << std :: endl;
                 // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
                 std :: vector <std :: string> typeList;
                 AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
@@ -168,9 +169,16 @@ public:
 
                         // and find its type... in the first case, there is not a particular lambda that we need to ask for
                         if (res.second == "") {
+                                std :: cout << "my type is " << plan.getPlan ()->getNode (res.first).getComputation ().getOutputType () << std :: endl;
                                 typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
                         } else {
-                                typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ()+">");
+                                std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
+                                std :: cout << "my type is " << myType << std :: endl;
+                                if(myType.find_first_of("pdb::Handle<")==0) {
+                                     typeList.push_back(myType);
+                                } else {
+                                     typeList.push_back ("pdb::Handle<"+myType+">");
+                                }
                         }
                 }
 
@@ -193,7 +201,7 @@ public:
 
 	// this gets a compute sink
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-		
+		std :: cout << "to get compute sink" << std :: endl;
 		// loop through each of the attributes that we are supposed to accept, and for each of them, find the type
 		std :: vector <std :: string> typeList;
 		AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
@@ -211,7 +219,13 @@ public:
 			if (res.second == "") {
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
-				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ()+">");
+                                std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
+                                std :: cout << "my type is " << myType << std :: endl;
+                                if(myType.find_first_of("pdb::Handle<")==0) {
+                                     typeList.push_back(myType);
+                                } else {
+                                     typeList.push_back ("pdb::Handle<"+myType+">");
+                                }
 			} 
 		}
 
@@ -313,7 +327,7 @@ public:
 	// that are coming through the pipeline that we actually have to write to the output stream
         ComputeExecutorPtr getExecutor (bool needToSwapAtts, TupleSpec &hashedInputSchema, TupleSpec &pipelinedInputSchema,
                 TupleSpec &pipelinedAttsToOperateOn, TupleSpec &pipelinedAttsToIncludeInOutput, ComputeInfoPtr arg) override {
-
+                std :: cout << "to get executor" << std :: endl;
 		// get the argument to the join
 		JoinArg &joinArg = *((JoinArg *) arg.get ());
 
@@ -335,7 +349,13 @@ public:
 			if (res.second == "") {
 				typeList.push_back ("pdb::Handle<"+joinArg.plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
-				typeList.push_back ("pdb::Handle<"+joinArg.plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ()+">");
+                                std :: string myType = joinArg.plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
+                                std :: cout << "my type is " << myType << std :: endl;
+                                if(myType.find_first_of("pdb::Handle<")==0) {
+                                     typeList.push_back(myType);
+                                } else {
+                                     typeList.push_back ("pdb::Handle<"+myType+">");
+                                }
 			}
 		}
 

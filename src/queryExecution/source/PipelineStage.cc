@@ -254,10 +254,14 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     }
 
     newPlan->nullifyPlanPointer();
+    std :: vector < std :: string> buildTheseTupleSets;
+    jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
-                  this->jobStage->getSourceTupleSetSpecifier(),
-                  this->jobStage->getTargetTupleSetSpecifier(),
-                  this->jobStage->getTargetComputationSpecifier(),
+                  //this->jobStage->getSourceTupleSetSpecifier(),
+                  //this->jobStage->getTargetTupleSetSpecifier(),
+                  //this->jobStage->getTargetComputationSpecifier(),
+                  buildTheseTupleSets,
+
                   [] () -> std :: pair <void *, size_t> {
                       //TODO: move this to Pangea
                       PDB_COUT << "to get a new page for writing" << std :: endl;

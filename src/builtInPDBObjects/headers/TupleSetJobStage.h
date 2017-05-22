@@ -100,6 +100,23 @@ namespace pdb {
                 return this->targetComputationSpecifier;
             }
 
+            //to get the vector of tuple sets to build the pipeline
+            void getTupleSetsToBuildPipeline(std :: vector < std :: string> & buildMe) {
+                buildMe.clear();
+                for (int i = 0; i < (*buildTheseTupleSets).size(); i++) {
+                    buildMe.push_back((*buildTheseTupleSets)[i]);
+                }
+                
+            }
+
+            //to set tuplesets for building pipeline
+            void setTupleSetsToBuildPipeline (std :: vector < std :: string> buildMe) {
+                buildTheseTupleSets = makeObject<Vector<String>> ();
+                for (int i = 0; i < buildMe.size(); i++) {
+                    buildTheseTupleSets->push_back(buildMe[i]);
+                }
+            }
+
             //to get compute plan
             Handle<ComputePlan> getComputePlan() {
                 return this->sharedPlan;
@@ -210,6 +227,14 @@ namespace pdb {
                 std :: cout << "[SOURCE TUPLESET] sourceTupleSetSpecifier=" << this->sourceTupleSetSpecifier << std :: endl;
                 std :: cout << "[TARGET TUPLESET] targetTupleSetSpecifier=" << this->targetTupleSetSpecifier << std :: endl;
                 std :: cout << "[TARGET COMPUTATION] targetComputationSpecifier=" << this->targetComputationSpecifier << std :: endl;
+                if (buildTheseTupleSets != nullptr) {
+                    std :: cout << "[PIPELINE]" << std :: endl;
+                    size_t mySize = buildTheseTupleSets->size();
+                    for (size_t i = 0; i < mySize; i++) {
+                        std :: cout << i << ": " << (*buildTheseTupleSets)[i] << std :: endl;
+                    }
+                }
+                std :: cout << "[Probing] isProbing=" << this->probeOrNot << std :: endl;
                 std :: cout << "Number of cluster nodes=" << getNumNodes() << std :: endl;
                 std :: cout << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
                 int i; 
@@ -368,6 +393,8 @@ namespace pdb {
             //target computation
             String targetComputationSpecifier;
 
+            //tuple sets to build the pipeline
+            Handle<Vector<String>> buildTheseTupleSets;
 
             //Does this stage require probing a hash table ?
             bool probeOrNot;
