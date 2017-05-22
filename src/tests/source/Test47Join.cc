@@ -120,7 +120,7 @@ class SillyReadOfA : public ScanSet <int> {
 			},
 
 			// and this is the chunk size, or number of items to put into each tuple set
-			1024);
+			24);
 	}
 };
 
@@ -174,7 +174,7 @@ class SillyReadOfB : public ScanSet <StringIntPair> {
 			},
 
 			// and this is the chunk size, or number of items to put into each tuple set
-			1024);
+			24);
 	}
 };
 
@@ -230,7 +230,7 @@ class SillyReadOfC : public ScanSet <String> {
 			},
 
 			// and this is the chunk size, or number of items to put into each tuple set
-			1024);
+			24);
 	}
 };
 
