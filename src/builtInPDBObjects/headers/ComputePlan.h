@@ -95,6 +95,15 @@ public:
 		std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
 		std :: function <void (void *)> writeBackPage);
 
+
+        //JiaNote: add new buildPipeline methods to avoid ambiguity
+        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+        std :: function <void (void *)> writeBackPage, std :: map <std :: string, ComputeInfoPtr> &params);
+
+        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+        std :: function <void (void *)> writeBackPage);
+
+
         //JiaNote: add this to get sink merger
         SinkMergerPtr getMerger (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName);
 

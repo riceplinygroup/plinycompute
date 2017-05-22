@@ -252,13 +252,13 @@ int main (int argc, char * argv[]) {
         myJoin->setInput(0, myScanSet1);
         myJoin->setInput(1, myScanSet2);
         myJoin->setInput(2, mySelection);
-        Handle <Computation> myAggregation = makeObject <IntAggregation> ("test78_db", "output_set1");
+        Handle <Computation> myAggregation = makeObject <IntAggregation> ();
         myAggregation->setInput(myJoin);
-        //Handle <Computation> myWriter = makeObject<WriteSumResultSet>("test78_db", "output_set1");
-        //myWriter->setInput(myAggregation);
+        Handle <Computation> myWriter = makeObject<WriteSumResultSet>("test78_db", "output_set1");
+        myWriter->setInput(myAggregation);
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
-        if (!myClient.executeComputations(errMsg, myAggregation)) {
+        if (!myClient.executeComputations(errMsg, myWriter)) {
             std :: cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }

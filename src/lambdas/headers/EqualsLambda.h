@@ -47,21 +47,25 @@ std :: enable_if_t <!std :: is_base_of <PtrBase, MyType> :: value, size_t> hashH
 // type on either the LHS or RHS of an equality check
 template <class LHS, class RHS>
 std :: enable_if_t <std :: is_base_of <PtrBase, LHS> :: value && std :: is_base_of <PtrBase, RHS> :: value, bool> checkEquals (LHS &lhs, RHS &rhs) {
+        //std :: cout << "std :: is_base_of <PtrBase, LHS> :: value && std :: is_base_of <PtrBase, RHS> :: value" << std :: endl;
 	return *lhs == *rhs;
 } 
 
 template <class LHS, class RHS>
 std :: enable_if_t <std :: is_base_of <PtrBase, LHS> :: value && !(std :: is_base_of <PtrBase, RHS> :: value), bool> checkEquals (LHS &lhs, RHS &rhs) {
+        //std :: cout << "std :: is_base_of <PtrBase, LHS> :: value && !(std :: is_base_of <PtrBase, RHS> :: value) " << std :: endl;
 	return *lhs == rhs;
 } 
 
 template <class LHS, class RHS>
 std :: enable_if_t <!(std :: is_base_of <PtrBase, LHS> :: value) && std :: is_base_of <PtrBase, RHS> :: value, bool> checkEquals (LHS &lhs, RHS &rhs) {
+        //std :: cout << "!(std :: is_base_of <PtrBase, LHS> :: value) && std :: is_base_of <PtrBase, RHS> :: value" << std :: endl; 
 	return lhs == *rhs;
 } 
 
 template <class LHS, class RHS>
 std :: enable_if_t <!(std :: is_base_of <PtrBase, LHS> :: value) && !(std :: is_base_of <PtrBase, RHS> :: value), bool> checkEquals (LHS &lhs, RHS &rhs) {
+        //std :: cout << "!(std :: is_base_of <PtrBase, LHS> :: value) && !(std :: is_base_of <PtrBase, RHS>" << std :: endl;
 	return lhs == rhs;
 } 
 
@@ -250,7 +254,7 @@ public:
         } */
 
 	ComputeExecutorPtr getExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) override {
-	
+                	
 		// create the output tuple set
 		TupleSetPtr output = std :: make_shared <TupleSet> ();
 
@@ -288,8 +292,13 @@ public:
 				// loop down the columns, setting the output
 				int numTuples = leftColumn.size ();
 				outColumn.resize (numTuples); 
+                                //std :: cout << "numTuples: " << numTuples << std :: endl;
 				for (int i = 0; i < numTuples; i++) {
-					outColumn [i] = checkEquals (leftColumn[i], rightColumn[i]);
+                                        //std :: cout << "processing " << i << std :: endl;
+					bool out = checkEquals (leftColumn[i], rightColumn[i]);
+                                        //std :: cout << "out is " << out << std :: endl;
+
+                                        outColumn [i] = out;
 				}
 				return output;
 			},
@@ -340,7 +349,10 @@ public:
                                         outColumn [i] = hashHim (rightColumn[i]);
                                 }
                                 return output;
-                        }
+                        },
+                        
+                        "rightHasher"
+                     
                 );
         }
 
@@ -386,7 +398,9 @@ public:
                                         outColumn [i] = hashHim (leftColumn[i]);
                                 }
                                 return output;
-                        }
+                        },
+
+                        "leftHasher"
                 );
         }
 

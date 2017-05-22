@@ -70,7 +70,7 @@ print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
-numTotal = 5
+numTotal = 7
 numErrors = 0
 numPassed = 0
 
@@ -216,6 +216,66 @@ else:
 
 
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
+time.sleep(5)
+
+print("#################################")
+print("RUN JOIN TEST ON G-2 PIPELINE")
+print("#################################")
+
+try:
+    #start pseudo cluster
+    startPseudoCluster()
+
+    #run bin/test66
+    print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
+    subprocess.check_call(['bin/test76', 'Y', 'Y', '512', 'localhost', 'Y'])
+
+except subprocess.CalledProcessError as e:
+    print bcolors.FAIL + "[ERROR] in running distributed join test" + bcolors.ENDC
+    print e.returncode
+    numErrors = numErrors + 1
+
+else:
+    print bcolors.OKBLUE + "[PASSED] G2-distributed join test" + bcolors.ENDC
+    numPassed = numPassed + 1
+
+
+
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
+time.sleep(5)
+
+print("#################################")
+print("RUN SELECTION AND JOIN MIXED TEST ON G-2 PIPELINE")
+print("#################################")
+
+try:
+    #start pseudo cluster
+    startPseudoCluster()
+
+    #run bin/test66
+    print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
+    subprocess.check_call(['bin/test78', 'Y', 'Y', '1024', 'localhost', 'Y'])
+
+except subprocess.CalledProcessError as e:
+    print bcolors.FAIL + "[ERROR] in running distributed selection and join mixed test" + bcolors.ENDC
+    print e.returncode
+    numErrors = numErrors + 1
+
+else:
+    print bcolors.OKBLUE + "[PASSED] G2-distributed selection and join mixed test" + bcolors.ENDC
+    numPassed = numPassed + 1
+
+
+
+subprocess.call(['bash', './scripts/cleanupNode.sh'])
+
+print bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up..."
+time.sleep(5)
+
 
 
 
