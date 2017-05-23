@@ -251,15 +251,16 @@ public:
                 }
                 tcapString += "), '";*/
                 tcapString += "\n/* Apply aggregation */\n";
-                addedOutputColumnName = "aggOutFor" + std::to_string(computationLabel);
-                tcapString += newTupleSetName + "("+ addedOutputColumnName +") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
+                std :: string addedOutputColumnName1 = "aggOutFor" + std::to_string(computationLabel);
+                tcapString += newTupleSetName + "("+ addedOutputColumnName1 +") <= AGGREGATE (" + outputTupleSetName + " (" + addedColumnName + ", " + addedOutputColumnName + "), '";
                 tcapString += getComputationType() + "_" + std :: to_string(computationLabel) + "')\n";
                 outputTupleSetName = newTupleSetName;
                 outputColumnNames.clear();
-                outputColumnNames.push_back(addedOutputColumnName);
+                outputColumnNames.push_back(addedOutputColumnName1);
                 this->setTraversed (true);
                 this->setOutputTupleSetName (outputTupleSetName);
-                this->setOutputColumnToApply (addedOutputColumnName);
+                this->setOutputColumnToApply (addedOutputColumnName1);
+                addedOutputColumnName = addedOutputColumnName1;
                 return tcapString;
    }
 

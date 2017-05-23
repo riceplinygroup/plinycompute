@@ -31,7 +31,7 @@ elif  common_env['PLATFORM'] == 'posix':
     common_env.Append(LIBS = ['libdl.so', 'uuid'])
 
     #for optimization (TODO: O3 not good for Join now)
-    #common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
+    #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
     common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
