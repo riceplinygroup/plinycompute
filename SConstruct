@@ -284,43 +284,69 @@ all = ['build/sqlite/sqlite3.c',
        boost_component_dir_basename_to_cc_file_paths['system'],
       ]
 
-common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libAllSelection.so', ['build/libraries/AllSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libAllSelectionWithCreation.so', ['build/libraries/AllSelectionWithCreation.cc'] + all)
+common_env.SharedLibrary('libraries/libCartesianJoin.so', ['build/libraries/CartesianJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libEmployeeBuiltInIdentitySelection.so', ['build/libraries/EmployeeBuiltInIdentitySelection.cc'] + all)
+common_env.SharedLibrary('libraries/libEmployeeIdentitySelection.so', ['build/libraries/EmployeeIdentitySelection.cc'] + all)
+common_env.SharedLibrary('libraries/libEmployeeSelection.so', ['build/libraries/EmployeeSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libFinalSelection.so', ['build/libraries/FinalSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libIntAggregation.so', ['build/libraries/IntAggregation.cc'] + all)
+common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/libraries/IntSelectionOfStringIntPair.cc'] + all)
+common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
-common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
-common_env.SharedLibrary('libraries/libEmployeeSelection.so', ['build/libraries/EmployeeSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libScanBuiltinEmployeeSet.so', ['build/libraries/ScanBuiltinEmployeeSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanEmployeeSet.so', ['build/libraries/ScanEmployeeSet.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteStringSet.so', ['build/libraries/WriteStringSet.cc'] + all)
-common_env.SharedLibrary('libraries/libScanSupervisorSet.so', ['build/libraries/ScanSupervisorSet.cc'] + all)
-common_env.SharedLibrary('libraries/libSillySelection.so', ['build/libraries/SillySelection.cc'] + all)
-common_env.SharedLibrary('libraries/libSillyAggregation.so', ['build/libraries/SillyAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libScanSimpleEmployeeSet.so', ['build/libraries/ScanSimpleEmployeeSet.cc'] + all)
-common_env.SharedLibrary('libraries/libSimpleEmployee.so', ['build/libraries/SimpleEmployee.cc'] + all)
-common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libAllSelection.so', ['build/libraries/AllSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libFinalSelection.so', ['build/libraries/FinalSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteDoubleSet.so', ['build/libraries/WriteDoubleSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanIntSet.so', ['build/libraries/ScanIntSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanSimpleEmployeeSet.so', ['build/libraries/ScanSimpleEmployeeSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanStringIntPairSet.so', ['build/libraries/ScanStringIntPairSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanStringSet.so', ['build/libraries/ScanStringSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanSupervisorSet.so', ['build/libraries/ScanSupervisorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
+common_env.SharedLibrary('libraries/libSillyAggregation.so', ['build/libraries/SillyAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyJoin.so', ['build/libraries/SillyJoin.cc'] + all)
-common_env.SharedLibrary('libraries/libCartesianJoin.so', ['build/libraries/CartesianJoin.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteStringIntPairSet.so', ['build/libraries/WriteStringIntPairSet.cc'] + all)
-common_env.SharedLibrary('libraries/libIntAggregation.so', ['build/libraries/IntAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libSillySelection.so', ['build/libraries/SillySelection.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
+common_env.SharedLibrary('libraries/libSimpleEmployee.so', ['build/libraries/SimpleEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelectionOfStringIntPair.so', ['build/libraries/StringSelectionOfStringIntPair.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteSumResultSet.so', ['build/libraries/WriteSumResultSet.cc'] + all)
-common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/libraries/IntSelectionOfStringIntPair.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteIntSet.so', ['build/libraries/WriteIntSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteBuiltinEmployeeSet.so', ['build/libraries/WriteBuiltinEmployeeSet.cc'] + all)
-common_env.SharedLibrary('libraries/libScanBuiltinEmployeeSet.so', ['build/libraries/ScanBuiltinEmployeeSet.cc'] + all)
-common_env.SharedLibrary('libraries/libAllSelectionWithCreation.so', ['build/libraries/AllSelectionWithCreation.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteDoubleSet.so', ['build/libraries/WriteDoubleSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteEmployeeSet.so', ['build/libraries/WriteEmployeeSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteIntSet.so', ['build/libraries/WriteIntSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteStringIntPairSet.so', ['build/libraries/WriteStringIntPairSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteStringSet.so', ['build/libraries/WriteStringSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteSumResultSet.so', ['build/libraries/WriteSumResultSet.cc'] + all)
 
-common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
+
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
+common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
+common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
 common_env.Program('bin/MasterServerTest', ['build/tests/MasterServerTest.cc'] + all)
+common_env.Program('bin/objectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
+common_env.Program('bin/pdb-cluster', ['build/tests/Test404.cc'] + all)
+common_env.Program('bin/pdb-server', ['build/tests/Test603.cc']+all)
+common_env.Program('bin/pdbServer', ['build/mainServer/PDBMainServerInstance.cc'] + all)
+common_env.Program('bin/registerTypeAndCreateDatabaseTest', ['build/tests/RegisterTypeAndCreateDatabaseTest.cc'] + all)
+common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.cc'] + all)
+common_env.Program('bin/storeSharedEmployeeInDBTest', ['build/tests/StoreSharedEmployeeInDBTest.cc'] + all)
+common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
+common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
+common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
+common_env.Program('bin/test4', ['build/tests/Test4.cc'] + all)
+common_env.Program('bin/test5', ['build/tests/Test5.cc'] + all)
+common_env.Program('bin/test6', ['build/tests/Test6.cc'] + all)
+common_env.Program('bin/test7', ['build/tests/Test7.cc'] + all)
+common_env.Program('bin/test8', ['build/tests/Test8.cc'] + all)
+common_env.Program('bin/test9', ['build/tests/Test9.cc'] + all)
+common_env.Program('bin/test10', ['build/tests/Test10.cc'] + all)
+common_env.Program('bin/test100', ['build/tests/Test100.cc'] + all)
+common_env.Program('bin/test11', ['build/tests/Test11.cc'] + all)
+common_env.Program('bin/test12', ['build/tests/Test12.cc'] + all)
+#common_env.Program('bin/test13', ['build/tests/Test13.cc'] + all)
 common_env.Program('bin/test14', ['build/tests/Test14.cc'] + all)
 common_env.Program('bin/test16', ['build/tests/Test16.cc'] + all)
 common_env.Program('bin/test18', ['build/tests/Test18.cc'] + all)
@@ -346,7 +372,13 @@ common_env.Program('bin/test36', ['build/tests/Test36.cc'] + all)
 common_env.Program('bin/test37', ['build/tests/Test37.cc'] + all)
 common_env.Program('bin/test38', ['build/tests/Test38.cc'] + all)
 common_env.Program('bin/test39', ['build/tests/Test39.cc'] + all)
+common_env.Program('bin/test4', ['build/tests/Test4.cc'] + all)
 common_env.Program('bin/test40', ['build/tests/Test40.cc'] + all)
+common_env.Program('bin/test400', ['build/tests/Test400.cc'] + all)
+common_env.Program('bin/test401', ['build/tests/Test401.cc'] + all)
+common_env.Program('bin/test402', ['build/tests/Test402.cc'] + all)
+common_env.Program('bin/test403', ['build/tests/Test403.cc'] + all)
+common_env.Program('bin/test405', ['build/tests/Test405.cc'] + all)
 common_env.Program('bin/test42', ['build/tests/Test42.cc'] + all)
 common_env.Program('bin/test43', ['build/tests/Test43.cc'] + all)
 common_env.Program('bin/test44', ['build/tests/Test44.cc'] + all)
@@ -387,38 +419,146 @@ common_env.Program('bin/test77', ['build/tests/Test77.cc'] + all)
 common_env.Program('bin/test78', ['build/tests/Test78.cc'] + all)
 common_env.Program('bin/test79', ['build/tests/Test79.cc'] + all)
 common_env.Program('bin/test80', ['build/tests/Test80.cc'] + all)
-common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
-common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
-common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
-common_env.Program('bin/test4', ['build/tests/Test4.cc'] + all)
-common_env.Program('bin/test5', ['build/tests/Test5.cc'] + all)
-common_env.Program('bin/test6', ['build/tests/Test6.cc'] + all)
-common_env.Program('bin/test7', ['build/tests/Test7.cc'] + all)
-common_env.Program('bin/test8', ['build/tests/Test8.cc'] + all)
-common_env.Program('bin/test9', ['build/tests/Test9.cc'] + all)
-common_env.Program('bin/test10', ['build/tests/Test10.cc'] + all)
-common_env.Program('bin/test11', ['build/tests/Test11.cc'] + all)
-common_env.Program('bin/test12', ['build/tests/Test12.cc'] + all)
-#common_env.Program('bin/test13', ['build/tests/Test13.cc'] + all)
-common_env.Program('bin/test100', ['build/tests/Test100.cc'] + all)
-common_env.Program('bin/test400', ['build/tests/Test400.cc'] + all)
-common_env.Program('bin/test401', ['build/tests/Test401.cc'] + all)
-common_env.Program('bin/test402', ['build/tests/Test402.cc'] + all)
-common_env.Program('bin/test403', ['build/tests/Test403.cc'] + all)
-common_env.Program('bin/pdb-cluster', ['build/tests/Test404.cc'] + all)
-common_env.Program('bin/test405', ['build/tests/Test405.cc'] + all)
-common_env.Program('bin/pdb-server', ['build/tests/Test603.cc']+all)
-common_env.Program('bin/pdbServer', ['build/mainServer/PDBMainServerInstance.cc'] + all)
-common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
-common_env.Program('bin/objectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
-common_env.Program('bin/storeSharedEmployeeInDBTest', ['build/tests/StoreSharedEmployeeInDBTest.cc'] + all)
-common_env.Program('bin/registerTypeAndCreateDatabaseTest', ['build/tests/RegisterTypeAndCreateDatabaseTest.cc'] + all)
-common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.cc'] + all)
+common_env.Program('bin/test81builtIn', ['build/tests/Test81builtIn.cc'] + all)
+common_env.Program('bin/test81shared', ['build/tests/Test81shared.cc'] + all)
 
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
-common_env.Depends(pdbTest, ['libraries/libIntAggregation.so', 'libraries/libIntSillyJoin.so', 'libraries/libIntSelectionOfStringIntPair.so', 'libraries/libStringSelectionOfStringIntPair.so', 'libraries/libWriteSumResultSet.so', 'libraries/libWriteIntSet.so', 'libraries/libWriteStringIntPairSet.so', 'libraries/libCartesianJoin.so', 'libraries/libScanIntSet.so', 'libraries/libScanStringSet.so', 'libraries/libScanStringIntPairSet.so', 'libraries/libSillyJoin.so', 'bin/test78', 'bin/test76', 'bin/test74', 'libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libFinalSelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','bin/test52', 'bin/test66', 'bin/test67', 'bin/pdb-server', 'bin/pdb-cluster','bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libWriteDoubleSet.so', 'libraries/libScanSimpleEmployeeSet.so', 'libraries/libSimpleEmployee.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'bin/CatalogTests'])
+common_env.Depends(pdbTest, [
+  'bin/CatalogTests'
+  'bin/pdb-cluster',
+  'bin/pdb-server', 
+  'bin/test44', 
+  'bin/test46', 
+  'bin/test52', 
+  'bin/test66', 
+  'bin/test67', 
+  'bin/test74', 
+  'bin/test76', 
+  'bin/test78', 
+  'libraries/libCartesianJoin.so', 
+  'libraries/libChrisSelection.so', 
+  'libraries/libEmployeeSelection.so',
+  'libraries/libFinalSelection.so', 
+  'libraries/libIntAggregation.so', 
+  'libraries/libIntSelectionOfStringIntPair.so', 
+  'libraries/libIntSillyJoin.so', 
+  'libraries/libScanEmployeeSet.so',
+  'libraries/libScanIntSet.so', 
+  'libraries/libScanSimpleEmployeeSet.so', 
+  'libraries/libScanStringIntPairSet.so', 
+  'libraries/libScanStringSet.so', 
+  'libraries/libScanSupervisorSet.so', 
+  'libraries/libSharedEmployee.so', 
+  'libraries/libSillyAggregation.so', 
+  'libraries/libSillyJoin.so', 
+  'libraries/libSillySelection.so', 
+  'libraries/libSimpleEmployee.so', 
+  'libraries/libStringSelection.so', 
+  'libraries/libStringSelectionOfStringIntPair.so', 
+  'libraries/libWriteDoubleSet.so', 
+  'libraries/libWriteIntSet.so', 
+  'libraries/libWriteStringIntPairSet.so', 
+  'libraries/libWriteStringSet.so',
+  'libraries/libWriteSumResultSet.so'
+])
 common_env.Alias('tests', pdbTest)
-main=common_env.Alias('main', ['libraries/libIntAggregation.so', 'libraries/libIntSillyJoin.so', 'libraries/libIntSelectionOfStringIntPair.so', 'libraries/libStringSelectionOfStringIntPair.so', 'libraries/libWriteSumResultSet.so', 'libraries/libWriteIntSet.so', 'libraries/libWriteStringIntPairSet.so', 'libraries/libCartesianJoin.so', 'libraries/libScanIntSet.so', 'libraries/libScanStringSet.so', 'libraries/libScanStringIntPairSet.so', 'libraries/libSillyJoin.so', 'libraries/libAllSelection.so', 'libraries/libWriteDoubleSet.so', 'libraries/libScanSimpleEmployeeSet.so', 'libraries/libSimpleEmployee.so', 'libraries/libFinalSelection.so', 'libraries/libSimpleAggregation.so', 'libraries/libScanSupervisorSet.so', 'libraries/libSillySelection.so', 'libraries/libSillyAggregation.so', 'libraries/libWriteStringSet.so','libraries/libScanEmployeeSet.so','libraries/libEmployeeSelection.so','libraries/libKMeansQuery.so',  'libraries/libPartialResult.so', 'libraries/libSharedEmployeeTopK.so', 'libraries/libScanBuiltinEmployeeSet.so', 'libraries/libWriteBuiltinEmployeeSet.so', 'libraries/libAllSelectionWithCreation.so', 'bin/test80', 'bin/test79', 'bin/test78', 'bin/test77', 'bin/test76', 'bin/test75', 'bin/test74', 'bin/test73', 'bin/test72', 'bin/test71', 'bin/test70', 'bin/test69', 'bin/test68', 'bin/test67', 'bin/test66', 'bin/test65', 'bin/test64', 'bin/test63', 'bin/test62', 'bin/test60', 'bin/test58', 'bin/test57', 'bin/test56', 'bin/test54', 'bin/test53', 'bin/test47Join', 'bin/test47JoinB', 'bin/test47JoinC','bin/test47JoinD','bin/test47', 'bin/MasterServerTest', 'bin/CatalogServerTests','bin/pdb-server', 'bin/test46', 'bin/test44', 'libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so', 'bin/pdb-cluster', 'bin/test52', 'bin/test1', 'bin/test2', 'bin/test3', 'bin/test4', 'bin/test5', 'bin/test6', 'bin/test7', 'bin/test8', 'bin/test9', 'bin/test10', 'bin/test11', 'bin/test12', 'bin/test16', 'bin/pdbServer', 'bin/getListNodesTest', 'bin/objectModelTest1', 'bin/CatalogTests', 'bin/storeSharedEmployeeInDBTest', 'bin/registerTypeAndCreateDatabaseTest', 'bin/storeLotsOfEmployee' ])
+main=common_env.Alias('main', [
+  'bin/CatalogServerTests',
+  'bin/CatalogTests', 
+  'bin/getListNodesTest', 
+  'bin/MasterServerTest', 
+  'bin/objectModelTest1', 
+  'bin/pdb-cluster', 
+  'bin/pdb-server', 
+  'bin/pdbServer', 
+  'bin/registerTypeAndCreateDatabaseTest', 
+  'bin/storeLotsOfEmployee',
+  'bin/storeSharedEmployeeInDBTest', 
+  'bin/test1', 
+  'bin/test2', 
+  'bin/test3', 
+  'bin/test4', 
+  'bin/test5', 
+  'bin/test6', 
+  'bin/test7', 
+  'bin/test8', 
+  'bin/test9', 
+  'bin/test10', 
+  'bin/test11', 
+  'bin/test12', 
+  'bin/test16', 
+  'bin/test44', 
+  'bin/test46', 
+  'bin/test47', 
+  'bin/test47Join', 
+  'bin/test47JoinB', 
+  'bin/test47JoinC',
+  'bin/test47JoinD',
+  'bin/test52', 
+  'bin/test53', 
+  'bin/test54', 
+  'bin/test56', 
+  'bin/test57', 
+  'bin/test58', 
+  'bin/test60', 
+  'bin/test62', 
+  'bin/test63', 
+  'bin/test64', 
+  'bin/test65', 
+  'bin/test66', 
+  'bin/test67', 
+  'bin/test68', 
+  'bin/test69', 
+  'bin/test70', 
+  'bin/test71', 
+  'bin/test72', 
+  'bin/test73', 
+  'bin/test74', 
+  'bin/test75', 
+  'bin/test76', 
+  'bin/test77', 
+  'bin/test78', 
+  'bin/test79', 
+  'bin/test80',
+  'bin/test81builtIn',
+  'bin/test81shared',
+  'libraries/libAllSelection.so', 
+  'libraries/libAllSelectionWithCreation.so', 
+  'libraries/libCartesianJoin.so', 
+  'libraries/libChrisSelection.so', 
+  'libraries/libEmployeeSelection.so',
+  'libraries/libEmployeeBuiltInIdentitySelection.so',
+  'libraries/libEmployeeIdentitySelection.so',
+  'libraries/libFinalSelection.so', 
+  'libraries/libIntAggregation.so', 
+  'libraries/libIntSelectionOfStringIntPair.so', 
+  'libraries/libIntSillyJoin.so', 
+  'libraries/libKMeansQuery.so',  
+  'libraries/libPartialResult.so', 
+  'libraries/libScanBuiltinEmployeeSet.so', 
+  'libraries/libScanEmployeeSet.so',
+  'libraries/libScanIntSet.so', 
+  'libraries/libScanSimpleEmployeeSet.so', 
+  'libraries/libScanStringIntPairSet.so', 
+  'libraries/libScanStringSet.so', 
+  'libraries/libScanSupervisorSet.so', 
+  'libraries/libSharedEmployee.so', 
+  'libraries/libSharedEmployeeTopK.so', 
+  'libraries/libSillyAggregation.so', 
+  'libraries/libSillyJoin.so', 
+  'libraries/libSillySelection.so', 
+  'libraries/libSimpleAggregation.so', 
+  'libraries/libSimpleEmployee.so', 
+  'libraries/libStringSelection.so', 
+  'libraries/libStringSelectionOfStringIntPair.so', 
+  'libraries/libWriteBuiltinEmployeeSet.so', 
+  'libraries/libWriteDoubleSet.so', 
+  'libraries/libWriteEmployeeSet.so', 
+  'libraries/libWriteIntSet.so', 
+  'libraries/libWriteStringIntPairSet.so', 
+  'libraries/libWriteStringSet.so',
+  'libraries/libWriteSumResultSet.so'
+])
 Default(main)

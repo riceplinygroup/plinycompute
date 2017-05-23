@@ -15,12 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef WRITE_SUM_RESULT_CC
-#define WRITE_SUM_RESULT_CC
+#ifndef EMPLOYEE_BUILTIN_IDENTITY_SELECT_CC
+#define EMPLOYEE_BUILTIN_IDENTITY_SELECT_CC
 
-#include "WriteSumResultSet.h"
+#include "EmployeeBuiltInIdentitySelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteSumResultSet)
+GET_V_TABLE (EmployeeBuiltInIdentitySelection)
 
 #endif
+

@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef WRITE_SUM_RESULT_CC
-#define WRITE_SUM_RESULT_CC
 
-#include "WriteSumResultSet.h"
+
+#ifndef WRITE_EMPLOYEE_SET_CC
+#define WRITE_EMPLOYEE_SET_CC
+
+#include "WriteEmployeeSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteSumResultSet)
+GET_V_TABLE (WriteEmployeeSet)
 
 #endif
