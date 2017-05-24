@@ -25,6 +25,9 @@
 #include "SelectionComp.h"
 #include "BuiltInMatrixBlock.h"
 
+//LA libraries:
+#include <eigen3/Eigen/Dense>
+
 using namespace pdb;
 
 class LASillyTransposeSelection : public SelectionComp <MatrixBlock, MatrixBlock> {
