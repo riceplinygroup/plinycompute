@@ -25,6 +25,9 @@
 #include "JoinComp.h"
 #include "BuiltInMatrixBlock.h"
 
+//LA libraries:
+#include <eigen3/Eigen/Dense>
+
 using namespace pdb;
 
 class LASillyAddJoin : public JoinComp <MatrixBlock, MatrixBlock, MatrixBlock> {

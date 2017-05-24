@@ -37,8 +37,7 @@
 #include "Handle.h"
 #include <vector>
 
-//LA libraries:
-#include <eigen3/Eigen/Dense>
+
 
 
 namespace pdb {
