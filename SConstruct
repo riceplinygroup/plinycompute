@@ -433,7 +433,7 @@ common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
 #pdbTest=common_env.Command('test',['bin/test603', 'bin/test46', 'bin/test44','libraries/libStringSelection.so', 'libraries/libChrisSelection.so', 'libraries/libSharedEmployee.so'],'python scripts/integratedTests.py -o $TARGET')
 common_env.Depends(pdbTest, [
-  'bin/CatalogTests'
+  'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server', 
   'bin/test44', 
