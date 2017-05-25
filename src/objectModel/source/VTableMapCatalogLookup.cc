@@ -45,11 +45,11 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 	// in ths case, we do not have the vTable pointer for this guy, so we will try to load it
 	if (theVTable->catalog == nullptr) { 
 		if (theVTable->logger != nullptr) {
-                        if (objectTypeID >= 8191) {
-			    theVTable->logger->error (std :: string("unable to obtain shared library file for typeId=")+std :: to_string(objectTypeID));
-                        }
-		        return nullptr;
-                }
+            if (objectTypeID >= 8191) {
+                theVTable->logger->error (std :: string("unable to obtain shared library file for typeId=")+std :: to_string(objectTypeID));
+            }
+            return nullptr;
+        }
 	}
 
 	// TODO- Added by Carlos return if the type is unknown b/c it won't be found neither in
@@ -61,25 +61,25 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 
 	std :: string sharedLibraryFile = "/var/tmp/objectFile.";
 	sharedLibraryFile += to_string (getpid ()) + "." + to_string (objectTypeID) + ".so";
-        PDB_COUT << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
-        if (theVTable->logger != nullptr) {
-            theVTable->logger->debug(std :: string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
-        }
+    PDB_COUT << "VTableMap:: to get sharedLibraryFile =" << sharedLibraryFile << std :: endl;
+    if (theVTable->logger != nullptr) {
+        theVTable->logger->debug(std :: string("VTableMap:: to get sharedLibraryFile =") + sharedLibraryFile);
+    }
 	unlink (sharedLibraryFile.c_str ());
-        PDB_COUT << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
+    PDB_COUT << "VTableMap:: to get shared for objectTypeID=" << objectTypeID << std :: endl;
 	bool ret = theVTable->catalog->getSharedLibrary (objectTypeID, sharedLibraryFile);
 
         //JiaNote: we should stop here if someone else updated VTable
-        void *returnVal = theVTable->allVTables[objectTypeID];
-        if (returnVal != nullptr) {
-                return returnVal;
-        }
+    void *returnVal = theVTable->allVTables[objectTypeID];
+    if (returnVal != nullptr) {
+         return returnVal;
+    }
 
-        //JiaNote: we need check return value
-        if (ret == false) {
-                std :: cout << "ERROR in fixing VTableMap for objectTypeID="<< objectTypeID << std :: endl;
-                return nullptr;
-        }
+    //JiaNote: we need check return value
+    if (ret == false) {
+        std :: cout << "ERROR in fixing VTableMap for objectTypeID="<< objectTypeID << std :: endl;
+        return nullptr;
+    }
 	
 	// open up the shared library
       
@@ -92,7 +92,6 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 			theVTable->logger->error ("Cannot load Stored Data Type library: " + sharedLibraryFile + 
 				" error " + (std::string)dlsym_error + '\n');
                 
-
 	// if we were able to open it
 	} else {
 		const char* dlsym_error = dlerror();

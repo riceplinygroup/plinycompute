@@ -64,12 +64,18 @@ namespace pdb {
         if (VTableMap :: lookupBuiltInType (objectTypeName) != -1)
             return VTableMap :: lookupBuiltInType (objectTypeName);
 
-        // return a -1 if we've never seen this type name
-        if (allTypeNames.count (objectTypeName) == 0) {
-            return -1;
+        // if this type's vtable pointer has been previously extracted by this process
+        // return the typeId
+        if (allTypeNames.count (objectTypeName) != 0) {
+            return allTypeNames[objectTypeName];
         }
 
-        return allTypeNames[objectTypeName];
+        // otherwise fetch it from the Master Catalog Server only if this is a Worker Node catalog
+        if (this->isMasterCatalogServer == false) {
+            return catalogClientConnectionToMasterCatalogServer.searchForObjectTypeName(objectTypeName);
+        }
+        //otherwise returns -1
+        return -1;
     }
 
     // register handlers for processing requests to the Catalog Server
@@ -253,7 +259,15 @@ namespace pdb {
                 auto addObject = begin;
 
                 string typeName = request->getTypeLibraryName ();
-                int16_t typeId = request->getTypeLibraryId();
+                int16_t typeId = 0;
+                // if typeName is empty we are searching by typeId, hence retrieves the typeId from the request object
+                if (typeName.empty() == true){
+                    typeId = request->getTypeLibraryId();
+                } else{
+                    // if a typeName is provided, we are searching by that name, so first we have to retrieve
+                    // the typeID, given the provided typeName
+                    typeId = allTypeNames[typeName];
+                }
 
                 // in practice, we can do better than simply locking the whole catalog, but good enough for now...
                 const LockGuard guard{workingMutex};
@@ -1452,6 +1466,11 @@ namespace pdb {
     // invokes a method to retrieve metadata that has changed since a given timestamp
     bool CatalogServer :: printCatalog (string timeStamp) {
         pdbCatalog->getModifiedMetadata(timeStamp);
+        PDB_COUT << "************Objects************" << endl;
+        VTableMap ::listVtableLabels();
+        PDB_COUT << "************VTablePtrs************" << endl;
+        VTableMap ::listVtableEntries();
+        PDB_COUT <<  "************End************" << endl;
         return true;
     }
 

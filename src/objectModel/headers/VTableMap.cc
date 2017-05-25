@@ -83,7 +83,7 @@ inline void VTableMap :: listVtableLabels () {
         std::map<std::string, int16_t> iterator;
 
         for(auto &iterator : theVTable->objectTypeNamesList){
-           std::cout << "label= " << iterator.first << " id= " <<  iterator.second << std::endl;
+            PDB_COUT << "label= " << iterator.first << " id= " <<  iterator.second << std::endl;
         }
 }
 
@@ -130,47 +130,45 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLo
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {
 		
 		// make sure no one is modifying the map
-                //std :: stringstream ss;
-                //ss << &(theVTable->myLock);
-                //std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
-	        //pthread_mutex_lock(&theVTable->myLock);
-                int16_t identifier;
-                if (withLock == true) {
+        //std :: stringstream ss;
+        //ss << &(theVTable->myLock);
+        //std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
+	    //pthread_mutex_lock(&theVTable->myLock);
+        int16_t identifier;
+        if (withLock == true) {
 		    const LockGuard guard {theVTable->myLock};
-                    //std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
+            //std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
 		    // in this case, we do not have this object type, and we have never looked for it before
 		    // so, go to the catalog and ask for it...
 		    identifier = lookupTypeNameInCatalog (objectTypeName);
-                } else {
-                    identifier = lookupTypeNameInCatalog (objectTypeName);
-                }
-                //pthread_mutex_unlock(&theVTable->myLock);
+        } else {
+            identifier = lookupTypeNameInCatalog (objectTypeName);
+        }
+        //pthread_mutex_unlock(&theVTable->myLock);
 		// if the identifier is -1, then it means the catalog has never seen this type before
 		// so let the caller know, and remember that we have not seen it
 		if (identifier == -1) {
 			theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-                        //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-                        PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
-			return TYPE_NOT_RECOGNIZED;
-
-		// otherwise, return the ID
+            //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
+            PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+            return TYPE_NOT_RECOGNIZED;
+		    // otherwise, return the ID
 		} else {
 			theVTable->objectTypeNamesList[objectTypeName] = identifier;
-                        //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-                        PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+            //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
+            PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
 			return identifier;
 		}
-
 	} else if (theVTable->objectTypeNamesList.count (objectTypeName) == 0) {
 		// we don't know this type, and we have no catalog client
 		theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-                PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+        PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
 		return TYPE_NOT_RECOGNIZED;
 	} else {
 		// in the easy case, we have seen it before, so just return the typeID
 		int16_t identifier = theVTable->objectTypeNamesList[objectTypeName];	
-                PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
-                return identifier;
+        PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+        return identifier;
 	}
 }
 
@@ -222,44 +220,43 @@ inline VTableMap :: ~VTableMap () {
 
 inline void *VTableMap :: getVTablePtr (int16_t objectTypeID) {
 
-        //it could be a C++ type, we simply return nullptr
-        if (objectTypeID < 0) {
-           return nullptr;
-        }
-
+    //it could be a C++ type, we simply return nullptr
+    if (objectTypeID < 0) {
+        return nullptr;
+    }
 
 	// JIANOTE TODO: we may need lock it, otherwise another thread may change it
-        /*
-        // OK, first, we check to see if we have the v table pointer for this guy...
+    /*
+    // OK, first, we check to see if we have the v table pointer for this guy...
 	// this is done without a lock, so we can be very fast...
-        */
+    */
 	void *returnVal = theVTable->allVTables[objectTypeID];
 	if (returnVal != nullptr) {
 		return returnVal;
 	}
 
-        const LockGuard guard {theVTable->myLock};
+    const LockGuard guard {theVTable->myLock};
 	// we do not, so get the lock...
-        //std :: stringstream ss;
-        //ss << &(theVTable->myLock);
-        //std :: cout << "to get lock at " << ss.str() << "in getVTablePtr with typeId=" << objectTypeID << std :: endl;
+    //std :: stringstream ss;
+    //ss << &(theVTable->myLock);
+    //std :: cout << "to get lock at " << ss.str() << "in getVTablePtr with typeId=" << objectTypeID << std :: endl;
        	
-            //std :: cout << "got lock at " << ss.str() << " in getVTablePtr" << std :: endl;
-	    // before we go out to the network for the v table pointer, just verify
-	    // that another thread has not since gotten it for us
+    //std :: cout << "got lock at " << ss.str() << " in getVTablePtr" << std :: endl;
+	// before we go out to the network for the v table pointer, just verify
+	// that another thread has not since gotten it for us
 	returnVal = theVTable->allVTables[objectTypeID];
        
 //        pthread_mutex_unlock(&theVTable->myLock);
 	if (returnVal != nullptr) {
-                //std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
+        //std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
 		return returnVal;
 	} else {
 		// if they have not gotten it for us, then go and get it
-                PDB_COUT << "VTableMap: to get VTablePtr using Catalog for objectTypeID=" << objectTypeID << std :: endl;
+        PDB_COUT << "VTableMap: to get VTablePtr using Catalog for objectTypeID=" << objectTypeID << std :: endl;
 		returnVal = getVTablePtrUsingCatalog (objectTypeID);
-                //std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
-                return returnVal;
-        }
+        //std :: cout << "to release lock at " << ss.str() << " in getVTablePtr" << std :: endl;
+        return returnVal;
+    }
 }
 
 } /* namespace pdb */
