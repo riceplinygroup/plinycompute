@@ -282,6 +282,10 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << (*a).total << ";";
             }
             std :: cout << "join output count:" << count << "\n";
+            if (count == 0) {
+                exit( 2 );
+            }
+
         }
 
         if (clusterMode == false) {
