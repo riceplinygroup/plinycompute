@@ -282,7 +282,7 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << (*a).total << ";";
             }
             std :: cout << "join output count:" << count << "\n";
-            if (count == 0) {
+            if (count != 1) {
                 exit( 2 );
             }
 
