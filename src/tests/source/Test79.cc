@@ -352,6 +352,9 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << *a << ";";
                 }
                 std :: cout << "selection output count:" << count << "\n";
+                if (count == 0) {
+                    exit( 2 );
+                }
             }
 
             { 
@@ -366,6 +369,9 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << *a << ";";
                 }
                 std :: cout << "aggregation output count:" << count << "\n";
+                if (count == 0) {
+                    exit( 2 );
+                }
             }
 
         }

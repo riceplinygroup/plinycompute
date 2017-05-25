@@ -262,7 +262,13 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << *a << ";";
             }
             std :: cout << "output count:" << count << "\n";
+            if (count == 0) {
+                exit( 2 );
+            }
+
         }
+
+         
 
         if (clusterMode == false) {
             // and delete the sets
