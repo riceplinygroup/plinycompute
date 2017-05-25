@@ -190,8 +190,8 @@ namespace pdb {
         string sharedLibraryBytes;
         string errMsg;
 
-        //using a dummyName b/c it's being searched by typeId
-        string typeNameToSearch ="dummyName";
+        //using an empty Name b/c it's being searched by typeId
+        string typeNameToSearch = "";
 
         bool res = getSharedLibraryByTypeName (identifier, typeNameToSearch, sharedLibraryFileName,
                                            tempMetadataObject, sharedLibraryBytes, errMsg);
