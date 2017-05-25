@@ -18,6 +18,7 @@
 #ifndef QUERY_SCHEDULER_SERVER_H
 #define QUERY_SCHEDULER_SERVER_H
 
+//by Jia, Sept 2016
 
 #include "ServerFunctionality.h"
 #include "ResourceInfo.h"
@@ -34,6 +35,8 @@
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
 #include "SequenceID.h"
+#include "TCAPAnalyzer.h"
+#include "ShuffleInfo.h"
 #include <vector>
 
 namespace pdb {
@@ -46,28 +49,22 @@ public:
        ~QuerySchedulerServer ();
 
        //constructor for the case when query scheduler is co-located with resource manager       
-       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75);
+       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75, bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
 
-       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75);
+       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
 
 
        //constructor for the case when query scheduler and resource manager are in two different nodes
-       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75);
-
-
-
+       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
 
        //initialization
        void initialize(bool isRMRunAsServer);
+
 
        //deprecated
        //to transform optimized client query into a physical plan
        //each pipeline can have more than one output
        void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
-
-       //deprecated
-       //to replace parseOptimizedQuery to build the physical plan
-       void parseQuery(Vector<Handle<Computation>> myComputations, String myTCAPString);
 
        //to replace above two methods to automatically build the physical plan based on TCAP string and computations
        bool parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString);
@@ -84,9 +81,9 @@ public:
        //to schedule the current job plan
        bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
-       //to replace: bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode)
-       //to schedule pipeline stages
-       bool scheduleStages(int index, std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
+       //to schedule dynamic pipeline stages
+       void scheduleStages(std :: vector <Handle<AbstractJobStage>> stagesToSchedule, std :: vector <Handle<SetIdentifier>> intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo);
+
 
        //deprecated
        //to schedule a job stage
@@ -105,11 +102,6 @@ public:
        //to replace: void schedule()
        //to schedule the query plan on all available resources
        void scheduleQuery();
-
-
-       //deprecated
-       //to transform user query to tcap string
-       String transformQueryToTCAP(Vector<Handle<Computation>> myComputations, int flag=0);
 
 
        //from the serverFunctionality interface... register the resource manager handlers
@@ -165,8 +157,6 @@ protected:
 
        bool usePipelineNetwork;
 
-//       Handle<QueriesAndPlan> newQueriesAndPlan;
-
        bool pseudoClusterMode; 
 
        pthread_mutex_t connection_mutex;
@@ -178,6 +168,15 @@ protected:
        std :: string jobId;
 
        double partitionToCoreRatio;
+
+       //below variables are added for dynamic planning
+
+       bool dynamicPlanningOrNot;
+
+       bool earlyRemovingDataOrNot;
+
+       std :: shared_ptr<TCAPAnalyzer> tcapAnalyzerPtr;
+
 
 };
 

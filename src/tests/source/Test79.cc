@@ -369,7 +369,7 @@ int main (int argc, char * argv[]) {
                      std :: cout << count << ":" << *a << ";";
                 }
                 std :: cout << "aggregation output count:" << count << "\n";
-                if (count == 0) {
+                if (count != 1) {
                     exit( 2 );
                 }
             }
