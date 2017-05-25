@@ -42,7 +42,7 @@ class TCAPAnalyzer {
 public:    
 
 //constructor
-TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger);
+TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, bool isDynamicPlanning = false);
 
 //destructor
 ~TCAPAnalyzer ();
@@ -52,7 +52,8 @@ bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std
 
 //to analyze the subgraph rooted at a source node (sourceComputation) and get a partial phyical plan
 //if current node has two inputs, we need to specify the prev node
-bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr sourceComputation, int & jobStageId,AtomicComputationPtr prevComputation=nullptr);
+bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr sourceComputation, int & jobStageId);
+
 
 //to create tuple set job stage
 Handle<TupleSetJobStage>  createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing=false);
@@ -65,6 +66,31 @@ Handle<AggregationJobStage>  createAggregationJobStage(int & jobStageId,  Handle
 
 //to analyze subgraph rooted at any node (curNode) and get a physical plan
 bool analyze (std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, std :: vector <std :: string> & buildTheseTupleSets, AtomicComputationPtr curSource, Handle<Computation> sourceComputation, Handle<SetIdentifier> curInputSetIdentifier, AtomicComputationPtr curNode, int &jobStageId, AtomicComputationPtr prevComputation=nullptr, bool isProbing=false);
+
+//to get current source sets;
+std :: vector <std :: string> & getCurSourceSetNames ();
+
+//to get the source specified by index
+std :: string getSourceSetName (int index);
+
+//to get source set based on name
+Handle<SetIdentifier> getSourceSetIdentifier (std :: string name);
+
+//to get source computation based on name
+AtomicComputationPtr getSourceComputation (std :: string name);
+
+//to update source set names
+bool updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIdentifier> newSet, AtomicComputationPtr newAtomicComp);
+
+
+//to get number of sources
+int getNumSources ();
+
+//to return the index of the best source 
+int getBestSource ();
+
+//to return the cost of the i-th source
+double getCostOfSource (int index);
 
 private:
 
@@ -87,7 +113,7 @@ LogicalPlanPtr logicalPlan;
 //the computation graph generated from the logical plan
 AtomicComputationList computationGraph;
 
-//the source nodes
+//the source nodes of logical plan, which will not change
 std :: vector<AtomicComputationPtr> sources;
 
 //the logger
@@ -95,6 +121,18 @@ PDBLoggerPtr logger;
 
 //the jobId for this query
 std :: string jobId;
+
+//whether to analyze the logical plan dynamically
+bool dynamicPlanningOrNot;
+
+//the mapping of set name to source set identifiers, which will only be used in dynamicPlanning mode, and will keep changing
+std :: map<std :: string, Handle<SetIdentifier>> curSourceSets;
+
+//the mapping of set name to source computation node, which will only be used in dynamicPlanning mode, and will keep changing
+std :: map<std :: string, AtomicComputationPtr> curSourceNodes;
+
+//the vector of set names
+std :: vector<std :: string> curSourceSetNames;
 
 };
 

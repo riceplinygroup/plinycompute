@@ -520,7 +520,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                PDB_COUT << "adding set in standalone mode" << std :: endl;
                                res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName());
                              if (res == false) {
-                                 errMsg = "Set already exists\n";
+                                 errMsg = "Set "+request->getDatabase() + ":" + request->getSetName() + ":" + request->getTypeName() +" already exists\n";
                              } else {
                                           //int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName (request->getTypeName());
                                           int16_t typeID = VTableMap :: getIDByName (request->getTypeName(), false);
@@ -542,7 +542,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          } else {
                             PDB_COUT << "creating set in Pangea in distributed environment...with setName=" << request->getSetName() << std :: endl;
                          if ((res = getFunctionality<PangeaStorageServer>().addSet(request->getDatabase(), request->getTypeName(), request->getSetName())) == false) {
-                             errMsg = "Set already exists\n";
+                             errMsg = "Set "+request->getDatabase() + ":" + request->getSetName() + ":" + request->getTypeName() +" already exists\n";
                              cout << errMsg << endl;
                          } else {
                              //int16_t typeID = getFunctionality<CatalogClient>().searchForObjectTypeName (request->getTypeName());
@@ -577,7 +577,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          SetID setId;
                          bool res = getFunctionality<PangeaStorageServer>().addTempSet(request->getSetName(), setId);
                          if (res == false) {
-                                 errMsg = "Set already exists\n";
+                                 errMsg = "TempSet "+request->getSetName() +" already exists\n";
                          } 
              
                          // make the response
