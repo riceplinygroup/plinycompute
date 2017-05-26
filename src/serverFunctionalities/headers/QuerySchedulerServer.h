@@ -49,13 +49,13 @@ public:
        ~QuerySchedulerServer ();
 
        //constructor for the case when query scheduler is co-located with resource manager       
-       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75, bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
+       QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75, bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
 
-       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
+       QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
 
 
        //constructor for the case when query scheduler and resource manager are in two different nodes
-       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = false, bool removeIntermediateDataEarly = false);
+       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
 
        //initialization
        void initialize(bool isRMRunAsServer);
@@ -177,7 +177,9 @@ protected:
 
        std :: shared_ptr<TCAPAnalyzer> tcapAnalyzerPtr;
 
+       StatisticsPtr statsForOptimization;
 
+       std :: shared_ptr<ShuffleInfo> shuffleInfo;
 };
 
 

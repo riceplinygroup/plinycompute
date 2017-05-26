@@ -75,7 +75,6 @@ private:
 
         //JiaNote: below function is to generate a sequence of TCAP Strings for this Lambda tree
         static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
-                std :: cout << "LambdaTree inner: " << std :: endl;
                 std :: vector <std :: string> columnsToApply;
                 std :: vector <std :: string> childrenLambdas;
                 std :: vector <std :: string> inputNames;
@@ -84,7 +83,6 @@ private:
                         for (int i = 0; i < inputColumnsToApply.size(); i++) {
 
                                 columnsToApply.push_back(inputColumnsToApply[i]);
-                                std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;
                         }
                         inputColumnsToApply.clear();
                         for (int i = 0; i < childrenLambdaNames.size(); i++) {
@@ -100,17 +98,10 @@ private:
                         inputTupleSetNames.clear();
                         for (int i = 0; i < inputColumnNames.size(); i++) {
                                 inputColumns.push_back(inputColumnNames[i]);
-                                std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
                         }
                         inputColumnNames.clear();
-                } else {
-                        for (int i = 0; i < inputColumnsToApply.size(); i++) {
-                                std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;
-                        }
-                        for (int i = 0; i < inputColumnNames.size(); i++) {
-                                std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
-                        }
-                }
+                } 
+                
 
                 std :: string myTypeName = root->getTypeOfLambda ();
                 PDB_COUT << "\tExtracted lambda named: " << myTypeName << "\n";
@@ -152,7 +143,6 @@ private:
                 }
                 std :: vector<std :: string> outputColumns;
                 std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amIPartOfJoinPredicate, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName);
-                std :: cout << tcapString << std :: endl;
                 tcapStrings.push_back(tcapString);
                 lambdaLabel++;
                 if (multiInputsComp == nullptr) {
@@ -191,30 +181,23 @@ public:
 
 
         std :: vector < std :: string> getAllInputs ( MultiInputsBase * multiInputsBase) {
-             std :: cout << "All inputs in this lambda tree:" << std :: endl;
              std :: vector < std :: string > ret;
              this->getInputs(ret, tree, multiInputsBase);
-             for (int i = 0; i < ret.size(); i++) {
-                 std :: cout << ret[i] << std :: endl;
-             }
              return ret;
         }
 
         //to get the TCAPString for this lambda tree
         std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector <std :: string> childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false) {
-            std :: cout << "LambdaTree: outer:" << std :: endl;
             std :: vector<std :: string> tcapStrings;
             std :: string outputTCAPString;
             std :: vector<std :: string> inputTupleSetNames;
             inputTupleSetNames.push_back(inputTupleSetName);
             std :: vector<std :: string> columnNames;
             for (int i = 0; i < inputColumnNames.size(); i ++) {
-                    std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
                     columnNames.push_back(inputColumnNames[i]);
             }
             std :: vector<std :: string> columnsToApply;
             for (int i = 0; i < inputColumnsToApply.size(); i ++) {
-                    std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;
                     columnsToApply.push_back(inputColumnsToApply[i]);
             }
             std :: vector<std :: string> childrenLambdas;

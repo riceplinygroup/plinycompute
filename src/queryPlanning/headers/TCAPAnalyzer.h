@@ -28,6 +28,7 @@
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
+#include "Statistics.h"
 
 namespace pdb {
 
@@ -54,6 +55,8 @@ bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std
 //if current node has two inputs, we need to specify the prev node
 bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr sourceComputation, int & jobStageId);
 
+//to analyze the subgraph rooted at a source node and only returns a set of job stages corresponding with the subgraph
+bool getNextStages(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<SetIdentifier>  curInputSetIdentifier, int & jobStageId);
 
 //to create tuple set job stage
 Handle<TupleSetJobStage>  createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing=false);
@@ -87,10 +90,10 @@ bool updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIdentifier> newSe
 int getNumSources ();
 
 //to return the index of the best source 
-int getBestSource ();
+int getBestSource (StatisticsPtr stats);
 
 //to return the cost of the i-th source
-double getCostOfSource (int index);
+double getCostOfSource (int index, StatisticsPtr stats);
 
 private:
 

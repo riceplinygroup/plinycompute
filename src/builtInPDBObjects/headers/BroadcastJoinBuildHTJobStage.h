@@ -143,6 +143,11 @@ void setComputePlan( Handle<ComputePlan> plan, std::string sourceTupleSetSpecifi
     this->targetComputationSpecifier = targetComputationSpecifier;
 }
 
+//nullify compute plan shared pointer
+void nullifyComputePlanPointer () {
+    this->sharedPlan->nullifyPlanPointer();
+}
+
 //to get source tupleset name for this pipeline stage
 std::string getSourceTupleSetSpecifier() {
     return this->sourceTupleSetSpecifier;

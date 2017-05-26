@@ -117,6 +117,12 @@ namespace pdb {
                 }
             }
 
+            //nullify compute plan shared pointer
+            void nullifyComputePlanPointer () {
+                 this->sharedPlan->nullifyPlanPointer();
+            }
+
+
             //to get compute plan
             Handle<ComputePlan> getComputePlan() {
                 return this->sharedPlan;

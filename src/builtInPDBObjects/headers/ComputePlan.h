@@ -52,6 +52,9 @@ public:
 
 	ComputePlan ();
 
+        ~ComputePlan () {myPlan = nullptr;}
+
+
 	// constructor, takes as input the string to execute, as well as the vector of computations
 	ComputePlan (String &TCAPComputation, Vector <Handle <Computation>> &allComputations);
 

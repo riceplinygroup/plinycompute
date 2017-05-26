@@ -41,7 +41,6 @@ public:
 	// create an att access lambda; offset is the position in the input object where we are going to find the input att
 	SelfLambda (Handle <ClassType> & input) {
 		inputTypeName = getTypeName <ClassType> ();		
-                std :: cout << "SelfLambda: input class is " << input.getExactTypeInfoValue() << std :: endl;
                 this->setInputIndex(0, -((input.getExactTypeInfoValue()+1)));
 	}
 

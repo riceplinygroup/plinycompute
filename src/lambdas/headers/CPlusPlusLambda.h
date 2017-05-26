@@ -109,34 +109,23 @@ public:
 	CPlusPlusLambda (F arg, Handle<ParamOne>  & input1, Handle<ParamTwo> & input2, Handle<ParamThree> & input3,
                   Handle<ParamFour> & input4, Handle<ParamFive> & input5) : myFunc (arg) {
 
-            std :: cout << "CPlusPlusLambda:" << std :: endl;
             if (getTypeName<ParamOne>() != "pdb::Nothing") {
-                 std :: cout << getTypeName<ParamOne>() << std :: endl;
-                 std :: cout << "input1 type code is " << input1.getExactTypeInfoValue() << std :: endl;
                  this->numInputs ++;
                  this->setInputIndex(0, -((input1.getExactTypeInfoValue()+1)));
             }
             if (getTypeName<ParamTwo>() != "pdb::Nothing") {
-                 std :: cout << getTypeName<ParamTwo>() << std :: endl;
-                 std :: cout << "input2 type code is " << input2.getExactTypeInfoValue() << std :: endl;
                  this->numInputs ++;
                  this->setInputIndex(1, -((input2.getExactTypeInfoValue()+1)));
             }
             if (getTypeName<ParamThree>() != "pdb::Nothing") {
-                 std :: cout << getTypeName<ParamThree>() << std :: endl;
-                 std :: cout << "input3 type code is " << input3.getExactTypeInfoValue() << std :: endl;
                  this->numInputs ++;
                  this->setInputIndex(2, -((input3.getExactTypeInfoValue()+1)));
             }
             if (getTypeName<ParamFour>() != "pdb::Nothing") {
-                 std :: cout << getTypeName<ParamFour>() << std :: endl;
-                 std :: cout << "input4 type code is " << input4.getExactTypeInfoValue() << std :: endl;
                  this->numInputs ++;
                  this->setInputIndex(3, -((input4.getExactTypeInfoValue()+1)));
             }
             if (getTypeName<ParamFive>() != "pdb::Nothing") {
-                 std :: cout << getTypeName<ParamFive>() << std :: endl;
-                 std :: cout << "input5 type code is " << input5.getExactTypeInfoValue() << std :: endl;
                  this->numInputs ++;
                  this->setInputIndex(4, -((input5.getExactTypeInfoValue()+1)));
             }
@@ -282,7 +271,6 @@ public:
                     return tcapString;
                 }
                 
-                std :: cout << "I am a native lambda with label " << lambdaLabel << std :: endl;
 
                 //Step 1. for each input get its current tupleset name;
                 unsigned int numInputs = this->getNumInputs();
@@ -303,15 +291,9 @@ public:
                     
                 }
  
-                std :: cout << "input partitions: " << std :: endl;
                 for (unsigned int i = 0; i < inputTupleSetNames.size(); i++) {
                      std :: string curTupleSetName = inputTupleSetNames[i];
-                     std :: cout << curTupleSetName << ": ";
                      std :: vector <unsigned int> curVec = inputPartitions[curTupleSetName];
-                     for (unsigned int j = 0; j < curVec.size(); j++) {
-                         std :: cout << curVec[j] << " ";
-                     }
-                     std :: cout << std :: endl;
                 }
 
 

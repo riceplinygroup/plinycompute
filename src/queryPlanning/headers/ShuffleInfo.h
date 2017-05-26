@@ -20,10 +20,7 @@
 
 //by Jia, May 2017
 
-#include "Handle.h"
-#include "PDBVector.h"
 #include "DataTypes.h"
-#include "PDBString.h"
 #include "StandardResourceInfo.h"
 
 namespace pdb {
@@ -39,10 +36,10 @@ private:
     int numHashPartitions;
 
     //hash partition ids allocated for each node
-    Handle<Vector<Handle<Vector<HashPartitionID>>>> partitionIds;
+    std :: vector < std :: vector <HashPartitionID>> partitionIds;
 
     //address for each node
-    Handle<Vector<String>> addresses;
+    std :: vector < std :: string> addresses;
 
 public:
 
@@ -52,32 +49,27 @@ public:
         this->numNodes = clusterResources->size();
         this->numHashPartitions = 0;
         int i, j;
-        this->partitionIds = makeObject<Vector<Handle<Vector<HashPartitionID>>>> ();
         HashPartitionID id = 0;
-        this->addresses = makeObject<Vector<String>> ();
+        partitionIds.resize(this->numNodes);
         for (i = 0; i < this->numNodes; i++) {
-            Handle<Vector<HashPartitionID>> partitions = makeObject<Vector<HashPartitionID>> ();
             StandardResourceInfoPtr node = clusterResources->at(i);
             int numCoresOnThisNodeForHashing = (int)((double)(node->getNumCores()) * partitionToCoreRatio);
             if (numCoresOnThisNodeForHashing == 0) {
                 numCoresOnThisNodeForHashing = 1;
             }
             for (j = 0; j < numCoresOnThisNodeForHashing; j++) {
-                partitions->push_back(id);
+                partitionIds[i].push_back(id);
                 id ++;
             }
-            this->partitionIds->push_back(partitions);
             std :: string curAddress = node->getAddress() + ":" + std :: to_string(node->getPort());
-            String addressOnThisNode = String(curAddress);
-            this->addresses->push_back(addressOnThisNode);
+            this->addresses.push_back(curAddress);
             this->numHashPartitions += numCoresOnThisNodeForHashing;
         }
+       
 
     }
 
     ~ShuffleInfo () {
-        partitionIds = nullptr;
-        addresses = nullptr;
     }
 
     int getNumNodes () {
@@ -88,11 +80,11 @@ public:
         return this->numHashPartitions;
     }
 
-    Handle<Vector<Handle<Vector<HashPartitionID>>>> & getPartitionIds () {
+    std :: vector < std :: vector < HashPartitionID > > & getPartitionIds () {
         return this->partitionIds;
     }
 
-    Handle<Vector<String>> & getAddresses () {
+    std :: vector < std :: string> & getAddresses () {
         return this->addresses;
     }
 
