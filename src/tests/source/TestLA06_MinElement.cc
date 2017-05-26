@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_01_CC
-#define TEST_LA_01_CC
+#ifndef TEST_LA_06_CC
+#define TEST_LA_06_CC
 
 
 //by Binhang, May 2017
-//to test matrix transpose implemented by selection;
+//to test find the min element in a matrix implemented by aggregation;
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -29,10 +29,11 @@
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "LAScanMatrixBlockSet.h"
-#include "LAWriteMatrixBlockSet.h"
-#include "LASillyTransposeSelection.h"
+#include "LAWriteMinElementSet.h"
+#include "LASillyMinElementAggregate.h"
 //#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
+#include "LAMinElementOutputType.h"
 #include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
@@ -108,9 +109,11 @@ int main (int argc, char * argv[]) {
         // now, register a type for user data
         //TODO: once sharedLibrary is supported, add this line back!!!
         catalogClient.registerType ("libraries/libMatrixBlock.so", errMsg);
+        catalogClient.registerType ("libraries/libLAMinElementValueType.so", errMsg);
+        catalogClient.registerType ("libraries/libLAMinElementOutputType.so", errMsg);
 
         // now, create a new database
-        if (!temp.createDatabase ("LA01_db", errMsg)) {
+        if (!temp.createDatabase ("LA06_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit (-1);
         } else {
@@ -118,7 +121,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<MatrixBlock> ("LA01_db", "LA_input_set", errMsg)) {
+        if (!temp.createSet<MatrixBlock> ("LA06_db", "LA_input_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -158,15 +161,7 @@ int main (int argc, char * argv[]) {
                             //Foo initialization
                             for(int ii = 0; ii < blockRowNums; ii++){
                                 for(int jj=0; jj < blockColNums; jj++){
-                                    if(i<j){
-                                        (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = (ii<=jj?1.0:0.0);
-                                    }
-                                    else if(i>j){
-                                        (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = (ii>=jj?1.0:0.0);
-                                    }
-                                    else{
-                                        (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = (ii==jj?1.0:0.0);
-                                    }
+                                    (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = ii+jj+i+j+1.0;
                                 }
                             }
                             std::cout<<"New block: " << total << std::endl; 
@@ -178,12 +173,12 @@ int main (int argc, char * argv[]) {
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
                     }
-                    if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set", "LA01_db"), storeMe, errMsg)) {
+                    if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set", "LA06_db"), storeMe, errMsg)) {
                         std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                         return -1;
                     }
                 } catch (pdb :: NotEnoughSpace &n) {
-                    if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set", "LA01_db"), storeMe, errMsg)) {
+                    if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set", "LA06_db"), storeMe, errMsg)) {
                         std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                         return -1;
                     }
@@ -200,7 +195,7 @@ int main (int argc, char * argv[]) {
     // now, create a new set in that database to store output data
     
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
-    if (!temp.createSet<MatrixBlock> ("LA01_db", "LA_transpose_set", errMsg)) {
+    if (!temp.createSet<MatrixBlock> ("LA06_db", "LA_min_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -212,19 +207,19 @@ int main (int argc, char * argv[]) {
     const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
 	// register this query class
-    catalogClient.registerType ("libraries/libLASillyTransposeSelection.so", errMsg);
+    catalogClient.registerType ("libraries/libLASillyMinElementAggregate.so", errMsg);
     catalogClient.registerType ("libraries/libLAScanMatrixBlockSet.so", errMsg);
-    catalogClient.registerType ("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+    catalogClient.registerType ("libraries/libLAWriteMinElementSet.so", errMsg);
     
 	// connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
     
-    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA01_db", "LA_input_set");
-    Handle<Computation> myQuery = makeObject<LASillyTransposeSelection>();
+    Handle<Computation> myScanSet = makeObject<LAScanMatrixBlockSet>("LA06_db", "LA_input_set");
+    Handle<Computation> myQuery = makeObject<LASillyMinElementAggregate>();
     myQuery->setInput(myScanSet);
-    //myQuery->setOutput("LA01_db", "LA_transpose_set");
+    //myQuery->setOutput("LA06_db", "LA_min_set");
     
-    Handle<Computation> myWriteSet = makeObject<LAWriteMatrixBlockSet>("LA01_db", "LA_transpose_set");
+    Handle<Computation> myWriteSet = makeObject<LAWriteMinElementSet>("LA06_db", "LA_min_set");
     myWriteSet->setInput(myQuery);
 
     auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -243,7 +238,7 @@ int main (int argc, char * argv[]) {
 	// print the resuts
     if (printResult == true) {
         std :: cout << "to print result..." << std :: endl;
-        SetIterator <MatrixBlock> input = myClient.getSetIterator <MatrixBlock> ("LA01_db", "LA_input_set");
+        SetIterator <MatrixBlock> input = myClient.getSetIterator <MatrixBlock> ("LA06_db", "LA_input_set");
         std :: cout << "Query input: "<< std :: endl;
         int countIn = 0;
         for (auto a : input) {
@@ -255,8 +250,8 @@ int main (int argc, char * argv[]) {
         std :: cout << "Matrix input block nums:" << countIn << "\n";
 
         
-        SetIterator <MatrixBlock> result = myClient.getSetIterator <MatrixBlock> ("LA01_db", "LA_transpose_set");
-        std :: cout << "Transpose query results: "<< std :: endl;
+        SetIterator <LAMinElementOutputType> result = myClient.getSetIterator <LAMinElementOutputType> ("LA06_db", "LA_min_set");
+        std :: cout << "Minimal Element query results: "<< std :: endl;
         int countOut = 0;
         for (auto a : result) {
             countOut ++;
@@ -265,15 +260,15 @@ int main (int argc, char * argv[]) {
             
             std :: cout << std::endl;
         }
-        std :: cout << "Transpose output count:" << countOut << "\n";
+        std :: cout << "Minimal Element output count:" << countOut << "\n";
         
     }
 
     if (clusterMode == false) {
 	    // and delete the sets
-        myClient.deleteSet ("LA01_db", "LA_transpose_set");
+        myClient.deleteSet ("LA06_db", "LA_min_set");
     } else {
-        if (!temp.removeSet ("LA01_db", "LA_transpose_set", errMsg)) {
+        if (!temp.removeSet ("LA06_db", "LA_min_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         } else {

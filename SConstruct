@@ -297,13 +297,23 @@ common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/
 common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 
+common_env.SharedLibrary('libraries/libLAMaxElementOutputType.so', ['build/libraries/LAMaxElementOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMaxElementValueType.so', ['build/libraries/LAMaxElementValueType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMinElementOutputType.so', ['build/libraries/LAMinElementOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMinElementValueType.so', ['build/libraries/LAMinElementValueType.cc'] + all)
 common_env.SharedLibrary('libraries/libLAScanMatrixBlockSet.so', ['build/libraries/LAScanMatrixBlockSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyAddJoin.so', ['build/libraries/LASillyAddJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillySubstractJoin.so', ['build/libraries/LASillySubstractJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMaxElementAggregate.so', ['build/libraries/LASillyMaxElementAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMinElementAggregate.so', ['build/libraries/LASillyMinElementAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyMultiply1Join.so', ['build/libraries/LASillyMultiply1Join.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyMultiply2Aggregate.so', ['build/libraries/LASillyMultiply2Aggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyTransposeSelection.so', ['build/libraries/LASillyTransposeSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLAWriteMatrixBlockSet.so', ['build/libraries/LAWriteMatrixBlockSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLAWriteMaxElementSet.so', ['build/libraries/LAWriteMaxElementSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLAWriteMinElementSet.so', ['build/libraries/LAWriteMinElementSet.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixMeta.so', ['build/libraries/MatrixMeta.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixData.so', ['build/libraries/MatrixData.cc'] + all)
 common_env.SharedLibrary('libraries/libMatrixBlock.so', ['build/libraries/MatrixBlock.cc'] + all)
 
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
@@ -435,6 +445,8 @@ common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
 common_env.Program('bin/testLA04_Multiply', ['build/tests/TestLA04_Multiply.cc'] + all)
+common_env.Program('bin/testLA05_MaxElement', ['build/tests/TestLA05_MaxElement.cc'] + all)
+common_env.Program('bin/testLA06_MinElement', ['build/tests/TestLA06_MinElement.cc'] + all)
 
 
 
@@ -545,6 +557,8 @@ main=common_env.Alias('main', [
   #'bin/testLA02_Add',
   #'bin/testLA03_Substract',
   #'bin/testLA04_Multiply',
+  #'bin/testLA05_MaxElement',
+  #'bin/testLA06_MinElement',
 
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 
@@ -559,13 +573,23 @@ main=common_env.Alias('main', [
   'libraries/libIntSillyJoin.so', 
   'libraries/libKMeansQuery.so',  
   
+  #'libraries/libLAMaxElementValueType.so',
+  #'libraries/libLAMaxElementOutputType.so',
+  #'libraries/libLAMinElementValueType.so',
+  #'libraries/libLAMinElementOutputType.so',
   #'libraries/libLAScanMatrixBlockSet.so',
   #'libraries/libLASillyAddJoin.so',
+  #'libraries/libLASillyMaxElementAggregate.so',
+  #'libraries/libLASillyMinElementAggregate.so',
   #'libraries/libLASillyMultiply1Join.so',
   #'libraries/libLASillyMultiply2Aggregate.so',
   #'libraries/libLASillySubstractJoin.so',
   #'libraries/libLASillyTransposeSelection.so',
   #'libraries/libLAWriteMatrixBlockSet.so',
+  #'libraries/libLAWriteMaxElementSet.so',
+  #'libraries/libLAWriteMinElementSet.so',
+  #'libraries/libMatrixMeta.so',
+  #'libraries/libMatrixData.so',
   #'libraries/libMatrixBlock.so',
   
   'libraries/libPartialResult.so', 
