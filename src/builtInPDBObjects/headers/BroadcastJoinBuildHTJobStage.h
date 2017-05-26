@@ -22,6 +22,7 @@
 
 #include "AbstractJobStage.h"
 #include "SetIdentifier.h"
+#include "ComputePlan.h"
 
 // PRELOAD %BroadcastJoinBuildHTJobStage%
 
