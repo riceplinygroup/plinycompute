@@ -23,7 +23,8 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "SelectionComp.h"
-#include "BuiltInMatrixBlock.h"
+//#include "BuiltInMatrixBlock.h"
+#include "MatrixBlock.h"
 
 //LA libraries:
 #include <eigen3/Eigen/Dense>

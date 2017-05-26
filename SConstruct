@@ -296,11 +296,16 @@ common_env.SharedLibrary('libraries/libIntAggregation.so', ['build/libraries/Int
 common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/libraries/IntSelectionOfStringIntPair.cc'] + all)
 common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
+
 common_env.SharedLibrary('libraries/libLAScanMatrixBlockSet.so', ['build/libraries/LAScanMatrixBlockSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyAddJoin.so', ['build/libraries/LASillyAddJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillySubstractJoin.so', ['build/libraries/LASillySubstractJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMultiply1Join.so', ['build/libraries/LASillyMultiply1Join.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMultiply2Aggregate.so', ['build/libraries/LASillyMultiply2Aggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libLASillyTransposeSelection.so', ['build/libraries/LASillyTransposeSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLAWriteMatrixBlockSet.so', ['build/libraries/LAWriteMatrixBlockSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libMatrixBlock.so', ['build/libraries/MatrixBlock.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixBlock.so', ['build/libraries/MatrixBlock.cc'] + all)
+
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
 common_env.SharedLibrary('libraries/libScanBuiltinEmployeeSet.so', ['build/libraries/ScanBuiltinEmployeeSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanEmployeeSet.so', ['build/libraries/ScanEmployeeSet.cc'] + all)
@@ -428,6 +433,10 @@ common_env.Program('bin/test81builtIn', ['build/tests/Test81builtIn.cc'] + all)
 common_env.Program('bin/test81shared', ['build/tests/Test81shared.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
+common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
+common_env.Program('bin/testLA04_Multiply', ['build/tests/TestLA04_Multiply.cc'] + all)
+
+
 
 #Testing
 pdbTest=common_env.Command('test', 'scripts/integratedTests.py', 'python $SOURCE -o $TARGET')
@@ -531,8 +540,12 @@ main=common_env.Alias('main', [
   'bin/test80',
   'bin/test81builtIn',
   'bin/test81shared',
+
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
+  #'bin/testLA03_Substract',
+  #'bin/testLA04_Multiply',
+
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 
   'libraries/libCartesianJoin.so', 
@@ -545,11 +558,16 @@ main=common_env.Alias('main', [
   'libraries/libIntSelectionOfStringIntPair.so', 
   'libraries/libIntSillyJoin.so', 
   'libraries/libKMeansQuery.so',  
+  
   #'libraries/libLAScanMatrixBlockSet.so',
   #'libraries/libLASillyAddJoin.so',
+  #'libraries/libLASillyMultiply1Join.so',
+  #'libraries/libLASillyMultiply2Aggregate.so',
+  #'libraries/libLASillySubstractJoin.so',
   #'libraries/libLASillyTransposeSelection.so',
   #'libraries/libLAWriteMatrixBlockSet.so',
   #'libraries/libMatrixBlock.so',
+  
   'libraries/libPartialResult.so', 
   'libraries/libScanBuiltinEmployeeSet.so', 
   'libraries/libScanEmployeeSet.so',
