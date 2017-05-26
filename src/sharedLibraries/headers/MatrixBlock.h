@@ -39,96 +39,12 @@
 #include <eigen3/Eigen/Dense>
 
 
-class MatrixMeta {
-public:
-    int blockRowIndex;
-    int blockColIndex;
-    int rowNums;
-    int colNums;
-
-    /*
-    MatrixMeta(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn){
-        blockRowIndex = blockRowIndexIn;
-        blockColIndex = blockColIndexIn;
-        rowNums = rowNumsIn;
-        colNums = colNumsIn;
-    }*/
-    
-    bool operator == (const MatrixMeta& other) const {
-        if (blockRowIndex == other.blockRowIndex && blockColIndex == other.blockColIndex){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    size_t hash () const{
-        return 10000*rowNums+colNums;
-    }
-
-   
-};
+#include "MatrixMeta.h"
+#include "MatrixData.h"
+#include "LAMaxElementValueType.h"
+#include "LAMinElementValueType.h"
 
 
-
-
-class MatrixData {
-public:
-    pdb::Handle<pdb::Vector <double>> rawData;
-    int rowNums = 0;
-    int colNums = 0;
-
-    /*
-    MatrixData(int rowNumsIn, int colNumsIn){
-        rowNums = rowNumsIn;
-        colNums = colNumsIn;
-        rawData = pdb::makeObject<pdb::Vector<double> >(rowNums*colNums, rowNums*colNums);
-    }
-    */
-    void print(){
-        std::cout<<"Row: "<<rowNums <<"Col: "<<colNums << "Buffer size:" << rawData->size() <<std::endl;
-    }
-
-
-    /*
-    MatrixData operator + (MatrixData &other){
-        std::cout<< "+ operator:" << std::endl;
-        this->print();
-        other.print();
-        MatrixData result;
-        if(rowNums != other.rowNums || colNums != other.colNums ){
-            result.rowNums = 0;
-            result.colNums = 0;
-            result.rawData = pdb::makeObject<pdb::Vector<double> >();
-            return result;
-        }
-        else{
-            result.rowNums = rowNums;
-            result.colNums = colNums;
-            result.rawData = pdb::makeObject<pdb::Vector<double> >(rowNums*colNums, rowNums*colNums);
-            for(int i=0;i<rowNums*colNums;i++){
-                (*(result.rawData))[i]= (*rawData)[i] + (*(other.rawData))[i];
-            }
-            return result;
-        }
-    }*/
-
-    MatrixData& operator + (MatrixData &other){
-        std::cout<< "+ operator:" << std::endl;
-        this->print();
-        other.print();
-        if(rowNums != other.rowNums || colNums != other.colNums ){
-            this->rawData->clear();
-        }
-        else{
-            for(int i=0;i<rowNums*colNums;i++){
-                (*rawData)[i] += (*(other.rawData))[i];
-            }
-        }
-        return *this;
-    }
-};
 
 
 
@@ -184,6 +100,36 @@ public:
 
     MatrixData& getValue(){
         return data;
+    }
+
+    LAMaxElementValueType getMaxElementValue(){
+        LAMaxElementValueType result;
+        for(int i=0;i<data.rawData->size();i++){
+            if((*(data.rawData))[i] > result.getValue()){
+                result.setValue((*(data.rawData))[i]);
+                int globalRowIndex = meta.blockRowIndex*data.rowNums + i/data.colNums;
+                result.setRowIndex(globalRowIndex);
+                int globalColIndex = meta.blockColIndex*data.colNums + i%data.colNums;
+                result.setColIndex(globalColIndex);
+            }
+        }
+        std:: cout << "Max element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
+        return result;
+    }
+
+    LAMinElementValueType getMinElementValue(){
+        LAMinElementValueType result;
+        for(int i=0;i<data.rawData->size();i++){
+            if((*(data.rawData))[i] < result.getValue()){
+                result.setValue((*(data.rawData))[i]);
+                int globalRowIndex = meta.blockRowIndex*data.rowNums + i/data.colNums;
+                result.setRowIndex(globalRowIndex);
+                int globalColIndex = meta.blockColIndex*data.colNums + i%data.colNums;
+                result.setColIndex(globalColIndex);
+            }
+        }
+        std:: cout << "Min element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
+        return result;
     }
 
 
