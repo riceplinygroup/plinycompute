@@ -27,7 +27,7 @@
 #endif
 
 
-//  PRELOAD %MatrixBlock%
+//  PRELOAD %BuiltInMatrixBlock%
 
 //by Binhang, May 2017, this should be replaced by a sharedLibrary soon.
 
@@ -42,7 +42,7 @@
 
 namespace pdb {
 
-class MatrixBlock : public Object {
+class BuiltInMatrixBlock : public Object {
 
 private:
     int blockRowIndex;
@@ -57,8 +57,8 @@ public:
 
 	ENABLE_DEEP_COPY
 
-    ~MatrixBlock () { }
-    MatrixBlock () {}
+    ~BuiltInMatrixBlock () { }
+    BuiltInMatrixBlock () {}
 
     void print () {
         std :: cout << "Block: (" << blockRowIndex <<","<< blockColIndex << "), size: (" << rowNums <<","<<colNums<<"), length:" << rawData->size();
@@ -92,7 +92,7 @@ public:
     }
 
 
-    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn) {
+    BuiltInMatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn) {
         blockRowIndex = blockRowIndexIn;
         blockColIndex = blockColIndexIn;
         rowNums = rowNumsIn;

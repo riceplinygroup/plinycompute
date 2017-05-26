@@ -20,7 +20,8 @@
 #define LA_SCAN_MATRIXBLOCK_SET_H
 
 #include "ScanUserSet.h"
-#include "BuiltInMatrixBlock.h"
+//#include "BuiltInMatrixBlock.h"
+#include "MatrixBlock.h"
 
 using namespace pdb;
 class LAScanMatrixBlockSet : public ScanUserSet <MatrixBlock> {

@@ -15,28 +15,36 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LA_WRITE_MATRIXBLOCK_SET_H
-#define LA_WRITE_MATRIXBLOCK_SET_H
+#ifndef SILLY_LA_MULTIPLY2_AGGREGATE_H
+#define SILLY_LA_MULTIPLY2_AGGREGATE_H
 
 //by Binhang, May 2017
 
-#include "WriteUserSet.h"
-//#include "BuiltInMatrixBlock.h"
+#include "ClusterAggregateComp.h"
 #include "MatrixBlock.h"
+#include "LambdaCreationFunctions.h"
+
 
 using namespace pdb;
-class LAWriteMatrixBlockSet : public WriteUserSet <MatrixBlock> {
+
+class LASillyMultiply2Aggregate : public ClusterAggregateComp <MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
 
 public:
 
-	ENABLE_DEEP_COPY
-	
-	LAWriteMatrixBlockSet () {}
+        ENABLE_DEEP_COPY
 
-    //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-    LAWriteMatrixBlockSet (std :: string dbName, std :: string setName) {
-        this->setOutput(dbName, setName);
-    }
+        LASillyMultiply2Aggregate () {}
+
+        // the key type must have == and size_t hash () defined
+        Lambda <MatrixMeta> getKeyProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambdaFromMethod (aggMe, getKey);
+        }
+
+        // the value type must have + defined
+        Lambda <MatrixData> getValueProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambdaFromMethod (aggMe, getValue);
+        }
+
 };
 
 

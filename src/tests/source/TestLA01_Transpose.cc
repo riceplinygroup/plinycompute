@@ -31,6 +31,7 @@
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
 #include "LASillyTransposeSelection.h"
+//#include "BuiltInMatrixBlock.h"
 #include "BuiltInMatrixBlock.h"
 #include "DispatcherClient.h"
 #include "Set.h"
@@ -106,7 +107,7 @@ int main (int argc, char * argv[]) {
         //Step 1. Create Database and Set
         // now, register a type for user data
         //TODO: once sharedLibrary is supported, add this line back!!!
-        //catalogClient.registerType ("libraries/libMatrixBlock.so", errMsg);
+        catalogClient.registerType ("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
         if (!temp.createDatabase ("LA01_db", errMsg)) {
