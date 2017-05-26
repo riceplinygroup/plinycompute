@@ -46,7 +46,6 @@ public:
 		std :: string attType, Handle <ClassType> & input, size_t offset) :
 		offsetOfAttToProcess (offset), inputTypeName (inputTypeNameIn), attName (attNameIn), attTypeName (attType) {
 
-            std :: cout << "AttAccessLambda: input type code = " << input.getExactTypeInfoValue() << std :: endl;
             this->setInputIndex(0, -(input.getExactTypeInfoValue()+1));
 
 	}

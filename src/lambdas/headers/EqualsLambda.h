@@ -111,7 +111,6 @@ public:
 
                 } else {
                     tcapString += "\n/* Join ( " + inputColumnNames[0] ;
-                    int indexOfMid;
                     for (unsigned int i = 1; i < inputColumnNames.size()-1; i++) {
                          if (inputColumnNames[i] == inputColumnsToApply[0]) {
                              tcapString += " ) and (";
@@ -170,8 +169,6 @@ public:
                     outputTupleSetName = tupleSetNamePrefix + "_WithLHSExtracted";
                     tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, "APPLY", computationNameWithLabel, childrenLambdaNames[0]);
 
-                //AandBJoinedWithBothExtracted (a, aAndC, aExtracted, otherA) <= APPLY (AandBJoinedWithAExtracted (aAndC), \n\
-                        AandBJoinedWithAExtracted (a, aAndC, aExtracted), 'JoinComp_3', 'attAccess_1') 
                     inputTupleSetName = outputTupleSetName;
                     inputColumnNames.push_back(outputColumnName);
                     inputColumnsToApply.clear();
@@ -181,8 +178,6 @@ public:
                     outputColumns.push_back(outputColumnName);
                     tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, "APPLY", computationNameWithLabel, childrenLambdaNames[1]);
 
-                //AandBJoinedWithBool (aAndC, a, bool) <= APPLY (AandBJoinedWithBothExtracted (aExtracted, otherA), AandBJoinedWithBothExtracted (aAndC, a), \n\
-                        'JoinComp_3', '==_2')
                     inputTupleSetName = outputTupleSetName;
                     inputColumnsToApply.clear();
                     inputColumnsToApply.push_back("LHSExtractedFor_"+std :: to_string(lambdaLabel)+"_"+std :: to_string(computationLabel));

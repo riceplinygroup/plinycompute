@@ -80,7 +80,7 @@ QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClu
     this->partitionToCoreRatio = partitionToCoreRatio;
     this->dynamicPlanningOrNot = isDynamicPlanning;
     this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
-
+    this->statsForOptimization = nullptr;
 }
 
 
@@ -93,6 +93,7 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
     this->partitionToCoreRatio = partitionToCoreRatio;
     this->dynamicPlanningOrNot = isDynamicPlanning;
     this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
+    this->statsForOptimization = nullptr;
 }
 
 void QuerySchedulerServer ::cleanup() {
@@ -128,6 +129,7 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
      this->partitionToCoreRatio = partitionToCoreRatio;
      this->dynamicPlanningOrNot = isDynamicPlanning;
      this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
+     this->statsForOptimization = nullptr;
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
@@ -223,11 +225,6 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                           //schedule the stage
                           if(stage->getJobStageType() == "TupleSetJobStage") {
                               Handle<TupleSetJobStage> tupleSetStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
-                              tupleSetStage->setNumNodes(shuffleInfo->getNumNodes());
-                              tupleSetStage->setNumTotalPartitions(shuffleInfo->getNumHashPartitions());
-                              tupleSetStage->setNumPartitions(shuffleInfo->getPartitionIds());
-                              tupleSetStage->setIPAddresses(shuffleInfo->getAddresses());
-                              tupleSetStage->setNodeId(j);
                               success = scheduleStage (j, tupleSetStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "AggregationJobStage" ) {
                               Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
@@ -312,16 +309,30 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& 
         std :: string errMsg;
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
-        if (mode == Direct) {
-            stage->print();
-            success = communicator->sendObject<TupleSetJobStage>(stage, errMsg);
-            if (!success) {
-                 std :: cout << errMsg << std :: endl;
-                 return false;
-            }
-        }else if (mode == DeepCopy) {
+        if (mode == DeepCopy) {
+             const UseTemporaryAllocationBlock block(4 * 1024 * 1024);              
              Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (stage);
-             stageToSend->print();
+             stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
+             stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
+             Handle<Vector<Handle<Vector<HashPartitionID>>>> partitionIds = 
+                              makeObject<Vector<Handle<Vector<HashPartitionID>>>> ();
+             std :: vector < std :: vector < HashPartitionID>> standardPartitionIds = shuffleInfo->getPartitionIds();
+             for (unsigned int i = 0; i < standardPartitionIds.size(); i++) {
+                 Handle<Vector<HashPartitionID>> nodePartitionIds = makeObject <Vector<HashPartitionID>> ();
+                 for (unsigned int j = 0; j < standardPartitionIds[i].size(); j++) {
+                     nodePartitionIds->push_back( standardPartitionIds[i][j] );
+                 }
+                 partitionIds->push_back(nodePartitionIds);
+             }
+             stageToSend->setNumPartitions(partitionIds);
+
+             Handle<Vector<String>> addresses = makeObject<Vector<String>> ();
+             std :: vector < std :: string > standardAddresses = shuffleInfo->getAddresses();
+             for (unsigned int i = 0; i < standardAddresses.size(); i++) {
+                addresses->push_back(String(standardAddresses[i]));
+             }
+             stageToSend->setIPAddresses(addresses);
+             stageToSend->setNodeId(index);
              success = communicator->sendObject<TupleSetJobStage>(stageToSend, errMsg);
              if (!success) {
                      std :: cout << errMsg << std :: endl;
@@ -352,7 +363,6 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<BroadcastJoinBuildH
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
         if (mode == Direct) {
-            stage->print();
             success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stage, errMsg);
             if (!success) {
                  std :: cout << errMsg << std :: endl;
@@ -360,7 +370,7 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<BroadcastJoinBuildH
             }
         }else if (mode == DeepCopy) {
              Handle<BroadcastJoinBuildHTJobStage> stageToSend = deepCopyToCurrentAllocationBlock<BroadcastJoinBuildHTJobStage> (stage);
-             stageToSend->print();
+             stageToSend->nullifyComputePlanPointer ();
              success = communicator->sendObject<BroadcastJoinBuildHTJobStage>(stageToSend, errMsg);
              if (!success) {
                      std :: cout << errMsg << std :: endl;
@@ -391,7 +401,6 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<AggregationJobStage
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index << "-th remote node" << std :: endl;
         
         if (mode == Direct) {
-            stage->print();
             success = communicator->sendObject<AggregationJobStage>(stage, errMsg);
             if (!success) {
                  std :: cout << errMsg << std :: endl;
@@ -399,7 +408,6 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<AggregationJobStage
             } 
         }else if (mode == DeepCopy) { 
              Handle<AggregationJobStage> stageToSend = deepCopyToCurrentAllocationBlock<AggregationJobStage> (stage);
-             stageToSend->print();
              success = communicator->sendObject<AggregationJobStage>(stageToSend, errMsg);
              if (!success) {
                      std :: cout << errMsg << std :: endl;
@@ -433,7 +441,6 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the remote node" << std :: endl;
 
         if (mode == Direct) {
-            stage->print();
             success = communicator->sendObject<JobStage>(stage, errMsg);
             if (!success) {
                  std :: cout << errMsg << std :: endl;
@@ -465,7 +472,6 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
                 PDB_COUT << curOperator->getName() << std :: endl;
                 stageToSend->addOperator(curOperator);
              }
-             stageToSend->print();
              success = communicator->sendObject<JobStage>(stageToSend, errMsg);
              if (!success) {
                      std :: cout << errMsg << std :: endl;
@@ -473,7 +479,6 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
              }
         } else if (mode == DeepCopy) {
              Handle<JobStage> stageToSend = deepCopyToCurrentAllocationBlock<JobStage> (stage);
-             stageToSend->print();
              success = communicator->sendObject<JobStage>(stageToSend, errMsg);
              if (!success) {
                      std :: cout << errMsg << std :: endl;
@@ -508,7 +513,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
 
 bool QuerySchedulerServer :: parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString) {
-    TCAPAnalyzer tcapAnalyzer(this->jobId, myComputations, myTCAPString, this->logger);
+    TCAPAnalyzer tcapAnalyzer(this->jobId, myComputations, myTCAPString, this->logger, false);
     return tcapAnalyzer.analyze(this->queryPlan, this->interGlobalSets);
 }
 
@@ -627,7 +632,6 @@ void QuerySchedulerServer :: parseOptimizedQuery (pdb_detail::QueryGraphIrPtr qu
                     JobStageID parentStageId = curNode->getTraversalId();
                     PDB_COUT << "We meet a node that has been traversed with id="<< parentStageId << std :: endl;
                     parentStage = stageMap[parentStageId];
-                    parentStage->print();
                     // append this stage to that stage and finishes loop for this sink
                     Handle<SetIdentifier> input = parentStage->getOutput();
                     stage->setInput(input);
@@ -790,7 +794,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 //analyze resources
                 PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
                 getFunctionality<QuerySchedulerServer>().initialize(true);
-                std :: shared_ptr <ShuffleInfo> shuffleInfo = std :: make_shared <ShuffleInfo> (this->standardResources, this->partitionToCoreRatio);
+                this->shuffleInfo = std :: make_shared <ShuffleInfo> (this->standardResources, this->partitionToCoreRatio);
                 
                 //dyanmic planning
                 //initialize tcapAnalyzer
@@ -799,7 +803,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 while (this->tcapAnalyzerPtr->getNumSources() > 0) {
 
                     //analyze all sources and select a source based on cost model
-                    int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource();
+                    int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource(this->statsForOptimization);
 
                     //get the job stages and intermediate data sets for this source
                     std :: string sourceName = this->tcapAnalyzerPtr->getSourceSetName (indexOfBestSource);
@@ -807,13 +811,13 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                     AtomicComputationPtr sourceAtomicComp = this->tcapAnalyzerPtr->getSourceComputation (sourceName);
                     std :: vector<Handle<AbstractJobStage>> jobStages;
                     std :: vector<Handle<SetIdentifier>> intermediateSets;
-                    this->tcapAnalyzerPtr->analyze(jobStages, intermediateSets, sourceAtomicComp, jobStageId);
+                    this->tcapAnalyzerPtr->getNextStages(jobStages, intermediateSets, sourceAtomicComp, sourceSet, jobStageId);
 
                     //create intermediate sets
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
                         std :: string errMsg;
                         Handle<SetIdentifier> intermediateSet = intermediateSets[i];
-                        bool res = dsmClient.createTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateSet", errMsg);
+                        bool res = dsmClient.createTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
                         if (res != true) {
                             std :: cout << "can't create temp set: " <<errMsg << std :: endl;
                         } else {
@@ -839,7 +843,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
              for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
                  std :: string errMsg;
                  Handle<SetIdentifier> intermediateSet = this->interGlobalSets[i];
-                 bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateSet", errMsg);
+                 bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
                  if (res != true) {
                      std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
                  } else {

@@ -85,7 +85,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
                              logger->error ("Error sending data: " + result->getRes ().second);
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
-                         return true;}, data, databaseName, setName, "Aggregation", false);
+                         return true;}, data, databaseName, setName, "IntermediateData", false);
         }
 
 //broadcast data
@@ -103,7 +103,7 @@ bool PipelineStage :: broadcastData (HermesExecutionServer * server, void * data
                   int port = this->jobStage->getPort (i);
                   std :: cout << "address=" << address << ", port=" << port << std :: endl;
                   temp.connectToInternetServer (logger, port, address, errMsg);
-                  Handle<StorageAddObject> request = makeObject <StorageAddObject> (databaseName, setName, "Broadcasting", false);
+                  Handle<StorageAddObject> request = makeObject <StorageAddObject> (databaseName, setName, "IntermediateData", false);
                   temp.sendObject(request, errMsg);
                   temp.sendBytes(data, size, errMsg);
                   Handle<SimpleRequestResult> result = temp.getNextObject<SimpleRequestResult>(success, errMsg);

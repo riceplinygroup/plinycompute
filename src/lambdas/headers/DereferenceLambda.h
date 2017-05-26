@@ -68,7 +68,6 @@ public:
                 } else {
                     tupleSetMidTag = "ExtractedFor";
                     myIndex = this->getInputIndex(0);
-                    std :: cout << "myIndex for " << myLambdaName << " is " << myIndex << std :: endl;
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
                     inputColumnsToApply = multiInputsComp->getInputColumnsToApplyForIthInput(myIndex);

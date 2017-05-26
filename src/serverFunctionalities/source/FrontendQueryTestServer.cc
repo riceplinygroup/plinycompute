@@ -384,7 +384,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     if (outputSet == nullptr) {
                         success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                         outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                        PDB_COUT << "Output set is created in storage with database="<< outDatabaseName << ", set=" << outSetName << ", type=Aggregation" << std :: endl;
+                        PDB_COUT << "Output set is created in storage with database="<< outDatabaseName << ", set=" << outSetName << ", type=IntermediateData" << std :: endl;
                     }
 
                     if (success == true) {
