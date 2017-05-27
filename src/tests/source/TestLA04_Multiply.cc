@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_02_CC
-#define TEST_LA_02_CC
+#ifndef TEST_LA_04_CC
+#define TEST_LA_04_CC
 
 
 //by Binhang, May 2017
@@ -282,7 +282,7 @@ int main (int argc, char * argv[]) {
 
         
         SetIterator <MatrixBlock> result = myClient.getSetIterator <MatrixBlock> ("LA04_db", "LA_product_set");
-        std :: cout << "Substract query results: "<< std :: endl;
+        std :: cout << "Multiply query results: "<< std :: endl;
         int countOut = 0;
         for (auto a : result) {
             countOut ++;
@@ -291,7 +291,7 @@ int main (int argc, char * argv[]) {
             
             std :: cout << std::endl;
         }
-        std :: cout << "Sum output count:" << countOut << "\n";
+        std :: cout << "Product output count:" << countOut << "\n";
         
     }
 

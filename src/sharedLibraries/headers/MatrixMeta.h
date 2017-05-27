@@ -30,8 +30,8 @@ public:
 
     int blockRowIndex;
     int blockColIndex;
-    int rowNums;
-    int colNums;
+    //int rowNums;
+    //int colNums;
 
     /*
     MatrixMeta(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn){
@@ -51,7 +51,7 @@ public:
     }
 
     size_t hash () const{
-        return 10000*rowNums+colNums;
+        return 10000*blockRowIndex+blockColIndex;
     }
 
    

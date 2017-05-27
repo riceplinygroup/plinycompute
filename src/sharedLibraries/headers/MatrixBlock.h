@@ -65,6 +65,17 @@ public:
     ~MatrixBlock () { }
     MatrixBlock () {}
 
+    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn) {
+        meta.blockRowIndex = blockRowIndexIn;
+        meta.blockColIndex = blockColIndexIn;
+        //meta.rowNums = rowNumsIn;
+        //meta.colNums = colNumsIn;
+        data.rowNums = rowNumsIn;
+        data.colNums = colNumsIn;
+        data.rawData = pdb::makeObject<pdb::Vector<double> >(rowNumsIn*colNumsIn, rowNumsIn*colNumsIn);
+        std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+    }
+
     void print () override {
         std :: cout << "Block: (" << meta.blockRowIndex <<","<< meta.blockColIndex << "), size: (" << data.rowNums <<","<< data.colNums<<"), length:" << data.rawData->size()<<" ";
         if(data.rawData->size()!=data.rowNums*data.colNums){
@@ -72,7 +83,7 @@ public:
         }
         else{
             for(int i=0;i<data.rawData->size();i++){
-                if(i%meta.colNums==0){
+                if(i%data.colNums==0){
                     std::cout << std::endl;
                 }
                 std::cout << (*(data.rawData))[i] <<" ";
@@ -94,6 +105,26 @@ public:
         return ret;
     }
 
+    int getBlockRowIndex () {
+        return meta.blockRowIndex;
+    }
+
+    int getBlockColIndex () {
+        return meta.blockColIndex;
+    }
+
+    int getRowNums() {
+        return data.rowNums;
+    }
+
+    int getColNums() {
+        return data.colNums;
+    }
+        
+    pdb::Handle<pdb::Vector <double>>& getRawDataHandle(){
+        return data.rawData;
+    }
+
     MatrixMeta& getKey(){
         return meta;
     }
@@ -102,6 +133,121 @@ public:
         return data;
     }
 
+
+    MatrixMeta& getMultiplyKey(){
+        return meta;
+    }
+
+    MatrixData& getMultiplyValue(){
+        data.setMatrixMultiplyFlag();
+        return data;
+    }
+
+    //This is needed for row-wise computation
+    MatrixMeta getRowKey(){
+        MatrixMeta rowMeta;
+        rowMeta.blockRowIndex = meta.blockRowIndex;
+        rowMeta.blockColIndex = 0;
+        return rowMeta;
+    }
+
+    //This is needed for col-wise computation
+    MatrixMeta getColKey(){
+        MatrixMeta colMeta;
+        colMeta.blockRowIndex = 0;
+        colMeta.blockColIndex = meta.blockColIndex;
+        return colMeta;
+    }
+
+    //This is needed for row-wise computation
+    MatrixData getRowMaxValue(){
+        MatrixData maxRowData;
+        maxRowData.setRowMaxFlag();
+        maxRowData.rowNums = data.rowNums;
+        maxRowData.colNums = 1;
+        int bufferLength = maxRowData.rowNums*maxRowData.colNums;
+        maxRowData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > rowMaxMatrix((maxRowData.rawData)->c_ptr(),maxRowData.rowNums, maxRowData.colNums);
+
+        rowMaxMatrix = currentMatrix.rowwise().maxCoeff();
+
+        std::cout <<"getRowMaxValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Row wise Max Matrix :"<< std::endl;
+        maxRowData.print();
+        return maxRowData;
+    }
+
+    //This is needed for row-wise computation
+    MatrixData getRowMinValue(){
+        MatrixData minRowData;
+        minRowData.setRowMinFlag();
+        minRowData.rowNums = data.rowNums;
+        minRowData.colNums = 1;
+        int bufferLength = minRowData.rowNums*minRowData.colNums;
+        minRowData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > rowMinMatrix((minRowData.rawData)->c_ptr(),minRowData.rowNums, minRowData.colNums);
+
+        rowMinMatrix = currentMatrix.rowwise().minCoeff();
+
+        std::cout <<"getRowMinValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Row wise Min Matrix :"<< std::endl;
+        minRowData.print();
+        return minRowData;
+    }
+
+    //This is needed for col-wise computation
+    MatrixData getColMaxValue(){
+        MatrixData maxColData;
+        maxColData.setColMaxFlag();
+        maxColData.rowNums = 1;
+        maxColData.colNums = data.colNums;
+        int bufferLength = maxColData.rowNums*maxColData.colNums;
+        maxColData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > colMaxMatrix((maxColData.rawData)->c_ptr(),maxColData.rowNums, maxColData.colNums);
+
+        colMaxMatrix = currentMatrix.colwise().maxCoeff();
+
+        std::cout <<"getColMaxValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Col wise Max Matrix :"<< std::endl;
+        maxColData.print();
+        return maxColData;
+    }
+
+    //This is needed for col-wise computation
+    MatrixData getColMinValue(){
+        MatrixData minColData;
+        minColData.setColMinFlag();
+        minColData.rowNums = 1;
+        minColData.colNums = data.colNums;
+        int bufferLength = minColData.rowNums*minColData.colNums;
+        minColData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > colMinMatrix((minColData.rawData)->c_ptr(),minColData.rowNums, minColData.colNums);
+
+        colMinMatrix = currentMatrix.colwise().minCoeff();
+
+        std::cout <<"getColMinValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Col wise Min Matrix :"<< std::endl;
+        minColData.print();
+        return minColData;
+    }
+
+    //This is needed to find the max element
     LAMaxElementValueType getMaxElementValue(){
         LAMaxElementValueType result;
         for(int i=0;i<data.rawData->size();i++){
@@ -117,6 +263,7 @@ public:
         return result;
     }
 
+    //This is needed to find the min element
     LAMinElementValueType getMinElementValue(){
         LAMinElementValueType result;
         for(int i=0;i<data.rawData->size();i++){
@@ -130,44 +277,7 @@ public:
         }
         std:: cout << "Min element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
         return result;
-    }
-
-
-	int getBlockRowIndex () {
-		return meta.blockRowIndex;
-	}
-
-    int getBlockColIndex () {
-        return meta.blockColIndex;
-    }
-
-	int getRowNums() {
-        return meta.rowNums;
-    }
-
-    int getColNums() {
-        return meta.colNums;
-    }
-        
-    pdb::Handle<pdb::Vector <double>>& getRawDataHandle(){
-        return data.rawData;
-    }
-
-
-    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn) {
-        meta.blockRowIndex = blockRowIndexIn;
-        meta.blockColIndex = blockColIndexIn;
-        meta.rowNums = rowNumsIn;
-        meta.colNums = colNumsIn;
-        data.rowNums = rowNumsIn;
-        data.colNums = colNumsIn;
-        data.rawData = pdb::makeObject<pdb::Vector<double> >(rowNumsIn*colNumsIn, rowNumsIn*colNumsIn);
-        std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
-    }
-
-
-
-    //Other operations to be added soon.
+    }    
 };
 
 

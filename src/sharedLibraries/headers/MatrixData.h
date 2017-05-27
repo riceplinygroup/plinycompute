@@ -18,11 +18,70 @@
 #ifndef MATRIX_DATA_H
 #define MATRIX_DATA_H
 
+#define UNSETFLAG 0
+#define MAXTRIXMULTIFLAG 1
+#define MATRIXROWMAXFLAG 2
+#define MATRIXROWMINFLAG 3
+#define MATRIXCOLMAXFLAG 4
+#define MATRIXCOLMINFLAG 5
+
+
 #include "Object.h"
 #include "PDBVector.h"
 #include "Handle.h"
 
+
+
+
 class MatrixData :public pdb::Object{
+    
+private:
+    void MultiplyAggregate(MatrixData &other){
+        std::cout << "Multiply Aggregation +" << std::endl;
+        for(int i=0;i<rowNums*colNums;i++){
+            (*rawData)[i] += (*(other.rawData))[i];
+        }
+    }
+
+    void RowMaxAggregate(MatrixData &other){
+        std::cout << "Row-wise max Aggregation +" << std::endl;
+        for(int i=0;i<rowNums*colNums;i++){
+            if((*rawData)[i] < (*(other.rawData))[i]){
+                (*rawData)[i] = (*(other.rawData))[i];
+            }    
+        }
+
+    }
+
+    void RowMinAggregate(MatrixData &other){
+        std::cout << "Row-wise min Aggregation +" << std::endl;
+        for(int i=0;i<rowNums*colNums;i++){
+            if((*rawData)[i] > (*(other.rawData))[i]){
+                (*rawData)[i] = (*(other.rawData))[i];
+            }    
+        }
+
+    }
+
+    void ColMaxAggregate(MatrixData &other){
+        std::cout << "Col-wise max Aggregation +" << std::endl;
+        for(int i=0;i<rowNums*colNums;i++){
+            if((*rawData)[i] < (*(other.rawData))[i]){
+                (*rawData)[i] = (*(other.rawData))[i];
+            }    
+        }
+
+    }
+
+    void ColMinAggregate(MatrixData &other){
+        std::cout << "Col-wise min Aggregation +" << std::endl;
+        for(int i=0;i<rowNums*colNums;i++){
+            if((*rawData)[i] > (*(other.rawData))[i]){
+                (*rawData)[i] = (*(other.rawData))[i];
+            }    
+        }
+    }
+
 public:
 
     ENABLE_DEEP_COPY
@@ -35,40 +94,45 @@ public:
     int rowNums = 0;
     int colNums = 0;
 
-    /*
-    MatrixData(int rowNumsIn, int colNumsIn){
-        rowNums = rowNumsIn;
-        colNums = colNumsIn;
-        rawData = pdb::makeObject<pdb::Vector<double> >(rowNums*colNums, rowNums*colNums);
+    int flag = UNSETFLAG;
+
+    void setMatrixMultiplyFlag(){
+        flag = MAXTRIXMULTIFLAG;
     }
-    */
+
+    void setRowMaxFlag(){
+        flag = MATRIXROWMAXFLAG;
+    }
+
+    void setRowMinFlag(){
+        flag = MATRIXROWMINFLAG;
+    }
+
+    void setColMaxFlag(){
+        flag = MATRIXCOLMAXFLAG;
+    }
+
+    void setColMinFlag(){
+        flag = MATRIXCOLMINFLAG;
+    }
+
+ 
     void print(){
-        std::cout<<"Row: "<<rowNums <<" Col: "<<colNums << " Buffer size:" << rawData->size() <<std::endl;
-    }
-
-
-    /*
-    MatrixData operator + (MatrixData &other){
-        std::cout<< "+ operator:" << std::endl;
-        this->print();
-        other.print();
-        MatrixData result;
-        if(rowNums != other.rowNums || colNums != other.colNums ){
-            result.rowNums = 0;
-            result.colNums = 0;
-            result.rawData = pdb::makeObject<pdb::Vector<double> >();
-            return result;
+        std::cout <<"Flag: "<< flag <<" Row: "<<rowNums <<" Col: "<<colNums << " Buffer size:" << rawData->size() <<" ";
+        if(rawData->size()!=rowNums*colNums){
+            std::cout<<"Matrix Error: size misMatch!" <<std::endl;
         }
         else{
-            result.rowNums = rowNums;
-            result.colNums = colNums;
-            result.rawData = pdb::makeObject<pdb::Vector<double> >(rowNums*colNums, rowNums*colNums);
-            for(int i=0;i<rowNums*colNums;i++){
-                (*(result.rawData))[i]= (*rawData)[i] + (*(other.rawData))[i];
+            for(int i=0;i<rawData->size();i++){
+                if(i%colNums==0){
+                    std::cout << std::endl;
+                }
+                std::cout << (*rawData)[i] <<" ";
             }
-            return result;
+            std::cout << std::endl;
         }
-    }*/
+    }
+
 
     MatrixData& operator + (MatrixData &other){
         std::cout<< "+ operator:" << std::endl;
@@ -78,12 +142,31 @@ public:
             this->rawData->clear();
         }
         else{
-            for(int i=0;i<rowNums*colNums;i++){
-                (*rawData)[i] += (*(other.rawData))[i];
+            //Multiply aggregation:
+            if(flag == MAXTRIXMULTIFLAG){
+                MultiplyAggregate(other);
+            } 
+            else if(flag == MATRIXROWMAXFLAG){
+                RowMaxAggregate(other);
             }
+            else if(flag == MATRIXROWMINFLAG){
+                RowMinAggregate(other);
+            }
+            else if(flag == MATRIXCOLMAXFLAG){
+                ColMaxAggregate(other);
+            }
+            else if(flag == MATRIXCOLMINFLAG){
+                ColMinAggregate(other);
+            }
+            else {
+                std::cout << "Operator not supported yet!" << std::endl; 
+            }  
         }
         return *this;
     }
+
+
+
 };
 
 #endif
