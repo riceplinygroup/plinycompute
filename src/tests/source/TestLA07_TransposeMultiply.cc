@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LA_03_CC
-#define TEST_LA_03_CC
+#ifndef TEST_LA_07_CC
+#define TEST_LA_07_CC
 
 
 //by Binhang, May 2017
-//to test matrix substract implemented by join;
+//to test matrix multiply implemented by join;
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -30,7 +30,8 @@
 #include "DistributedStorageManagerClient.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LAWriteMatrixBlockSet.h"
-#include "LASillySubstractJoin.h"
+#include "LASillyTransposeMultiply1Join.h"
+#include "LASillyMultiply2Aggregate.h"
 //#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 #include "DispatcherClient.h"
@@ -107,10 +108,12 @@ int main (int argc, char * argv[]) {
         //Step 1. Create Database and Set
         // now, register a type for user data
         //TODO: once sharedLibrary is supported, Substract this line back!!!
+        catalogClient.registerType ("libraries/libMatrixMeta.so", errMsg);
+        catalogClient.registerType ("libraries/libMatrixData.so", errMsg);
         catalogClient.registerType ("libraries/libMatrixBlock.so", errMsg);
 
         // now, create a new database
-        if (!temp.createDatabase ("LA03_db", errMsg)) {
+        if (!temp.createDatabase ("LA07_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit (-1);
         } else {
@@ -118,7 +121,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create the first matrix set in that database
-        if (!temp.createSet<MatrixBlock> ("LA03_db", "LA_input_set1", errMsg)) {
+        if (!temp.createSet<MatrixBlock> ("LA07_db", "LA_input_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -126,7 +129,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create the first matrix set in that database
-        if (!temp.createSet<MatrixBlock> ("LA03_db", "LA_input_set2", errMsg)) {
+        if (!temp.createSet<MatrixBlock> ("LA07_db", "LA_input_set2", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -134,27 +137,27 @@ int main (int argc, char * argv[]) {
         }
 
 
-        //Step 2. Substract data
+        //Step 2. Multiply data
         DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-        int matrixRowNums = 4;
-        int matrixColNums = 4;
-        int blockRowNums = 10;
-        int blockColNums = 5;
+        int matrix1RowNums = 4;
+        int matrix1ColNums = 2;
+        int block1RowNums = 10;
+        int block1ColNums = 10;
         
         int total = 0;
 
-        //Substract Matrix 1
+        //Matrix 1
         pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
         pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix1 = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>> ();
   
-        for (int i = 0; i < matrixRowNums; i++) {
-            for (int j = 0; j < matrixColNums; j++){
-                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,blockRowNums,blockColNums);
+        for (int i = 0; i < matrix1RowNums; i++) {
+            for (int j = 0; j < matrix1ColNums; j++){
+                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,block1RowNums,block1ColNums);
                 //Foo initialization
-                for(int ii = 0; ii < blockRowNums; ii++){
-                    for(int jj=0; jj < blockColNums; jj++){
-                        (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = i+j+ii+jj+1.0;
+                for(int ii = 0; ii < block1RowNums; ii++){
+                    for(int jj=0; jj < block1ColNums; jj++){
+                        (*(myData->getRawDataHandle()))[ii*block1ColNums+jj] = i+j+ii+jj;
                     }
                 }
 
@@ -165,7 +168,7 @@ int main (int argc, char * argv[]) {
             }
         }
 
-        if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set1", "LA03_db"), storeMatrix1, errMsg)) {
+        if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set1", "LA07_db"), storeMatrix1, errMsg)) {
             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
             return -1;
         }
@@ -173,18 +176,23 @@ int main (int argc, char * argv[]) {
         //to write back all buffered records        
         temp.flushData( errMsg );
 
-        //Substract Matrix 2
+        //Matrix 2
+        int matrix2RowNums = 4;
+        int matrix2ColNums = 4;
+        int block2RowNums = 10;
+        int block2ColNums = 10;
+
         total = 0;
         pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
         pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix2 = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>> ();
   
-        for (int i = 0; i < matrixRowNums; i++) {
-            for (int j = 0; j < matrixColNums; j++){
-                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,blockRowNums,blockColNums);
+        for (int i = 0; i < matrix2RowNums; i++) {
+            for (int j = 0; j < matrix2ColNums; j++){
+                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,block2RowNums,block2ColNums);
                 //Foo initialization
-                for(int ii = 0; ii < blockRowNums; ii++){
-                    for(int jj=0; jj < blockColNums; jj++){
-                        (*(myData->getRawDataHandle()))[ii*blockColNums+jj] = i+j+ii+jj;
+                for(int ii = 0; ii < block2RowNums; ii++){
+                    for(int jj=0; jj < block2ColNums; jj++){
+                        (*(myData->getRawDataHandle()))[ii*block2ColNums+jj] = (i==j && ii==jj)?1.0:0.0;
                     }
                 }
                 std::cout<<"New block: " << total << std::endl; 
@@ -194,7 +202,7 @@ int main (int argc, char * argv[]) {
             }
         }
 
-        if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set2", "LA03_db"), storeMatrix2, errMsg)) {
+        if (!dispatcherClient.sendData<MatrixBlock>(std::pair<std::string, std::string>("LA_input_set2", "LA07_db"), storeMatrix2, errMsg)) {
             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
             return -1;
         }
@@ -205,7 +213,7 @@ int main (int argc, char * argv[]) {
     // now, create a new set in that database to store output data
     
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
-    if (!temp.createSet<MatrixBlock> ("LA03_db", "LA_diff_set", errMsg)) {
+    if (!temp.createSet<MatrixBlock> ("LA07_db", "LA_product_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -217,26 +225,30 @@ int main (int argc, char * argv[]) {
     const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
     // register this query class
-    catalogClient.registerType ("libraries/libLASillySubstractJoin.so", errMsg);
+    catalogClient.registerType ("libraries/libLASillyTransposeMultiply1Join.so", errMsg);
+    catalogClient.registerType ("libraries/libLASillyMultiply2Aggregate.so", errMsg);
     catalogClient.registerType ("libraries/libLAScanMatrixBlockSet.so", errMsg);
     catalogClient.registerType ("libraries/libLAWriteMatrixBlockSet.so", errMsg);
     
     // connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
     
-    Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA03_db", "LA_input_set1");
-    Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA03_db", "LA_input_set2");
+    Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA07_db", "LA_input_set1");
+    Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA07_db", "LA_input_set2");
 
-    Handle<Computation> mySubstractJoin = makeObject<LASillySubstractJoin>();
-    mySubstractJoin->setInput(0, myMatrixSet1);
-    mySubstractJoin->setInput(1, myMatrixSet2);
+    Handle<Computation> myMultiply1Join = makeObject<LASillyTransposeMultiply1Join>();
+    myMultiply1Join->setInput(0, myMatrixSet1);
+    myMultiply1Join->setInput(1, myMatrixSet2);
+
+    Handle<Computation> myMultiply2Aggregate = makeObject<LASillyMultiply2Aggregate>();
+    myMultiply2Aggregate->setInput(myMultiply1Join);
     
-    Handle<Computation> mySumWriteSet = makeObject<LAWriteMatrixBlockSet>("LA03_db", "LA_diff_set");
-    mySumWriteSet->setInput(mySubstractJoin);
+    Handle<Computation> myProductWriteSet = makeObject<LAWriteMatrixBlockSet>("LA07_db", "LA_product_set");
+    myProductWriteSet->setInput(myMultiply2Aggregate);
 
     auto begin = std :: chrono :: high_resolution_clock :: now();
 
-    if (!myClient.executeComputations(errMsg, mySumWriteSet)) {
+    if (!myClient.executeComputations(errMsg, myProductWriteSet)) {
         std :: cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -251,7 +263,7 @@ int main (int argc, char * argv[]) {
     if (printResult == true) {
         std :: cout << "to print result..." << std :: endl;
         
-        SetIterator <MatrixBlock> input1 = myClient.getSetIterator <MatrixBlock> ("LA03_db", "LA_input_set1");
+        SetIterator <MatrixBlock> input1 = myClient.getSetIterator <MatrixBlock> ("LA07_db", "LA_input_set1");
         std :: cout << "Input Matrix 1:" << std::endl;
         int countIn1 = 0;
         for (auto a : input1) {
@@ -262,7 +274,7 @@ int main (int argc, char * argv[]) {
         }
         std :: cout << "Matrix1 input block nums:" << countIn1 << "\n";
 
-        SetIterator <MatrixBlock> input2 = myClient.getSetIterator <MatrixBlock> ("LA03_db", "LA_input_set2");
+        SetIterator <MatrixBlock> input2 = myClient.getSetIterator <MatrixBlock> ("LA07_db", "LA_input_set2");
         std :: cout << "Input Matrix 2:" << std::endl;
         int countIn2 = 0;
         for (auto a : input2) {
@@ -274,8 +286,8 @@ int main (int argc, char * argv[]) {
         std :: cout << "Matrix2 input block nums:" << countIn2 << "\n";
 
         
-        SetIterator <MatrixBlock> result = myClient.getSetIterator <MatrixBlock> ("LA03_db", "LA_diff_set");
-        std :: cout << "Substract query results: "<< std :: endl;
+        SetIterator <MatrixBlock> result = myClient.getSetIterator <MatrixBlock> ("LA07_db", "LA_product_set");
+        std :: cout << "Transpose multiply query results: "<< std :: endl;
         int countOut = 0;
         for (auto a : result) {
             countOut ++;
@@ -284,15 +296,15 @@ int main (int argc, char * argv[]) {
             
             std :: cout << std::endl;
         }
-        std :: cout << "Diff output count:" << countOut << "\n";
+        std :: cout << "Transpose multiply output count:" << countOut << "\n";
         
     }
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet ("LA03_db", "LA_diff_set");
+        myClient.deleteSet ("LA07_db", "LA_product_set");
     } else {
-        if (!temp.removeSet ("LA03_db", "LA_diff_set", errMsg)) {
+        if (!temp.removeSet ("LA07_db", "LA_product_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         } else {

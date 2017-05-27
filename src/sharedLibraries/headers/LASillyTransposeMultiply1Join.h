@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_LA_MULTIPLY1_JOIN_H
-#define SILLY_LA_MULTIPLY1_JOIN_H
+#ifndef SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_H
+#define SILLY_LA_TRANSPOSE_MULTIPLY1_JOIN_H
 
 //by Binhang, May 2017
 
@@ -31,17 +31,17 @@
 
 using namespace pdb;
 
-class LASillyMultiply1Join : public JoinComp <MatrixBlock, MatrixBlock, MatrixBlock> {
+class LASillyTransposeMultiply1Join : public JoinComp <MatrixBlock, MatrixBlock, MatrixBlock> {
 
 public:
 
 	ENABLE_DEEP_COPY
 
-    LASillyMultiply1Join () {}
+    LASillyTransposeMultiply1Join () {}
 
     Lambda <bool> getSelection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {
         return makeLambda (in1, in2, [] (Handle<MatrixBlock> & in1, Handle<MatrixBlock> & in2) {
-           	return in1->getBlockColIndex() == in2->getBlockRowIndex();
+           	return in1->getBlockRowIndex() == in2->getBlockRowIndex();
         });
     }
 
@@ -53,21 +53,21 @@ public:
                 in1->print();
                 std::cout <<"Current Matrix2 :"<< std::endl;
                 in2->print();
-                if(in1->getColNums()!=in2->getRowNums()){
+                if(in1->getRowNums()!=in2->getRowNums()){
                     std::cerr << "Block dimemsions mismatch!" << std::endl;
                     return in1;
                 }
-                int rowNums = in1->getRowNums();
+                int rowNums = in1->getColNums();
                 int colNums = in2->getColNums();
-                int blockRowIndex = in1->getBlockRowIndex();
+                int blockRowIndex = in1->getBlockColIndex();
                 int blockColIndex = in2->getBlockColIndex();
-                Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix1(in1->getRawDataHandle()->c_ptr(),in1->getRowNums(),in1->getColNums());
+               	Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix1(in1->getRawDataHandle()->c_ptr(),in1->getRowNums(),in1->getColNums());
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix2(in2->getRawDataHandle()->c_ptr(),in2->getRowNums(),in2->getColNums());
-                
+                 
                 pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums); 
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > productMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(),rowNums,colNums);
 
-                productMatrix = currentMatrix1 * currentMatrix2;
+                productMatrix = (currentMatrix1.transpose()) * currentMatrix2;
                 
                 std::cout <<"Result Matrix :"<< std::endl;
                 resultMatrixBlock->print();
