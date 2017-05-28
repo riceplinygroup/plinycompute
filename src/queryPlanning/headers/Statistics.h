@@ -61,6 +61,15 @@ public:
     //destructor
     ~Statistics () {}
 
+    //remove set
+    void removeSet (std :: string databaseName, std :: string setName) {
+        std :: string key = databaseName+ ":" + setName;
+        if (dataStatistics.count(key) > 0) {
+            dataStatistics.erase(key);
+        }
+    }
+
+
     //to return number of pages of a set
     int getNumPages (std :: string databaseName, std :: string setName) {
         std :: string key = databaseName+":"+setName;

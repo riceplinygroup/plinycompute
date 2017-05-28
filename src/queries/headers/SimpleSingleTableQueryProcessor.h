@@ -20,6 +20,7 @@
 #define SINGLE_TABLE_QP_H
 
 #include <memory>
+#include "Handle.h"
 
 namespace pdb {
 
@@ -41,6 +42,8 @@ public:
 
 	// load up another output page to process
 	virtual void loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) = 0;
+
+        virtual void loadInputObject (Handle<Object> objectToProcess) {}
 
 	// attempts to fill the next output page with data.  Returns true if it can.  If it
 	// cannot, returns false, and the next call to loadInputPage should be made

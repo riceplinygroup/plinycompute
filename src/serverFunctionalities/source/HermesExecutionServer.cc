@@ -520,27 +520,33 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          PageCircularBufferIteratorPtr myIter = hashIters[i];
                          if (request->needsToMaterializeAggOut() == false) {
 
-                             PDBPagePtr outPage = nullptr;
+                             void * outBytes = nullptr;
                              while(myIter->hasNext()) {
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
-                                     PDB_COUT << "aggregation without materialization: got one page" << std :: endl;
-                                     aggregateProcessor->loadInputPage(page->getBytes());
-                                     if (aggregateProcessor->needsProcessInput() == false) {
-                                         continue;
-                                     }
-                                     if (outPage == nullptr) {
-                                         //create a new partition
-                                         std :: cout << "aggregation without materialization: add output page" << std :: endl; 
-                                         void * bytes = aggregationSet->addPage();                                          
-                                         aggregateProcessor->loadOutputPage(bytes, aggregationSet->getPageSize());
-                                     }
-                                     while (aggregateProcessor->fillNextOutputPage()) {
-                                         aggregateProcessor->clearOutputPage();
-                                         void * bytes = aggregationSet->addPage();
-                                         aggregateProcessor->loadOutputPage(bytes, aggregationSet->getPageSize());
-                                     }
-                                                               
+                                     std :: cout << "aggregation without materialization: got one non-null page" << std :: endl;
+                                     Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
+                                     Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
+                                     for (int j = 0; j < inputData->size(); j++) {
+                                         std :: cout << i << ": AggregationProcessor: got an object" << std :: endl;
+                                         aggregateProcessor->loadInputObject((*inputData)[j]);
+                                         if (aggregateProcessor->needsProcessInput() == false) {
+                                             continue;
+                                         }
+                                         if (outBytes == nullptr) {
+                                             //create a new partition
+                                             std :: cout << "aggregation without materialization: add output page" << std :: endl; 
+                                             outBytes = aggregationSet->addPage();                                          
+                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
+                                             aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
+                                         }
+                                         while (aggregateProcessor->fillNextOutputPage()) {
+                                             aggregateProcessor->clearOutputPage();
+                                             outBytes = aggregationSet->addPage();
+                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
+                                             aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
+                                         }
+                                     }                          
                                      //unpin user page
                                      aggregateProcessor->clearInputPage();
                                      page->decRefCount();
@@ -550,9 +556,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                 }
 
                              }
-                             aggregateProcessor->finalize();
-                             aggregateProcessor->fillNextOutputPage();
-                             aggregateProcessor->clearOutputPage();
+                             if (outBytes != nullptr) {
+                                 aggregateProcessor->finalize();
+                                 aggregateProcessor->fillNextOutputPage();
+                                 aggregateProcessor->clearOutputPage();
+                             }
                             
 
                          } else {
@@ -576,49 +584,49 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
                                      PDB_COUT << i << ": AggregationProcessor: got a non-null page for aggregation" << std :: endl;
-                                     aggregateProcessor->loadInputPage(page->getBytes());
-                                     if (aggregateProcessor->needsProcessInput() == false) {
-                                         PDB_COUT << i <<": AggregationProcessor: page doesn't contain my map, we unpin it" << std :: endl;
-                                         //unpin the input page 
-                                         page->decRefCount();
-                                         if (page->getRefCount() == 0) {
-                                             proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                     Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
+                                     Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
+                                     
+                                     for (int j = 0; j < inputData->size(); j++) {
+                                         PDB_COUT << i << ": AggregationProcessor: got an object" << std :: endl;
+                                         aggregateProcessor->loadInputObject((*inputData)[j]);
+                                         if (aggregateProcessor->needsProcessInput() == false) {
+                                             continue;
                                          }
-                                         continue;
-                                     }
-                                     if (aggregationPage == nullptr) {
-                                         PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
-                                         aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
-                                         aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
-                                     }
-                                     while (aggregateProcessor->fillNextOutputPage()) {
-                                         PDB_COUT << i <<": AggregationProcessor: we have filled an output page" << std :: endl;
-                                         //write to output set
-                                         //load input page
-                                         PDB_COUT << i << ": AggOutProcessor: we now have an input page" << std :: endl;
-                                         aggOutProcessor->loadInputPage(aggregationPage);
-                                         //get output page
-                                         if (output == nullptr) {
-                                             PDB_COUT << i << ": AggOutProcessor: we now pin an output page" << std :: endl;
-                                             proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                             aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                         if (aggregationPage == nullptr) {
+                                             PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
+                                             aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
+                                             aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                          }
-                                         while (aggOutProcessor->fillNextOutputPage()) {
-                                             aggOutProcessor->clearOutputPage();
-                                             PDB_COUT << i << ": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
-                                             //unpin the output page
-                                             proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                             //pin a new output page
-                                             proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                             //load output
-                                             aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                         while (aggregateProcessor->fillNextOutputPage()) {
+                                             PDB_COUT << i <<": AggregationProcessor: we have filled an output page" << std :: endl;
+                                             //write to output set
+                                             //load input page
+                                             PDB_COUT << i << ": AggOutProcessor: we now have an input page" << std :: endl;
+                                             aggOutProcessor->loadInputPage(aggregationPage);
+                                             //get output page
+                                             if (output == nullptr) {
+                                                 PDB_COUT << i << ": AggOutProcessor: we now pin an output page" << std :: endl;
+                                                 proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                                 aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                             }
+                                             while (aggOutProcessor->fillNextOutputPage()) {
+                                                 aggOutProcessor->clearOutputPage();
+                                                 PDB_COUT << i << ": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
+                                                 //unpin the output page
+                                                 proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                                 //pin a new output page
+                                                 proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                                 //load output
+                                                 aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
+                                             }
+                                             aggregateProcessor->clearOutputPage();
+                                             aggOutProcessor->clearInputPage();
+                                             free(aggregationPage);
+                                             PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
+                                             aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
+                                             aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                          }
-                                         aggregateProcessor->clearOutputPage();
-                                         aggOutProcessor->clearInputPage();
-                                         free(aggregationPage);
-                                         PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
-                                         aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
-                                         aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                      }
                                      aggregateProcessor->clearInputPage();
                                      //unpin the input page 

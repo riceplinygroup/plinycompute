@@ -690,6 +690,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
          PDB_COUT << "DistributedStorageManager received SetScan message: dbName =" << dbName << ", setName =" << setName << std :: endl;
 
          //to check whether set exists
+         /*
          std :: string fullSetName = dbName + "." + setName;
          std :: string value;
          int catalogType = PDBCatalogMsgType::CatalogPDBSet;
@@ -700,7 +701,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
              std :: cout << errMsg << std :: endl;
              return make_pair(false, errMsg);
          }
-
+         */
          //to get all nodes having data for this set
          std :: vector<std :: string> nodesToBroadcast;
 #ifndef USING_ALL_NODES
