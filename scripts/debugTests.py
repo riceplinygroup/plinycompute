@@ -84,7 +84,7 @@ except subprocess.CalledProcessError as e:
 
 else:
     print bcolors.OKBLUE + "[PASSED] distributed test " + sys.argv[1] + bcolors.ENDC
-    subprocess.call(['bash', './scripts/cleanupNode.sh'])
+    #subprocess.call(['bash', './scripts/cleanupNode.sh'])
 
 
 

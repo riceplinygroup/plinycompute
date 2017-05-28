@@ -64,7 +64,7 @@ using namespace std;
 
 
 #ifndef DEFAULT_HASH_PAGE_SIZE
-#define DEFAULT_HASH_PAGE_SIZE (128*1024*1024)
+#define DEFAULT_HASH_PAGE_SIZE (512*1024*1024)
 #endif
 
 // create a smart pointer for Configuration objects

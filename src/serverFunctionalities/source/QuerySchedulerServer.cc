@@ -81,6 +81,7 @@ QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClu
     this->dynamicPlanningOrNot = isDynamicPlanning;
     this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
     this->statsForOptimization = nullptr;
+    this->initializeStats();
 }
 
 
@@ -94,6 +95,7 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
     this->dynamicPlanningOrNot = isDynamicPlanning;
     this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
     this->statsForOptimization = nullptr;
+    this->initializeStats();
 }
 
 void QuerySchedulerServer ::cleanup() {
@@ -130,6 +132,7 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
      this->dynamicPlanningOrNot = isDynamicPlanning;
      this->earlyRemovingDataOrNot = removeIntermediateDataEarly;
      this->statsForOptimization = nullptr;
+     this->initializeStats();
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
@@ -174,6 +177,20 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
          }         
     }
 
+}
+
+//collect the statistics that will be used for optimizer
+//this needs the functionality of catalog and distributed storage manager
+void QuerySchedulerServer :: initializeStats () {
+    //TODO
+    //to iterate all sets and get size of each set
+
+    return;
+}
+
+//return statsForOptimization
+StatisticsPtr QuerySchedulerServer :: getStats () {
+    return statsForOptimization;
 }
 
 //to schedule dynamic pipeline stages

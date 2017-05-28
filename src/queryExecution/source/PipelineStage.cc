@@ -101,7 +101,7 @@ bool PipelineStage :: broadcastData (HermesExecutionServer * server, void * data
                   std :: string errMsg;
                   std :: string address = this->jobStage->getIPAddress (i);
                   int port = this->jobStage->getPort (i);
-                  std :: cout << "address=" << address << ", port=" << port << std :: endl;
+                  PDB_COUT << "address=" << address << ", port=" << port << std :: endl;
                   temp.connectToInternetServer (logger, port, address, errMsg);
                   Handle<StorageAddObject> request = makeObject <StorageAddObject> (databaseName, setName, "IntermediateData", false);
                   temp.sendObject(request, errMsg);
@@ -119,7 +119,7 @@ size_t PipelineStage :: getBackendCircularBufferSize (bool & success, std :: str
     if (conf->getShmSize()/conf->getPageSize()-2 < 2+2*numThreads+backendCircularBufferSize) {
         success = false;
         errMsg = "Error: Not enough buffer pool size to run the query!";
-        std :: cout << errMsg << std :: endl;
+        PDB_COUT << errMsg << std :: endl;
         return 0;
     }
     backendCircularBufferSize = (conf->getShmSize()/conf->getPageSize()-4-2*numThreads);
@@ -186,15 +186,15 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     //setup an output page to store intermediate results and final output
     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
 
-    std :: cout << i << ": to get compute plan" << std :: endl;
+    PDB_COUT << i << ": to get compute plan" << std :: endl;
     Handle<ComputePlan> plan = this->jobStage->getComputePlan();
     plan->nullifyPlanPointer();
-    std :: cout << i << ": to deep copy ComputePlan object" << std :: endl;
+    PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;
     Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
     std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
-    std :: cout << "Source tupleset name=" << sourceSpecifier << std :: endl;
+    PDB_COUT << "Source tupleset name=" << sourceSpecifier << std :: endl;
     std :: string producerComputationName = newPlan->getProducingComputationName(sourceSpecifier);
-    std :: cout << "Producer computation name=" << producerComputationName << std :: endl;
+    PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
     Handle<Computation> computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
 
 
@@ -225,7 +225,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
             std :: string hashSetName = (*mapIter).value;
-            std :: cout << key << ":" << hashSetName << std :: endl;
+            PDB_COUT << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet == nullptr) {
                 std :: cout << "ERROR in pipeline execution: broadcast data not found!" << std :: endl;
@@ -238,9 +238,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         }
     }
 
-    std :: cout << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std :: endl;
-    std :: cout << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std :: endl;
-    std :: cout << "target computation: " << this->jobStage->getTargetComputationSpecifier() << std :: endl;
+    PDB_COUT << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std :: endl;
+    PDB_COUT << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std :: endl;
+    PDB_COUT << "target computation: " << this->jobStage->getTargetComputationSpecifier() << std :: endl;
 
 
     std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
@@ -248,7 +248,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   Handle<Computation> aggComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
                   Handle<AbstractAggregateComp> aggregate = unsafeCast<AbstractAggregateComp, Computation> (aggComputation);
                   int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
-                  std :: cout << "num partitions in the cluster is " << numPartitionsInCluster << std :: endl;
+                  PDB_COUT << "num partitions in the cluster is " << numPartitionsInCluster << std :: endl;
                   aggregate->setNumPartitions (numPartitionsInCluster);
                   aggregate->setBatchSize (this->batchSize);
     }
@@ -281,7 +281,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       
                       PDB_COUT << "to write back a page" << std :: endl;
                       if (this->jobStage->isBroadcasting() == true) {
-                          std :: cout << "to broadcast a page" << std :: endl;
+                          PDB_COUT << "to broadcast a page" << std :: endl;
                           //to handle a broadcast join
                           //get the objects
                           Record<Object> * record = (Record<Object> *)page;
@@ -289,7 +289,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
-                              std :: cout << "Map size: " << map->size() << std :: endl;
+                              PDB_COUT << "Map size: " << map->size() << std :: endl;
                               if (objectToSend != nullptr) {
                                   broadcastData (server, page, DEFAULT_NET_PAGE_SIZE, outputSet->getDatabase(), outputSet->getSetName(), errMsg);
                               }
@@ -297,7 +297,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           free (page);
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
-                          std :: cout << "to combine a page" << std :: endl;
+                          PDB_COUT << "to combine a page" << std :: endl;
                           //to handle an aggregation
                           PDBPagePtr output;
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
@@ -432,7 +432,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
     size_t combinerPageSize = conf->getHashPageSize();
     //each queue has multiple producers and one consumer
     int combinerBufferSize = numThreads / numNodes + 1;
-    std :: cout << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
+    PDB_COUT << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
     std :: vector <PageCircularBufferPtr> combinerBuffers;
     std :: vector <PageCircularBufferIteratorPtr> combinerIters;
 
@@ -445,7 +445,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
              combinerCounter ++;
              PDB_COUT << "combinerCounter = " << combinerCounter << std :: endl;
          });
-    std :: cout << "to run combiner with " << numNodes << " threads." << std :: endl;
+    PDB_COUT << "to run combiner with " << numNodes << " threads." << std :: endl;
     int combinerCounter = 0;
 
     int i;
@@ -475,21 +475,21 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
-                  std :: cout << "address = " << address << std :: endl;
+                  PDB_COUT << "address = " << address << std :: endl;
 
                   //get the i-th port
                   int port = this->jobStage->getPort(i);
     
-                  std :: cout << "port = " << port << std :: endl;
+                  PDB_COUT << "port = " << port << std :: endl;
                   //get aggregate computation 
-                  std :: cout << i << ": to get compute plan" << std :: endl;
+                  PDB_COUT << i << ": to get compute plan" << std :: endl;
                   const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   plan->nullifyPlanPointer();
-                  std :: cout << i << ": to deep copy ComputePlan object" << std :: endl;
+                  PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;
                   Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
                   std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
-                  std :: cout << "target computation name=" << targetSpecifier << std :: endl;
+                  PDB_COUT << "target computation name=" << targetSpecifier << std :: endl;
                   Handle<Computation> computation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
                   Handle<AbstractAggregateComp> aggregate = unsafeCast<AbstractAggregateComp, Computation> (computation);
                   Handle<Vector<HashPartitionID>> partitions = this->jobStage->getNumPartitions(i);
@@ -497,7 +497,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   int numPartitionsOnTheNode = partitions->size();
                   std :: cout << "num partitions on this node:" << numPartitionsOnTheNode << std :: endl;
                   for (int m = 0; m < numPartitionsOnTheNode; m ++) {
-                      std :: cout << m << ":" << (*partitions)[m] << std :: endl;
+                      PDB_COUT << m << ":" << (*partitions)[m] << std :: endl;
                       stdPartitions.push_back((*partitions)[m]);
                   }
                   //get combiner processor
@@ -508,15 +508,17 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
 
                   PageCircularBufferIteratorPtr myIter = combinerIters[i];
-
+                  int numPages = 0;
                   while (myIter->hasNext()) {
                       PDBPagePtr page = myIter->next();
                       if (page != nullptr) {
                           //to load input page
+                          numPages++;
                           combinerProcessor->loadInputPage(page->getBytes());
                           while (combinerProcessor->fillNextOutputPage()) {
                               //send out the output page
                               Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
+
                               this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg); 
                               //free the output page
                               combinerProcessor->clearOutputPage();
@@ -538,7 +540,15 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   combinerProcessor->finalize();
                   combinerProcessor->fillNextOutputPage();
                   //send the output page
+                  PDB_COUT << "processed " << numPages << " pages" << std :: endl;
                   Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
+                  /*Record<Vector<Handle<Map<Object, Object>>>> * record1 = (Record<Vector<Handle<Map<Object, Object>>>> *)combinerPage;
+                  Handle<Vector<Handle<Map<Object, Object>>>> mapVec = record1->getRootObject();
+                  for (int l = 0; l < mapVec->size(); l++) {
+                      PDB_COUT << l << "-th map size is " <<((* mapVec)[l])->size() << std :: endl;
+                      PDB_COUT << l << "-th map partition id is " << ((* mapVec)[l])->getHashPartitionId() << std :: endl;
+                  }
+                  */
                   this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
 
                   //free the output page

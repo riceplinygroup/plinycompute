@@ -109,6 +109,13 @@ public:
 
        void cleanup () override;       
 
+       //collect the statistics that will be used for optimizer
+       //this needs the functionality of catalog and distributed storage manager
+       void initializeStats ();
+      
+       //return statsForOptimization
+       StatisticsPtr getStats ();
+
        //deprecated
        Handle<SetIdentifier>  getOutputSet() {
            return currentPlan[0]->getOutput();

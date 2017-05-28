@@ -89,6 +89,14 @@ public:
                 return this->isAggregationResultOrNot;
         }
 
+        void setNumPages (size_t numPages) {
+                this->numPages = numPages;
+        }
+
+        size_t getNumPages () {
+                return this->numPages;
+        }
+
 private:
 
 	String dataBase;
@@ -98,6 +106,7 @@ private:
         SetID setId;
         SetType setType;
         bool isAggregationResultOrNot;
+        size_t numPages;
 };
 
 }

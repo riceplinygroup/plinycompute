@@ -15,58 +15,44 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef AGGREGATION_PROCESSOR_H
-#define AGGREGATION_PROCESSOR_H
+#ifndef DOUBLE_VECTOR_RESULT_H
+#define DOUBLE_VECTOR_RESULT_H
 
-//by Jia, Mar 13 2017
+//by Jia, May 2017
 
-#include "UseTemporaryAllocationBlock.h"
-#include "InterfaceFunctions.h"
-#include "PDBMap.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "Object.h"
+#include "DoubleVector.h"
+//PRELOAD %DoubleVectorResult%
 
 namespace pdb {
 
-template <class KeyType, class ValueType>
-class AggregationProcessor : public SimpleSingleTableQueryProcessor {
+class DoubleVectorResult: public Object {
 
 public:
+     DoubleVectorResult () {}
 
-    ~AggregationProcessor () {};
-    AggregationProcessor () {};
-    AggregationProcessor (HashPartitionID id);   
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> objectToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
-    bool needsProcessInput() override;
 
-private:
+     DoubleVector doubleVector;
+     int identifier;
 
-    UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle<Map <KeyType, ValueType>>>> inputData;
-    Handle <Map <KeyType, ValueType>> outputData;
-    bool finalized;
-    Handle<Map<KeyType, ValueType>> curMap;
-    int id;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
+     ENABLE_DEEP_COPY
 
-    int count;
+     void print() {
+        this->doubleVector.print();
+     }
+
+     int &getKey() {
+         return identifier;
+     }
+
+     DoubleVector &getValue() {
+         return doubleVector;
+     }
+
 };
 
 }
 
-
-#include "AggregationProcessor.cc"
 
 
 #endif

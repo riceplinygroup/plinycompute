@@ -15,58 +15,32 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef AGGREGATION_PROCESSOR_H
-#define AGGREGATION_PROCESSOR_H
+#ifndef DISTRIBUTEDSTORAGE_COLLECTSTATS_H
+#define DISTRIBUTEDSTORAGE_COLLECTSTATS_H
 
-//by Jia, Mar 13 2017
-
-#include "UseTemporaryAllocationBlock.h"
-#include "InterfaceFunctions.h"
-#include "PDBMap.h"
-#include "PDBVector.h"
+#include "Object.h"
 #include "Handle.h"
-#include "SimpleSingleTableQueryProcessor.h"
+#include "PDBString.h"
+
+// PRELOAD %DistributedStorageCollectStats%
 
 namespace pdb {
 
-template <class KeyType, class ValueType>
-class AggregationProcessor : public SimpleSingleTableQueryProcessor {
+// encapsulates a request to add a set in storage
+    class DistributedStorageCollectStats  : public Object {
 
-public:
+    public:
 
-    ~AggregationProcessor () {};
-    AggregationProcessor () {};
-    AggregationProcessor (HashPartitionID id);   
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> objectToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
-    bool needsProcessInput() override;
+        DistributedStorageCollectStats () {}
+        ~DistributedStorageCollectStats () {}
 
-private:
 
-    UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle<Map <KeyType, ValueType>>>> inputData;
-    Handle <Map <KeyType, ValueType>> outputData;
-    bool finalized;
-    Handle<Map<KeyType, ValueType>> curMap;
-    int id;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
+        ENABLE_DEEP_COPY
 
-    int count;
-};
+
+    };
 
 }
 
 
-#include "AggregationProcessor.cc"
-
-
-#endif
+#endif //DISTRIBUTEDSTORAGECOLLECTSTATS_H

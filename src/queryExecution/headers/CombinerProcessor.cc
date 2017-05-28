@@ -32,7 +32,7 @@ CombinerProcessor <KeyType, ValueType> :: CombinerProcessor (std :: vector <Hash
 
     int i;
     for (i = 0; i < partitions.size(); i ++) {
-        std :: cout << i << ":" << partitions[i] << std :: endl;
+        PDB_COUT << i << ":" << partitions[i] << std :: endl;
         nodePartitionIds.push_back(partitions[i]);
     }
     count = 0;
@@ -50,7 +50,7 @@ void CombinerProcessor <KeyType, ValueType> :: initialize () {
 //loads up another input page to process
 template <class KeyType, class ValueType>
 void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProcess) {
-    std :: cout << "CombinerProcessor: to load a new input page" << std :: endl;
+    PDB_COUT << "CombinerProcessor: to load a new input page" << std :: endl;
     Record <Vector<Handle<Map<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<Map<KeyType, ValueType>>>> *) pageToProcess;
     inputData = myRec->getRootObject();
     curPartPos = 0;
@@ -63,7 +63,7 @@ void CombinerProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProce
     if (end != nullptr) {
         delete end;
     }
-    std :: cout << "CombinerProcessor: loaded a page with first partition id=" << curPartId << " and size=" << curMap->size() << std :: endl;
+    PDB_COUT << "CombinerProcessor: loaded a page with first partition id=" << curPartId << " and size=" << curMap->size() << std :: endl;
     begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
     end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
 }
@@ -96,8 +96,10 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
     // if we are finalized, see if there are some left over records
     if (finalized) {
         for (int i = 0; i < numNodePartitions; i++) {
-            std :: cout << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
+            PDB_COUT << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
+            PDB_COUT << "count=" << count << std :: endl;
         }
+        
         getRecord (outputData);
         return false;
     }
@@ -111,13 +113,12 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
             if (!((*begin) != (*end))) {
                 PDB_COUT << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
                 if (curPartPos < numNodePartitions-1) {
-                    count = 0;
                     curPartPos ++;
-                    std :: cout << "curPartPos=" << curPartPos << std :: endl;
+                    PDB_COUT << "curPartPos=" << curPartPos << std :: endl;
                     curPartId = nodePartitionIds[curPartPos];
-                    std :: cout << "curPartId=" << curPartId << std :: endl;
+                    PDB_COUT << "curPartId=" << curPartId << std :: endl;
                     curMap = (*inputData)[curPartId];
-                    std :: cout << "(*inputData)[" << curPartId << "].size()=" << curMap->size() << std :: endl;
+                    PDB_COUT << "(*inputData)[" << curPartId << "].size()=" << curMap->size() << std :: endl;
                     if (curMap->size() > 0) {
                         begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
                         end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
@@ -125,7 +126,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                         if ((*begin) != (*end)) {
                             curOutputMap = (*outputData)[curPartPos];
                         } else {
-                            std :: cout << "this is strage: map size > 0 but begin == end" << std :: endl;
+                            PDB_COUT << "this is strage: map size > 0 but begin == end" << std :: endl;
                             continue;
                         }
                     }
@@ -180,7 +181,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
     } catch (NotEnoughSpace &n) {
         for (int i = 0; i < numNodePartitions; i++) {
-            std :: cout << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
+            PDB_COUT << "outputData[" <<i << "].size()="<< (*outputData)[i]->size() << std :: endl;
         }
         getRecord (outputData);
         return true;
