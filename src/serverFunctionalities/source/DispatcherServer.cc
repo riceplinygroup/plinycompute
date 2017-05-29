@@ -26,7 +26,8 @@
 #include "SimpleRequestResult.h"
 #include "DispatcherAddData.h"
 #include "BuiltInObjectTypeIDs.h"
-
+#include "QuerySchedulerServer.h"
+#include "Statistics.h"
 #include "PartitionPolicyFactory.h"
 #include "DispatcherRegisterPartitionPolicy.h"
 
@@ -77,11 +78,22 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
 
+                //update stats
+                StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+                if (stats == nullptr) {
+                    getFunctionality<QuerySchedulerServer>().collectStats();
+                    stats = getFunctionality<QuerySchedulerServer>().getStats();
+                }
+                size_t oldNumBytes = stats->getNumBytes(request->getDatabaseName(), request->getSetName());
+                size_t newNumBytes = oldNumBytes + numBytes;
+                stats->setNumBytes (request->getDatabaseName(), request->getSetName(), newNumBytes);
+
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
 
                 return make_pair(res, errMsg);
     }));
+
     forMe.registerHandler(DispatcherRegisterPartitionPolicy_TYPEID, make_shared<SimpleRequestHandler<DispatcherRegisterPartitionPolicy>> (
             [&] (Handle <DispatcherRegisterPartitionPolicy> request, PDBCommunicatorPtr sendUsingMe) {
 

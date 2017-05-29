@@ -134,6 +134,9 @@ public:
            return this->jobId;
        }
 
+       void collectStats ();
+       void updateStats (Handle<SetIdentifier> setToUpdateStats);
+
 protected:
 
        //current resources (deprecated, and we should use standardResources in our code)

@@ -104,8 +104,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         //TODO: move data from other servers
                         //temporarily, we simply return;
                         // now, we send back the result
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getHashSetName());
+                        Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
+                        result->setNumPages (0);
+                        result->setPageSize (0);
                         PDB_COUT << "Query is done without data. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -162,9 +163,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                    //forward result
                    //now, we send back the result
-                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
+                   result->setNumPages (inputSet->getNumPages());
+                   result->setPageSize (getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                    if (success == true) {
-                       result->push_back (request->getHashSetName());
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
                    } else {
@@ -217,8 +219,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         //TODO: move data from other servers
                         //temporarily, we simply return;
                         // now, we send back the result
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getSinkContext()->getSetName());
+                        Handle<SetIdentifier> result = makeObject <SetIdentifier> (request->getSinkContext()->getDatabase(), request->getSinkContext()->getSetName());
+                        result->setNumPages(0);
+                        result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                         PDB_COUT << "Query is done without data. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -262,8 +265,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         sinkContext->setSetId(outputSet->getSetID());
                         newRequest->setSinkContext(sinkContext);
                     } else {
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getSinkContext()->getSetName());
+                        Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
+                        result->setNumPages(0);
+                        result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                         PDB_COUT << "Query failed: not able to create output set. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -301,9 +305,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                     //forward result
                    // now, we send back the result
-                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
+                   result->setNumPages(inputSet->getNumPages());
+                   result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                    if (success == true) {
-                       result->push_back (request->getSinkContext()->getSetName());
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
                    } else {
@@ -352,8 +357,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              //TODO: move data from other servers
                              //temporarily, we simply return;
                              // now, we send back the result
-                             Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                             result->push_back (request->getSinkContext()->getSetName());
+                             Handle <SetIdentifier> result = makeObject <SetIdentifier> (request->getSinkContext()->getDatabase(), request->getSinkContext()->getSetName());
+                             result->setNumPages(0);
+                             result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                              PDB_COUT << "Stage is done without data. " << std :: endl;
                              // return the results
                              if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -397,8 +403,9 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         newRequest->setOutputTypeName (request->getOutputTypeName());
 
                     } else {
-                        Handle <Vector <String>> result = makeObject <Vector <String>> ();
-                        result->push_back (request->getSinkContext()->getSetName());
+                        Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
+                        result->setNumPages(0);
+                        result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                         PDB_COUT << "Stage failed: not able to create output set. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -472,9 +479,10 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
 
                    // now, we send back the result
-                   Handle <Vector <String>> result = makeObject <Vector <String>> ();
+                   Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
+                   result->setNumPages(outputSet->getNumPages());
+                   result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
                    if (success == true) {
-                       result->push_back (request->getSinkContext()->getSetName());
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
                    } else {

@@ -37,7 +37,8 @@
 #include "DistributedStorageExportSet.h"
 #include "DistributedStorageClearSet.h"
 #include "DistributedStorageCleanup.h"
-
+#include "QuerySchedulerServer.h"
+#include "Statistics.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
 #include "StorageRemoveDatabase.h"
@@ -193,15 +194,15 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     getFunctionality<DistributedStorageManagerServer>().broadcast<StorageClearSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
                     res = true; 
-                } else {
+               } else {
                     PDB_COUT << "Set " << fullSetName << " does not exist" << std::endl;
                     res = false;
                     errMsg= std :: string("Set to clear with name=") + fullSetName + std :: string( " doesn't exist");
-                }
-                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
-                res = sendUsingMe->sendObject (response, errMsg);
-                return make_pair (res, errMsg);
-            }
+              }
+              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+              res = sendUsingMe->sendObject (response, errMsg);
+              return make_pair (res, errMsg);
+          }
     ));
 
 
@@ -243,7 +244,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                auto storageAddSetEnd = std :: chrono :: high_resolution_clock :: now();
                PDB_COUT << "Time Duration for adding temp set:\t " <<
                    std::chrono::duration_cast<std::chrono::duration<float>>(storageAddSetEnd - begin).count() << " secs." << std::endl;
-              
+                
                bool res = true;
                if (failureNodes.size() > 0) {
                    res = false;
@@ -251,7 +252,16 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                    for (int i = 0; i < failureNodes.size(); i ++ ) {
                        errMsg += failureNodes[i] + std :: string(";");
                    }
-               } 
+               }     
+               //update stats
+               StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+               if (stats == nullptr) {
+                   getFunctionality<QuerySchedulerServer>().collectStats();
+                   stats = getFunctionality<QuerySchedulerServer>().getStats();
+               }
+               stats->setNumPages(request->getDatabase(), request->getSetName(), 0);
+               stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
+                
                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                res = sendUsingMe->sendObject (response, errMsg);
                return make_pair (res, errMsg);
@@ -342,6 +352,16 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     }
                 }
 
+               bool res = true;
+               //update stats
+               StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+               if (stats == nullptr) {
+                    getFunctionality<QuerySchedulerServer>().collectStats();
+                    stats = getFunctionality<QuerySchedulerServer>().getStats();
+               }
+               stats->setNumPages(request->getDatabase(), request->getSetName(), 0);
+               stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
+
                auto catalogAddSetEnd = std :: chrono :: high_resolution_clock :: now();
 
                PDB_COUT << "Time Duration for catalog create set Metadata:\t " <<
@@ -354,7 +374,6 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                    std::chrono::duration_cast<std::chrono::duration<float>>(catalogAddSetEnd - storageAddSetEnd).count() << " secs." << std::endl;
                PDB_COUT << std::endl;
 
-                bool res = true;
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
                 return make_pair (res, errMsg);
@@ -472,7 +491,15 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     for (int i = 0; i < failureNodes.size(); i ++ ) {
                         errMsg += failureNodes[i] + std :: string(";");
                     }
-                } 
+                }
+                //update stats
+                StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+                if (stats == nullptr) {
+                    getFunctionality<QuerySchedulerServer>().collectStats();
+                    stats = getFunctionality<QuerySchedulerServer>().getStats();
+                }
+                stats->removeSet(request->getDatabase(), request->getSetName());
+
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
                 return make_pair (res, errMsg);
@@ -549,6 +576,14 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 }
 
                 auto storageRemoveSetEnd = std :: chrono :: high_resolution_clock :: now();
+
+                //update stats
+                StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+                if (stats == nullptr) {
+                    getFunctionality<QuerySchedulerServer>().collectStats();
+                    stats = getFunctionality<QuerySchedulerServer>().getStats();
+                }
+                stats->removeSet(request->getDatabase(), request->getSetName());
 
                 if (failureNodes.size() == 0) {
                     // If all the nodes succeeded in removing the set then we can simply delete the set from the

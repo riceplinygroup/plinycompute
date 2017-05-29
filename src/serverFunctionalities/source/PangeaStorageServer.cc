@@ -47,6 +47,8 @@
 #include "StorageExportSet.h"
 #include "StorageRemoveUserSet.h"
 #include "StorageCleanup.h"
+#include "StorageCollectStats.h"
+#include "StorageCollectStatsResponse.h"
 #include "PDBScanWork.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "SimpleRequestHandler.h"
@@ -741,7 +743,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 */
 
 
-
        // this handler requests to remove a temp set
        forMe.registerHandler (StorageRemoveTempSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveTempSet>> (
                [&] (Handle <StorageRemoveTempSet> request, PDBCommunicatorPtr sendUsingMe) {
@@ -994,6 +995,33 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          return make_pair (res, errMsg);
                }
        ));
+
+        //this handler collect statistics in this storage
+        forMe.registerHandler (StorageCollectStats_TYPEID, make_shared <SimpleRequestHandler <StorageCollectStats>> (
+               [&] (Handle<StorageCollectStats> request, PDBCommunicatorPtr sendUsingMe) {
+                  const UseTemporaryAllocationBlock myBlock{4 * 1024 * 1024};
+                  std :: string errMsg;
+                  Handle<StorageCollectStatsResponse> response = makeObject<StorageCollectStatsResponse>();
+                  Handle<Vector<Handle<SetIdentifier>>> stats = makeObject<Vector<Handle<SetIdentifier>>> ();
+                  //iterate sets
+                  for (std :: map <std :: pair <DatabaseID, SetID>, SetPtr>::iterator it = this->userSets->begin(); it != this->userSets->end(); ++ it) {
+                      std :: pair<DatabaseID, SetID> idPair = it->first;
+                      SetPtr set = it->second;
+                      std :: string setName = set->getSetName();
+                      int numPages = set->getNumPages();
+                      DatabaseID dbId = idPair.first;
+                      DefaultDatabasePtr db = this->getDatabase(dbId);
+                      std :: string dbName = db->getDatabaseName();
+                      Handle<SetIdentifier> setIdentifier = makeObject<SetIdentifier> (dbName, setName);
+                      setIdentifier->setNumPages(numPages);
+                      setIdentifier->setPageSize(this->conf->getPageSize());
+                      stats->push_back(setIdentifier);
+                  }
+                  response->setStats(stats);
+                  bool res = sendUsingMe->sendObject<StorageCollectStatsResponse>(response, errMsg);
+                  return make_pair (res, errMsg);
+               }
+         ));
 
         // this handler accepts a request to pin a page
         forMe.registerHandler (StoragePinPage_TYPEID, make_shared <SimpleRequestHandler <StoragePinPage>> (

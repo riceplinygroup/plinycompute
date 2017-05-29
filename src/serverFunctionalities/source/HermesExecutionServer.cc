@@ -306,7 +306,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              //create a SharedHashSet instance 
              std :: cout << "pageSize = " << conf->getPageSize() << ", numPages = " << request->getNumPages() << std :: endl;
-             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages());
+             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*1.5;
              std :: cout << "BroadcastJoinBuildHTJobStage: hashSetSize=" << hashSetSize << std :: endl;
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              if (sharedHashSet == nullptr) {

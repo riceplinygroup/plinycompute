@@ -38,6 +38,7 @@ struct DataStatistics {
     std :: string setName;
     int numPages = 0;
     size_t pageSize = 0;
+    size_t numBytes = 0;
     int numTuples = 0;
     size_t avgTupleSize = 0;
 
@@ -74,7 +75,7 @@ public:
     int getNumPages (std :: string databaseName, std :: string setName) {
         std :: string key = databaseName+":"+setName;
         if (dataStatistics.count(key) == 0) {
-            return -1;
+            return 0;
         } else {
             return dataStatistics[key].numPages;
         }
@@ -101,6 +102,23 @@ public:
         std :: string key = databaseName + ":" + setName;
         dataStatistics[key].pageSize = pageSize;
     }
+
+    //to return numBytes of a set
+    size_t getNumBytes (std :: string databaseName, std :: string setName) {
+        std :: string key = databaseName+":"+setName;
+        if (dataStatistics.count(key) == 0) {
+            return 0;
+        } else {
+            return dataStatistics[key].numBytes;
+        }
+    }
+
+    //to set numBytes of a set
+    void setNumBytes (std :: string databaseName, std :: string setName, size_t numBytes) {
+        std :: string key = databaseName + ":" + setName;
+        dataStatistics[key].numBytes = numBytes;
+    }
+
 
     //to return number of tuples of a set
     int getNumTuples (std :: string databaseName, std :: string setName) {
@@ -162,6 +180,9 @@ public:
     void setLambdaSelectivity (std :: string lambdaType, double selectivity) {
         lambdaSelectivity[lambdaType] = selectivity;
     }
+
+   
+
 
 };
 
