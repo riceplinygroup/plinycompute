@@ -514,6 +514,7 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
               bestIndexToReturn = i;
           }
        }
+       std :: cout << "The Best Source is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
        return bestIndexToReturn;
     }
 }
@@ -521,8 +522,12 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
 //to return the cost of the i-th source
 double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     //TODO: to get the cost of source specified by the index
-    
-    return 0;
+    std :: string key = curSourceSetNames[index];
+    Handle<SetIdentifier> curSet = this->getSourceSetIdentifier(key);
+    double cost =  stats->getNumBytes(curSet->getDatabase(), curSet->getSetName()); 
+    cost = double ((int)cost/1000000);
+    std :: cout << "key=" << key << ", cost=" << cost << std :: endl;
+    return cost;
 }
 
 

@@ -97,7 +97,16 @@ public:
                 return this->numPages;
         }
 
+        void setPageSize (size_t pageSize) {
+               this->pageSize = pageSize;
+        }
+
+        size_t getPageSize () {
+               return this->pageSize;
+        }
+
 private:
+
 
 	String dataBase;
 	String setName;
@@ -107,6 +116,7 @@ private:
         SetType setType;
         bool isAggregationResultOrNot;
         size_t numPages;
+        size_t pageSize;
 };
 
 }

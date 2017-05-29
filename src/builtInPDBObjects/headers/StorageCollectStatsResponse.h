@@ -40,7 +40,11 @@ public:
         Handle<Vector<Handle<SetIdentifier>>> & getStats() {
             return stats;
         }
-
+        
+        void setStats(Handle<Vector<Handle<SetIdentifier>>> stats) {
+            this->stats = makeObject<Vector<Handle<SetIdentifier>>>();
+            this->stats = stats;
+        }
 
 	ENABLE_DEEP_COPY
 

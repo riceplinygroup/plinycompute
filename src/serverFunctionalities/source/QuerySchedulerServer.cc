@@ -55,6 +55,8 @@
 #include "QueryGraphAnalyzer.h"
 #include "TCAPAnalyzer.h"
 #include "Configuration.h"
+#include "StorageCollectStats.h"
+#include "StorageCollectStatsResponse.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -101,6 +103,7 @@ QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool
 void QuerySchedulerServer ::cleanup() {
 
     delete this->standardResources;
+    this->standardResources = nullptr;
 
     for (int i = 0; i < currentPlan.size(); i++) {
              currentPlan[i]=nullptr;
@@ -136,7 +139,9 @@ QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, i
 }
 
 void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
-
+     if (this->standardResources != nullptr) {
+         delete this->standardResources;
+     }
      this->standardResources = new std :: vector<StandardResourceInfoPtr>();
      if (pseudoClusterMode == false)  {
          UseTemporaryAllocationBlock(2 * 1024 * 1024);
@@ -182,9 +187,9 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
 //collect the statistics that will be used for optimizer
 //this needs the functionality of catalog and distributed storage manager
 void QuerySchedulerServer :: initializeStats () {
-    //TODO
-    //to iterate all sets and get size of each set
-
+    //TODO: to load stats from file
+    this->statsForOptimization = nullptr;
+    this->standardResources = nullptr;
     return;
 }
 
@@ -360,11 +365,10 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& 
              return false;
         }
         PDB_COUT << "to receive query response from the "<< index << "-th remote node" << std :: endl;
-        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
         if (result != nullptr) {
-            for (int j = 0; j < result->size(); j++) {
-                PDB_COUT << "TupleSetJobStage execute: wrote set:" << (*result)[j] << std :: endl;
-            }
+             this->updateStats(result);
+             PDB_COUT << "TupleSetJobStage execute: wrote set:" << result->getDatabase() << ":" << result->getSetName() << std :: endl;
         }
         else {
             PDB_COUT << "TupleSetJobStage execute failure: can't get results" << std :: endl;
@@ -398,11 +402,10 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<BroadcastJoinBuildH
              return false;
         }
         PDB_COUT << "to receive query response from the "<< index << "-th remote node" << std :: endl;
-        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
         if (result != nullptr) {
-            for (int j = 0; j < result->size(); j++) {
-                PDB_COUT << "BroadcastJoinBuildHTJobStage execute: wrote set:" << (*result)[j] << std :: endl;
-            }
+             this->updateStats(result);
+             PDB_COUT << "BroadcastJoinBuildHTJobStage execute: wrote set:" << result->getDatabase() << ":" << result->getSetName()  << std :: endl;
         }
         else {
             PDB_COUT << "BroadcastJoinBuildHTJobStage execute failure: can't get results" << std :: endl;
@@ -435,11 +438,10 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<AggregationJobStage
              return false;
         }
         PDB_COUT << "to receive query response from the "<< index <<"-th remote node" << std :: endl;
-        Handle<Vector<String>> result = communicator->getNextObject<Vector<String>>(success, errMsg);
+        Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
         if (result != nullptr) {
-            for (int j = 0; j < result->size(); j++) {
-                PDB_COUT << "AggregationJobStage execute: wrote set:" << (*result)[j] << std :: endl;
-            }
+             this->updateStats(result);
+             PDB_COUT << "AggregationJobStage execute: wrote set:" << result->getDatabase() << ":" << result->getSetName() << std :: endl;
         }
         else {
             PDB_COUT << "AggregationJobStage execute failure: can't get results" << std :: endl;
@@ -750,7 +752,107 @@ void QuerySchedulerServer :: schedule() {
 
 }
 
+void QuerySchedulerServer :: collectStats () {
+         std :: cout << "to collect stats" << std :: endl;
+         this->statsForOptimization = make_shared<Statistics>();
+         int counter = 0;
+         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
+             [&] (PDBAlarm myAlarm, int &counter) {
+              counter ++;
+              PDB_COUT << "counter = " << counter << std :: endl;
+         });
+         if (this->standardResources == nullptr) {
+             initialize(true);
+         }
+         for (int i = 0; i < this->standardResources->size(); i++) {
+                 PDBWorkerPtr myWorker = getWorker();
+                 PDBWorkPtr myWork = make_shared <GenericWork> (
+                     [&, i] (PDBBuzzerPtr callerBuzzer) {
+                          const UseTemporaryAllocationBlock block(4 * 1024 * 1024);
 
+                          PDB_COUT << "to collect stats on the " << i << "-th node" << std :: endl;
+                          int port = (*(this->standardResources))[i]->getPort();
+                          PDB_COUT << "port:" << port << std :: endl;
+                          std :: string ip = (*(this->standardResources))[i]->getAddress();
+                          PDB_COUT << "ip:" << ip  << std :: endl;
+
+                          //create PDBCommunicator
+                          pthread_mutex_lock(&connection_mutex);
+                          PDB_COUT << "to connect to the remote node" << std :: endl;
+                          PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+
+                          string errMsg;
+                          bool success;
+                          if(communicator->connectToInternetServer(logger, port, ip, errMsg)) {
+                              success = false;
+                              std :: cout << errMsg << std :: endl;
+                              pthread_mutex_unlock(&connection_mutex);
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                          }
+                          pthread_mutex_unlock(&connection_mutex);
+
+                          //send StorageCollectStats to remote server 
+                          Handle<StorageCollectStats> collectStatsMsg = makeObject<StorageCollectStats> ();
+                          success = communicator->sendObject<StorageCollectStats>(collectStatsMsg, errMsg);
+                          if (!success) {
+                              std :: cout << errMsg << std :: endl;
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                          }
+                          //receive StorageCollectStatsResponse from remote server
+                          PDB_COUT << "to receive response from the "<< i << "-th remote node" << std :: endl;
+                          Handle<StorageCollectStatsResponse> result = communicator->getNextObject<StorageCollectStatsResponse>(success, errMsg);
+                          if (result != nullptr) {
+                              //update stats
+                              Handle<Vector<Handle<SetIdentifier>>> stats = result->getStats();
+                              if (statsForOptimization == nullptr) {
+                                   statsForOptimization = make_shared<Statistics>();
+                              }
+                              for (int j = 0; j < stats->size(); j++) {
+                                   Handle<SetIdentifier> setToUpdateStats = (*stats)[j];
+                                   this->updateStats (setToUpdateStats);
+                              }
+
+                          }   
+                          else {
+                               errMsg = "Collect response execute failure: can't get results";
+                               std :: cout << errMsg << std :: endl;
+                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                               return;
+                          }   
+
+                          if (success == false) {
+                              errMsg = std :: string ("Can't collect stats from node with id=") + std :: to_string(i) + std :: string (" and ip=") + ip;
+                              std :: cout << errMsg << std :: endl;
+                              callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
+                              return;
+                          }
+                          callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                     }
+                 );
+                 myWorker->execute(myWork, tempBuzzer);
+         }
+         while(counter < this->standardResources->size()) {
+                tempBuzzer->wait();
+         }
+         counter = 0;
+}
+
+void QuerySchedulerServer :: updateStats (Handle<SetIdentifier> setToUpdateStats) {
+
+        std :: string databaseName = setToUpdateStats->getDatabase();
+        std :: string setName = setToUpdateStats->getSetName();
+        size_t numPages = setToUpdateStats->getNumPages();
+        size_t numOldPages = statsForOptimization->getNumPages(databaseName, setName);
+        statsForOptimization->setNumPages(databaseName, setName, numPages+numOldPages);
+        size_t pageSize = setToUpdateStats->getPageSize();
+        statsForOptimization->setPageSize(databaseName, setName, pageSize);
+        size_t numBytes = numPages*pageSize;
+        size_t numOldBytes = statsForOptimization->getNumBytes(databaseName, setName);
+        statsForOptimization->setNumBytes(databaseName, setName, numBytes+numOldBytes);
+
+}
 
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
@@ -812,6 +914,11 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 PDB_COUT << "To get the resource object from the resource manager" << std :: endl;
                 getFunctionality<QuerySchedulerServer>().initialize(true);
                 this->shuffleInfo = std :: make_shared <ShuffleInfo> (this->standardResources, this->partitionToCoreRatio);
+
+                if(this->statsForOptimization == nullptr) {
+                    this->collectStats();
+                }
+
                 
                 //dyanmic planning
                 //initialize tcapAnalyzer

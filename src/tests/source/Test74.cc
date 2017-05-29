@@ -259,7 +259,9 @@ int main (int argc, char * argv[]) {
             for (auto a : result)
             {
                      count ++;
-                     std :: cout << count << ":" << *a << ";";
+                     if (count % 10000 == 0) {
+                         std :: cout << count << ":" << *a << ";";
+                     }
             }
             std :: cout << "output count:" << count << "\n";
             if (count == 0) {

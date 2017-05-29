@@ -381,17 +381,21 @@ public:
                 Handle <JoinMap <RHSType>> mapToMerge = unsafeCast <JoinMap <RHSType>> (mergeMe);
                 JoinMap <RHSType> &theOtherMap = *mapToMerge;
                 std :: cout << "The map to merge size: " << theOtherMap.size() << std :: endl;
-
+                
                 for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
                     JoinRecordList<RHSType> * myList = *iter;
                     size_t mySize = myList->size();
                     size_t myHash = myList->getHash();
                     if (mySize > 0) {
                         for (size_t i = 0; i < mySize; i++) {
-                        
-                            RHSType * temp = &(myMap.push(myHash));
-                            packData (*temp, ((*myList)[i]));
-
+                            try {        
+                                RHSType * temp = &(myMap.push(myHash));
+                                packData (*temp, ((*myList)[i]));
+                            } catch (NotEnoughSpace &n) {
+                                std :: cout << "ERROR: broadcast data is too large to be built in one map, results are truncated!" << std :: endl;
+                                delete (myList);
+                                return;
+                            }
                         }
                     }
                     delete (myList);
