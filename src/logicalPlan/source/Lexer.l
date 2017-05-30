@@ -74,6 +74,8 @@
 
 [Hh][Aa][Ss][Hh][Oo][Nn][Ee]    return HASHONE;
 
+[Ff][Ll][Aa][Tt][Tt][Ee][Nn]    return FLATTEN;
+
 [Ss][Cc][Aa][Nn]		return SCAN;
 
 [Aa][Gg][Gg][Rr][Ee][Gg][Aa][Tt][Ee]	return AGG;

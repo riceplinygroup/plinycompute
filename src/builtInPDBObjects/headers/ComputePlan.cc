@@ -22,6 +22,7 @@
 #include "ComputePlan.h"
 #include "FilterExecutor.h"
 #include "HashOneExecutor.h"
+#include "FlattenExecutor.h"
 #include "AtomicComputationClasses.h"
 #include "EqualsLambda.h"
 #include "JoinCompBase.h"
@@ -390,7 +391,16 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                                         a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                         }
+                } else if (a->getAtomicComputationType() == "Flatten") {
+                        std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        if (params.count(a->getOutput ().getSetName ()) == 0)    {
+                            returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
+                        } else {
 
+                            returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (),
+                                        a->getProjection (), params[a->getOutput ().getSetName ()]));
+
+                        }
 
                 } else if (a->getAtomicComputationType () == "JoinSets") {
                         std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
@@ -621,8 +631,17 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                                         a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                         }
+                 
+                } else if (a->getAtomicComputationType () == "Flatten") {
+                        std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        if (params.count(a->getOutput ().getSetName ()) == 0)    {
+                            returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
+                        } else {
 
+                            returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (),
+                                        a->getProjection (), params[a->getOutput ().getSetName ()]));
 
+                        }
                 } else if (a->getAtomicComputationType () == "JoinSets") { 
                         std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
 

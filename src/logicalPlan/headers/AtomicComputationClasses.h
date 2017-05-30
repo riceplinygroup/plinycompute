@@ -203,6 +203,43 @@ public:
 };
 
 
+// this is a computation that flatten each tuple of a tuple set
+struct Flatten : public AtomicComputation {
+
+
+public:
+
+        ~Flatten () {}
+
+        Flatten (TupleSpec &input, TupleSpec &output, TupleSpec &projection, std :: string nodeName) :
+                AtomicComputation (input, output, projection, nodeName) {}
+
+        std :: string getAtomicComputationType () override {
+                return std :: string ("Flatten");
+        }
+
+
+        std :: pair <std :: string, std :: string> findSource (std :: string attName, AtomicComputationList &allComps) override {
+
+                // The output from the hash should be
+                //
+                // (projection atts) (hash value)
+                //
+
+                // find where the attribute appears in the outputs
+                int counter = findPosInOutputAtts (attName);
+
+                // otherwise, find our parent
+                return allComps.getProducingAtomicComputation (getProjection ().getSetName ())->findSource
+                        ((getProjection ().getAtts ())[counter], allComps);
+        }
+
+        friend std :: ostream& operator<<(std :: ostream& os, const AtomicComputationList& printMe);
+};
+
+
+
+
 
 // this is a computation that performs a filer over a tuple set
 struct ApplyFilter : public AtomicComputation {
