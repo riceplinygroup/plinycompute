@@ -61,7 +61,7 @@ struct AtomicComputation *makeJoin (struct TupleSpec *output, struct TupleSpec *
 struct AtomicComputation *makeHashRight (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
 struct AtomicComputation *makeHashLeft (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName, char *opName);
 struct AtomicComputation *makeHashOne (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName);
-
+struct AtomicComputation *makeFlatten (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName);
 #ifdef __cplusplus
 }
 #endif

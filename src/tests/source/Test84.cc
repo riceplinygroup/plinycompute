@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_74_H
-#define TEST_74_H
+#ifndef TEST_84_H
+#define TEST_84_H
 
 //by Jia, May 2017
 
@@ -30,19 +30,15 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
-#include "FinalSelection.h"
-#include "AggregateComp.h"
 #include "ScanSupervisorSet.h"
-#include "SillyAggregation.h"
-#include "DepartmentTotal.h"
+#include "WriteBuiltinEmployeeSet.h"
+#include "SupervisorMultiSelection.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
-#include "WriteDoubleSet.h"
 #include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
@@ -54,7 +50,6 @@
 // to run the aggregate, the system first passes each through the hash operation...
 // then the system 
 using namespace pdb;
-
 
 int main (int argc, char * argv[]) {
 
@@ -117,7 +112,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test74_db", errMsg)) {
+            if (!temp.createDatabase ("test84_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -125,7 +120,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("test74_db", "test74_set", errMsg)) {
+            if (!temp.createSet<Supervisor> ("test84_db", "test84_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -193,7 +188,7 @@ int main (int argc, char * argv[]) {
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test74_set", "test74_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test84_set", "test84_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -209,7 +204,7 @@ int main (int argc, char * argv[]) {
         }
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<double> ("test74_db", "output_set1", errMsg)) {
+        if (!temp.createSet<Employee> ("test84_db", "output_set1", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -221,24 +216,21 @@ int main (int argc, char * argv[]) {
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libSillySelection.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
-        catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
-        catalogClient.registerType ("libraries/libFinalSelection.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteDoubleSet.so", errMsg);
+        catalogClient.registerType ("libraries/libSupervisorMultiSelection.so", errMsg);
+         
+	
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test74_db", "test74_set");
-	Handle <Computation> myFilter = makeObject <SillySelection> ();
-        myFilter->setInput(myScanSet);
-	Handle <Computation> myAgg = makeObject <SillyAggregation> ();
-	myAgg->setInput(myFilter);
-        Handle <Computation> mySelection = makeObject <FinalSelection> ();
-        mySelection->setInput(myAgg);
-        Handle <Computation> myWriter = makeObject<WriteDoubleSet>("test74_db", "output_set1");
-        myWriter->setInput(mySelection);
+	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test84_db", "test84_set");
+	Handle <Computation> myFlatten = makeObject <SupervisorMultiSelection> ();
+        myFlatten->setInput(myScanSet);
+	Handle <Computation> myWriteSet = makeObject <WriteBuiltinEmployeeSet> ("test84_db", "output_set1");
+	myWriteSet->setInput(myFlatten);
+
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
-        if (!myClient.executeComputations(errMsg, myWriter)) {
+        if (!myClient.executeComputations(errMsg, myWriteSet)) {
             std :: cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -252,31 +244,26 @@ int main (int argc, char * argv[]) {
         // print the resuts
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <double> result = myClient.getSetIterator <double> ("test74_db", "output_set1");
+            SetIterator <Employee> result = myClient.getSetIterator <Employee> ("test84_db", "output_set1");
 
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)
             {
                      count ++;
-                     if (count % 100 == 0) {
-                         std :: cout << count << ":" << *a << ";";
+                     if (count % 10000 == 0) {
+                        std :: cout << count << ":";
+                        a->print();
                      }
             }
-            std :: cout << "output count:" << count << "\n";
-            if (count == 0) {
-                exit( 2 );
-            }
-
+            std :: cout << "multi-selection output count:" << count << "\n";
         }
-
-         
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test74_db", "output_set1");
+            myClient.deleteSet ("test84_db", "output_set1");
         } else {
-            if (!temp.removeSet ("test74_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test84_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {

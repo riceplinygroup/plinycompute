@@ -152,6 +152,17 @@ struct AtomicComputation *makeHashOne (struct TupleSpec *output, struct TupleSpe
         return returnVal.get ();
 }
 
+struct AtomicComputation *makeFlatten (struct TupleSpec *output, struct TupleSpec *input, struct TupleSpec *projection, char *nodeName) {
+        AtomicComputationPtr returnVal = std :: make_shared <Flatten> (*input, *output, *projection, std :: string (nodeName));
+        returnVal->setShared (returnVal);
+        delete output;
+        delete input;
+        delete projection;
+        free (nodeName);
+        return returnVal.get ();
+}
+
+
 
 struct AtomicComputation *makeScan (struct TupleSpec *output, char *dbName, char *setName, char *nodeName) {
 	AtomicComputationPtr returnVal = std :: make_shared <ScanSet> (*output, std :: string (dbName), std :: string (setName), std :: string (nodeName));

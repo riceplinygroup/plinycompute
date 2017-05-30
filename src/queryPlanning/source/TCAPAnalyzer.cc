@@ -21,6 +21,8 @@
 
 #include "TCAPAnalyzer.h"
 #include "SelectionComp.h"
+#include "ScanUserSet.h"
+#include "MultiSelectionComp.h"
 #include <cfloat>
 
 namespace pdb {
@@ -63,7 +65,9 @@ TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computatio
            } else if (sourceComputation->getComputationType() == "SelectionComp") {
                Handle<SelectionComp<Object,Object>> selector = unsafeCast<SelectionComp<Object,Object>, Computation>(sourceComputation);
                curInputSetIdentifier = makeObject<SetIdentifier>(selector->getDatabaseName(), selector->getSetName());
-
+           } else if (sourceComputation->getComputationType() == "MultiSelectionComp") {
+               Handle<MultiSelectionComp<Object,Object>> selector = unsafeCast<MultiSelectionComp<Object,Object>, Computation>(sourceComputation);
+               curInputSetIdentifier = makeObject<SetIdentifier>(selector->getDatabaseName(), selector->getSetName());
            } else  {
                std :: cout << "Source Computation Type: " << sourceComputation->getComputationType() << " are not supported as source node right now" << std :: endl;
                this->logger->fatal("Source Computation Type: " + sourceComputation->getComputationType() + " are not supported as source node right now");
@@ -139,7 +143,10 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
         Handle<SelectionComp<Object,Object>> selector = unsafeCast<SelectionComp<Object,Object>, Computation>(sourceComputation);
         curInputSetIdentifier = makeObject<SetIdentifier>(selector->getDatabaseName(), selector->getSetName());
    
-    } else  {
+    } else if (sourceComputation->getComputationType() == "MultiSelectionComp") {
+        Handle<MultiSelectionComp<Object,Object>> selector = unsafeCast<MultiSelectionComp<Object,Object>, Computation>(sourceComputation);
+        curInputSetIdentifier = makeObject<SetIdentifier>(selector->getDatabaseName(), selector->getSetName());
+    }else  {
         std :: cout << "Source Computation Type: " << sourceComputation->getComputationType() << " are not supported as source node right now" << std :: endl;
         this->logger->fatal("Source Computation Type: " + sourceComputation->getComputationType() + " are not supported as source node right now");
     }
@@ -295,7 +302,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             }
             return true;
 
-        } else if ((myComputation->getComputationType() == "WriteUserSet") || (myComputation->getComputationType() == "SelectionComp")) {
+        } else if ((myComputation->getComputationType() == "WriteUserSet") || (myComputation->getComputationType() == "SelectionComp") || (myComputation->getComputationType() == "MultiSelectionComp")) {
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing);
             physicalPlanToOutput.push_back(jobStage);
             if (this->dynamicPlanningOrNot == true) {
@@ -418,7 +425,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             std :: string setName = myComputation->getSetName();
             sink = makeObject<SetIdentifier> (dbName, setName);
         }
-        if (myComputation->getComputationType() == "SelectionComp") {
+        if ((myComputation->getComputationType() == "SelectionComp") ||  (myComputation->getComputationType() == "MultiSelectionComp")) {
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing);
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {

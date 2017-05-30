@@ -16,37 +16,35 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LEX_TOKENS_H
-#define LEX_TOKENS_H
+#ifndef SUPERVISOR_MULTI_SELECT_H
+#define SUPERVISOR_MULTI_SELECT_H
 
-#ifdef FILTER
-	#undef FILTER
-      	#undef APPLY
-	#undef SCAN
-	#undef AGG
-	#undef JOIN
-	#undef OUTPUT
-	#undef GETS
-	#undef IDENTIFIER
-	#undef STRING
-	#undef HASHLEFT
-	#undef HASHRIGHT
-        #undef HASHONE
-        #undef FLATTEN
-#endif
- 
-#define FILTER 258
-#define APPLY 259
-#define SCAN 260
-#define AGG 261
-#define JOIN 262
-#define OUTPUT 263
-#define GETS 264
-#define HASHLEFT 265
-#define HASHRIGHT 266
-#define HASHONE 267
-#define FLATTEN 268
-#define IDENTIFIER 269
-#define STRING 270
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "MultiSelectionComp.h"
+#include "Employee.h"
+#include "Supervisor.h"
+#include "PDBVector.h"
+#include "PDBString.h"
+#include "Supervisor.h"
+
+using namespace pdb;
+class SupervisorMultiSelection : public MultiSelectionComp <Employee, Supervisor> {
+
+public:
+
+	ENABLE_DEEP_COPY
+
+	SupervisorMultiSelection () {}
+
+	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
+		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
+	}
+
+	Lambda <Vector<Handle <Employee>>> getProjection (Handle <Supervisor> checkMe) override {
+                return makeLambdaFromMember (checkMe, myGuys);
+	}
+};
+
 
 #endif
