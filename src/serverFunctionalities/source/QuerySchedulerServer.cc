@@ -157,7 +157,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
          //add and print out the resources
          for (int i = 0; i < resourceObjects->size(); i++) {
 
-             PDB_COUT << i << ": address=" << (*(resourceObjects))[i]->getAddress() << ", port="<< (*(resourceObjects))[i]->getPort() <<", node="<<(*(resourceObjects))[i]->getNodeId() <<", numCores=" << (*(resourceObjects))[i]->getNumCores() << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std :: endl;
+             std :: cout << i << ": address=" << (*(resourceObjects))[i]->getAddress() << ", port="<< (*(resourceObjects))[i]->getPort() <<", node="<<(*(resourceObjects))[i]->getNodeId() <<", numCores=" << (*(resourceObjects))[i]->getNumCores() << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std :: endl;
              StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>((*(resourceObjects))[i]->getNumCores(), (*(resourceObjects))[i]->getMemSize(), (*(resourceObjects))[i]->getAddress().c_str(), (*(resourceObjects))[i]->getPort(), (*(resourceObjects))[i]->getNodeId());
              this->standardResources->push_back(currentResource);
          }
@@ -177,7 +177,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
          for (int i = 0; i < nodeObjects->size(); i++) {
 
              PDB_COUT << i << ": address=" << (*(nodeObjects))[i]->getAddress() << ", port="<< (*(nodeObjects))[i]->getPort() <<", node="<<(*(nodeObjects))[i]->getNodeId() << std :: endl;
-             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>(0, 0, (*(nodeObjects))[i]->getAddress().c_str(), (*(nodeObjects))[i]->getPort(), (*(nodeObjects))[i]->getNodeId());
+             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>(4/(nodeObjects->size()), (4*1024*1024)/(nodeObjects->size()), (*(nodeObjects))[i]->getAddress().c_str(), (*(nodeObjects))[i]->getPort(), (*(nodeObjects))[i]->getNodeId());
              this->standardResources->push_back(currentResource);
          }         
     }
@@ -224,7 +224,8 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                           PDB_COUT << "port:" << port << std :: endl;
                           std :: string ip = (*(this->standardResources))[j]->getAddress();
                           PDB_COUT << "ip:" << ip  << std :: endl;
-
+                          size_t memory = (*(this->standardResources))[j]->getMemSize();
+                          //std :: cout << "Memory size for node-" << j << " :" << memory << std :: endl;
                           //create PDBCommunicator
                           pthread_mutex_lock(&connection_mutex);
                           PDB_COUT << "to connect to the remote node" << std :: endl;
@@ -247,6 +248,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                           //schedule the stage
                           if(stage->getJobStageType() == "TupleSetJobStage") {
                               Handle<TupleSetJobStage> tupleSetStage = unsafeCast<TupleSetJobStage, AbstractJobStage>(stage);
+                              tupleSetStage->setTotalMemoryOnThisNode(memory);
                               success = scheduleStage (j, tupleSetStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "AggregationJobStage" ) {
                               Handle<AggregationJobStage> aggStage = unsafeCast <AggregationJobStage, AbstractJobStage>(stage);
@@ -257,6 +259,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                               aggStage->setNumNodePartitions (numPartitionsOnThisNode);
                               aggStage->setAggTotalPartitions (shuffleInfo->getNumHashPartitions());
                               aggStage->setAggBatchSize(DEFAULT_BATCH_SIZE);
+                              aggStage->setTotalMemoryOnThisNode(memory);
                               success = scheduleStage (j, aggStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "BroadcastJoinBuildHTJobStage" ) {
                               Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage = unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage> (stage);

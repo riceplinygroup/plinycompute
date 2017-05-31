@@ -100,6 +100,14 @@ public:
         // gets the output type of this query as a string
         virtual std :: string getOutputType () = 0;
 
+        // get the number of consumers of this query 
+        int getNumConsumers()  {
+             return numConsumers;
+        }
+
+        void setNumConsumers(int numConsumers) {
+             this->numConsumers = numConsumers;
+        } 
 
         // set the first slot, by default
         bool setInput (Handle<Computation> toMe) {
@@ -121,6 +129,7 @@ public:
              // if we are adding this query to a valid slot
              if (whichSlot < getNumInputs ()) {
                  
+                 
                  //make sure the output type of the guy we are accepting meets the input type
                  if (getIthInputType (whichSlot) != toMe->getOutputType()) {
                       std :: cout << "Cannot set output of query node with output of type " << toMe->getOutputType () << " to be the input";
@@ -128,6 +137,7 @@ public:
                       return false;
                  }
                  (*inputs)[whichSlot] = toMe;
+                 toMe->setNumConsumers (toMe->getNumConsumers()+1);
 
              } else {
 
@@ -206,6 +216,8 @@ private:
         String outputTupleSetName = "";
 
         String outputColumnToApply = "";
+
+        int numConsumers = 0;
 
 };
 

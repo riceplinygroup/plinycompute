@@ -42,6 +42,7 @@ common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
+common_env.Append(CCFLAGS='-DAUTO_TUNING')
 #common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
@@ -450,6 +451,8 @@ common_env.Program('bin/test81shared', ['build/tests/Test81shared.cc'] + all)
 #common_env.Program('bin/test82', ['build/tests/Test82.cc'] + all)
 common_env.Program('bin/test83', ['build/tests/Test83.cc'] + all)
 common_env.Program('bin/test84', ['build/tests/Test84.cc'] + all)
+#common_env.Program('bin/test85', ['build/tests/Test85.cc'] + all)
+common_env.Program('bin/test86', ['build/tests/Test86.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -567,6 +570,8 @@ main=common_env.Alias('main', [
   #'bin/test82',
   'bin/test83',
   'bin/test84',
+  #'bin/test85',
+  'bin/test86',
 
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',

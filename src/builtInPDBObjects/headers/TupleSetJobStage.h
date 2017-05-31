@@ -242,6 +242,7 @@ namespace pdb {
                 }
                 std :: cout << "[Probing] isProbing=" << this->probeOrNot << std :: endl;
                 std :: cout << "Number of cluster nodes=" << getNumNodes() << std :: endl;
+                std :: cout << "Total memory on this node is " << totalMemoryOnThisNode << std :: endl;
                 std :: cout << "Number of total partitions=" << getNumTotalPartitions() << std :: endl;
                 int i; 
                 for ( i = 0; i < numNodes; i ++) {
@@ -366,6 +367,13 @@ namespace pdb {
                 this->needsRemoveCombinerSet = needsRemoveCombinerSet;
             }
 
+            void setTotalMemoryOnThisNode (size_t totalMem) {
+                this->totalMemoryOnThisNode = totalMem;
+            }
+
+            size_t getTotalMemoryOnThisNode () {
+                return this->totalMemoryOnThisNode;
+            }
 
             ENABLE_DEEP_COPY
 
@@ -444,6 +452,8 @@ namespace pdb {
             // needs remove input set at frontend
             bool needsRemoveInputSet;
 
+            //memory size on this node
+            size_t totalMemoryOnThisNode;
 
    };
 

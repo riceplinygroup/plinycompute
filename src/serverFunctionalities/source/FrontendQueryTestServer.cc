@@ -277,6 +277,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     }
 
                     newRequest->setJobId(request->getJobId());                    
+                    newRequest->setTotalMemoryOnThisNode(request->getTotalMemoryOnThisNode());
                     //forward the request
                     newRequest->print();
 

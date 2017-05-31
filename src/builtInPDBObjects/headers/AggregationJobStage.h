@@ -103,6 +103,8 @@ namespace pdb {
                 std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
                 std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
                 std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
+                std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std :: endl;
+                std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std :: endl;
             }
 
             std :: string getOutputTypeName () {
@@ -137,6 +139,14 @@ namespace pdb {
                 return this->needsRemoveInputSet;
             }
 
+            void setTotalMemoryOnThisNode (size_t totalMem) {
+                this->totalMemoryOnThisNode = totalMem;
+            }
+
+            size_t getTotalMemoryOnThisNode () {
+                return this->totalMemoryOnThisNode;
+            }
+
 
             ENABLE_DEEP_COPY
 
@@ -160,6 +170,7 @@ namespace pdb {
 
             int numNodePartitions;
 
+            size_t totalMemoryOnThisNode;
    };
 
 }

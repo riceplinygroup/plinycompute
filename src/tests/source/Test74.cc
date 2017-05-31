@@ -81,6 +81,8 @@ int main (int argc, char * argv[]) {
                std :: cout << "You successfully set the test to run on cluster." << std :: endl;
            } else {
                clusterMode = false;
+               std :: cout << "ERROR: cluster mode must be Y" << std :: endl;
+               exit (1);
            }
        } else {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
