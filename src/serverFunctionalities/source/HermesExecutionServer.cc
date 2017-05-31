@@ -435,11 +435,22 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               bool success;
               std :: string errMsg;
 
-              PDB_COUT << "Backend got Aggregation JobStage message with Id=" << request->getStageId() << std :: endl;
+              std :: cout << "Backend got Aggregation JobStage message with Id=" << request->getStageId() << std :: endl;
               request->print();
+
+
 
               //get number of partitions
               int numPartitions = request->getNumNodePartitions();
+
+         #ifdef AUTO_TUNING
+              size_t memSize = request->getTotalMemoryOnThisNode();
+              size_t sharedMemPoolSize = conf->getShmSize();
+              size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.75)/(double)(numPartitions);
+              std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
+              conf->setHashPageSize(tunedHashPageSize);
+         #endif
+
 
               //create multiple page circular queues
               int aggregationBufferSize = 2;              
@@ -508,9 +519,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          std :: string errMsg;
 
                          //get aggregate computation 
-                         std :: cout << i << ": to get aggregation computation" << std :: endl;
+                         PDB_COUT << i << ": to get aggregation computation" << std :: endl;
                          Handle<AbstractAggregateComp> aggComputation = request->getAggComputation();
-                         std :: cout << i << ": to deep copy aggregation computation object" << std :: endl;
+                         PDB_COUT << i << ": to deep copy aggregation computation object" << std :: endl;
                          Handle<AbstractAggregateComp> newAgg = deepCopyToCurrentAllocationBlock<AbstractAggregateComp>(aggComputation);
 
                          //get aggregate processor
@@ -524,27 +535,33 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              while(myIter->hasNext()) {
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
-                                     std :: cout << "aggregation without materialization: got one non-null page" << std :: endl;
+                                     PDB_COUT << "aggregation without materialization: got one non-null page" << std :: endl;
                                      Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
                                      Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
                                      for (int j = 0; j < inputData->size(); j++) {
-                                         std :: cout << i << ": AggregationProcessor: got an object" << std :: endl;
+                                         PDB_COUT << i << ": AggregationProcessor: got an object" << std :: endl;
                                          aggregateProcessor->loadInputObject((*inputData)[j]);
                                          if (aggregateProcessor->needsProcessInput() == false) {
                                              continue;
                                          }
                                          if (outBytes == nullptr) {
                                              //create a new partition
-                                             std :: cout << "aggregation without materialization: add output page" << std :: endl; 
+                                             PDB_COUT << "aggregation without materialization: add output page" << std :: endl; 
                                              outBytes = aggregationSet->addPage();                                          
-                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
+                                             PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
                                              aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
                                          }
                                          while (aggregateProcessor->fillNextOutputPage()) {
                                              aggregateProcessor->clearOutputPage();
+                                             std :: cout << "ERROR: aggregation for partition-" << i << " can't finish in one aggregation page with size="
+                                                         << aggregationSet->getPageSize() << std :: endl;
+                                             std :: cout << "ERROR: results may not be fully aggregated for partition-" << i << ", please increase hash page size!!" 
+                                                         << std :: endl;
+                                             logger->error(std :: string("Hash page size is too small or memory is insufficient, results are not fully aggregated!"));
+                                             PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
                                              outBytes = aggregationSet->addPage();
-                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
                                              aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
+
                                          }
                                      }                          
                                      //unpin user page
@@ -570,7 +587,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
                              //aggregation page size
                              size_t aggregationPageSize = conf->getHashPageSize();
-
+                             std :: cout << "aggregation page size is " << aggregationPageSize << std :: endl;
                              //allocate one output page
                              void * aggregationPage = nullptr;
 
@@ -600,6 +617,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          }
                                          while (aggregateProcessor->fillNextOutputPage()) {
                                              PDB_COUT << i <<": AggregationProcessor: we have filled an output page" << std :: endl;
+                                             std :: cout << "ERROR: aggregation for partition-" << i << " can't finish in one aggregation page with size="
+                                                         << aggregationPageSize << std :: endl;
+                                             std :: cout << "ERROR: results may not be fully aggregated for partition-" << i << ", please ask PDB admin to tune memory size!!"
+                                                         << std :: endl;
+                                             logger->error(std :: string("Hash page size is too small or memory is insufficient, results are not fully aggregated!"));
                                              //write to output set
                                              //load input page
                                              PDB_COUT << i << ": AggOutProcessor: we now have an input page" << std :: endl;

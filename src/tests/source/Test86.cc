@@ -15,10 +15,10 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_67_H
-#define TEST_67_H
+#ifndef TEST_86_H
+#define TEST_86_H
 
-//by Jia, Mar 2017
+//by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -30,12 +30,12 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "SillySelection.h"
 #include "SelectionComp.h"
-#include "AggregateComp.h"
 #include "ScanSupervisorSet.h"
+#include "WriteBuiltinEmployeeSet.h"
+#include "SupervisorMultiSelection.h"
 #include "SillyAggregation.h"
-#include "SillySelection.h"
+#include "AllSelectionWithCreation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
 #include "HashSink.h"
@@ -79,7 +79,7 @@ int main (int argc, char * argv[]) {
                std :: cout << "You successfully set the test to run on cluster." << std :: endl;
            } else {
                clusterMode = false;
-               std :: cout << "ERROR: cluster mode must be Y" << std :: endl;
+               std :: cout << "ERROR: cluster mode must be true" << std :: endl;
                exit (1);
            }
        } else {
@@ -117,7 +117,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test67_db", errMsg)) {
+            if (!temp.createDatabase ("test86_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -125,7 +125,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("test67_db", "test67_set", errMsg)) {
+            if (!temp.createSet<Supervisor> ("test86_db", "test86_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -152,8 +152,9 @@ int main (int argc, char * argv[]) {
                     char first = 'A', second = 'B', third = 'C', fourth = 'D';
                     char myString[5];
                     myString[4]=0;
+                    int i;
                     try {
-                        for (int i = 0; true ; i++) {
+                        for (i = 0; true ; i++) {
 
                             myString[0] = first;
                             myString[1] = second;
@@ -176,24 +177,26 @@ int main (int argc, char * argv[]) {
                                      }
                                  }
                             }
-                            //std :: cout << myString << std :: endl;
-                            Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
+                          
+//                            std :: cout << i << ":" << myString << std :: endl;
+                            Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), 3.54);
                             storeMe->push_back(myData);
                             total++;
                             for (int j = 0; j < 10; j++) {
                                  Handle <Employee> temp;
-                                 if (i % 2 == 0) {
-                                     temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
+                                 if (i % 3 == 0) {
+                                     temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), 3.54);
                                  }
                                  else {
-                                     temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
+                                     temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), 3.54);
                                  }
                                  (*storeMe)[i]->addEmp (temp);
                             }
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test67_set", "test67_db"), storeMe, errMsg)) {
+                       //std :: cout << "We comes to " << i << " here" << std :: endl;
+                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test86_set", "test86_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -207,9 +210,9 @@ int main (int argc, char * argv[]) {
                 temp.flushData( errMsg );
           }
         }
-        // now, create a new set in that database to store output data
+
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<DepartmentTotal> ("test67_db", "output_set1", errMsg)) {
+        if (!temp.createSet<DepartmentTotal> ("test86_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -221,17 +224,20 @@ int main (int argc, char * argv[]) {
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libSillySelection.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libSupervisorMultiSelection.so", errMsg);
         catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
+        catalogClient.registerType ("libraries/libAllSelectionWithCreation.so", errMsg);
 
-	
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test67_db", "test67_set");
-	Handle <Computation> myFilter = makeObject <SillySelection> ();
-        myFilter->setInput(myScanSet);
-	Handle <Computation> myAgg = makeObject <SillyAggregation> ("test67_db", "output_set1");
-	myAgg->setInput(myFilter);
+	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test86_db", "test86_set");
+	Handle <Computation> myFlatten = makeObject <SupervisorMultiSelection> ();
+        myFlatten->setInput(myScanSet);
+        Handle <Computation> myFilter = makeObject <AllSelectionWithCreation> ();
+        myFilter->setInput(myFlatten); 
+        Handle <Computation> myAgg = makeObject <SillyAggregation> ("test86_db", "output_set");
+        myAgg->setInput(myFilter);
 
         auto begin = std :: chrono :: high_resolution_clock :: now();
 
@@ -246,11 +252,11 @@ int main (int argc, char * argv[]) {
           //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
 
         std::cout << std::endl;
-        // print the resuts
+
+        // print the resuts of the output set
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <DepartmentTotal> result = myClient.getSetIterator <DepartmentTotal> ("test67_db", "output_set1");
-
+            SetIterator <DepartmentTotal> result = myClient.getSetIterator <DepartmentTotal> ("test86_db", "output_set");
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)
@@ -264,14 +270,15 @@ int main (int argc, char * argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test67_db", "output_set1");
+            myClient.deleteSet ("test86_db", "output_set");
         } else {
-            if (!temp.removeSet ("test67_db", "output_set1", errMsg)) {
+            if (!temp.removeSet ("test86_db", "output_set", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {
                 cout << "Removed set.\n";
             }
+
         }
         int code = system ("scripts/cleanupSoFiles.sh");
         if (code < 0) {

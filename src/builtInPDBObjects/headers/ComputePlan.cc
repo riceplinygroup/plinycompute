@@ -125,6 +125,10 @@ inline std :: string ComputePlan :: getProducingComputationName(std :: string so
 //JiaNote: implemented following method to provide merger for broadcast join
 inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName) {
 
+        if (targetComputationName.find("JoinComp") == std :: string :: npos) {
+               return nullptr;
+        }
+
         // build the plan if it is not already done
         if (myPlan == nullptr)
                 getPlan ();
@@ -154,12 +158,6 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
                         // we found the consuming computation
                         if (targetSpec == a->getInput ()) {
                                 targetProjection = a->getProjection ();
-
-                                //added following to merge join code
-                                if(targetComputationName.find("JoinComp") == std :: string :: npos) {
-                                    targetSpec = targetProjection;
-                                }
-
                                 targetAttsToOpOn = a->getInput();
                                 break;
                         }

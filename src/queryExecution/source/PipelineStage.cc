@@ -429,6 +429,16 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
     std :: string errMsg;
 
     int numNodes = jobStage->getNumNodes();
+
+#ifdef AUTO_TUNING
+    size_t memSize = jobStage->getTotalMemoryOnThisNode();
+    size_t sharedMemPoolSize = conf->getShmSize();
+    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.75)/(double)(numNodes);
+    std :: cout << "Tuned combiner page size is " << tunedHashPageSize << std :: endl;
+    conf->setHashPageSize(tunedHashPageSize);
+#endif
+
+
     size_t combinerPageSize = conf->getHashPageSize();
     //each queue has multiple producers and one consumer
     int combinerBufferSize = numThreads / numNodes + 1;
@@ -495,7 +505,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   Handle<Vector<HashPartitionID>> partitions = this->jobStage->getNumPartitions(i);
                   std :: vector<HashPartitionID> stdPartitions;
                   int numPartitionsOnTheNode = partitions->size();
-                  std :: cout << "num partitions on this node:" << numPartitionsOnTheNode << std :: endl;
+                  PDB_COUT << "num partitions on this node:" << numPartitionsOnTheNode << std :: endl;
                   for (int m = 0; m < numPartitionsOnTheNode; m ++) {
                       PDB_COUT << m << ":" << (*partitions)[m] << std :: endl;
                       stdPartitions.push_back((*partitions)[m]);
