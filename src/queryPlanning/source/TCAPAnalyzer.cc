@@ -426,7 +426,8 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             sink = makeObject<SetIdentifier> (dbName, setName);
         }
         if ((myComputation->getComputationType() == "SelectionComp") ||  (myComputation->getComputationType() == "MultiSelectionComp")) {
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing);
+            buildTheseTupleSets.push_back(curNode->getOutputName());
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getOutputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing);
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
@@ -456,7 +457,9 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             //now I am a source
             //analyze(physicalPlanToOutput, interGlobalSets, curNode, jobStageId);
             buildTheseTupleSets.clear();
+            //if ((myComputation->getComputationType() != "SelectionComp") &&  (myComputation->getComputationType() != "MultiSelectionComp")) {
             buildTheseTupleSets.push_back(curNode->getOutputName());
+            //}
             for (int i = 0; i < numConsumersForCurNode; i++) {
                 AtomicComputationPtr nextNode = consumers[i];
                 bool ret = analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curNode, myComputation, sink, nextNode, jobStageId, curNode);

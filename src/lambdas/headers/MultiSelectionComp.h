@@ -184,6 +184,10 @@ tcapString << std :: endl;
        return materializeSelectionOut;
     }
 
+    Handle<ScanUserSet<OutputClass>> & getOutputSetScanner() {
+       return outputSetScanner;
+    }
+
 
 private:
 

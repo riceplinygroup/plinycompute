@@ -193,12 +193,12 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
 
 
 //JiaNote: add a new buildPipeline method to avoid ambiguity
-inline PipelinePtr ComputePlan :: buildPipeline (std :: vector <std :: string> buildTheseTupleSets,
+inline PipelinePtr ComputePlan :: buildPipeline (std :: vector <std :: string> buildTheseTupleSets, std :: string targetComputationName,
         std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage) {
 
         std :: map <std :: string, ComputeInfoPtr> params;
-        return buildPipeline (buildTheseTupleSets, getPage, discardTempPage, writeBackPage, params);
+        return buildPipeline (buildTheseTupleSets, targetComputationName, getPage, discardTempPage, writeBackPage, params);
 }
 
 
@@ -214,7 +214,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 
 
 //JiaNote: add below method to make sure the pipeline to build is unique, and no ambiguity.
-inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage, std :: map <std :: string, ComputeInfoPtr> &params) {
 
 
@@ -250,58 +250,63 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
 
         //to get compute sink
-        // and get the schema for the output TupleSet objects that it is supposed to produce
         std :: string targetTupleSetName = buildTheseTupleSets[numTupleSets-1];
-        if ((allComps.getConsumingAtomicComputations(targetTupleSetName)).size() > 1) {
-            std :: cout << "ERROR: target tuple set in pipeline should have only one consumer" << std :: endl;
-            return nullptr;
-        }
-        std :: string targetComputationName = (allComps.getConsumingAtomicComputations(targetTupleSetName))[0]->getComputationName ();
-        TupleSpec &targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
-        std :: cout << "The target is " << targetSpec << "\n";
-
-        //JiaNote: change the reference into a new variable based on Chris' Join code
-        //TupleSpec &targetProjection = targetSpec;
+        TupleSpec & targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
         TupleSpec targetProjection;
         TupleSpec targetAttsToOpOn;
 
         std :: cout << "targetComputationName was " << targetComputationName << "\n";
+        if (targetComputationName.find("SelectionComp") == std :: string :: npos) {
 
-        auto a = (allComps.getConsumingAtomicComputations(targetTupleSetName))[0];
+            // and get the schema for the output TupleSet objects that it is supposed to produce
+            if ((allComps.getConsumingAtomicComputations(targetTupleSetName)).size() > 1) {
+                std :: cout << "ERROR: target tuple set in pipeline should have only one consumer" << std :: endl;
+                return nullptr;
+            }
+            std :: cout << "The target is " << targetSpec << "\n";
 
-        // we found the consuming computation
-        if (targetSpec == a->getInput ()) {
-            targetProjection = a->getProjection ();
+            //JiaNote: change the reference into a new variable based on Chris' Join code
+            //TupleSpec &targetProjection = targetSpec;
 
-            //added following to merge join code
-            if(targetComputationName.find("JoinComp") == std :: string :: npos) {
-                 targetSpec = targetProjection;
+            auto a = (allComps.getConsumingAtomicComputations(targetTupleSetName))[0];
+
+            // we found the consuming computation
+            if (targetSpec == a->getInput ()) {
+                targetProjection = a->getProjection ();
+
+                //added following to merge join code
+                if(targetComputationName.find("JoinComp") == std :: string :: npos) {
+                    targetSpec = targetProjection;
+                }
+
+                targetAttsToOpOn = a->getInput();
+            
             }
 
-            targetAttsToOpOn = a->getInput();
-            
-        }
-
-        // the only way that the input to this guy does not match targetSpec is if he is a join, which has two inputs
-        else if (a->getAtomicComputationType () != std :: string ("JoinSets")) {
-            std :: cout << "This is bad... is the target computation name correct??";
-            std :: cout << "Didn't find a JoinSets, target was " << targetSpec.getSetName () << "\n";
-            exit (1);
-        }
-        else {
-            // get the join and make sure it matches
-            ApplyJoin *myGuy = (ApplyJoin *) a.get ();
-            if (!(myGuy->getRightInput () == targetSpec)) {
-                 std :: cout << "This is bad... is the target computation name correct??";
-                 std :: cout << "Find a JoinSets, target was " << targetSpec.getSetName () << "\n";
-                 exit (1);
+            // the only way that the input to this guy does not match targetSpec is if he is a join, which has two inputs
+            else if (a->getAtomicComputationType () != std :: string ("JoinSets")) {
+                std :: cout << "This is bad... is the target computation name correct??";
+                std :: cout << "Didn't find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                exit (1);
             }
             else {
-                 std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
-                 targetProjection = myGuy->getRightProjection ();
-                 targetAttsToOpOn = myGuy->getRightInput ();
-                 std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                // get the join and make sure it matches
+                ApplyJoin *myGuy = (ApplyJoin *) a.get ();
+                if (!(myGuy->getRightInput () == targetSpec)) {
+                    std :: cout << "This is bad... is the target computation name correct??";
+                    std :: cout << "Find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                    exit (1);
+                }
+                else {
+                    std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
+                    targetProjection = myGuy->getRightProjection ();
+                    targetAttsToOpOn = myGuy->getRightInput ();
+                    std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                }
             }
+        } else {
+            targetProjection = targetSpec;
+            targetAttsToOpOn = targetSpec;
         }
         // now we have the list of computations, and so it is time to build the pipeline... start by building a compute sink
         ComputeSinkPtr computeSink = myPlan->getNode (targetComputationName).getComputation ().getComputeSink (targetSpec, targetAttsToOpOn, targetProjection, *this);
