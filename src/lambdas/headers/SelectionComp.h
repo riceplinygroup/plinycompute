@@ -156,6 +156,7 @@ tcapString << std :: endl;
                 return outputSetScanner->getComputeSource (outputScheme, plan);
             }
         }
+        std :: cout << "ERROR: get compute source for " << outputScheme << " returns nullptr" << std :: endl;
         return nullptr;
     }
 
@@ -170,6 +171,10 @@ tcapString << std :: endl;
 
     bool needsMaterializeOutput () override {
        return materializeSelectionOut;
+    }
+
+    Handle<ScanUserSet<OutputClass>> & getOutputSetScanner() {
+        return outputSetScanner;
     }
 
 

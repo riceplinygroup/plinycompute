@@ -25,6 +25,8 @@
 #include "StorageAddObject.h"
 #include "ComputePlan.h"
 #include "ScanUserSet.h"
+#include "SelectionComp.h"
+#include "MultiSelectionComp.h"
 #include "PDBDebug.h"
 #include "PipelineStage.h"
 #include "PageCircularBufferIterator.h"
@@ -203,13 +205,34 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     //handle two types of sources
     if (sourceContext->getSetType() == UserSetType) {
         //input is a user set
-        Handle<ScanUserSet<Object>> scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
-        scanner->setIterator(iterators.at(i));
-        scanner->setProxy(proxy);
-        if ((scanner->getBatchSize() <= 0) || (scanner->getBatchSize() > 100)) {
-            scanner->setBatchSize(batchSize);
+        Handle<ScanUserSet<Object>> scanner = nullptr;
+        if (computation->getComputationType() == "ScanUserSet") {
+            scanner = unsafeCast<ScanUserSet<Object>, Computation>(computation);
+        } else if (computation->getComputationType() == "SelectionComp") {
+            Handle<SelectionComp<Object, Object>> selection = unsafeCast<SelectionComp<Object, Object>, Computation> (computation);
+            scanner = selection->getOutputSetScanner();
+        } else if (computation->getComputationType() == "MultiSelectionComp") {
+            Handle<MultiSelectionComp<Object, Object>> multiSelection = 
+                  unsafeCast<MultiSelectionComp<Object, Object>, Computation> (computation);
+            scanner = multiSelection->getOutputSetScanner();
+        } else if (computation->getComputationType() == "ClusterAggregationComp") {
+            Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator =
+                  unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(computation);
+            scanner = aggregator->getOutputSetScanner();
+        } else {
+            std :: cout << "Error: we can't support source computation type " << computation->getComputationType() << std :: endl;
+            return;
         }
-        PDB_COUT << "SCANNER BATCH SIZE: " << scanner->getBatchSize() << std :: endl;
+
+        if (scanner != nullptr) {
+            scanner->setIterator(iterators.at(i));
+            scanner->setProxy(proxy);
+            if ((scanner->getBatchSize() <= 0) || (scanner->getBatchSize() > 100)) {
+                scanner->setBatchSize(batchSize);
+            }
+            PDB_COUT << "SCANNER BATCH SIZE: " << scanner->getBatchSize() << std :: endl;
+
+        }
     } else {
         //input are hash tables
         Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator = 
@@ -261,7 +284,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   //this->jobStage->getTargetTupleSetSpecifier(),
                   //this->jobStage->getTargetComputationSpecifier(),
                   buildTheseTupleSets,
-
+                  this->jobStage->getTargetComputationSpecifier(),
                   [] () -> std :: pair <void *, size_t> {
                       //TODO: move this to Pangea
                       PDB_COUT << "to get a new page for writing" << std :: endl;

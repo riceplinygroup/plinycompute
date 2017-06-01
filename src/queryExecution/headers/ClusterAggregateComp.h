@@ -264,7 +264,9 @@ public:
                 return tcapString;
    }
 
-
+   Handle<ScanUserSet<OutputClass>> & getOutputSetScanner() {
+         return outputSetScanner;
+   }
 
 
 protected:
