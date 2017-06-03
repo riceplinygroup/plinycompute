@@ -349,6 +349,14 @@ common_env.SharedLibrary('libraries/libWriteSumResultSet.so', ['build/libraries/
 common_env.SharedLibrary('libraries/libDoubleVectorAggregation.so', ['build/libraries/DoubleVectorAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSupervisorMultiSelection.so', ['build/libraries/SupervisorMultiSelection.cc'] + all)
 
+# TPCH Benchmakr Libraries
+common_env.SharedLibrary('libraries/libPart.so', ['build/tpchBench/Part.cc'] + all)
+common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.cc'] + all)
+common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
+common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
+
+
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
 common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
@@ -464,6 +472,8 @@ common_env.Program('bin/testLA08_RowMax', ['build/tests/TestLA08_RowMax.cc'] + a
 common_env.Program('bin/testLA09_RowMin', ['build/tests/TestLA09_RowMin.cc'] + all)
 common_env.Program('bin/testLA10_ColMax', ['build/tests/TestLA10_ColMax.cc'] + all)
 common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + all)
+
+common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 
 
 
@@ -598,6 +608,16 @@ main=common_env.Alias('main', [
   'libraries/libIntSelectionOfStringIntPair.so', 
   'libraries/libIntSillyJoin.so', 
   'libraries/libKMeansQuery.so',  
+  
+  # TPCH Benchamr Libraries
+  'libraries/libPart.so',
+  'libraries/libSupplier.so',
+  'libraries/libLineItem.so',
+  'libraries/libOrder.so',
+  'libraries/libCustomer.so',
+  'bin/tpchTestData',
+  
+  
   
   #'libraries/libLAMaxElementValueType.so',
   #'libraries/libLAMaxElementOutputType.so',
