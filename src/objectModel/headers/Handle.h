@@ -225,7 +225,7 @@ public:
 private:
 
 	template <class ObjTypeTwo> friend class Handle;
-	friend class Allocator;
+	//friend Allocator;
 	template <class Obj, class... Args> friend RefCountedObject <Obj> * makeObject (Args&&... args);
 	template <class OutObjType, class InObjType> friend Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
 	template <class Obj> friend class Record;

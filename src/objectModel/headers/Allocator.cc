@@ -107,15 +107,322 @@ inline void * InactiveAllocationBlock :: getEnd() {
 #define GET_CHUNK_SIZE(ofMe) (*((unsigned *) ofMe))
 #define CHUNK_HEADER_SIZE sizeof (unsigned)
 
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline void defaultFreeRAM (bool isContained, void *here, std :: vector  <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId) {
+#else
+inline void defaultFreeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+        // see if this guy is from the active block
+        if (isContained) {
+
+                here = CHAR_PTR (here) - CHUNK_HEADER_SIZE;
+
+                // get the chunk size
+                unsigned chunkSize = GET_CHUNK_SIZE (here);
+
+                // get the number of leading zeros
+                int leadingZeros = __builtin_clz (chunkSize);
+
+                // and remember this chunk
+                myState.chunks[31 - leadingZeros].push_back (here);
+
+                ALLOCATOR_REF_COUNT--;
+
+                #ifdef DEBUG_OBJECT_MODEL      
+                std :: cout << "###################################"<< std :: endl;
+                std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                std :: cout << "freed numBytes=" << chunkSize << std :: endl;
+                std :: cout << "chunk index=" << 31-leadingZeros << std :: endl;
+                std :: cout << "###################################"<< std :: endl;
+                #endif     
+                return;
+        }
+
+        // otherwise, he is not in the active block, so look for him
+        auto i = std :: lower_bound (allInactives.begin (), allInactives.end (), here);
+
+        // see if we found him
+        if (i != allInactives.end () && !(*i > here)) {
+
+                // we did, so dec reference count
+                i->decReferenceCount ();
+                #ifdef DEBUG_OBJECT_MODEL     
+                std :: cout << "###################################"<< std :: endl;
+                std :: cout << "allocator block reference count--=" << i->getReferenceCount() << " with typeId=" << typeId << std :: endl;
+                std :: cout << "allocator block starting address=" << i->getStart() << std :: endl;
+                std :: cout << "allocator block size=" << i->numBytes() << std :: endl;
+                std :: cout << "###################################"<< std :: endl;
+                #endif     
+                // if he is done, delete him
+                if (i->areNoReferences ()) {
+                        i->freeBlock ();
+                        PDB_COUT << "Killed an old block naturally." << std :: endl;
+                        allInactives.erase (i);
+                }
+                return;
+        }
+
+        // if we made it here, the object was allocated in some other way,
+        // so we can go ahead and forget about him
+        #ifdef DEBUG_OBJECT_MODEL
+        std :: cout << "###################################################################" << std :: endl;
+        std :: cout << "We can't free the object, it may be allocated by some other thread!" << std :: endl;
+        std :: cout << "typeId=" << typeId << std :: endl;
+        std :: cout << "###################################################################" << std :: endl;
+        #endif
+}
+
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * defaultGetRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+        std :: cout << "to get RAM with size = " << howMuch << " and typeId = " << typeId << std :: endl;
+#else
+inline void * defaultGetRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+        unsigned bytesNeeded = (unsigned) (CHUNK_HEADER_SIZE + howMuch);
+        if ((bytesNeeded % 4) != 0) {
+                bytesNeeded += (4 - (bytesNeeded % 4));
+        }
+        // get the number of leading zero bits in bytesNeeded
+        unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
+
+#ifdef DEBUG_OBJECT_MODEL
+       std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
+#endif
+
+        // loop through all of the free chunks
+        // Lets say that someone asks for 54 bytes.  In binary, this is ...000110110 and so there are 26 leading zeros
+        // in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
+        // at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
+        for (unsigned int i = 31 - numLeadingZeros; i < 32; i++) {
+                int len = myState.chunks[i].size ();
+                for ( int j = len - 1;  j >= 0;  j-- ) {
+                        if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
+                                void *returnVal = myState.chunks[i][j];
+                                myState.chunks[i].erase (myState.chunks[i].begin () + j);
+                                ALLOCATOR_REF_COUNT++;
+                                void *retAddress= CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
+      #ifdef DEBUG_OBJECT_MODEL                          
+                                std :: cout << "###################################"<< std :: endl;
+                                std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+                                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+                                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+                                std :: cout << "starting chunk index=" << 31-numLeadingZeros << std :: endl;
+                                std :: cout << "ending chunk index=" << i << std :: endl;
+                                std :: cout << "bytes needed=" << bytesNeeded << std :: endl;
+                                std :: cout << "###################################"<< std :: endl;
+      #endif  
+                                return retAddress;
+                        }
+                 }
+        }
+
+        // if we got here, then we cannot fit, and we need to carve out a bit at the end
+        // if there is not enough RAM
+        if (LAST_USED + bytesNeeded > myState.numBytes) {
+
+                // see how we are supposed to react...
+                if (myState.throwException) {
+                        PDB_COUT << "Allocator: LAST_USED=" << LAST_USED << std :: endl;
+                        PDB_COUT << "Allocator: bytesNeeded=" << bytesNeeded << std :: endl;
+                        PDB_COUT << "Allocator: numBytes=" << myState.numBytes << std :: endl;
+                        // either we throw an exception...
+                        throw myException;
+
+                // or we return a nullptr
+                } else {
+                        return nullptr;
+                }
+
+        }
+
+        // now do the allocation
+        void *res = LAST_USED + CHAR_PTR (myState.activeRAM);
+        LAST_USED += bytesNeeded;
+        GET_CHUNK_SIZE (res) = bytesNeeded;
+        ALLOCATOR_REF_COUNT++;
+        void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
+
+        #ifdef DEBUG_OBJECT_MODEL
+        std :: cout << "###################################"<< std :: endl;
+        std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+        std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+        std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+        std :: cout << "created a new chunk with size =" << bytesNeeded << std :: endl;
+        std :: cout << "###################################"<< std :: endl;
+        #endif
+        return retAddress;
+}
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * fastGetRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+        std :: cout << "to get RAM with size = " << howMuch << " and typeId = " << typeId << std :: endl;
+#else
+inline void * fastGetRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+        unsigned bytesNeeded = (unsigned) (CHUNK_HEADER_SIZE + howMuch);
+        if ((bytesNeeded % 4) != 0) {
+                bytesNeeded += (4 - (bytesNeeded % 4));
+        }
+        // get the number of leading zero bits in bytesNeeded
+        unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
+
+#ifdef DEBUG_OBJECT_MODEL
+       std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
+#endif
+
+
+        // if we got here, then we cannot fit, and we need to carve out a bit at the end
+        // if there is not enough RAM
+        if (LAST_USED + bytesNeeded > myState.numBytes) {
+
+                // see how we are supposed to react...
+                if (myState.throwException) {
+                        PDB_COUT << "Allocator: LAST_USED=" << LAST_USED << std :: endl;
+                        PDB_COUT << "Allocator: bytesNeeded=" << bytesNeeded << std :: endl;
+                        PDB_COUT << "Allocator: numBytes=" << myState.numBytes << std :: endl;
+                        // either we throw an exception...
+                        throw myException;
+
+                // or we return a nullptr
+                } else {
+                        return nullptr;
+                }
+
+        }
+
+        // now do the allocation
+        void *res = LAST_USED + CHAR_PTR (myState.activeRAM);
+        LAST_USED += bytesNeeded;
+        GET_CHUNK_SIZE (res) = bytesNeeded;
+        ALLOCATOR_REF_COUNT++;
+        void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
+
+        #ifdef DEBUG_OBJECT_MODEL
+        std :: cout << "###################################"<< std :: endl;
+        std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
+        std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
+        std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
+        std :: cout << "created a new chunk with size =" << bytesNeeded << std :: endl;
+        std :: cout << "###################################"<< std :: endl;
+        #endif
+        return retAddress;
+}
+
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline void DefaultPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId) {
+#else
+inline void DefaultPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+    #ifdef DEBUG_OBJECT_MODEL
+        defaultFreeRAM (isContained, here, allInactives, myState, typeId);
+    #else
+        defaultFreeRAM (isContained, here, allInactives, myState);
+    #endif
+
+}
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * DefaultPolicy :: getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+#else
+inline void * DefaultPolicy :: getRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+
+    #ifdef DEBUG_OBJECT_MODEL
+         return defaultGetRAM (howMuch, myState, typeId);
+    #else
+         return defaultGetRAM (howMuch, myState);
+    #endif
+
+}
+
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline void NoReclaimPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
+#else
+inline void NoReclaimPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+    #ifdef DEBUG_OBJECT_MODEL
+        defaultFreeRAM (isContained, here, allInactives, myState, typeId);
+    #else
+        defaultFreeRAM (isContained, here, allInactives, myState);
+    #endif
+
+}
+
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * NoReclaimPolicy :: getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+#else
+inline void * NoReclaimPolicy :: getRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+
+    #ifdef DEBUG_OBJECT_MODEL
+         return fastGetRAM (howMuch, myState, typeId);
+    #else
+         return fastGetRAM (howMuch, myState);
+    #endif
+
+}
+
+
+
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline void NoReferenceCountPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
+#else
+inline void NoReferenceCountPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+
+}
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * NoReferenceCountPolicy :: getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+#else
+inline void * NoReferenceCountPolicy :: getRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+
+    #ifdef DEBUG_OBJECT_MODEL
+         return defaultGetRAM (howMuch, myState, typeId);
+    #else
+         return defaultGetRAM (howMuch, myState);
+    #endif
+
+}
+
+
 // return true if allocations should not fail due to not enough RAM...
 // in this case, a null pointer is returned on a bad allocate, and NOT
 // an exception
-inline bool Allocator :: doNotFail () {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline bool MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: doNotFail () {
 	return (myState.throwException == false);	
 }
 
 // destructor; if there is a self-allocated current allocation block, free it
-inline Allocator :: ~Allocator () {
+template <typename FirstPolicy, typename... OtherPolicies>
+MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: ~MultiPolicyAllocator () {
 
 	if (myState.activeRAM != nullptr && !myState.curBlockUserSupplied) {
 		if (getNumObjectsInCurrentAllocatorBlock () != 0) {
@@ -136,7 +443,8 @@ inline Allocator :: ~Allocator () {
 }
 
 // we have no active RAM
-inline Allocator :: Allocator () {
+template <typename FirstPolicy, typename... OtherPolicies>
+MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator () {
 	for (unsigned int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
 		myState.chunks.push_back (temp);
@@ -146,13 +454,14 @@ inline Allocator :: Allocator () {
 
 	// now, setup the active block
 	setupBlock (malloc (1024), 1024, true);
-   
-        // JiaNote: by default, we optimize for space
-        optimizeSpeed = false;
+
+        //by default, we optimize for space
+        setPolicy (defaultPolicy);   
 
 }
 
-inline Allocator :: Allocator (size_t numBytesIn) {
+template <typename FirstPolicy, typename... OtherPolicies>
+MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator (size_t numBytesIn) {
 	for (unsigned int i = 0; i < 32; i++) {
 		std :: vector <void *> temp;
 		myState.chunks.push_back (temp);
@@ -177,105 +486,53 @@ inline Allocator :: Allocator (size_t numBytesIn) {
         setupBlock (putMeHere, numBytesIn, true);
 
         //by default, we optimize for space
-        optimizeSpeed = false;
+        setPolicy (defaultPolicy);
 
 }
 
+//set policy
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: setPolicy (AllocatorPolicy policy) {
+        myPolicies.setPolicy(policy);
+}
+
 // returns true if and only if the RAM is in the current allocation block
-inline bool Allocator :: contains (void *whereIn) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline bool MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: contains (void *whereIn) {
 	char *where = CHAR_PTR (whereIn);
 	char *target = CHAR_PTR (myState.activeRAM);
 	return (where >= target && where < target + myState.numBytes);
 }
 
+
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
+template <typename FirstPolicy, typename... OtherPolicies>
 #ifdef DEBUG_OBJECT_MODEL
-inline void *Allocator :: getRAM (size_t howMuch, int16_t typeId) {
-        std :: cout << "to get RAM with size = " << howMuch << " and typeId = " << typeId << std :: endl;
+inline void * MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getRAM (size_t howMuch, int16_t typeId) {
 #else
-inline void *Allocator :: getRAM (size_t howMuch) {
-#endif
-	unsigned bytesNeeded = (unsigned) (CHUNK_HEADER_SIZE + howMuch);
-	if ((bytesNeeded % 4) != 0) {
-		bytesNeeded += (4 - (bytesNeeded % 4));
-	}
-	// get the number of leading zero bits in bytesNeeded
-	unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
+inline void * MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getRAM (size_t howMuch) {
+#endif  
 
 #ifdef DEBUG_OBJECT_MODEL
-       std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
+        return myPolicies.getRAM (howMuch, myState, typeId);
+#else
+        return myPolicies.getRAM (howMuch, myState);
 #endif
 
-        //JiaNote: optimizeSpeed is a flag set to optimize allocator for speed at the cost of space.	
-        if (optimizeSpeed == false) {
+/*
 
-	// loop through all of the free chunks
-	// Lets say that someone asks for 54 bytes.  In binary, this is ...000110110 and so there are 26 leading zeros
-	// in the binary representation.  So, we are going to loop through the sets of chunks at position 5 (2^5 and larger)
-	// at position 6 (2^6 and larger) at position 7 (2^7 and larger), and so on, trying to find one that fits.
-	for (unsigned int i = 31 - numLeadingZeros; i < 32; i++) {
-		int len = myState.chunks[i].size ();
-		for ( int j = len - 1;  j >= 0;  j-- ) {
-			if (GET_CHUNK_SIZE (myState.chunks[i][j]) >= bytesNeeded) {
-				void *returnVal = myState.chunks[i][j];
-				myState.chunks[i].erase (myState.chunks[i].begin () + j);
-				ALLOCATOR_REF_COUNT++;
-                                void *retAddress= CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
-      #ifdef DEBUG_OBJECT_MODEL                          
-                                std :: cout << "###################################"<< std :: endl;
-                                std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
-                                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
-                                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
-                                std :: cout << "starting chunk index=" << 31-numLeadingZeros << std :: endl;
-                                std :: cout << "ending chunk index=" << i << std :: endl;
-                                std :: cout << "bytes needed=" << bytesNeeded << std :: endl;
-                                std :: cout << "###################################"<< std :: endl;
-      #endif  
-                                return retAddress;
-			}
-                 }
-        }
+    #ifdef DEBUG_OBJECT_MODEL
+         return defaultGetRAM (howMuch, myState, typeId);
+    #else
+         return defaultGetRAM (howMuch, myState);
+    #endif
+*/
 
-        }
-	// if we got here, then we cannot fit, and we need to carve out a bit at the end
-	// if there is not enough RAM
-	if (LAST_USED + bytesNeeded > myState.numBytes) {
-
-		// see how we are supposed to react...
-		if (myState.throwException) {
-                        PDB_COUT << "Allocator: LAST_USED=" << LAST_USED << std :: endl;
-                        PDB_COUT << "Allocator: bytesNeeded=" << bytesNeeded << std :: endl;
-                        PDB_COUT << "Allocator: numBytes=" << myState.numBytes << std :: endl;
-			// either we throw an exception...
-			throw myException;
-
-		// or we return a nullptr
-		} else {
-			return nullptr;
-		}
-		
-	}
-
-	// now do the allocation
-	void *res = LAST_USED + CHAR_PTR (myState.activeRAM);
-	LAST_USED += bytesNeeded;
-	GET_CHUNK_SIZE (res) = bytesNeeded;
-	ALLOCATOR_REF_COUNT++;
-	void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
-        
-        #ifdef DEBUG_OBJECT_MODEL
-        std :: cout << "###################################"<< std :: endl;
-        std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
-        std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;                     
-        std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
-        std :: cout << "created a new chunk with size =" << bytesNeeded << std :: endl;
-        std :: cout << "###################################"<< std :: endl;
-        #endif
-        return retAddress;
 }
 
-inline bool Allocator :: isManaged (void *here) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline bool MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: isManaged (void *here) {
 
 	// see if this guy is from the active block
 	if (contains (here)) {
@@ -293,7 +550,8 @@ inline bool Allocator :: isManaged (void *here) {
 	return false;
 }
 
-inline void Allocator :: emptyOutBlock (void *here) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: emptyOutBlock (void *here) {
 
 	// if this is the active one, emty it out
 	if (contains (here)) {
@@ -324,82 +582,39 @@ inline void Allocator :: emptyOutBlock (void *here) {
 }
 
 // free some RAM
+template <typename FirstPolicy, typename... OtherPolicies>
 #ifdef DEBUG_OBJECT_MODEL
-inline void Allocator :: freeRAM (void *here, int16_t typeId) {
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: freeRAM (void *here, int16_t typeId) {
 #else
-inline void Allocator :: freeRAM (void *here) {
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: freeRAM (void *here) {
 #endif
 
-	// see if this guy is from the active block
-	if (contains (here)) {
+        bool isContained = contains(here);
 
-		here = CHAR_PTR (here) - CHUNK_HEADER_SIZE;
+#ifdef DEBUG_OBJECT_MODEL
+        myPolicies.freeRAM (isContained, here, allInactives, myState, typeId);
+#else
+        myPolicies.freeRAM (isContained, here, allInactives, myState);
+#endif
 
-		// get the chunk size
-		unsigned chunkSize = GET_CHUNK_SIZE (here);
-		
-		// get the number of leading zeros
-		int leadingZeros = __builtin_clz (chunkSize);
+/*
+    #ifdef DEBUG_OBJECT_MODEL
+        defaultFreeRAM (isContained, here, allInactives, myState, typeId);
+    #else
+        defaultFreeRAM (isContained, here, allInactives, myState);
+    #endif
+*/
 
-		// and remember this chunk
-		myState.chunks[31 - leadingZeros].push_back (here);
-		
-		ALLOCATOR_REF_COUNT--;
-                
-                #ifdef DEBUG_OBJECT_MODEL      
-                std :: cout << "###################################"<< std :: endl;
-                std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
-                std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
-                std :: cout << "allocator numBytes=" << myState.numBytes << std :: endl;
-                std :: cout << "freed numBytes=" << chunkSize << std :: endl;
-                std :: cout << "chunk index=" << 31-leadingZeros << std :: endl;
-                std :: cout << "###################################"<< std :: endl;
-                #endif     
-		return;
-	}
-
-	// otherwise, he is not in the active block, so look for him
-	auto i = std :: lower_bound (allInactives.begin (), allInactives.end (), here);
-
-	// see if we found him
-	if (i != allInactives.end () && !(*i > here)) {
-
-		// we did, so dec reference count
-		i->decReferenceCount ();
-                #ifdef DEBUG_OBJECT_MODEL     
-                std :: cout << "###################################"<< std :: endl;
-                std :: cout << "allocator block reference count--=" << i->getReferenceCount() << " with typeId=" << typeId << std :: endl;
-                std :: cout << "allocator block starting address=" << i->getStart() << std :: endl;
-                std :: cout << "allocator block size=" << i->numBytes() << std :: endl;
-                std :: cout << "###################################"<< std :: endl;
-                #endif     
-
-		// if he is done, delete him
-		if (i->areNoReferences ()) {
-			i->freeBlock ();
-                        PDB_COUT << "Killed an old block naturally." << std :: endl;
-			allInactives.erase (i);	
-		}	
-
-		return;
-	}
-
-	// if we made it here, the object was allocated in some other way,
-	// so we can go ahead and forget about him
-        #ifdef DEBUG_OBJECT_MODEL
-        std :: cout << "###################################################################" << std :: endl;
-        std :: cout << "We can't free the object, it may be allocated by some other thread!" << std :: endl;
-        std :: cout << "typeId=" << typeId << std :: endl;
-        std :: cout << "###################################################################" << std :: endl;
-        #endif
 }
 
-inline void Allocator :: setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
 	setupBlock (where, numBytesIn, throwExceptionOnFail);
 	myState.curBlockUserSupplied = true;
 }
 
-inline size_t Allocator :: getBytesAvailableInCurrentAllocatorBlock () {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline size_t MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getBytesAvailableInCurrentAllocatorBlock () {
 
 	// count all of the chunks that are not currently in use
 	unsigned amtUnused = 0;
@@ -412,11 +627,13 @@ inline size_t Allocator :: getBytesAvailableInCurrentAllocatorBlock () {
 	return myState.numBytes - LAST_USED + amtUnused;
 }
 
-inline unsigned Allocator :: getNumObjectsInCurrentAllocatorBlock () {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getNumObjectsInCurrentAllocatorBlock () {
 	return ALLOCATOR_REF_COUNT;
 }
 
-inline unsigned Allocator :: getNumObjectsInAllocatorBlock (void *here) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getNumObjectsInAllocatorBlock (void *here) {
 		
 	// see if this guy is from the active block
 	if (contains (here)) {
@@ -436,14 +653,16 @@ inline unsigned Allocator :: getNumObjectsInAllocatorBlock (void *here) {
 	return 0;
 }
 
+template <typename FirstPolicy, typename... OtherPolicies>
 template <class ObjType>
-unsigned Allocator :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe) {
+unsigned MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe) {
 
 	void *here = forMe.getTarget ();
 	return getNumObjectsInAllocatorBlock (here);
 }
 
-inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail) {
 
 
 	// make sure that we are gonna be able to write the header
@@ -486,8 +705,9 @@ inline void Allocator :: setupBlock (void *where, size_t numBytesIn, bool throwE
 	ALLOCATOR_REF_COUNT = 0;
 }
 
+template <typename FirstPolicy, typename... OtherPolicies> 
 template <class ObjType> 
-void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
+inline void *MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: getAllocationBlock (Handle <ObjType> &forMe) {
 
 	// try to find the allocation block
 	void *here = forMe.getTarget ();
@@ -516,7 +736,8 @@ void *Allocator :: getAllocationBlock (Handle <ObjType> &forMe) {
 
 // uses a specified block of memory for all allocations, until 
 // restoreAllocationBlock () is called.
-inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline AllocatorState MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: temporarilyUseBlockForAllocations (void *putMeHere, size_t numBytesAvailable) {
 
 	// remember the old stuff
 	AllocatorState returnVal = myState;
@@ -534,7 +755,8 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (void *putM
 
 // uses a specified block of memory for all allocations, until 
 // restoreAllocationBlock () is called.
-inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t numBytesAvailable) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline AllocatorState MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: temporarilyUseBlockForAllocations (size_t numBytesAvailable) {
 
 	// remember the old stuff
 	AllocatorState returnVal = myState;
@@ -563,7 +785,8 @@ inline AllocatorState Allocator :: temporarilyUseBlockForAllocations (size_t num
 
 // goes back to the old allocation block.. this should only
 // by called after a call to temporarilyUseBlockForAllocations ()
-inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: restoreAllocationBlock (AllocatorState &useMe) {
 
 	// if this guy was not user-allocated, then remember him
 	if (!myState.curBlockUserSupplied) {
@@ -591,7 +814,8 @@ inline void Allocator :: restoreAllocationBlock (AllocatorState &useMe) {
 }
 
 //added by Jia to facilitate debugging
-inline std :: string Allocator :: printCurrentBlock() {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline std :: string MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: printCurrentBlock() {
         std :: string out = "Allocator: address= ";
         std :: stringstream stream;
         stream << myState.activeRAM;
@@ -602,7 +826,8 @@ inline std :: string Allocator :: printCurrentBlock() {
         return out;
 }
 
-inline std::string Allocator :: printInactiveBlocks() {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline std::string MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: printInactiveBlocks() {
 
         int i;
         std :: string out = "Allocator: NumInactives=";
@@ -631,7 +856,8 @@ inline std::string Allocator :: printInactiveBlocks() {
 
 // Added by Jia
 // this function should only be used for debugging purposes.
-inline void Allocator :: cleanInactiveBlocks() {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: cleanInactiveBlocks() {
         for (auto it = allInactives.begin(); it != allInactives.end(); ) {
             it->freeBlock();
             it = allInactives.erase (it);
@@ -639,7 +865,8 @@ inline void Allocator :: cleanInactiveBlocks() {
         return;
 }
 
-inline void Allocator :: cleanInactiveBlocks( size_t size ) {
+template <typename FirstPolicy, typename... OtherPolicies>
+inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: cleanInactiveBlocks( size_t size ) {
         for (auto it = allInactives.begin(); it != allInactives.end(); ) {
             if(it->numBytes()==size) {
                 it->freeBlock();
@@ -649,15 +876,6 @@ inline void Allocator :: cleanInactiveBlocks( size_t size ) {
             }
         }
         return;
-}
-
-//those functions are for performance optimization
-inline void Allocator :: setOptimizationForSpeed (bool optimizationForSpeed) {
-        optimizeSpeed = optimizationForSpeed;
-}
-
-inline bool Allocator :: isOptimizationForSpeed () {
-        return optimizeSpeed;
 }
 
 
