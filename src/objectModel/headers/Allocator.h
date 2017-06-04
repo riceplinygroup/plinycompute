@@ -27,7 +27,6 @@
 #include <cstring>
 #include <unordered_map>
 
-
 //#define DEBUG_OBJECT_MODEL
 
 namespace pdb {
@@ -38,6 +37,331 @@ namespace pdb {
 // Allocator is used indirectly, via the functions in InterfactFunctions.h.
 #define CHAR_PTR(c) ((char *) c)
 
+
+// this is a little container class for all of the Allocator-managed blocks of
+// memory that still contain active objects.  
+class InactiveAllocationBlock {
+
+public:
+
+        // where the block begins
+        void *start;
+
+        // where the block ends
+        void *end;
+
+        //friend Allocator;
+public: 
+
+        // create a block
+        InactiveAllocationBlock ();
+        
+        // free the memory associated with the block
+        void freeBlock ();
+        
+        // create a block... the two params are the location, and the size in bytes
+        InactiveAllocationBlock (void *startIn, size_t numBytes);
+        
+        // returns true if the block is *before* compToMe, and does not contain it
+        friend bool operator < (const InactiveAllocationBlock &in, const void *compToMe);
+        
+        // returns true if the ends of the lhs is before the end of the rhs
+        friend bool operator < (const InactiveAllocationBlock &lhs, const InactiveAllocationBlock &rhs);
+        
+        // returns true if the block is *after* compToMe, and does not contain it
+        friend bool operator > (const InactiveAllocationBlock &in, const void *compToMe);
+        
+        // returns true if the block contains compToMe
+        friend bool operator == (const InactiveAllocationBlock &in, const void *compToMe);
+        
+        // decrement the reference count of this block
+        void decReferenceCount ();
+        
+        // return the reference count
+        unsigned getReferenceCount ();
+        
+        // free it if there are no more references
+        bool areNoReferences ();
+        
+        // return the size
+        size_t numBytes();
+        
+        // return the starting pointer
+        void * getStart();
+        
+        // return the ending pointr
+        void * getEnd();
+
+};
+
+// this class holds the current state of an alloctor
+struct AllocatorState {
+
+        // the location of the block of RAM that this guy is allocating from
+        void *activeRAM;
+
+        // the number of bytes available in all
+        size_t numBytes;
+
+        // true if we are supposed to throw an exception on allocation failure
+        bool throwException;
+
+        // true if the current allocation block is user-supplied
+        bool curBlockUserSupplied;
+
+        // Th Allocator implements a really simple memory manager.  Every time there is a
+        // request, the allocator class services it by pre-pending an usigned int to the returned
+        // bytes that mark the length of the set of bytes.
+        //
+        // When the bytes are freed, a pointer to the region is added to the "chunks" 
+        // vector, declared below.
+        //
+        // All of the free regions are organized into 32 lists.  The first list has all
+        // chunks 2^0 bytes in size.  The second all chunks 2^1 bytes in size.  The third
+        // all 2^2 and up to 2^3 - 1.  The fourth 2^3 and up to 2^4 - 1.  The fifth all
+        // 2^4 and up to 2^5 - 1, and so on.
+        // 
+        // When a request for RAM is serviced, the correct list is located (that is, the 
+        // first list that could possibly service the request) depending upon the size of
+        // the request.  It is searched linearly, and the first free region that can 
+        // service the request is returned.  If no region in the list can service it, the
+        // next list is checked.  Then the next, and so on.
+        std :: vector <std :: vector <void *>> chunks;
+};
+
+
+enum AllocatorPolicy { defaultPolicy, noReclaimPolicy, noReferenceCountPolicy };
+
+//the dummy policy
+
+class DummyPolicy {
+
+public:
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId) {
+#else
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+    std :: cout << "Default policy!!\n";
+
+}
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+#else
+inline void * getRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+
+    return nullptr;
+
+}
+
+inline void setPolicy (AllocatorPolicy toMe) {
+
+
+}
+
+};
+
+
+
+
+//Policy that we use by default, with simple reclaiming of deallocated space
+class DefaultPolicy {
+
+public:
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+#else
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
+#endif
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId);
+#else
+inline void * getRAM (size_t howMuch, AllocatorState & myState);
+#endif
+
+inline AllocatorPolicy getPolicyName () {
+
+    return AllocatorPolicy :: defaultPolicy;
+
+}
+
+};
+
+
+//Policy that never try to reclaim deallocated spaces
+class NoReclaimPolicy {
+
+public:
+
+// free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+#else
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
+#endif
+
+// returns some RAM without reclaiming spaces... 
+// this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId);
+#else
+inline void * getRAM (size_t howMuch, AllocatorState & myState);
+#endif
+
+inline AllocatorPolicy getPolicyName() {
+
+    return AllocatorPolicy :: noReclaimPolicy;
+
+}
+
+};
+
+
+//Policy that do not do reference counting
+class NoReferenceCountPolicy {
+
+public:
+
+// do nothing
+#ifdef DEBUG_OBJECT_MODEL
+inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+#else
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
+#endif
+
+// returns some RAM... this can throw an exception if the request is too large
+// to be handled because there is not enough RAM in the current allocation block
+#ifdef DEBUG_OBJECT_MODEL
+inline void * getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId);
+#else
+inline void * getRAM (size_t howMuch, AllocatorState & myState);
+#endif
+
+inline AllocatorPolicy getPolicyName() {
+
+     return AllocatorPolicy :: noReferenceCountPolicy;
+
+}
+
+};
+
+
+// forward declaration of the PolicyList class
+
+template <typename FirstPolicy, typename... OtherPolicies> 
+
+class PolicyList;
+
+
+
+// will use SINFAE to select type PolicyList <OtherPolicies...> if OtherPolicies is non-empty
+
+template <typename... OtherPolicies>
+
+typename std::enable_if <sizeof... (OtherPolicies) >= 1, PolicyList <OtherPolicies...>> :: type first ();
+
+
+
+// will use SINFAE to select type DefaultPolicy if OtherPolicies is empty
+
+template <typename... OtherPolicies>
+
+typename std::enable_if <sizeof... (OtherPolicies) == 0, DummyPolicy> :: type first ();
+
+
+
+// the actual policy list class
+
+template <typename FirstPolicy, typename... OtherPolicies> 
+
+class PolicyList {
+
+private:
+
+        FirstPolicy firstPolicy;
+
+        decltype (first <OtherPolicies...> ()) theRest;
+
+        bool useMe = false;
+
+public:
+
+        inline void setPolicy (AllocatorPolicy toMe) {
+
+             if (firstPolicy.getPolicyName () == toMe) {
+
+                  useMe = true;
+
+             } else {
+                        
+                  theRest.setPolicy (toMe);
+
+             }
+
+        }
+
+//free some RAM
+#ifdef DEBUG_OBJECT_MODEL
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
+#else
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+#endif
+
+       if (useMe) {
+#ifdef DEBUG_OBJECT_MODEL
+           firstPolicy.freeRAM (isContained, here, allInactives, myState, typeId);
+#else
+           firstPolicy.freeRAM (isContained, here, allInactives, myState);
+#endif
+       } else {
+#ifdef DEBUG_OBJECT_MODEL
+           theRest.freeRAM(isContained, here, allInactives, myState, typeId);
+#else
+           theRest.freeRAM(isContained, here, allInactives, myState);
+#endif
+
+       }
+
+}
+
+#ifdef DEBUG_OBJECT_MODEL
+inline void * getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+#else
+inline void * getRAM (size_t howMuch, AllocatorState & myState) {
+#endif
+
+       if (useMe) {
+#ifdef DEBUG_OBJECT_MODEL
+           return firstPolicy.getRAM (howMuch, myState, typeId);
+#else
+           return firstPolicy.getRAM (howMuch, myState);
+#endif
+       } else {
+#ifdef DEBUG_OBJECT_MODEL
+           return theRest.getRAM (howMuch, myState, typeId);
+#else
+           return theRest.getRAM (howMuch, myState);
+#endif
+
+       }
+
+
+}
+
+};
 // this class is an exception that is (optionally) thrown 
 // when we try to do an allocation to create an Object
 // but there is not enough RAM
@@ -49,118 +373,27 @@ class NotEnoughSpace : public std :: bad_alloc {
 
 extern NotEnoughSpace myException;
 
-// this is a little container class for all of the Allocator-managed blocks of
-// memory that still contain active objects.  
-class InactiveAllocationBlock {
-
-private:
-
-	// where the block begins
-	void *start;
-
-	// where the block ends
-	void *end;
-
-	friend class Allocator;
-public:
-
-	// create a block
-	InactiveAllocationBlock ();
-
-	// free the memory associated with the block
-	void freeBlock ();
-
-	// create a block... the two params are the location, and the size in bytes
-	InactiveAllocationBlock (void *startIn, size_t numBytes);
-
-	// returns true if the block is *before* compToMe, and does not contain it
-	friend bool operator < (const InactiveAllocationBlock &in, const void *compToMe);
-
-	// returns true if the ends of the lhs is before the end of the rhs
-	friend bool operator < (const InactiveAllocationBlock &lhs, const InactiveAllocationBlock &rhs);
-	
-	// returns true if the block is *after* compToMe, and does not contain it
-	friend bool operator > (const InactiveAllocationBlock &in, const void *compToMe);
-	
-	// returns true if the block contains compToMe
-	friend bool operator == (const InactiveAllocationBlock &in, const void *compToMe);
-
-	// decrement the reference count of this block
-	void decReferenceCount ();
-
-	// return the reference count
-	unsigned getReferenceCount ();
-
-	// free it if there are no more references
-	bool areNoReferences ();
-
-        // return the size
-        size_t numBytes();
-     
-        // return the starting pointer
-        void * getStart();
-
-        // return the ending pointr
-        void * getEnd();
-
-};
-
-// this class holds the current state of an alloctor
-struct AllocatorState {
-
-	// the location of the block of RAM that this guy is allocating from
-	void *activeRAM;
-
-	// the number of bytes available in all
-	size_t numBytes;
-
-	// true if we are supposed to throw an exception on allocation failure
-	bool throwException;
-
-	// true if the current allocation block is user-supplied
-	bool curBlockUserSupplied;
-
-	// Th Allocator implements a really simple memory manager.  Every time there is a
-	// request, the allocator class services it by pre-pending an usigned int to the returned
-	// bytes that mark the length of the set of bytes.
-	//
-	// When the bytes are freed, a pointer to the region is added to the "chunks" 
-	// vector, declared below.
-	//
-	// All of the free regions are organized into 32 lists.  The first list has all
-	// chunks 2^0 bytes in size.  The second all chunks 2^1 bytes in size.  The third
-	// all 2^2 and up to 2^3 - 1.  The fourth 2^3 and up to 2^4 - 1.  The fifth all
-	// 2^4 and up to 2^5 - 1, and so on.
-	// 
-	// When a request for RAM is serviced, the correct list is located (that is, the 
-	// first list that could possibly service the request) depending upon the size of
-	// the request.  It is searched linearly, and the first free region that can 
-	// service the request is returned.  If no region in the list can service it, the
-	// next list is checked.  Then the next, and so on.
-	std :: vector <std :: vector <void *>> chunks;
-};
 
 template <class ObjType>
 class Handle;
+
 
 // this is the Allocator class.  There is one allocator per thread.  The allocator
 // is responsible for managing the RAM that is used to allocate everything that
 // is descended from object.  Most programmers (even PDB engineers) will never touch
 // the allocator class directly.  
-class Allocator {
+template <typename FirstPolicy, typename... OtherPolicies>
+class MultiPolicyAllocator {
 
 private:
+
+        PolicyList <FirstPolicy, OtherPolicies...> myPolicies;
 
 	AllocatorState myState;
 
 	// this is the list of all self-managed allocation blocks that are not active, but
 	// still contain some object...
 	std :: vector <InactiveAllocationBlock> allInactives;
-
-        //std :: unordered_map<void *, int16_t> remainingReferences; 
-
-        //JiaNote: whether to optimize allocation speed, instead of space
-        bool optimizeSpeed;
 
 public:
 	
@@ -170,60 +403,65 @@ public:
 	bool doNotFail ();
 
 	// destructor; if there is a self-allocated current allocation block, free it
-	~Allocator ();
+	~MultiPolicyAllocator ();
+
+
+        // to set policy
+        inline void setPolicy (AllocatorPolicy policy);
+
 
 	// we have no active RAM
-	Allocator ();
+	MultiPolicyAllocator ();
 
 	// give this guy the specified active RAM
-	Allocator (size_t numBytes);
+	MultiPolicyAllocator (size_t numBytes);
 
 	// this finds the block contianing the indicated pointer and sets the number of references to
 	// zero, freeing the block if applicable
-	void emptyOutBlock (void *here);
+	inline void emptyOutBlock (void *here);
 
 	// get the number of currently-reachable objects in this guy's block
 	template <class ObjType>
 	unsigned getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe);
 
 	// get the number of currently-reachable objects in the current allocation block
-	unsigned getNumObjectsInCurrentAllocatorBlock ();
+	inline unsigned getNumObjectsInCurrentAllocatorBlock ();
 
 	// get the number of objects in the block containing the given memory location
-	unsigned getNumObjectsInAllocatorBlock (void *forMe);
+	inline unsigned getNumObjectsInAllocatorBlock (void *forMe);
 
 	// get the number of bytes available in the current allocation block
-	size_t getBytesAvailableInCurrentAllocatorBlock ();
+	inline size_t getBytesAvailableInCurrentAllocatorBlock ();
 
 	// returns true if and only if the RAM is in the current allocation block
-	bool contains (void *whereIn);
+	inline bool contains (void *whereIn);
 
 	// returns true if and only if the RAM is in the current allocation block
 	// or it is in some inactive allocation block that has not been deleted
 	// as of yet
-	bool isManaged (void *here); 
+	inline bool isManaged (void *here); 
 
 	// returns some RAM... this can throw an exception if the request is too large
 	// to be handled because there is not enough RAM in the current allocation block
         // JIA NOTE: enable DEBUG_OBJECT_MODEL will bring significant performance overhead, and should be used cautiously.
         #ifdef DEBUG_OBJECT_MODEL
-	    void *getRAM (size_t howMuch, int16_t typeId);
+	    inline void *getRAM (size_t howMuch, int16_t typeId);
         #else
-            void *getRAM (size_t howMuch);
+            inline void *getRAM (size_t howMuch);
         #endif
 
 	// free some RAM that was previous allocated via a call to getRAM
         #ifdef DEBUG_OBJECT_MODEL
-            void freeRAM (void *here, int16_t typeId);
+            inline void freeRAM (void *here, int16_t typeId);
         #else
-            void freeRAM (void *here);
+            inline void freeRAM (void *here);
         #endif
 
 	// make this RAM the current allocation block
-	void setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
+	inline void setupBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
 
 	// make this user-supplied RAM the current allocation block
-	void setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
+	inline void setupUserSuppliedBlock (void *where, size_t numBytesIn, bool throwExceptionOnFail);
 
 	// returns a pointer to the allocation block housing the
 	// object pointed to by this handle.  A nullptr is returned
@@ -246,27 +484,24 @@ public:
 
 	// goes back to the old allocation block.. this should only
 	// by alled after a call to temporarilyUseBlockForAllocations ()
-	void restoreAllocationBlock (AllocatorState &restoreMe);
+	inline void restoreAllocationBlock (AllocatorState &restoreMe);
 
         // Jia Note: for debugging object model memory management
-        std::string printCurrentBlock();
-        std::string printInactiveBlocks();
+        inline std::string printCurrentBlock();
+        inline std::string printInactiveBlocks();
 
         // Jia Note: this function should only be used for debugging purposes.
-        void cleanInactiveBlocks();
+        inline void cleanInactiveBlocks();
 
-        void cleanInactiveBlocks( size_t size );
-
-        // Jia Note: this function is used to set whether to optimize allocation for speed
-        void setOptimizationForSpeed (bool optimizationForSpeed);
-
-        bool isOptimizationForSpeed ();
-        
+        inline void cleanInactiveBlocks( size_t size );
 
 private:
 
 	friend void makeObjectAllocatorBlock (size_t numBytesIn);
 };
+
+typedef MultiPolicyAllocator <DefaultPolicy, NoReclaimPolicy, NoReferenceCountPolicy> Allocator;
+
 
 // returns a reference to the allocator that should be used.  Each process has one default allocator.
 // Each of the workers in a WorkerQueue are given their own allocator, which resides at the beginning
