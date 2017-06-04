@@ -31,6 +31,9 @@
 
 namespace pdb {
 
+        enum ObjectPolicy { defaultObject, noReferenceCountObject };
+
+
 // This is the basic PDB Object type.  Everything that is stored in PDB should
 // derive from this.  Currently, it simply overrides all of the new () operators
 // so that it is basically impossible to create an object via new ().  Additional

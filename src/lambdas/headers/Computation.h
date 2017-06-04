@@ -205,6 +205,9 @@ public:
 
         virtual void setBatchSize(int batchSize) {}
 
+        void setAllocatorPolicy (AllocatorPolicy myPolicy) { this->myAllocatorPolicy = myPolicy; }
+
+        void setObjectPolicy (ObjectPolicy myPolicy) { this->myObjectPolicy = myPolicy; }
 private:
 
         //JiaNote: added to construct query graph
@@ -218,6 +221,10 @@ private:
         String outputColumnToApply = "";
 
         int numConsumers = 0;
+
+        AllocatorPolicy myAllocatorPolicy = AllocatorPolicy :: defaultAllocator;
+
+        ObjectPolicy myObjectPolicy = ObjectPolicy :: defaultObject;
 
 };
 
