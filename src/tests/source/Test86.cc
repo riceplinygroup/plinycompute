@@ -235,6 +235,7 @@ int main (int argc, char * argv[]) {
 	Handle <Computation> myFlatten = makeObject <SupervisorMultiSelection> ();
         myFlatten->setInput(myScanSet);
         Handle <Computation> myFilter = makeObject <AllSelectionWithCreation> ();
+        myFilter->setAllocatorPolicy(AllocatorPolicy :: noReuseAllocator);
         myFilter->setInput(myFlatten); 
         Handle <Computation> myAgg = makeObject <SillyAggregation> ("test86_db", "output_set");
         myAgg->setInput(myFilter);

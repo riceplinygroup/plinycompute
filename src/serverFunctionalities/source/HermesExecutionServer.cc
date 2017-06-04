@@ -377,7 +377,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              //make allocator block and allocate the JoinMap
              const UseTemporaryAllocationBlock tempBlock (sharedHashSet->getPage(), hashSetSize) ;
              std :: cout << "hashSetSize = " << hashSetSize << std :: endl;
-             getAllocator().setPolicy(noReclaimPolicy);
+             getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
              //to get the sink merger
              std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
              std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
@@ -411,7 +411,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              PDB_COUT << "To get record" << std :: endl;
              getRecord(myMap);
 
-             getAllocator().setPolicy(defaultPolicy);
+             getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
 
              if (this->setCurPageScanner(nullptr) == false) {
                 success = false;

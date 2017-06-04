@@ -352,9 +352,9 @@ inline void * DefaultPolicy :: getRAM (size_t howMuch, AllocatorState & myState)
 
 // free some RAM
 #ifdef DEBUG_OBJECT_MODEL
-inline void NoReclaimPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
+inline void NoReusePolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
 #else
-inline void NoReclaimPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
+inline void NoReusePolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
 #endif
 
     #ifdef DEBUG_OBJECT_MODEL
@@ -369,9 +369,9 @@ inline void NoReclaimPolicy :: freeRAM (bool isContained, void *here, std :: vec
 // returns some RAM... this can throw an exception if the request is too large
 // to be handled because there is not enough RAM in the current allocation block
 #ifdef DEBUG_OBJECT_MODEL
-inline void * NoReclaimPolicy :: getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
+inline void * NoReusePolicy :: getRAM (size_t howMuch, AllocatorState & myState, int16_t typeId) {
 #else
-inline void * NoReclaimPolicy :: getRAM (size_t howMuch, AllocatorState & myState) {
+inline void * NoReusePolicy :: getRAM (size_t howMuch, AllocatorState & myState) {
 #endif
 
     #ifdef DEBUG_OBJECT_MODEL
@@ -456,7 +456,7 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator () {
 	setupBlock (malloc (1024), 1024, true);
 
         //by default, we optimize for space
-        setPolicy (defaultPolicy);   
+        setPolicy (defaultAllocator);   
 
 }
 
@@ -486,7 +486,7 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator (siz
         setupBlock (putMeHere, numBytesIn, true);
 
         //by default, we optimize for space
-        setPolicy (defaultPolicy);
+        setPolicy (defaultAllocator);
 
 }
 

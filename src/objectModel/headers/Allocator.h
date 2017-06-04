@@ -130,7 +130,7 @@ struct AllocatorState {
 };
 
 
-enum AllocatorPolicy { defaultPolicy, noReclaimPolicy, noReferenceCountPolicy };
+enum AllocatorPolicy { defaultAllocator, noReuseAllocator, noReferenceCountAllocator };
 
 //the dummy policy
 
@@ -193,7 +193,7 @@ inline void * getRAM (size_t howMuch, AllocatorState & myState);
 
 inline AllocatorPolicy getPolicyName () {
 
-    return AllocatorPolicy :: defaultPolicy;
+    return AllocatorPolicy :: defaultAllocator;
 
 }
 
@@ -201,7 +201,7 @@ inline AllocatorPolicy getPolicyName () {
 
 
 //Policy that never try to reclaim deallocated spaces
-class NoReclaimPolicy {
+class NoReusePolicy {
 
 public:
 
@@ -223,7 +223,7 @@ inline void * getRAM (size_t howMuch, AllocatorState & myState);
 
 inline AllocatorPolicy getPolicyName() {
 
-    return AllocatorPolicy :: noReclaimPolicy;
+    return AllocatorPolicy :: noReuseAllocator;
 
 }
 
@@ -252,7 +252,7 @@ inline void * getRAM (size_t howMuch, AllocatorState & myState);
 
 inline AllocatorPolicy getPolicyName() {
 
-     return AllocatorPolicy :: noReferenceCountPolicy;
+     return AllocatorPolicy :: noReferenceCountAllocator;
 
 }
 
@@ -500,7 +500,7 @@ private:
 	friend void makeObjectAllocatorBlock (size_t numBytesIn);
 };
 
-typedef MultiPolicyAllocator <DefaultPolicy, NoReclaimPolicy, NoReferenceCountPolicy> Allocator;
+typedef MultiPolicyAllocator <DefaultPolicy, NoReusePolicy, NoReferenceCountPolicy> Allocator;
 
 
 // returns a reference to the allocator that should be used.  Each process has one default allocator.
