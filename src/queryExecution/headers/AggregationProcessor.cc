@@ -40,7 +40,7 @@ void AggregationProcessor <KeyType, ValueType> :: initialize () {
 }
 
 template <class KeyType, class ValueType>
-void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object> objectToProcess) {
+void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object> & objectToProcess) {
         curMap = unsafeCast<Map<KeyType, ValueType>, Object> (objectToProcess);
         HashPartitionID hashIdForCurrentMap = curMap->getHashPartitionId();
         PDB_COUT << "this map's partitionId is " << hashIdForCurrentMap << std :: endl;

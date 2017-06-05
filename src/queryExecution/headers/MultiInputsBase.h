@@ -104,7 +104,7 @@ public:
         }
 
         // set latest input columns for the tupleset for the i-th input
-        void setInputColumnsForIthInput (int i, std :: vector < std :: string> columns)  {
+        void setInputColumnsForIthInput (int i, std :: vector < std :: string> & columns)  {
                 int numInputs = this->getNumInputs();
                 if ( inputColumnsForInputs.size() != numInputs) {
                     inputColumnsForInputs.resize(numInputs);
@@ -127,7 +127,7 @@ public:
 
 
         // set latest input column to apply for the tupleset for the i-th input
-        void setInputColumnsToApplyForIthInput (int i, std :: vector < std :: string > columnsToApply)  {
+        void setInputColumnsToApplyForIthInput (int i, std :: vector < std :: string > & columnsToApply)  {
                 int numInputs = this->getNumInputs();
                 if (inputColumnsToApplyForInputs.size() != numInputs) {
                     inputColumnsToApplyForInputs.resize(numInputs);

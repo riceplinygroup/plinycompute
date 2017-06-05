@@ -215,7 +215,7 @@ public:
 
         //takes inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumnName, outputColumns, TCAP operation name as inputs, and outputs a TCAP string with one TCAP operation.
 
-        std :: string getTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: string outputTupleSetName, std :: vector<std :: string> outputColumns, std :: string outputColumnName, std :: string tcapOperation, std :: string computationNameAndLabel, std :: string lambdaNameAndLabel) {
+        std :: string getTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: string outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string outputColumnName, std :: string tcapOperation, std :: string computationNameAndLabel, std :: string lambdaNameAndLabel) {
 
                 std :: string tcapString = outputTupleSetName + "(" + outputColumns[0];
                 for (int i = 1; i < outputColumns.size(); i++) {
@@ -254,7 +254,7 @@ public:
         // gets TCAP string corresponding to this Lambda
         // JiaNote: below is just a default implementation for Lambdas to "Apply"
         // you can override this implementation in your subclasses
-        virtual std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
+        virtual std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
                 std :: string tcapString = "";
                 std :: string lambdaType = getTypeOfLambda();
                 if ((lambdaType.find("==") != std :: string :: npos) || (lambdaType.find("&&") != std :: string :: npos)) {

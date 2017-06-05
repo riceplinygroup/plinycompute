@@ -95,7 +95,7 @@ public:
     DataProxyPtr createProxy (int i, pthread_mutex_t connection_mutex, std :: string & errMsg);
 
     //execute pipeline
-    void executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector <PageCircularBufferIteratorPtr> iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector  <PageCircularBufferPtr> combinerBuffers, HermesExecutionServer * server, std :: string & errMsg);
+    void executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector <PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector  <PageCircularBufferPtr> & combinerBuffers, HermesExecutionServer * server, std :: string & errMsg);
 
     //return the root job stage corresponding to the pipeline 
     Handle<TupleSetJobStage> & getJobStage(); 

@@ -187,7 +187,7 @@ public:
         }
 
         //to get the TCAPString for this lambda tree
-        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector <std :: string> childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false) {
+        std :: string toTCAPString(std :: string inputTupleSetName, std :: vector<std :: string>& inputColumnNames, std :: vector<std :: string>& inputColumnsToApply, std :: vector <std :: string>& childrenLambdaNames, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & outputTupleSetName, std :: vector<std :: string> & outputColumnNames, std :: string & addedOutputColumnName, std :: string & myLambdaName, bool whetherToRemoveUnusedOutputColumns, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false) {
             std :: vector<std :: string> tcapStrings;
             std :: string outputTCAPString;
             std :: vector<std :: string> inputTupleSetNames;

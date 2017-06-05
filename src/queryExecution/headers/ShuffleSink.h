@@ -25,6 +25,7 @@
 #include "TupleSetMachine.h"
 #include "TupleSet.h"
 #include "DataTypes.h"
+#include "Employee.h"
 #include <vector>
 
 namespace pdb {
@@ -109,7 +110,6 @@ public:
 				// we were able to fit a new key/value pair, so copy over the value
 				try {
 					*temp = valueColumn[i];
-
 				// if we could not fit the value...
 				} catch (NotEnoughSpace &n) {
 
@@ -132,7 +132,6 @@ public:
 				// and add to the old value, producing a new one
 				try {
 					temp = copy + valueColumn[i];
-
 				// if we got here, then it means that we ram out of RAM when we were trying 
 				// to put the new value into the hash table
 				} catch (NotEnoughSpace &n) {	

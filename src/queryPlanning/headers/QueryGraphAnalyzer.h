@@ -38,7 +38,7 @@ class QueryGraphAnalyzer {
 public:
 
     //constructor
-    QueryGraphAnalyzer ( std :: vector <Handle<Computation>> queryGraph );
+    QueryGraphAnalyzer ( std :: vector <Handle<Computation>>& queryGraph );
 
     //constructor
     QueryGraphAnalyzer ( Handle<Vector<Handle<Computation>>> queryGraph );

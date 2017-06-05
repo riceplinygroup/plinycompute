@@ -539,7 +539,7 @@ public:
 	virtual ComputeExecutorPtr getProber (void *hashTable, std :: vector <int> &positions,
                 TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, bool needToSwapLHSAndRhs) = 0;
 
-	virtual ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> whereEveryoneGoes) = 0;
+	virtual ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
         virtual SinkMergerPtr getMerger() = 0;
 
@@ -562,7 +562,7 @@ public:
 	}
 
 	// creates a compute sink for this particular type
-        ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> whereEveryoneGoes) override {
+        ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) override {
 		return std :: make_shared <JoinSink <HoldMe>> (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
         }
 

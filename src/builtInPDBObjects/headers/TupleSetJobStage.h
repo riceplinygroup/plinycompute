@@ -233,6 +233,7 @@ namespace pdb {
                 std :: cout << "[SOURCE TUPLESET] sourceTupleSetSpecifier=" << this->sourceTupleSetSpecifier << std :: endl;
                 std :: cout << "[TARGET TUPLESET] targetTupleSetSpecifier=" << this->targetTupleSetSpecifier << std :: endl;
                 std :: cout << "[TARGET COMPUTATION] targetComputationSpecifier=" << this->targetComputationSpecifier << std :: endl;
+                std :: cout << "[ALLOCATOR POLICY] allocatorPolicy=" << this->allocatorPolicy << std ::endl;
                 if (buildTheseTupleSets != nullptr) {
                     std :: cout << "[PIPELINE]" << std :: endl;
                     size_t mySize = buildTheseTupleSets->size();
@@ -375,6 +376,14 @@ namespace pdb {
                 return this->totalMemoryOnThisNode;
             }
 
+            void setAllocatorPolicy (AllocatorPolicy myPolicy) {
+                this->allocatorPolicy = myPolicy;
+            }
+
+            AllocatorPolicy getAllocatorPolicy () {
+                return this->allocatorPolicy;
+            }
+
             ENABLE_DEEP_COPY
 
 
@@ -454,6 +463,9 @@ namespace pdb {
 
             //memory size on this node
             size_t totalMemoryOnThisNode;
+
+            //allocator policy
+            AllocatorPolicy allocatorPolicy;
 
    };
 

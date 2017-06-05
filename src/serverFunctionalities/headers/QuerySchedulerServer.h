@@ -82,7 +82,7 @@ public:
        bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
 
        //to schedule dynamic pipeline stages
-       void scheduleStages(std :: vector <Handle<AbstractJobStage>> stagesToSchedule, std :: vector <Handle<SetIdentifier>> intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo);
+       void scheduleStages(std :: vector <Handle<AbstractJobStage>> & stagesToSchedule, std :: vector <Handle<SetIdentifier>> & intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo);
 
 
        //deprecated

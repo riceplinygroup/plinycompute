@@ -19,6 +19,7 @@
 #define COMBINER_PROCESSOR_CC
 
 #include "CombinerProcessor.h"
+#include "Employee.h"
 
 namespace pdb {
 
@@ -124,6 +125,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                         end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
 
                         if ((*begin) != (*end)) {
+                            PDB_COUT << "Combiner processor: now we have a new output map with index in outputData being " << curPartPos << std :: endl;
                             curOutputMap = (*outputData)[curPartPos];
                         } else {
                             PDB_COUT << "this is strage: map size > 0 but begin == end" << std :: endl;
@@ -141,11 +143,19 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
             }
             KeyType curKey = (*(*begin)).key;
             ValueType curValue = (*(*begin)).value;
+            //std :: cout << "combine the " << count << "-th element" << std :: endl;
             // if the key is not there
             if (curOutputMap->count (curKey) == 0) {
                 
                 ValueType * temp = nullptr;
-                temp = &((*curOutputMap)[curKey]);
+                try {
+                    temp = &((*curOutputMap)[curKey]);
+
+                } catch (NotEnoughSpace &n) {
+
+                    std :: cout << "Error: Combiner page is too small, exception 1 thrown" << std :: endl;
+                    throw n;
+                }
                 try {
 
                     *temp = curValue;
@@ -153,7 +163,9 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     count ++;
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
+                    std :: cout << "Error: Combiner page is too small, exception 2 thrown" << std :: endl;
                     curOutputMap->setUnused (curKey);
+                 
                     throw n;
                 }
             // the key is there
@@ -165,13 +177,14 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                 //and add to old value, producing a new one
                 try {
-
+                    
                     temp = copy + curValue;
                     ++(*begin);
                     count ++;
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {
+                    std :: cout << "Error: Combiner page is too small, exception 3 thrown" << std :: endl;
                     temp = copy;
                     throw n;
                 }

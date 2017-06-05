@@ -39,7 +39,7 @@ public:
     AggregationProcessor (HashPartitionID id);   
     void initialize () override;
     void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> objectToProcess) override;
+    void loadInputObject (Handle<Object> & objectToProcess) override;
     void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
     bool fillNextOutputPage () override;
     void finalize () override;
