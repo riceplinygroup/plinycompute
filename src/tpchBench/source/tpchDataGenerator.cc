@@ -45,12 +45,35 @@
 #include "DataTypes.h"
 #include "InterfaceFunctions.h"
 
-
 #include "Part.h"
 #include "Supplier.h"
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
+
+#include "Handle.h"
+#include "Lambda.h"
+#include "QueryClient.h"
+#include "DistributedStorageManagerClient.h"
+#include "DispatcherClient.h"
+#include "LambdaCreationFunctions.h"
+#include "UseTemporaryAllocationBlock.h"
+#include "Pipeline.h"
+#include "SelectionComp.h"
+#include "ScanSupervisorSet.h"
+#include "WriteBuiltinEmployeeSet.h"
+#include "SupervisorMultiSelection.h"
+#include "VectorSink.h"
+#include "HashSink.h"
+#include "MapTupleSetIterator.h"
+#include "VectorTupleSetIterator.h"
+#include "ComputePlan.h"
+#include <ctime>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <chrono>
+#include <fcntl.h>
 
 // #include "Set.h"
 //TODO: why shoud I include WriteStringSet when I want to use DispatcherClient?
@@ -63,27 +86,29 @@ using namespace std;
 // ./bin/pdb-server 1 512 localhost:8108 localhost:8109
 // ./bin/pdb-server 1 512 localhost:8108 localhost:8110
 
-
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB
 
 #define KB 1024
 #define MB (1024*KB)
 
+
 int main() {
 
+	int NoOfCopies=1;
+
 	// Connection info
-	string masterIp = "localhost";
+	string masterHostname = "localhost";
 	int masterPort = 8108;
 
 	// register the shared employee class
 	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterIp, clientLogger);
+	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
 
-	pdb::CatalogClient catalogClient(masterPort, masterIp, clientLogger);
+	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
 
-	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterIp, clientLogger);
+	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
 
 	string errMsg;
 	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
@@ -355,7 +380,8 @@ int main() {
 
 	pdb::makeObjectAllocatorBlock((size_t) 15000 * MB, true);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  customerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -377,37 +403,53 @@ int main() {
 		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
 				tokens.at(7));
 
-		customerList->push_back(tCustomer);
+		storeMeCustomerList->push_back(tCustomer);
 
 		if (customerKey % 1000 == 0) {
 			cout << "Customer Key: " << customerKey << endl;
 
 		}
 
+	}
+
 		infile.close();
 		infile.clear();
 
-
-
-         pdb::Record <Vector <Handle <Customer>>> *myBytes = getRecord <Vector <Handle <Customer>>> (customerList);
-	     size_t sizeOfCustomers=   myBytes->numBytes();
-	     cout<< "Size of Customer Vector is: "<<sizeOfCustomers<<endl;
+		pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
+		size_t sizeOfCustomers = myBytes->numBytes();
+		cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
 		// store copies of the same dataset.
-		for (int i = 1; i <= 20; ++i) {
+		for (int i = 1; i <= NoOfCopies; ++i) {
 			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
-			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), customerList, errMsg)) {
-				std::cout << "Failed to send data to dispatcher server" << std::endl;
-				return -1;
-			}
 
-			distributedStorageManagerClient.flushData( errMsg );
+				if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+					std::cout << "Failed to send data to dispatcher server" << std::endl;
+					return -1;
+				}
+
+			// flush to disk
+			distributedStorageManagerClient.flushData(errMsg);
 
 		}
 
+		QueryClient myClient(masterPort, masterHostname, clientLogger, true);
+
+		std::cout << "to print result..." << std::endl;
+		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
+
+		std::cout << "Query results: ";
+		int count = 0;
+		for (auto a : result) {
+			count++;
+			if (count % 10000 == 0) {
+				std::cout << count << endl;
+				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
+			}
+		}
+		std::cout << "multi-selection output count:" << count << "\n";
 
 
-	}
 }
 
 #endif
