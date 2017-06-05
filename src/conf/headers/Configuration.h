@@ -39,7 +39,7 @@
 using namespace std;
 
 #ifndef DEFAULT_PAGE_SIZE
-#define DEFAULT_PAGE_SIZE (64*1024*1024)
+#define DEFAULT_PAGE_SIZE ((size_t)(128)*(size_t)(1024)*(size_t)(1024))
 #endif
 
 #ifndef DEFAULT_NET_PAGE_SIZE

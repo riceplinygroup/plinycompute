@@ -503,7 +503,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   PDB_COUT << out << std :: endl;                  
                   //getAllocator().cleanInactiveBlocks((size_t)(67108844));
                   //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-                  getAllocator().setPolicy(noReuseAllocator);
+                  //getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
 
@@ -595,7 +595,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //free the output page
                   combinerProcessor->clearOutputPage();
                   free(combinerPage);
-                  getAllocator().setPolicy(defaultAllocator);
+                  //getAllocator().setPolicy(defaultAllocator);
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
              }
 

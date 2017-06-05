@@ -30,7 +30,7 @@ class bcolors:
 
 #Parameters to tune for performance
 threadNum = "2"
-sharedMemorySize = "1024"
+sharedMemorySize = "1280"
 
 def startPseudoCluster():
     try:
