@@ -63,6 +63,10 @@ using namespace std;
 // ./bin/pdb-server 1 512 localhost:8108 localhost:8109
 // ./bin/pdb-server 1 512 localhost:8108 localhost:8110
 
+
+// TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
+// Just unzip the file and put the folder in main directory of PDB
+
 #define KB 1024
 #define MB (1024*KB)
 
