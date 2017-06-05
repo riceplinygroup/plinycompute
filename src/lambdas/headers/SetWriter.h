@@ -55,7 +55,7 @@ class SetWriter : public Computation {
         }
 
         // below function implements the interface for parsing computation into a TCAP string
-        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> & inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
               
     if (inputTupleSets.size() == 0) {
         return "";
@@ -65,7 +65,7 @@ class SetWriter : public Computation {
  } 
 
         // below function returns a TCAP string for this Computation
-       std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
+       std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName)  {
               std :: string ret = std :: string("out() <= OUTPUT (") + inputTupleSetName + " (" + inputColumnsToApply[0] + ")" + std :: string(", '") + std :: string("EmptySet()") + std :: string("', '") +  std :: string("EmptySet()") + std :: string ("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel)  + std :: string("')\n");
               outputTupleSetName = "out";
               outputColumnNames.push_back("");

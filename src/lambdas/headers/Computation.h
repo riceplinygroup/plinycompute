@@ -76,7 +76,7 @@ public:
 	virtual std :: string getComputationType () = 0;
 
         //JiaNote: below function returns a TCAP string for this Computation
-        virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) = 0;
+        virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> & inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) = 0;
 
         //JiaNote: below functions are added to construct a query graph
         //Those functions are borrowed from Chris' QueryBase class
@@ -208,6 +208,15 @@ public:
         void setAllocatorPolicy (AllocatorPolicy myPolicy) { this->myAllocatorPolicy = myPolicy; }
 
         void setObjectPolicy (ObjectPolicy myPolicy) { this->myObjectPolicy = myPolicy; }
+
+        AllocatorPolicy getAllocatorPolicy() {
+             return this->myAllocatorPolicy;
+        }
+
+        ObjectPolicy getObjectPolicy() {
+             return this->myObjectPolicy;
+        }
+
 private:
 
         //JiaNote: added to construct query graph

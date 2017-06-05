@@ -55,7 +55,7 @@ public:
 		return std :: string ("deref");
 	}
 
-        std :: string toTCAPString (std :: vector<std :: string> inputTupleSetNames, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
+        std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
                 std :: string tcapString = "";
                 myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
                 std :: string inputTupleSetName = inputTupleSetNames[0];

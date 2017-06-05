@@ -75,7 +75,7 @@ public:
             multiInputsBase = nullptr;
         }
 
-        void analyzeInputSets(std :: vector < std :: string> inputNames) {
+        void analyzeInputSets(std :: vector < std :: string> & inputNames) {
             if (multiInputsBase == nullptr) {
                 multiInputsBase = new MultiInputsBase();
             }
@@ -251,7 +251,7 @@ public:
         }
 
         //JiaNote: Returning a TCAP string for this Join computation
-        virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+        virtual std :: string toTCAPString (std :: vector<InputTupleSetSpecifier>& inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
 
                 std :: cout << "to get TCAPString for Computation: JoinComp_" << computationLabel << " with " << inputTupleSets.size() << "inputs" << std :: endl;
                 if (inputTupleSets.size()  == getNumInputs()) {

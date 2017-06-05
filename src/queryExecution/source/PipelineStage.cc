@@ -183,7 +183,7 @@ DataProxyPtr PipelineStage :: createProxy (int i, pthread_mutex_t connection_mut
 //to execute the pipeline work defined in a TupleSetJobStage
 //iterators can be empty if hash input is used
 //combinerBuffers can be empty if no combining is required
-void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector<PageCircularBufferIteratorPtr> iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector <PageCircularBufferPtr> combinerBuffers, HermesExecutionServer * server, std :: string & errMsg) {
+void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector<PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector <PageCircularBufferPtr> & combinerBuffers, HermesExecutionServer * server, std :: string & errMsg) {
 
     //setup an output page to store intermediate results and final output
     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
@@ -387,7 +387,6 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
         hashSet = std :: dynamic_pointer_cast<PartitionedHashSet>(abstractHashSet);
         numThreads = hashSet->getNumPages();
     }
-
     //initialize mutextes 
     pthread_mutex_t connection_mutex;
     pthread_mutex_init(&connection_mutex, nullptr);    
@@ -416,8 +415,14 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
                   //create a data proxy
                   DataProxyPtr proxy = createProxy(i, connection_mutex, errMsg);
 
+                  //set allocator policy
+                  getAllocator().setPolicy(jobStage->getAllocatorPolicy());                  
+
                   //setup an output page to store intermediate results and final output
                   executePipelineWork(i, outputSet, iterators, hashSet, proxy, combinerBuffers, server, errMsg);                  
+
+                  //restore allocator policy
+                  getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
 
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
@@ -498,6 +503,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   PDB_COUT << out << std :: endl;                  
                   //getAllocator().cleanInactiveBlocks((size_t)(67108844));
                   //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+                  getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
 
@@ -538,6 +544,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                       aggregate->getCombinerProcessor(stdPartitions);
                   
                   void * combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
+                  std :: cout << "load a combiner page with size = " << combinerPageSize << std :: endl;
                   combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
 
                   PageCircularBufferIteratorPtr myIter = combinerIters[i];
@@ -558,6 +565,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                               free(combinerPage);
                               //allocate a new page
                               combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
+                               std :: cout << "load a combiner page with size = " << combinerPageSize << std :: endl;
                               //load the new page as output vector
                               combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
 
@@ -587,7 +595,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //free the output page
                   combinerProcessor->clearOutputPage();
                   free(combinerPage);
-
+                  getAllocator().setPolicy(defaultAllocator);
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
              }
 

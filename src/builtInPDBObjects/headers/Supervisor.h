@@ -56,6 +56,14 @@ public:
 	int getNumEmployees () {
 		return myGuys.size ();
 	}
+       
+        String getDepartment() {
+                return me->department;
+        }
+
+        Handle<String> getName() {
+                return me->getName();
+        }
 
         void addEmp (Handle <Employee> &addMe) {
                 myGuys.push_back (addMe);

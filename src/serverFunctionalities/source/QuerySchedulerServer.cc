@@ -200,7 +200,7 @@ StatisticsPtr QuerySchedulerServer :: getStats () {
 
 //to schedule dynamic pipeline stages
 //this must be invoked after initialize() and before cleanup()
-void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobStage>> stagesToSchedule, std :: vector <Handle<SetIdentifier>> intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo) {
+void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobStage>> & stagesToSchedule, std :: vector <Handle<SetIdentifier>> & intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo) {
 
          int counter = 0;
          PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (

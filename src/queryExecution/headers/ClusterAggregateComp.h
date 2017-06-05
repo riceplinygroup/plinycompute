@@ -190,7 +190,7 @@ public:
     }
 
         // below function implements the interface for parsing computation into a TCAP string
-        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> & inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
               
     if (inputTupleSets.size() == 0) {
         return "";
@@ -203,7 +203,7 @@ public:
 
 
     // to return Aggregate tcap string
-    std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> inputColumnNames, std :: vector<std :: string> inputColumnsToApply, std :: vector<std :: string> childrenLambdaNames, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName, std :: string & myLambdaName)  {
+    std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName, std :: string & myLambdaName)  {
                 std :: string tcapString = "";
                 Handle<InputClass> checkMe = nullptr;
                 Lambda <KeyClass> keyLambda = getKeyProjection (checkMe);
