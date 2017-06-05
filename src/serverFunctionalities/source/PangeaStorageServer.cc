@@ -276,6 +276,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
                         // comment the following three lines of code to allow Pangea to manage pages						
 			PDB_COUT << "Writing back a page!!\n";
+                        getRecord(data);
                         if (data->size() == 0) {
                             std :: cout << "FATAL ERROR: object size is larger than a page, pleases increase page size" << std :: endl;
                             std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
@@ -291,7 +292,6 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                             return;
                         }
 			// write back the current page...
-                        getRecord(data);
 			//myPage->wroteBytes ();
 			//myPage->flush ();
 

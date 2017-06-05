@@ -461,7 +461,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 #ifdef AUTO_TUNING
     size_t memSize = jobStage->getTotalMemoryOnThisNode();
     size_t sharedMemPoolSize = conf->getShmSize();
-    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.75)/(double)(numNodes);
+    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.8)/(double)(numNodes);
     std :: cout << "Tuned combiner page size is " << tunedHashPageSize << std :: endl;
     conf->setHashPageSize(tunedHashPageSize);
 #endif
@@ -542,10 +542,13 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //get combiner processor
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
-                  
-                  void * combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
-                  std :: cout << "load a combiner page with size = " << combinerPageSize << std :: endl;
-                  combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
+                  size_t myCombinerPageSize = combinerPageSize;
+                  if (combinerPageSize > (conf->getPageSize() * (size_t)(numPartitionsOnTheNode)) * 0.8) {
+                      myCombinerPageSize = (conf->getPageSize() * (size_t)(numPartitionsOnTheNode)) * 0.8;
+                  }
+                  void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
+                  std :: cout << i <<": load a combiner page with size = " << myCombinerPageSize << std :: endl;
+                  combinerProcessor->loadOutputPage(combinerPage, myCombinerPageSize);
 
                   PageCircularBufferIteratorPtr myIter = combinerIters[i];
                   int numPages = 0;
@@ -564,10 +567,10 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                               combinerProcessor->clearOutputPage();
                               free(combinerPage);
                               //allocate a new page
-                              combinerPage = (void *) malloc (combinerPageSize * sizeof(char));
-                               std :: cout << "load a combiner page with size = " << combinerPageSize << std :: endl;
+                              combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
+                               std :: cout << "load a combiner page with size = " << myCombinerPageSize << std :: endl;
                               //load the new page as output vector
-                              combinerProcessor->loadOutputPage(combinerPage, combinerPageSize);
+                              combinerProcessor->loadOutputPage(combinerPage, myCombinerPageSize);
 
                           }
                           //unpin the input page
