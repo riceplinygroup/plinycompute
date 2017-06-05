@@ -64,7 +64,7 @@ using namespace std;
 
 
 #ifndef DEFAULT_HASH_PAGE_SIZE
-#define DEFAULT_HASH_PAGE_SIZE (512*1024*1024)
+#define DEFAULT_HASH_PAGE_SIZE ((size_t)(512)*(size_t)(1024)*(size_t)(1024))
 #endif
 
 // create a smart pointer for Configuration objects
@@ -82,7 +82,7 @@ private:
 	int maxConnections;
 	string ipcFile;
 	string logFile;
-	unsigned int pageSize;
+	size_t pageSize;
 	bool useUnixDomainSock;
 	size_t shmSize;
 	bool logEnabled;
@@ -93,7 +93,7 @@ private:
 	unsigned int numThreads;
 	string backEndIpcFile;
         int batchSize;
-        unsigned int hashPageSize;
+        size_t hashPageSize;
 	bool isMaster;
 	string masterNodeHostName;
 	int masterNodePort;
@@ -163,11 +163,11 @@ public:
 		return maxConnections;
 	}
 
-	unsigned int getPageSize() const {
+	size_t getPageSize() const {
 		return pageSize;
 	}
 
-        unsigned int getHashPageSize() const {
+        size_t getHashPageSize() const {
                 return hashPageSize;
         }
 
@@ -231,11 +231,11 @@ public:
 		this->maxConnections = maxConnections;
 	}
 
-	void setPageSize(unsigned int pageSize) {
+	void setPageSize(size_t pageSize) {
 		this->pageSize = pageSize;
 	}
 
-        void setHashPageSize (unsigned int hashPageSize) {
+        void setHashPageSize (size_t hashPageSize) {
                 this->hashPageSize = hashPageSize;
         }
 
