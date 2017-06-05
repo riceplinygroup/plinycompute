@@ -394,12 +394,15 @@ int main() {
 	     cout<< "Size of Customer Vector is: "<<sizeOfCustomers<<endl;
 
 		// store copies of the same dataset.
-		for (int i = 1; i <= 4; ++i) {
+		for (int i = 1; i <= 20; ++i) {
 			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
 			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), customerList, errMsg)) {
 				std::cout << "Failed to send data to dispatcher server" << std::endl;
 				return -1;
 			}
+
+			distributedStorageManagerClient.flushData( errMsg );
+
 		}
 
 
