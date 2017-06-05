@@ -272,13 +272,6 @@ inline void * fastGetRAM (size_t howMuch, AllocatorState & myState) {
         if ((bytesNeeded % 4) != 0) {
                 bytesNeeded += (4 - (bytesNeeded % 4));
         }
-        // get the number of leading zero bits in bytesNeeded
-        unsigned int numLeadingZeros = __builtin_clz (bytesNeeded);
-
-#ifdef DEBUG_OBJECT_MODEL
-       std :: cout << "howMuch=" << howMuch << ", bytesNeeded=" << bytesNeeded << ", numLeadingZeros=" << numLeadingZeros << std :: endl;
-#endif
-
 
         // if we got here, then we cannot fit, and we need to carve out a bit at the end
         // if there is not enough RAM
