@@ -30,7 +30,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 threadNum = "2"
-sharedMemorySize = "1024"
+sharedMemorySize = "1280"
 
 def startPseudoCluster():
     try:
