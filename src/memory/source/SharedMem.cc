@@ -16,6 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 #include "SharedMem.h"
+#include "Configuration.h"
 #include <sys/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -48,7 +49,7 @@ SharedMem::SharedMem(size_t memSize, pdb :: PDBLoggerPtr logger) {
         logger->error(std :: string("Fatal error: initialize shared memory failed with size=") + std :: to_string(memSize));
         exit(-1);
     } 
-    this->allocator = make_shared<SlabAllocator>(this->memPool, this->shmMemSize, 64*1024*1024, 512);
+    this->allocator = make_shared<SlabAllocator>(this->memPool, this->shmMemSize, DEFAULT_PAGE_SIZE, 512);
     this->initMutex();
     this->logger = logger;
 }
