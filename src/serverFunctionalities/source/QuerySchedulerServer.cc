@@ -177,7 +177,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
          for (int i = 0; i < nodeObjects->size(); i++) {
 
              PDB_COUT << i << ": address=" << (*(nodeObjects))[i]->getAddress() << ", port="<< (*(nodeObjects))[i]->getPort() <<", node="<<(*(nodeObjects))[i]->getNodeId() << std :: endl;
-             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>(8/(nodeObjects->size()), (6*1024*1024)/(nodeObjects->size()), (*(nodeObjects))[i]->getAddress().c_str(), (*(nodeObjects))[i]->getPort(), (*(nodeObjects))[i]->getNodeId());
+             StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>(8/(nodeObjects->size()), (4*1024*1024)/(nodeObjects->size()), (*(nodeObjects))[i]->getAddress().c_str(), (*(nodeObjects))[i]->getPort(), (*(nodeObjects))[i]->getNodeId());
              this->standardResources->push_back(currentResource);
          }         
     }

@@ -82,9 +82,9 @@ int main (int argc, char * argv[]) {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
 
-       int numOfMb = 256; //by default we add 256MB data
+       int numOfMb = 512; //by default we add 256MB data
        if (argc > 3) {
-           numOfMb = atoi(argv[3])/4;
+           numOfMb = atoi(argv[3])/2;
        }
        std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
