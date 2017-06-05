@@ -93,59 +93,8 @@ using namespace std;
 #define MB (1024*KB)
 
 
-int main() {
 
-	int NoOfCopies=1;
-
-	// Connection info
-	string masterHostname = "localhost";
-	int masterPort = 8108;
-
-	// register the shared employee class
-	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
-	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
-
-	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-
-	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
-
-	string errMsg;
-	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	// now, create a new database
-	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
-		cout << "Not able to create database: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created database.\n";
-	}
-
-	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
-		cout << "Not able to create set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created set.\n";
-	}
-
-	// Phase - 2:  READ and Store the data
-
-	//Specifications:
-	string scaleFactor = "0.2";
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scaleFactor){
 
 	// All files to parse:
 	string PartFile = "tables_scale_" + scaleFactor + "/part.tbl";
@@ -415,12 +364,78 @@ int main() {
 		infile.close();
 		infile.clear();
 
+
+return storeMeCustomerList;
+
+
+
+}
+
+
+
+
+int main() {
+
+	int noOfCopies=1;
+
+	// Connection info
+	string masterHostname = "localhost";
+	int masterPort = 8108;
+
+	// register the shared employee class
+	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+
+
+	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
+	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
+	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
+
+
+
+	string errMsg;
+	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	// now, create a new database
+	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
+		cout << "Not able to create database: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created database.\n";
+	}
+
+	// now, create the sets for storing Customer Data
+	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created set.\n";
+	}
+
+	// Phase - 2:  READ and Store the data
+	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
+
+	string scaleFactor = "0.2";
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList =  dataGenerator(scaleFactor);
+
 		pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 		size_t sizeOfCustomers = myBytes->numBytes();
 		cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
 		// store copies of the same dataset.
-		for (int i = 1; i <= NoOfCopies; ++i) {
+		for (int i = 1; i <= noOfCopies; ++i) {
 			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
 
 				if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
