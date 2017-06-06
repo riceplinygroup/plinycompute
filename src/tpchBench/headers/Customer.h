@@ -41,8 +41,10 @@
 
 class Customer: public pdb::Object {
 
-private:
-	pdb::Handle<pdb::Vector<pdb::Handle<Order>>>orders;
+public:
+
+	pdb::Vector<pdb::Handle<Order>> orders;
+
 	int custKey;
 	pdb::Handle<pdb::String> name;
 	pdb::Handle<pdb::String> address;
@@ -52,7 +54,7 @@ private:
 	pdb::Handle<pdb::String> mktsegment;
 	pdb::Handle<pdb::String> comment;
 
-public:
+
 
 	ENABLE_DEEP_COPY
 
@@ -63,12 +65,17 @@ public:
 
 	// Constructor with arguments using std::string
 
-	Customer(pdb::Handle<pdb::Vector<pdb::Handle<Order>>>orders, int custKey,
+	Customer(pdb::Vector<pdb::Handle<Order>> orders, int custKey,
 			std:: string name, std:: string address,
 			int nationKey, std:: string phone, double accbal,
 			std:: string mktsegment, std:: string comment) {
 
 		this->orders=orders;
+
+//		for (auto order: orders) {
+//			this->orders.push_back(*order);
+//		}
+
 		this->custKey=custKey;
 		this->name= pdb::makeObject <pdb::String> (name);
 		this->address= pdb::makeObject <pdb::String>(address);
@@ -79,93 +86,75 @@ public:
 		this->comment=pdb::makeObject <pdb::String> (comment);
 	}
 
-	double getAccbal() const
-	{
-		return accbal;
-	}
-
-	void setAccbal(double accbal)
-	{
-		this->accbal = accbal;
-	}
-
-	const pdb::Handle<pdb::String>& getAddress() const
-	{
-		return address;
-	}
-
-	void setAddress(const pdb::Handle<pdb::String>& address)
-	{
-		this->address = address;
-	}
-
-	const pdb::Handle<pdb::String>& getComment() const
-	{
-		return comment;
-	}
-
-	void setComment(const pdb::Handle<pdb::String>& comment)
-	{
-		this->comment = comment;
-	}
-
-	int getCustKey() const
-	{
-		return custKey;
-	}
-
-	void setCustKey(int custKey)
-	{
-		this->custKey = custKey;
-	}
-
-	const pdb::Handle<pdb::String>& getMktsegment() const
-	{
-		return mktsegment;
-	}
-
-	void setMktsegment(const pdb::Handle<pdb::String>& mktsegment)
-	{
-		this->mktsegment = mktsegment;
-	}
-
-	const pdb::Handle<pdb::String>& getName() const
-	{
-		return name;
-	}
-
-	void setName(const pdb::Handle<pdb::String>& name)
-	{
-		this->name = name;
-	}
-
-	int getNationKey() const
-	{
-		return nationKey;
-	}
-
-	void setNationKey(int nationKey)
-	{
-		this->nationKey = nationKey;
-	}
-
-	const pdb::Handle<pdb::Vector<pdb::Handle<Order> > >& getOrders() const
-	{
+	const pdb::Vector<pdb::Handle<Order> >& getOrders() const {
 		return orders;
 	}
 
-	void setOrders(const pdb::Handle<pdb::Vector<pdb::Handle<Order> > >& orders)
-	{
+	void setOrders(const pdb::Vector<pdb::Handle<Order> >& orders) {
 		this->orders = orders;
 	}
 
-	const pdb::Handle<pdb::String>& getPhone() const
-	{
+	double getAccbal() const {
+		return accbal;
+	}
+
+	void setAccbal(double accbal) {
+		this->accbal = accbal;
+	}
+
+	const pdb::Handle<pdb::String>& getAddress() const {
+		return address;
+	}
+
+	void setAddress(const pdb::Handle<pdb::String>& address) {
+		this->address = address;
+	}
+
+	const pdb::Handle<pdb::String>& getComment() const {
+		return comment;
+	}
+
+	void setComment(const pdb::Handle<pdb::String>& comment) {
+		this->comment = comment;
+	}
+
+	int getCustKey() const {
+		return custKey;
+	}
+
+	void setCustKey(int custKey) {
+		this->custKey = custKey;
+	}
+
+	const pdb::Handle<pdb::String>& getMktsegment() const {
+		return mktsegment;
+	}
+
+	void setMktsegment(const pdb::Handle<pdb::String>& mktsegment) {
+		this->mktsegment = mktsegment;
+	}
+
+	const pdb::Handle<pdb::String>& getName() const {
+		return name;
+	}
+
+	void setName(const pdb::Handle<pdb::String>& name) {
+		this->name = name;
+	}
+
+	int getNationKey() const {
+		return nationKey;
+	}
+
+	void setNationKey(int nationKey) {
+		this->nationKey = nationKey;
+	}
+
+	const pdb::Handle<pdb::String>& getPhone() const {
 		return phone;
 	}
 
-	void setPhone(const pdb::Handle<pdb::String>& phone)
-	{
+	void setPhone(const pdb::Handle<pdb::String>& phone) {
 		this->phone = phone;
 	}
 };

@@ -39,6 +39,7 @@
 
 class Part:public pdb::Object{
 
+public:
 	int partKey;
 	pdb::Handle<pdb::String> name;
 	pdb::Handle<pdb::String> mfgr;
@@ -49,7 +50,7 @@ class Part:public pdb::Object{
 	double retailPrice;
 	pdb::Handle<pdb::String> comment;
 
-public:
+
 	ENABLE_DEEP_COPY
 
 	//Default constructor:
