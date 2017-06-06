@@ -356,6 +356,9 @@ common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.
 common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
+common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
+
+
 
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -619,6 +622,7 @@ main=common_env.Alias('main', [
   'libraries/libOrder.so',
   'libraries/libCustomer.so',
   'bin/tpchTestData',
+  'bin/tpchDataGenerator',
   
   
   
