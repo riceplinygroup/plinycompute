@@ -68,6 +68,7 @@ public:
         }
 };
 
+
 inline Handle<Map<String, Vector<Handle<Employee>>>> &operator+ (Handle<Map<String, Vector<Handle<Employee>>>> &lhs, Handle<Map<String, Vector<Handle<Employee>>>> &rhs) {
        auto iter = rhs->begin();
        while (iter != rhs->end()) {
@@ -76,35 +77,51 @@ inline Handle<Map<String, Vector<Handle<Employee>>>> &operator+ (Handle<Map<Stri
                try {
                    (*lhs)[myKey] = (*iter).value;
                } catch ( NotEnoughSpace &n ) {
+                   //std :: cout << "not enough space when inserting new pair" << std :: endl;
                    lhs->setUnused (myKey);
                    throw n;
                }
            } else {
-               
-               size_t mySize = (*lhs)[myKey].size();
-               try {
-                   size_t otherSize = (*iter).value.size();         
+
+                   size_t mySize = (*lhs)[myKey].size();
+                   size_t otherSize = (*iter).value.size();
+
+                      
                    //std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std :: endl;
-                   //(*lhs)[myKey].resize(mySize+otherSize, mySize+otherSize);
-                   for (int i = 0; i < otherSize; i++) {
-                       //(*lhs)[myKey][mySize + i] = makeObject<Employee>();
-                       //(*lhs)[myKey][mySize + i] = ((*iter).value[i]);
-                       (*lhs)[myKey].push_back((*iter).value[i]);
+                   for (size_t i = mySize; i < mySize + otherSize; i++) {
+                       try {
+
+                               (*lhs)[myKey].push_back((*iter).value[i-mySize]);
+
+                       } catch (NotEnoughSpace &n) {
+
+                               //std :: cout << i << ": not enough space when updating value for pushing back: " << (*lhs)[myKey].size() << std :: endl;   
+                               size_t curSize = (*lhs)[myKey].size();
+                               for (size_t j = mySize; j < curSize; j++) {
+                                    (*lhs)[myKey].pop_back();
+                               }
+                               //std :: cout << "size restored to " << (*lhs)[myKey].size() << std :: endl;
+                               for (size_t j = 0; j < (*lhs)[myKey].size(); j++) {
+                                    std :: cout << j << ": ";
+                                    (*lhs)[myKey][j]->print();
+                                    std :: cout << ";";
+                               }
+                               throw n;
+
+                       }
+
                    }
-                   //std :: cout << "now mySize is " << (*lhs)[myKey].size() << std :: endl;                   
-               } catch (NotEnoughSpace &n) {
-                   for (int i = mySize; i < (*lhs)[myKey].size(); i++) {
-                       (*lhs)[myKey].pop_back();
-                   }
-                   //std :: cout << "size restored to " << (*lhs)[myKey].size() << std :: endl;
-                   throw n;          
-               }
+                   //std :: cout << "now my size is " << (*lhs)[myKey].size() << std :: endl;
            }
            ++iter;
        }
        return lhs;
 
 }
+
+
+
+
 
 }
 

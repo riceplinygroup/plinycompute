@@ -201,7 +201,7 @@ public:
 				outColumn.resize (numTuples);
 				for (int i = 0; i < numTuples; i++) {
 					callLambda <F, ReturnType, ParamOne, ParamTwo, ParamThree, ParamFour, ParamFive> 
-						(myFunc, outColumn, i, inAtts);						
+						(myFunc, outColumn, i, inAtts);	
 				}
 
 				return output;

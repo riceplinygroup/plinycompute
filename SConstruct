@@ -368,6 +368,7 @@ common_env.SharedLibrary('libraries/libWriteSumResultSet.so', ['build/libraries/
 common_env.SharedLibrary('libraries/libDoubleVectorAggregation.so', ['build/libraries/DoubleVectorAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSupervisorMultiSelection.so', ['build/libraries/SupervisorMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyGroupBy.so', ['build/libraries/SillyGroupBy.cc'] + all)
+#common_env.SharedLibrary('libraries/libEmployeeGroupBy.so', ['build/libraries/EmployeeGroupBy.cc'] + all)
 
 # TPCH Benchmakr Libraries
 common_env.SharedLibrary('libraries/libPart.so', ['build/tpchBench/Part.cc'] + all)
@@ -485,6 +486,7 @@ common_env.Program('bin/test84', ['build/tests/Test84.cc'] + all)
 common_env.Program('bin/test85', ['build/tests/Test85.cc'] + all)
 common_env.Program('bin/test86', ['build/tests/Test86.cc'] + all)
 common_env.Program('bin/test87', ['build/tests/Test87.cc'] + all)
+#common_env.Program('bin/test88', ['build/tests/Test88.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -608,6 +610,7 @@ main=common_env.Alias('main', [
   'bin/test85',
   'bin/test86',
   'bin/test87',
+  #'bin/test88',
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
   #'bin/testLA03_Substract',
@@ -634,6 +637,7 @@ main=common_env.Alias('main', [
   'libraries/libIntSelectionOfStringIntPair.so', 
   'libraries/libIntSillyJoin.so', 
   'libraries/libSillyGroupBy.so',
+#  'libraries/libEmployeeGroupBy.so',
 #  'libraries/libKMeansQuery.so',  
   
   # TPCH Benchamr Libraries

@@ -79,7 +79,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
        if(port <= 0) {
            port = conf->getPort();
        } 
-       PDB_COUT << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
        return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
@@ -302,7 +302,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
                   [&] (void * page) {
                       
-                      PDB_COUT << "to write back a page" << std :: endl;
+                      std :: cout << "to write back a page" << std :: endl;
                       if (this->jobStage->isBroadcasting() == true) {
                           PDB_COUT << "to broadcast a page" << std :: endl;
                           //to handle a broadcast join
@@ -320,7 +320,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           free (page);
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
-                          PDB_COUT << "to combine a page" << std :: endl;
+                          std :: cout << "to combine a page" << std :: endl;
                           //to handle an aggregation
                           PDBPagePtr output;
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
@@ -461,7 +461,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 #ifdef AUTO_TUNING
     size_t memSize = jobStage->getTotalMemoryOnThisNode();
     size_t sharedMemPoolSize = conf->getShmSize();
-    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.8)/(double)(numNodes);
+    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.75)/(double)(numNodes);
     std :: cout << "Tuned combiner page size is " << tunedHashPageSize << std :: endl;
     conf->setHashPageSize(tunedHashPageSize);
 #endif
@@ -503,7 +503,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   PDB_COUT << out << std :: endl;                  
                   //getAllocator().cleanInactiveBlocks((size_t)(67108844));
                   //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-                  //getAllocator().setPolicy(noReuseAllocator);
+                  getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
 
@@ -543,8 +543,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
                   size_t myCombinerPageSize = combinerPageSize;
-                  if (combinerPageSize > (conf->getPageSize() * (size_t)(numPartitionsOnTheNode)) * 0.8) {
-                      myCombinerPageSize = (conf->getPageSize() * (size_t)(numPartitionsOnTheNode)) * 0.8;
+                  if (combinerPageSize > (conf->getPageSize())*numPartitionsOnTheNode*0.671) {
+                      myCombinerPageSize = (conf->getPageSize())*numPartitionsOnTheNode*0.671;
                   }
                   void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
                   std :: cout << i <<": load a combiner page with size = " << myCombinerPageSize << std :: endl;
@@ -598,7 +598,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //free the output page
                   combinerProcessor->clearOutputPage();
                   free(combinerPage);
-                  //getAllocator().setPolicy(defaultAllocator);
+                  getAllocator().setPolicy(defaultAllocator);
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
              }
 

@@ -160,14 +160,30 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
 		if (!toMe.keyTypeInfo.descendsFromObject ()) {
 			memmove (GET_KEY_PTR (toMe.data, i), GET_KEY_PTR (fromMe.data, i), keySize);
 		} else {
-			toMe.keyTypeInfo.setUpAndCopyFromConstituentObject (GET_KEY_PTR (toMe.data, i), GET_KEY_PTR (fromMe.data, i));
+                        try {
+			    toMe.keyTypeInfo.setUpAndCopyFromConstituentObject (GET_KEY_PTR (toMe.data, i), GET_KEY_PTR (fromMe.data, i));
+                        }
+                        catch (NotEnoughSpace &n) {
+                            //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
+                            GET_HASH(toMe.data, i) = UNUSED;
+                            toMe.usedSlots = i;
+                            throw n;
+                        }
 		}
 
 		// and now same thing on the value
 		if (!toMe.valueTypeInfo.descendsFromObject ()) {
 			memmove (GET_VALUE_PTR (toMe.data, i), GET_VALUE_PTR (fromMe.data, i), valueSize);
 		} else {
-			toMe.valueTypeInfo.setUpAndCopyFromConstituentObject (GET_VALUE_PTR (toMe.data, i), GET_VALUE_PTR (fromMe.data, i));
+                        try {
+			    toMe.valueTypeInfo.setUpAndCopyFromConstituentObject (GET_VALUE_PTR (toMe.data, i), GET_VALUE_PTR (fromMe.data, i));
+                        }
+                        catch (NotEnoughSpace &n) {
+                            //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
+                            GET_HASH(toMe.data, i) = UNUSED;
+                            toMe.usedSlots = i;
+                            throw n;
+                        }
 		}
 	}
 }
@@ -213,7 +229,7 @@ int PairArray <KeyType, ValueType> :: count (const KeyType &me) {
 	}
 
 	// we should never reach here
-	std :: cout << "Warning: Ran off the end of the hash table!!\n";
+	std :: cout << "in count(): hashVal = " << hashVal << ", slot = " << slot << ", numSlots ="<< numSlots << ". Warning: Ran off the end of the hash table!!\n";
         return 0;
 	//exit (1);
 }
@@ -262,7 +278,7 @@ void PairArray <KeyType, ValueType> :: setUnused (const KeyType &me) {
         }
 
         // we should never reach here
-        std :: cout << "Fatal Error: Ran off the end of the hash table!!\n";
+        std :: cout << "in setUnused(): hashVal = " << hashVal << ", slot = " << slot << ", numSlots ="<< numSlots << ". Warning: Ran off the end of the hash table!!\n";
         exit (1);
 }
 
@@ -292,11 +308,19 @@ ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 			new (GET_VALUE_PTR (data, slot)) ValueType ();
 			
 			// add the key
-			GET_KEY (data, slot, KeyType) = me;
-			GET_HASH (data, slot) = hashVal;
+                        try {
+			    GET_KEY (data, slot, KeyType) = me;
+			
+                            GET_HASH (data, slot) = hashVal;
 
-			// increment the number of used slots
-			usedSlots++;
+			    // increment the number of used slots
+			    usedSlots++;
+
+                        } catch (NotEnoughSpace &n) {
+                            std :: cout << "Not enough space when inserting new key" << std :: endl;
+                            throw n;
+
+                        }
 
 			// and return the value
 			return GET_VALUE (data, slot, ValueType);
@@ -311,7 +335,7 @@ ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 				return GET_VALUE (data, slot, ValueType);		
 			}
 
-		}
+	}
 
 		// if we made it here, then it means that we found a non-empty slot, but no
 		// match... so we simply loop to the next iteration... if slot == numSlots - 1, it
@@ -345,7 +369,7 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 
 	// if we are not a power of two, exit
 	if (!gotIt) {
-		std :: cout << "Fatal Error: Bad: could not get the correct size for the array\n";
+		std :: cout << "Fatal Error: Bad: could not get the correct size  " << numSlotsIn << " for the array\n";
 		exit (1);
 	}
 
@@ -435,7 +459,7 @@ Handle <PairArray <KeyType, ValueType>> PairArray <KeyType, ValueType> :: double
 
 			// and delete the old one
 			GET_KEY (data, i, KeyType).~KeyType ();
-			GET_VALUE (data, i, ValueType).~ValueType ();
+		        GET_VALUE (data, i, ValueType).~ValueType ();
 			GET_HASH (data, i) = UNUSED;
 		}
 	}

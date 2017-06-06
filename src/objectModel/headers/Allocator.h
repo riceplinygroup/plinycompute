@@ -28,7 +28,7 @@
 #include <unordered_map>
 
 //#define DEBUG_OBJECT_MODEL
-
+//#define DEBUG_DEEP_COPY
 namespace pdb {
 
 // This file contains the Allocator class, as well as its helper classes.  While
@@ -140,7 +140,7 @@ public:
 
 // free some RAM
 #ifdef DEBUG_OBJECT_MODEL
-inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId) {
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId) {
 #else
 inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
 #endif
@@ -178,7 +178,7 @@ public:
 
 // free some RAM
 #ifdef DEBUG_OBJECT_MODEL
-inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
 #else
 inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
 #endif
@@ -207,7 +207,7 @@ public:
 
 // free some RAM
 #ifdef DEBUG_OBJECT_MODEL
-inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
 #else
 inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
 #endif
@@ -237,7 +237,7 @@ public:
 
 // do nothing
 #ifdef DEBUG_OBJECT_MODEL
-inline freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
+inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives,  AllocatorState & myState, int16_t typeId);
 #else
 inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState);
 #endif

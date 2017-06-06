@@ -99,8 +99,8 @@ public:
 
 				// if we get an exception, then we could not fit a new key/value pair
 				} catch (NotEnoughSpace &n) {
-
 					// if we got here, then we ran out of space, and so we need to delete the already-processed
+                                        std :: cout << "not enough space in shuffle sink to get new value" << std :: endl;
 					// data so that we can try again...
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
 					valueColumn.erase (valueColumn.begin (), valueColumn.begin () + i);
@@ -113,6 +113,7 @@ public:
 				// if we could not fit the value...
 				} catch (NotEnoughSpace &n) {
 
+                                        std :: cout << "not enough space in shuffle sink to set value" << std :: endl;
 					// then we need to erase the key from the map
 					myMap.setUnused (keyColumn[i]);
 
@@ -136,6 +137,7 @@ public:
 				// to put the new value into the hash table
 				} catch (NotEnoughSpace &n) {	
 					
+                                        std :: cout << "not enough space in shuffle sink to update value" << std :: endl;
 					// restore the old value
 					temp = copy;
 
@@ -146,12 +148,12 @@ public:
 				}
 			}
 		}
-/*                int i;
-                for (i = 0; i < numPartitions; i++) {
+                int i;
+                /*for (i = 0; i < numPartitions; i++) {
                      Map <KeyType, ValueType> & myMap = *((*writeMe)[i]);
                      std :: cout << "partition-" << i << ": " << myMap.size() << " elements" << std :: endl;
-                }
-*/
+                }*/
+
 	}
 
 	~ShuffleSink () {}
