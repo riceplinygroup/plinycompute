@@ -43,10 +43,11 @@ public:
 		return makeLambda(checkMe, [] (Handle<Customer> & checkMe) {return true;});
 	}
 
-	// then get only the Orders out of the Customer objects
+	// Then get the Orders out of the Customers
 	Lambda<Vector<Handle<Order>>> getProjection (Handle <Customer> checkMe) override {
-		return makeLambdaFromMember (checkMe, orders);
+		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
+			                   return * checkMe->orders;
+			               });
 	}
 };
-
 #endif
