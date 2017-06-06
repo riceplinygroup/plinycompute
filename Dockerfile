@@ -8,12 +8,21 @@ RUN apt-get -y upgrade
 RUN apt-get install -y python scons build-essential clang flex bison uuid-dev 
 RUN apt-get clean 
 
-
+# Set working directory
 WORKDIR /usr/src/pdb
 
+# Copy the pdb files
 ADD . /usr/src/pdb
 
-CMD ["scons"]
+# the following env variables are needed to get scons running 
+ENV TERM xterm
+ENV HOME /usr/src/pdb
 
 
+# Build pdb
+RUN scons
+
+
+RUN "echo "worker_1_1:8109"  >  /usr/src/pdb/conf/serverlist"
+RUN "echo "worker_2_1:8110"  >>  /usr/src/pdb/conf/serverlist"
 
