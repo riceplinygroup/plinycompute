@@ -50,8 +50,8 @@
 // );
 
 class LineItem: public pdb::Object {
-
 public:
+
 	pdb::Handle<pdb::String> name;
 	int orderKey;
 

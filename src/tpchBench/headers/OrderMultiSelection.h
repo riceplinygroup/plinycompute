@@ -47,6 +47,8 @@ public:
 	// then get only the LineItem out of the Order objects
 	Lambda<Vector<Handle<LineItem>>> getProjection (Handle <Order> checkMe) override {
 		return makeLambdaFromMember (checkMe, lineItems);
+//		return makeLambdaFromMethod (checkMe, getLineItems);
+
 	}
 };
 

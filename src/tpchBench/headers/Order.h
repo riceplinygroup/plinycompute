@@ -41,7 +41,7 @@ class Order: public pdb::Object {
 
 public:
 
-	pdb::Vector<pdb::Handle <LineItem>> lineItems;
+	pdb::Handle <pdb::Vector <pdb::Handle <LineItem>>> lineItems;
 
 	int orderKey;
 	int custKey;
@@ -64,20 +64,13 @@ public:
 	Order() {
 	}
 
-	Order(pdb::Vector <pdb::Handle <LineItem>> lineItems, int orderkey,
+	Order(pdb::Handle <pdb::Vector <pdb::Handle <LineItem>>> lineItems, int orderkey,
 			int custkey, std::string orderstatus,
 			double totalprice, std::string orderdate,
 			std::string orderpriority, std::string clerk,
 			int shippriority, std::string comment){
 
-
 		this->lineItems=lineItems;
-
-//		for (auto lineItem: lineItems) {
-//			this->lineItems.push_back(*lineItem);
-//		}
-
-
 		this->orderKey=orderkey;
 		this->custKey=custkey;
 		this->orderStatus=pdb::makeObject <pdb::String>(orderstatus);
@@ -89,85 +82,103 @@ public:
 		this->comment=pdb::makeObject <pdb::String>(comment);
 	}
 
-	pdb::Vector<pdb::Handle <LineItem>> getLineItems() const
+	const pdb::Handle<pdb::String>& getClerk() const
+	{
+		return clerk;
+	}
+
+	void setClerk(const pdb::Handle<pdb::String>& clerk)
+	{
+		this->clerk = clerk;
+	}
+
+	const pdb::Handle<pdb::String>& getComment() const
+	{
+		return comment;
+	}
+
+	void setComment(const pdb::Handle<pdb::String>& comment)
+	{
+		this->comment = comment;
+	}
+
+	int getCustKey() const
+	{
+		return custKey;
+	}
+
+	void setCustKey(int custKey)
+	{
+		this->custKey = custKey;
+	}
+
+	const pdb::Handle<pdb::Vector<pdb::Handle<LineItem> > >& getLineItems() const
 	{
 		return lineItems;
 	}
 
-	void setLineItems(pdb::Vector<pdb::Handle <LineItem>> lineItems)
+	void setLineItems(const pdb::Handle<pdb::Vector<pdb::Handle<LineItem> > >& lineItems)
 	{
 		this->lineItems = lineItems;
 	}
 
-	const pdb::Handle<pdb::String>& getClerk() const {
-		return clerk;
-	}
-
-	void setClerk(const pdb::Handle<pdb::String>& clerk) {
-		this->clerk = clerk;
-	}
-
-	const pdb::Handle<pdb::String>& getComment() const {
-		return comment;
-	}
-
-	void setComment(const pdb::Handle<pdb::String>& comment) {
-		this->comment = comment;
-	}
-
-	int getCustKey() const {
-		return custKey;
-	}
-
-	void setCustKey(int custKey) {
-		this->custKey = custKey;
-	}
-
-	const pdb::Handle<pdb::String>& getOrderDate() const {
+	const pdb::Handle<pdb::String>& getOrderDate() const
+	{
 		return orderDate;
 	}
 
-	void setOrderDate(const pdb::Handle<pdb::String>& orderDate) {
+	void setOrderDate(const pdb::Handle<pdb::String>& orderDate)
+	{
 		this->orderDate = orderDate;
 	}
 
-	int getOrderKey() const {
+	int getOrderKey() const
+	{
 		return orderKey;
 	}
 
-	void setOrderKey(int orderKey) {
+	void setOrderKey(int orderKey)
+	{
 		this->orderKey = orderKey;
 	}
 
-	const pdb::Handle<pdb::String>& getOrderPriority() const {
+	const pdb::Handle<pdb::String>& getOrderPriority() const
+	{
 		return orderPriority;
 	}
 
-	void setOrderPriority(const pdb::Handle<pdb::String>& orderPriority) {
+	void setOrderPriority(const pdb::Handle<pdb::String>& orderPriority)
+	{
 		this->orderPriority = orderPriority;
 	}
 
-	const pdb::Handle<pdb::String>& getOrderStatus() const {
+	const pdb::Handle<pdb::String>& getOrderStatus() const
+	{
 		return orderStatus;
 	}
 
-	void setOrderStatus(const pdb::Handle<pdb::String>& orderStatus) {
+	void setOrderStatus(const pdb::Handle<pdb::String>& orderStatus)
+	{
 		this->orderStatus = orderStatus;
 	}
 
-	int getShipPriority() const {
+	int getShipPriority() const
+	{
 		return shipPriority;
 	}
 
-	void setShipPriority(int shipPriority) {
+	void setShipPriority(int shipPriority)
+	{
 		this->shipPriority = shipPriority;
 	}
 
-	double getTotalPrice() const {
+	double getTotalPrice() const
+	{
 		return totalPrice;
 	}
 
-	void setTotalPrice(double totalPrice) {
+	void setTotalPrice(double totalPrice)
+	{
 		this->totalPrice = totalPrice;
 	}
 };
