@@ -1501,6 +1501,10 @@ bool PangeaStorageServer::addDatabase(string dbName, DatabaseID dbId) {
 
 //add a new and empty database using only name
 bool PangeaStorageServer::addDatabase(std :: string dbName) {
+     if(name2id->count(dbName) != 0) {
+         std :: cout << "Database " << dbName << " exists" << std :: endl;
+         return false;
+     }
      pthread_mutex_lock(&this->databaseLock);
      DatabaseID dbId = databaseSeqId.getNextSequenceID();
      pthread_mutex_unlock(&this->databaseLock);
