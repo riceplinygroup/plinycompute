@@ -51,7 +51,7 @@
 
 class LineItem: public pdb::Object {
 
-
+public:
 	pdb::Handle<pdb::String> name;
 	int orderKey;
 
@@ -74,7 +74,7 @@ class LineItem: public pdb::Object {
 	pdb::Handle<pdb::String> shipMode;
 	pdb::Handle<pdb::String> comment;
 
-public:
+
 
 	ENABLE_DEEP_COPY
 

@@ -38,6 +38,7 @@
 
 class Supplier: public pdb::Object {
 
+public:
 	int supplierKey;
 	pdb::Handle<pdb::String> name;
 	pdb::Handle<pdb::String> address;
@@ -46,7 +47,6 @@ class Supplier: public pdb::Object {
 	double accbal;
 	pdb::Handle<pdb::String> comment;
 
-public:
 
 	ENABLE_DEEP_COPY
 

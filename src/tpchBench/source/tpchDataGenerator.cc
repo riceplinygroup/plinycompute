@@ -206,7 +206,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(LineitemFile.c_str());
 
-	pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItemList = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>>();
+	pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>  lineItemList = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>>();
 
 	map<int, pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>> >lineItemMap;
 
@@ -294,7 +294,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 			throw invalid_argument("There is no such Order.");
 		}
 
-		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
+		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(*lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
 				tokens.at(8));
 
 		if (orderKey % 100000 == 0)
@@ -304,7 +304,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		if (orderMap.find(customerKey) != orderMap.end()) {
 			orderMap[customerKey]->push_back(tOrder);
 		} else {
-			pdb::Handle<pdb::Vector<pdb::Handle<Order>>>orderList = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>>();
+			pdb::Handle<pdb::Vector<pdb::Handle<Order>>>   orderList = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>>();
 			orderList -> push_back(tOrder);
 			orderMap[customerKey] = orderList;
 		}
@@ -325,10 +325,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(CustomerFile.c_str());
 
-//	vector<pdb::Handle<Customer>> customerList;
 
+	// Allocate a Huge RAM to have all Customers in Memory
 	pdb::makeObjectAllocatorBlock((size_t) 15000 * MB, true);
-
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 
@@ -349,7 +348,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 			orderMap[customerKey] = tOrderArray;
 		}
 
-		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(*orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
 				tokens.at(7));
 
 		storeMeCustomerList->push_back(tCustomer);
@@ -430,39 +429,39 @@ int main() {
 	string scaleFactor = "0.2";
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList =  dataGenerator(scaleFactor);
 
-		pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
-		size_t sizeOfCustomers = myBytes->numBytes();
-		cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
-
-		// store copies of the same dataset.
-		for (int i = 1; i <= noOfCopies; ++i) {
-			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
-
-				if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-					std::cout << "Failed to send data to dispatcher server" << std::endl;
-					return -1;
-				}
-
-			// flush to disk
-			distributedStorageManagerClient.flushData(errMsg);
-
-		}
-
-		QueryClient myClient(masterPort, masterHostname, clientLogger, true);
-
-		std::cout << "to print result..." << std::endl;
-		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
-
-		std::cout << "Query results: ";
-		int count = 0;
-		for (auto a : result) {
-			count++;
-			if (count % 10000 == 0) {
-				std::cout << count << endl;
-				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
-			}
-		}
-		std::cout << "multi-selection output count:" << count << "\n";
+//		pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
+//		size_t sizeOfCustomers = myBytes->numBytes();
+//		cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
+//
+//		// store copies of the same dataset.
+//		for (int i = 1; i <= noOfCopies; ++i) {
+//			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
+//
+//				if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+//					std::cout << "Failed to send data to dispatcher server" << std::endl;
+//					return -1;
+//				}
+//
+//			// flush to disk
+//			distributedStorageManagerClient.flushData(errMsg);
+//
+//		}
+//
+//		QueryClient myClient(masterPort, masterHostname, clientLogger, true);
+//
+//		std::cout << "to print result..." << std::endl;
+//		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
+//
+//		std::cout << "Query results: ";
+//		int count = 0;
+//		for (auto a : result) {
+//			count++;
+//			if (count % 10000 == 0) {
+//				std::cout << count << endl;
+////				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
+//			}
+//		}
+//		std::cout << "multi-selection output count:" << count << "\n";
 
 
 }
