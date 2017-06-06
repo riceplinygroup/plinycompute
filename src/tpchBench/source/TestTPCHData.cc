@@ -62,11 +62,12 @@ int main() {
 	// Make Customers
 	for (int customerID = 0; customerID < 10; ++customerID) {
 
-		pdb::Handle<pdb::Vector<pdb::Handle<Order>>> orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
+		pdb::Handle<pdb::Vector<pdb::Handle<Order>>>orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
 
 			// Make LineItems
 			for (int lineItemID = 0; lineItemID < maxLineItemsInEachOrder; ++lineItemID) {
-				pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>> lineItems = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>> ();
+
+				pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItems = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>> ();
 
 				for (int partID = 0; partID < maxPartsInEachLineItem; ++partID) {
 					//1.  Make Part and Supplier
@@ -82,11 +83,11 @@ int main() {
 				}
 
 				//4. Make Order
-				pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, lineItemID,  1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Comment1");
+				pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, lineItemID,  1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Comment1");
 				orders->push_back(order);
 			}
 
-			pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID,  "customerName", "address",1, "phone", 12.1,"mktsegment", "Comment1");
+			pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID,  "customerName", "address",1, "phone", 12.1,"mktsegment", "Comment1");
 			customers->push_back(customer);
 	}
 
