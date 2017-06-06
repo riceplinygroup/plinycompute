@@ -74,7 +74,15 @@ void Array <TypeContained> :: setUpAndCopyFrom (void *target, void *source) cons
 		memmove (newLoc, data, dataSize * fromMe.usedSlots);
 	} else {
 		for (uint32_t i = 0; i < fromMe.usedSlots; i++) {
+                   try{
 			toMe.typeInfo.setUpAndCopyFromConstituentObject (newLoc + dataSize * i,  data + dataSize * i);
+                   }
+                   catch (NotEnoughSpace &n) {
+                        //JiaNote: handle exception here
+                        PDB_COUT << "exception in array copy" << std :: endl;
+                        toMe.usedSlots = i;
+                        throw n; 
+                   }
 		}
 	}
 }
@@ -100,7 +108,6 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
 		bzero (data, numUsedSlots * sizeof (TypeContained));
 	}
 }
-
 template <class TypeContained>
 Array <TypeContained> :: Array (uint32_t numSlotsIn) {
 	typeInfo.setup <TypeContained> ();
@@ -170,13 +177,18 @@ Handle <Array <TypeContained>> Array <TypeContained> :: resize (uint32_t howMany
 
 	tempArray->usedSlots = min;
 
-	for (uint32_t i = 0; i < min || i < usedSlots; i++) {
+        //JiaNote: deep copy may cause exception, and cause usedSlots inconsistent
+        size_t myUsedSlots = usedSlots;
+
+	for (uint32_t i = 0; i < min || i < myUsedSlots; i++) {
 
 		if (i < min) {
 			new ((void *) &(newLoc[i])) TypeContained ();
 			newLoc[i] = ((TypeContained *) (data))[i];
-		} else if (i < usedSlots) {
+		} else if (i < myUsedSlots) {
 			((TypeContained *) (data))[i].~TypeContained ();
+                        //JiaNote: we need make usedSlots consistent in cases of exception
+                        usedSlots--;
 		}
 	}
 
@@ -202,7 +214,7 @@ template <class TypeContained>
 void Array <TypeContained> :: push_back (const TypeContained &val) {
 	// need a placement new to correctly initialize before the copy
 	new ((void *) &(((TypeContained *) (data))[usedSlots])) TypeContained ();
-	((TypeContained *) (data))[usedSlots] = val;
+	((((TypeContained *) (data))[usedSlots])) = val;
 	usedSlots++;
 }
 

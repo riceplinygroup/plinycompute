@@ -82,9 +82,9 @@ int main (int argc, char * argv[]) {
            std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
        }
 
-       int numOfMb = 512; //by default we add 256MB data
+       int numOfMb = 1024; //by default we add 1024MB data
        if (argc > 3) {
-           numOfMb = atoi(argv[3])/2;
+           numOfMb = atoi(argv[3]);
        }
        std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
@@ -208,7 +208,7 @@ int main (int argc, char * argv[]) {
         }
 
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<DepartmentEmployees> ("test87_db", "output_set", errMsg)) {
+        if (!temp.createSet<DepartmentEmployeeAges> ("test87_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -216,7 +216,19 @@ int main (int argc, char * argv[]) {
         }
 
         QueryClient myClient (8108, "localhost", clientLogger, true);
-	
+        // print the input set
+        /*
+        std :: cout << "to print input..." << std :: endl;
+        SetIterator <Supervisor> result = myClient.getSetIterator <Supervisor> ("test87_db", "test87_set");
+        int count = 0;
+        for (auto a : result)
+        {
+                     count ++;
+                     std :: cout << count << ":";
+                     a->print();
+        }
+        std :: cout << "input count:" << count << "\n";
+        */
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
@@ -226,7 +238,7 @@ int main (int argc, char * argv[]) {
 	// create all of the computation objects
 	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test87_db", "test87_set");
         Handle <Computation> myAgg = makeObject <SillyGroupBy> ("test87_db", "output_set");
-        //myAgg->setAllocatorPolicy(noReuseAllocator);
+        myAgg->setAllocatorPolicy(noReuseAllocator);
         myAgg->setInput(myScanSet);
 
         auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -246,7 +258,7 @@ int main (int argc, char * argv[]) {
         // print the resuts of the output set
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <DepartmentEmployees> result = myClient.getSetIterator <DepartmentEmployees> ("test87_db", "output_set");
+            SetIterator <DepartmentEmployeeAges> result = myClient.getSetIterator <DepartmentEmployeeAges> ("test87_db", "output_set");
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)

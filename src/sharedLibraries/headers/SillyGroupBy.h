@@ -24,11 +24,11 @@
 #include "Employee.h"
 #include "Supervisor.h"
 #include "LambdaCreationFunctions.h"
-#include "DepartmentEmployees.h"
+#include "DepartmentEmployeeAges.h"
 
 using namespace pdb;
 
-class SillyGroupBy : public ClusterAggregateComp <DepartmentEmployees, Supervisor, String, Handle<Map<String, Vector<Handle<Employee>>>>> {
+class SillyGroupBy : public ClusterAggregateComp <DepartmentEmployeeAges, Supervisor, String, Handle<Map<String, Vector<int>>>> {
 
 public:
 
@@ -49,17 +49,17 @@ public:
         }
 
         // the value type must have + defined
-        Lambda <Handle<Map<String, Vector<Handle<Employee>>>>> getValueProjection (Handle <Supervisor> aggMe) override {
+        Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <Supervisor> aggMe) override {
                 return makeLambda (aggMe, [] (Handle <Supervisor> & aggMe) {
-                               Handle<Map<String, Vector<Handle<Employee>>>> ret =
-                                   makeObject<Map<String, Vector<Handle<Employee>>>> ();
-                               String myKey = *(aggMe->getName());
-                               (*ret)[myKey] = Vector<Handle<Employee>> ((aggMe->myGuys).size());
-                               for (int i = 0; i < (aggMe->myGuys).size(); i++) {
-                                  (*ret)[myKey].push_back((aggMe->myGuys)[i]);
-                               }
-                               return ret;
-                          });
+
+                         Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
+                         String myKey = *(aggMe->getName());
+                         (*ret)[myKey].resize((aggMe->myGuys).size());
+                         for (int i = 0; i < (aggMe->myGuys).size(); i++) {
+                                  (*ret)[myKey].push_back((aggMe->myGuys)[i]->getAge());
+                         }
+                         return ret;
+                    });
         }
 
 };

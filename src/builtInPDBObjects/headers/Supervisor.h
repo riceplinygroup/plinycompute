@@ -84,11 +84,16 @@ public:
         void print () {
                 me->print ();
                 std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
-		if (myGuys.size () > 0) {
+		/*if (myGuys.size () > 0) {
 			std :: cout << "\t (One is ";
 			myGuys[0]->print ();
 			std :: cout << ")\n";
-		}
+		}*/
+                for (int i = 0; i < myGuys.size(); i++) {
+                        std :: cout << i << ": ";
+                        myGuys[i]->print();
+                }
+
         }
 
 };
