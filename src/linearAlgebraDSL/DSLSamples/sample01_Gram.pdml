@@ -1,0 +1,2 @@
+X = load(10,5,"X01.data")
+Result = X '* X

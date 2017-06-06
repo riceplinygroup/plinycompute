@@ -1,0 +1,21 @@
+A = load(4,4,"data.mat")
+B = zeros(4,4,2,2)
+C = ones(4,4,2,2)
+D = identity(4,4,2,2)
+
+E = A + B
+F = A - B
+G = A * B
+H = A '* B
+
+I = A^T
+J = A^-1
+
+K = A + B*C
+
+L = max(A)
+M = min(A)
+N = rowMax(A)
+O = rowMin(A)
+P = colMax(A)
+Q = colMin(A)

@@ -208,7 +208,24 @@ for src_subdir_path in src_root_subdir_paths:
         cSources = [(abspath(join(join ('build/', src_subdir_basename),'Parser.c'))), (abspath(join(join ('build/', src_subdir_basename),'Lexer.c')))]
         
         #component_dir_basename_to_lexer_c_file_paths [src_subdir_basename] = cSources
-            
+    
+    # Added for LinearAlgebraDSL
+    elif src_subdir_basename == 'linearAlgebraDSL':
+        # maps .y and .l source files used by flex and bison
+        lexerSources = [abspath(join(join (source_folder),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-2:] == '.y' or f2[-2:] == '.l')]
+        component_dir_basename_to_lexer_file_paths [src_subdir_basename] = lexerSources
+        
+        # maps .cc source files
+        common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)        
+        ccSources = [abspath(join(join ('build/', src_subdir_basename),f2)) for f2 in listdir(source_folder) if isfile(join(source_folder, f2)) and (f2[-3:] == '.cc')]        
+
+        component_dir_basename_to_cc_file_paths [src_subdir_basename] = ccSources
+
+        # maps .c files        
+        cSources = [(abspath(join(join ('build/', src_subdir_basename),'LAParser.c'))), (abspath(join(join ('build/', src_subdir_basename),'LALexer.c')))]
+        
+        #component_dir_basename_to_lexer_c_file_paths [src_subdir_basename] = cSources
+
     else:
         common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)
 
@@ -277,8 +294,10 @@ all = ['build/sqlite/sqlite3.c',
 #       component_dir_basename_to_cc_file_paths['tcapParser'],
 #       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        component_dir_basename_to_cc_file_paths['logicalPlan'],
+       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
        component_dir_basename_to_cc_file_paths['lambdas'],
        component_dir_basename_to_lexer_file_paths['logicalPlan'],
+       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
        boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
@@ -477,6 +496,7 @@ common_env.Program('bin/testLA08_RowMax', ['build/tests/TestLA08_RowMax.cc'] + a
 common_env.Program('bin/testLA09_RowMin', ['build/tests/TestLA09_RowMin.cc'] + all)
 common_env.Program('bin/testLA10_ColMax', ['build/tests/TestLA10_ColMax.cc'] + all)
 common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + all)
+common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 
@@ -599,6 +619,7 @@ main=common_env.Alias('main', [
   #'bin/testLA09_RowMin',
   #'bin/testLA10_ColMax',
   #'bin/testLA11_ColMin',
+  'bin/testLA20_Parser',
 
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 

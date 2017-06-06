@@ -1,0 +1,7 @@
+X = load(10,5,"X03.data")
+M = load(5,5,"M03.dat")
+
+Dist = X * M * X^T 
+newDist = Dist + 100000.0*identity(10,10,100,100)
+minDist = rowMin(newDist)
+result = max(minDist) 
