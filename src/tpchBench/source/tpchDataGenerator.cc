@@ -50,6 +50,7 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
+#include "CustomerMultiSelection.h"
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -68,6 +69,10 @@
 #include "MapTupleSetIterator.h"
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
+
+#include "QueryOutput.h"
+#include "DataTypes.h"
+
 #include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
@@ -92,9 +97,7 @@ using namespace std;
 #define KB 1024
 #define MB (1024*KB)
 
-
-
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scaleFactor){
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFactor) {
 
 	// All files to parse:
 	string PartFile = "tables_scale_" + scaleFactor + "/part.tbl";
@@ -144,7 +147,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		int partID = atoi(tokens.at(0).c_str());
 
 		if (partID % 10000 == 0)
-			cout << "Part ID: " << partID << endl;
+		cout << "Part ID: " << partID << endl;
 
 		pdb::Handle<Part> part = pdb::makeObject<Part>(atoi(tokens.at(0).c_str()), tokens.at(1), tokens.at(2), tokens.at(3), tokens.at(4), atoi(tokens.at(5).c_str()), tokens.at(6), atof(tokens.at(7).c_str()),
 				tokens.at(8));
@@ -186,7 +189,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		supplierList.push_back(tSupplier);
 
 		if (supplierKey % 1000 == 0)
-			cout << "Supplier ID: " << supplierKey << endl;
+		cout << "Supplier ID: " << supplierKey << endl;
 
 		//Populate the hash:
 		supplierMap[atoi(tokens.at(0).c_str())] = tSupplier;
@@ -244,7 +247,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 				atof(tokens.at(6).c_str()), atof(tokens.at(7).c_str()), tokens.at(8), tokens.at(9), tokens.at(10), tokens.at(11), tokens.at(12), tokens.at(13), tokens.at(14), tokens.at(15));
 
 		if (orderKey % 100000 == 0)
-			cout << "LineItem ID: " << orderKey << endl;
+		cout << "LineItem ID: " << orderKey << endl;
 
 		//Populate the hash:
 		if (lineItemMap.find(orderKey) != lineItemMap.end()) {
@@ -298,7 +301,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 				tokens.at(8));
 
 		if (orderKey % 100000 == 0)
-			cout << "Order ID: " << orderKey << endl;
+		cout << "Order ID: " << orderKey << endl;
 
 		//Populate the hash:
 		if (orderMap.find(customerKey) != orderMap.end()) {
@@ -329,8 +332,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 	pdb::makeObjectAllocatorBlock((size_t) 15000 * MB, true);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -361,22 +363,16 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 	}
 
-		infile.close();
-		infile.clear();
+	infile.close();
+	infile.clear();
 
-
-return storeMeCustomerList;
-
-
+	return storeMeCustomerList;
 
 }
 
-
-
-
 int main() {
 
-	int noOfCopies=1;
+	int noOfCopies = 0;
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -384,7 +380,6 @@ int main() {
 
 	// register the shared employee class
 	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-
 
 	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
 	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
@@ -428,42 +423,69 @@ int main() {
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 
 	string scaleFactor = "0.2";
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList =  dataGenerator(scaleFactor);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = dataGenerator(scaleFactor);
 
-		pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
-		size_t sizeOfCustomers = myBytes->numBytes();
-		cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
+	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
+	size_t sizeOfCustomers = myBytes->numBytes();
+	cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
-		// store copies of the same dataset.
-		for (int i = 1; i <= noOfCopies; ++i) {
-			cout << "Storing Vector of Customers - Copy Number : " << i << endl;
+	// store copies of the same dataset.
+	for (int i = 1; i <= noOfCopies; ++i) {
+		cout << "Storing Vector of Customers - Copy Number : " << i << endl;
 
-				if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-					std::cout << "Failed to send data to dispatcher server" << std::endl;
-					return -1;
-				}
-
-			// flush to disk
-			distributedStorageManagerClient.flushData(errMsg);
-
+		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+			std::cout << "Failed to send data to dispatcher server" << std::endl;
+			return -1;
 		}
 
-		QueryClient myClient(masterPort, masterHostname, clientLogger, true);
+		// flush to disk
+//			distributedStorageManagerClient.flushData(errMsg);
 
-		std::cout << "to print result..." << std::endl;
-		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
+	}
 
-		std::cout << "Query results: ";
-		int count = 0;
-		for (auto a : result) {
-			count++;
-			if (count % 10000 == 0) {
-				std::cout << count << endl;
-				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
-			}
-		}
-		std::cout << "multi-selection output count:" << count << "\n";
+	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+		cout << "Not able to register type.\n";
 
+	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	QueryClient myClient(masterPort, masterHostname, clientLogger, true);
+
+//		std::cout << "to print result..." << std::endl;
+//		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
+//
+//		std::cout << "Query results: ";
+//		int count = 0;
+//		for (auto a : result) {
+//			count++;
+//			if (count % 10000 == 0) {
+//				std::cout << count << endl;
+//				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
+//			}
+//		}
+//		std::cout << "multi-selection output count:" << count << "\n";
+
+	// for allocations
+	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
+
+	// make the query graph
+	Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("TPCH_db", "tpch_bench_set1");
+	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
+	myFlatten->setInput(myScanSet);
+	Handle<Computation> myWriteSet = makeObject<WriteBuiltinEmployeeSet>("TPCH_db", "output_set1");
+
+	myWriteSet->setInput(myFlatten);
+
+	auto begin = std::chrono::high_resolution_clock::now();
+
+	if (!myClient.executeComputations(errMsg, myWriteSet)) {
+		std::cout << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+	}
+	std::cout << std::endl;
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 }
 
