@@ -378,7 +378,13 @@ common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] +
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libOrderMultiSelection.so', ['build/tpchBench/OrderMultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libOrderWriteSet.so', ['build/tpchBench/OrderWriteSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
+
+
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
+
+
 
 
 
@@ -650,6 +656,8 @@ main=common_env.Alias('main', [
   'libraries/libCustomer.so',
   'libraries/libCustomerMultiSelection.so',
   'libraries/libOrderMultiSelection.so',
+  'libraries/libOrderWriteSet.so',
+  'libraries/libScanCustomerSet.so',
   'bin/tpchTestData',
   'bin/tpchDataGenerator',
   

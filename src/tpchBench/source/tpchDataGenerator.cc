@@ -51,6 +51,8 @@
 #include "Order.h"
 #include "Customer.h"
 #include "CustomerMultiSelection.h"
+#include "OrderWriteSet.h"
+#include "ScanCustomerSet.h"
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -61,7 +63,6 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
 #include "SelectionComp.h"
-#include "ScanSupervisorSet.h"
 #include "WriteBuiltinEmployeeSet.h"
 #include "SupervisorMultiSelection.h"
 #include "VectorSink.h"
@@ -80,6 +81,7 @@
 #include <chrono>
 #include <fcntl.h>
 
+#include "../headers/ScanCustomerSet.h"
 // #include "Set.h"
 //TODO: why shoud I include WriteStringSet when I want to use DispatcherClient?
 #include "WriteStringSet.h"
@@ -444,10 +446,17 @@ int main() {
 	}
 
 	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register type libCustomerMultiSelection.\n";
 
 	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register type  libOrderMultiSelection.\n";
+
+	if (!catalogClient.registerType("libraries/libOrderWriteSet.so", errMsg))
+		cout << "Not able to register type libOrderWriteSet.\n";
+
+	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
+		cout << "Not able to register type libScanCustomerSet. \n";
+
 
 	QueryClient myClient(masterPort, masterHostname, clientLogger, true);
 
@@ -469,11 +478,11 @@ int main() {
 	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
 
 	// make the query graph
-	Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("TPCH_db", "tpch_bench_set1");
+	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-	Handle<Computation> myWriteSet = makeObject<WriteBuiltinEmployeeSet>("TPCH_db", "output_set1");
 
+	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
 	myWriteSet->setInput(myFlatten);
 
 	auto begin = std::chrono::high_resolution_clock::now();
