@@ -531,7 +531,7 @@ int main() {
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	if (!myClient.executeComputations(errMsg, myFlatten)) {
+	if (!myClient.executeComputations(errMsg, myWriteSet)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	}
