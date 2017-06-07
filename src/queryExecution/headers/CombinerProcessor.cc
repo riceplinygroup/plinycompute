@@ -153,7 +153,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                 } catch (NotEnoughSpace &n) {
 
-                    std :: cout << "Error: Combiner page is too small, exception 1 thrown" << std :: endl;
+                    std :: cout << "Info: Combiner page is too small, exception 1 thrown" << std :: endl;
                     throw n;
                 }
                 try {
@@ -163,7 +163,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     count ++;
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "Error: Combiner page is too small, exception 2 thrown" << std :: endl;
+                    std :: cout << "Info: Combiner page is too small, exception 2 thrown" << std :: endl;
                     curOutputMap->setUnused (curKey);
                  
                     throw n;
@@ -184,7 +184,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "Error: Combiner page is too small, exception 3 thrown" << std :: endl;
+                    std :: cout << "Info: Combiner page is too small, exception 3 thrown" << std :: endl;
                     temp = copy;
                     throw n;
                 }
