@@ -372,8 +372,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 
 }
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> generateSmallDataset() {
-
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset() {
 
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>> ();
 
@@ -384,7 +383,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> generateSmallDataset() {
 	// Make Customers
 	for (int customerID = 0; customerID < 10; ++customerID) {
 
-		pdb::Handle<pdb::Vector<pdb::Handle<Order>>>  orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
+		pdb::Handle<pdb::Vector<pdb::Handle<Order>>> orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
 		pdb::makeObjectAllocatorBlock((size_t) 100 * MB, true);
 
 		// Make LineItems
@@ -466,14 +465,23 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	// Phase - 2:  READ and Store the data
+	// now, create the sets for storing Customer Data
+	if (!distributedStorageManagerClient.createSet<Order>("TPCH_db", "tpch_output_set1", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created set.\n";
+	}
+
+	//
+	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 
 	string scaleFactor = "0.2";
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset();
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = generateSmallDataset();
 
-	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
+	pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
 	cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
@@ -487,7 +495,7 @@ int main() {
 		}
 
 		// flush to disk
-//			distributedStorageManagerClient.flushData(errMsg);
+     	distributedStorageManagerClient.flushData(errMsg);
 
 	}
 
@@ -505,20 +513,6 @@ int main() {
 
 	QueryClient myClient(masterPort, masterHostname, clientLogger, true);
 
-//		std::cout << "to print result..." << std::endl;
-//		SetIterator<Customer> result = myClient.getSetIterator<Customer>("TPCH_db", "tpch_bench_set1");
-//
-//		std::cout << "Query results: ";
-//		int count = 0;
-//		for (auto a : result) {
-//			count++;
-//			if (count % 10000 == 0) {
-//				std::cout << count << endl;
-//				cout<< " Customer Key" << a->getComment()->c_str() <<endl;
-//			}
-//		}
-//		std::cout << "multi-selection output count:" << count << "\n";
-
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
 
@@ -526,7 +520,7 @@ int main() {
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
+	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "tpch_output_set1");
 	myWriteSet->setInput(myFlatten);
 
 	auto begin = std::chrono::high_resolution_clock::now();
@@ -539,6 +533,20 @@ int main() {
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
+
+	std::cout << "to print result..." << std::endl;
+	SetIterator<Order> result = myClient.getSetIterator<Order>("TPCH_db", "tpch_output_set1");
+
+	std::cout << "Query results: ";
+	int count = 0;
+	for (auto a : result) {
+		count++;
+//		if (count % 10000 == 0) {
+			std::cout << count << endl;
+			cout << " Customer Key" << a->getComment()->c_str() << endl;
+//		}
+	}
+	std::cout << "multi-selection output count:" << count << "\n";
 
 }
 
