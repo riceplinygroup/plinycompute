@@ -482,12 +482,12 @@ int main() {
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
 
-	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
-	myWriteSet->setInput(myFlatten);
+//	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
+//	myWriteSet->setInput(myFlatten);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	if (!myClient.executeComputations(errMsg, myWriteSet)) {
+	if (!myClient.executeComputations(errMsg, myFlatten)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	}

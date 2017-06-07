@@ -46,7 +46,7 @@ public:
 	// Then get the Orders out of the Customers
 	Lambda<Vector<Handle<Order>>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
-			                   return * checkMe->orders;
+			                   return * (checkMe->orders);
 			               });
 	}
 };
