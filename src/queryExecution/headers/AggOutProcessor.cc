@@ -84,9 +84,9 @@ bool AggOutProcessor <OutputClass, KeyType, ValueType> :: fillNextOutputPage () 
             }
           
             Handle<OutputClass> temp = makeObject<OutputClass> ();
+            temp->getKey() = (*(*begin)).key;
+            temp->getValue() = (*(*begin)).value;
             outputData->push_back(temp);
-            (*outputData)[pos]->getKey() = (*(*begin)).key;
-            (*outputData)[pos]->getValue() = (*(*begin)).value;
             pos++;
             ++(*begin);
         }

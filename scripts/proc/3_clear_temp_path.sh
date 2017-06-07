@@ -19,7 +19,7 @@ pem_file=$1
 user=$2
 
 ip_len_valid=3
-echo "-------------step3: clean PDB temp directory"
+echo "-------------step2: clean PDB temp directory"
 
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
