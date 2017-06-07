@@ -372,6 +372,51 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 
 }
 
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> generateSmallDataset() {
+
+
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>> ();
+
+	int maxPartsInEachLineItem = 10;
+	int maxLineItemsInEachOrder = 20;
+	int maxOrderssInEachCostomer = 20;
+
+	// Make Customers
+	for (int customerID = 0; customerID < 10; ++customerID) {
+
+		pdb::Handle<pdb::Vector<pdb::Handle<Order>>>  orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
+		pdb::makeObjectAllocatorBlock((size_t) 100 * MB, true);
+
+		// Make LineItems
+		for (int lineItemID = 0; lineItemID < maxLineItemsInEachOrder; ++lineItemID) {
+
+			pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItems = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>> ();
+
+			for (int partID = 0; partID < maxPartsInEachLineItem; ++partID) {
+				//1.  Make Part and Supplier
+				pdb::Handle<Part> part = pdb::makeObject<Part>(partID, "Part1", "mfgr", "Brand1", "type1", partID, "Container1", 12.1, "Comment1");
+				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(partID, "Part1", "address", partID, "Phone1", 12.1, "Comment1");
+
+				//2. Make LineItem
+				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem1", partID, supplier, part, partID, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
+						"sgipingStruct", "shipMode1", "Comment1");
+
+				//3. Add the LineItem to the LineItem Vector
+				lineItems->push_back(lineItem);
+			}
+
+			//4. Make Order
+			pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, lineItemID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Comment1");
+			orders->push_back(order);
+		}
+
+		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName", "address",1, "phone", 12.1,"mktsegment", "Comment1");
+		customers->push_back(customer);
+	}
+
+	return customers;
+
+}
 int main() {
 
 	int noOfCopies = 0;
@@ -425,7 +470,8 @@ int main() {
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 
 	string scaleFactor = "0.2";
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = dataGenerator(scaleFactor);
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset();
 
 	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
@@ -457,7 +503,6 @@ int main() {
 	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
 		cout << "Not able to register type libScanCustomerSet. \n";
 
-
 	QueryClient myClient(masterPort, masterHostname, clientLogger, true);
 
 //		std::cout << "to print result..." << std::endl;
@@ -481,9 +526,8 @@ int main() {
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-
-//	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
-//	myWriteSet->setInput(myFlatten);
+	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "output_set1");
+	myWriteSet->setInput(myFlatten);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
