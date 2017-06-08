@@ -660,7 +660,7 @@ main=common_env.Alias('main', [
   'libraries/libOrderWriteSet.so',
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPart.so',
-#  'bin/tpchTestData',
+# 'bin/tpchTestData',
   'bin/tpchDataGenerator',
   
   

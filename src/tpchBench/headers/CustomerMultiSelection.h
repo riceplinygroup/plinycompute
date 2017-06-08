@@ -48,21 +48,19 @@ public:
 	Lambda<Vector<Handle<CustomerSupplierPart>>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
-
 					pdb::Vector<pdb::Handle<Order>> m_orders= *checkMe-> orders;
 
 					pdb::Handle<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> customerSupplierPart_vector = pdb::makeObject<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> ();
 
 					// get the orders
-					while (m_orders.size () > 0) {
-
-						auto lineItems = *m_orders[m_orders.size () - 1]->getLineItems();
-						m_orders.pop_back();
+					for (int i = 0; i < m_orders.size (); ++i) {
+						auto lineItems = *m_orders[i]->getLineItems();
 
 						// get the LineItems
-						while (lineItems.size () > 0) {
+						for (int j = 0; j < lineItems.size (); ++j) {
+
 							auto supplier = lineItems[lineItems.size () - 1]->getSupplier();
-							auto part = lineItems[lineItems.size () - 1]->getPart();
+							auto part = lineItems[j]->getPart();
 
 							std::string customerName = checkMe->getName()->c_str();
 							std::string supplierName = supplier->getName()->c_str();
@@ -74,7 +72,6 @@ public:
 
 							// make a new customerSupplierPart object which is a triple representing the (customerName, supplierName, partKey)
 							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);
-
 
 							customerSupplierPart_vector->push_back(customerSupplierPart);
 							lineItems.pop_back();
