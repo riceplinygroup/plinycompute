@@ -308,7 +308,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				std :: cout << "Are still enough records for another page.\n";
+				//std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
                                 pageSize = myPage->getSize();
 				continue;
