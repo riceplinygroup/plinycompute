@@ -27,9 +27,10 @@
 
 #include "Customer.h"
 #include "Order.h"
+#include "CustomerSupplierPart.h"
 
 using namespace pdb;
-class CustomerMultiSelection: public MultiSelectionComp<Order, Customer> {
+class CustomerMultiSelection: public MultiSelectionComp<CustomerSupplierPart, Customer> {
 
 public:
 
@@ -44,10 +45,40 @@ public:
 	}
 
 	// Then get the Orders out of the Customers
-	Lambda<Vector<Handle<Order>>> getProjection (Handle <Customer> checkMe) override {
+	Lambda<Vector<Handle<CustomerSupplierPart>>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
-			                   return *checkMe->orders;
-			               });
+
+					pdb::Vector<pdb::Handle<Order>> m_orders= * checkMe->orders;
+
+					pdb::Handle<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> customerSupplierPart_vector = pdb::makeObject<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> ();
+
+					// get the orders
+					while (m_orders.size () > 0) {
+
+						std::cout<<"Oder size: " << m_orders.size () << endl;
+
+						auto lineItems = *m_orders[m_orders.size () - 1]->getLineItems();
+						m_orders.pop_back();
+
+						// get the LineItems
+						while (lineItems.size () > 0) {
+							auto supplier = *lineItems[lineItems.size () - 1]->getSupplier();
+							auto part = *lineItems[lineItems.size () - 1]->getPart();
+
+							pdb::String supplierName = *supplier.getName();
+							int partKey = part.getPartKey();
+
+							// make a new customerSupplierPart object - it is triple representing the (customerName, supplierName, partKey)
+//							pdb::Handle<CustomerSupplierPart> customerSupplierPart=pdb::makeObject<CustomerSupplierPart>(checkMe->getName()->c_str(), supplierName.c_str(),partKey);
+
+//							customerSupplierPart_vector->push_back(customerSupplierPart);
+							lineItems.pop_back();
+						}
+
+					}
+
+					return *customerSupplierPart_vector;
+				});
 	}
 };
 #endif

@@ -16,28 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef ORDER_WRITE_SET_H
-#define ORDER_WRITE_SET_H
+#ifndef ustomerSupplierPart_CC
+#define ustomerSupplierPart_CC
 
-#include "WriteUserSet.h"
+#include "GetVTable.h"
 #include "CustomerSupplierPart.h"
-#include "Customer.h"
 
-using namespace pdb;
-class OrderWriteSet : public WriteUserSet <CustomerSupplierPart> {
-
-public:
-
-	ENABLE_DEEP_COPY
-
-	OrderWriteSet () {}
-
-    //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-	OrderWriteSet (std :: string dbName, std :: string setName) {
-        this->setOutput(dbName, setName);
-    }
-
-};
-
+GET_V_TABLE (CustomerSupplierPart)
 
 #endif

@@ -461,14 +461,14 @@ int main() {
 	}
 
 
-	pdb::makeObjectAllocatorBlock((size_t) 500 * MB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 200 * MB, true);
 
 	//
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(100);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(2);
 
 	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
@@ -499,7 +499,7 @@ int main() {
 		cout << "Not able to register type libScanCustomerSet. \n";
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Order>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<CustomerSupplierPart>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -531,7 +531,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<Order> result = queryClient.getSetIterator<Order>("TPCH_db", "tpch_bench_set1");
+	SetIterator<CustomerSupplierPart> result = queryClient.getSetIterator<CustomerSupplierPart>("TPCH_db", "tpch_bench_set1");
 
 	std::cout << "Query results: ";
 	int count = 0;
@@ -539,7 +539,7 @@ int main() {
 		count++;
 //		if (count % 10 == 0) {
 			std::cout << count << endl;
-			cout << a->getComment()->c_str() << endl;
+			cout << a->getPartKey() << endl;
 //		}
 	}
 	std::cout << "multi-selection output count:" << count << "\n";
