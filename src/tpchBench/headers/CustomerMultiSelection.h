@@ -65,12 +65,8 @@ public:
 							auto supplier = (*lineItems)[j]->getSupplier();
 							auto part = (*lineItems)[j]->getPart();
 
-							std::string customerName = checkMe->getName()->c_str();
-							std::string supplierName = supplier->getName()->c_str();
-							int partKey = part->getPartKey();
-
 							// make a new customerSupplierPart object which is a triple representing the (customerName, supplierName, partKey)
-							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);
+							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>( checkMe->getName(), supplier->getName(), part->getPartKey());
 							customerSupplierPart_vector->push_back(customerSupplierPart);
 						}
 					}
