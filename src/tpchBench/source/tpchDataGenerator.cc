@@ -473,7 +473,7 @@ int main() {
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(15);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
