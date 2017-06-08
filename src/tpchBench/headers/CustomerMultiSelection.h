@@ -55,8 +55,6 @@ public:
 					// get the orders
 					while (m_orders.size () > 0) {
 
-						std::cout<<"Oder size: " << m_orders.size () << endl;
-
 						auto lineItems = *m_orders[m_orders.size () - 1]->getLineItems();
 						m_orders.pop_back();
 
@@ -65,13 +63,18 @@ public:
 							auto supplier = *lineItems[lineItems.size () - 1]->getSupplier();
 							auto part = *lineItems[lineItems.size () - 1]->getPart();
 
-							pdb::String supplierName = *supplier.getName();
+							std::string customerName = (*checkMe->getName()).c_str();
+							std::string supplierName = (*supplier.getName()).c_str();
 							int partKey = part.getPartKey();
 
-							// make a new customerSupplierPart object - it is triple representing the (customerName, supplierName, partKey)
-//							pdb::Handle<CustomerSupplierPart> customerSupplierPart=pdb::makeObject<CustomerSupplierPart>(checkMe->getName()->c_str(), supplierName.c_str(),partKey);
+							std::cout<< "Customer Name: " << customerName<<std::endl;
+							std::cout<< "Supplier Name: " << supplierName<<std::endl;
+							std::cout<< "PartKey : " << partKey<<std::endl;
 
-//							customerSupplierPart_vector->push_back(customerSupplierPart);
+							// make a new customerSupplierPart object - it is triple representing the (customerName, supplierName, partKey)
+							pdb::Handle<CustomerSupplierPart> customerSupplierPart=pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);
+
+							customerSupplierPart_vector->push_back(customerSupplierPart);
 							lineItems.pop_back();
 						}
 
