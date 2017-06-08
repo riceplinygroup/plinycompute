@@ -48,7 +48,7 @@ public:
 	Lambda<Vector<Handle<CustomerSupplierPart>>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
-					pdb::Vector<pdb::Handle<Order>> m_orders= * checkMe->orders;
+					pdb::Vector<pdb::Handle<Order>> m_orders= *checkMe-> orders;
 
 					pdb::Handle<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> customerSupplierPart_vector = pdb::makeObject<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> ();
 
@@ -60,26 +60,25 @@ public:
 
 						// get the LineItems
 						while (lineItems.size () > 0) {
-							auto supplier = *lineItems[lineItems.size () - 1]->getSupplier();
-							auto part = *lineItems[lineItems.size () - 1]->getPart();
+							auto supplier = lineItems[lineItems.size () - 1]->getSupplier();
+							auto part = lineItems[lineItems.size () - 1]->getPart();
 
-							std::string customerName = (*checkMe->getName()).c_str();
-							std::string supplierName = (*supplier.getName()).c_str();
-							int partKey = part.getPartKey();
+							std::string customerName = checkMe->getName()->c_str();
+							std::string supplierName = supplier->getName()->c_str();
+							int partKey = part->getPartKey();
 
 							std::cout<< "Customer Name: " << customerName<<std::endl;
 							std::cout<< "Supplier Name: " << supplierName<<std::endl;
 							std::cout<< "PartKey : " << partKey<<std::endl;
 
-							// make a new customerSupplierPart object - it is triple representing the (customerName, supplierName, partKey)
-							pdb::Handle<CustomerSupplierPart> customerSupplierPart=pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);
+							// make a new customerSupplierPart object which is a triple representing the (customerName, supplierName, partKey)
+							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);
+
 
 							customerSupplierPart_vector->push_back(customerSupplierPart);
 							lineItems.pop_back();
 						}
-
 					}
-
 					return *customerSupplierPart_vector;
 				});
 	}
