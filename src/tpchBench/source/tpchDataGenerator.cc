@@ -81,7 +81,9 @@
 #include <chrono>
 #include <fcntl.h>
 
-#include "../headers/ScanCustomerSet.h"
+#include "ScanCustomerSet.h"
+#include "CustomerSupplierPart.h"
+
 // #include "Set.h"
 //TODO: why shoud I include WriteStringSet when I want to use DispatcherClient?
 #include "WriteStringSet.h"
@@ -402,7 +404,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset(int maxNoO
 			pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
 			orders->push_back(order);
 		}
-		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName", "address",1, "phone", 12.1,"mktsegment", "Customer Comment "+ to_string(customerID));
+		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName " + to_string(customerID), "address",1, "phone", 12.1,"mktsegment", "Customer Comment "+ to_string(customerID));
 		customers->push_back(customer);
 	}
 
@@ -442,6 +444,9 @@ int main() {
 		cout << "Not able to register type.\n";
 
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPart.so", errMsg))
 		cout << "Not able to register type.\n";
 
 	// now, create a new database
