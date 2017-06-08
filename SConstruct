@@ -496,6 +496,7 @@ common_env.Program('bin/test85', ['build/tests/Test85.cc'] + all)
 common_env.Program('bin/test86', ['build/tests/Test86.cc'] + all)
 common_env.Program('bin/test87', ['build/tests/Test87.cc'] + all)
 common_env.Program('bin/test88', ['build/tests/Test88.cc'] + all)
+common_env.Program('bin/test89', ['build/tests/Test89.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -620,6 +621,7 @@ main=common_env.Alias('main', [
   'bin/test86',
   'bin/test87',
   'bin/test88',
+  'bin/test89',
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
   #'bin/testLA03_Substract',
