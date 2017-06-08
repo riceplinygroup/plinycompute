@@ -67,12 +67,7 @@ public:
 
 							std::string customerName = checkMe->getName()->c_str();
 							std::string supplierName = supplier->getName()->c_str();
-
 							int partKey = part->getPartKey();
-
-							std::cout<< "Customer Name: " << customerName<<std::endl;
-							std::cout<< "Supplier Name: " << supplierName<<std::endl;
-							std::cout<< "PartKey : " << partKey<<std::endl;
 
 							// make a new customerSupplierPart object which is a triple representing the (customerName, supplierName, partKey)
 							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(customerName, supplierName, partKey);

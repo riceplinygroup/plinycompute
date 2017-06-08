@@ -52,6 +52,7 @@
 #include "Customer.h"
 #include "CustomerMultiSelection.h"
 #include "OrderWriteSet.h"
+#include "CustomerSupplierPartWriteSet.h"
 #include "ScanCustomerSet.h"
 
 #include "Handle.h"
@@ -497,7 +498,7 @@ int main() {
 	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
 		cout << "Not able to register type  libOrderMultiSelection.\n";
 
-	if (!catalogClient.registerType("libraries/libOrderWriteSet.so", errMsg))
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
 
 	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
@@ -520,7 +521,7 @@ int main() {
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
 
-	Handle<Computation> myWriteSet = makeObject<OrderWriteSet>("TPCH_db", "t_output_se1");
+	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
 	myWriteSet->setInput(myFlatten);
 
 
