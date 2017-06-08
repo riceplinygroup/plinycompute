@@ -21,6 +21,7 @@
 
 #include "WriteUserSet.h"
 #include "Order.h"
+#include "Customer.h"
 
 
 using namespace pdb;
