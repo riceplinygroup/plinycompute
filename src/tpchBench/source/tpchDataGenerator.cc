@@ -536,7 +536,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<CustomerSupplierPart> result = queryClient.getSetIterator<CustomerSupplierPart>("TPCH_db", "tpch_bench_set1");
+	SetIterator<CustomerSupplierPart> result = queryClient.getSetIterator<CustomerSupplierPart>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;
