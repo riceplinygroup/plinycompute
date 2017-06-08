@@ -97,6 +97,20 @@ public:
 // Note: we need to write all operations in constructors, destructors, and assignment operators WITHOUT using
 // the underlying type in any way (including assignment, initialization, destruction, size).  
 //
+template <class KeyType, class ValueType>
+void PairArray <KeyType, ValueType> :: setDisableDestructor (bool disableOrNot) {
+
+    this->disableDestructor = disableOrNot;
+
+}
+
+template <class KeyType, class ValueType>
+bool PairArray <KeyType, ValueType> :: isDestructorDisabled () {
+
+    return this->disableDestructor;
+
+}
+
 
 template <class KeyType, class ValueType>
 void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *source) const {
@@ -108,6 +122,8 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
 	// copy the number of slots 
 	toMe.numSlots = fromMe.numSlots;
 	toMe.usedSlots = fromMe.usedSlots;
+
+        toMe.setDisableDestructor(false);
 
 	// copy the type info
 	toMe.keyTypeInfo = fromMe.keyTypeInfo;
@@ -166,7 +182,7 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
                         catch (NotEnoughSpace &n) {
                             //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
                             GET_HASH(toMe.data, i) = UNUSED;
-                            toMe.usedSlots = i;
+                            toMe.setDisableDestructor(true);
                             throw n;
                         }
 		}
@@ -181,7 +197,7 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
                         catch (NotEnoughSpace &n) {
                             //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
                             GET_HASH(toMe.data, i) = UNUSED;
-                            toMe.usedSlots = i;
+                            toMe.setDisableDestructor(true);
                             throw n;
                         }
 		}
@@ -367,6 +383,8 @@ PairArray <KeyType, ValueType> :: PairArray (uint32_t numSlotsIn) : PairArray ()
 		val *= 2;
 	} 
 
+        setDisableDestructor(false);
+
 	// if we are not a power of two, exit
 	if (!gotIt) {
 		std :: cout << "Fatal Error: Bad: could not get the correct size  " << numSlotsIn << " for the array\n";
@@ -409,11 +427,18 @@ PairArray <KeyType, ValueType> :: PairArray () {
 	// the max number of used slots is zero
 	maxSlots = 0;
 
+        setDisableDestructor(false);
+
 }
 
 // Note: because this can be called by Object.deleteObject (), it must be written so as to not use TypeContained
 template <class KeyType, class ValueType>
 PairArray <KeyType, ValueType> :: ~PairArray () {
+
+        if (isDestructorDisabled() == true) {
+              return;
+        }
+
         if (keyTypeInfo.getTypeCode() == 0) {
             std :: cout << "PairArray: ~PairArray: keyTypeInfo = 0 " << std :: endl;
          

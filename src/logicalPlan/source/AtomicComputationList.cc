@@ -21,11 +21,12 @@
 
 #include "AtomicComputationList.h"
 #include "AtomicComputationClasses.h"
+#include "PDBDebug.h"
 
 // gets the computation that builds the tuple set with the specified name
 AtomicComputationPtr AtomicComputationList :: getProducingAtomicComputation (std :: string outputName) {
 	if (producers.count (outputName) == 0) {
-		std :: cout << "This is really bad... can't find the guy producing output " << outputName << ".\n";
+		PDB_COUT << "This could be bad... can't find the guy producing output " << outputName << ".\n";
 	}
 	return producers [outputName];
 }
@@ -33,7 +34,7 @@ AtomicComputationPtr AtomicComputationList :: getProducingAtomicComputation (std
 // gets the list of comptuations that consume the tuple set with the specified name
 std :: vector <AtomicComputationPtr> &AtomicComputationList :: getConsumingAtomicComputations (std :: string inputName) {
 	if (consumers.count (inputName) == 0) {
-		std :: cout << "This is really bad... can't find the guy consuming input " << inputName << ".\n";
+		PDB_COUT << "This could be bad... can't find the guy consuming input " << inputName << ".\n";
 	}
 	return consumers [inputName];
 }

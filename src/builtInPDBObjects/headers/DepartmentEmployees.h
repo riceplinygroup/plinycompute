@@ -33,13 +33,12 @@ class DepartmentEmployees : public Object {
 
 public:
         DepartmentEmployees () {
-            employees = makeObject<Map<String, Vector<Handle<Employee>>>>();
         }
 
         ~DepartmentEmployees() {}
 
         String departmentName; //the name of the department
-	Handle<Map<String, Vector<Handle<Employee>>>> employees; //for each supervisor in this department, the list of employees	
+	Map<String, Vector<Handle<Employee>>> employees; //for each supervisor in this department, the list of employees	
 	ENABLE_DEEP_COPY
 
 
@@ -47,14 +46,14 @@ public:
 		return departmentName;
 	}
 	
-	Handle<Map<String, Vector<Handle<Employee>>>>  &getValue () {
+	Map<String, Vector<Handle<Employee>>>  &getValue () {
 		return employees;
 	}
 
         void print() {
                std :: cout << "Department: " << departmentName  << std :: endl;
-               auto iter = employees->begin();
-               while (iter != employees->end()) {
+               auto iter = employees.begin();
+               while (iter != employees.end()) {
                    std :: cout << "----Supervisor: " << (*iter).key << std :: endl;
                    std :: cout << "----NumEmployees: " << (*iter).value.size() << std :: endl;
                    for (int i = 0; i < (*iter).value.size(); i++) {
@@ -69,21 +68,21 @@ public:
 };
 
 
-inline Handle<Map<String, Vector<Handle<Employee>>>> &operator+ (Handle<Map<String, Vector<Handle<Employee>>>> &lhs, Handle<Map<String, Vector<Handle<Employee>>>> &rhs) {
-       auto iter = rhs->begin();
-       while (iter != rhs->end()) {
+inline Map<String, Vector<Handle<Employee>>> &operator+ (Map<String, Vector<Handle<Employee>>> &lhs, Map<String, Vector<Handle<Employee>>> &rhs) {
+       auto iter = rhs.begin();
+       while (iter != rhs.end()) {
            String myKey = (*iter).key;
-           if (lhs->count(myKey) == 0) {
+           if (lhs.count(myKey) == 0) {
                try {
-                   (*lhs)[myKey] = (*iter).value;
+                   lhs[myKey] = (*iter).value;
                } catch ( NotEnoughSpace &n ) {
-                   //std :: cout << "not enough space when inserting new pair" << std :: endl;
-                   lhs->setUnused (myKey);
+                   std :: cout << "not enough space when inserting new pair" << std :: endl;
+                   lhs.setUnused (myKey);
                    throw n;
                }
            } else {
 
-                   size_t mySize = (*lhs)[myKey].size();
+                   size_t mySize = lhs[myKey].size();
                    size_t otherSize = (*iter).value.size();
 
                       
@@ -91,21 +90,11 @@ inline Handle<Map<String, Vector<Handle<Employee>>>> &operator+ (Handle<Map<Stri
                    for (size_t i = mySize; i < mySize + otherSize; i++) {
                        try {
 
-                               (*lhs)[myKey].push_back((*iter).value[i-mySize]);
+                               lhs[myKey].push_back((*iter).value[i-mySize]);
 
                        } catch (NotEnoughSpace &n) {
 
-                               //std :: cout << i << ": not enough space when updating value for pushing back: " << (*lhs)[myKey].size() << std :: endl;   
-                               size_t curSize = (*lhs)[myKey].size();
-                               for (size_t j = mySize; j < curSize; j++) {
-                                    (*lhs)[myKey].pop_back();
-                               }
-                               //std :: cout << "size restored to " << (*lhs)[myKey].size() << std :: endl;
-                               for (size_t j = 0; j < (*lhs)[myKey].size(); j++) {
-                                    std :: cout << j << ": ";
-                                    (*lhs)[myKey][j]->print();
-                                    std :: cout << ";";
-                               }
+                               std :: cout << i << ": not enough space when updating value by pushing back: " << lhs[myKey].size() << std :: endl;   
                                throw n;
 
                        }

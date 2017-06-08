@@ -242,7 +242,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				numObjectsInRecord = allObjects.size ();
-              
+                                //std :: cout << "PangeaStorageServer: Write back " << numObjectsInRecord << std :: endl;
 				// put all of the data onto the page
 				for (; pos < numObjectsInRecord; pos++) {
 					data->push_back (allObjects[pos]);
@@ -275,7 +275,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		} catch (NotEnoughSpace &n) {
 
                         // comment the following three lines of code to allow Pangea to manage pages						
-			PDB_COUT << "Writing back a page!!\n";
+			//std :: cout << "Writing back a page!!\n";
                         getRecord(data);
                         if (data->size() == 0) {
                             std :: cout << "FATAL ERROR: object size is larger than a page, pleases increase page size" << std :: endl;
@@ -308,7 +308,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
-				PDB_COUT << "Are still enough records for another page.\n";
+				std :: cout << "Are still enough records for another page.\n";
 				myPage = getNewPage (databaseAndSet);
                                 pageSize = myPage->getSize();
 				continue;
@@ -322,11 +322,12 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				Handle <Vector <Handle <Object>>> extraData = makeObject <Vector <Handle <Object>>> (numObjectsInRecord - pos);
 
 				// write the objects to the vector
+                                //std :: cout << "We save space for the remaining data in this record" << std :: endl;
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				for (; pos < numObjectsInRecord; pos++) {
 					extraData->push_back (allObjects[pos]);	
 				}
-				PDB_COUT << "Putting the records back complete.\n";
+				//std :: cout << "Putting the records back complete.\n";
 	
 				// destroy the record that we were copying from
 				numBytesToProcess -= allRecs[allRecs.size () - 1]->numBytes ();
@@ -881,7 +882,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	// this handler accepts a request to store some data
 	forMe.registerHandler (StorageAddData_TYPEID, make_shared <SimpleRequestHandler <StorageAddData>> (
 		[&] (Handle <StorageAddData> request, PDBCommunicatorPtr sendUsingMe) {
-
+                const LockGuard guard{workingMutex};
 	        std :: string errMsg;
 		bool everythingOK = true;
                 bool typeCheckOrNot = request->isTypeCheck();

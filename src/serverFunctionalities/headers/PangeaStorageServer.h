@@ -404,6 +404,10 @@ private:
         std :: map < std :: string, DatabaseID > * name2id;
 
         long totalObjects;
+
+        pthread_mutex_t workingMutex;
+
+
 };
 
 }
