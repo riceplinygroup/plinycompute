@@ -104,6 +104,10 @@ private:
 	// the array of data
 	Nothing data[0];
 
+
+        // delete flag to avoid to run destructor if the flag is set to true
+        bool disableDestructor;
+
 public:
 
 	// create a new PairArray via doubling
@@ -128,6 +132,11 @@ public:
         // clear an item
          void setUnused (const KeyType &clearMe);
 
+        //set disable destructor
+        void setDisableDestructor (bool disableOrNot);
+
+        //get disable destructor
+        bool isDestructorDisabled (); 
 };
 
 }

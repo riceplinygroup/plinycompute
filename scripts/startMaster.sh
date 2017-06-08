@@ -14,13 +14,13 @@
 #  ======================================================================== 
 #!/bin/bash
 pemFile=$1
-PDB_SLEEP_TIME=60
+PDB_SLEEP_TIME=20
 pkill -9  test404
 pkill -9  test603
 pkill -9  pdb-cluster
 pkill -9  pdb-server
 
-$PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile 0.75 &
+$PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile 1 &
 
 echo "#####################################"
 echo "To sleep for 100 seconds in total for all ssh to return"

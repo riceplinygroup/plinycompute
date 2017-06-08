@@ -194,7 +194,7 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     jobStage->setRepartition(isRepartitioning);
     jobStage->setJobId(this->jobId);
     PDB_COUT << "TCAPAnalyzer generates tupleSetJobStage:" << std :: endl;
-    jobStage->print();
+    //jobStage->print();
     return jobStage;
 }
 

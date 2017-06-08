@@ -565,7 +565,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          }
                                      }                          
                                      //unpin user page
-                                     aggregateProcessor->clearInputPage();
+                                     //aggregateProcessor->clearInputPage();
                                      page->decRefCount();
                                      if (page->getRefCount() == 0) {
                                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
@@ -643,14 +643,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                                  aggOutProcessor->loadOutputPage (output->getBytes(), output->getSize());
                                              }
                                              aggregateProcessor->clearOutputPage();
-                                             aggOutProcessor->clearInputPage();
+                                             //aggOutProcessor->clearInputPage();
                                              free(aggregationPage);
                                              PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
                                              aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
                                              aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                          }
                                      }
-                                     aggregateProcessor->clearInputPage();
+                                     //aggregateProcessor->clearInputPage();
                                      //unpin the input page 
                                      page->decRefCount();
                                      if (page->getRefCount() == 0) {
@@ -689,7 +689,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  PDB_COUT << i <<": AggOutProcessor: we now filled an output page and unpin it" << std :: endl;
                                  proxy->unpinUserPage(nodeId, outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                  //free aggregation page
-                                 aggOutProcessor->clearInputPage();
+                                 //aggOutProcessor->clearInputPage();
                                  aggregateProcessor->clearOutputPage();
                                  free (aggregationPage);
                             }//aggregationPage != nullptr

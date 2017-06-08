@@ -72,7 +72,7 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
     int numInputs = sink->getNumInputs();
     std :: string computationName = sink->getComputationType();
     if (numInputs > 0) {
-        std :: cout << "numInputs=" << numInputs << std :: endl;
+        //std :: cout << "numInputs=" << numInputs << std :: endl;
         std :: vector <InputTupleSetSpecifier> inputTupleSetsForMe;
         for (int i = 0; i < numInputs; i++) {
             Handle<Computation> curSink = sink->getIthInput(i);

@@ -86,7 +86,7 @@ void CombinerProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToWrit
         currentMap->setHashPartitionId (i);
         outputData->push_back(currentMap);
     }
-    PDB_COUT << "curPartPos=" << curPartPos << std :: endl;
+    //std :: cout << "curPartPos=" << curPartPos << std :: endl;
     curOutputMap = (*outputData)[curPartPos];
    
 }
@@ -112,7 +112,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                PDB_COUT << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
+                   //std :: cout << "CombinerProcess: processed a map partition in current input page with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std :: endl;
                 if (curPartPos < numNodePartitions-1) {
                     curPartPos ++;
                     PDB_COUT << "curPartPos=" << curPartPos << std :: endl;
@@ -125,7 +125,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                         end = new PDBMapIterator <KeyType, ValueType> (curMap->getArray());
 
                         if ((*begin) != (*end)) {
-                            PDB_COUT << "Combiner processor: now we have a new output map with index in outputData being " << curPartPos << std :: endl;
+                            //std :: cout << "Combiner processor: now we have a new output map with index in outputData being " << curPartPos << std :: endl;
                             curOutputMap = (*outputData)[curPartPos];
                         } else {
                             PDB_COUT << "this is strage: map size > 0 but begin == end" << std :: endl;
@@ -137,6 +137,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     }
                 } else {
                     //JiaNote: this is important, we need make sure when we load next page, we start output from the 0-th partition
+                    curPartPos = 0;
                     curOutputMap = (*outputData)[0];
                     return false;
                 }
@@ -212,6 +213,7 @@ template <class KeyType, class ValueType>
 void CombinerProcessor <KeyType, ValueType> :: clearOutputPage () {
     blockPtr = nullptr;
     outputData = nullptr;
+    curOutputMap = nullptr;
 }
 
 template <class KeyType, class ValueType>

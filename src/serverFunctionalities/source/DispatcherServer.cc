@@ -57,7 +57,7 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 // Receive the data to send
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
                 PDB_COUT << "NumBytes = " << numBytes << std :: endl;
-                const UseTemporaryAllocationBlock tempBlock{numBytes + 1024};
+                const UseTemporaryAllocationBlock tempBlock{numBytes + 2048};
                 Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
                 if (dataToSend->size() == 0) {
                     errMsg = "Warning: client attemps to store zero object vector";

@@ -543,8 +543,14 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
                   size_t myCombinerPageSize = combinerPageSize;
-                  if (combinerPageSize > (conf->getPageSize())*numPartitionsOnTheNode*0.671) {
-                      myCombinerPageSize = (conf->getPageSize())*numPartitionsOnTheNode*0.671;
+                  if (numPartitionsOnTheNode == 1) {
+                      if (myCombinerPageSize > conf->getPageSize()-64) {
+                          myCombinerPageSize = conf->getPageSize()-64;
+                      }
+                  } else {
+                      if (combinerPageSize > (conf->getPageSize()*numPartitionsOnTheNode*0.67)) {
+                          myCombinerPageSize = (conf->getPageSize()*numPartitionsOnTheNode*0.67);
+                      }
                   }
                   void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
                   std :: cout << i <<": load a combiner page with size = " << myCombinerPageSize << std :: endl;
@@ -574,7 +580,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                           }
                           //unpin the input page
-                          combinerProcessor->clearInputPage();
+                          //combinerProcessor->clearInputPage();
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
                                proxy->unpinUserPage (nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
