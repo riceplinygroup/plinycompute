@@ -15,18 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * Supplier.cc
- *
- *  Created on: Jun 1, 2017
- *      Author: kia
- */
-#ifndef Supplier_DATA_CC
-#define Supplier_DATA_CC
+
+#ifndef SUPPLIER_PART_PAIR_CC
+#define SUPPLIER_PART_PAIR_CC
 
 #include "GetVTable.h"
-#include "SupplierData.h"
+#include "SupplierPartPair.h"
 
-GET_V_TABLE (SupplierData)
+GET_V_TABLE (SupplierPartPair)
 
 #endif
