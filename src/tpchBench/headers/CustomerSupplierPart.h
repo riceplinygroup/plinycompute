@@ -42,7 +42,7 @@ public:
 	~CustomerSupplierPart() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPart(std::string customerName, std::string  supplierName, int partKey) {
+	CustomerSupplierPart(std::string customerName, std::string supplierName, int partKey) {
 		this->partKey= partKey;
 		this->customerName= pdb::makeObject<pdb::String>(customerName);
 		this->supplierName=  pdb::makeObject<pdb::String>(supplierName);
