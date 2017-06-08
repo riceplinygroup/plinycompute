@@ -98,15 +98,16 @@ using namespace std;
 
 #define KB 1024
 #define MB (1024*KB)
+#define GB (1024*MB)
 
 pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFactor) {
 
 	// All files to parse:
 	string PartFile = "tables_scale_" + scaleFactor + "/part.tbl";
-	string SupplierFile = "tables_scale_" + scaleFactor + "/supplier.tbl";
-	string OrderFile = "tables_scale_" + scaleFactor + "/orders.tbl";
-	string LineitemFile = "tables_scale_" + scaleFactor + "/lineitem.tbl";
-	string CustomerFile = "tables_scale_" + scaleFactor + "/customer.tbl";
+	string supplierFile = "tables_scale_" + scaleFactor + "/supplier.tbl";
+	string orderFile = "tables_scale_" + scaleFactor + "/orders.tbl";
+	string lineitemFile = "tables_scale_" + scaleFactor + "/lineitem.tbl";
+	string customerFile = "tables_scale_" + scaleFactor + "/customer.tbl";
 
 	// Common constructs:
 	string line;
@@ -172,7 +173,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 	// ####################################
 
 	//Open "SupplierFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(SupplierFile.c_str());
+	infile.open(supplierFile.c_str());
 	vector<pdb::Handle<Supplier>> supplierList;
 	map<int, pdb::Handle<Supplier>> supplierMap;
 
@@ -209,7 +210,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 	// ####################################
 
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(LineitemFile.c_str());
+	infile.open(lineitemFile.c_str());
 
 	pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItemList = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>>();
 
@@ -278,7 +279,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 	// ####################################
 
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(OrderFile.c_str());
+	infile.open(orderFile.c_str());
 
 	map<int, pdb::Handle<pdb::Vector<pdb::Handle<Order>>> >orderMap;
 
@@ -328,7 +329,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 	// ####################################
 
 	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(CustomerFile.c_str());
+	infile.open(customerFile.c_str());
 
 //	vector<pdb::Handle<Customer>> customerList;
 
@@ -370,7 +371,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 
 }
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset() {
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset(int maxNoOfCustomers) {
 
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>> ();
 
@@ -379,7 +380,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset() {
 	int maxOrderssInEachCostomer = 20;
 
 	// Make Customers
-	for (int customerID = 0; customerID < 10; ++customerID) {
+	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
 
 		pdb::Handle<pdb::Vector<pdb::Handle<Order>>> orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
 
@@ -389,8 +390,8 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset() {
 			// Make LineItems
 			for (int lineItemID = 0; lineItemID < maxLineItemsInEachOrder; ++lineItemID) {
 				//1.  Make Part and Supplier
-				pdb::Handle<Part> part = pdb::makeObject<Part>(lineItemID, "Part1", "mfgr", "Brand1", "type1", lineItemID, "Container1", 12.1, "Comment1");
-				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(lineItemID, "Part1", "address", lineItemID, "Phone1", 12.1, "Comment1");
+				pdb::Handle<Part> part = pdb::makeObject<Part>(lineItemID, "Part1", "mfgr", "Brand1", "type1", lineItemID, "Container1", 12.1, "Part Comment1");
+				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(lineItemID, "Part1", "address", lineItemID, "Phone1", 12.1, "Supplier Comment1");
 				//2. Make LineItem
 				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem1", lineItemID, supplier, part, lineItemID, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
 						"sgipingStruct", "shipMode1", "Comment1");
@@ -398,10 +399,10 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  generateSmallDataset() {
 				lineItems->push_back(lineItem);
 			}
 			//4. Make Order
-			pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Comment1");
+			pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
 			orders->push_back(order);
 		}
-		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName", "address",1, "phone", 12.1,"mktsegment", "Comment1");
+		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName", "address",1, "phone", 12.1,"mktsegment", "Customer Comment "+ to_string(customerID));
 		customers->push_back(customer);
 	}
 
@@ -460,14 +461,14 @@ int main() {
 	}
 
 
-	pdb::makeObjectAllocatorBlock((size_t) 15000 * MB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 500 * MB, true);
 
 	//
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset();
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(100);
 
 	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
@@ -506,7 +507,7 @@ int main() {
 	}
 
 	// for allocations
-	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
+	const UseTemporaryAllocationBlock tempBlock {(size_t) 128 * MB };
 
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
@@ -527,7 +528,7 @@ int main() {
 
 	std::cout << std::endl;
 	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
+	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
 	SetIterator<Order> result = queryClient.getSetIterator<Order>("TPCH_db", "tpch_bench_set1");
@@ -538,8 +539,7 @@ int main() {
 		count++;
 //		if (count % 10 == 0) {
 			std::cout << count << endl;
-			cout << " Comment" << a->getComment()->c_str() << endl;
-//			cout << "Order Comment" << a->getOrders()->size() << endl;
+			cout << a->getComment()->c_str() << endl;
 //		}
 	}
 	std::cout << "multi-selection output count:" << count << "\n";
