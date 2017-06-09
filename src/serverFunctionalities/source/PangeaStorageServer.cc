@@ -157,11 +157,11 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 	return nullptr;
 }
 
-void PangeaStorageServer :: cleanup() {
+void PangeaStorageServer :: cleanup(bool flushOrNot) {
         PDB_COUT << "to clean up for storage..." << std :: endl; 
         for (auto &a : allRecords) {
                 while (a.second.size () > 0)
-                        writeBackRecords (a.first);
+                        writeBackRecords (a.first, flushOrNot);
         }
         PDB_COUT << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
         //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
@@ -200,7 +200,7 @@ PDBPagePtr PangeaStorageServer :: getNewPage (pair <std :: string, std :: string
 }
 
 
-void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet) {
+void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot) {
 
 	// get all of the records
 	auto &allRecs = allRecords[databaseAndSet];
@@ -219,7 +219,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
             return ;
         }
         size_t pageSize = myPage->getSize();
-        PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+        //std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
 	
@@ -268,12 +268,13 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                         key.setId = myPage->getSetID();
                         key.pageId = myPage->getPageID();
                         this->getCache()->decPageRefCount(key);
-                        this->getCache()->flushPageWithoutEviction(key);
+                        if (flushOrNot == true) {
+                            this->getCache()->flushPageWithoutEviction(key);
+                        }
 			break;
 
 		// put the extra objects tht we could not store back in the record
 		} catch (NotEnoughSpace &n) {
-
                         // comment the following three lines of code to allow Pangea to manage pages						
 			//std :: cout << "Writing back a page!!\n";
                         getRecord(data);
@@ -281,15 +282,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                             std :: cout << "FATAL ERROR: object size is larger than a page, pleases increase page size" << std :: endl;
                             std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
                             std :: cout << "setName" << databaseAndSet.second << std :: endl;
-
-
-                            CacheKey key;
-                            key.dbId = myPage->getDbID();
-                            key.typeId = myPage->getTypeID();
-                            key.setId = myPage->getSetID();
-                            key.pageId = myPage->getPageID();
-                            this->getCache()->decPageRefCount(key);
-                            return;
+                            pos ++;
                         }
 			// write back the current page...
 			//myPage->wroteBytes ();
@@ -303,8 +296,9 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
                         key.setId = myPage->getSetID();
                         key.pageId = myPage->getPageID();
                         this->getCache()->decPageRefCount(key);
-                        this->getCache()->flushPageWithoutEviction(key);
-
+                        if (flushOrNot == true) {
+                            this->getCache()->flushPageWithoutEviction(key);
+                        }
 			// there are two cases... in the first case, we can make another page out of this data, since we have enough records to do so
 			if (numBytesToProcess + (((numObjectsInRecord - pos) / numObjectsInRecord) * allRecs[allRecs.size () - 1]->numBytes ()) > pageSize) {
 				
@@ -485,7 +479,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                PDB_COUT << "received StorageCleanup" << std :: endl;
                std :: string errMsg;
                bool res = true;
-               getFunctionality<PangeaStorageServer>().cleanup();
+               getFunctionality<PangeaStorageServer>().cleanup(request->isFlushing());
 
                const UseTemporaryAllocationBlock tempBlock{1024};
                Handle<SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
@@ -837,7 +831,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                  everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
                  Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
                  Handle<JoinMap<Object>> objectToStore = record->getRootObject();
-                 std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
+                 //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
                  if (everythingOK) {
                       auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
                                                         (std :: string) request->getSetName ());
@@ -929,7 +923,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 						      // if we have enough space to fill up a page, do it
 						      PDB_COUT << "Got the data.\n";
 						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes to write.\n";
-						      getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet);
+						      getFunctionality <PangeaStorageServer> ().writeBackRecords (databaseAndSet, request->isFlushing());
 						      PDB_COUT << "Done with write back.\n";
 						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
                                                 }

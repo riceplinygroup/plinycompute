@@ -181,7 +181,9 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
                         }
                         catch (NotEnoughSpace &n) {
                             //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
-                            GET_HASH(toMe.data, i) = UNUSED;
+                            for (int j = i; j < toMe.numSlots; j++) {
+                                GET_HASH(toMe.data, j) = UNUSED;
+                            }
                             toMe.setDisableDestructor(true);
                             throw n;
                         }
@@ -196,7 +198,9 @@ void PairArray <KeyType, ValueType> :: setUpAndCopyFrom (void *target, void *sou
                         }
                         catch (NotEnoughSpace &n) {
                             //JiaNote: if data type is a handle, it may trigger NotEnoughSpace exception, so handle this here.
-                            GET_HASH(toMe.data, i) = UNUSED;
+                            for (int j = i; j < toMe.numSlots; j++) {
+                                GET_HASH(toMe.data, j) = UNUSED;
+                            }
                             toMe.setDisableDestructor(true);
                             throw n;
                         }

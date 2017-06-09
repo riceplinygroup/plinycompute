@@ -36,10 +36,16 @@ class StorageCleanup : public pdb :: Object {
 
 public:
 
-	StorageCleanup () {}
-	~StorageCleanup () {}
-       
+	StorageCleanup (bool flushOrNot=true) { this->flushOrNot = flushOrNot; }
+	~StorageCleanup () {}       
+
+        bool isFlushing() { return flushOrNot; }
+
         ENABLE_DEEP_COPY
+
+private:
+
+        bool flushOrNot;
 
 };
 }

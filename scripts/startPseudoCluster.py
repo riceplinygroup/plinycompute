@@ -31,7 +31,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 threadNum = "1"
-sharedMemorySize = "512"
+sharedMemorySize = "2048"
 
 if(len(sys.argv)==3) :
     threadNum = sys.argv[1]
