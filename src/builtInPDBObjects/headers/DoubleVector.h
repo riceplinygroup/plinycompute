@@ -75,12 +75,28 @@ public:
          }
      }
 
+     void setDouble (int i, double val) {
+         if (i < this->size) {
+             (*data)[i] = val;
+         } else {
+            std :: cout << "Cannot assign the value " << val << "to the pos " << i << std :: endl;;
+         }
+     }
+
+
      void print() {
          for (int i = 0; i < this->getSize(); i++) {
              std :: cout << i << ": " << (*data)[i] << "; ";
          }
          std :: cout << std :: endl;
      }
+
+     /* 
+     void push_back (Handle<double> val) {
+    	 data->push_back(*val);
+     }
+     */
+     
 
      DoubleVector& operator + (DoubleVector &other) {
          //std :: cout << "me:" << this->getSize() << std :: endl;
@@ -102,6 +118,40 @@ public:
          return *this;
          
      }
+
+     
+     DoubleVector& operator / (int val) {
+	 
+
+	 Handle<DoubleVector> result = makeObject<DoubleVector>(this->getSize());
+     	 for (int i = 0; i < this->getSize(); i++) {
+		result->setDouble(i, (*data)[i] / val);
+     	 }
+
+         return *result;
+         
+     }
+
+
+
+     /*
+     DoubleVector operator + (DoubleVector other) {
+	 
+	 if (this->getSize() != other.getSize()) {
+		std :: cout << "Can not add two DoubleVector with different sizes!" << std :: endl;
+		return *this;
+	 }
+
+	 DoubleVector result = DoubleVector(this->getSize());
+     	 for (int i = 0; i < this->getSize(); i++) {
+		result.setDouble(i, (*data)[i] + other.getDouble(i));
+     	 }
+
+         return result;
+         
+     }
+     */
+
 
      ENABLE_DEEP_COPY
 
