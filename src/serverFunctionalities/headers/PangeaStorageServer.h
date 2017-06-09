@@ -19,6 +19,8 @@
 #ifndef PANGEA_STORAGE_SERVER_H
 #define PANGEA_STORAGE_SERVER_H
 
+//by Jia, Sept 2016
+
 
 #include "ServerFunctionality.h"
 #include "PDBServer.h"
@@ -61,7 +63,7 @@ public:
 
 	// takes all of the currently buffered records for the given database/set pair,
 	// creates at most one page of data with them, and then writes that page to storage
-	void writeBackRecords (pair <std :: string, std :: string> databaseAndSet) ;
+	void writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot = true) ;
 
 	// this allocates a new page at the end of the indicated database/set combo
 	PDBPagePtr getNewPage (pair <std :: string, std :: string> databaseAndSet);
@@ -241,8 +243,9 @@ public:
     bool isStandalone();
 
 
-   // cleaner to be invoked in destructor
-    void cleanup() override;
+   // cleaner to be invoked in destruct
+
+    void cleanup(bool flushOrNot = true);
 
    //export to a local file 
    bool  exportToFile (std :: string dbName, std :: string setName, std :: string path, std :: string format, std :: string & errMsg); 

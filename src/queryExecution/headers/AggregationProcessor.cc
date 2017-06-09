@@ -42,10 +42,11 @@ void AggregationProcessor <KeyType, ValueType> :: initialize () {
 template <class KeyType, class ValueType>
 void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object> & objectToProcess) {
         curMap = unsafeCast<Map<KeyType, ValueType>, Object> (objectToProcess);
+        //std :: cout << id << ": curMap size = " << curMap->size() << std :: endl;
         HashPartitionID hashIdForCurrentMap = curMap->getHashPartitionId();
-        PDB_COUT << "this map's partitionId is " << hashIdForCurrentMap << std :: endl;
+        //PDB_COUT << "this map's partitionId is " << hashIdForCurrentMap << std :: endl;
         if( curMap->getHashPartitionId() == id ) {
-            PDB_COUT << "this map has my id = " << id << std :: endl;
+            //PDB_COUT << "this map has my id = " << id << std :: endl;
             count = 0;
             if (begin != nullptr) {
                  //PDB_COUT << "we delete the begin iterator of last input page" << std :: endl;
@@ -57,7 +58,7 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object
             }
             begin = new PDBMapIterator <KeyType, ValueType>(curMap->getArray(), true);
             end = new PDBMapIterator <KeyType, ValueType>(curMap->getArray());
-
+            
         } else {
             //there is no hash partition for this thread
             curMap = nullptr;

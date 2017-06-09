@@ -35,17 +35,19 @@ public:
 	StorageAddData () {}
 	~StorageAddData () {}
 
-	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true) : dataBase (dataBase), setName (setName),
+	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true, bool flushOrNot = true) : dataBase (dataBase), setName (setName),
 		typeName (typeName) {
                 this->typeCheck = typeCheck;
                 this->typeID = -1;
+                this->flushOrNot = flushOrNot;
         }
 
 
-        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true) : dataBase (dataBase), setName (setName),
+        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true, bool flushOrNot = true) : dataBase (dataBase), setName (setName),
                 typeName (typeName) {
                 this->typeCheck = typeCheck;
                 this->typeID = typeID;
+                this->flushOrNot = flushOrNot;
         }
 
 	std :: string getDatabase () {
@@ -68,6 +70,9 @@ public:
                 return typeCheck;
         }
 
+        bool isFlushing() {
+                return flushOrNot;
+        }
 
 	ENABLE_DEEP_COPY
 
@@ -78,6 +83,7 @@ private:
 	String typeName;
         int typeID;
         bool typeCheck;
+        bool flushOrNot;
 };
 
 }
