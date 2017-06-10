@@ -56,8 +56,6 @@ public:
         // the value type must have + defined
         Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <CustomerSupplierPart> aggMe) override {
                 return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
-
-                	String myKey = *(aggMe->getCustomerName());
                        		 return aggMe->getSoldPartIDs();
                     });
         }
