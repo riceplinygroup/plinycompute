@@ -273,19 +273,23 @@ public:
                                         myLogger->error ("Error querying data: " + result->getRes ().second);
                                         return false;
                                 }
+                                this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
                                 return true;
                         }
                         errMsg = "Error getting type name: got nothing back from server";
+                        this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
                         return false;
 
 
                 }, executeComputation, computationsToSend);
-
+                  
 
                 } else {
                      errMsg = "This query must be sent to QuerySchedulerServer, but it seems QuerySchedulerServer is not supported";
+                     this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
                      return false;
                 }
+                this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
           }
 
 
