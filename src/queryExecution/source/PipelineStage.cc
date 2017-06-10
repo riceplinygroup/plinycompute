@@ -461,7 +461,12 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 #ifdef AUTO_TUNING
     size_t memSize = jobStage->getTotalMemoryOnThisNode();
     size_t sharedMemPoolSize = conf->getShmSize();
-    size_t tunedHashPageSize = (double)(memSize*1024-sharedMemPoolSize)*(0.75)/(double)(numNodes);
+    size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize)*(0.75)/(double)(numNodes);
+    if (memSize*((size_t)(1024)) < sharedMemPoolSize +  (size_t)512*(size_t)1024*(size_t)1024) {
+         std :: cout << "WARNING: Auto tuning can not work for this case, we use default value" << std :: endl;
+         tunedHashPageSize = conf->getHashPageSize();
+    }
+
     std :: cout << "Tuned combiner page size is " << tunedHashPageSize << std :: endl;
     conf->setHashPageSize(tunedHashPageSize);
 #endif

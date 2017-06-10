@@ -67,6 +67,15 @@ using namespace std;
 #define DEFAULT_HASH_PAGE_SIZE ((size_t)(512)*(size_t)(1024)*(size_t)(1024))
 #endif
 
+//unit: KB
+#ifndef DEFAULT_MEM_SIZE
+#define DEFAULT_MEM_SIZE ((size_t)(4)*(size_t)(1024)*(size_t)(1024))
+#endif
+
+#ifndef DEFAULT_NUM_CORES
+#define DEFAULT_NUM_CORES 8
+#endif
+
 // create a smart pointer for Configuration objects
 class Configuration;
 typedef shared_ptr<Configuration> ConfigurationPtr;
