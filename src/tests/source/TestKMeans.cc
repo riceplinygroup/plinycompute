@@ -46,6 +46,8 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
+#include <cstddef>
+#include <iostream>
 
 
 
@@ -53,6 +55,8 @@ using namespace pdb;
 int main (int argc, char * argv[]) {
     bool printResult = true;
     bool clusterMode = false;
+    freopen("output.txt","w",stdout);
+
     std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
     if (argc > 1) {
         if (strcmp(argv[1],"N") == 0) {
@@ -99,12 +103,44 @@ int main (int argc, char * argv[]) {
         }
     }
 
+
+    std :: cout << std :: endl;
+    std :: cout << "*****************************************" << std :: endl;
+    std :: cout << "K-means starts : " << std :: endl;
+    std :: cout << "*****************************************" << std :: endl;
+    std :: cout << std :: endl;
+
+    
+    std :: cout << "The K-means paramers are: " << std :: endl;
+    std :: cout << std :: endl;
+
     int iter = 1;
+    int k = 3;
+    int dim = 3;
+    int numData = 10;
+
     if (argc > 6) {
 	iter = std::stoi(argv[6]);
     }
-    std :: cout << "I will run K-means in " << iter <<" iterations." << std :: endl;
+    std :: cout << "The number of iterations: " << iter << std :: endl;
 
+    if (argc > 7) {
+	k = std::stoi(argv[7]);
+    }
+    std :: cout << "The number of clusters: " << k << std :: endl;
+
+    if (argc > 8) {
+	numData = std::stoi(argv[8]);
+    }
+    std :: cout << "The number of data points: " << numData << std :: endl;
+
+    if (argc > 9) {
+	dim = std::stoi(argv[9]);
+    }
+    std :: cout << "The dimension of each data point: " << dim << std :: endl;
+
+
+    std :: cout << std :: endl;
 
 
     pdb :: PDBLoggerPtr clientLogger = make_shared<pdb :: PDBLogger>("clientLog");
@@ -115,16 +151,11 @@ int main (int argc, char * argv[]) {
 
     string errMsg;
 
-    // Basic information about the clusters
-    int k = 3;
-    int dim = 3;
+    // Some meta data
     pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
     pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
     int kk = 0;
-//    int iter = 1;
-//    std :: cout << "How many iterations do you want to run?" << std :: endl;
-//    std :: cin >> iter;
-
+    srand(time(0));
 
 
     if (whetherToAddData == true) {
@@ -173,22 +204,18 @@ int main (int argc, char * argv[]) {
                 try {
                 	// Write 10 data points
                 	// Each data point has 3 dimensions
-                	int numData = 10;
                 	//k = 3;
-                	srand(time(0));
                 	double bias = 0;
 
                     for (int i = 0; i < numData; i++) {
                         pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
                         for (int j = 0; j < dim; j++){
 
-                            bias = ((double) rand() / (RAND_MAX));
+                            bias = ((double) rand() / (RAND_MAX)) * 0.01;
                             //myData->push_back(tmp);
-			    //myData->setDouble(j, i%k + bias);
-			    myData->setDouble(j, i%k);
+			    myData->setDouble(j, i%k*3 + bias);
 			   // std :: cout << i%k + bias << std :: endl;
                         }
-    //                    myData->print();
                         storeMe->push_back (myData);
                     }
 		    /*std :: cout << "input data: " << std :: endl;
@@ -256,7 +283,8 @@ int main (int argc, char * argv[]) {
     std :: vector< std :: vector <double> > model(k, vector<double>(dim));
     for (int i = 0; i < k; i++) {
 	for (int j = 0; j < dim; j++) {
-       		model[i][j] = (*tmpModel)[i].getDouble(j);
+       //		model[i][j] = (*tmpModel)[i].getDouble(j);
+       		model[i][j] = 0;
 	}
     }
     /*
@@ -276,7 +304,6 @@ int main (int argc, char * argv[]) {
         std :: cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
-    sleep(5000);
     SetIterator <DoubleVector> initialScanResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_input_set");
     for (Handle<DoubleVector> a : initialScanResult) {
         if (kk >= k)
@@ -324,6 +351,8 @@ int main (int argc, char * argv[]) {
 			(*my_model)[i]->print();
 	    	}		    
 
+
+		
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
@@ -333,12 +362,14 @@ int main (int argc, char * argv[]) {
 		//myWriteSet->setAllocatorPolicy(noReuseAllocator);
 		//myWriteSet->setInput(myQuery);
 
+
 		auto begin = std :: chrono :: high_resolution_clock :: now();
 
 		if (!myClient.executeComputations(errMsg, myQuery)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
+
 		std :: cout << "The query is executed successfully!" << std :: endl;
 
 		// update the model
@@ -356,21 +387,27 @@ int main (int argc, char * argv[]) {
 			for (int i = 0; i < dim; i++) {
 				model[kk][i] = tmpModel.getDouble(i);
 			}
-			std :: cout << "I am updating the model: " << std :: endl;
+			std :: cout << "I am updating the model in position: " << kk << std :: endl;
 			for(int i = 0; i < dim; i++)
   				std::cout << i << ": " << model[kk][i] << ' ';
+			std :: cout << std :: endl;
 			std :: cout << std :: endl;
 	//		(*model)[kk].print();
 			kk++;
 		}
 		if (kk < k) {
-			std :: cout << "These clusters do not have data: " << kk << std :: endl;
+			std :: cout << "These clusters do not have data: "  << std :: endl;
 			for (int i = kk; i < k; i++) {
-				for (int j = 0; j < dim; j++)
+				std :: cout << i << ", ";
+				for (int j = 0; j < dim; j++) {
 				//	(*model)[kk].setDouble(j, 0.00001);
-				model[kk][j] = 0.00001;
+					double bias = ((double) rand() / (RAND_MAX));
+					model[kk][j] = 5 + bias;
+				}
 			}
 		}
+		std :: cout << std :: endl;
+		std :: cout << std :: endl;
 
 		temp.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
 
