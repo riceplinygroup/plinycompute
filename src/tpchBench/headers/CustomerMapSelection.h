@@ -20,7 +20,6 @@
 #define CUSTOMER_MAP_SELECTION_H
 
 #include "Lambda.h"
-#include "LambdaCreationFunctions.h"
 #include "SelectionComp.h"
 
 #include "Lambda.h"
@@ -57,7 +56,7 @@ public:
 	Lambda<Handle<CustomerSupplierPart>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
-			pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>( checkMe->getName());
+			pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(checkMe->getName());
 
 					pdb::Vector<pdb::Handle<Order>> m_orders= *checkMe-> orders;
 
