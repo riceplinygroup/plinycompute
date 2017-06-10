@@ -118,7 +118,7 @@ int main (int argc, char * argv[]) {
     // Basic information about the clusters
     int k = 3;
     int dim = 3;
-
+    pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
     pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
     int kk = 0;
 //    int iter = 1;
@@ -191,16 +191,16 @@ int main (int argc, char * argv[]) {
     //                    myData->print();
                         storeMe->push_back (myData);
                     }
-		    std :: cout << "input data: " << std :: endl;
+		    /*std :: cout << "input data: " << std :: endl;
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
-                    }
+                    }*/
 		    
 		    std :: cout << "initial model: " << std :: endl;
 		    for (int i = 0; i < k; i++) {
 			(*tmpModel)[i] = *((*storeMe)[i]);
 			(*tmpModel)[i].print();
-		    }		    
+		    }	    
 
                     if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
                         std :: cout << "Failed to send data to dispatcher server" << std :: endl;
@@ -240,7 +240,6 @@ int main (int argc, char * argv[]) {
 
     //Step 3. To execute a Query
 	// for allocations
-//    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
 	// register this query class
     catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
@@ -254,8 +253,6 @@ int main (int argc, char * argv[]) {
     
     // pdb::Handle<pdb::Vector<DoubleVector>> model = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
 
-   // const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
-    pdb :: makeObjectAllocatorBlock(128 * 1024 * 1024, true);
     std :: vector< std :: vector <double> > model(k, vector<double>(dim));
     for (int i = 0; i < k; i++) {
 	for (int j = 0; j < dim; j++) {
@@ -293,42 +290,52 @@ int main (int argc, char * argv[]) {
     
 
     // start k-means iterations
+    QueryClient myClient (8108, "localhost", clientLogger, true);
 
     for (int n = 0; n <= iter; n++) {
+
+
+                const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
+
 		std :: cout << "*****************************************" << std :: endl;
 		std :: cout << "I am in iteration : " << n << std :: endl;
 		std :: cout << "*****************************************" << std :: endl;
 
-    		QueryClient myClient (8108, "localhost", clientLogger, true);
 
-
-    		pdb::Handle<pdb::Vector<DoubleVector>> my_model = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
+    		pdb::Handle<pdb::Vector<Handle<DoubleVector>>> my_model = pdb::makeObject<pdb::Vector<Handle<DoubleVector>>> ();
 
 		for (int i = 0; i < k; i++) {
 			Handle<DoubleVector> tmp = pdb::makeObject<DoubleVector>(dim);
-			(*my_model)[i] = *tmp;
+			my_model->push_back(tmp);
 			for (int j = 0; j < dim; j++) {
-				(*my_model)[i].setDouble(j, model[i][j]);
+				(*my_model)[i]->setDouble(j, model[i][j]);
 			}
 		}
 
+                std :: cout << "The std model I have is: " << std :: endl;
+                for (int i = 0; i < k; i++) {
+                     for (int j = 0; j < dim; j++) {
+                         std :: cout << "model[" << i << "][" << j << "]=" << model[i][j] << std :: endl;
+                     }
+                }
 
 	    	std :: cout << "The model I have is: " << std :: endl;
 		for (int i = 0; i < k; i++) {
-			(*my_model)[i].print();
+			(*my_model)[i]->print();
 	    	}		    
 
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
-
-		Handle<Computation> myWriteSet = makeObject<WriteKMeansSet>("kmeans_db", "kmeans_output_set");
-		myWriteSet->setAllocatorPolicy(noReuseAllocator);
-		myWriteSet->setInput(myQuery);
+                myQuery->setAllocatorPolicy(noReuseAllocator);
+                myQuery->setOutput("kmeans_db", "kmeans_output_set");
+		//Handle<Computation> myWriteSet = makeObject<WriteKMeansSet>("kmeans_db", "kmeans_output_set");
+		//myWriteSet->setAllocatorPolicy(noReuseAllocator);
+		//myWriteSet->setInput(myQuery);
 
 		auto begin = std :: chrono :: high_resolution_clock :: now();
 
-		if (!myClient.executeComputations(errMsg, myWriteSet)) {
+		if (!myClient.executeComputations(errMsg, myQuery)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
@@ -374,7 +381,7 @@ int main (int argc, char * argv[]) {
 
     std::cout << std::endl;
 
-    QueryClient myClient (8108, "localhost", clientLogger, true);
+    //QueryClient myClient (8108, "localhost", clientLogger, true);
 
 	// print the resuts
     if (printResult == true) {
@@ -405,8 +412,9 @@ int main (int argc, char * argv[]) {
             std :: cout << std::endl;
         }
         //std :: cout << "K-means output count:" << countOut << "\n";
-        
+       
     }
+
 
     if (clusterMode == false) {
 	    // and delete the sets

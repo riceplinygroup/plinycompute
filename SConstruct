@@ -385,7 +385,11 @@ common_env.SharedLibrary('libraries/libCustomerMapSelection.so', ['build/tpchBen
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 
-
+common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
 
 
 
@@ -511,7 +515,7 @@ common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + a
 common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
-
+common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 
 
 
@@ -622,6 +626,7 @@ main=common_env.Alias('main', [
   'bin/test87',
   'bin/test88',
   'bin/test89',
+  'bin/TestKMeans',
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
   #'bin/testLA03_Substract',
@@ -716,6 +721,12 @@ main=common_env.Alias('main', [
   'libraries/libWriteIntSet.so', 
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
-  'libraries/libWriteSumResultSet.so'
+  'libraries/libWriteSumResultSet.so',
+  'libraries/libKMeansAggregate.so',
+  'libraries/libScanDoubleVectorSet.so',
+  'libraries/libWriteKMeansSet.so',
+  'libraries/libKMeansAggregateOutputType.so',
+  'libraries/libKMeansCentroid.so'
+
 ])
 Default(main)

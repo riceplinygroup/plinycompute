@@ -446,7 +446,21 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator () {
 	myState.numBytes = 0;
 
 	// now, setup the active block
-	setupBlock (malloc (1024), 1024, true);
+
+//	setupBlock (malloc (1024), 1024, true);
+        // JiaNote: we need initialize allocator block to make valgrind happy
+        #ifdef INITIALIZE_ALLOCATOR_BLOCK
+        void *putMeHere = calloc (1, 1024);
+        #else
+        void *putMeHere = malloc (1024);
+        #endif
+
+        // JiaNote: malloc check
+        if (putMeHere == nullptr) {
+            std :: cout << "Fatal Error in temporarilyUseBlockForAllocations(): out of memory with size=" << 1024 << std :: endl;
+            exit(-1);
+        }
+        setupBlock (putMeHere, 1024, true);
 
         //by default, we optimize for space
         setPolicy (defaultAllocator);   

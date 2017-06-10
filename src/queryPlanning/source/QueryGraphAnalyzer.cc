@@ -50,6 +50,7 @@ std :: string QueryGraphAnalyzer :: parseTCAPString () {
         InputTupleSetSpecifier inputTupleSet;
         inputTupleSets.push_back(inputTupleSet);
         curSink = queryGraph[i];
+        //std :: cout << "numInputs=" << curSink->getNumInputs() << std :: endl;
         std :: string outputTupleSetName = "";
         std :: vector<std :: string> outputColumnNames;
         std :: string addedOutputColumnName = "";

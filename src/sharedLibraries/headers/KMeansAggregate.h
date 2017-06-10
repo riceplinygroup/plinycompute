@@ -36,7 +36,7 @@ using namespace pdb;
 class KMeansAggregate : public ClusterAggregateComp <KMeansAggregateOutputType, DoubleVector, int, KMeansCentroid> {
 
 private:
-		Vector<DoubleVector> model;
+		Vector<Handle<DoubleVector>> model;
 
 public:
 
@@ -44,14 +44,34 @@ public:
 
         KMeansAggregate () {}
 
-        KMeansAggregate (Handle<Vector<DoubleVector>> inputModel) {
+/*        KMeansAggregate (Handle<Vector<DoubleVector>> inputModel) {
         	this->model = *inputModel;
 	        std :: cout << "The model I get is: " << std :: endl;
 		for(int j = 0; j < (this->model).size(); j ++) {
 			(this->model)[j].print();
 		}	
 
+        }*/
+
+        KMeansAggregate (Handle<Vector<Handle<DoubleVector>>>& inputModel) {
+                if (model.size() > 0) {
+                    model.clear();
+                }
+                for (int i = 0; i < inputModel->size(); i++) {
+                     (*inputModel)[i]->print();                         
+                     model.push_back((*inputModel)[i]);
+                     (*inputModel)[i]->print();
+                     model[i]->print();
+
+                }
+
+                std :: cout << "The model I get is: " << std :: endl;
+                for(int j = 0; j < (this->model).size(); j ++) {
+                        (this->model)[j]->print();
+                }
+
         }
+
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
@@ -73,15 +93,15 @@ public:
 		data->print();
 	        std :: cout << "my model is: " << std :: endl;
 		for(int j = 0; j < (this->model).size(); j ++) {
-			(this->model)[j].print();
+			(this->model)[j]->print();
 		}	
 
         	for(int j = 0; j < (this->model).size(); j ++) {
-        		DoubleVector mean = (this->model)[j];
+        		Handle<DoubleVector> mean = (this->model)[j];
 			double distance = 0;
 
-			for ( int i = 0; i < mean.getSize(); i++ ) {
-			    distance += ((*data).getDouble(i)-mean.getDouble(i)) * ((*data).getDouble(i)-mean.getDouble(i));
+			for ( int i = 0; i < mean->getSize(); i++ ) {
+			    distance += ((*data).getDouble(i)-mean->getDouble(i)) * ((*data).getDouble(i)-mean->getDouble(i));
 			}
 
 			if (distance < closestDistance) {
