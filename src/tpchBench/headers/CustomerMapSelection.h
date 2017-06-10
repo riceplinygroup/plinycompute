@@ -15,8 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef CUSTOMER_MULTI_SELECT_H
-#define CUSTOMER_MULTI_SELECT_H
+
+#ifndef CUSTOMER_MAP_SELECTION_H
+#define CUSTOMER_MAP_SELECTION_H
+
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "SelectionComp.h"
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -26,52 +31,66 @@
 #include "PDBString.h"
 
 #include "Customer.h"
-#include "Order.h"
 #include "CustomerSupplierPart.h"
 
+
+
 using namespace pdb;
-class CustomerMultiSelection: public MultiSelectionComp<CustomerSupplierPart, Customer> {
+class CustomerMapSelection : public SelectionComp <CustomerSupplierPart, Customer> {
+
+
+	// This computation maps a Customer Object to a CustomerSupplierPart object
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	CustomerMultiSelection() {
-	}
+	CustomerMapSelection () {}
 
 	// Select all of the Customer Objects
 	Lambda<bool> getSelection(Handle<Customer> checkMe) override {
 		return makeLambda(checkMe, [] (Handle<Customer> & checkMe) {return true;});
 	}
 
+
 	// Then get the Orders out of the Customers
-
-	Lambda<Vector<Handle<CustomerSupplierPart>>> getProjection (Handle <Customer> checkMe) override {
-
+	Lambda<Handle<CustomerSupplierPart>> getProjection (Handle <Customer> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
+
+			pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>( checkMe->getName());
 
 					pdb::Vector<pdb::Handle<Order>> m_orders= *checkMe-> orders;
 
-					pdb::Handle<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> customerSupplierPart_vector = pdb::makeObject<pdb::Vector<pdb::Handle<CustomerSupplierPart>>> ();
+					// get the orders
+					for (int i = 0; i < m_orders.size(); i++) {
+						auto lineItems = m_orders[i]->getLineItems();
 
-//					// get the orders
-//					for (int i = 0; i < m_orders.size(); i++) {
-//
-//						auto lineItems = m_orders[i]->getLineItems();
-//
-//						// get the LineItems
-//						for (int j = 0; j < lineItems->size(); j++) {
-//
-//							auto supplier = (*lineItems)[j]->getSupplier();
-//							auto part = (*lineItems)[j]->getPart();
-//
-//							// make a new customerSupplierPart object which is a triple representing the (customerName, supplierName, partKey)
-//							pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>( checkMe->getName(), supplier->getName(), part->getPartKey());
-//							customerSupplierPart_vector->push_back(customerSupplierPart);
-//						}
-//					}
-					return *customerSupplierPart_vector;
+						// get the LineItems
+						for (int j = 0; j < lineItems->size(); j++) {
+							auto supplier = (*lineItems)[j]->getSupplier();
+
+							String  supplierName= *(supplier->getName());
+
+							auto part = (*lineItems)[j]->getPart();
+							int partKey= part->getPartKey();
+
+							customerSupplierPart->addSupplierPart(supplierName, partKey);
+
+						}
+					}
+
+					return customerSupplierPart;
 				});
 	}
+
+
+
+
+
+
+
+
 };
+
+
 #endif

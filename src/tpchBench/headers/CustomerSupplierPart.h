@@ -24,31 +24,27 @@
 #include "Handle.h"
 
 // This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
+namespace pdb {
 
-class CustomerSupplierPart:public pdb::Object{
+class CustomerSupplierPart: public pdb::Object {
 
 public:
-	pdb::Handle<pdb::String> customerName;
-	pdb::Handle<pdb::String> supplierName;
-	int partKey;
-
+	Handle<String> customerName;
+	Handle<Map<String, Vector<int>>> soldPartIDs;
 
 	ENABLE_DEEP_COPY
 
 	//Default constructor:
-	CustomerSupplierPart(){}
+	CustomerSupplierPart() {}
 
 	//Default destructor:
 	~CustomerSupplierPart() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPart(pdb::Handle<pdb::String> customerName, pdb::Handle<pdb::String> supplierName, int partKey) {
-		this->partKey= partKey;
-		this->customerName= customerName;
-		this->supplierName= supplierName;
+	CustomerSupplierPart(pdb::Handle<pdb::String> customerName) {
+		this->customerName = customerName;
+		this->soldPartIDs = pdb::makeObject<pdb::Map<pdb::String, pdb::Vector<int>>>();
 	}
-
-
 
 	const pdb::Handle<pdb::String>& getCustomerName() const {
 		return customerName;
@@ -58,20 +54,58 @@ public:
 		this->customerName = customerName;
 	}
 
-	int getPartKey() const {
-		return partKey;
+	void addSupplierPart(pdb::String supplierName, int partKey) {
+
+		if(soldPartIDs->count(supplierName)==0) {
+			// not found
+			pdb::Handle<pdb::Vector<int>> partKeyVector = pdb::makeObject<pdb::Vector<int>>();
+			partKeyVector->push_back(partKey);
+			(*soldPartIDs)[supplierName] = * partKeyVector;
+
+		} else {
+			// found
+			pdb::Vector<int> existing_partKeyVector = (*soldPartIDs)[supplierName];
+			existing_partKeyVector.push_back(partKey);
+			(*soldPartIDs)[supplierName] = existing_partKeyVector;
+		}
 	}
 
-	void setPartKey(int partKey) {
-		this->partKey = partKey;
+	const Handle<Map<String,Vector<int> > >& getSoldPartIDs() const
+	{
+		return soldPartIDs;
 	}
 
-	const pdb::Handle<pdb::String>& getSupplierName() const {
-		return supplierName;
+	void setSoldPartIDs(const Handle<Map<String,Vector<int> > >& soldPartIDs)
+	{
+		this->soldPartIDs = soldPartIDs;
 	}
 
-	void setSupplierName(const pdb::Handle<pdb::String>& supplierName) {
-		this->supplierName = supplierName;
+	void print() {
+
+		auto iter = soldPartIDs->begin();
+
+		while (iter != soldPartIDs->end()) {
+
+			std::cout<<"Customer: " << customerName->c_str() << "[ ";
+
+			pdb::String myKey = (*iter).key;
+			pdb::Vector<int> partIDs= (*soldPartIDs)[myKey];
+
+			std::cout<<"Supplier Key: " << myKey.c_str() << "( ";
+
+			for (int i = 0; i < partIDs.size(); ++i) {
+				std::cout<<" " <<partIDs[i] << ",";
+			}
+
+			std::cout<<") ] "<<std::endl;
+			 ++iter;
+
+
+		}
+
 	}
+
 };
+}
 #endif
+
