@@ -50,7 +50,6 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
-#include "OrderWriteSet.h"
 #include "CustomerSupplierPartWriteSet.h"
 #include "CustomerSupplierPart.h"
 #include "CustomerMapSelection.h"
@@ -92,8 +91,8 @@ using namespace std;
 
 // Run a Cluster on Localhost
 // ./bin/pdb-cluster localhost 8108 Y
-// ./bin/pdb-server 1 512 localhost:8108 localhost:8109
-// ./bin/pdb-server 1 512 localhost:8108 localhost:8110
+// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
+// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
 
 // TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
 // Just unzip the file and put the folder in main directory of PDB

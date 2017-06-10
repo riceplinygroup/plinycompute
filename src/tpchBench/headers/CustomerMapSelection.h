@@ -81,15 +81,5 @@ public:
 					return customerSupplierPart;
 				});
 	}
-
-
-
-
-
-
-
-
 };
-
-
 #endif
