@@ -50,11 +50,11 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
-#include "CustomerMultiSelection.h"
 #include "OrderWriteSet.h"
 #include "CustomerSupplierPartWriteSet.h"
 #include "CustomerSupplierPart.h"
 #include "CustomerMapSelection.h"
+#include "CustomerSupplierPartGroupBy.h"
 #include "ScanCustomerSet.h"
 
 #include "Handle.h"
@@ -375,9 +375,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 
 pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
 
-	int maxPartsInEachLineItem = 5;
-	int maxLineItemsInEachOrder = 5;
-	int maxOrderssInEachCostomer = 5;
+	int maxPartsInEachLineItem = 4;
+	int maxLineItemsInEachOrder = 4;
+	int maxOrderssInEachCostomer = 4;
 
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>> ();
 
@@ -411,7 +411,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 
 int main() {
 
-	int noOfCopies = 1;
+	int noOfCopies = 2;
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -469,7 +469,7 @@ int main() {
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = generateSmallDataset(5);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = generateSmallDataset(4);
 
 	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 	size_t sizeOfCustomers = myBytes->numBytes();
@@ -485,13 +485,11 @@ int main() {
 		}
 	}
 	// flush to disk
-	distributedStorageManagerClient.flushData(errMsg);
+//	distributedStorageManagerClient.flushData(errMsg);
 
-	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
-		cout << "Not able to register type libCustomerMultiSelection.\n";
 
-	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
-		cout << "Not able to register type  libOrderMultiSelection.\n";
+//	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
+//		cout << "Not able to register type  libOrderMultiSelection.\n";
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
@@ -501,6 +499,10 @@ int main() {
 
 	if (!catalogClient.registerType("libraries/libCustomerMapSelection.so", errMsg))
 		cout << "Not able to register type libCustomerMapSelection. \n";
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
+		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
+
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<CustomerSupplierPart>("TPCH_db", "t_output_se1", errMsg)) {
@@ -519,8 +521,11 @@ int main() {
 	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
 	myFlatten->setInput(myScanSet);
 
+	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+	myGroupBy->setInput(myFlatten);
+
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
-	myWriteSet->setInput(myFlatten);
+	myWriteSet->setInput(myGroupBy);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
@@ -539,6 +544,8 @@ int main() {
 	int count = 0;
 	for (auto a : result) {
 		count++;
+
+		cout<<"-------------" << endl;
 //		if (count % 10 == 0) {
 //			std::cout << count << std::endl;
 //			std::cout <<"CustomerName: "  << a->getCustomerName()->c_str() << std::endl;

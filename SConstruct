@@ -376,12 +376,12 @@ common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.
 common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
-common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libOrderMultiSelection.so', ['build/tpchBench/OrderMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPart.so', ['build/tpchBench/CustomerSupplierPart.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMapSelection.so', ['build/tpchBench/CustomerMapSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 
@@ -662,12 +662,12 @@ main=common_env.Alias('main', [
   'libraries/libLineItem.so',
   'libraries/libOrder.so',
   'libraries/libCustomer.so',
-  'libraries/libCustomerMultiSelection.so',
   'libraries/libOrderMultiSelection.so',
   'libraries/libCustomerSupplierPartWriteSet.so',
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPart.so',
   'libraries/libCustomerMapSelection.so',
+  'libraries/libCustomerSupplierPartGroupBy.so',
 # 'bin/tpchTestData',
   'bin/tpchDataGenerator',
   
