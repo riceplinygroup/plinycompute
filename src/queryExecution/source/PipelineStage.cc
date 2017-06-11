@@ -328,9 +328,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           int numNodes = jobStage->getNumNodes();
                           int k;
                           for ( k = 0; k < numNodes; k ++ ) {
+                             output->incRefCount();
+                          }
+                          for ( k = 0; k < numNodes; k ++ ) {
                              PageCircularBufferPtr buffer = combinerBuffers[k];
                              buffer->addPageToTail(output);
-                             output->incRefCount();
                           }
                           free(page);
 
@@ -474,7 +476,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
     size_t combinerPageSize = conf->getHashPageSize();
     //each queue has multiple producers and one consumer
-    int combinerBufferSize = numThreads / numNodes + 1;
+    int combinerBufferSize = (numThreads) * 2;
     PDB_COUT << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
     std :: vector <PageCircularBufferPtr> combinerBuffers;
     std :: vector <PageCircularBufferIteratorPtr> combinerIters;
@@ -548,14 +550,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
                   size_t myCombinerPageSize = combinerPageSize;
-                  if (numPartitionsOnTheNode == 1) {
-                      if (myCombinerPageSize > conf->getPageSize()-64) {
+                  if (myCombinerPageSize > conf->getPageSize()-64) {
                           myCombinerPageSize = conf->getPageSize()-64;
-                      }
-                  } else {
-                      if (combinerPageSize > (conf->getPageSize()*numPartitionsOnTheNode*0.67)) {
-                          myCombinerPageSize = (conf->getPageSize()*numPartitionsOnTheNode*0.67);
-                      }
                   }
                   void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
                   std :: cout << i <<": load a combiner page with size = " << myCombinerPageSize << std :: endl;
