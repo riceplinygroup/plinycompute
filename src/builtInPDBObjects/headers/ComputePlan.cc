@@ -136,13 +136,13 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
         // get all of the computations
         AtomicComputationList &allComps = myPlan->getComputations ();
 
-        std :: cout << "print computations:" << std :: endl;
-        std :: cout << allComps << std :: endl;
+        //std :: cout << "print computations:" << std :: endl;
+        //std :: cout << allComps << std :: endl;
 
 
         // and get the schema for the output TupleSet objects that it is supposed to produce
         TupleSpec &targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
-        std :: cout << "The target is " << targetSpec << "\n";
+        //std :: cout << "The target is " << targetSpec << "\n";
 
         // and get the projection for this guy
         std :: vector <AtomicComputationPtr> &consumers = allComps.getConsumingAtomicComputations (targetSpec.getSetName ());
@@ -153,7 +153,7 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
         for (auto &a : consumers) {
                 if (a->getComputationName () == targetComputationName) {
 
-                        std :: cout << "targetComputationName was " << targetComputationName << "\n";
+                        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
 
                         // we found the consuming computation
                         if (targetSpec == a->getInput ()) {
@@ -177,10 +177,10 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
                                 exit (1);
                         }
 
-                        std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
+                        //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
                         targetProjection = myGuy->getRightProjection ();
                         targetAttsToOpOn = myGuy->getRightInput ();
-                        std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                        //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
                 }
         }
 
@@ -225,8 +225,8 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         // get all of the computations
         AtomicComputationList &allComps = myPlan->getComputations ();
 
-        std :: cout << "print computations:" << std :: endl;
-        std :: cout << allComps << std :: endl;
+        //std :: cout << "print computations:" << std :: endl;
+        //std :: cout << allComps << std :: endl;
 
         //to get compute source
         // now we get the name of the actual computation object that corresponds to the producer of this tuple set
@@ -240,7 +240,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         std :: string sourceTupleSetName = buildTheseTupleSets[0];
 
         std :: string producerName = allComps.getProducingAtomicComputation (sourceTupleSetName)->getComputationName ();
-        std :: cout << "producerName = " << producerName << std :: endl;
+        //std :: cout << "producerName = " << producerName << std :: endl;
 
         // and get the schema for the output TupleSet objects that it is supposed to produce
         TupleSpec &origSpec = allComps.getProducingAtomicComputation (sourceTupleSetName)->getOutput ();
@@ -255,7 +255,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         TupleSpec targetProjection;
         TupleSpec targetAttsToOpOn;
 
-        std :: cout << "targetComputationName was " << targetComputationName << "\n";
+        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
         if (targetComputationName.find("SelectionComp") == std :: string :: npos) {
 
             // and get the schema for the output TupleSet objects that it is supposed to produce
@@ -263,7 +263,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                 std :: cout << "ERROR: target tuple set in pipeline should have only one consumer" << std :: endl;
                 return nullptr;
             }
-            std :: cout << "The target is " << targetSpec << "\n";
+            //std :: cout << "The target is " << targetSpec << "\n";
 
             //JiaNote: change the reference into a new variable based on Chris' Join code
             //TupleSpec &targetProjection = targetSpec;
@@ -298,10 +298,10 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                     exit (1);
                 }
                 else {
-                    std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
+                    //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
                     targetProjection = myGuy->getRightProjection ();
                     targetAttsToOpOn = myGuy->getRightInput ();
-                    std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                    //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
                 }
             }
         } else {
@@ -319,7 +319,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
         for (int i = 1; i < buildTheseTupleSets.size(); i++) {
 
-                std :: cout << "the " << i << "-th TupleSetName is " << buildTheseTupleSets[i] << std :: endl;
+                //std :: cout << "the " << i << "-th TupleSetName is " << buildTheseTupleSets[i] << std :: endl;
           
                 AtomicComputationPtr a = myPlan->getComputations().getProducingAtomicComputation(buildTheseTupleSets[i]);
 
@@ -333,7 +333,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
                 // if we have a filter, then just go ahead and create it
                 if (a->getAtomicComputationType () == "Filter") {
-                        std :: cout << "Adding: " << a->getProjection () << " + filter [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + filter [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
                             returnVal->addStage (std :: make_shared <FilterExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -344,7 +344,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                         }
                 // if we had an apply, go ahead and find it and add it to the pipeline
                 } else if (a->getAtomicComputationType () == "Apply") {
-                        std :: cout << "Adding: " << a->getProjection () << " + apply [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + apply [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)    {
@@ -359,7 +359,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                         }
 
                 } else if (a->getAtomicComputationType () == "HashLeft") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashleft [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashleft [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)
@@ -372,7 +372,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                 } else if (a->getAtomicComputationType () == "HashRight") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)
@@ -385,7 +385,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                 } else if (a->getAtomicComputationType () == "HashOne") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashone [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashone [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
                             returnVal->addStage (std :: make_shared <HashOneExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -395,7 +395,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
                         }
                 } else if (a->getAtomicComputationType() == "Flatten") {
-                        std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
                             returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -406,7 +406,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                         }
 
                 } else if (a->getAtomicComputationType () == "JoinSets") {
-                        std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // join is weird, because there are two inputs...
                         JoinCompBase &myComp = (JoinCompBase &) myPlan->getNode (a->getComputationName ()).getComputation ();
@@ -415,7 +415,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                         // check if we are pipelinining the right input
                         if (lastOne->getOutput ().getSetName () == myJoin->getRightInput ().getSetName ()) {
 
-                                std :: cout << "We are pipelining the right input...\n";
+                                //std :: cout << "We are pipelining the right input...\n";
 
                                 // if we are pipelining the right input, then we don't need to switch left and right inputs
                                 if (params.count (a->getOutput ().getSetName ()) == 0) {
@@ -429,7 +429,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
                         } else {
 
-                                std :: cout << "We are pipelining the left input...\n";
+                                //std :: cout << "We are pipelining the left input...\n";
 
                                 // if we are pipelining the right input, then we don't need to switch left and right inputs
                                 if (params.count (a->getOutput ().getSetName ()) == 0) {
@@ -451,7 +451,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
                 lastOne = a;
 
         }
-        std :: cout << "Sink: " << targetSpec << " [" << targetProjection << "]\n";
+        //std :: cout << "Sink: " << targetSpec << " [" << targetProjection << "]\n";
         return returnVal;
 }
 
@@ -467,13 +467,13 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 	// get all of the computations
 	AtomicComputationList &allComps = myPlan->getComputations ();
 
-        std :: cout << "print computations:" << std :: endl;
-        std :: cout << allComps << std :: endl;
+        //std :: cout << "print computations:" << std :: endl;
+        //std :: cout << allComps << std :: endl;
 
 	// now we get the name of the actual computation object that corresponds to the producer of this tuple set
 	std :: string producerName = allComps.getProducingAtomicComputation (sourceTupleSetName)->getComputationName ();
 
-        std :: cout << "producerName = " << producerName << std :: endl;
+        //std :: cout << "producerName = " << producerName << std :: endl;
 
 	// and get the schema for the output TupleSet objects that it is supposed to produce
 	TupleSpec &origSpec = allComps.getProducingAtomicComputation (sourceTupleSetName)->getOutput ();
@@ -481,8 +481,8 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 	// now we are going to ask that particular node for the compute source
 	ComputeSourcePtr computeSource = myPlan->getNode (producerName).getComputation ().getComputeSource (origSpec, *this);
 
-	std :: cout << "\nBUILDING PIPELINE\n";
-	std :: cout << "Source: " << origSpec << "\n";
+	//std :: cout << "\nBUILDING PIPELINE\n";
+	//std :: cout << "Source: " << origSpec << "\n";
 	// now we have to do a DFS.  This vector will store all of the computations we've found so far
 	std :: vector <AtomicComputationPtr> listSoFar;
 
@@ -512,7 +512,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 		
 	// and get the schema for the output TupleSet objects that it is supposed to produce
 	TupleSpec &targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
-        std :: cout << "The target is " << targetSpec << "\n";
+        //std :: cout << "The target is " << targetSpec << "\n";
 
 
 	// and get the projection for this guy
@@ -524,7 +524,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 	for (auto &a : consumers) {
 		if (a->getComputationName () == targetComputationName) {
 
-                        std :: cout << "targetComputationName was " << targetComputationName << "\n";
+                        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
 
 			// we found the consuming computation
 			if (targetSpec == a->getInput ()) {
@@ -554,10 +554,10 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 				exit (1);
 			}
 			
-                        std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
+                        //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
                         targetProjection = myGuy->getRightProjection ();
                         targetAttsToOpOn = myGuy->getRightInput ();
-                        std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                        //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
 		}
 	}
 	
@@ -573,7 +573,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 
 		// if we have a filter, then just go ahead and create it
 		if (a->getAtomicComputationType () == "Filter") {
-    			std :: cout << "Adding: " << a->getProjection () << " + filter [" << a->getInput () << "] => " << a->getOutput () << "\n";
+    			//std :: cout << "Adding: " << a->getProjection () << " + filter [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
 			    returnVal->addStage (std :: make_shared <FilterExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -584,7 +584,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                         }
 		// if we had an apply, go ahead and find it and add it to the pipeline
 		} else if (a->getAtomicComputationType () == "Apply") {
-			std :: cout << "Adding: " << a->getProjection () << " + apply [" << a->getInput () << "] => " << a->getOutput () << "\n";
+			//std :: cout << "Adding: " << a->getProjection () << " + apply [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)    {
@@ -599,7 +599,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                         }
 
 		} else if (a->getAtomicComputationType () == "HashLeft") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashleft [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashleft [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)
@@ -612,7 +612,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                 } else if (a->getAtomicComputationType () == "HashRight") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashright [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // if we have an available parameter, send it
                         if (params.count (a->getOutput ().getSetName ()) == 0)
@@ -625,7 +625,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                                         lastOne->getOutput (), a->getInput (), a->getProjection (), params[a->getOutput ().getSetName ()]));
 
                 } else if (a->getAtomicComputationType () == "HashOne") {
-                        std :: cout << "Adding: " << a->getProjection () << " + hashone [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + hashone [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
                             returnVal->addStage (std :: make_shared <HashOneExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -636,7 +636,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                         }
                  
                 } else if (a->getAtomicComputationType () == "Flatten") {
-                        std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + flatten [" << a->getInput () << "] => " << a->getOutput () << "\n";
                         if (params.count(a->getOutput ().getSetName ()) == 0)    {
                             returnVal->addStage (std :: make_shared <FlattenExecutor> (lastOne->getOutput (), a->getInput (), a->getProjection ()));
                         } else {
@@ -646,7 +646,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 
                         }
                 } else if (a->getAtomicComputationType () == "JoinSets") { 
-                        std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
+                        //std :: cout << "Adding: " << a->getProjection () << " + join [" << a->getInput () << "] => " << a->getOutput () << "\n";
 
                         // join is weird, because there are two inputs...
                         JoinCompBase &myComp = (JoinCompBase &) myPlan->getNode (a->getComputationName ()).getComputation ();
@@ -655,7 +655,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
                         // check if we are pipelinining the right input
                         if (lastOne->getOutput ().getSetName () == myJoin->getRightInput ().getSetName ()) {
 
-                                std :: cout << "We are pipelining the right input...\n";
+                                //std :: cout << "We are pipelining the right input...\n";
 
                                 // if we are pipelining the right input, then we don't need to switch left and right inputs
                                 if (params.count (a->getOutput ().getSetName ()) == 0) {
@@ -669,7 +669,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 
                         } else {
 
-                                std :: cout << "We are pipelining the left input...\n";
+                                //std :: cout << "We are pipelining the left input...\n";
 
                                 // if we are pipelining the right input, then we don't need to switch left and right inputs
                                 if (params.count (a->getOutput ().getSetName ()) == 0) {
@@ -691,7 +691,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 		lastOne = a;
 	}
 	
-	std :: cout << "Sink: " << targetSpec << " [" << targetProjection << "]\n";
+	//std :: cout << "Sink: " << targetSpec << " [" << targetProjection << "]\n";
 	return returnVal;
 }
 

@@ -252,8 +252,10 @@ int main (int argc, char * argv[]) {
             for (auto a : result)
             {
                      count ++;
-                     std :: cout << count << ":";
-                     a->print();
+                     if (count % 1000 == 0) {
+                         std :: cout << count << ":";
+                         a->print();
+                     }
             }
             std :: cout << "aggregation output count:" << count << "\n";
         }

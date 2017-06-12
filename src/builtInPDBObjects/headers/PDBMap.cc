@@ -139,15 +139,6 @@ PDBMapIterator <KeyType, ValueType> Map <KeyType, ValueType> :: end () {
 	return returnVal;	
 }
 
-template <class KeyType, class ValueType>
-unsigned int Map <KeyType, ValueType> :: getHashPartitionId () {
-    return this->hashPartitionId;
-}
-
-template <class KeyType, class ValueType>
-void Map <KeyType, ValueType> :: setHashPartitionId (unsigned int partitionId) {
-    this->hashPartitionId = partitionId;
-}
 
 template <class KeyType, class ValueType>
 Handle <PairArray <KeyType, ValueType>> & Map <KeyType, ValueType> :: getArray() {

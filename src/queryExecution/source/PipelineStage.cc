@@ -302,7 +302,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
                   [&] (void * page) {
                       
-                      std :: cout << "to write back a page" << std :: endl;
+                      //std :: cout << "to write back a page" << std :: endl;
                       if (this->jobStage->isBroadcasting() == true) {
                           PDB_COUT << "to broadcast a page" << std :: endl;
                           //to handle a broadcast join
@@ -320,7 +320,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           free (page);
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
-                          std :: cout << "to combine a page" << std :: endl;
+                          //std :: cout << "to combine a page" << std :: endl;
                           //to handle an aggregation
                           PDBPagePtr output;
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
@@ -476,7 +476,10 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
     size_t combinerPageSize = conf->getHashPageSize();
     //each queue has multiple producers and one consumer
-    int combinerBufferSize = (numThreads) * 2;
+    int combinerBufferSize = numThreads/numNodes;
+    if (combinerBufferSize < 2) {
+        combinerBufferSize = 2;
+    }
     PDB_COUT << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
     std :: vector <PageCircularBufferPtr> combinerBuffers;
     std :: vector <PageCircularBufferIteratorPtr> combinerIters;

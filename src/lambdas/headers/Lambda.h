@@ -51,7 +51,7 @@ private:
                 }
                 std :: string myName = root->getTypeOfLambda ();
                 myName = myName + "_" + std :: to_string (startLabel);
-                std :: cout << "\tExtracted lambda named: " << myName << "\n";
+                //std :: cout << "\tExtracted lambda named: " << myName << "\n";
                 startLabel++;
                 fillMe[myName] = root;
 	}

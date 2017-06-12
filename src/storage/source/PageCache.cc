@@ -838,8 +838,8 @@ void PageCache::evict() {
 		    cachedPages->push(curPage);
                     this->logger->writeLn( "put a page to priority queue.");
                 } else {
-                    //this->logger->writeLn( "page can not be flushed." );
-                    //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << std :: endl; 
+                    this->logger->writeLn( "page can not be flushed." );
+                    //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
                 }
 	    }
             this->evictionUnlock();

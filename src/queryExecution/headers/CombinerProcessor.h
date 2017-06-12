@@ -23,6 +23,7 @@
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
 #include "PDBMap.h"
+#include "AggregationMap.h"
 #include "PDBVector.h"
 #include "Handle.h"
 #include "SimpleSingleTableQueryProcessor.h"
@@ -51,13 +52,13 @@ private:
 
     UseTemporaryAllocationBlockPtr blockPtr;
     Handle <Vector<Handle <Map <KeyType, ValueType>>>> inputData;
-    Handle <Vector<Handle <Map <KeyType, ValueType>>>> outputData;
+    Handle <Vector<Handle <AggregationMap <KeyType, ValueType>>>> outputData;
     bool finalized;
     int numNodePartitions;
     HashPartitionID curPartId;
     int curPartPos;
     Handle<Map<KeyType, ValueType>> curMap;
-    Handle<Map<KeyType, ValueType>> curOutputMap;
+    Handle<AggregationMap<KeyType, ValueType>> curOutputMap;
     
     //the iterators for current map partition
     PDBMapIterator <KeyType, ValueType> * begin;
