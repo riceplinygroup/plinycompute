@@ -28,7 +28,6 @@
 using namespace pdb;
 // This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
 
-
 class CustomerSupplierPartAgg: public pdb::Object {
 
 public:

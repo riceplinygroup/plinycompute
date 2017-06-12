@@ -29,7 +29,7 @@
 class SupplierPart: public pdb::Object {
 
 public:
-	pdb::String supplierName;
+	pdb::Handle<pdb::String> supplierName;
 	int  partKey;
 
 	ENABLE_DEEP_COPY
@@ -41,7 +41,7 @@ public:
 	~SupplierPart() {}
 
 	//Constructor with arguments:
-	SupplierPart(pdb::String supplierName, int  partKey) {
+	SupplierPart(pdb::Handle<pdb::String> supplierName, int  partKey) {
 		this->supplierName = supplierName;
 		this->partKey = partKey;
 	}
@@ -54,11 +54,11 @@ public:
 		this->partKey = partKey;
 	}
 
-	const pdb::String getSupplierName() const {
+	const pdb::Handle<pdb::String>& getSupplierName() const {
 		return supplierName;
 	}
 
-	void setSupplierName(pdb::String supplierName) {
+	void setSupplierName(const pdb::Handle<pdb::String>& supplierName) {
 		this->supplierName = supplierName;
 	}
 };

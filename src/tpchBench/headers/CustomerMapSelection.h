@@ -77,7 +77,7 @@ public:
 							int partKey= part->getPartKey();
 
 
-							pdb::Handle<SupplierPart> supplierPart = pdb::makeObject<SupplierPart>(*supplierName, partKey);
+							pdb::Handle<SupplierPart> supplierPart = pdb::makeObject<SupplierPart>(supplierName, partKey);
 
 							supplierPartVector->push_back(*supplierPart);
 						}
