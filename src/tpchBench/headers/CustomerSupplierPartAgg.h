@@ -31,7 +31,7 @@ using namespace pdb;
 class CustomerSupplierPartAgg: public pdb::Object {
 
 public:
-	Handle<String> customerName;
+	String customerName;
 	Handle<Map<String, Vector<int>>> soldPartIDs;
 
 	ENABLE_DEEP_COPY
@@ -43,23 +43,18 @@ public:
 	~CustomerSupplierPartAgg() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPartAgg(pdb::Handle<pdb::String> customerName) {
+	CustomerSupplierPartAgg(pdb::String customerName) {
 		this->customerName = customerName;
 		this->soldPartIDs = pdb::makeObject<pdb::Map<pdb::String, pdb::Vector<int>>>();
 	}
 
-
 	String &getKey () {
-		return *customerName;
+		return customerName;
 	}
 
-	Handle<Map<String, Vector<int>>>  &getValue () {
+	Handle<Map<String, Vector<int>>> &getValue () {
 		return soldPartIDs;
 	}
-
-
-
-
 
 	void addSupplierPart(pdb::String supplierName, int partKey) {
 
@@ -77,41 +72,38 @@ public:
 		}
 	}
 
-	Handle<Map<String,Vector<int>>> getSoldPartIDs(){
+	Handle<Map<String,Vector<int>>> getSoldPartIDs() {
 		return soldPartIDs;
 	}
 
-	void setSoldPartIDs(Handle<Map<String,Vector<int>>> soldPartIDs){
+	void setSoldPartIDs(Handle<Map<String,Vector<int>>> soldPartIDs) {
 		this->soldPartIDs = soldPartIDs;
 	}
 
-
-
 	void print() {
-			std::cout<<"Customer: " << customerName->c_str() << " [ ";
-			auto iter = soldPartIDs->begin();
-			while (iter != soldPartIDs->end()) {
-				pdb::String supplierName = (*iter).key;
-				pdb::Vector<int> partIDs= (*soldPartIDs)[supplierName];
+		std::cout<<"Customer: " << customerName << " [ ";
+		auto iter = soldPartIDs->begin();
+		while (iter != soldPartIDs->end()) {
+			pdb::String supplierName = (*iter).key;
+			pdb::Vector<int> partIDs= (*soldPartIDs)[supplierName];
 
-				std::cout<<"SupplierName: " << supplierName.c_str() << " (";
-				for (int i = 0; i < partIDs.size(); ++i) {
-					std::cout<<" " <<partIDs[i] << ",";
-				}
-				std::cout<<") ";
-				 ++iter;
+			std::cout<<"SupplierName: " << supplierName.c_str() << " (";
+			for (int i = 0; i < partIDs.size(); ++i) {
+				std::cout<<" " <<partIDs[i] << ",";
 			}
-			std::cout<<"  ] "<<std::endl;
+			std::cout<<") ";
+			++iter;
 		}
+		std::cout<<"  ] "<<std::endl;
+	}
 
-	const pdb::Handle<pdb::String>& getCustomerName() const {
+	const pdb::String& getCustomerName() const {
 		return customerName;
 	}
 
-	void setCustomerName(const pdb::Handle<pdb::String>& customerName) {
+	void setCustomerName(const pdb::String& customerName) {
 		this->customerName = customerName;
 	}
-
 
 };
 
