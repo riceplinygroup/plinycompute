@@ -531,6 +531,7 @@ int main() {
 	myWriteSet->setInput(myGroupBy);
 
 	auto begin = std::chrono::high_resolution_clock::now();
+
 	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
