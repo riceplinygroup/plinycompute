@@ -385,7 +385,6 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 		pdb::Handle<pdb::Vector<pdb::Handle<Order>>> orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
 		//3. Make Order
 		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
-
 			pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>> lineItems = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>> ();
 			//2.  Make LineItems
 			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
@@ -410,7 +409,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 
 int main() {
 
-	int noOfCopies = 2;
+	int noOfCopies = 1;
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -461,7 +460,7 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 4 * GB, true);
 
 	//
 	// Generate the data
@@ -484,11 +483,9 @@ int main() {
 		}
 	}
 	// flush to disk
-//	distributedStorageManagerClient.flushData(errMsg);
+	distributedStorageManagerClient.flushData(errMsg);
+	cout << errMsg << endl;
 
-
-//	if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
-//		cout << "Not able to register type  libOrderMultiSelection.\n";
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
@@ -504,7 +501,7 @@ int main() {
 
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<CustomerSupplierPart>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -512,7 +509,8 @@ int main() {
 	}
 
 	// for allocations
-	const UseTemporaryAllocationBlock tempBlock { (size_t) 128 * MB };
+    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
+
 
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
@@ -521,6 +519,7 @@ int main() {
 	myFlatten->setInput(myScanSet);
 
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+//	myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	myGroupBy->setInput(myFlatten);
 
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");

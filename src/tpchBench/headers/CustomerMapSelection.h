@@ -31,6 +31,8 @@
 
 #include "Customer.h"
 #include "CustomerSupplierPart.h"
+#include "SupplierPart.h"
+
 
 
 
@@ -57,8 +59,9 @@ public:
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
 			pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(checkMe->getName());
+			pdb::Handle<Vector<SupplierPart>> supplierPartVector = pdb::makeObject<Vector<SupplierPart>>();
 
-					pdb::Vector<pdb::Handle<Order>> m_orders= *checkMe-> orders;
+					pdb::Vector<pdb::Handle<Order>> m_orders= *(checkMe->getOrders());
 
 					// get the orders
 					for (int i = 0; i < m_orders.size(); i++) {
@@ -68,15 +71,19 @@ public:
 						for (int j = 0; j < lineItems->size(); j++) {
 							auto supplier = (*lineItems)[j]->getSupplier();
 
-							String  supplierName= *(supplier->getName());
+							pdb::Handle<String>  supplierName= supplier->getName();
 
 							auto part = (*lineItems)[j]->getPart();
 							int partKey= part->getPartKey();
 
-							customerSupplierPart->addSupplierPart(supplierName, partKey);
 
+							pdb::Handle<SupplierPart> supplierPart = pdb::makeObject<SupplierPart>(*supplierName, partKey);
+
+							supplierPartVector->push_back(*supplierPart);
 						}
 					}
+
+					customerSupplierPart->setSupplierPart(*supplierPartVector);
 
 					return customerSupplierPart;
 				});

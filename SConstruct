@@ -42,7 +42,7 @@ common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
-common_env.Append(CCFLAGS='-DAUTO_TUNING')
+#common_env.Append(CCFLAGS='-DAUTO_TUNING')
 #common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
 #common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
@@ -379,6 +379,7 @@ common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.
 common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPart.so', ['build/tpchBench/CustomerSupplierPart.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerSupplierPartAgg.so', ['build/tpchBench/CustomerSupplierPartAgg.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMapSelection.so', ['build/tpchBench/CustomerMapSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 
@@ -664,6 +665,7 @@ main=common_env.Alias('main', [
   'libraries/libCustomerSupplierPartWriteSet.so',
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPart.so',
+  'libraries/libCustomerSupplierPartAgg.so',
   'libraries/libCustomerMapSelection.so',
   'libraries/libCustomerSupplierPartGroupBy.so',
 # 'bin/tpchTestData',
