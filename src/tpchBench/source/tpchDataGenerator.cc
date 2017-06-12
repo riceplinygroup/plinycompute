@@ -496,6 +496,9 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomerMapSelection.so", errMsg))
 		cout << "Not able to register type libCustomerMapSelection. \n";
 
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartAgg.so", errMsg))
+		cout << "Not able to register type.\n";
+
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
 		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
