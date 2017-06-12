@@ -59,11 +59,10 @@ public:
                 return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
 
                     Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
-                            String myKey = *(aggMe->getCustomerName());
-
-                            (*ret)[myKey].resize((aggMe->getSupplierPart()).size());
-                            for (int i = 0; i < aggMe->getSupplierPart().size(); i++) {
-                                     (*ret)[myKey].push_back((aggMe->getSupplierPart())[i].getPartKey());
+                    pdb::Vector<SupplierPart>  m_supplierPart= aggMe->getSupplierPart();
+                            for (int i = 0; i < m_supplierPart.size(); i++) {
+                                	String myKey = *(m_supplierPart[i].getSupplierName());
+                                    (*ret)[myKey].push_back(m_supplierPart[i].getPartKey());
                             }
                             return ret;
                     });
