@@ -29,8 +29,8 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 #Parameters to tune for performance
-threadNum = "2"
-sharedMemorySize = "1280"
+threadNum = "1"
+sharedMemorySize = "2048"
 
 def startPseudoCluster():
     try:
@@ -60,6 +60,12 @@ def startPseudoCluster():
 
 
 print("#################################")
+print("REQUIRE 8192 MB MEMORY TO RUN scons test")
+print("#################################")
+
+
+
+print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
@@ -75,7 +81,7 @@ print("#################################")
 try:
     #run bin/pdb-server
     print bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC
-    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '512'])
+    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '2048'])
     print bcolors.OKBLUE + "to check whether server has been fully started..." + bcolors.ENDC
     subprocess.call(['bash', './scripts/checkProcess.sh', 'pdb-server'])
     print bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC

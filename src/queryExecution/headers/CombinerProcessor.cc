@@ -75,11 +75,11 @@ void CombinerProcessor <KeyType, ValueType> :: loadOutputPage (void * pageToWrit
 
     blockPtr = nullptr;
     blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(pageToWriteTo, numBytesInPage);
-    outputData = makeObject<Vector<Handle<Map<KeyType, ValueType>>>> (this->numNodePartitions);
+    outputData = makeObject<Vector<Handle<AggregationMap<KeyType, ValueType>>>> (this->numNodePartitions);
     int i;
     for ( i = 0; i < numNodePartitions; i ++ ) {
         PDB_COUT << "to create the " << i << "-th partition on this node" << std :: endl;
-        Handle<Map<KeyType, ValueType>> currentMap =  makeObject<Map<KeyType, ValueType>>();
+        Handle<AggregationMap<KeyType, ValueType>> currentMap =  makeObject<AggregationMap<KeyType, ValueType>>();
         HashPartitionID currentPartitionId = nodePartitionIds[i];
         PDB_COUT << "currentPartitionId=" << currentPartitionId << std :: endl;
         //however we only use the relative/local hash partition id
@@ -154,7 +154,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                 } catch (NotEnoughSpace &n) {
 
-                    std :: cout << "Info: Combiner page is too small, exception 1 thrown" << std :: endl;
+                    //std :: cout << "Info: Combiner page is too small, exception 1 thrown" << std :: endl;
                     throw n;
                 }
                 try {
@@ -164,7 +164,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
                     count ++;
                 // if we couldn't fit the value
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "Info: Combiner page is too small, exception 2 thrown" << std :: endl;
+                    //std :: cout << "Info: Combiner page is too small, exception 2 thrown" << std :: endl;
                     curOutputMap->setUnused (curKey);
                  
                     throw n;
@@ -185,7 +185,7 @@ bool CombinerProcessor <KeyType, ValueType> :: fillNextOutputPage () {
 
                 //if we got here, it means we run out of RAM and we need to restore the old value in the destination hash map
                 } catch (NotEnoughSpace &n) {
-                    std :: cout << "Info: Combiner page is too small, exception 3 thrown" << std :: endl;
+                    //std :: cout << "Info: Combiner page is too small, exception 3 thrown" << std :: endl;
                     temp = copy;
                     throw n;
                 }

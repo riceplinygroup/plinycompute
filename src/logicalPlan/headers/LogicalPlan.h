@@ -55,12 +55,12 @@ public:
 	// constructor
 	LogicalPlan (AtomicComputationList &computationsIn, pdb :: Vector <pdb :: Handle <pdb :: Computation>> &allComputations) {
 		computations = computationsIn;
-		std :: cout << "\nEXTRACTING LAMBDAS:\n";
+		//std :: cout << "\nEXTRACTING LAMBDAS:\n";
 		for (int i = 0; i < allComputations.size (); i++) {
 			std :: string compType = allComputations[i]->getComputationType ();
 			compType += "_";
 			compType += std :: to_string (i);
-			std :: cout << "Extracting lambdas for computation " << compType << "\n";
+			//std :: cout << "Extracting lambdas for computation " << compType << "\n";
 			pdb :: ComputationNode temp (allComputations[i]);
 			allConstituentComputations[compType] = temp;			
 		}

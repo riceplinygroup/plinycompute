@@ -15,59 +15,50 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef AGGREGATION_PROCESSOR_H
-#define AGGREGATION_PROCESSOR_H
+#ifndef AGGREGATION_MAP_CC
+#define AGGREGATION_MAP_CC
 
-//by Jia, Mar 13 2017
-
-#include "UseTemporaryAllocationBlock.h"
-#include "InterfaceFunctions.h"
 #include "AggregationMap.h"
-#include "PDBMap.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "SimpleSingleTableQueryProcessor.h"
 
 namespace pdb {
 
 template <class KeyType, class ValueType>
-class AggregationProcessor : public SimpleSingleTableQueryProcessor {
+AggregationMap <KeyType, ValueType> :: AggregationMap (uint32_t initSize) {
 
-public:
-
-    ~AggregationProcessor () {};
-    AggregationProcessor () {};
-    AggregationProcessor (HashPartitionID id);   
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> & objectToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
-    bool needsProcessInput() override;
-
-private:
-
-    UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle<AggregationMap <KeyType, ValueType>>>> inputData;
-    Handle <Map <KeyType, ValueType>> outputData;
-    bool finalized;
-    Handle<AggregationMap<KeyType, ValueType>> curMap;
-    int id;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
-
-    int count;
-};
-
+	if (initSize < 2) {
+		std :: cout << "Fatal Error: Map initialization:" << initSize << " too small; must be at least one.\n";
+         
+		initSize = 2;
+	}
+        
+	// this way, we'll allocate extra bytes on the end of the array
+	MapRecordClass <KeyType, ValueType> temp;
+	size_t size = temp.getObjSize ();	
+	this->myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size * initSize, initSize);
 }
 
+template <class KeyType, class ValueType>
+AggregationMap <KeyType, ValueType> :: AggregationMap () {
 
-#include "AggregationProcessor.cc"
+	MapRecordClass <KeyType, ValueType> temp;
+	size_t size = temp.getObjSize ();	
+	this->myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size*2, 2);
+}
 
+template <class KeyType, class ValueType>
+AggregationMap <KeyType, ValueType> :: ~AggregationMap () {}
+
+
+template <class KeyType, class ValueType>
+unsigned int AggregationMap <KeyType, ValueType> :: getHashPartitionId () {
+    return this->hashPartitionId;
+}
+
+template <class KeyType, class ValueType>
+void AggregationMap <KeyType, ValueType> :: setHashPartitionId (unsigned int partitionId) {
+    this->hashPartitionId = partitionId;
+}
+
+}
 
 #endif

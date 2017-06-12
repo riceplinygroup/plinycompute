@@ -41,7 +41,7 @@ void AggregationProcessor <KeyType, ValueType> :: initialize () {
 
 template <class KeyType, class ValueType>
 void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object> & objectToProcess) {
-        curMap = unsafeCast<Map<KeyType, ValueType>, Object> (objectToProcess);
+        curMap = unsafeCast<AggregationMap<KeyType, ValueType>, Object> (objectToProcess);
         //std :: cout << id << ": curMap size = " << curMap->size() << std :: endl;
         HashPartitionID hashIdForCurrentMap = curMap->getHashPartitionId();
         //PDB_COUT << "this map's partitionId is " << hashIdForCurrentMap << std :: endl;
@@ -70,7 +70,7 @@ void AggregationProcessor <KeyType, ValueType> :: loadInputObject (Handle<Object
 template <class KeyType, class ValueType>
 void AggregationProcessor <KeyType, ValueType> :: loadInputPage (void * pageToProcess) {
     PDB_COUT << "AggregationProcessor-"<< id << ": Loading input page" << std :: endl;
-    Record <Vector<Handle<Map<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<Map<KeyType, ValueType>>>> *) pageToProcess;
+    Record <Vector<Handle<AggregationMap<KeyType, ValueType>>>> * myRec = (Record <Vector<Handle<AggregationMap<KeyType, ValueType>>>> *) pageToProcess;
     inputData = myRec->getRootObject();
     int numPartitions = inputData->size();
     int i;
@@ -133,7 +133,7 @@ bool AggregationProcessor <KeyType, ValueType> :: fillNextOutputPage () {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                std :: cout << id << ": Aggregation processed " << count << " elements in this map" << std :: endl;
+                //std :: cout << id << ": Aggregation processed " << count << " elements in this map" << std :: endl;
                 count = 0;
                 return false;
             }

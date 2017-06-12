@@ -451,7 +451,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                   std :: cout << "WARNING: Auto tuning can not work, use default values" << std :: endl;
                   tunedHashPageSize = conf->getHashPageSize();
               }
-              std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
+              //std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
               conf->setHashPageSize(tunedHashPageSize);
          #endif
 
@@ -555,17 +555,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
                                              aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
                                          }
-                                         while (aggregateProcessor->fillNextOutputPage()) {
+                                         if (aggregateProcessor->fillNextOutputPage()) {
                                              aggregateProcessor->clearOutputPage();
-                                             std :: cout << "ERROR: aggregation for partition-" << i << " can't finish in one aggregation page with size="
+                                             std :: cout << "WARNING: aggregation for partition-" << i << " can't finish in one aggregation page with size="
                                                          << aggregationSet->getPageSize() << std :: endl;
-                                             std :: cout << "ERROR: results may not be fully aggregated for partition-" << i << ", please increase hash page size!!" 
+                                             std :: cout << "WARNING: results may not be fully aggregated for partition-" << i << ", please increase hash page size!!" 
                                                          << std :: endl;
                                              logger->error(std :: string("Hash page size is too small or memory is insufficient, results are not fully aggregated!"));
-                                             PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
-                                             outBytes = aggregationSet->addPage();
-                                             aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
-
+                                             break;  
                                          }
                                      }                          
                                      //unpin user page
@@ -619,11 +616,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
                                              aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
                                          }
-                                         while (aggregateProcessor->fillNextOutputPage()) {
+                                         if (aggregateProcessor->fillNextOutputPage()) {
                                              //std :: cout << i <<": AggregationProcessor: we have filled an output page" << std :: endl;
-                                             std :: cout << "ERROR: aggregation for partition-" << i << " can't finish in one aggregation page with size="
+                                             std :: cout << "WARNING: aggregation for partition-" << i << " can't finish in one aggregation page with size="
                                                          << aggregationPageSize << std :: endl;
-                                             std :: cout << "ERROR: results may not be fully aggregated for partition-" << i << ", please ask PDB admin to tune memory size!!"
+                                             std :: cout << "WARNING: results may not be fully aggregated for partition-" << i << ", please ask PDB admin to tune memory size!!"
                                                          << std :: endl;
                                              logger->error(std :: string("Hash page size is too small or memory is insufficient, results are not fully aggregated!"));
                                              //write to output set
@@ -649,9 +646,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              aggregateProcessor->clearOutputPage();
                                              //aggOutProcessor->clearInputPage();
                                              free(aggregationPage);
-                                             PDB_COUT << i << ": AggregationProcessor: we allocated an output page" << std :: endl;
-                                             aggregationPage = (void *) malloc (aggregationPageSize * sizeof(char));
-                                             aggregateProcessor->loadOutputPage (aggregationPage, aggregationPageSize);
+                                             break;
                                          }
                                      }
                                      //aggregateProcessor->clearInputPage();

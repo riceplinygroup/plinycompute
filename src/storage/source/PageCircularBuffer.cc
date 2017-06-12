@@ -73,7 +73,7 @@ int PageCircularBuffer::addPageToTail(PDBPagePtr page) {
     int i = 0;
     while (this->isFull()) {
         i ++;
-        if (i%100000==0) {
+        if (i%10000000==0) {
             this->logger->info(std :: to_string(i) + std :: string(":PageCircularBuffer: array is full."));
         }
         pthread_cond_signal(&(this->cond));

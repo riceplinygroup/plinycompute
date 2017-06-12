@@ -15,59 +15,52 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef AGGREGATION_PROCESSOR_H
-#define AGGREGATION_PROCESSOR_H
+#ifndef AGGREGATION_MAP_H
+#define AGGREGATION_MAP_H
 
-//by Jia, Mar 13 2017
+// PRELOAD %AggregationMap<Nothing>%
 
-#include "UseTemporaryAllocationBlock.h"
-#include "InterfaceFunctions.h"
-#include "AggregationMap.h"
+//by Jia, Jun 2017
+
 #include "PDBMap.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "SimpleSingleTableQueryProcessor.h"
 
 namespace pdb {
 
-template <class KeyType, class ValueType>
-class AggregationProcessor : public SimpleSingleTableQueryProcessor {
+// This is the AggregationMap type that serves as a map for aggregation
 
-public:
-
-    ~AggregationProcessor () {};
-    AggregationProcessor () {};
-    AggregationProcessor (HashPartitionID id);   
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> & objectToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
-    bool needsProcessInput() override;
+template <class KeyType, class ValueType = Nothing>
+class AggregationMap : public Map<KeyType, ValueType> {
 
 private:
 
-    UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle<AggregationMap <KeyType, ValueType>>>> inputData;
-    Handle <Map <KeyType, ValueType>> outputData;
-    bool finalized;
-    Handle<AggregationMap<KeyType, ValueType>> curMap;
-    int id;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
+     //this member will only be used in PDB aggregation
+     unsigned int hashPartitionId;
 
-    int count;
+
+public:
+
+     ENABLE_DEEP_COPY
+
+
+     // this constructor pre-allocates initSize slots... initSize must be a power of two
+     AggregationMap (uint32_t initSize);
+
+     // this constructor creates a map with a single slot
+     AggregationMap ();
+
+     // destructor
+     ~AggregationMap ();
+
+     //enhance the performance of indexing a hash partition.
+
+     unsigned int getHashPartitionId ();
+     void setHashPartitionId (unsigned int id);
+
+
 };
 
 }
 
-
-#include "AggregationProcessor.cc"
-
+#include "AggregationMap.cc"
 
 #endif
