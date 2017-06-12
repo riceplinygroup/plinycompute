@@ -502,6 +502,8 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
 		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
+	if (!catalogClient.registerType("libraries/libSupplierPart.so", errMsg))
+		cout << "Not able to register type.\n";
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
@@ -539,7 +541,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<CustomerSupplierPart> result = queryClient.getSetIterator<CustomerSupplierPart>("TPCH_db", "t_output_se1");
+	SetIterator<CustomerSupplierPartAgg> result = queryClient.getSetIterator<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;

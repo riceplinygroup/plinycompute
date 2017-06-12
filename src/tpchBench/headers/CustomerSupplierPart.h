@@ -51,9 +51,9 @@ public:
 	void print() {
 		std::cout<<"Customer: " << customerName->c_str() << " [ ";
 		for (int i = 0; i < supplierPart.size(); ++i) {
-			pdb::String supplierName = supplierPart[i].getSupplierName();
+			pdb::Handle<pdb::String> supplierName = supplierPart[i].getSupplierName();
 			int partIDs= supplierPart[i].getPartKey();
-			std::cout<<"(" << supplierName.c_str() << "," << partIDs << ")";
+			std::cout<<"(" << supplierName->c_str() << "," << partIDs << ")";
 		}
 			 std::cout<<"  ] "<<std::endl;
 	}
