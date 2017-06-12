@@ -383,15 +383,15 @@ common_env.SharedLibrary('libraries/libCustomerSupplierPartAgg.so', ['build/tpch
 common_env.SharedLibrary('libraries/libCustomerMapSelection.so', ['build/tpchBench/CustomerMapSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libSupplierPart.so', ['build/tpchBench/SupplierPart.cc'] + all)
-
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
+common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
+
 
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
-
 
 
 
@@ -670,7 +670,7 @@ main=common_env.Alias('main', [
   'libraries/libCustomerSupplierPartAgg.so',
   'libraries/libCustomerMapSelection.so',
   'libraries/libCustomerSupplierPartGroupBy.so',
-# 'bin/tpchTestData',
+  'bin/tpchQuery',
   'bin/tpchDataGenerator',
   
   

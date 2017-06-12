@@ -84,7 +84,7 @@
 #include <fcntl.h>
 
 // #include "Set.h"
-//TODO: why shoud I include WriteStringSet when I want to use DispatcherClient?
+//TODO: why should I include WriteStringSet when I want to use DispatcherClient?
 #include "WriteStringSet.h"
 
 using namespace std;
