@@ -29,7 +29,7 @@
 #include "CustomerSupplierPart.h"
 #include "CustomerSupplierPartAgg.h"
 
-namespace pdb {
+
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 class CustomerSupplierPartGroupBy : public ClusterAggregateComp <CustomerSupplierPartAgg, CustomerSupplierPart, String, Handle<Map<String, Vector<int>>>> {
@@ -70,6 +70,8 @@ public:
         }
 };
 
+
+namespace pdb {
 
 inline Handle<Map<String, Vector<int>>> &operator+ (Handle<Map<String, Vector<int>>> &lhs, Handle<Map<String, Vector<int>>> &rhs) {
        auto iter = rhs->begin();
