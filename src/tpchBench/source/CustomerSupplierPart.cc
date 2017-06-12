@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef ustomerSupplierPart_CC
-#define ustomerSupplierPart_CC
+#ifndef CustomerSupplierPart_CC
+#define CustomerSupplierPart_CC
 
 #include "GetVTable.h"
 #include "CustomerSupplierPart.h"

@@ -15,63 +15,51 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef CUSTOMER_SUPPLIER_PART_H
-#define CUSTOMER_SUPPLIER_PART_H
+#ifndef SUPPLIER_PART_H
+#define SUPPLIER_PART_H
 
 #include "Object.h"
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "Handle.h"
 
-#include "SupplierPart.h"
+// This class represents a triple that holds a tuple of (customerName, (SupplierName, Vector<PartID>))
 
 
-// This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
-
-
-class CustomerSupplierPart: public pdb::Object {
+class SupplierPart: public pdb::Object {
 
 public:
-	pdb::Handle<pdb::String> customerName;
-	pdb::Vector<SupplierPart> supplierPart;
+	pdb::String supplierName;
+	int  partKey;
 
 	ENABLE_DEEP_COPY
 
 	//Default constructor:
-	CustomerSupplierPart() {}
+	SupplierPart() {}
 
 	//Default destructor:
-	~CustomerSupplierPart() {}
+	~SupplierPart() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPart(pdb::Handle<pdb::String> customerName) {
-		this->customerName = customerName;
+	SupplierPart(pdb::String supplierName, int  partKey) {
+		this->supplierName = supplierName;
+		this->partKey = partKey;
 	}
 
-	void print() {
-		std::cout<<"Customer: " << customerName->c_str() << " [ ";
-		for (int i = 0; i < supplierPart.size(); ++i) {
-			pdb::String supplierName = supplierPart[i].getSupplierName();
-			int partIDs= supplierPart[i].getPartKey();
-			std::cout<<"(" << supplierName.c_str() << "," << partIDs << ")";
-		}
-			 std::cout<<"  ] "<<std::endl;
+	int getPartKey() const {
+		return partKey;
 	}
 
-	const pdb::Handle<pdb::String>& getCustomerName() const {
-		return customerName;
+	void setPartKey(int partKey) {
+		this->partKey = partKey;
 	}
 
-	void setCustomerName(const pdb::Handle<pdb::String>& customerName) {
-		this->customerName = customerName;
+	const pdb::String getSupplierName() const {
+		return supplierName;
 	}
 
-	const pdb::Vector<SupplierPart>& getSupplierPart() const {
-		return supplierPart;
-	}
-
-	void setSupplierPart(const pdb::Vector<SupplierPart>& supplierPart) {
-		this->supplierPart = supplierPart;
+	void setSupplierName(pdb::String supplierName) {
+		this->supplierName = supplierName;
 	}
 };
 

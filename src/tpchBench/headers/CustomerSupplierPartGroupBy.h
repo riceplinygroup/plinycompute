@@ -27,11 +27,12 @@
 #include "PDBString.h"
 
 #include "CustomerSupplierPart.h"
+#include "CustomerSupplierPartAgg.h"
 
 namespace pdb {
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
-class CustomerSupplierPartGroupBy : public ClusterAggregateComp <CustomerSupplierPart, CustomerSupplierPart, String, Handle<Map<String, Vector<int>>>> {
+class CustomerSupplierPartGroupBy : public ClusterAggregateComp <CustomerSupplierPartAgg, CustomerSupplierPart, String, Handle<Map<String, Vector<int>>>> {
 
 public:
 
@@ -56,10 +57,17 @@ public:
         // the value type must have + defined
         Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <CustomerSupplierPart> aggMe) override {
                 return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
-                       		 return aggMe->getSoldPartIDs();
+
+                    Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
+                            String myKey = *(aggMe->getCustomerName());
+
+                            (*ret)[myKey].resize((aggMe->getSupplierPart()).size());
+                            for (int i = 0; i < aggMe->getSupplierPart().size(); i++) {
+                                     (*ret)[myKey].push_back((aggMe->getSupplierPart())[i].getPartKey());
+                            }
+                            return ret;
                     });
         }
-
 };
 
 

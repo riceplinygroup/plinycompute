@@ -16,28 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef CUSTOMER_SUPPLIER_PART_WRITE_SET_H
-#define CUSTOMER_SUPPLIER_PART_WRITE_SET_H
+#ifndef SupplierPart_CC
+#define SupplierPart_CC
 
-#include "WriteUserSet.h"
-#include "CustomerSupplierPartAgg.h"
-#include "Customer.h"
+#include "GetVTable.h"
+#include "SupplierPart.h"
 
-using namespace pdb;
-class CustomerSupplierPartWriteSet : public WriteUserSet <CustomerSupplierPartAgg> {
-
-public:
-
-	ENABLE_DEEP_COPY
-
-	CustomerSupplierPartWriteSet () {}
-
-    //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-	CustomerSupplierPartWriteSet (std :: string dbName, std :: string setName) {
-        this->setOutput(dbName, setName);
-    }
-
-};
-
+GET_V_TABLE (SupplierPart)
 
 #endif
