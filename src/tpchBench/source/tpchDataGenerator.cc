@@ -372,7 +372,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFa
 
 }
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>   generateSmallDataset(int maxNoOfCustomers) {
 
 	int maxPartsInEachLineItem = 4;
 	int maxLineItemsInEachOrder = 4;
@@ -399,7 +399,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 			orders->push_back(order);
 		}
 
-		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "customerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
+		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "CustomerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
 		customers->push_back(customer);
 	}
 
@@ -409,7 +409,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 
 int main() {
 
-	int noOfCopies = 1;
+	int noOfCopies = 2;
 
 	// Connection info
 	string masterHostname = "localhost";
