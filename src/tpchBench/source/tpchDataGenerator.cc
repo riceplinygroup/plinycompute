@@ -283,7 +283,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(orderFile.c_str());
 
-	map<int, pdb::Handle<pdb::Vector<Order>> >  orderMap;
+	map<int, pdb::Vector<Order>>  orderMap;
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -310,11 +310,11 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 		//Populate the hash:
 		if (orderMap.find(customerKey) != orderMap.end()) {
-			orderMap[customerKey]-> push_back(*tOrder);
+			orderMap[customerKey].push_back(*tOrder);
 		} else {
 			pdb::Handle<pdb::Vector<Order>>  orderList = pdb::makeObject<pdb::Vector<Order>>();
 			orderList -> push_back(*tOrder);
-			orderMap[customerKey] = orderList;
+			orderMap[customerKey] = *orderList;
 		}
 
 	}
@@ -329,6 +329,8 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	// ##########                 #########
 	// ####################################
 	// ####################################
+
+	cout << "Started Creating Customers ..." << endl;
 
 	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(customerFile.c_str());
@@ -354,7 +356,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 //			orderMap[customerKey] = tOrderArray;
 //		}
 
-		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(*(orderMap[customerKey]), customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
 				tokens.at(7));
 
 		storeMeCustomerList->push_back(tCustomer);
@@ -471,7 +473,7 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 4 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
 
 	//
 	// Generate the data
