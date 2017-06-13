@@ -213,9 +213,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(lineitemFile.c_str());
 
-	pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItemList = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>>();
+	pdb::Handle<pdb::Vector<LineItem>>  lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
 
-	map<int, pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>> >lineItemMap;
+	map<int, pdb::Handle<pdb::Vector<LineItem>> >  lineItemMap;
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -230,19 +230,19 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		int partKey = atoi(tokens.at(1).c_str());
 		int supplierKey = atoi(tokens.at(2).c_str());
 
-		pdb::Handle<Part> tPart;
-		pdb::Handle<Supplier> tSupplier;
+		Part tPart;
+		Supplier tSupplier;
 
 		//Find the appropriate "Part"
 		if (partMap.find(partKey) != partMap.end()) {
-			tPart = partMap[partKey];
+			tPart = *partMap[partKey];
 		} else {
 			throw invalid_argument("There is no such Part.");
 		}
 
 		//Find the appropriate "Part"
 		if (supplierMap.find(supplierKey) != supplierMap.end()) {
-			tSupplier = supplierMap[supplierKey];
+			tSupplier = *supplierMap[supplierKey];
 		} else {
 			throw invalid_argument("There is no such Supplier.");
 		}
@@ -256,12 +256,13 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		//Populate the hash:
 		if (lineItemMap.find(orderKey) != lineItemMap.end()) {
 			// the key already exists in the map
-			lineItemMap[orderKey]->push_back(tLineItem);
+			lineItemMap[orderKey]->push_back(*tLineItem);
 		} else {
 			// make a new vector
-			pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>>lineItemList = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>>();
+			pdb::Handle<pdb::Vector<LineItem>>  lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
+
 			// push in the vector
-			lineItemList->push_back(tLineItem);
+			lineItemList->push_back(*tLineItem);
 			// put in the map
 			lineItemMap[orderKey] = lineItemList;
 		}
@@ -282,7 +283,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(orderFile.c_str());
 
-	map<int, pdb::Handle<pdb::Vector<pdb::Handle<Order>>> >orderMap;
+	map<int, pdb::Handle<pdb::Vector<Order>> >  orderMap;
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -301,7 +302,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 			throw invalid_argument("There is no such Order.");
 		}
 
-		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
+		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(*lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
 				tokens.at(8));
 
 		if (orderKey % 100000 == 0)
@@ -309,10 +310,10 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 		//Populate the hash:
 		if (orderMap.find(customerKey) != orderMap.end()) {
-			orderMap[customerKey]->push_back(tOrder);
+			orderMap[customerKey]-> push_back(*tOrder);
 		} else {
-			pdb::Handle<pdb::Vector<pdb::Handle<Order>>>orderList = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>>();
-			orderList -> push_back(tOrder);
+			pdb::Handle<pdb::Vector<Order>>  orderList = pdb::makeObject<pdb::Vector<Order>>();
+			orderList -> push_back(*tOrder);
 			orderMap[customerKey] = orderList;
 		}
 
@@ -347,13 +348,13 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 		int customerKey = atoi(tokens.at(0).c_str());
 
-		//Sanity: Deal with Customers without orders.
-		if (orderMap.find(customerKey) == orderMap.end()) {
-			pdb::Handle<pdb::Vector<pdb::Handle<Order>>>tOrderArray;
-			orderMap[customerKey] = tOrderArray;
-		}
+//		//Sanity: Deal with Customers without orders.
+//		if (orderMap.find(customerKey) == orderMap.end()) {
+//			pdb::Handle<pdb::Vector<Order>>  tOrderArray;
+//			orderMap[customerKey] = tOrderArray;
+//		}
 
-		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(*(orderMap[customerKey]), customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
 				tokens.at(7));
 
 		storeMeCustomerList->push_back(tCustomer);
@@ -368,6 +369,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 				std::cout << "Failed to send data to dispatcher server" << std::endl;
 			}
+
 			// make a new vector.
 			storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 		}
@@ -387,28 +389,28 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>   generateSmallDataset(int maxNo
 	int maxLineItemsInEachOrder = 4;
 	int maxOrderssInEachCostomer = 4;
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>> ();
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	//4. Make Customers
 	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
-		pdb::Handle<pdb::Vector<pdb::Handle<Order>>> orders = pdb::makeObject<pdb::Vector<pdb::Handle<Order>>> ();
+		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
 		//3. Make Order
 		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
-			pdb::Handle<pdb::Vector<pdb::Handle<LineItem>>> lineItems = pdb::makeObject<pdb::Vector<pdb::Handle<LineItem>>> ();
+			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>> ();
 			//2.  Make LineItems
 			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
 				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr", "Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
 				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i), "address", i, "Phone1", 12.1, "Supplier Comment1");
-				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i, supplier, part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
+				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i, *supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
 						"sgipingStruct", "shipMode1", "Comment1");
-				lineItems->push_back(lineItem);
+				lineItems->push_back(*lineItem);
 			}
 
-			pdb::Handle<Order> order = pdb::makeObject<Order>(lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
-			orders->push_back(order);
+			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
+			orders->push_back(*order);
 		}
 
-		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(orders, customerID, "CustomerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
+		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
 		customers->push_back(customer);
 	}
 

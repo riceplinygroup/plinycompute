@@ -32,7 +32,7 @@
 class CustomerSupplierPart: public pdb::Object {
 
 public:
-	pdb::Handle<pdb::String> customerName;
+	pdb::String customerName;
 	pdb::Vector<SupplierPart> supplierPart;
 
 	ENABLE_DEEP_COPY
@@ -44,25 +44,25 @@ public:
 	~CustomerSupplierPart() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPart(pdb::Handle<pdb::String> customerName) {
+	CustomerSupplierPart(pdb::String customerName) {
 		this->customerName = customerName;
 	}
 
 	void print() {
-		std::cout<<"Customer: " << customerName->c_str() << " [ ";
+		std::cout<<"Customer: " << customerName.c_str() << " [ ";
 		for (int i = 0; i < supplierPart.size(); ++i) {
-			pdb::Handle<pdb::String> supplierName = supplierPart[i].getSupplierName();
+			pdb::String supplierName = supplierPart[i].getSupplierName();
 			int partIDs= supplierPart[i].getPartKey();
-			std::cout<<"(" << supplierName->c_str() << "," << partIDs << ")";
+			std::cout<<"(" << supplierName.c_str() << "," << partIDs << ")";
 		}
 			 std::cout<<"  ] "<<std::endl;
 	}
 
-	const pdb::Handle<pdb::String>& getCustomerName() const {
+	const pdb::String& getCustomerName() const {
 		return customerName;
 	}
 
-	void setCustomerName(const pdb::Handle<pdb::String>& customerName) {
+	void setCustomerName(const pdb::String & customerName) {
 		this->customerName = customerName;
 	}
 

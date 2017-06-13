@@ -41,14 +41,14 @@ class Part:public pdb::Object{
 
 public:
 	int partKey;
-	pdb::Handle<pdb::String> name;
-	pdb::Handle<pdb::String> mfgr;
-	pdb::Handle<pdb::String> brand;
-	pdb::Handle<pdb::String> type;
+	pdb::String name;
+	pdb::String mfgr;
+	pdb::String brand;
+	pdb::String type;
 	int size;
-	pdb::Handle<pdb::String> container;
+	pdb::String container;
 	double retailPrice;
-	pdb::Handle<pdb::String> comment;
+	pdb::String comment;
 
 
 	ENABLE_DEEP_COPY
@@ -63,54 +63,54 @@ public:
 	Part(int partKey, std::string name, std::string  mfgr, std::string  brand,
 			std::string  type, int size, std::string  container, double retailPrice,
 			std::string  comment) {
-		this->partKey= partKey;
-		this->name= pdb::makeObject<pdb::String>(name);
-		this->mfgr= pdb::makeObject<pdb::String>(mfgr);
-		this->brand=pdb::makeObject<pdb::String>(brand);
-		this->type=pdb::makeObject<pdb::String>(type);
-		this->size=size;
-		this->container= pdb::makeObject<pdb::String>(container);
-		this->retailPrice= retailPrice;
-		this->comment=pdb::makeObject<pdb::String>(comment);
-	}
-
-	const pdb::Handle<pdb::String>& getBrand() const {
-		return brand;
-	}
-
-	void setBrand(const pdb::Handle<pdb::String>& brand) {
+		this->partKey = partKey;
+		this->name = name;
+		this->mfgr = mfgr;
 		this->brand = brand;
-	}
-
-	const pdb::Handle<pdb::String>& getComment() const {
-		return comment;
-	}
-
-	void setComment(const pdb::Handle<pdb::String>& comment) {
+		this->type = type;
+		this->size=size;
+		this->container = container;
+		this->retailPrice = retailPrice;
 		this->comment = comment;
 	}
 
-	const pdb::Handle<pdb::String>& getContainer() const {
+	const pdb::String& getBrand() const {
+		return brand;
+	}
+
+	void setBrand(const pdb::String& brand) {
+		this->brand = brand;
+	}
+
+	const pdb::String& getComment() const {
+		return comment;
+	}
+
+	void setComment(const pdb::String& comment) {
+		this->comment = comment;
+	}
+
+	const pdb::String& getContainer() const {
 		return container;
 	}
 
-	void setContainer(const pdb::Handle<pdb::String>& container) {
+	void setContainer(const pdb::String& container) {
 		this->container = container;
 	}
 
-	const pdb::Handle<pdb::String>& getMfgr() const {
+	const pdb::String& getMfgr() const {
 		return mfgr;
 	}
 
-	void setMfgr(const pdb::Handle<pdb::String>& mfgr) {
+	void setMfgr(const pdb::String& mfgr) {
 		this->mfgr = mfgr;
 	}
 
-	const pdb::Handle<pdb::String>& getName() const {
+	const pdb::String& getName() const {
 		return name;
 	}
 
-	void setName(const pdb::Handle<pdb::String>& name) {
+	void setName(const pdb::String& name) {
 		this->name = name;
 	}
 
@@ -134,15 +134,11 @@ public:
 		this->size = size;
 	}
 
-	int getSize() const {
-		return size;
-	}
-
-	const pdb::Handle<pdb::String>& getType() const {
+	const pdb::String& getType() const {
 		return type;
 	}
 
-	void setType(const pdb::Handle<pdb::String>& type) {
+	void setType(const pdb::String& type) {
 		this->type = type;
 	}
 };

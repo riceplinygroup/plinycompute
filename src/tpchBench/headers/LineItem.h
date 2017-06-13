@@ -50,29 +50,30 @@
 // );
 
 class LineItem: public pdb::Object {
+
 public:
 
 	pdb::Handle<pdb::String> name;
 	int orderKey;
 
-	pdb::Handle<Supplier> supplier;
-	pdb::Handle<Part> part;
+	Supplier supplier;
+	Part part;
 
 	int lineNumber;
 	double quantity;
 	double extendedPrice;
 	double discount;
 	double tax;
-	pdb::Handle<pdb::String> returnFlag;
-	pdb::Handle<pdb::String> lineStatus;
+	pdb::String returnFlag;
+	pdb::String lineStatus;
 
-	pdb::Handle<pdb::String> shipDate;
-	pdb::Handle<pdb::String> commitDate;
-	pdb::Handle<pdb::String> receiptDate;
+	pdb::String shipDate;
+	pdb::String commitDate;
+    pdb::String receiptDate;
 
-	pdb::Handle<pdb::String> shipinStruct;
-	pdb::Handle<pdb::String> shipMode;
-	pdb::Handle<pdb::String> comment;
+	pdb::String shipinStruct;
+	pdb::String shipMode;
+	pdb::String comment;
 
 
 
@@ -86,7 +87,7 @@ public:
 
 	//Constructor with arguments:
 	LineItem(std::string name, int orderKey,
-			 pdb::Handle<Supplier> supplier, pdb::Handle<Part> part,
+			 Supplier supplier, Part part,
 			 int lineNumber, double quantity, double extendedPrice,
 			 double discount, double tax,
 			 std::string returnFlag, std::string lineStatus,
@@ -102,29 +103,29 @@ public:
 		this->extendedPrice=extendedPrice;
 		this->discount=discount;
 		this->tax=tax;
-		this->returnFlag=pdb::makeObject<pdb::String>(returnFlag);
-		this->lineStatus=pdb::makeObject<pdb::String>(lineStatus);
-		this->shipDate=pdb::makeObject<pdb::String>(shipDate);
-		this->commitDate=pdb::makeObject<pdb::String>(commitDate);
-		this->receiptDate=pdb::makeObject<pdb::String>(receiptDate);
-		this->shipinStruct=pdb::makeObject<pdb::String>(shipinStruct);
-		this->shipMode=pdb::makeObject<pdb::String>(shipMode);
-		this->comment=pdb::makeObject<pdb::String>(comment);
-	}
-
-	const pdb::Handle<pdb::String>& getComment() const {
-		return comment;
-	}
-
-	void setComment(const pdb::Handle<pdb::String>& comment) {
+		this->returnFlag= returnFlag;
+		this->lineStatus= lineStatus;
+		this->shipDate = shipDate;
+		this->commitDate = commitDate;
+		this->receiptDate = receiptDate;
+		this->shipinStruct = shipinStruct;
+		this->shipMode = shipMode;
 		this->comment = comment;
 	}
 
-	const pdb::Handle<pdb::String>& getCommitDate() const {
+	const pdb::String& getComment() const {
+		return comment;
+	}
+
+	void setComment(const pdb::String& comment) {
+		this->comment = comment;
+	}
+
+	const pdb::String& getCommitDate() const {
 		return commitDate;
 	}
 
-	void setCommitDate(const pdb::Handle<pdb::String>& commitDate) {
+	void setCommitDate(const pdb::String& commitDate) {
 		this->commitDate = commitDate;
 	}
 
@@ -152,11 +153,11 @@ public:
 		this->lineNumber = lineNumber;
 	}
 
-	const pdb::Handle<pdb::String>& getLineStatus() const {
+	const pdb::String& getLineStatus() const {
 		return lineStatus;
 	}
 
-	void setLineStatus(const pdb::Handle<pdb::String>& lineStatus) {
+	void setLineStatus(const pdb::String& lineStatus) {
 		this->lineStatus = lineStatus;
 	}
 
@@ -176,11 +177,11 @@ public:
 		this->orderKey = orderKey;
 	}
 
-	const pdb::Handle<Part>& getPart() const {
+	const Part& getPart() const {
 		return part;
 	}
 
-	void setPart(const pdb::Handle<Part>& part) {
+	void setPart(const Part& part) {
 		this->part = part;
 	}
 
@@ -192,51 +193,51 @@ public:
 		this->quantity = quantity;
 	}
 
-	const pdb::Handle<pdb::String>& getReceiptDate() const {
+	const pdb::String& getReceiptDate() const {
 		return receiptDate;
 	}
 
-	void setReceiptDate(const pdb::Handle<pdb::String>& receiptDate) {
+	void setReceiptDate(const pdb::String& receiptDate) {
 		this->receiptDate = receiptDate;
 	}
 
-	const pdb::Handle<pdb::String>& getReturnFlag() const {
+	const pdb::String& getReturnFlag() const {
 		return returnFlag;
 	}
 
-	void setReturnFlag(const pdb::Handle<pdb::String>& returnFlag) {
+	void setReturnFlag(const pdb::String& returnFlag) {
 		this->returnFlag = returnFlag;
 	}
 
-	const pdb::Handle<pdb::String>& getShipDate() const {
+	const pdb::String& getShipDate() const {
 		return shipDate;
 	}
 
-	void setShipDate(const pdb::Handle<pdb::String>& shipDate) {
+	void setShipDate(const pdb::String& shipDate) {
 		this->shipDate = shipDate;
 	}
 
-	const pdb::Handle<pdb::String>& getShipinStruct() const {
+	const pdb::String& getShipinStruct() const {
 		return shipinStruct;
 	}
 
-	void setShipinStruct(const pdb::Handle<pdb::String>& shipinStruct) {
+	void setShipinStruct(const pdb::String& shipinStruct) {
 		this->shipinStruct = shipinStruct;
 	}
 
-	const pdb::Handle<pdb::String>& getShipMode() const {
+	const pdb::String& getShipMode() const {
 		return shipMode;
 	}
 
-	void setShipMode(const pdb::Handle<pdb::String>& shipMode) {
+	void setShipMode(const pdb::String& shipMode) {
 		this->shipMode = shipMode;
 	}
 
-	const pdb::Handle<Supplier>& getSupplier() const {
+	const Supplier& getSupplier() const {
 		return supplier;
 	}
 
-	void setSupplier(const pdb::Handle<Supplier>& supplier) {
+	void setSupplier(const Supplier& supplier) {
 		this->supplier = supplier;
 	}
 

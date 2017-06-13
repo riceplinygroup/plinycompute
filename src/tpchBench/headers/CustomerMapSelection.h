@@ -61,20 +61,20 @@ public:
 			pdb::Handle<CustomerSupplierPart> customerSupplierPart = pdb::makeObject<CustomerSupplierPart>(checkMe->getName());
 			pdb::Handle<Vector<SupplierPart>> supplierPartVector = pdb::makeObject<Vector<SupplierPart>>();
 
-					pdb::Vector<pdb::Handle<Order>> m_orders= *(checkMe->getOrders());
+					pdb::Vector<Order> m_orders= checkMe->getOrders();
 
 					// get the orders
 					for (int i = 0; i < m_orders.size(); i++) {
-						auto lineItems = m_orders[i]->getLineItems();
+						auto lineItems = m_orders[i].getLineItems();
 
 						// get the LineItems
-						for (int j = 0; j < lineItems->size(); j++) {
-							auto supplier = (*lineItems)[j]->getSupplier();
+						for (int j = 0; j < lineItems.size(); j++) {
+							auto supplier = lineItems[j].getSupplier();
 
-							pdb::Handle<String>  supplierName= supplier->getName();
+							String  supplierName= supplier.getName();
 
-							auto part = (*lineItems)[j]->getPart();
-							int partKey= part->getPartKey();
+							auto part = lineItems[j].getPart();
+							int partKey= part.getPartKey();
 
 
 							pdb::Handle<SupplierPart> supplierPart = pdb::makeObject<SupplierPart>(supplierName, partKey);

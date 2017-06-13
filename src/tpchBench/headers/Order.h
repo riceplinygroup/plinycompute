@@ -41,7 +41,7 @@ class Order: public pdb::Object {
 
 public:
 
-	pdb::Handle <pdb::Vector <pdb::Handle <LineItem>>> lineItems;
+	pdb::Vector <LineItem> lineItems;
 
 	int orderKey;
 	int custKey;
@@ -64,7 +64,7 @@ public:
 	Order() {
 	}
 
-	Order(pdb::Handle <pdb::Vector <pdb::Handle <LineItem>>> lineItems, int orderkey,
+	Order(pdb::Vector <LineItem> lineItems, int orderkey,
 			int custkey, std::string orderstatus,
 			double totalprice, std::string orderdate,
 			std::string orderpriority, std::string clerk,
@@ -112,15 +112,7 @@ public:
 		this->custKey = custKey;
 	}
 
-	const pdb::Handle<pdb::Vector<pdb::Handle<LineItem> > >& getLineItems() const
-	{
-		return lineItems;
-	}
 
-	void setLineItems(const pdb::Handle<pdb::Vector<pdb::Handle<LineItem> > >& lineItems)
-	{
-		this->lineItems = lineItems;
-	}
 
 	const pdb::Handle<pdb::String>& getOrderDate() const
 	{
@@ -180,6 +172,14 @@ public:
 	void setTotalPrice(double totalPrice)
 	{
 		this->totalPrice = totalPrice;
+	}
+
+	const pdb::Vector<LineItem>& getLineItems() const {
+		return lineItems;
+	}
+
+	void setLineItems(const pdb::Vector<LineItem>& lineItems) {
+		this->lineItems = lineItems;
 	}
 };
 #endif
