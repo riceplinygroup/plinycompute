@@ -49,7 +49,7 @@ public:
         // the key type must have == and size_t hash () defined
         Lambda <String> getKeyProjection (Handle <CustomerSupplierPart> aggMe) override {
             return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
-                      	String myKey = *(aggMe->getCustomerName());
+                      	String myKey = aggMe->getCustomerName();
                              		 return myKey;
                           });
         }
@@ -60,8 +60,9 @@ public:
 
                     Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
                     pdb::Vector<SupplierPart>  m_supplierPart= aggMe->getSupplierPart();
+
                             for (int i = 0; i < m_supplierPart.size(); i++) {
-                                	String myKey = *(m_supplierPart[i].getSupplierName());
+                                	String myKey = m_supplierPart[i].getSupplierName();
                                     (*ret)[myKey].push_back(m_supplierPart[i].getPartKey());
                             }
                             return ret;

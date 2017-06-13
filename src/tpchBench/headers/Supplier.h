@@ -40,12 +40,12 @@ class Supplier: public pdb::Object {
 
 public:
 	int supplierKey;
-	pdb::Handle<pdb::String> name;
-	pdb::Handle<pdb::String> address;
+	pdb::String name;
+	pdb::String address;
 	int nationKey;
-	pdb::Handle<pdb::String> phone;
+	pdb::String phone;
 	double accbal;
-	pdb::Handle<pdb::String> comment;
+	pdb::String comment;
 
 
 	ENABLE_DEEP_COPY
@@ -62,12 +62,12 @@ public:
 			 std::string phone, double accbal,
 			 std::string comment) {
 		this->supplierKey = supplierKey;
-		this->name = pdb::makeObject<pdb::String>(name);
-		this->address = pdb::makeObject<pdb::String>(address);
+		this->name = name;
+		this->address = address;
 		this->nationKey = nationKey;
-		this->phone = pdb::makeObject<pdb::String>(phone);
+		this->phone = phone;
 		this->accbal = accbal;
-		this->comment = pdb::makeObject<pdb::String>(comment);
+		this->comment = comment;
 	}
 
 	double getAccbal() const {
@@ -78,27 +78,27 @@ public:
 		this->accbal = accbal;
 	}
 
-	const pdb::Handle<pdb::String>& getAddress() const {
+	const pdb::String& getAddress() const {
 		return address;
 	}
 
-	void setAddress(const pdb::Handle<pdb::String>& address) {
+	void setAddress(const pdb::String& address) {
 		this->address = address;
 	}
 
-	const pdb::Handle<pdb::String>& getComment() const {
+	const pdb::String& getComment() const {
 		return comment;
 	}
 
-	void setComment(const pdb::Handle<pdb::String>& comment) {
+	void setComment(const pdb::String& comment) {
 		this->comment = comment;
 	}
 
-	const pdb::Handle<pdb::String>& getName() const {
+	const pdb::String& getName() const {
 		return name;
 	}
 
-	void setName(const pdb::Handle<pdb::String>& name) {
+	void setName(const pdb::String& name) {
 		this->name = name;
 	}
 
@@ -110,11 +110,11 @@ public:
 		this->nationKey = nationKey;
 	}
 
-	const pdb::Handle<pdb::String>& getPhone() const {
+	const pdb::String& getPhone() const {
 		return phone;
 	}
 
-	void setPhone(const pdb::Handle<pdb::String>& phone) {
+	void setPhone(const pdb::String& phone) {
 		this->phone = phone;
 	}
 
