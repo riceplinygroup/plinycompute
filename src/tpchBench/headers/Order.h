@@ -45,13 +45,13 @@ public:
 
 	int orderKey;
 	int custKey;
-	pdb::Handle<pdb::String> orderStatus;
+	pdb::String orderStatus;
 	double totalPrice;
-	pdb::Handle<pdb::String> orderDate;
-	pdb::Handle<pdb::String> orderPriority;
-	pdb::Handle<pdb::String> clerk;
+	pdb::String orderDate;
+	pdb::String orderPriority;
+	pdb::String clerk;
 	int shipPriority;
-	pdb::Handle<pdb::String> comment;
+	pdb::String comment;
 
 
 
@@ -69,117 +69,96 @@ public:
 			double totalprice, std::string orderdate,
 			std::string orderpriority, std::string clerk,
 			int shippriority, std::string comment){
-
-		this->lineItems=lineItems;
-		this->orderKey=orderkey;
-		this->custKey=custkey;
-		this->orderStatus=pdb::makeObject <pdb::String>(orderstatus);
-		this->totalPrice=totalprice;
-		this->orderDate=pdb::makeObject <pdb::String> (orderdate);
-		this->orderPriority=pdb::makeObject <pdb::String>(orderpriority);
-		this->clerk=pdb::makeObject <pdb::String>(clerk);
-		this->shipPriority=shippriority;
-		this->comment=pdb::makeObject <pdb::String>(comment);
-	}
-
-	const pdb::Handle<pdb::String>& getClerk() const
-	{
-		return clerk;
-	}
-
-	void setClerk(const pdb::Handle<pdb::String>& clerk)
-	{
+		this->lineItems = lineItems;
+		this->orderKey = orderkey;
+		this->custKey = custkey;
+		this->orderStatus = orderstatus;
+		this->totalPrice = totalprice;
+		this->orderDate = orderdate;
+		this->orderPriority = orderpriority;
 		this->clerk = clerk;
-	}
-
-	const pdb::Handle<pdb::String>& getComment() const
-	{
-		return comment;
-	}
-
-	void setComment(const pdb::Handle<pdb::String>& comment)
-	{
+		this->shipPriority = shippriority;
 		this->comment = comment;
 	}
 
-	int getCustKey() const
-	{
+	pdb::String getClerk()  {
+		return clerk;
+	}
+
+	void setClerk(pdb::String clerk) {
+		this->clerk = clerk;
+	}
+
+	 pdb::String getComment()  {
+		return comment;
+	}
+
+	void setComment( pdb::String comment) {
+		this->comment = comment;
+	}
+
+	int getCustKey()  {
 		return custKey;
 	}
 
-	void setCustKey(int custKey)
-	{
+	void setCustKey(int custKey) {
 		this->custKey = custKey;
 	}
 
-
-
-	const pdb::Handle<pdb::String>& getOrderDate() const
-	{
-		return orderDate;
-	}
-
-	void setOrderDate(const pdb::Handle<pdb::String>& orderDate)
-	{
-		this->orderDate = orderDate;
-	}
-
-	int getOrderKey() const
-	{
-		return orderKey;
-	}
-
-	void setOrderKey(int orderKey)
-	{
-		this->orderKey = orderKey;
-	}
-
-	const pdb::Handle<pdb::String>& getOrderPriority() const
-	{
-		return orderPriority;
-	}
-
-	void setOrderPriority(const pdb::Handle<pdb::String>& orderPriority)
-	{
-		this->orderPriority = orderPriority;
-	}
-
-	const pdb::Handle<pdb::String>& getOrderStatus() const
-	{
-		return orderStatus;
-	}
-
-	void setOrderStatus(const pdb::Handle<pdb::String>& orderStatus)
-	{
-		this->orderStatus = orderStatus;
-	}
-
-	int getShipPriority() const
-	{
-		return shipPriority;
-	}
-
-	void setShipPriority(int shipPriority)
-	{
-		this->shipPriority = shipPriority;
-	}
-
-	double getTotalPrice() const
-	{
-		return totalPrice;
-	}
-
-	void setTotalPrice(double totalPrice)
-	{
-		this->totalPrice = totalPrice;
-	}
-
-	const pdb::Vector<LineItem>& getLineItems() const {
+	 pdb::Vector<LineItem>& getLineItems()  {
 		return lineItems;
 	}
 
-	void setLineItems(const pdb::Vector<LineItem>& lineItems) {
+	void setLineItems( pdb::Vector<LineItem>& lineItems) {
 		this->lineItems = lineItems;
+	}
+
+	 pdb::String getOrderDate()  {
+		return orderDate;
+	}
+
+	void setOrderDate( pdb::String orderDate) {
+		this->orderDate = orderDate;
+	}
+
+	int getOrderKey()  {
+		return orderKey;
+	}
+
+	void setOrderKey(int orderKey) {
+		this->orderKey = orderKey;
+	}
+
+	 pdb::String getOrderPriority()  {
+		return orderPriority;
+	}
+
+	void setOrderPriority(pdb::String orderPriority) {
+		this->orderPriority = orderPriority;
+	}
+
+	 pdb::String getOrderStatus()  {
+		return orderStatus;
+	}
+
+	void setOrderStatus(pdb::String orderStatus) {
+		this->orderStatus = orderStatus;
+	}
+
+	int getShipPriority()  {
+		return shipPriority;
+	}
+
+	void setShipPriority(int shipPriority) {
+		this->shipPriority = shipPriority;
+	}
+
+	double getTotalPrice(){
+		return totalPrice;
+	}
+
+	void setTotalPrice(double totalPrice) {
+		this->totalPrice = totalPrice;
 	}
 };
 #endif
