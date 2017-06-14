@@ -471,14 +471,14 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 8 * GB, true);
 
 	//
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
-	string scaleFactor = "0.1";
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
+	string scaleFactor = "0.2";
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 //	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 //	size_t sizeOfCustomers = myBytes->numBytes();
@@ -519,7 +519,7 @@ int main() {
 		cout << "Not able to register type.\n";
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -533,15 +533,15 @@ int main() {
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
-	myFlatten->setInput(myScanSet);
-
-	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+//	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
+//	myFlatten->setInput(myScanSet);
+//
+//	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
-	myGroupBy->setInput(myFlatten);
+//	myGroupBy->setInput(myFlatten);
 
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
-	myWriteSet->setInput(myGroupBy);
+	myWriteSet->setInput(myScanSet);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
@@ -555,19 +555,19 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<CustomerSupplierPartAgg> result = queryClient.getSetIterator<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1");
+	SetIterator<Customer> result = queryClient.getSetIterator<Customer>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;
 	for (auto a : result) {
 		count++;
 
-		cout<<"-------------" << endl;
-//		if (count % 10 == 0) {
-//			std::cout << count << std::endl;
-//			std::cout <<"CustomerName: "  << a->getCustomerName()->c_str() << std::endl;
-		a->print();
-//		}
+//		cout<<"-------------" << endl;
+		if (count % 1000 == 0) {
+			std::cout << count << std::endl;
+			std::cout <<"CustomerName: "  << a->getName() << std::endl;
+//		    a->print();
+		}
 	}
 	std::cout << "Output count:" << count << "\n";
 

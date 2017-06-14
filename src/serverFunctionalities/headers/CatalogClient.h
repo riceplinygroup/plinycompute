@@ -150,7 +150,7 @@ namespace pdb {
         bool removeNodeFromDB (std :: string nodeIP, std :: string databaseName, std :: string &errMsg);
 
         /* Sends a request to the Catalog Server to prints the content of the metadata stored in the catalog */
-        bool printCatalogMetadata (std :: string itemToSearch, std :: string &errMsg);
+        bool printCatalogMetadata (pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch, std :: string &errMsg);
 
         /* Returns true if this Catalog Client points to a remote
          * Master Catalog Server

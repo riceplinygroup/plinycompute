@@ -133,6 +133,9 @@ namespace pdb {
         /* Print the content of the catalog metadata that have changed since a given timestamp */
         bool printCatalog (string timeStamp);
 
+        /* Print the contents of the catalog metadata */
+        bool printCatalog();
+
         /* Adds metadata about a new node in the cluster */
         bool addNodeMetadata (Handle<CatalogNodeMetadata> &nodeMetadata, std :: string &errMsg);
 

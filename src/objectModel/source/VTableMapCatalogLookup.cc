@@ -77,7 +77,9 @@ void *VTableMap :: getVTablePtrUsingCatalog (int16_t objectTypeID) {
 
     //JiaNote: we need check return value
     if (ret == false) {
-        std :: cout << "ERROR in fixing VTableMap for objectTypeID="<< objectTypeID << std :: endl;
+        std :: cout << "Error fixing VTableMap for objectTypeID="<< objectTypeID << std :: endl;
+        std :: cout << "   This could be because: 1) the name used to retrieve the shared library doesn't match the types in the catalog, or" << std :: endl;
+        std :: cout << "   2) a shared library for that type has not been registered in the catalog" << std :: endl;
         return nullptr;
     }
 	

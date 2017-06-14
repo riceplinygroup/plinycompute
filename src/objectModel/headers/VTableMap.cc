@@ -75,7 +75,7 @@ inline int VTableMap :: totalBuiltInObjects () {
 
 inline void VTableMap :: listVtableEntries () {
         for (unsigned int i=0;i< theVTable->allVTables.size();i++){
-            if (theVTable->allVTables[i] != nullptr) std::cout << "vtpr " << i << ": " << theVTable->allVTables[i] << std::endl;
+            if (theVTable->allVTables[i] != nullptr) PDB_COUT << "vtpr " << i << ": " << theVTable->allVTables[i] << std::endl;
         }
 }    
 
@@ -83,7 +83,7 @@ inline void VTableMap :: listVtableLabels () {
         std::map<std::string, int16_t> iterator;
 
         for(auto &iterator : theVTable->objectTypeNamesList){
-            PDB_COUT << "label= " << iterator.first << " id= " <<  iterator.second << std::endl;
+            std::cout << "Type name= " << iterator.first << " | TypeId= " <<  iterator.second << std::endl;
         }
 }
 
