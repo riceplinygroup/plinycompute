@@ -25,7 +25,7 @@
 #include "Customer.h"
 
 using namespace pdb;
-class CustomerSupplierPartWriteSet : public WriteUserSet <Customer> {
+class CustomerSupplierPartWriteSet : public WriteUserSet <CustomerSupplierPartAgg> {
 
 public:
 
