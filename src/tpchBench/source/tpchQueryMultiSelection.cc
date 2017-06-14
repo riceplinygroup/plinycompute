@@ -50,10 +50,13 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
+
 #include "CustomerSupplierPartWriteSet.h"
 #include "CustomerSupplierPart.h"
-#include "CustomerMapSelection.h"
+#include "CustomerMultiSelection.h"
+#include "CustomerSupplierPartFlat.h"
 #include "CustomerSupplierPartGroupBy.h"
+#include "CustomerSupplierPartFlatGroupBy.h"
 #include "ScanCustomerSet.h"
 
 #include "Handle.h"
@@ -117,23 +120,43 @@ int main() {
 	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
 	string errMsg;
+
+
+
+	// Register the input and output types
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
 
 	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
 		cout << "Not able to register type libScanCustomerSet. \n";
 
-	if (!catalogClient.registerType("libraries/libCustomerMapSelection.so", errMsg))
+
+	// Register all intermediate data types
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
 		cout << "Not able to register type libCustomerMapSelection. \n";
+
+	if (!catalogClient.registerType("libraries/libSupplierPart.so", errMsg))
+		cout << "Not able to register type.\n";
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPart.so", errMsg))
+			cout << "Not able to register type libCustomerSupplierPart. \n";
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartAgg.so", errMsg))
 		cout << "Not able to register type.\n";
 
+	// Register all of the computations
+	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+		cout << "Not able to register type libCustomerMapSelection. \n";
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlatGroupBy.so", errMsg))
+		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
+
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
 		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
-	if (!catalogClient.registerType("libraries/libSupplierPart.so", errMsg))
-		cout << "Not able to register type.\n";
+
+
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
@@ -150,12 +173,15 @@ int main() {
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
-	myFlatten->setInput(myScanSet);
+	Handle<Computation> myFlatten1 = makeObject<CustomerMultiSelection>();
+	myFlatten1->setInput(myScanSet);
+
+	Handle<Computation> myFlatten2 = makeObject<CustomerSupplierPartFlatGroupBy>();
+	myFlatten2->setInput(myFlatten1);
 
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
-	myGroupBy->setInput(myFlatten);
+	myGroupBy->setInput(myFlatten2);
 
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
 	myWriteSet->setInput(myGroupBy);
@@ -187,17 +213,24 @@ int main() {
 	}
 
 
+
 	std::cout << "Output count:" << count << "\n";
 
 
 
-	// Remove the output set
+
+	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
 	} else {
 		cout << "Set removed. \n";
 	}
+
+
+
+
+
 
 
 	// Clean up the SO files.
