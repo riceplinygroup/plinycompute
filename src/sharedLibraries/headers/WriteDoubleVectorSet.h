@@ -25,7 +25,7 @@
 #include "DoubleVector.h"
 
 using namespace pdb;
-class WriteDoubleSet : public WriteUserSet <DoubleVector> {
+class WriteDoubleVectorSet : public WriteUserSet <DoubleVector> {
 
 public:
 
