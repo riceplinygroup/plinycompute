@@ -341,6 +341,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	while (getline(infile, line)) {
+
+//	    pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+
 		stringstream lineStream(line);
 		vector<string> tokens;
 		string token;
@@ -357,25 +360,43 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 //			orderMap[customerKey] = tOrderArray;
 //		}
 
-		pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
-				tokens.at(7));
 
-		storeMeCustomerList->push_back(tCustomer);
+        string errMsg;
+		int count =0;
+
+		try {
+	        pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+	                tokens.at(7));
+
+	        storeMeCustomerList->push_back(tCustomer);
+
+            count++;
+
+	        // send every 100 customer objects to the server and make a new vector
+
+	            // send the data over.
+	            if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+	                std::cout << "Failed to send data to dispatcher server" << std::endl;
+	            }
+
+	    } catch (NotEnoughSpace &e) {
+
+	        if (storeMeCustomerList->size() > 0){
+	            cout << "count: " << count << endl;
+
+                if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+                    std::cout << "Failed to send data to dispatcher server" << std::endl;
+                }
+	        } else{
+	            count--;
+
+                // make a new vector.
+	            pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+                storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	        }
+	    }
 
 
-		// send every 100 customer objects to the server and make a new vector
-		if (customerKey % 100 == 0) {
-			cout << "Customer Key: " << customerKey << endl;
-			string errMsg;
-
-			// send the data over.
-			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-				std::cout << "Failed to send data to dispatcher server" << std::endl;
-			}
-
-			// make a new vector.
-			storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-		}
 
 	}
 
@@ -478,8 +499,8 @@ int main() {
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.2";
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 //	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 //	size_t sizeOfCustomers = myBytes->numBytes();
