@@ -51,7 +51,6 @@
 #include "Order.h"
 #include "Customer.h"
 #include "CustomerSupplierPartWriteSet.h"
-#include "CustomerSupplierPart.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
@@ -454,8 +453,8 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
 		cout << "Not able to register type.\n";
 
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPart.so", errMsg))
-		cout << "Not able to register type.\n";
+//	if (!catalogClient.registerType("libraries/libCustomerSupplierPart.so", errMsg))
+//		cout << "Not able to register type.\n";
 
 	// now, create a new database
 	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {

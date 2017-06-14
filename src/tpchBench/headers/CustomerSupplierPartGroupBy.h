@@ -26,7 +26,6 @@
 #include "PDBVector.h"
 #include "PDBString.h"
 
-#include "CustomerSupplierPart.h"
 #include "CustomerSupplierPartFlat.h"
 #include "SupplierData.h"
 
