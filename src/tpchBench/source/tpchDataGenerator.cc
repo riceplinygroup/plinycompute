@@ -519,7 +519,7 @@ int main() {
 		cout << "Not able to register type.\n";
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -533,15 +533,15 @@ int main() {
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-//	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
-//	myFlatten->setInput(myScanSet);
-//
-//	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
+	myFlatten->setInput(myScanSet);
+
+	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
-//	myGroupBy->setInput(myFlatten);
+	myGroupBy->setInput(myFlatten);
 
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
-	myWriteSet->setInput(myScanSet);
+	myWriteSet->setInput(myGroupBy);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
@@ -555,7 +555,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<Customer> result = queryClient.getSetIterator<Customer>("TPCH_db", "t_output_se1");
+	SetIterator<CustomerSupplierPartAgg> result = queryClient.getSetIterator<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;
@@ -563,11 +563,11 @@ int main() {
 		count++;
 
 //		cout<<"-------------" << endl;
-		if (count % 1000 == 0) {
-			std::cout << count << std::endl;
-			std::cout <<"CustomerName: "  << a->getName() << std::endl;
-//		    a->print();
-		}
+//		if (count % 1000 == 0) {
+//			std::cout << count << std::endl;
+//			std::cout <<"CustomerName: "  << a->getName() << std::endl;
+		    a->print();
+//		}
 	}
 	std::cout << "Output count:" << count << "\n";
 
