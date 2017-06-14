@@ -436,8 +436,6 @@ int main() {
 	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
 	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
-//	catalogClient.cleanup();
-
 	string errMsg;
 	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
 		cout << "Not able to register type.\n";
@@ -572,6 +570,20 @@ int main() {
 //		}
 	}
 	std::cout << "Output count:" << count << "\n";
+
+
+
+
+
+	// Remove the output set
+	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_se1", errMsg)) {
+		cout << "Not able to remove the set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Set removed. \n";
+	}
+
+
 
 	// Clean up the SO files.
 	int code = system("scripts/cleanupSoFiles.sh");
