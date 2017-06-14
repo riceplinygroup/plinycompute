@@ -28,28 +28,28 @@
 using namespace pdb;
 // This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
 
-class CustomerSupplierPartAgg: public pdb::Object {
+class SupplierData: public pdb::Object {
 
 public:
-	String customerName;
+	String supplierName;
 	Handle<Map<String, Vector<int>>> soldPartIDs;
 
 	ENABLE_DEEP_COPY
 
 	//Default constructor:
-	CustomerSupplierPartAgg() {}
+	SupplierData() {}
 
 	//Default destructor:
-	~CustomerSupplierPartAgg() {}
+	~SupplierData() {}
 
 	//Constructor with arguments:
-	CustomerSupplierPartAgg(pdb::String customerName) {
-		this->customerName = customerName;
+	SupplierData(pdb::String customerName) {
+		this->supplierName = customerName;
 		this->soldPartIDs = pdb::makeObject<pdb::Map<pdb::String, pdb::Vector<int>>>();
 	}
 
 	String &getKey () {
-		return customerName;
+		return supplierName;
 	}
 
 	Handle<Map<String, Vector<int>>> &getValue () {
@@ -81,13 +81,13 @@ public:
 	}
 
 	void print() {
-		std::cout<<"Customer: " << customerName << " [ ";
+		std::cout<<"SupplierName: " << supplierName << " [ ";
 		auto iter = soldPartIDs->begin();
 		while (iter != soldPartIDs->end()) {
 			pdb::String supplierName = (*iter).key;
 			pdb::Vector<int> partIDs= (*soldPartIDs)[supplierName];
 
-			std::cout<<"SupplierName: " << supplierName.c_str() << " (";
+			std::cout<<"Customer: " << supplierName.c_str() << " (";
 			for (int i = 0; i < partIDs.size(); ++i) {
 				std::cout<<" " <<partIDs[i] << ",";
 			}
@@ -98,11 +98,11 @@ public:
 	}
 
 	const pdb::String& getCustomerName() const {
-		return customerName;
+		return supplierName;
 	}
 
 	void setCustomerName(const pdb::String& customerName) {
-		this->customerName = customerName;
+		this->supplierName = customerName;
 	}
 
 };

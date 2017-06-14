@@ -52,9 +52,11 @@
 #include "Customer.h"
 #include "CustomerSupplierPartWriteSet.h"
 #include "CustomerSupplierPart.h"
-#include "CustomerMapSelection.h"
 #include "CustomerSupplierPartGroupBy.h"
+#include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
+#include "SupplierData.h"
+
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -471,14 +473,14 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 8 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
 
 	//
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.2";
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 //	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 //	size_t sizeOfCustomers = myBytes->numBytes();
@@ -506,7 +508,7 @@ int main() {
 	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
 		cout << "Not able to register type libScanCustomerSet. \n";
 
-	if (!catalogClient.registerType("libraries/libCustomerMapSelection.so", errMsg))
+	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
 		cout << "Not able to register type libCustomerMapSelection. \n";
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartAgg.so", errMsg))
@@ -515,11 +517,15 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
 		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
-	if (!catalogClient.registerType("libraries/libSupplierPart.so", errMsg))
-		cout << "Not able to register type.\n";
+	if (!catalogClient.registerType("libraries/libSupplierData.so", errMsg))
+		cout << "Not able to register type  libSupplierData\n";
+
+	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
+		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
+
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -533,7 +539,7 @@ int main() {
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myFlatten = makeObject<CustomerMapSelection>();
+	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
 
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
@@ -555,7 +561,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<CustomerSupplierPartAgg> result = queryClient.getSetIterator<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1");
+	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;

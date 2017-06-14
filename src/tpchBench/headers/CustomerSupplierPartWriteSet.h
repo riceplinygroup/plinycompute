@@ -20,12 +20,11 @@
 #define CUSTOMER_SUPPLIER_PART_WRITE_SET_H
 
 #include "WriteUserSet.h"
-#include "CustomerSupplierPartAgg.h"
-
 #include "Customer.h"
+#include "SupplierData.h"
 
 using namespace pdb;
-class CustomerSupplierPartWriteSet : public WriteUserSet <CustomerSupplierPartAgg> {
+class CustomerSupplierPartWriteSet : public WriteUserSet <SupplierData> {
 
 public:
 

@@ -53,8 +53,8 @@
 
 #include "CustomerSupplierPartWriteSet.h"
 #include "CustomerSupplierPart.h"
-#include "CustomerMultiSelection.h"
 #include "CustomerSupplierPartFlat.h"
+#include "CustomerMultiSelection.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerSupplierPartFlatGroupBy.h"
 #include "ScanCustomerSet.h"
@@ -159,7 +159,7 @@ int main() {
 
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -198,7 +198,7 @@ int main() {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<CustomerSupplierPartAgg> result = queryClient.getSetIterator<CustomerSupplierPartAgg>("TPCH_db", "t_output_se1");
+	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
 	int count = 0;

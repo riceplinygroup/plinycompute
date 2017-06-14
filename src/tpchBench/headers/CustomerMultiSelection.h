@@ -62,7 +62,10 @@ public:
 							auto supplier = lineItems[j].getSupplier();
 							auto part = lineItems[j].getPart();
 
-							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier.getName(), part.getPartKey());
+							Handle<Vector<int>>  partKeyVector=pdb::makeObject<pdb::Vector<int>>();
+							partKeyVector->push_back(part.getPartKey());
+
+							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier.getName(), *partKeyVector);
 							customerSupplierPartFlat_vector->push_back(supplierPart);
 						}
 					}

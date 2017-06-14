@@ -23,53 +23,54 @@
 #include "PDBString.h"
 #include "Handle.h"
 
-// This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
-
+// This class represents a triple that holds a triple of (customerName, SupplierName, vector<PartID>)
 
 class CustomerSupplierPartFlat: public pdb::Object {
 
 public:
 	pdb::String customerName;
 	pdb::String supplierName;
-	int  partKey;
+	pdb::Vector<int> partKeys;
 
 	ENABLE_DEEP_COPY
 
 	//Default constructor:
-	CustomerSupplierPartFlat() {}
-
-	//Default destructor:
-	~CustomerSupplierPartFlat() {}
-
-	//Constructor with arguments:
-	CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, int  partKey) {
-		this->customerName = customerName;
-		this->supplierName=supplierName;
-		this->partKey=partKey;
+	CustomerSupplierPartFlat() {
 	}
 
-	pdb::String getCustomerName()  {
+	//Default destructor:
+	~CustomerSupplierPartFlat() {
+	}
+
+	//Constructor with arguments:
+	CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, pdb::Vector<int> partKeys) {
+		this->customerName = customerName;
+		this->supplierName = supplierName;
+		this->partKeys=partKeys;
+	}
+
+	pdb::String getCustomerName() {
 		return customerName;
 	}
 
-	void setCustomerName( pdb::String customerName) {
+	void setCustomerName(pdb::String customerName) {
 		this->customerName = customerName;
 	}
 
-	int getPartKey()  {
-		return partKey;
-	}
-
-	void setPartKey(int partKey) {
-		this->partKey = partKey;
-	}
-
-	 pdb::String getSupplierName(){
+	pdb::String getSupplierName() {
 		return supplierName;
 	}
 
 	void setSupplierName(pdb::String supplierName) {
 		this->supplierName = supplierName;
+	}
+
+	const pdb::Vector<int>& getPartKeys() const {
+		return partKeys;
+	}
+
+	void setPartKeys(const pdb::Vector<int>& partKeys) {
+		this->partKeys = partKeys;
 	}
 };
 
