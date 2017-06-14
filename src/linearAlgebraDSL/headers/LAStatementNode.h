@@ -15,42 +15,47 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
+#ifndef LA_STATEMENT_NODE_H
+#define LA_STATEMENT_NODE_H
 
-#include "LAParser.h"
-#include "LAStatementsList.h"
+#include "LAASTNode.h"
+#include "LAIdentifierNode.h"
+#include "LAExpressionNode.h"
 
 
+struct LAStatementNode;
+typedef std::shared_ptr<struct LAStatementNode> LAStatementNodePtr;
 
 
-int main(int argc, char **argv){
+struct LAStatementNode : public LAASTNode{
+
+private:
+	LAIdentifierNodePtr identifier = NULL;
+
+	LAExpressionNodePtr expression = NULL;
+
+	LAStatementNodePtr me = NULL;
+
+public:
+	LAStatementNode():LAASTNode(LA_ASTNODE_TYPE_STATEMENT) {}
 	
-	if (argc==2){
-		FILE * targetCode = fopen(argv[1],"r");
-		if(!targetCode){
-			std::cout<< "No such file ! <" << argv[1] << ">" << std::endl;
-			return -1;
-		}
-		
-		LAscan_t myscanner;
-
-		LAlex_init(&myscanner);
-
-		LAset_in(targetCode,myscanner);
-
-		std:: cout <<"Get started to parse the file!" << std::endl;
-
-		LAStatementsList * myStatements = new LAStatementsList();
-
-		LAparse(myscanner,&myStatements);
-
-		LAlex_destroy(myscanner);
-
-		std::cout<<"Parsing Done" <<std::endl;
-
-		for(int i=0; i<myStatements->size();i++){
-			std::cout << myStatements->get(i)->toString() << std::endl;
-		}
+	std::string toString() final{
+		return identifier->toString() + " = " + expression->toString();
 	}
-}
 
+	void setShared(LAStatementNodePtr meIn){
+		me = meIn;
+	}
+
+	void setLeftIdentifier(LAIdentifierNodePtr i){
+		identifier = i;
+	}
+
+	void setRightExpression(LAExpressionNodePtr e){
+		expression = e;
+	}
+
+	void evaluateQuery();
+};
+
+#endif

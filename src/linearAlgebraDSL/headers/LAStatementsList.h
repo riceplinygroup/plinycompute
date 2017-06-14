@@ -15,9 +15,33 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LA_EXPRESSION_NODE
-#define LA_EXPRESSION_NODE
+#ifndef LA_STATEMENT_LIST_H
+#define LA_STATEMENT_LIST_H
 
-class ExpressionNode {
-	
-}
+
+#include <vector>
+#include "LAStatementNode.h"
+
+
+
+struct LAStatementsList{
+
+private:
+	std::vector<LAStatementNodePtr> statements;
+
+public:
+
+	void addStatement(LAStatementNodePtr addMe){
+		statements.push_back(addMe);
+	}
+
+	int size(){
+		return statements.size();
+	}
+
+	LAStatementNodePtr get(int i){
+		return statements[i];
+	}
+};
+
+#endif

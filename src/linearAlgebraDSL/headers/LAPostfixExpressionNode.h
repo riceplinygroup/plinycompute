@@ -15,42 +15,60 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
-
-#include "LAParser.h"
-#include "LAStatementsList.h"
+#ifndef LA_POSTFIXEXPRESSION_NODE_H
+#define LA_POSTFIXEXPRESSION_NODE_H
 
 
 
+#include "LAASTNode.h"
+#include "LAExpressionNode.h"
+#include "LAPrimaryExpressionNode.h"
 
-int main(int argc, char **argv){
-	
-	if (argc==2){
-		FILE * targetCode = fopen(argv[1],"r");
-		if(!targetCode){
-			std::cout<< "No such file ! <" << argv[1] << ">" << std::endl;
-			return -1;
+
+struct LAPostfixExpressionNode;
+typedef std::shared_ptr<struct LAPostfixExpressionNode> LAPostfixExpressionNodePtr;
+
+
+struct LAPostfixExpressionNode : public LAExpressionNode {
+
+private:
+	std::string postOperator;
+
+	LAPrimaryExpressionNodePtr child = NULL;
+
+	LAPostfixExpressionNodePtr me = NULL;
+
+	pdb::Handle<pdb::Computation> query;
+
+public:
+	LAPostfixExpressionNode():LAExpressionNode(LA_ASTNODE_TYPE_POSTFIXEXPRESSION){}
+
+	std::string toString() final{
+		if(postOperator.compare("none")==0){
+			return child->toString();
 		}
-		
-		LAscan_t myscanner;
-
-		LAlex_init(&myscanner);
-
-		LAset_in(targetCode,myscanner);
-
-		std:: cout <<"Get started to parse the file!" << std::endl;
-
-		LAStatementsList * myStatements = new LAStatementsList();
-
-		LAparse(myscanner,&myStatements);
-
-		LAlex_destroy(myscanner);
-
-		std::cout<<"Parsing Done" <<std::endl;
-
-		for(int i=0; i<myStatements->size();i++){
-			std::cout << myStatements->get(i)->toString() << std::endl;
+		else if(postOperator.compare("transpose")==0){
+			return child->toString() + "^T ";
+		}
+		else if(postOperator.compare("inverse")==0){
+			return child->toString() + "^-1 ";
+		}
+		else{
+			return "PostfixExpression invalid operator: " + postOperator;
 		}
 	}
-}
+	
+	pdb::Handle<pdb::Computation> evaluate() final;
 
+
+	void setShared(LAPostfixExpressionNodePtr meIn){
+		me = meIn;
+	}
+
+	void setChild(const char* op, LAPrimaryExpressionNodePtr cptr){
+		postOperator = op;
+		child = cptr;
+	}
+};
+
+#endif

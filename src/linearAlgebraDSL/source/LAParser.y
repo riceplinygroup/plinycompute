@@ -16,12 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 %{
-  #include "ASTNode.h"
+  #include "LAParserHelperFunctions.h"
   #include <stdio.h>  // For fileno()
   #include <stdlib.h> // For malloc()
   #include <string.h> // For strdup()
 
-  #define LAPARSEPRINTFLAG 1
+  #define LAPARSEPRINTFLAG 0
 
   #if YYBISON
     union YYSTYPE;
@@ -32,7 +32,7 @@
 
   typedef void* yyscan_t;
 
-  void yyerror(yyscan_t scanner, const char *s) { printf( "Error: %s\n", s); exit(1); }
+  void yyerror(yyscan_t scanner, struct LAStatementsList **myStatements, const char *s) { printf( "Error: %s\n", s); exit(1); }
 %}
 
 %define api.prefix {LA}
@@ -41,53 +41,75 @@
   int intVal;
   double doubleVal;
   char * stringVal;
+  struct LAIdentifierNode * myIdentifer;
+  struct LAInitializerNode * myInitializer;
+  struct LAPrimaryExpressionNode * myPrimaryExp;
+  struct LAPostfixExpressionNode * myPostExp;
+  struct LAMultiplicativeExpressionNode * myMultiExp;
+  struct LAAdditiveExpressionNode * myAddExp;
+  struct LAExpressionNode * myExp;
+  struct LAStatementNode * myStatement;
+  struct LAStatementsList * myList; 
 }
 
 
 %pure-parser
 %lex-param {void *scanner}
 %parse-param {void *scanner}
+%parse-param {struct LAStatementsList **myStatements}
 
 
 
+%token END                                      0     "end of file"
 
-%token END           0     "end of file"
+%token TOKEN_ZEROS                              701
+%token TOKEN_ONES                               702
+%token TOKEN_IDENTITY                           703
+%token TOKEN_LOAD                               704
+%token TOKEN_TRANSPOSE                          711
+%token TOKEN_INV                                712
+%token TOKEN_MULTIPLY                           721
+%token TOKEN_TRANSPOSEMULTIPLY                  722
+%token TOKEN_ADD                                731
+%token TOKEN_MINUS                              732
+%token TOKEN_LEFT_BRACKET                       741
+%token TOKEN_RIGHT_BRACKET                      742
+%token TOKEN_COMMA                              743
+%token TOKEN_ASSIGN                             744
+%token TOKEN_MAX                                751
+%token TOKEN_MIN                                752
+%token TOKEN_ROWMAX                             753
+%token TOKEN_ROWMIN                             754
+%token TOKEN_COLMAX                             755
+%token TOKEN_COLMIN                             756
 
-%token TOKEN_ZEROS        701
-%token TOKEN_ONES       702
-%token TOKEN_IDENTITY     703
-%token TOKEN_LOAD              704
-%token TOKEN_TRANSPOSE    711
-%token TOKEN_INV        712
-%token TOKEN_MULTIPLY     721
-%token TOKEN_TRANSPOSEMULTIPLY  722
-%token TOKEN_ADD        731
-%token TOKEN_MINUS        732
-%token TOKEN_LEFT_BRACKET   741
-%token TOKEN_RIGHT_BRACKET    742
-%token TOKEN_COMMA        743
-%token TOKEN_ASSIGN     744
-%token TOKEN_MAX        751
-%token TOKEN_MIN        752
-%token TOKEN_ROWMAX     753
-%token TOKEN_ROWMIN     754
-%token TOKEN_COLMAX     755
-%token TOKEN_COLMIN     756 
+%token <doubleVal>        DOUBLE                790
+%token <intVal>           INTEGER               791
+%token <stringVal>        IDENTIFIERLITERAL     792
+%token <stringVal>        STRINGLITERAL         793
+
+%type <myIdentifer>       identifier
+%type <myInitializer>     initializer
+%type <myExp>             expression
+%type <myPrimaryExp>      primaryExpression
+%type <myPostExp>         postfixExpression
+%type <myMultiExp>        multiplicativeExpression
+%type <myAddExp>          additiveExpression
+%type <myStatement>       statement
+%type <myList>            statements
+%type <myList>            program 
 
 
-%token <doubleVal>        DOUBLE        790
-%token <intVal>           INTEGER       791
-%token <stringVal>        IDENTIFIER    792
-%token <stringVal>        STRINGLITERAL 793
-
-
-
+%start program
 
 %%
 
-program 
-  : END 
-  | statements END 
+program  
+  : statements 
+  {
+    $$ = $1;
+    *myStatements = $$;
+  }
   ;
 
 
@@ -98,23 +120,26 @@ statements
     if(LAPARSEPRINTFLAG){
       printf("single statement!\n");
     }
+    $$ = makeStatementList($1);
   }
   | statements statement
   {
     if(LAPARSEPRINTFLAG){
       printf("statements\n!");
     }
+    $$ = appendStatementList($1,$2);
   }
   ;
 
 
 
 statement
-  : IDENTIFIER TOKEN_ASSIGN expression 
+  : identifier TOKEN_ASSIGN expression 
   {
     if(LAPARSEPRINTFLAG){
       printf("Assign statement!\n");
     }
+    $$ = makeStatement($1,$3);
   }
   ;
 
@@ -122,6 +147,9 @@ statement
 
 expression                 
   : additiveExpression
+  {
+    $$ = (struct LAExpressionNode *) ($1);
+  }
   ;
 
 
@@ -132,6 +160,7 @@ additiveExpression
     if(LAPARSEPRINTFLAG){
       printf("multiplicativeExpression as additiveExpression\n");
     }
+    $$ = makeAdditiveExpressionFromMultiplicativeExpressionSingle($1);
   }
 
   | additiveExpression TOKEN_ADD multiplicativeExpression
@@ -139,6 +168,7 @@ additiveExpression
     if(LAPARSEPRINTFLAG){
       printf("add as additiveExpression\n");
     }
+    $$ = makeAdditiveExpressionFromMultiplicativeExpressionDouble("add",$1,$3);
   }
 
   | additiveExpression TOKEN_MINUS multiplicativeExpression
@@ -146,6 +176,7 @@ additiveExpression
     if(LAPARSEPRINTFLAG){
       printf("minus as additiveExpression\n");
     }
+    $$ = makeAdditiveExpressionFromMultiplicativeExpressionDouble("substract",$1,$3);
   }
   ;
 
@@ -157,6 +188,7 @@ multiplicativeExpression
     if(LAPARSEPRINTFLAG){
       printf("postfixExpression as multiplicativeExpression\n");
     }
+    $$ = makeMultiplicativeExpressionFromPostfixExpressionSingle($1);
   }
 
   | multiplicativeExpression TOKEN_MULTIPLY postfixExpression
@@ -164,6 +196,7 @@ multiplicativeExpression
     if(LAPARSEPRINTFLAG){
       printf("multiply as multiplicativeExpression\n");
     }
+    $$ = makeMultiplicativeExpressionFromPostfixExpressionDouble("multiply", $1, $3);
   }
 
   | multiplicativeExpression TOKEN_TRANSPOSEMULTIPLY postfixExpression
@@ -171,6 +204,7 @@ multiplicativeExpression
     if(LAPARSEPRINTFLAG){
       printf("transpose multiply as multiplicativeExpression\n");
     }
+    $$ = makeMultiplicativeExpressionFromPostfixExpressionDouble("transpose_multiply", $1, $3);
   }
   ;
 
@@ -181,46 +215,53 @@ postfixExpression
   {
     if(LAPARSEPRINTFLAG){
       printf("primaryExpression as postfixExpression\n");
-    } 
+    }
+    $$ = makePostfixExpressionFromPrimaryExpression("none",$1);
   }
 
   | primaryExpression TOKEN_TRANSPOSE
   {
     if(LAPARSEPRINTFLAG){
       printf("transpose postfixExpression\n");
-    } 
+    }
+    $$ = makePostfixExpressionFromPrimaryExpression("transpose",$1);
   }
 
   | primaryExpression TOKEN_INV
   {
     if(LAPARSEPRINTFLAG){
       printf("inverse postfixExpression\n");
-    } 
+    }
+    $$ = makePostfixExpressionFromPrimaryExpression("inverse",$1);
   }
   ;
 
 
 
 primaryExpression
-  : constant
+  : identifier
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("identifier as primaryExpression\n");
+    }
+    $$ = makePrimaryExpressionFromIdentifier($1);
+  }
+
+  /*
+  | constant
   {
     if(LAPARSEPRINTFLAG){
       printf("constant as primaryExpression\n");
     }
   }
-
-  | IDENTIFIER
-  {
-    if(LAPARSEPRINTFLAG){
-      printf("identifier as primaryExpression\n");
-    }
-  }
+  */
 
   | initializer
   {
     if(LAPARSEPRINTFLAG){
       printf("initializer as primaryExpression\n");
     }
+    $$ = makePrimaryExpressionFromInitializer($1);
   }
 
   | TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -228,6 +269,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("parenthesized Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("recursive",$2);
   }
 
   | TOKEN_MAX TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -235,6 +277,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("max function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("max",$3);
   }
 
   | TOKEN_MIN TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -242,6 +285,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("min function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("min",$3);
   }
 
   | TOKEN_ROWMAX TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -249,6 +293,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("rowMax function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("rowMax",$3);
   }
 
   | TOKEN_ROWMIN TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -256,6 +301,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("rowMin function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("rowMin",$3);
   }
 
   | TOKEN_COLMAX TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -263,6 +309,7 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("colMax function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("colMax",$3);
   }
 
   | TOKEN_COLMIN TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
@@ -270,17 +317,19 @@ primaryExpression
     if(LAPARSEPRINTFLAG){
       printf("colMin function Expression\n");
     }
+    $$ = makePrimaryExpressionFromExpression("colMin",$3);
   }
   ;
 
 
-
+// integer order: (blockRowSize, blockColSize, blockRowNum, blockColNum)
 initializer
   : TOKEN_ZEROS TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET 
   {
     if(LAPARSEPRINTFLAG){
       printf("zeros(%d, %d, %d, %d)\n",$3,$5,$7,$9);
     }
+    $$ = makeZerosInitializer($3,$5,$7,$9);
   }
 
   | TOKEN_ONES TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET   
@@ -288,29 +337,45 @@ initializer
     if(LAPARSEPRINTFLAG){
       printf("ones(%d, %d, %d, %d)\n",$3,$5,$7,$9);
     }
+    $$ = makeOnesInitializer($3,$5,$7,$9);
   }
 
-  | TOKEN_IDENTITY TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET   
+  | TOKEN_IDENTITY TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET   
   { 
     if(LAPARSEPRINTFLAG){
-      printf("identity(%d, %d, %d, %d)\n",$3,$5,$7,$9);
+      printf("identity(%d, %d)\n",$3,$5);
     }
+    $$ = makeIdentityInitializer($3,$5);
   }
 
-  | TOKEN_LOAD TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA STRINGLITERAL TOKEN_RIGHT_BRACKET 
+  | TOKEN_LOAD TOKEN_LEFT_BRACKET INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_COMMA STRINGLITERAL TOKEN_RIGHT_BRACKET 
   {
     if(LAPARSEPRINTFLAG){
-      printf("load(%d, %d, %s)\n",$3,$5,$7);
+      printf("load(%d, %d, %d, %d, %s)\n",$3,$5,$7,$9,$11);
     }
+    $$ = makeLoadInitializer($3,$5,$7,$9,$11);
   }
   ;
 
 
 
+identifier
+  :IDENTIFIERLITERAL
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("Create identifer <%s>\n",$1);
+    }
+    $$ = makeIdentifier($1);
+  }
+  ;
+
+
+/*
 constant
   : INTEGER
   | DOUBLE
   ;
+*/
 
 %%
 

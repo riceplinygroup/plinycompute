@@ -16,14 +16,12 @@
  *                                                                           *
  *****************************************************************************/
 %{
-
-#include "ASTNode.h"
 #include "LALexer.h"
 #include <stdio.h>  // For fileno()
 #include <stdlib.h> // For malloc()
 #include <string.h> // For strdup()
 
-#define LALEXPRINTFLAG 1
+#define LALEXPRINTFLAG 0
 
 %}
 
@@ -66,7 +64,7 @@
                             if(LALEXPRINTFLAG){printf("yytext: <%s>\n",yytext);}
                             yylval->stringVal = strdup (yytext);
                             if(LALEXPRINTFLAG){printf("identifier token! <%s>\n",yylval->stringVal);}
-                            return (IDENTIFIER);
+                            return (IDENTIFIERLITERAL);
                           }
 
 

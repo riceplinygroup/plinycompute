@@ -525,6 +525,7 @@ common_env.Program('bin/testLA09_RowMin', ['build/tests/TestLA09_RowMin.cc'] + a
 common_env.Program('bin/testLA10_ColMax', ['build/tests/TestLA10_ColMax.cc'] + all)
 common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + all)
 common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
+common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 #common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
@@ -651,6 +652,7 @@ main=common_env.Alias('main', [
   #'bin/testLA10_ColMax',
   #'bin/testLA11_ColMin',
   'bin/testLA20_Parser',
+  'bin/testLA21_Instance',
 
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 

@@ -15,42 +15,58 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#include <iostream>
+#ifndef LA_EVALUATE_CC
+#define LA_EVALUATE_CC
 
-#include "LAParser.h"
-#include "LAStatementsList.h"
+#include "LAIdentifierNode.h"
+#include "LAInitializerNode.h"
+#include "LAPrimaryExpressionNode.h"
+#include "LAPostfixExpressionNode.h"
+#include "LAMultiplicativeExpressionNode.h"
+#include "LAAdditiveExpressionNode.h"
+#include "LAStatementNode.h"
 
 
 
-
-int main(int argc, char **argv){
-	
-	if (argc==2){
-		FILE * targetCode = fopen(argv[1],"r");
-		if(!targetCode){
-			std::cout<< "No such file ! <" << argv[1] << ">" << std::endl;
-			return -1;
-		}
-		
-		LAscan_t myscanner;
-
-		LAlex_init(&myscanner);
-
-		LAset_in(targetCode,myscanner);
-
-		std:: cout <<"Get started to parse the file!" << std::endl;
-
-		LAStatementsList * myStatements = new LAStatementsList();
-
-		LAparse(myscanner,&myStatements);
-
-		LAlex_destroy(myscanner);
-
-		std::cout<<"Parsing Done" <<std::endl;
-
-		for(int i=0; i<myStatements->size();i++){
-			std::cout << myStatements->get(i)->toString() << std::endl;
-		}
+pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(){
+	if(scanSet.isNullPtr()){
+		std::cerr << "LAInitializerNode " << method << " scanSet did not set!" << std::endl;
+		exit(1);
 	}
+	return scanSet;
 }
 
+
+pdb::Handle<pdb::Computation> LAIdentifierNode :: evaluate(){
+	if(scanSet.isNullPtr()){
+		std::cerr << "LAIdentifierNode " << name << " scanSet did not set!" << std::endl;
+		exit(1);
+	}
+	return scanSet;
+}
+
+
+pdb::Handle<pdb::Computation> LAPrimaryExpressionNode :: evaluate(){
+	return query;
+}
+
+
+pdb::Handle<pdb::Computation> LAPostfixExpressionNode :: evaluate(){
+	return query;
+}
+
+
+pdb::Handle<pdb::Computation> LAMultiplicativeExpressionNode :: evaluate(){
+	return query;
+}
+
+
+pdb::Handle<pdb::Computation> LAAdditiveExpressionNode :: evaluate(){
+	return query;
+}
+
+
+void LAStatementNode :: evaluateQuery(){
+
+}
+#endif
