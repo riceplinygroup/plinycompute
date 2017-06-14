@@ -20,13 +20,15 @@
 
 #include "LALexer.h"
 
+struct LAStatementsList;
+
 #ifdef __cplusplus
 extern "C"
 #endif
 
 
-int LAparse (LAscan_t);
+int LAparse (LAscan_t, struct LAStatementsList **);
 
 
 
-#endif	
+#endif

@@ -76,7 +76,10 @@ try:
 
     #run test
     print bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC
-    subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost'])
+    if sys.argv[1] == 'bin/testLA21_instance':
+        subprocess.check_call([sys.argv[1],sys.argv[2]])
+    else:
+        subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost'])
 
 except subprocess.CalledProcessError as e:
     print bcolors.FAIL + "[ERROR] in running distributed test " + sys.argv[1] + bcolors.ENDC

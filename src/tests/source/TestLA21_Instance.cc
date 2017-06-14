@@ -15,11 +15,40 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef LA_INITIALIZER_NODE_H
-#define LA_INITIALIZER_NODE_H
+#include <iostream>
+
+#include "LAParser.h"
+#include "LAPDBInstance.h"
+#include "LAStatementsList.h"
 
 
 
-class InitializerNode : public ExpressionNode {
 
+int main(int argc, char **argv){
+	
+	if (argc==2){
+		FILE * targetCode = fopen(argv[1],"r");
+		if(!targetCode){
+			std::cout<< "No such file ! <" << argv[1] << ">" << std::endl;
+			return -1;
+		}
+
+		LAPDBInstance instance;
+		
+		LAscan_t myscanner;
+
+		LAlex_init(&myscanner);
+
+		LAset_in(targetCode,myscanner);
+
+		std:: cout <<"Get started to parse the file!" << std::endl;
+
+		LAStatementsList * myStatements = new LAStatementsList();
+
+		LAparse(myscanner,&myStatements);
+
+		LAlex_destroy(myscanner);
+
+		std::cout<<"Done" <<std::endl;
+	}
 }

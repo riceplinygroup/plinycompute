@@ -43,7 +43,7 @@
 	#undef TOKEN_COLMIN				
 	#undef DOUBLE					
 	#undef INTEGER					
-	#undef IDENTIFIER				
+	#undef IDENTIFIERLITERAL				
 	#undef STRINGLITERAL       	
 #endif
 
@@ -86,7 +86,7 @@
 
 #define DOUBLE					790
 #define INTEGER					791
-#define IDENTIFIER				792
+#define IDENTIFIERLITERAL		792
 #define STRINGLITERAL       	793
 
 
