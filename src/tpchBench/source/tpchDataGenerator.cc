@@ -380,9 +380,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	            }
 
 	    } catch (NotEnoughSpace &e) {
+            cout << "count: " << count << endl;
 
 	        if (storeMeCustomerList->size() > 0){
-	            cout << "count: " << count << endl;
 
                 if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
                     std::cout << "Failed to send data to dispatcher server" << std::endl;
@@ -493,7 +493,7 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 4 * GB, true);
 
 	//
 	// Generate the data
