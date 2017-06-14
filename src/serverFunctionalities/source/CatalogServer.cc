@@ -164,8 +164,8 @@ namespace pdb {
                 std :: string errMsg;
 
                 // item is a timestamp
-                string timeStamp = request->getItemName();
-                PDB_COUT << "--->Testing CatalogPrintMetadata handler with item id " << timeStamp << endl;
+                string timeStamp = request->getTimeStamp().c_str();
+                PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp " << timeStamp << endl;
                 const UseTemporaryAllocationBlock block{1024*1024};
                 bool res = getFunctionality <CatalogServer> ().printCatalog (timeStamp);
 
@@ -1466,11 +1466,17 @@ namespace pdb {
     // invokes a method to retrieve metadata that has changed since a given timestamp
     bool CatalogServer :: printCatalog (string timeStamp) {
         pdbCatalog->getModifiedMetadata(timeStamp);
-        PDB_COUT << "************Objects************" << endl;
+        cout << "************Objects************" << endl;
         VTableMap ::listVtableLabels();
         PDB_COUT << "************VTablePtrs************" << endl;
         VTableMap ::listVtableEntries();
-        PDB_COUT <<  "************End************" << endl;
+        cout <<  "************End************" << endl;
+        return true;
+    }
+
+    // invokes a method to prints all metadata in the catalog
+    bool CatalogServer :: printCatalog () {
+        pdbCatalog->printsAllCatalogMetadata();
         return true;
     }
 

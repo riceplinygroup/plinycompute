@@ -482,9 +482,11 @@ namespace pdb {
 
 
     // sends a request to the Catalog Server to print all metadata newer than a given timestamp
-    bool CatalogClient :: printCatalogMetadata (std :: string timeStamp, std :: string &errMsg) {
+    bool CatalogClient :: printCatalogMetadata (pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch, std :: string &errMsg) {
 
-        PDB_COUT << "print greater than " << timeStamp << endl;
+        PDB_COUT << "itemToSearch " << itemToSearch->getItemName().c_str() << endl;
+        PDB_COUT << "from TimeStamp " << itemToSearch->getTimeStamp().c_str() << endl;
+
         return simpleRequest <CatalogPrintMetadata, SimpleRequestResult, bool> (myLogger, port, address, false, 1024,
             [&] (Handle <SimpleRequestResult> result) {
                 if (result != nullptr) {
@@ -497,7 +499,7 @@ namespace pdb {
                 }
                 errMsg = "Error printing catalog metadata.";
                 return false;
-            }, timeStamp
+            }, itemToSearch
         );
     }
 

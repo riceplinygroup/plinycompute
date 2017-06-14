@@ -580,6 +580,8 @@
         if (onlyModified == true) queryString.append(" where timeStamp > ").append(key).append("");
         else if (key!="") queryString.append(" where itemID = '").append(key).append("'");
 
+        PDB_COUT << queryString << endl;
+
         this->logger->debug(queryString);
         if(sqlite3_prepare_v2(sqliteDBHandler, queryString.c_str(), -1,
                               &statement, NULL) == SQLITE_OK) {
@@ -592,6 +594,7 @@
 
                     // retrieve the serialized record
                     int numBytes = sqlite3_column_bytes(statement, 1);
+                    cout << "entry " << sqlite3_column_text(statement,0) << " timestamp " << sqlite3_column_int(statement, 2) << endl;
                     Record <CatalogMetadataType> *recordBytes = (Record  <CatalogMetadataType> *) malloc (numBytes);
 
                     memcpy(recordBytes, sqlite3_column_blob(statement, 1), numBytes);

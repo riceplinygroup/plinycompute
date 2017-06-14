@@ -45,19 +45,41 @@ namespace pdb {
         CatalogPrintMetadata() {
         }
 
-        CatalogPrintMetadata(string itemName) :
-        itemName(itemName)
+        CatalogPrintMetadata(String itemName, String timeStamp) :
+        itemName(itemName),
+        timeStamp(timeStamp)
         {
         }
 
-        string getItemName(){
+        //Copy constructor
+        CatalogPrintMetadata(const CatalogPrintMetadata& pdbItemToCopy) {
+            itemName = pdbItemToCopy.itemName;
+            timeStamp = pdbItemToCopy.timeStamp;
+        }
+
+        //Copy constructor
+        CatalogPrintMetadata(const Handle<CatalogPrintMetadata>& pdbItemToCopy) {
+            itemName = pdbItemToCopy->getItemName();
+            timeStamp = pdbItemToCopy->getTimeStamp();
+        }
+
+
+        String getItemName(){
             return itemName;
         }
+
+        String getTimeStamp(){
+            return timeStamp;
+        }
+
 
         ENABLE_DEEP_COPY
 
     private:
-        string itemName;
+        // the item Name to print
+        String itemName;
+        // the starting timeStamp to include
+        String timeStamp;
 
     };
 

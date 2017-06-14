@@ -244,8 +244,12 @@ using namespace pdb;
          * getMetadataFromCatalog retrieves all Metadata from Sqlite for a given category and
          * returns it in a container
          *
+         * @param onlyModified, if true will return only entries that were created after a
+         *        given timestamp, which is passed with the "key" parameter
          * @param key if blank returns all items in the category, otherwise, only the one
-         *        matching the key
+         *        matching the key (in the case of timestamp the format is
+         *        Timestamp in milliseconds, for example January 1, 2014 12:00:00 AM is passed
+         *        as: 1388534400000) and will return all entries created after that given timestamp
          * @param returnedEntries is a Vector of the Objects
          * @param errorMessage error message
          * @param metadataCategory identifies the metadata category (values are defined in

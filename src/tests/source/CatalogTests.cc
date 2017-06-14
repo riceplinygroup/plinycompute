@@ -255,13 +255,13 @@ int main (int numArgs, const char *args[]) {
         cout << "*********** Printing DB metadata for: " << ((databaseName.compare("") == 0) ? "All" : databaseName )<< endl;
 
 
-        if (!catClient.printCatalogMetadata(databaseName, errMsg)) {
-                std :: cout << "Not able to print metadata due to error: " + errMsg << std :: endl;
-        } else {
-                std :: cout << "List metadata.\n";
-        }
-
-        cout << "Done.\n";
+//        if (!catClient.printCatalogMetadata(databaseName, errMsg)) {
+//                std :: cout << "Not able to print metadata due to error: " + errMsg << std :: endl;
+//        } else {
+//                std :: cout << "List metadata.\n";
+//        }
+//
+//        cout << "Done.\n";
 
     } else if (command.compare("list-catalog") == 0) {
         // Test to retrieve a serialized version of the catalog
@@ -326,11 +326,14 @@ int main (int numArgs, const char *args[]) {
         cout << "Done.\n";
 
     } else if (command.compare("print-catalog") == 0) {
-        std::string timeStamp = vm["timestamp"].as<std::string>();
+//        std::string timeStamp = vm["timestamp"].as<std::string>();
 
-        cout << "timestamp=" << endl;
+        // creates an object to send request for printing all metadata
+        pdb :: Handle<pdb :: CatalogPrintMetadata> printObject = pdb::makeObject<CatalogPrintMetadata>("", "0");
 
-        if (!catClient.printCatalogMetadata(timeStamp, errMsg)) {
+//        cout << "timestamp=" << printObject->getItemName() << endl;
+
+        if (!catClient.printCatalogMetadata(printObject, errMsg)) {
                 std :: cout << "Not able to print metadata due to error: " + errMsg << std :: endl;
         } else {
                 std :: cout << "List metadata.\n";
