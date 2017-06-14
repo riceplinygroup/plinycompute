@@ -184,7 +184,7 @@ int main() {
 	//		if (count % 1000 == 0) {
 	//			std::cout << count << std::endl;
 	//			std::cout <<"CustomerName: "  << a->getName() << std::endl;
-			    a->print();
+//			    a->print();
 	//		}
 		}
 		std::cout << "Output count:" << count << "\n";

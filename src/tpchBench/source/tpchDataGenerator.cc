@@ -56,7 +56,6 @@
 #include "ScanCustomerSet.h"
 #include "SupplierData.h"
 
-
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -102,7 +101,7 @@ using namespace std;
 #define MB (1024*KB)
 #define GB (1024*MB)
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClient) {
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClient, int noOfCopies) {
 
 	// All files to parse:
 	string PartFile = "tables_scale_" + scaleFactor + "/part.tbl";
@@ -214,9 +213,9 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(lineitemFile.c_str());
 
-	pdb::Handle<pdb::Vector<LineItem>>  lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
+	pdb::Handle<pdb::Vector<LineItem>> lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
 
-	map<int, pdb::Handle<pdb::Vector<LineItem>> >  lineItemMap;
+	map<int, pdb::Handle<pdb::Vector<LineItem>> > lineItemMap;
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -260,7 +259,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 			lineItemMap[orderKey]->push_back(*tLineItem);
 		} else {
 			// make a new vector
-			pdb::Handle<pdb::Vector<LineItem>>  lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
+			pdb::Handle<pdb::Vector<LineItem>> lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
 
 			// push in the vector
 			lineItemList->push_back(*tLineItem);
@@ -284,7 +283,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(orderFile.c_str());
 
-	map<int, pdb::Vector<Order>>  orderMap;
+	map<int, pdb::Vector<Order>> orderMap;
 
 	while (getline(infile, line)) {
 		stringstream lineStream(line);
@@ -313,7 +312,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 		if (orderMap.find(customerKey) != orderMap.end()) {
 			orderMap[customerKey].push_back(*tOrder);
 		} else {
-			pdb::Handle<pdb::Vector<Order>>  orderList = pdb::makeObject<pdb::Vector<Order>>();
+			pdb::Handle<pdb::Vector<Order>> orderList = pdb::makeObject<pdb::Vector<Order>>();
 			orderList -> push_back(*tOrder);
 			orderMap[customerKey] = *orderList;
 		}
@@ -339,67 +338,65 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 //	vector<pdb::Handle<Customer>> customerList;
 
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	int count =0;
 
-	while (getline(infile, line)) {
+	for (int i = 1; i <= noOfCopies; ++i) {
 
-//	    pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+		while (getline(infile, line)) {
 
-		stringstream lineStream(line);
-		vector<string> tokens;
-		string token;
+			stringstream lineStream(line);
+			vector<string> tokens;
+			string token;
 
-		while (getline(lineStream, token, '|')) {
-			tokens.push_back(token);
+			while (getline(lineStream, token, '|')) {
+				tokens.push_back(token);
+			}
+
+			int customerKey = atoi(tokens.at(0).c_str());
+
+			//Sanity: Deal with Customers without orders.
+			if (orderMap.find(customerKey) == orderMap.end()) {
+				pdb::Handle<pdb::Vector<Order>> tOrderArray = pdb::makeObject<pdb::Vector<Order>>();
+				orderMap[customerKey] = *tOrderArray;
+			}
+
+			string errMsg;
+			count++;
+
+			try {
+				cout << "Inside try count: " << count << endl;
+
+				pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+						tokens.at(7));
+
+				storeMeCustomerList->push_back(tCustomer);
+
+//			// send every 100 customer objects to the server and make a new vector
+//			// send the data over.
+//			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+//				std::cout << "Failed to send data to dispatcher server" << std::endl;
+//			}
+
+			} catch (NotEnoughSpace &e) {
+
+				cout << "Inside Catch count: " << count << endl;
+
+				if (storeMeCustomerList->size() > 0) {
+
+					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+						std::cout << "Failed to send data to dispatcher server" << std::endl;
+					}
+				} else {
+					count--;
+
+					// make a new vector.
+					pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+					storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+				}
+			}
+
 		}
-
-		int customerKey = atoi(tokens.at(0).c_str());
-
-//		//Sanity: Deal with Customers without orders.
-//		if (orderMap.find(customerKey) == orderMap.end()) {
-//			pdb::Handle<pdb::Vector<Order>>  tOrderArray;
-//			orderMap[customerKey] = tOrderArray;
-//		}
-
-
-        string errMsg;
-		int count =0;
-
-		try {
-	        pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
-	                tokens.at(7));
-
-	        storeMeCustomerList->push_back(tCustomer);
-
-            count++;
-
-	        // send every 100 customer objects to the server and make a new vector
-
-	            // send the data over.
-	            if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-	                std::cout << "Failed to send data to dispatcher server" << std::endl;
-	            }
-
-	    } catch (NotEnoughSpace &e) {
-            cout << "count: " << count << endl;
-
-	        if (storeMeCustomerList->size() > 0){
-
-                if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-                    std::cout << "Failed to send data to dispatcher server" << std::endl;
-                }
-	        } else{
-	            count--;
-
-                // make a new vector.
-	            pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
-                storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-	        }
-	    }
-
-
-
 	}
-
 	infile.close();
 	infile.clear();
 
@@ -407,7 +404,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  dataGenerator(std::string scale
 
 }
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>   generateSmallDataset(int maxNoOfCustomers) {
+pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
 
 	int maxPartsInEachLineItem = 4;
 	int maxLineItemsInEachOrder = 4;
@@ -499,28 +496,26 @@ int main() {
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.2";
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = dataGenerator(scaleFactor, dispatcherClient, noOfCopies);
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 //	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
 //	size_t sizeOfCustomers = myBytes->numBytes();
 //	cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
-	// store copies of the same dataset.
-	for (int i = 1; i <= noOfCopies; ++i) {
-		cout << "Storing Vector of Customers - Copy Number : " << i << endl;
-
-		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-			std::cout << "Failed to send data to dispatcher server" << std::endl;
-			return -1;
-		}
-	}
-
+//	// store copies of the same dataset.
+//	for (int i = 1; i <= noOfCopies; ++i) {
+//		cout << "Storing Vector of Customers - Copy Number : " << i << endl;
+//
+//		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+//			std::cout << "Failed to send data to dispatcher server" << std::endl;
+//			return -1;
+//		}
+//	}
 
 	// flush to disk
 	distributedStorageManagerClient.flushData(errMsg);
 	cout << errMsg << endl;
-
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
@@ -543,7 +538,6 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
 		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
 
-
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
@@ -553,8 +547,7 @@ int main() {
 	}
 
 	// for allocations
-    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
-
+	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
 
 	// make the query graph
 	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
@@ -592,14 +585,10 @@ int main() {
 //		if (count % 1000 == 0) {
 //			std::cout << count << std::endl;
 //			std::cout <<"CustomerName: "  << a->getName() << std::endl;
-		    a->print();
+//		a->print();
 //		}
 	}
 	std::cout << "Output count:" << count << "\n";
-
-
-
-
 
 	// Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_se1", errMsg)) {
@@ -608,8 +597,6 @@ int main() {
 	} else {
 		cout << "Set removed. \n";
 	}
-
-
 
 	// Clean up the SO files.
 	int code = system("scripts/cleanupSoFiles.sh");
