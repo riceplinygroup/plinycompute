@@ -58,17 +58,17 @@ public:
                     model.clear();
                 }
                 for (int i = 0; i < inputModel->size(); i++) {
-                     (*inputModel)[i]->print();                         
                      model.push_back((*inputModel)[i]);
-                     (*inputModel)[i]->print();
-                     model[i]->print();
+//                     model[i]->print();
 
                 }
-
+		
+		/*
                 std :: cout << "The model I get is: " << std :: endl;
                 for(int j = 0; j < (this->model).size(); j ++) {
                         (this->model)[j]->print();
                 }
+		*/
 
         }
 
@@ -89,12 +89,14 @@ public:
         int computClusterMember(Handle<DoubleVector> data) {
         	int closestDistance = INT_MAX;
         	int cluster = 0;
+		/*
 	        std :: cout << "my data is: " << std :: endl;
 		data->print();
 	        std :: cout << "my model is: " << std :: endl;
 		for(int j = 0; j < (this->model).size(); j ++) {
 			(this->model)[j]->print();
-		}	
+		}
+		*/	
 
         	for(int j = 0; j < (this->model).size(); j ++) {
         		Handle<DoubleVector> mean = (this->model)[j];
@@ -108,10 +110,10 @@ public:
 				closestDistance = distance;
 				cluster = j;
 			}
-			std :: cout << "The distance of cluster " << j << " is " << distance << std :: endl;
+		//	std :: cout << "The distance of cluster " << j << " is " << distance << std :: endl;
 			
         	}
-		std :: cout << "my cluster is: " << cluster << std :: endl;
+//		std :: cout << "my cluster is: " << cluster << std :: endl;
         	return cluster;
         }
 

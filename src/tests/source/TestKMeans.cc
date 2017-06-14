@@ -31,9 +31,13 @@
 
 #include "WriteKMeansSet.h"
 #include "KMeansAggregate.h"
+#include "KMeansDataCountAggregate.h"
 #include "ScanDoubleVectorSet.h"
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"
+#include "KMeansDataCountAggregate.h"
+#include "KMeansSampleSelection.h"
+#include "WriteDoubleVectorSet.h"
 
 #include "DispatcherClient.h"
 #include "Set.h"
@@ -48,6 +52,8 @@
 #include <fcntl.h>
 #include <cstddef>
 #include <iostream>
+#include <math.h>
+#include <random>
 
 
 
@@ -154,8 +160,13 @@ int main (int argc, char * argv[]) {
     // Some meta data
     pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
     pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
+    int dataCount = 0;
+    int myk = 0;
     int kk = 0;
-    srand(time(0));
+//    srand(time(0));
+    // For the random number generator
+    std::random_device rd;
+    std::mt19937 randomGen(rd());
 
 
     if (whetherToAddData == true) {
@@ -211,10 +222,11 @@ int main (int argc, char * argv[]) {
                         pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
                         for (int j = 0; j < dim; j++){
 
-                            bias = ((double) rand() / (RAND_MAX)) * 0.01;
+			    std::uniform_real_distribution<> unif(0, 1);
+			    bias = unif(randomGen) * 0.01;
+                            //bias = ((double) rand() / (RAND_MAX)) * 0.01;
                             //myData->push_back(tmp);
 			    myData->setDouble(j, i%k*3 + bias);
-			   // std :: cout << i%k + bias << std :: endl;
                         }
                         storeMe->push_back (myData);
                     }
@@ -248,7 +260,16 @@ int main (int argc, char * argv[]) {
     }
     // now, create a new set in that database to store output data
 
-    PDB_COUT << "to create a new set for to store the initial model" << std :: endl;
+    PDB_COUT << "to create a new set to store the data count" << std :: endl;
+    if (!temp.createSet<int> ("kmeans_db", "kmeans_data_count_set", errMsg)) {
+        cout << "Not able to create set: " + errMsg;
+        exit (-1);
+    } else {
+        cout << "Created set kmeans_data_count_set.\n";
+    }
+
+
+    PDB_COUT << "to create a new set to store the initial model" << std :: endl;
     if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_initial_model_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
@@ -258,7 +279,7 @@ int main (int argc, char * argv[]) {
 
     
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
-    if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_output_set", errMsg)) {
+    if (!temp.createSet<KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -270,13 +291,17 @@ int main (int argc, char * argv[]) {
 
 	// register this query class
     catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
+    catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
     catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
     catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
+    catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
+    catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
+    catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
     
 
 
 	// connect to the query client
-   // QueryClient myClient (8108, "localhost", clientLogger, true);
+    QueryClient myClient (8108, "localhost", clientLogger, true);
     
     // pdb::Handle<pdb::Vector<DoubleVector>> model = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
 
@@ -294,30 +319,135 @@ int main (int argc, char * argv[]) {
 	(*model)[i].print();
     }
     */
-    // initialization for the model in the KMeansAggregate
-    /*    
-    Handle<Computation> myInitalScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
-    Handle<Computation> myWriteSet = makeObject<WriteKMeansSet>("kmeans_db", "kmeans_initial_model_set");
-    myWriteSet->setInput(myQuery);
 
-    if (!myClient.executeComputations(errMsg, myInitalScanSet)) {
+    // Initialization for the model in the KMeansAggregate
+       
+    // Calculate the count of input data points 
+
+    Handle<Computation> myInitialScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+    Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
+    myDataCount->setInput(myInitialScanSet);
+//    myDataCount->setAllocatorPolicy(noReuseAllocator);
+    myDataCount->setOutput("kmeans_db", "kmeans_data_count_set");
+
+    if (!myClient.executeComputations(errMsg, myDataCount)) {
         std :: cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
-    SetIterator <DoubleVector> initialScanResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_input_set");
-    for (Handle<DoubleVector> a : initialScanResult) {
-        if (kk >= k)
-        		break;
-    	*((*model)[kk]) = (*a);
-        kk++;
+    SetIterator <int> dataCountResult = myClient.getSetIterator <int> ("kmeans_db", "kmeans_input_set");
+    for (Handle<int> a : dataCountResult) {
+	dataCount = *a;
     }
 
     std :: cout << std :: endl;
-    */
     
+    // Randomly sample k data points from the input data through Bernoulli sampling
+    // We guarantee the sampled size >= k in 99.99% of the time
 
-    // start k-means iterations
-    QueryClient myClient (8108, "localhost", clientLogger, true);
+    double fraction = 1;
+    double delta = 1e-4;
+    double gamma = - log(delta) / dataCount;
+    fraction = fmin(1, fraction + gamma + sqrt(gamma * gamma + 2 * gamma * fraction));
+    std :: cout << "The sample threshold is: " << fraction << std :: endl;
+    while(myk < k) {
+	
+	    Handle<Computation> myInitalScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+    	    Handle<Computation> myDataSample = makeObject<KMeansSampleSelection>(fraction);
+    	    myDataSample->setInput(myInitialScanSet);
+	    Handle<Computation> myWriteSet = makeObject<WriteDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
+	    myWriteSet->setInput(myDataSample);
+
+	 
+	    if (!myClient.executeComputations(errMsg, myWriteSet)) {
+		std :: cout << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+	    }
+	    SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_initial_model_set");
+
+	    int sampleCount = 0;
+	    for (Handle<DoubleVector> a : sampleResult) {
+		sampleCount++;
+	    }	    
+
+	    if (sampleCount <= k - myk) {   // Assign the sampled values to the model directly
+		for (Handle<DoubleVector> a : sampleResult) {
+
+			// Sample without replacement
+			bool notNew = true;
+			for (int i = 0; i < myk; i++) {
+				for (int j = 0; j < dim; j++)
+					notNew = (model[i][j] == a->getDouble(j)) && notNew;
+				if (notNew) {
+					break;
+				}
+				else {
+					if (i != myk - 1)
+						notNew = true;
+				}
+			}
+
+			if (!notNew) {
+				std :: cout << "The sample we got is: " << std :: endl;
+				for (int i = 0; i < dim; i++) {
+					model[myk][i] = a->getDouble(i);
+					myk++;
+					std :: cout << model[myk][i] << ", ";
+				}
+				std :: cout << std :: endl;
+			}
+            	} 
+	    }
+	    else {	// Randomly select (k - myk) samples from sampleResult
+		std :: cout << "We got " << sampleCount << " samples. We will randomly select " << (k-myk) << " samples from them." << std :: endl;
+		std :: set<int> randomID;
+		int myPos = 0;
+		while (randomID.size() < (k-myk)) {
+			std::uniform_int_distribution<> unif(0, sampleCount);
+			randomID.insert(unif(randomGen));
+		}
+		for (Handle<DoubleVector> a : sampleResult) {
+			if (randomID.count(myPos)) {
+
+				// Sample without replacement
+				bool notNew = true;
+				for (int i = 0; i < myk; i++) {
+					for (int j = 0; j < dim; j++)
+						notNew = (model[i][j] == a->getDouble(j)) && notNew;
+					if (notNew) {
+						break;
+					}
+					else {
+						if (i != myk - 1)
+							notNew = true;
+					}
+				}
+
+				if (!notNew) {
+					std :: cout << "The sample we got is: " << std :: endl;
+					for (int i = 0; i < dim; i++) {
+						model[myk][i] = a->getDouble(i);
+						myk++;
+						std :: cout << model[myk][i] << ", ";
+					}
+					std :: cout << std :: endl;
+				}
+			}
+			myPos++;
+                }
+	    }
+
+	
+	    std :: cout << "After this sampling, we will need another " << (myk >= k? 0 : k-myk) << " samples." << std :: endl;
+
+	    temp.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::DoubleVector", errMsg);
+
+	    std :: cout << std :: endl;
+    }
+    
+  
+
+    // Start k-means iterations
+    // QueryClient myClient (8108, "localhost", clientLogger, true);
 
     for (int n = 0; n <= iter; n++) {
 
@@ -457,6 +587,7 @@ int main (int argc, char * argv[]) {
 	    // and delete the sets
         myClient.deleteSet ("kmeans_db", "kmeans_output_set");
         myClient.deleteSet ("kmeans_db", "kmeans_initial_model_set");
+        myClient.deleteSet ("kmeans_db", "kmeans_data_count_set");
     } else {
         if (!temp.removeSet ("kmeans_db", "kmeans_output_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
@@ -466,6 +597,11 @@ int main (int argc, char * argv[]) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         }
+        else if (!temp.removeSet ("kmeans_db", "kmeans_data_count_set", errMsg)) {
+            cout << "Not able to remove set: " + errMsg;
+            exit (-1);
+        }
+
 	else {
             cout << "Removed set.\n";
         }
