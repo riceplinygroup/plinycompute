@@ -15,12 +15,14 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef CUSTOMER_MAP_SELECTION_CC
-#define CUSTOMER_MAP_SELECTION_CC
 
-#include "CustomerMapSelection.h"
+#ifndef CustomerSupplierPartAGG_CC
+#define CustomerSupplierPartAGG_CC
+
+#include "../headers/SupplierData.h"
+
 #include "GetVTable.h"
 
-GET_V_TABLE (CustomerMapSelection)
+GET_V_TABLE (SupplierData)
 
 #endif

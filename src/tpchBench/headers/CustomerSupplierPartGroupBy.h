@@ -27,12 +27,13 @@
 #include "PDBString.h"
 
 #include "CustomerSupplierPart.h"
-#include "CustomerSupplierPartAgg.h"
+#include "CustomerSupplierPartFlat.h"
+#include "SupplierData.h"
 
 
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
-class CustomerSupplierPartGroupBy : public ClusterAggregateComp <CustomerSupplierPartAgg, CustomerSupplierPart, String, Handle<Map<String, Vector<int>>>> {
+class CustomerSupplierPartGroupBy : public ClusterAggregateComp <SupplierData, CustomerSupplierPartFlat, String, Handle<Map<String, Vector<int>>>> {
 
 public:
 
@@ -47,25 +48,25 @@ public:
         }
 
         // the key type must have == and size_t hash () defined
-        Lambda <String> getKeyProjection (Handle <CustomerSupplierPart> aggMe) override {
-            return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
-                      	String myKey = aggMe->getCustomerName();
+        Lambda <String> getKeyProjection (Handle <CustomerSupplierPartFlat> aggMe) override {
+            return makeLambda (aggMe, [] (Handle <CustomerSupplierPartFlat> & aggMe) {
+                      	String myKey = aggMe->getSupplierName();
                              		 return myKey;
                           });
         }
 
         // the value type must have + defined
-        Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <CustomerSupplierPart> aggMe) override {
-                return makeLambda (aggMe, [] (Handle <CustomerSupplierPart> & aggMe) {
+        Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <CustomerSupplierPartFlat> aggMe) override {
+                return makeLambda (aggMe, [] (Handle <CustomerSupplierPartFlat> & aggMe) {
 
                     Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
-                    pdb::Vector<SupplierPart>  m_supplierPart= aggMe->getSupplierPart();
 
-                            for (int i = 0; i < m_supplierPart.size(); i++) {
-                                	String myKey = m_supplierPart[i].getSupplierName();
-                                    (*ret)[myKey].push_back(m_supplierPart[i].getPartKey());
-                            }
-                            return ret;
+                    Vector<int>  partKeys = aggMe->getPartKeys();
+
+                    // inside the map key is the customerName
+                    (*ret)[aggMe->getCustomerName()]=partKeys;
+
+                    return ret;
                     });
         }
 };
