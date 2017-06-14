@@ -394,12 +394,15 @@ common_env.Program('bin/tpchQueryMultiSelection', ['build/tpchBench/tpchQueryMul
 
 
 
-
+# K-means
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
+#common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/libraries/KMeansDataCountAggregate.cc'] + all)
+#common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
+#common_env.SharedLibrary('libraries/libWriteDoubleVector.so', ['build/libraries/WriteDoubleVector.cc'] + all)
 
 
 
@@ -736,6 +739,12 @@ main=common_env.Alias('main', [
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
   'libraries/libWriteSumResultSet.so',
+
+  # K-means
+#  'libraries/libKMeansDataCountAggregate.so',
+#  'libraries/libKMeansSampleSelection.so',
+#  'libraries/libWriteDoubleVector.so',
+
   'libraries/libKMeansAggregate.so',
   'libraries/libScanDoubleVectorSet.so',
   'libraries/libWriteKMeansSet.so',
