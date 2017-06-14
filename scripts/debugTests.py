@@ -30,7 +30,12 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 threadNum = "2"
-sharedMemorySize = "1280"
+#JiaNote: because now we have 256MB pages, and we define that
+#(conf->getShmSize()/conf->getPageSize()-2 > 2+2*numThreads+1)
+#so it means shared memory size must be larger than 9 pages, at least 10 pages
+#if you can't meet this memory requirement in your platform, please
+#(1) change page size smaller, in src/conf/headers/Configuration.h DEFAULT_PAGE_SIZE, to be 64MB, then set buffer pool size larger than 9*YOUR_PAGE_SIZE
+sharedMemorySize = "2560"
 
 def startPseudoCluster():
     try:
