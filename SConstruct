@@ -378,19 +378,14 @@ common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] +
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
-common_env.SharedLibrary('libraries/libCustomerSupplierPart.so', ['build/tpchBench/CustomerSupplierPart.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 
 common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/SupplierData.cc'] + all)
-# common_env.SharedLibrary('libraries/libCustomerMapSelection.so', ['build/tpchBench/CustomerMapSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
-# common_env.SharedLibrary('libraries/libCustomerSupplierPartFlatGroupBy.so', ['build/tpchBench/CustomerSupplierPartFlatGroupBy.cc'] + all)
-common_env.SharedLibrary('libraries/libSupplierPart.so', ['build/tpchBench/SupplierPart.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
-common_env.Program('bin/tpchQueryMultiSelection', ['build/tpchBench/tpchQueryMultiSelection.cc'] + all)
 
 
 
@@ -677,18 +672,13 @@ main=common_env.Alias('main', [
   'libraries/libOrder.so',
   'libraries/libCustomer.so',
   'libraries/libCustomerSupplierPartWriteSet.so',
-  'libraries/libSupplierPart.so',
   'libraries/libScanCustomerSet.so',
-  'libraries/libCustomerSupplierPart.so',
   'libraries/libCustomerSupplierPartFlat.so',
   'libraries/libSupplierData.so',
- # 'libraries/libCustomerMapSelection.so',
   'libraries/libCustomerSupplierPartGroupBy.so',
   'libraries/libCustomerMultiSelection.so',
- # 'libraries/libCustomerSupplierPartFlatGroupBy.so',
- #  'bin/tpchQuery',
- # 'bin/tpchQueryMultiSelection',
-   'bin/tpchDataGenerator',
+  'bin/tpchQuery',
+  'bin/tpchDataGenerator',
   
   
   

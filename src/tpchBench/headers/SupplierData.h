@@ -23,8 +23,6 @@
 #include "PDBString.h"
 #include "Handle.h"
 
-#include "SupplierPart.h"
-
 using namespace pdb;
 // This class represents a triple that holds a triple of (customerName, SupplierName, PartID)
 
