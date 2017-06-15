@@ -19,8 +19,8 @@
 #define TEST_KMEANS_CC
 
 
-//by Shangyu, May 2017
-//K-means clustering;
+// By Shangyu, May 2017
+// K-means clustering;
 
 #include "PDBDebug.h"
 #include "PDBString.h"
@@ -43,6 +43,9 @@
 #include "Set.h"
 #include "DataTypes.h"
 #include "DoubleVector.h"
+#include "SumResult.h"
+#include "WriteSumResultSet.h"
+
 #include <ctime>
 #include <time.h>
 #include <unistd.h>
@@ -52,6 +55,7 @@
 #include <fcntl.h>
 #include <cstddef>
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <random>
 
@@ -62,6 +66,19 @@ int main (int argc, char * argv[]) {
     bool printResult = true;
     bool clusterMode = false;
     freopen("output.txt","w",stdout);
+
+//    std::ofstream out("output.txt");
+//    std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+//    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+    const std::string red("\033[0;31m");
+    const std::string green("\033[1;32m");
+    const std::string yellow("\033[1;33m");
+    const std::string blue("\033[1;34m");
+    const std::string cyan("\033[0;36m");
+    const std::string magenta("\033[0;35m");
+    const std::string reset("\033[0m");
+
 
     std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
     if (argc > 1) {
@@ -159,10 +176,12 @@ int main (int argc, char * argv[]) {
 
     // Some meta data
     pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
-    pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
+//    pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
+    std :: vector<double> avgData(dim, 0);
     int dataCount = 0;
     int myk = 0;
     int kk = 0;
+    bool ifFirst = true;
 //    srand(time(0));
     // For the random number generator
     std::random_device rd;
@@ -175,6 +194,7 @@ int main (int argc, char * argv[]) {
         //TODO: once sharedLibrary is supported, add this line back!!!
         catalogClient.registerType ("libraries/libKMeansAggregateOutputType.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansCentroid.so", errMsg);
+	catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
 
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
@@ -213,10 +233,8 @@ int main (int argc, char * argv[]) {
                 pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                 pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
                 try {
-                	// Write 10 data points
-                	// Each data point has 3 dimensions
-                	//k = 3;
-                	double bias = 0;
+
+                    double bias = 0;
 
                     for (int i = 0; i < numData; i++) {
                         pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
@@ -235,11 +253,6 @@ int main (int argc, char * argv[]) {
                         (*storeMe)[i]->print();
                     }*/
 		    
-		    std :: cout << "initial model: " << std :: endl;
-		    for (int i = 0; i < k; i++) {
-			(*tmpModel)[i] = *((*storeMe)[i]);
-			(*tmpModel)[i].print();
-		    }	    
 
                     if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
                         std :: cout << "Failed to send data to dispatcher server" << std :: endl;
@@ -261,7 +274,7 @@ int main (int argc, char * argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set to store the data count" << std :: endl;
-    if (!temp.createSet<int> ("kmeans_db", "kmeans_data_count_set", errMsg)) {
+    if (!temp.createSet<SumResult> ("kmeans_db", "kmeans_data_count_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -323,37 +336,42 @@ int main (int argc, char * argv[]) {
     // Initialization for the model in the KMeansAggregate
        
     // Calculate the count of input data points 
-
+    
     Handle<Computation> myInitialScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
     Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
     myDataCount->setInput(myInitialScanSet);
 //    myDataCount->setAllocatorPolicy(noReuseAllocator);
-    myDataCount->setOutput("kmeans_db", "kmeans_data_count_set");
+//    myDataCount->setOutput("kmeans_db", "kmeans_data_count_set");
+    Handle <Computation> myWriter = makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
+    myWriter->setInput(myDataCount);
 
-    if (!myClient.executeComputations(errMsg, myDataCount)) {
+    if (!myClient.executeComputations(errMsg, myWriter)) {
         std :: cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
-    SetIterator <int> dataCountResult = myClient.getSetIterator <int> ("kmeans_db", "kmeans_input_set");
-    for (Handle<int> a : dataCountResult) {
-	dataCount = *a;
+    SetIterator <SumResult> dataCountResult = myClient.getSetIterator <SumResult> ("kmeans_db", "kmeans_data_count_set");
+    for (Handle<SumResult> a : dataCountResult) {
+	
+	dataCount = a->getTotal();
     }
-
+    
+//    dataCount = 10;
+    std :: cout << "The number of data points: " << dataCount << std :: endl;
     std :: cout << std :: endl;
     
     // Randomly sample k data points from the input data through Bernoulli sampling
     // We guarantee the sampled size >= k in 99.99% of the time
 
-    double fraction = 1;
+    double fraction = k * 1.0 / dataCount;
     double delta = 1e-4;
     double gamma = - log(delta) / dataCount;
     fraction = fmin(1, fraction + gamma + sqrt(gamma * gamma + 2 * gamma * fraction));
     std :: cout << "The sample threshold is: " << fraction << std :: endl;
     while(myk < k) {
 	
-	    Handle<Computation> myInitalScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+	    Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
     	    Handle<Computation> myDataSample = makeObject<KMeansSampleSelection>(fraction);
-    	    myDataSample->setInput(myInitialScanSet);
+    	    myDataSample->setInput(mySampleScanSet);
 	    Handle<Computation> myWriteSet = makeObject<WriteDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
 	    myWriteSet->setInput(myDataSample);
 
@@ -369,12 +387,13 @@ int main (int argc, char * argv[]) {
 		sampleCount++;
 	    }	    
 
+	    int previous = myk;
 	    if (sampleCount <= k - myk) {   // Assign the sampled values to the model directly
 		for (Handle<DoubleVector> a : sampleResult) {
 
 			// Sample without replacement
 			bool notNew = true;
-			for (int i = 0; i < myk; i++) {
+			for (int i = 0; i < previous; i++) {
 				for (int j = 0; j < dim; j++)
 					notNew = (model[i][j] == a->getDouble(j)) && notNew;
 				if (notNew) {
@@ -386,13 +405,13 @@ int main (int argc, char * argv[]) {
 				}
 			}
 
-			if (!notNew) {
+			if ( (!notNew) || (previous == 0) ) {
 				std :: cout << "The sample we got is: " << std :: endl;
 				for (int i = 0; i < dim; i++) {
 					model[myk][i] = a->getDouble(i);
-					myk++;
 					std :: cout << model[myk][i] << ", ";
 				}
+				myk++;
 				std :: cout << std :: endl;
 			}
             	} 
@@ -402,15 +421,19 @@ int main (int argc, char * argv[]) {
 		std :: set<int> randomID;
 		int myPos = 0;
 		while (randomID.size() < (k-myk)) {
-			std::uniform_int_distribution<> unif(0, sampleCount);
-			randomID.insert(unif(randomGen));
+			std::uniform_int_distribution<> unif(0, sampleCount - 1);
+			int tempID = unif(randomGen);
+			std :: cout << "The ID for sampling: " << tempID << std :: endl;
+			randomID.insert(tempID);
 		}
 		for (Handle<DoubleVector> a : sampleResult) {
 			if (randomID.count(myPos)) {
 
+				std :: cout << "The ID we got for sampling: " << myPos << std :: endl;
+
 				// Sample without replacement
 				bool notNew = true;
-				for (int i = 0; i < myk; i++) {
+				for (int i = 0; i < previous; i++) {
 					for (int j = 0; j < dim; j++)
 						notNew = (model[i][j] == a->getDouble(j)) && notNew;
 					if (notNew) {
@@ -422,13 +445,13 @@ int main (int argc, char * argv[]) {
 					}
 				}
 
-				if (!notNew) {
+				if ((!notNew) || (previous == 0)) {
 					std :: cout << "The sample we got is: " << std :: endl;
 					for (int i = 0; i < dim; i++) {
 						model[myk][i] = a->getDouble(i);
-						myk++;
 						std :: cout << model[myk][i] << ", ";
 					}
+					myk++;
 					std :: cout << std :: endl;
 				}
 			}
@@ -469,18 +492,19 @@ int main (int argc, char * argv[]) {
 			}
 		}
 
+		/*
                 std :: cout << "The std model I have is: " << std :: endl;
                 for (int i = 0; i < k; i++) {
                      for (int j = 0; j < dim; j++) {
                          std :: cout << "model[" << i << "][" << j << "]=" << model[i][j] << std :: endl;
                      }
                 }
+		*/
 
 	    	std :: cout << "The model I have is: " << std :: endl;
 		for (int i = 0; i < k; i++) {
 			(*my_model)[i]->print();
 	    	}		    
-
 
 		
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
@@ -505,34 +529,69 @@ int main (int argc, char * argv[]) {
 		// update the model
 		SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
 		kk = 0;
-		for (Handle<KMeansAggregateOutputType> a : result) {
-			if (kk >= k)
-					break;
-			std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
-			std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-			std :: cout << "The cluster mean sum I got is " << std :: endl;
-			(*a).getValue().getMean().print();
-	//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
-			DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
-			for (int i = 0; i < dim; i++) {
-				model[kk][i] = tmpModel.getDouble(i);
+
+		if (ifFirst) {
+			for (Handle<KMeansAggregateOutputType> a : result) {
+				if (kk >= k)
+						break;
+				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
+				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
+				std :: cout << "The cluster mean sum I got is " << std :: endl;
+				(*a).getValue().getMean().print();
+				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
+				for (int i = 0; i < dim; i++) {
+					model[kk][i] = tmpModel.getDouble(i);
+				}
+
+				for (int i = 0; i < dim; i++) {
+					avgData[i] += (*a).getValue().getMean().getDouble(i);
+				}
+
+				std :: cout << "I am updating the model in position: " << kk << std :: endl;
+				for(int i = 0; i < dim; i++)
+					std::cout << i << ": " << model[kk][i] << ' ';
+				std :: cout << std :: endl;
+				std :: cout << std :: endl;
+				kk++;
 			}
-			std :: cout << "I am updating the model in position: " << kk << std :: endl;
-			for(int i = 0; i < dim; i++)
-  				std::cout << i << ": " << model[kk][i] << ' ';
+			for (int i = 0; i < dim; i++) {
+				avgData[i] = avgData[i] / dataCount;
+			}
+			std :: cout << "The average of data points is : \n";
+			for (int i = 0; i < dim; i++)
+				std::cout << i << ": " << avgData[i] << ' ';
 			std :: cout << std :: endl;
 			std :: cout << std :: endl;
-	//		(*model)[kk].print();
-			kk++;
+			ifFirst = false;
+		}
+		else {
+			for (Handle<KMeansAggregateOutputType> a : result) {
+				if (kk >= k)
+						break;
+				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
+				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
+				std :: cout << "The cluster mean sum I got is " << std :: endl;
+				(*a).getValue().getMean().print();
+		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
+				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
+				for (int i = 0; i < dim; i++) {
+					model[kk][i] = tmpModel.getDouble(i);
+				}
+				std :: cout << "I am updating the model in position: " << kk << std :: endl;
+				for(int i = 0; i < dim; i++)
+					std::cout << i << ": " << model[kk][i] << ' ';
+				std :: cout << std :: endl;
+				std :: cout << std :: endl;
+				kk++;
+			}
 		}
 		if (kk < k) {
 			std :: cout << "These clusters do not have data: "  << std :: endl;
 			for (int i = kk; i < k; i++) {
 				std :: cout << i << ", ";
 				for (int j = 0; j < dim; j++) {
-				//	(*model)[kk].setDouble(j, 0.00001);
 					double bias = ((double) rand() / (RAND_MAX));
-					model[kk][j] = 5 + bias;
+					model[i][j] = avgData[j] + bias;
 				}
 			}
 		}
@@ -552,7 +611,9 @@ int main (int argc, char * argv[]) {
 
 	// print the resuts
     if (printResult == true) {
-        std :: cout << "to print result..." << std :: endl;
+//        std :: cout << "to print result..." << std :: endl;
+
+//	std :: cout << std :: endl;
 
 	/*
         SetIterator <DoubleVector> input = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_input_set");
@@ -568,20 +629,27 @@ int main (int argc, char * argv[]) {
 
         
         SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
-        std :: cout << "K-means results: "<< std :: endl;
-       // int countOut = 0;
-        for (Handle<KMeansAggregateOutputType> a : result) {
-       //     countOut ++;
-            std :: cout << a->getKey() << ":";
-	    DoubleVector tmp = a->getValue().getMean() / a->getValue().getCount();
-            tmp.print();
-            
-            std :: cout << std::endl;
-        }
-        //std :: cout << "K-means output count:" << countOut << "\n";
-       
+
+
+	std :: cout << std :: endl;
+	std :: cout << blue << "*****************************************" << reset << std :: endl;
+	std :: cout << blue << "K-means resultss : " << reset << std :: endl;
+	std :: cout << blue << "*****************************************" << reset << std :: endl;
+	std :: cout << std :: endl;
+
+//                std :: cout << "The std model I have is: " << std :: endl;
+	for (int i = 0; i < k; i++) {
+	     std :: cout << "Cluster index: " << i << std::endl;
+	     for (int j = 0; j < dim - 1; j++) {
+		 std :: cout << blue << model[i][j] << ", " << reset;
+	     }
+		 std :: cout << blue << model[i][dim - 1] << reset << std :: endl;
+	}
+
     }
 
+
+    std :: cout << std :: endl;
 
     if (clusterMode == false) {
 	    // and delete the sets

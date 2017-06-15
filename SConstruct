@@ -395,9 +395,9 @@ common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/librarie
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
-#common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/libraries/KMeansDataCountAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
-#common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/libraries/KMeansDataCountAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
 
 
@@ -523,7 +523,7 @@ common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + a
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
-#common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
+common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 
 
 
@@ -634,7 +634,7 @@ main=common_env.Alias('main', [
   'bin/test87',
   'bin/test88',
   'bin/test89',
-  #'bin/TestKMeans',
+  'bin/TestKMeans',
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
   #'bin/testLA03_Substract',
@@ -733,9 +733,9 @@ main=common_env.Alias('main', [
   'libraries/libWriteSumResultSet.so',
 
   # K-means
-#  'libraries/libKMeansDataCountAggregate.so',
-#  'libraries/libKMeansSampleSelection.so',
-#  'libraries/libWriteDoubleVectorSet.so',
+  'libraries/libKMeansDataCountAggregate.so',
+  'libraries/libKMeansSampleSelection.so',
+  'libraries/libWriteDoubleVectorSet.so',
   'libraries/libKMeansAggregate.so',
   'libraries/libScanDoubleVectorSet.so',
   'libraries/libWriteKMeansSet.so',
