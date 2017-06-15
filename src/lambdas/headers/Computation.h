@@ -205,6 +205,17 @@ public:
 
         virtual void setBatchSize(int batchSize) {}
 
+        virtual bool isUsingCombiner () { 
+            std :: cout << "Only aggregation needs to set flag for combiner" << std :: endl;
+            return false;
+        }
+
+        virtual void setUsingCombiner ( bool useCombinerOrNot ) {
+            std :: cout << "Only aggregation needs to set flag for combiner" << std :: endl;
+            return;
+        }
+
+
         void setAllocatorPolicy (AllocatorPolicy myPolicy) { this->myAllocatorPolicy = myPolicy; }
 
         void setObjectPolicy (ObjectPolicy myPolicy) { this->myObjectPolicy = myPolicy; }

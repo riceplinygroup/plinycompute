@@ -61,6 +61,16 @@ public:
         return this->numPartitions;
     }
 
+    //to set number of nodes
+    void setNumNodes (int numNodes) {
+        this->numNodes = numNodes;
+    }
+
+    //to get number of nodes
+    int getNumNodes () {
+        return this->numNodes;
+    }
+
     void setBatchSize (int batchSize) override {
         this->batchSize = batchSize;
     }
@@ -93,14 +103,26 @@ public:
         this->whereHashTableSitsForThePartition = hashTableLocation; 
     }
 
+    bool isUsingCombiner() override {
+        return useCombinerOrNot;
+    }
+
+    void setUsingCombiner (bool useCombinerOrNot) override {
+        this->useCombinerOrNot = useCombinerOrNot;
+    }
+
 
 protected:
 
     //number of partitions in the cluster
     int numPartitions;
+    //number of nodes in the cluster
+    int numNodes;
     int batchSize;
     void * whereHashTableSitsForThePartition = nullptr;
     bool materializeAggOut = false;
+    bool useCombinerOrNot = true;
+
 };
 
 

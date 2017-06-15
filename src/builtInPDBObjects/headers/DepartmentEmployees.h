@@ -76,7 +76,7 @@ inline Map<String, Vector<Handle<Employee>>> &operator+ (Map<String, Vector<Hand
                try {
                    lhs[myKey] = (*iter).value;
                } catch ( NotEnoughSpace &n ) {
-                   std :: cout << "not enough space when inserting new pair" << std :: endl;
+                   //std :: cout << "not enough space when inserting new pair" << std :: endl;
                    lhs.setUnused (myKey);
                    throw n;
                }
@@ -94,7 +94,7 @@ inline Map<String, Vector<Handle<Employee>>> &operator+ (Map<String, Vector<Hand
 
                        } catch (NotEnoughSpace &n) {
 
-                               std :: cout << i << ": not enough space when updating value by pushing back: " << lhs[myKey].size() << std :: endl;   
+                               //std :: cout << i << ": not enough space when updating value by pushing back: " << lhs[myKey].size() << std :: endl;   
                                throw n;
 
                        }

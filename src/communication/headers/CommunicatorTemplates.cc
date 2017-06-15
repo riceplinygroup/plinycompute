@@ -32,6 +32,7 @@
 #include "InterfaceFunctions.h"
 #include "PDBCommunicator.h"
 #include "UseTemporaryAllocationBlock.h"
+#include "Configuration.h"
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -64,12 +65,19 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	// next, write the object
 	auto *record = getRecord (sendMe);
 
+        void * mem = nullptr;
 	if (record == nullptr) {
-		int *a = 0;
+             //JiaNote: below is refactored to make it more flexible.
+             //If sendMe is not in this thread's allocator block, we do a deep copy
+             mem = (void *)malloc(DEFAULT_PAGE_SIZE * sizeof(char));
+             record = getRecord (sendMe, mem, DEFAULT_PAGE_SIZE);
+	     if (record == nullptr) {
+                int *a = 0;
 		*a = 12;
 		std :: cout << "Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
                 logToMe->error("Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n");
 		exit (1);
+             }
 	}
         //std :: cout << "record size ="<<record->numBytes()<<"\n";
 	if (doTheWrite ((char *) record, ((char *) record) + record->numBytes ())) {
@@ -81,6 +89,9 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
             	logToMe->error(strerror(errno));
 		return false;
 	}
+        if (mem != nullptr) {
+            free (mem);
+        }
 
         PDB_COUT << "Sent object with typeName=" << getTypeName<ObjType>() << ", recType=" << recType << " and socketFD=" << socketFD << std :: endl;
         logToMe->info(std::string("Sent object with typeName=") + getTypeName<ObjType>() + std::string(", recType=") + std::to_string(recType) + std::string(" and socketFD=") + std::to_string(socketFD));

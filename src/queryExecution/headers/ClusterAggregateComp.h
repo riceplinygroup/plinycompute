@@ -30,6 +30,7 @@
 #include "DataTypes.h"
 #include "InterfaceFunctions.h"
 #include "ShuffleSink.h"
+#include "CombinedShuffleSink.h"
 #include "MapTupleSetIterator.h"
 
 
@@ -86,7 +87,20 @@ public:
 
     //sink for aggregation producing phase output, shuffle data will be combined from the sink
     ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-        return std :: make_shared <ShuffleSink <KeyClass, ValueClass>> (numPartitions, consumeMe, projection);
+
+        if (this->isUsingCombiner() == true) {
+            return std :: make_shared <ShuffleSink <KeyClass, ValueClass>> (numPartitions, consumeMe, projection);
+        } else {
+            if (numNodes == 0) {
+                std :: cout << "ERROR: cluster has 0 node" << std :: endl;
+                return nullptr;
+            } 
+            if (numPartitions < numNodes) {
+                std :: cout << "ERROR: each node must have at least one partition" << std :: endl;
+                return nullptr;
+            }
+            return std :: make_shared <CombinedShuffleSink <KeyClass, ValueClass>> (numPartitions/numNodes, numNodes, consumeMe, projection);
+        }
     }
 
     //source for consumer to read aggregation results, aggregation results are written to user set
