@@ -291,7 +291,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         if (myComputation->getComputationType() == "ClusterAggregationComp") {
             //to create the producing job stage for aggregation
             Handle<SetIdentifier>aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
-            Handle<SetIdentifier>combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            Handle<SetIdentifier>combiner = nullptr;
+            if (myComputation->isUsingCombiner() == true) {
+                combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            }
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy); 
             //to push back the job stage
             physicalPlanToOutput.push_back(jobStage);
@@ -327,7 +330,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         //we currently do not support join
         if (curNode->getAtomicComputationType() == "Aggregate") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
-            Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            Handle<SetIdentifier>combiner = nullptr;
+            if (myComputation->isUsingCombiner() == true) {
+                combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            }
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
@@ -436,7 +442,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
-            Handle<SetIdentifier> combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            Handle<SetIdentifier>combiner = nullptr;
+            if (myComputation->isUsingCombiner() == true) {
+                combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
+            }
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation

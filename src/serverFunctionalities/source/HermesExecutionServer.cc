@@ -849,11 +849,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
                         Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, conf->getBatchSize(), conf->getNumThreads());
-                        if (request->isRepartition() == false) {
+                        if ((request->isRepartition() == false) || (request->isCombining() == false)) {
                              PDB_COUT << "run pipeline..." << std :: endl;
                              pipeline->runPipeline(this);
                         } else {
-                             PDB_COUT << "run pipeline with shuffling..." << std :: endl;
+                             PDB_COUT << "run pipeline with combiner..." << std :: endl;
                              pipeline->runPipelineWithShuffleSink(this);
                         }                       
                         if ((sourceContext->isAggregationResult() == true) && (sourceContext->getSetType() == PartitionedHashSetType)) {

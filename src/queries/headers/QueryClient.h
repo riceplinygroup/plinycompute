@@ -40,7 +40,7 @@ public:
         QueryClient() {}
 
 	// connect to the database
-	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, int useScheduler=false) : myHelper (portIn, addressIn, myLoggerIn) {
+	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool useScheduler=false) : myHelper (portIn, addressIn, myLoggerIn) {
 		port = portIn;
 		address = addressIn;
 		myLogger = myLoggerIn;

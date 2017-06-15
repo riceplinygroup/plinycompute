@@ -235,7 +235,7 @@ public:
 			} catch (NotEnoughSpace &n) {
 
 				// again, we ran out of RAM here, so write back the page and then create a new output page
-                                std :: cout << "pipeline runs out of RAM" << std :: endl;
+                                //std :: cout << "pipeline runs out of RAM" << std :: endl;
 				myRAM->setIteration (iteration);
 				unwrittenPages.push (myRAM);
 				myRAM = std :: make_shared <MemoryHolder> (getNewPage ());

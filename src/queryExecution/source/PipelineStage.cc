@@ -272,6 +272,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   Handle<AbstractAggregateComp> aggregate = unsafeCast<AbstractAggregateComp, Computation> (aggComputation);
                   int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
                   PDB_COUT << "num partitions in the cluster is " << numPartitionsInCluster << std :: endl;
+                  aggregate->setNumNodes(jobStage->getNumNodes());
                   aggregate->setNumPartitions (numPartitionsInCluster);
                   aggregate->setBatchSize (this->batchSize);
     }
@@ -337,8 +338,30 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           free(page);
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false)) {
-                          //TODO: to handle a repartition join
-                          std :: cout << "Error we do not support repartition join now" << std :: endl;
+                          //to handle aggregation without combining
+                          PDB_COUT << "to shuffle data on this page" << std :: endl;
+                          //to handle an aggregation
+                          Record<Vector<Handle<Vector<Handle<Object>>>>> * record = (Record<Vector<Handle<Vector<Handle<Object>>>>> *) page;
+                          if (record != nullptr) {
+                              Handle<Vector<Handle<Vector<Handle<Object>>>>> objectsToShuffle = record->getRootObject();
+                              int numNodes = jobStage->getNumNodes();
+                              int k;
+                              for ( k = 0; k < numNodes; k++) {
+                                  Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[k];
+                                  if (objectToShuffle != nullptr) {
+                                      //get the i-th address
+                                      std :: string address = this->jobStage->getIPAddress(k);
+                                      PDB_COUT << "address = " << address << std :: endl;
+
+                                      //get the i-th port
+                                      int port = this->jobStage->getPort(k);
+                                      PDB_COUT << "port = " << port << std :: endl;
+
+                                      //to shuffle data
+                                      this->storeShuffleData(objectToShuffle, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                                  }
+                              }
+                          }
                           free(page);
 
                       } else {

@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef SHUFFLE_SINK_H
-#define SHUFFLE_SINK_H
+#ifndef COMBINED_SHUFFLE_SINK_H
+#define COMBINED_SHUFFLE_SINK_H
 
 //by Jia, Mar 2017
 
@@ -25,44 +25,64 @@
 #include "TupleSetMachine.h"
 #include "TupleSet.h"
 #include "DataTypes.h"
+#include "AggregationMap.h"
 #include <vector>
 
 namespace pdb {
 
 // runs hashes all of the tuples, and stores aggregated results to a container that is partitioned by node partitions.
 template <class KeyType, class ValueType>
-class ShuffleSink : public ComputeSink {
+class CombinedShuffleSink : public ComputeSink {
 
 private:
 
 	// the attributes to operate on
 	int whichAttToHash;
 	int whichAttToAggregate;
-        int numPartitions;
+        int numNodes;
+        int numPartitionsPerNode;
 
 public:
 
-	ShuffleSink (int numPartitions, TupleSpec &inputSchema, TupleSpec &attsToOperateOn) {
+        CombinedShuffleSink (int numPartitionsPerNode, int numNodes, TupleSpec &inputSchema, TupleSpec &attsToOperateOn) {
 
-		// to setup the output tuple set
-		TupleSpec empty;
-		TupleSetSetupMachine myMachine (inputSchema, empty);
 
-		// this is the input attribute that we will process
-		std :: vector <int> matches = myMachine.match (attsToOperateOn);
-		whichAttToHash = matches[0];
-		whichAttToAggregate = matches[1];
-                this->numPartitions = numPartitions;
-	}
+                // to setup the output tuple set
+                TupleSpec empty;
+                TupleSetSetupMachine myMachine (inputSchema, empty);
+
+                // this is the input attribute that we will process
+                std :: vector <int> matches = myMachine.match (attsToOperateOn);
+                whichAttToHash = matches[0];
+                whichAttToAggregate = matches[1];
+                this->numNodes = numNodes;
+                this->numPartitionsPerNode = numPartitionsPerNode;
+
+        }
+
+
+
+        AggregationMap<KeyType, ValueType> & getMap (HashPartitionID myHashID, Handle <Vector<Handle<Vector <Handle<AggregationMap<KeyType, ValueType>>>>>> outputData) {
+
+                int nodeId = myHashID / numPartitionsPerNode;
+                int partitionId = myHashID % numPartitionsPerNode;
+                return *((*((*outputData)[nodeId]))[partitionId]);
+
+        }
 
 	Handle <Object> createNewOutputContainer () override {
 
 		// we create a node-partitioned map to store the output
-		Handle <Vector <Handle<Map<KeyType, ValueType>>>> returnVal = makeObject <Vector<Handle<Map <KeyType, ValueType>>>> (numPartitions);
-                int i;
-                for (i = 0; i < numPartitions; i ++) {
-                    Handle<Map<KeyType, ValueType>> curMap = makeObject <Map <KeyType, ValueType>>();
-                    returnVal->push_back(curMap);
+		Handle <Vector<Handle<Vector <Handle<AggregationMap<KeyType, ValueType>>>>>> returnVal = makeObject <Vector<Handle<Vector<Handle<AggregationMap <KeyType, ValueType>>>>>> (numNodes);
+                int i, j;
+                for (i = 0; i < numNodes; i++) {
+                    Handle<Vector<Handle<AggregationMap<KeyType, ValueType>>>> nodeData = makeObject<Vector<Handle<AggregationMap<KeyType, ValueType>>>> (this->numPartitionsPerNode);
+                    for (j = 0; j < this->numPartitionsPerNode; j ++) {
+                        Handle<AggregationMap<KeyType, ValueType>> curMap = makeObject <AggregationMap <KeyType, ValueType>>();
+                        curMap->setHashPartitionId(j);
+                        nodeData->push_back(curMap);
+                    }
+                    returnVal->push_back(nodeData);
                 }
 		return returnVal;	
 	}
@@ -70,7 +90,7 @@ public:
 	void writeOut (TupleSetPtr input, Handle <Object> &writeToMe) override {
 
 		// get the map we are adding to
-		Handle <Vector <Handle<Map <KeyType, ValueType>>>> writeMe = unsafeCast <Vector<Handle<Map <KeyType, ValueType>>>> (writeToMe);
+		Handle <Vector <Handle <Vector <Handle <AggregationMap <KeyType, ValueType>>>>>> writeMe = unsafeCast <Vector<Handle <Vector <Handle <AggregationMap <KeyType, ValueType>>>>>> (writeToMe);
                 size_t hashVal;  
                
 
@@ -84,7 +104,7 @@ public:
 
                         hashVal = Hasher <KeyType> :: hash(keyColumn[i]);
 
-                        Map <KeyType, ValueType> & myMap = *((*writeMe)[hashVal%numPartitions]);
+                        AggregationMap <KeyType, ValueType> & myMap = getMap(hashVal%(numNodes * numPartitionsPerNode), writeMe);
 			// if this key is not already there...
 			if (myMap.count (keyColumn[i]) == 0) {
 
@@ -147,15 +167,10 @@ public:
 				}
 			}
 		}
-                /*int i;
-                for (i = 0; i < numPartitions; i++) {
-                     Map <KeyType, ValueType> & myMap = *((*writeMe)[i]);
-                     std :: cout << "partition-" << i << ": " << myMap.size() << " elements" << std :: endl;
-                }*/
 
 	}
 
-	~ShuffleSink () {}
+	~CombinedShuffleSink () {}
 };
 
 }

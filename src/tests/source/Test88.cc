@@ -226,6 +226,7 @@ int main (int argc, char * argv[]) {
 	// create all of the computation objects
 	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test88_db", "test88_set");
         Handle <Computation> myAgg = makeObject <EmployeeGroupBy> ("test88_db", "output_set");
+        myAgg->setUsingCombiner (false);        
         //myAgg->setAllocatorPolicy(noReuseAllocator);
         myAgg->setInput(myScanSet);
 
