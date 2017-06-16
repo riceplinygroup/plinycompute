@@ -18,6 +18,7 @@
 
 #include "Object.h"
 #include "VTableMap.h"
+#include "PDBString.h"
 
 #ifndef TEMPLATE_BASE_CC
 #define TEMPLATE_BASE_CC
@@ -57,7 +58,9 @@ void PDBTemplateBase :: setup () {
 	// if we descend from Object, then get the type code
 	if (std::is_base_of <Object, ObjType>::value) {
 		info = (int16_t) getTypeID <ObjType> (); 
-	} else  {
+	} else if (std::is_base_of <String, ObjType>::value) {
+		info = PDB_STRING;
+	} else {
 
 		// we could not recognize this type, so just record the size
 		info = - ((int32_t) sizeof (ObjType));
@@ -67,8 +70,12 @@ void PDBTemplateBase :: setup () {
 // this deletes an object of type ObjType
 inline void PDBTemplateBase :: deleteConstituentObject (void *deleteMe) const {
 
-	// if we are not derived from Object, do nothing
-	if (info > 0) {
+	// if we are a string
+	if (info == PDB_STRING) {
+		((String *) deleteMe)->~String ();
+
+	// else if we are not derived from Object, do nothing
+	} else if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
                 //std :: cout << "to getVTablePtr for deleteConsitituentObject" << info << std :: endl;
@@ -87,8 +94,13 @@ inline void PDBTemplateBase :: deleteConstituentObject (void *deleteMe) const {
 
 inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, void *source) const {
 
+	// if we are a string
+	if (info == PDB_STRING) {
+		new (target) String ();
+		*((String *) target) = *((String *) source);
+
 	// if we are derived from Object, use the virtual function
-	if (info > 0) {
+	} else if (info > 0) {
 
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
@@ -113,8 +125,12 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 
 inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 
+	// if we are a string
+	if (info == PDB_STRING) {
+		return sizeof (String);
+
 	// if we are derived from Object, use the virtual function
-	if (info > 0) {
+	} else if (info > 0) {
 		// we are going to install the vTable pointer for an object of type ObjType into temp
 		void *temp = nullptr;
                 //std :: cout << "to getVTablePtr for getSizeOfConsitituentObject" << info << std :: endl;
@@ -134,12 +150,18 @@ inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 }
 
 inline void PDBTemplateBase :: setVTablePtr (void *forMe) const {
-	((Object *) forMe)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));		
+
+	// if we are derived from Object, then we set the v table pointer; otherwise, no need
+	if (info > 0 && info != PDB_STRING)
+		((Object *) forMe)->setVTablePtr (VTableMap :: getVTablePtr ((int16_t) info));		
 }
 
 inline bool PDBTemplateBase :: descendsFromObject () const {
-	return info > 0;
+	return info > 0 || info == PDB_STRING;
 }
 
 }
+
+#include "PDBString.cc"
+
 #endif

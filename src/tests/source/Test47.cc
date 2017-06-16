@@ -39,7 +39,46 @@
 // then the system 
 using namespace pdb;
 
-class SillyWrite : public SetWriter <double> {
+class Double : public Object {
+
+	Handle <Vector <double>> data;
+
+public:
+
+	ENABLE_DEEP_COPY
+
+	Double (double fromMe) {
+		data = makeObject <Vector <double>> (10, 10);
+		(*data)[9] = fromMe;
+	}
+
+	Double () {
+		data = makeObject <Vector <double>> (10, 10);
+	}
+	
+	Double &operator = (double fromMe) {
+		(*data)[9] = fromMe;
+		return *this;
+	}
+	
+	operator double () {
+		return (*data)[9];
+	}
+
+	Double &operator + (Double &me) {
+		(*data)[9] += (*(me.data))[9];
+		return *this;
+	}
+
+	friend ostream& operator<<(ostream& os, const Double& dt);
+};
+
+ostream& operator<<(ostream& os, const Double& me) {
+	os << (*(me.data))[9];
+	return os;
+}
+
+class SillyWrite : public SetWriter <Double> {
 
 public:
 
@@ -49,11 +88,11 @@ public:
 	// iterate through pages that are pulled from disk/RAM by the system... a programmer
 	// should not provide this particular method
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <VectorSink <double>> (consumeMe, projection);
+		return std :: make_shared <VectorSink <Double>> (consumeMe, projection);
 	}
 };
 
-class FinalQuery : public SelectionComp <double, DepartmentTotal> {
+class FinalQuery : public SelectionComp <Double, DepartmentTotal> {
 
 public:
 
@@ -63,8 +102,9 @@ public:
 		return makeLambdaFromMethod (checkMe, checkSales);
 	}
 
-	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getTotSales);
+	Lambda <Handle <Double>> getProjection (Handle <DepartmentTotal> checkMe) override {
+		return makeLambda (checkMe, [] (Handle <DepartmentTotal> &checkMe) -> Handle<Double> 
+			{return makeObject<Double> (*(checkMe->getTotSales ()));});
 	}
 };
 
@@ -72,7 +112,7 @@ public:
 void *whereHashTableSits;
 
 // aggregate relies on having two methods in the output type: getKey () and getValue ()
-class SillyAgg : public AggregateComp <DepartmentTotal, Employee, String, double> {
+class SillyAgg : public AggregateComp <DepartmentTotal, Employee, String, Double> {
 
 public:
 	
@@ -84,21 +124,22 @@ public:
 	}
 
 	// the value type must have + defined
-	Lambda <double> getValueProjection (Handle <Employee> aggMe) override {
-		return makeLambdaFromMethod (aggMe, getSalary);	
+	Lambda <Double> getValueProjection (Handle <Employee> aggMe) override {
+		return makeLambda (aggMe, [] (Handle <Employee> &aggMe) -> Double
+			{Double returnVal (aggMe->getSalary ()); return returnVal;});
 	}
 
 	// eventually, this method should be moved into a class that works with the system to
 	// obtain the memory necessary to create the hash table... a programmer should not
 	// be asked to provide this method
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <HashSink <String, double>> (consumeMe, projection);	
+		return std :: make_shared <HashSink <String, Double>> (consumeMe, projection);	
 	}
 
 	// same thing... this method is here only for demonstration purposes!!
 	ComputeSourcePtr getComputeSource (TupleSpec &outputSchema, ComputePlan &plan) override {
 		Handle <Object> myHashTable = ((Record <Object> *) whereHashTableSits)->getRootObject ();
-		return std :: make_shared <MapTupleSetIterator <String, double, DepartmentTotal>> (myHashTable, 24);
+		return std :: make_shared <MapTupleSetIterator <String, Double, DepartmentTotal>> (myHashTable, 24);
 	}
 };
 
@@ -227,11 +268,11 @@ int main () {
 		projectedInput (out) <= APPLY (projectedInputWithPtr (out), projectedInputWithPtr (), 'SelectionComp_1', 'deref_4') \n\
 		aggWithKeyWithPtr (out, key) <= APPLY (projectedInput (out), projectedInput (out), 'AggregationComp_2', 'attAccess_0') \n\
 		aggWithKey (out, key) <= APPLY (aggWithKeyWithPtr (key), aggWithKeyWithPtr (out), 'AggregationComp_2', 'deref_1') \n\
-		aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'methodCall_2') \n\
+		aggWithValue (key, value) <= APPLY (aggWithKey (out), aggWithKey (key), 'AggregationComp_2', 'native_lambda_2') \n\
 		agg (aggOut) <=	AGGREGATE (aggWithValue (key, value), 'AggregationComp_2') \n\
 		checkSales (aggOut, isSales) <= APPLY (agg (aggOut), agg (aggOut), 'SelectionComp_3', 'methodCall_0') \n\
 		justSales (aggOut, isSales) <= FILTER (checkSales (isSales), checkSales (aggOut), 'SelectionComp_3') \n\
-		final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
+		final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'native_lambda_1') \n\
 	        nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
 
 	// and create a query object that contains all of this stuff
@@ -298,9 +339,9 @@ int main () {
 		[] (void *page) {
 			std :: cout << "\nAsked to save page at address " << (size_t) page << "!!!\n";
 			std :: cout << "This should have a bunch of doubles on it... let's see.\n";
-			Handle <Vector <Handle <double>>> myHashTable = ((Record <Vector <Handle <double>>> *) page)->getRootObject ();
+			Handle <Vector <Handle <Double>>> myHashTable = ((Record <Vector <Handle <Double>>> *) page)->getRootObject ();
 			for (int i = 0; i < myHashTable->size (); i++) {
-				std :: cout << "Got double " << *((*myHashTable)[i]) << "\n";
+				std :: cout << "Got Double " << *((*myHashTable)[i]) << "\n";
 			}
 			free (page);
 		}	

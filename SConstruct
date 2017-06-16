@@ -71,7 +71,7 @@ def writeCodeFile(classes):
 	codeFile.write ("// first, record all of the type codes\n")
 
 	for counter, classname in enumerate(classes, 1):
-		codeFile.write ('objectTypeNamesList [getTypeName <' + classname + '> ()] = ' + str(counter) + ';\n')
+		codeFile.write ('objectTypeNamesList [getTypeName <' + classname + '> ()] = ' + str(1 + counter) + ';\n')
 
 	codeFile.write ('\n// now, record all of the vTables\n')
 
@@ -79,7 +79,7 @@ def writeCodeFile(classes):
 		codeFile.write ('{\n\tconst UseTemporaryAllocationBlock tempBlock{1024 * 24};');
 		codeFile.write ('\n\ttry {\n\t\t')
 		codeFile.write (classname + ' tempObject;\n')
-		codeFile.write ('\t\tallVTables [' + str(counter) + '] = tempObject.getVTablePtr ();\n')
+		codeFile.write ('\t\tallVTables [' + str(1 + counter) + '] = tempObject.getVTablePtr ();\n')
 		codeFile.write ('\t} catch (NotEnoughSpace &e) {\n\t\t')
 		codeFile.write ('std :: cout << "Not enough memory to allocate ' + classname + ' to extract the vTable.\\n";\n\t}\n}\n\n');
 
@@ -98,7 +98,7 @@ def writeTypeCodesFile(classes):
 			#
 		# Remove the namespace if any
 		classname = classname.rsplit("::")[-1]
-		typeCodesFile.write('#define ' + classname + '_TYPEID ' + str(counter) + '\n')
+		typeCodesFile.write('#define ' + classname + '_TYPEID ' + str(1 + counter) + '\n')
 
 def writeFiles(includes, classes):
 	writeIncludeFile(includes)
@@ -224,7 +224,7 @@ for src_subdir_path in src_root_subdir_paths:
         # maps .c files        
         cSources = [(abspath(join(join ('build/', src_subdir_basename),'LAParser.c'))), (abspath(join(join ('build/', src_subdir_basename),'LALexer.c')))]
         
-        #component_dir_basename_to_lexer_c_file_paths [src_subdir_basename] = cSources
+        component_dir_basename_to_lexer_c_file_paths [src_subdir_basename] = cSources
 
     else:
         common_env.VariantDir(join('build/', src_subdir_basename), [source_folder], duplicate = 0)
@@ -294,10 +294,10 @@ all = ['build/sqlite/sqlite3.c',
 #       component_dir_basename_to_cc_file_paths['tcapParser'],
 #       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        component_dir_basename_to_cc_file_paths['logicalPlan'],
-       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
+#       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
        component_dir_basename_to_cc_file_paths['lambdas'],
        component_dir_basename_to_lexer_file_paths['logicalPlan'],
-       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
+#       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
 #       boost_component_dir_basename_to_cc_file_paths['smart_ptr'],

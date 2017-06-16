@@ -47,10 +47,14 @@ int16_t Handle <ObjType> :: getTypeCode () {
 }
 
 template <class ObjType>
-int32_t Handle <ObjType> :: getExactTypeInfoValue () {
+int32_t Handle <ObjType> :: getExactTypeInfoValue () const {
         return typeInfo.getExactTypeInfoValue ();
 }
 
+template <class ObjType>
+void Handle <ObjType> :: setExactTypeInfoValue (int32_t toMe) {
+	typeInfo.set (toMe);
+}	
 
 template <class ObjType>
 Handle <ObjType> :: ~Handle () {

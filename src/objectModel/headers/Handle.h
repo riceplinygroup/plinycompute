@@ -209,7 +209,9 @@ public:
 	// get the type code
 	int16_t getTypeCode ();
 
-        int32_t getExactTypeInfoValue ();
+	// get/set the type code (here, a negative value means not an Object descendent)
+        int32_t getExactTypeInfoValue () const;
+	void setExactTypeInfoValue (int32_t toMe);
 
 	// so we can perform a deep copy over handles
 	ENABLE_DEEP_COPY
