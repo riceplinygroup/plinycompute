@@ -114,6 +114,18 @@ TypeContained *Vector <TypeContained> :: c_ptr () const {
 	return myArray->c_ptr ();
 }
 
+// Add by Shangyu;
+// Use std::cout to print the elements in a Vector
+template <class TypeContained>
+void Vector <TypeContained> :: print () const {
+	for (int i = 0; i < this->size() - 1; i++) {
+		std :: cout << (*this)[i] << ", ";
+	}
+	std :: cout << (*this)[this->size() - 1] << std :: endl;
+}
+
+
+
 }
 
 #endif

@@ -59,7 +59,6 @@ public:
                 }
                 for (int i = 0; i < inputModel->size(); i++) {
                      model.push_back((*inputModel)[i]);
-//                     model[i]->print();
 
                 }
 		
@@ -110,7 +109,6 @@ public:
 				closestDistance = distance;
 				cluster = j;
 			}
-		//	std :: cout << "The distance of cluster " << j << " is " << distance << std :: endl;
 			
         	}
 //		std :: cout << "my cluster is: " << cluster << std :: endl;
