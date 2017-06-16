@@ -646,8 +646,8 @@ main=common_env.Alias('main', [
   #'bin/testLA09_RowMin',
   #'bin/testLA10_ColMax',
   #'bin/testLA11_ColMin',
-  'bin/testLA20_Parser',
-  'bin/testLA21_Instance',
+  #'bin/testLA20_Parser',
+  #'bin/testLA21_Instance',
 
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 

@@ -536,7 +536,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     return make_pair (res, errMsg);
                 } else {
                     typeName = (*returnValues)[0].getObjectTypeName();
-                    std :: cout << "typeName=" << typeName << std :: endl;
+                    //std :: cout << "typeName=" << typeName << std :: endl;
                 }
 #ifndef USING_ALL_NODES
                 if (!getFunctionality<DistributedStorageManagerServer>().findNodesContainingSet(database, set, nodesToBroadcast, errMsg)) {
