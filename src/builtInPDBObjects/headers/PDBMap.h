@@ -60,8 +60,6 @@ public:
         // the last item added.
         void setUnused (const KeyType &clearMe);
 
-
-
 	// returns the number of elements in the map
 	size_t size() const;
 	
@@ -71,7 +69,6 @@ public:
         // these are used for iteration
         PDBMapIterator <KeyType, ValueType> begin ();
         PDBMapIterator <KeyType, ValueType> end ();
-
 
         Handle <PairArray <KeyType, ValueType>>& getArray(); 
 
