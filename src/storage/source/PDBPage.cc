@@ -23,7 +23,6 @@
 
 #ifndef PDB_Page_C
 #define PDB_Page_C
-
 #include "PDBPage.h"
 #include <cstring>
 #include <stdlib.h>

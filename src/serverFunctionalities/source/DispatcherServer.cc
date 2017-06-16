@@ -159,7 +159,7 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
 bool DispatcherServer :: validateTypes (const std::string& databaseName, const std::string& setName,
         const std::string& typeName, std::string& errMsg) {
     PDB_COUT << "running validateTypes with typeName" << typeName << std :: endl;
-    std::string fullSetName = databaseName + "." + setName;
+/*    std::string fullSetName = databaseName + "." + setName;
     Handle<pdb::Vector<CatalogSetMetadata>> returnValues = makeObject<pdb::Vector<CatalogSetMetadata>>();
 
     getFunctionality<CatalogServer>().getCatalog()->getListOfSets(returnValues, fullSetName) ;
@@ -182,6 +182,9 @@ bool DispatcherServer :: validateTypes (const std::string& databaseName, const s
     PDB_COUT << fullSetName << std :: endl;
     std :: cout << errMsg << std :: endl;
     return false;
+*/
+
+    return true;
 }
 
 bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDatabase, std::string type,
