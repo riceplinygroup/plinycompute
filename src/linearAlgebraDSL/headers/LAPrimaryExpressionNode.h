@@ -25,6 +25,8 @@
 #include "LAIdentifierNode.h"
 #include "LAInitializerNode.h"
 
+//#include "LASillyMaxElementAggregate.h"
+
 struct LAPrimaryExpressionNode;
 typedef std::shared_ptr<struct LAPrimaryExpressionNode> LAPrimaryExpressionNodePtr;
 
@@ -33,16 +35,12 @@ struct LAPrimaryExpressionNode : public LAExpressionNode {
 
 private:
 	std::string flag;
-
 	LAIdentifierNodePtr identifer = NULL;
-
 	LAInitializerNodePtr initializer = NULL;
-
 	LAExpressionNodePtr child = NULL;
-
 	LAPrimaryExpressionNodePtr me = NULL;
-
 	pdb::Handle<pdb::Computation> query;
+	LADimension dim;
 
 public:
 	LAPrimaryExpressionNode():LAExpressionNode(LA_ASTNODE_TYPE_PRIMARYEXPRESSION){};
@@ -54,6 +52,9 @@ public:
 		else if(flag.compare("initializer")==0){
 			return initializer->toString();
 		}
+		else if(flag.compare("recursive")==0){
+			return "("+child->toString()+")";
+		}
 		else if(flag.compare("max")==0 || flag.compare("min")==0 
 			 || flag.compare("rowMax")==0 || flag.compare("rowMin")==0
 			 || flag.compare("colMin")==0 || flag.compare("colMax")==0){
@@ -62,10 +63,9 @@ public:
 		else{
 			return "PostfixExpression invalid flag: " + flag;
 		}
-
 	}
 
-	pdb::Handle<pdb::Computation> evaluate() final;
+	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
 
 	void setShared(LAPrimaryExpressionNodePtr meIn){
 		me = meIn;
@@ -84,6 +84,23 @@ public:
 	void setChild(const char* f, LAExpressionNodePtr cptr){
 		flag = f;
 		child = cptr;
+	}
+
+	bool isSyntaxSugarInitializer(){
+		if(flag.compare("initializer")==0){
+			return initializer->isSyntaxSugarInitializer();
+		}
+		else{
+			return false;
+		}
+	}
+
+	LADimension getDimension(){
+		return dim;
+	}
+
+	void setDimension(LADimension other){
+		dim = other;
 	}
 };
 

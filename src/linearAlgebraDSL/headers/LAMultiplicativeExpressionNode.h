@@ -33,14 +33,12 @@ struct LAMultiplicativeExpressionNode : public LAExpressionNode {
 
 private:
 	std::string multiOperator;
-
 	LAMultiplicativeExpressionNodePtr leftChild = NULL;
-
 	LAPostfixExpressionNodePtr rightChild = NULL;
-
 	LAMultiplicativeExpressionNodePtr me = NULL;
-
-	pdb::Handle<pdb::Computation> query;
+	pdb::Handle<pdb::Computation> query1;
+	pdb::Handle<pdb::Computation> query2;
+	LADimension dim;
 
 public:
 	LAMultiplicativeExpressionNode(const char * op):LAExpressionNode(LA_ASTNODE_TYPE_MULTIPLICATIVEEXPRESSION){
@@ -62,7 +60,7 @@ public:
 		}
 	}
 
-	pdb::Handle<pdb::Computation> evaluate() final;
+	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
 
 	void setShared(LAMultiplicativeExpressionNodePtr meIn){
 		me = meIn;
@@ -74,6 +72,23 @@ public:
 
 	void setRightChild(LAPostfixExpressionNodePtr rptr){
 		rightChild = rptr;
+	}
+
+	bool isSyntaxSugarInitializer(){
+		if(multiOperator.compare("none")==0){
+			return rightChild->isSyntaxSugarInitializer();
+		}
+		else{
+			return false;
+		}
+	}
+
+	LADimension getDimension(){
+		return dim;
+	}
+
+	void setDimension(LADimension other){
+		dim = other;
 	}
 };
 

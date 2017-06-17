@@ -32,38 +32,30 @@ private:
 	std::string method;
 	pdb::Handle<pdb::Computation> scanSet;
 	LAInitializerNodePtr me;
-
 	std::string path;
-
-	int blockRowSize;
-	int blockColSize;
-	int blockRowNum;
-	int blockColNum;
-
-protected:
-	pdb::Handle<pdb::Computation> evaluate() final;
+	LADimension dim;
 
 public:
-	LAInitializerNode(const char* methodTag, int rs, int cs, int rn, int cn):LAExpressionNode(LA_ASTNODE_TYPE_INITIALIZER){
+	LAInitializerNode(const char* methodTag, int rs, int cs, int rn, int cn):LAExpressionNode(LA_ASTNODE_TYPE_INITIALIZER), dim(rs,cs,rn,cn){
 		method = methodTag;
-		blockRowSize = rs;
-		blockColSize = cs;
-		blockRowNum = rn;
-		blockColNum = cn;
 	}
+
+
+	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
+	
 
 	std::string toString(){
 		if(method.compare("zeros")==0){
-			return "zeros("+std::to_string(blockRowSize)+","+std::to_string(blockColSize)+"," +std::to_string(blockRowNum) +"," +std::to_string(blockColNum)+")";
+			return "zeros("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
 		}
 		else if(method.compare("ones")==0){
-			return "ones("+std::to_string(blockRowSize)+","+std::to_string(blockColSize)+"," +std::to_string(blockRowNum) +"," +std::to_string(blockColNum)+")";
+			return "ones("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
 		}
 		else if(method.compare("identity")==0){
-			return "identity("+std::to_string(blockRowSize)+","+std::to_string(blockColSize)+"," +std::to_string(blockRowNum) +"," +std::to_string(blockColNum)+")";
+			return "identity("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
 		}
 		else if(method.compare("load")==0){
-			return "load("+std::to_string(blockRowSize)+","+std::to_string(blockColSize)+"," +std::to_string(blockRowNum) +"," +std::to_string(blockColNum)+")";
+			return "load("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
 		}
 		else{
 			return "Initializer invalid method: " + method;
@@ -76,6 +68,14 @@ public:
 
 	void setLoadPath(char* p){
 		path = p;
+	}
+
+	bool isSyntaxSugarInitializer(){
+		return true;
+	}
+
+	LADimension getDimension(){
+		return dim;
 	}
 };
 

@@ -157,7 +157,7 @@ LambdaTree <Ptr<ReturnType>> makeLambdaUsingMember (std :: string inputTypeName,
 }
 
 // we have this here only so that we can cast it to be of type VAR
-void *someRandomPointer;
+extern void *someRandomPointer;
 
 #define makeLambdaFromMember(VAR,MEMBER) (makeLambdaUsingMember (getTypeName <std::remove_reference<decltype(*VAR)>::type> (), std :: string (#MEMBER), \
 	getTypeName <typename std::remove_reference<decltype(VAR->MEMBER)>::type> (), VAR, (decltype (VAR->MEMBER) *) someRandomPointer, \
