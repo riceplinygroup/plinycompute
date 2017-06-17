@@ -21,20 +21,23 @@
 #include "LAASTNode.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
+#include "LAPDBInstance.h"
+#include "LADimension.h"
+
 
 struct LAExpressionNode;
 typedef std::shared_ptr<struct LAExpressionNode> LAExpressionNodePtr;
 
 
 struct LAExpressionNode : public LAASTNode {
-
 protected:
-	virtual pdb::Handle<pdb::Computation> evaluate() = 0;
 	LAExpressionNode(int t): LAASTNode(t) {}
 
 public:
+	virtual pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) = 0;
 	virtual std::string toString() = 0;
+	virtual bool isSyntaxSugarInitializer() = 0;
+	virtual LADimension getDimension() = 0;
 };
 
 #endif

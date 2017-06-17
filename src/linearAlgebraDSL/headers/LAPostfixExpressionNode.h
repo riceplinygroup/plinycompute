@@ -33,12 +33,10 @@ struct LAPostfixExpressionNode : public LAExpressionNode {
 
 private:
 	std::string postOperator;
-
 	LAPrimaryExpressionNodePtr child = NULL;
-
 	LAPostfixExpressionNodePtr me = NULL;
-
 	pdb::Handle<pdb::Computation> query;
+	LADimension dim;
 
 public:
 	LAPostfixExpressionNode():LAExpressionNode(LA_ASTNODE_TYPE_POSTFIXEXPRESSION){}
@@ -58,7 +56,7 @@ public:
 		}
 	}
 	
-	pdb::Handle<pdb::Computation> evaluate() final;
+	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
 
 
 	void setShared(LAPostfixExpressionNodePtr meIn){
@@ -68,6 +66,23 @@ public:
 	void setChild(const char* op, LAPrimaryExpressionNodePtr cptr){
 		postOperator = op;
 		child = cptr;
+	}
+
+	bool isSyntaxSugarInitializer(){
+		if(postOperator.compare("none")==0){
+			return child->isSyntaxSugarInitializer();
+		}
+		else{
+			return false;
+		}
+	}
+
+	LADimension getDimension(){
+		return dim;
+	}
+
+	void setDimension(LADimension other){
+		dim = other;
 	}
 };
 

@@ -21,6 +21,12 @@
 #include "LAASTNode.h"
 #include "LAIdentifierNode.h"
 #include "LAExpressionNode.h"
+#include "LAIdentifierNode.h"
+#include "LAInitializerNode.h"
+#include "LAPrimaryExpressionNode.h"
+#include "LAPostfixExpressionNode.h"
+#include "LAMultiplicativeExpressionNode.h"
+#include "LAAdditiveExpressionNode.h"
 
 
 struct LAStatementNode;
@@ -35,6 +41,9 @@ private:
 	LAExpressionNodePtr expression = NULL;
 
 	LAStatementNodePtr me = NULL;
+
+	bool printQueryResult = true;
+
 
 public:
 	LAStatementNode():LAASTNode(LA_ASTNODE_TYPE_STATEMENT) {}
@@ -55,7 +64,7 @@ public:
 		expression = e;
 	}
 
-	void evaluateQuery();
+	void evaluateQuery(LAPDBInstance& instance);
 };
 
 #endif

@@ -33,14 +33,11 @@ struct LAAdditiveExpressionNode : public LAExpressionNode {
 
 private:
 	std::string addOperator;
-
 	LAAdditiveExpressionNodePtr leftChild = NULL;
-
 	LAMultiplicativeExpressionNodePtr rightChild = NULL;
-
 	LAAdditiveExpressionNodePtr me = NULL;
-
 	pdb::Handle<pdb::Computation> query;
+	LADimension dim;
 
 public:
 	LAAdditiveExpressionNode(const char * op):LAExpressionNode(LA_ASTNODE_TYPE_ADDITIVEEXPRESSION){
@@ -62,7 +59,7 @@ public:
 		}
 	}
 
-	pdb::Handle<pdb::Computation> evaluate() final;
+	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
 
 	void setShared(LAAdditiveExpressionNodePtr meIn){
 		me = meIn;
@@ -74,6 +71,23 @@ public:
 
 	void setRightChild(LAMultiplicativeExpressionNodePtr rptr){
 		rightChild = rptr;
+	}
+
+	bool isSyntaxSugarInitializer(){
+		if (addOperator.compare("none")==0){
+			return rightChild->isSyntaxSugarInitializer();
+		}
+		else{
+			return false;
+		}
+	}
+
+	LADimension getDimension(){
+		return dim;
+	}
+
+	void setDimension(LADimension other){
+		dim = other;
 	}
 };
 
