@@ -400,7 +400,8 @@ common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/lib
 common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
-
+# LDA
+# common_env.SharedLibrary('libraries/libLDADocument.so', ['build/libraries/LDADocument.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
@@ -525,6 +526,7 @@ common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc']
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
+#common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 
 
 
@@ -636,6 +638,7 @@ main=common_env.Alias('main', [
   'bin/test88',
   'bin/test89',
   'bin/TestKMeans',
+#  'bin/TestLDA',
   'bin/testLA01_Transpose',
   'bin/testLA02_Add',
   'bin/testLA03_Substract',
@@ -730,6 +733,9 @@ main=common_env.Alias('main', [
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
   'libraries/libWriteSumResultSet.so',
+
+  # LDA 
+#  'libraries/libLDADocument.so',  
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',
