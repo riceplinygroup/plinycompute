@@ -82,9 +82,6 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
-
-// #include "Set.h"
-// TODO: why should I include WriteStringSet when I want to use DispatcherClient?
 #include "WriteStringSet.h"
 
 using namespace std;
@@ -335,13 +332,15 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(customerFile.c_str());
 
-//	vector<pdb::Handle<Customer>> customerList;
+	// make a new Allocation Block
+	pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
 
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 	int count = 0;
+	string errMsg;
 
-	for (int i = 1; i <= noOfCopies; ++i) {
-//
+	for (int i = 0; i < noOfCopies; ++i) {
+
 		cout << "Storing copy number " << i << endl;
 
 		while (getline(infile, line)) {
@@ -362,47 +361,37 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 				orderMap[customerKey] = *tOrderArray;
 			}
 
-			string errMsg;
+
 			count++;
 
 			try {
-//				cout << "Inside try count: " << count << endl;
-
 				pdb::Handle<Customer> tCustomer = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()),
 						tokens.at(6), tokens.at(7));
-
 				storeMeCustomerList->push_back(tCustomer);
-
-//			// send every 100 customer objects to the server and make a new vector
-//			// send the data over.
-
-				if (count % 4000 == 0) {
-					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-						std::cout << "Failed to send data to dispatcher server" << std::endl;
-					}
-					cout << "Sending " << count << endl;
-					// make a new vector
-					storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-				}
 
 			} catch (NotEnoughSpace &e) {
 
-				cout << "Inside Catch count: " << count << endl;
-
 				if (storeMeCustomerList->size() > 0) {
-
 					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
+					std::cout << "Sending data! Count: " << count << std::endl;
+
 				} else {
 					count--;
-
 					// make a new vector.
 					pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
 				}
 				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 			}
 		}
+
+		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+			std::cout << "Failed to send data to dispatcher server" << std::endl;
+		}
+
+
+
 	}
 	infile.close();
 	infile.clear();
@@ -446,7 +435,7 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 
 int main() {
 
-	int noOfCopies = 2;
+	int noOfCopies = 1;
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -476,9 +465,6 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
 		cout << "Not able to register type.\n";
 
-//	if (!catalogClient.registerType("libraries/libCustomerSupplierPart.so", errMsg))
-//		cout << "Not able to register type.\n";
-
 	// now, create a new database
 	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
 		cout << "Not able to create database: " + errMsg;
@@ -501,9 +487,10 @@ int main() {
 	// Generate the data
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.2";
-//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList =
 
 	dataGenerator(scaleFactor, dispatcherClient, noOfCopies);
+
+
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
 //	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
