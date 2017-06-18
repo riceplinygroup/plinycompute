@@ -26,7 +26,6 @@
 #include "DoubleVector.h"
 #include "limits.h"
 #include "SumResult.h"
-#include "SumResult.h"
 
 
 
