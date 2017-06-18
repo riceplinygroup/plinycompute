@@ -45,19 +45,20 @@
 using namespace pdb;
 int main (int argc, char * argv[]) {
 
-       if (argc < 5) {
-           std :: cout << "Usage: #databaseName #setName #outputFilePath #masterIp" << std :: endl;  
+       if (argc < 6) {
+           std :: cout << "Usage: #databaseName #setName #outputFilePath #masterIp #outputFormat" << std :: endl;  
        }      
        std :: string databaseName = argv[1];
        std :: string setName = argv[2];
        std :: string outputFilePath = argv[3];
        std :: string masterIp = argv[4];
+       std :: string outputFormat = argv[5];
 
        pdb :: PDBLoggerPtr clientLogger = make_shared<pdb :: PDBLogger>("clientLog");
        pdb :: DistributedStorageManagerClient temp (8108, masterIp, clientLogger);
 
        std :: string errMsg;
-       bool ret = temp.exportSet (databaseName, setName, outputFilePath, "csv", errMsg);
+       bool ret = temp.exportSet (databaseName, setName, outputFilePath, outputFormat, errMsg);
        if (ret == false) {
            std :: cout << errMsg << std :: endl;
        } else {
