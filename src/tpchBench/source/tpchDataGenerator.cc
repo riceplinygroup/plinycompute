@@ -51,6 +51,7 @@
 #include "Order.h"
 #include "Customer.h"
 #include "CustomerSupplierPartWriteSet.h"
+#include "CustomerWriteSet.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
@@ -361,7 +362,6 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 				orderMap[customerKey] = *tOrderArray;
 			}
 
-
 			count++;
 
 			try {
@@ -389,8 +389,6 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
-
-
 
 	}
 	infile.close();
@@ -435,6 +433,8 @@ pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfC
 
 int main() {
 
+	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
+	string scaleFactor = "0.1";
 	int noOfCopies = 1;
 
 	// Connection info
@@ -481,15 +481,13 @@ int main() {
 		cout << "Created set.\n";
 	}
 
-	pdb::makeObjectAllocatorBlock((size_t) 3 * GB, true);
+	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
 
 	//
 	// Generate the data
-	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
-	string scaleFactor = "0.2";
+
 
 	dataGenerator(scaleFactor, dispatcherClient, noOfCopies);
-
 
 //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
 
@@ -514,6 +512,9 @@ int main() {
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
 		cout << "Not able to register type libOrderWriteSet.\n";
 
+	if (!catalogClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
+		cout << "Not able to register type libCustomerWriteSet.\n";
+
 	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
 		cout << "Not able to register type libScanCustomerSet. \n";
 
@@ -531,6 +532,69 @@ int main() {
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
 		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
+
+	// FIRST WE CHECK THE NUBMER OF STORED CUSTOMERS
+
+	// now, create the sets for storing Customer Data
+	if (!distributedStorageManagerClient.createSet<CustomerWriteSet>("TPCH_db", "output_setCustomer", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created set.\n";
+	}
+	// for allocations
+	const UseTemporaryAllocationBlock tempBlock_Customers { 1024 * 1024 * 128 };
+
+	// make the query graph
+	Handle<Computation> myScanSet_CUSTOMER = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
+
+	Handle<Computation> myWriteSet_Customer = makeObject<CustomerWriteSet>("TPCH_db", "output_setCustomer");
+	myWriteSet_Customer->setInput(myScanSet_CUSTOMER);
+
+	auto begin = std::chrono::high_resolution_clock::now();
+
+	if (!queryClient.executeComputations(errMsg, myWriteSet_Customer)) {
+		std::cout << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+	}
+
+	std::cout << std::endl;
+	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
+
+	SetIterator<Customer> result_Customers = queryClient.getSetIterator<Customer>("TPCH_db", "output_setCustomer");
+	int count = 0;
+	for (auto a : result_Customers) {
+		count++;
+	}
+	std::cout << "Number of Customers Stored:" << count << "\n";
+
+	// Remove the output set
+	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
+		cout << "Not able to remove the set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Set removed. \n";
+	}
+
+	count = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	// #################################
+	// HERE IS THE MAIN EXPERIMENT
+	// #################################
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
@@ -556,7 +620,7 @@ int main() {
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
 	myWriteSet->setInput(myGroupBy);
 
-	auto begin = std::chrono::high_resolution_clock::now();
+	begin = std::chrono::high_resolution_clock::now();
 
 	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
@@ -564,14 +628,14 @@ int main() {
 	}
 
 	std::cout << std::endl;
-	auto end = std::chrono::high_resolution_clock::now();
+	end = std::chrono::high_resolution_clock::now();
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
 	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
 
 	std::cout << "Query results: ";
-	int count = 0;
+	count = 0;
 	for (auto a : result) {
 		count++;
 

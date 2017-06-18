@@ -380,6 +380,7 @@ common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.
 common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
 
 common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/SupplierData.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
@@ -681,6 +682,7 @@ main=common_env.Alias('main', [
   'libraries/libSupplierData.so',
   'libraries/libCustomerSupplierPartGroupBy.so',
   'libraries/libCustomerMultiSelection.so',
+  'libraries/libCustomerWriteSet.so',
   'bin/tpchQuery',
   'bin/tpchDataGenerator',
   
