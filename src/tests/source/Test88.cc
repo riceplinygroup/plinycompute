@@ -207,6 +207,9 @@ int main (int argc, char * argv[]) {
           }
         }
 
+
+        if (strcmp(argv[5],"JustStoreData") != 0) {
+
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
         if (!temp.createSet<DepartmentEmployees> ("test88_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
@@ -273,12 +276,15 @@ int main (int argc, char * argv[]) {
             }
 
         }
+
+        std::cout << "Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+
+        }//if justStoreData
         int code = system ("scripts/cleanupSoFiles.sh");
         if (code < 0) {
             std :: cout << "Can't cleanup so files" << std :: endl;
         }
-        std::cout << "Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
 }
 
 

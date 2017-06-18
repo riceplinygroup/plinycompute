@@ -24,12 +24,13 @@
 #include "PDBString.h"
 #include "Handle.h"
 #include "Employee.h"
+#include "ExportableObject.h"
 
 //  PRELOAD %Supervisor%
 
 namespace pdb {
 
-class Supervisor : public Object {
+class Supervisor : public ExportableObject {
 
 public:
 
@@ -81,7 +82,7 @@ public:
 		return me;
 	}
 
-        void print () {
+        void print () override {
                 me->print ();
                 std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
 		/*if (myGuys.size () > 0) {
@@ -94,6 +95,40 @@ public:
                         myGuys[i]->print();
                 }
 
+        }
+
+
+        std :: string toSchemaString ( std :: string format ) override {
+                return "";
+        }
+
+        std :: string toValueString ( std :: string format ) override {
+                if (format == "json") {
+                    char buffer[1024];
+                    sprintf(buffer, "{\"name\":\"%s\",\"age\":%d,\"salary\":%f,\"department\":\"%s\",\"employees\":[", me->getName()->c_str(), me->getAge(), me->getSalary(), me->department.c_str());
+                    std :: string ret = std :: string (buffer);
+                    if (myGuys.size() > 0) { 
+                        char buffer[1024];
+                        sprintf(buffer, "{\"name\":\"%s\",\"age\":%d,\"salary\":%f,\"department\":\"%s\"}", myGuys[0]->getName()->c_str(), myGuys[0]->getAge(), myGuys[0]->getSalary(), myGuys[0]->department.c_str());
+                        ret += std :: string (buffer);
+                    }
+                    for (int i = 1; i < myGuys.size(); i++) {
+                        char buffer[1024];
+                        sprintf(buffer, ",{\"name\":\"%s\",\"age\":%d,\"salary\":%f,\"department\":\"%s\"}", myGuys[i]->getName()->c_str(), myGuys[i]->getAge(), myGuys[i]->getSalary(), myGuys[i]->department.c_str());
+                        ret += std :: string (buffer);
+                    }
+                    ret += std :: string ("]}\n");
+                    return ret;
+                } else {
+                    return "";
+                }
+        }
+
+
+        std :: vector < std :: string > getSupportedFormats () override {
+               std :: vector < std :: string> ret;
+               ret.push_back("json");
+               return ret;
         }
 
 };

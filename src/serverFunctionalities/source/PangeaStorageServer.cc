@@ -346,12 +346,14 @@ bool PangeaStorageServer :: exportToFile (std :: string dbName, std :: string se
     FILE * myFile = fopen(path.c_str(), "w+");
     if (myFile == NULL) {
         errMsg = "Error opening file for writing: " + path;
+        std :: cout << errMsg << std :: endl;
         return false;
     }
 
     SetPtr setToExport = getFunctionality<PangeaStorageServer>().getSet(std :: make_pair (dbName, setName));
     if (setToExport == nullptr) {
         errMsg = "Error in exportToFile: set doesn't exist: " + dbName + ":" + setName;
+        std :: cout << errMsg << std :: endl;
         return false;
     }
 
