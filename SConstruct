@@ -402,7 +402,11 @@ common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/librar
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
 # LDA
-# common_env.SharedLibrary('libraries/libLDADocument.so', ['build/libraries/LDADocument.cc'] + all)
+# common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
+# common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
+# common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
+# common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
+# common_env.SharedLibrary('libraries/libWriteIntDoubleVectorPairSet.so', ['build/libraries/WriteIntDoubleVectorPairSet.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
@@ -737,7 +741,11 @@ main=common_env.Alias('main', [
   'libraries/libWriteSumResultSet.so',
 
   # LDA 
-#  'libraries/libLDADocument.so',  
+#  'libraries/libLDADocIDAggregate.so',  
+#  'libraries/libScanLDADocumentSet.so',  
+#  'libraries/libLDAInitialTopicProbSelection.so',  
+#  'libraries/libWriteIntDoubleVectorPairSet.so',  
+#  'libraries/libIntDoubleVectorPair.so',  
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',
