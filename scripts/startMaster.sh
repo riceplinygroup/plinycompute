@@ -20,7 +20,7 @@ pkill -9  test603
 pkill -9  pdb-cluster
 pkill -9  pdb-server
 
-$PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile 1 &
+$PDB_HOME/bin/pdb-cluster localhost 8108 N $pemFile 1.5 &
 
 echo "#####################################"
 echo "To sleep for 100 seconds in total for all ssh to return"
