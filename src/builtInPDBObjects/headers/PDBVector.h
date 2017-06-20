@@ -73,6 +73,7 @@ public:
 
 	// added by Shangyu
 	void print () const;
+	void fill (const TypeContained& val);
 
 	// beause the communicator needs to see inside to do efficient sends
         friend class PDBCommunicator;

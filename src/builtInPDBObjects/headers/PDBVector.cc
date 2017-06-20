@@ -115,15 +115,23 @@ TypeContained *Vector <TypeContained> :: c_ptr () const {
 }
 
 // Add by Shangyu;
-// Use std::cout to print the elements in a Vector
+// Use std::cout to print out the elements in a Vector
 template <class TypeContained>
 void Vector <TypeContained> :: print () const {
-	for (int i = 0; i < this->size() - 1; i++) {
+	for (uint32_t i = 0; i < this->size() - 1; i++) {
 		std :: cout << (*this)[i] << ", ";
 	}
 	std :: cout << (*this)[this->size() - 1] << std :: endl;
 }
 
+// Add by Shangyu;
+// Fill the vector with the input val
+template <class TypeContained>
+void Vector <TypeContained> :: fill (const TypeContained& val) {
+        for (uint32_t i = 0; i < this->size(); i++) {
+		myArray->assign (i, val);
+        }
+}
 
 
 }
