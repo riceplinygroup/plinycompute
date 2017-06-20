@@ -831,6 +831,15 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                  size_t numBytes = sendUsingMe->getSizeOfNextObject ();
                  void *readToHere = malloc (numBytes);
                  everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
+                 {
+                     std :: cout << "Making response object early .\n";
+                     const UseTemporaryAllocationBlock block{1024};
+                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+
+                     // return the result
+                     //std :: cout << "Sending response object.\n";
+                     everythingOK = sendUsingMe->sendObject (response, errMsg);
+                 }
                  Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
                  Handle<JoinMap<Object>> objectToStore = record->getRootObject();
                  //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
@@ -862,14 +871,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                       everythingOK = false;
                  }
                  free (readToHere);
-                 //std :: cout << "Making response object.\n";
-                 const UseTemporaryAllocationBlock block{1024};
-                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
-
-                 // return the result
-                 //std :: cout << "Sending response object.\n";
-                 bool res = sendUsingMe->sendObject (response, errMsg);
-                 return make_pair (res, errMsg);
+                 return make_pair (everythingOK, errMsg);
              }
         ));
 
@@ -878,7 +880,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	// this handler accepts a request to store some data
 	forMe.registerHandler (StorageAddData_TYPEID, make_shared <SimpleRequestHandler <StorageAddData>> (
 		[&] (Handle <StorageAddData> request, PDBCommunicatorPtr sendUsingMe) {
-                const LockGuard guard{workingMutex};
 	        std :: string errMsg;
 		bool everythingOK = true;
                 bool typeCheckOrNot = request->isTypeCheck();
@@ -901,13 +902,28 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 	         // get the record
 		 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
 	         void *readToHere = malloc (numBytes);
+                 
 		 Handle<Vector<Handle<Object>>> objectsToStore = sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+
                  if (objectsToStore->size() == 0) {
                      everythingOK = false;
                      errMsg = "Warning: client attemps to store a vector that contains zero objects, simply ignores it";
                      std :: cout << errMsg << std :: endl;
                  }
+
+                 if (request->isFlushing() == false) {
+                     std :: cout << "Making response object early.\n";
+                     const UseTemporaryAllocationBlock block{1024};
+                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+
+                      // return the result
+                      //std :: cout << "Sending response object.\n";
+                     everythingOK = sendUsingMe->sendObject (response, errMsg);
+                 }
+
 		 if (everythingOK) {	
+
+                                const LockGuard guard{workingMutex};
 						// at this point, we have performed the serialization, so remember the record
 				auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
         	                                        (std :: string) request->getSetName ());
@@ -935,15 +951,16 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 				everythingOK = false;
 		 }
                  //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
+                 if (request->isFlushing() == true) {
+	             //std :: cout << "Making response object.\n";
+                     const UseTemporaryAllocationBlock block{1024};                        
+	             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
-	         //std :: cout << "Making response object.\n";
-                 const UseTemporaryAllocationBlock block{1024};                        
-		 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
-
-                 // return the result
-		 //std :: cout << "Sending response object.\n";
-                 bool res = sendUsingMe->sendObject (response, errMsg);
-                 return make_pair (res, errMsg);
+                     // return the result
+		     //std :: cout << "Sending response object.\n";
+                     everythingOK = sendUsingMe->sendObject (response, errMsg);
+                 }
+                 return make_pair (everythingOK, errMsg);
              }
 	));
 
