@@ -241,15 +241,23 @@ Handle <ObjType> :: Handle (const RefCountedObject <ObjType> *fromMe) {
 	}
 }
 
+class String;
+
+template <class ObjType, class ObjTypeTwo>
+auto convert (ObjType *, ObjTypeTwo *) -> std :: enable_if_t <
+	std :: is_base_of <ObjType, ObjTypeTwo> :: value || 
+	(std :: is_base_of <ObjType, Object> :: value && std :: is_base_of <String, ObjTypeTwo> :: value) ||
+	(std :: is_base_of <ObjType, Object> :: value && std :: is_base_of <HandleBase, ObjTypeTwo> :: value), int> {
+	return 7;
+}
+
 template <class ObjType>
 template <class ObjTypeTwo>
 Handle <ObjType> :: Handle (const RefCountedObject <ObjTypeTwo> *fromMe) {
 	
-	if (!std::is_base_of <ObjType, ObjTypeTwo>::value) {
-		ObjType *one;
-		ObjTypeTwo *two;
-		one = two;  // this line will not compile with a bad assignment
-	}
+	ObjType *one = nullptr;
+	ObjTypeTwo *two = nullptr;
+	convert (one, two);  // this line will not compile with a bad assignment
 
 	// set up the type info for this guy
 	typeInfo.setup <ObjTypeTwo> ();
@@ -366,11 +374,9 @@ template <class ObjType>
 template <class ObjTypeTwo>
 Handle <ObjType> :: Handle (const Handle <ObjTypeTwo> &fromMe) {
 
-	if (!std::is_base_of <ObjType, ObjTypeTwo>::value) {
-		ObjType *one;
-		ObjTypeTwo *two;
-		one = two;  // this line will not compile with a bad assignment
-	}
+	ObjType *one = nullptr;
+	ObjTypeTwo *two = nullptr;
+	convert (one, two);  // this line will not compile with a bad assignment
 
 	// if we got a null pointer as the RHS, then we are the RHS
 	if (fromMe.isNullPtr ()) {
@@ -523,12 +529,9 @@ template <class ObjType>
 template <class ObjTypeTwo>
 Handle <ObjType> &Handle <ObjType> :: operator = (const RefCountedObject <ObjTypeTwo> *fromMe) {
 		
-	if (!std::is_base_of <ObjType, ObjTypeTwo>::value) {
-		ObjType *one;
-		ObjTypeTwo *two;
-		one = two;  // this line will not compile with a bad assignment
-	}
-
+	ObjType *one = nullptr;
+	ObjTypeTwo *two = nullptr;
+	convert (one, two);  // this line will not compile with a bad assignment
 
 	// get the thing that we used to point to
 	GET_OLD_TARGET;
@@ -701,11 +704,9 @@ template <class ObjType>
 template <class ObjTypeTwo>
 Handle <ObjType> &Handle <ObjType> :: operator = (const Handle <ObjTypeTwo> &fromMe) {
 
-	if (!std::is_base_of <ObjType, ObjTypeTwo>::value) {
-		ObjType *one;
-		ObjTypeTwo *two;
-		one = two;  // this line will not compile with a bad assignment
-	}
+	ObjType *one = nullptr;
+	ObjTypeTwo *two = nullptr;
+	convert (one, two);  // this line will not compile with a bad assignment
 
 	// get the thing that we used to point to
 	GET_OLD_TARGET;
@@ -803,7 +804,7 @@ void Handle <ObjType> :: setOffset (int64_t toMe) {
 }
 
 template <class ObjType>
-int64_t Handle <ObjType> :: getOffset () {
+int64_t Handle <ObjType> :: getOffset () const {
 	return offset;
 }
 

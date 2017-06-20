@@ -88,9 +88,12 @@ class RefCountedObject;
 
 class GenericHandle;
 
+// so all instantiated Handle types derive from HandleBase
+class HandleBase {};
+
 // Here is the Handle class....
 template <class ObjType> 
-class Handle : public Object {
+class Handle : public HandleBase {
 
 private:
 
@@ -204,7 +207,7 @@ public:
 
 	// get/set the offset
 	void setOffset (int64_t toMe);
-	int64_t getOffset ();
+	int64_t getOffset () const;
 
 	// get the type code
 	int16_t getTypeCode ();
@@ -213,16 +216,12 @@ public:
         int32_t getExactTypeInfoValue () const;
 	void setExactTypeInfoValue (int32_t toMe);
 
-	// so we can perform a deep copy over handles
-	ENABLE_DEEP_COPY
-
 	// gets a pointer to the target object
 	RefCountedObject <ObjType> *getTarget () const;
 
         // JiaNote: to shallow copy a handle to current allocation block
         // This is to improve the performance of current pipeline bundling
         Handle<ObjType>& shallowCopyToCurrentAllocationBlock(const Handle<ObjType> & copyMe);
-
 
 private:
 

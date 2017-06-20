@@ -91,8 +91,9 @@ public:
 			std :: cout << ")\n";
 		}*/
                 for (int i = 0; i < myGuys.size(); i++) {
-                        std :: cout << i << ": ";
+                        std :: cout << "emp " << i << ": ";
                         myGuys[i]->print();
+			std :: cout << " ";
                 }
 
         }

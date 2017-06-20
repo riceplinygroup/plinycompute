@@ -49,11 +49,14 @@ class String {
 public:
 
 	String ();
+	~String ();
 	String &operator = (const char *toMe);
 	String &operator = (const std :: string &s);
+	String &operator = (const String &s);
 	String (const char *fromMe);
 	String (const char* s, size_t n);
 	String (const std :: string &s);
+	String (const String &s);
 	char &operator [] (int whichOne);
 	operator std :: string () const;
 	char *c_str () const;
