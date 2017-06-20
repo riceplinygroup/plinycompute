@@ -15,6 +15,7 @@
 rm -rf /var/tmp/*.so
 rm -rf pdbRoot*
 rm -rf pdbRoot
+rm -rf /mnt/pdbRoot*
 rm -rf /tmp/CatalogDir
 rm -rf CatalogDir/*
 rm -rf CatalogDir*

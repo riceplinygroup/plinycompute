@@ -1,22 +1,66 @@
-There are 1 servers
+There are 5 servers
 
-+++++++++++ collect info for server: 10.134.96.153
++++++++++++ collect info for server: 172.30.4.156
 [INFO] local sys collect
--e CPUNumber:	 16
-MemTotal:       32946212 kB
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
-model name	: Intel Xeon E312xx (Sandy Bridge)
+-e CPUNumber:	 8
+MemTotal:       70259672 kB
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+
++++++++++++ collect info for server: 172.30.4.223
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       70259672 kB
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+
++++++++++++ collect info for server: 172.30.4.208
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       70259672 kB
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+
++++++++++++ collect info for server: 172.30.4.124
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       70259672 kB
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+
++++++++++++ collect info for server: 172.30.4.193
+[INFO] local sys collect
+-e CPUNumber:	 8
+MemTotal:       70259672 kB
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz
+model name	: Intel(R) Xeon(R) CPU E5-2665 0 @ 2.40GHz

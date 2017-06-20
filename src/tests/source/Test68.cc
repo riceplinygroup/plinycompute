@@ -224,7 +224,7 @@ int main (int argc, char * argv[]) {
 	    for (auto a : result) 
             {
                      count ++;
-		     std :: cout << (*a) << "; ";
+		     //std :: cout << (*a) << "; ";
             }
 	    std :: cout << "selection output count:" << count << "\n";
 	}

@@ -176,8 +176,6 @@ int main (int argc, char * argv[]) {
                           
 //                            std :: cout << i << ":" << myString << std :: endl;
                             Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), 3.54);
-                            storeMe->push_back(myData);
-                            total++;
                             for (int j = 0; j < 10; j++) {
                                  Handle <Employee> temp;
                                  if (i % 3 == 0) {
@@ -186,8 +184,10 @@ int main (int argc, char * argv[]) {
                                  else {
                                      temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), 3.54);
                                  }
-                                 (*storeMe)[i]->addEmp (temp);
+                                 myData->addEmp (temp);
                             }
+                            storeMe->push_back(myData);
+                            total++;
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {

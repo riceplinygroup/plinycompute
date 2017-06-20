@@ -1686,7 +1686,7 @@ bool PangeaStorageServer::addSet (std :: string dbName, std :: string typeName, 
        if(usersetSeqIds->count(dbName) == 0) {
            //database doesn't exist
            pthread_mutex_unlock(&this->usersetLock);
-           return false;
+           addDatabase(dbName);
        }
        SetID setId = usersetSeqIds->at(dbName)->getNextSequenceID();
        PDB_COUT << "to add set with dbName=" << dbName << ", typeName=" << typeName << ", setName=" << setName << ", setId=" << setId << std :: endl;
