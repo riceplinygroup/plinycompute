@@ -183,6 +183,7 @@ int main (int argc, char * argv[]) {
                           
 //                            std :: cout << i << ":" << myString << std :: endl;
                             Handle <OptimizedSupervisor> myData = makeObject <OptimizedSupervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), 3.54);
+                            myData->myGuys.resize(10);
                             for (int j = 0; j < 10; j++) {
                                  OptimizedEmployee temp;
                                  if (i % 3 == 0) {
