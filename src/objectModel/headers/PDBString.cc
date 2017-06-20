@@ -24,53 +24,147 @@
 #include <iostream>
 #include <string>
 #include "PDBMap.h"
+#include "BuiltInObjectTypeIDs.h"
+
+
+#define CAN_FIT_IN_DATA(len) (len <= sizeof (decltype (data.getOffset ())))
 
 namespace pdb {
 
 inline String :: String () {
-	data = makeObject <char> ();
-	*(c_str ()) = 0;
+
+	// view the Handle as actually storing data
+	data.setExactTypeInfoValue (String_TYPEID);
+	data.setOffset (-1);
+	c_str ()[0] = 0;
 }
 
 inline size_t String :: hash () const {
-	return hashMe (c_str (), -(data.getExactTypeInfoValue ()) - 1);
+
+	if (data.getExactTypeInfoValue () == String_TYPEID) {
+		return hashMe (c_str (), strlen (c_str ()));
+	} else {
+		return hashMe (c_str (), -(data.getExactTypeInfoValue ()) - 1);
+	}
 }
 
 inline String &String :: operator = (const char *toMe) {
 	int len = strlen (toMe) + 1;
-	data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-	data.setExactTypeInfoValue (-len);
+	if (CAN_FIT_IN_DATA (len)) {
+		if (data.getExactTypeInfoValue () != String_TYPEID) {
+			data = nullptr;
+			data.setExactTypeInfoValue (String_TYPEID);
+		}
+	} else {
+		if (data.getExactTypeInfoValue () == String_TYPEID) {
+			data.setOffset (-1);
+		}
+		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data.setExactTypeInfoValue (-len);
+	}
+
 	memmove (c_str (), toMe, len);
+	return *this;
+}
+
+inline String :: String (const String &s) {
+
+	// if the other guy is short
+	if (s.data.getExactTypeInfoValue () == String_TYPEID) {
+		data.setExactTypeInfoValue (String_TYPEID);
+		data.setOffset (s.data.getOffset ());
+
+	// the other guy is big
+	} else {
+		data = s.data;
+		data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
+	}
+}
+
+inline String :: ~String () {
+	if (data.getExactTypeInfoValue () == String_TYPEID) {
+		data.setOffset (-1);
+	} else {
+		data = nullptr;
+	}
+}
+
+inline String &String :: operator = (const String &s) {
+
+	// if the other guy is short
+	if (s.data.getExactTypeInfoValue () == String_TYPEID) {
+		if (data.getExactTypeInfoValue () != String_TYPEID) {
+			data = nullptr;
+			data.setExactTypeInfoValue (String_TYPEID);
+		}
+		data.setOffset (s.data.getOffset ());
+
+	// the other guy is big
+	} else {
+		if (data.getExactTypeInfoValue () == String_TYPEID) {
+			data.setOffset (-1);
+		}
+		data = s.data;
+		data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
+	}
 	return *this;
 }
 
 inline String &String :: operator = (const std :: string &s) {
 	int len = s.size () + 1;
-	data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-	data.setExactTypeInfoValue (-len);
+	if (CAN_FIT_IN_DATA (len)) {
+		if (data.getExactTypeInfoValue () != String_TYPEID) {
+			data = nullptr;
+			data.setExactTypeInfoValue (String_TYPEID);
+		}
+	} else {
+		if (data.getExactTypeInfoValue () == String_TYPEID) {
+			data.setOffset (-1);
+		}
+		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data.setExactTypeInfoValue (-len);
+	}
+
 	memmove (c_str (), s.c_str (), len);
 	return *this;
 }
 
 inline String :: String (const char *toMe) {
 	int len = strlen (toMe) + 1;
-	data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-	data.setExactTypeInfoValue (-len);
+	if (CAN_FIT_IN_DATA (len)) {
+		data.setExactTypeInfoValue (String_TYPEID);
+	} else {
+		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data.setExactTypeInfoValue (-len);
+	}
+
 	memmove (c_str (), toMe, len);
 }
 
 inline String :: String (const char* toMe, size_t n) {
 	int len = n + 1;
-	data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-	data.setExactTypeInfoValue (-len);
+
+	if (CAN_FIT_IN_DATA (len)) {
+		data.setExactTypeInfoValue (String_TYPEID);
+	} else {
+		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data.setExactTypeInfoValue (-len);
+	}
+
 	memmove (c_str (), toMe, len - 1);
 	c_str ()[len - 1] = 0;
 }
 
 inline String :: String (const std :: string &s) {
 	int len = s.size () + 1;
-	data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-	data.setExactTypeInfoValue (-len);
+
+	if (CAN_FIT_IN_DATA (len)) {
+		data.setExactTypeInfoValue (String_TYPEID);
+	} else {
+		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data.setExactTypeInfoValue (-len);
+	}
+
 	memmove (c_str (), s.c_str (), len);
 }
 
@@ -83,11 +177,16 @@ inline String :: operator std :: string () const {
 }
 
 inline char *String :: c_str () const {
-	return &(*data);
+
+	if (data.getExactTypeInfoValue () == String_TYPEID) {
+		return (char *) &data;	
+	} else {
+		return &(*data);
+	}
 }
 
 inline size_t String :: size () const {
-	return -(data.getExactTypeInfoValue ()) - 1;
+	return strlen (c_str ());
 }
 
 inline std::ostream& operator<< (std::ostream& stream, const String &printMe) {

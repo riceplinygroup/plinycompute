@@ -27,16 +27,11 @@ public:
 
 };
 
-
-
-
 #ifdef PDB_DEBUG
     #define PDB_COUT std::cout
 #else
     #define PDB_COUT NullStream()
 #endif
-
-
 
 
 #endif

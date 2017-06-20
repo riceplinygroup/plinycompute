@@ -45,7 +45,7 @@ public:
            return name->hash();
         }
         void print () {
-                std :: cout << "name is: " << *name << " age is: " << age;
+                std :: cout << "name is: " << *name << " age is: " << age << " dept is: " << department;
         }
 
 	Handle <String> &getName () {
