@@ -324,17 +324,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	for (int i = 0; i < noOfCopies; ++i) {
 
 		cout << "Storing copy number " << i << endl;
-
 		pdb::Handle<Customer> objectToAdd = nullptr;
 
 		while (getline(infile, line)) {
-
 			std::vector<string> tokens=parseLine(line);
-
-
 			int customerKey = atoi(tokens.at(0).c_str());
-//			count++;
-
 
 			try {
 
@@ -361,7 +355,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 				pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
-				// second try to make the object and add it to the vector
+				// retry to make the object and add it to the vector
 				try {
 					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
 							tokens.at(7));
