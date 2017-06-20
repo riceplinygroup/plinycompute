@@ -121,20 +121,9 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	// Open "PartFile": Iteratively (Read line, Parse line, Create Objects):
-
 	infile.open(PartFile.c_str());
 
 	vector<pdb::Handle<Part>> partList;
-
-	// load up the allocator with RAM
-
-	// This does not work with 100 KB memory
-	// But it works with 1 MB or more memory.
-//	pdb::makeObjectAllocatorBlock((size_t) 1000 * MB, true);
-
-//	pdb::Handle <pdb::Vector <pdb::Handle <Part>>> partList =  pdb::makeObject<pdb::Vector<pdb::Handle<Part>>> ();
-
 	map<int, pdb::Handle<Part>> partMap;
 
 	while (getline(infile, line)) {
@@ -171,7 +160,6 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	//Open "SupplierFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(supplierFile.c_str());
 	vector<pdb::Handle<Supplier>> supplierList;
 	map<int, pdb::Handle<Supplier>> supplierMap;
@@ -334,9 +322,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	infile.open(customerFile.c_str());
 
 	// make a new Allocation Block
-	pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+//	pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
 	int count = 0;
 	string errMsg;
 
@@ -347,8 +337,6 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 
 		pdb::Handle<Customer> objectToAdd=nullptr;
-		pdb::Handle<Customer> objectToRollBack = nullptr;
-
 
 		while (getline(infile, line)) {
 
@@ -356,6 +344,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			vector<string> tokens;
 			string token;
 
+			// Read the line as tokens
 			while (getline(lineStream, token, '|')) {
 				tokens.push_back(token);
 			}
@@ -363,45 +352,38 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			int customerKey = atoi(tokens.at(0).c_str());
 
 
-			count++;
-			try {
 
-				if (objectToRollBack != nullptr) {
-					storeMeCustomerList->push_back(objectToRollBack);
-					objectToRollBack = nullptr;
-				}
+			try {
 
 				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()),
 						tokens.at(6), tokens.at(7));
 				storeMeCustomerList->push_back(objectToAdd);
+				count++;
 
 			} catch (NotEnoughSpace &e) {
 
-				  //object hasn't been successfully added, so we need to roll it back
-				  objectToRollBack = objectToAdd;
-
-
+				std::cout << "Got into Exception part. " << std::endl;
 				if (storeMeCustomerList->size() > 0) {
 					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
 					std::cout << "Sending data! Count: " << count << std::endl;
-
-				} else {
-					count--;
-
+				}else {
+					std::cout << "Vector is zero." << count << std::endl;
 				}
-				// make a new vector.
+
+				// make a allocation Block and a new vector.
 				pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
 				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 			}
 		}
 
+		// send the rest of data at the end, it can happen that the exception never happens.
 		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
 
-		std::cout << "Sending data! Count: " << count << std::endl;
+		std::cout << "Send the rest of the data at the end: " << count << std::endl;
 
 
 	}
@@ -410,46 +392,57 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 }
 
-pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
+//pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {
+//
+//	int maxPartsInEachLineItem = 4;
+//	int maxLineItemsInEachOrder = 4;
+//	int maxOrderssInEachCostomer = 4;
+//
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+//
+//	//4. Make Customers
+//	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
+//		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
+//		//3. Make Order
+//		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
+//			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>> ();
+//			//2.  Make LineItems
+//			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
+//				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr", "Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
+//				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i), "address", i, "Phone1", 12.1, "Supplier Comment1");
+//				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i, *supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
+//						"sgipingStruct", "shipMode1", "Comment1");
+//				lineItems->push_back(*lineItem);
+//			}
+//
+//			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
+//			orders->push_back(*order);
+//		}
+//
+//		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
+//		customers->push_back(customer);
+//	}
+//
+//	return customers;
+//
+//}
 
-	int maxPartsInEachLineItem = 4;
-	int maxLineItemsInEachOrder = 4;
-	int maxOrderssInEachCostomer = 4;
+int main (int argc, char * argv[]) {
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>> customers = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
-	//4. Make Customers
-	for (int customerID = 0; customerID < maxNoOfCustomers; ++customerID) {
-		pdb::Handle<pdb::Vector<Order>> orders = pdb::makeObject<pdb::Vector<Order>> ();
-		//3. Make Order
-		for (int orderID = 0; orderID < maxOrderssInEachCostomer; ++orderID) {
-			pdb::Handle<pdb::Vector<LineItem>> lineItems = pdb::makeObject<pdb::Vector<LineItem>> ();
-			//2.  Make LineItems
-			for (int i = 0; i < maxLineItemsInEachOrder; ++i) {
-				pdb::Handle<Part> part = pdb::makeObject<Part>(i, "Part-" + to_string(i), "mfgr", "Brand1", "type1", i, "Container1", 12.1, "Part Comment1");
-				pdb::Handle<Supplier> supplier = pdb::makeObject<Supplier>(i, "Supplier-" + to_string(i), "address", i, "Phone1", 12.1, "Supplier Comment1");
-				pdb::Handle<LineItem> lineItem = pdb::makeObject<LineItem>("Linetem-" + to_string(i), i, *supplier, *part, i, 12.1, 12.1, 12.1, 12.1, "ReturnFlag1", "lineStatus1", "shipDate", "commitDate", "receiptDate",
-						"sgipingStruct", "shipMode1", "Comment1");
-				lineItems->push_back(*lineItem);
-			}
-
-			pdb::Handle<Order> order = pdb::makeObject<Order>(*lineItems, orderID, 1, "orderStatus", 1, "orderDate", "OrderPriority", "clerk", 1, "Order Comment1");
-			orders->push_back(*order);
-		}
-
-		pdb::Handle<Customer> customer = pdb::makeObject<Customer>(*orders, customerID, "CustomerName " + to_string(customerID), "address",1, "phone", 12.1, "mktsegment", "Customer Comment "+ to_string(customerID));
-		customers->push_back(customer);
-	}
-
-	return customers;
-
-}
-
-int main() {
 
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
 	int noOfCopies = 1;
+
+	if (argc > 1) {
+    	noOfCopies = atoi(argv[1]);
+    }
+
+    if (argc > 2) {
+    	scaleFactor = std::string(argv[2]);
+    }
+
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -497,27 +490,23 @@ int main() {
 
 	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
 
-	//
 	// Generate the data
-
-
 	dataGenerator(scaleFactor, dispatcherClient, noOfCopies);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
+//	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = generateSmallDataset(4);
+//	pdb::Record<Vector<Handle<Customer>>>  *myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
+//	size_t sizeOfCustomers = myBytes->numBytes();
+//	cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
 
-	pdb::Record<Vector<Handle<Customer>>>*myBytes = getRecord <Vector <Handle <Customer>>> (storeMeCustomerList);
-	size_t sizeOfCustomers = myBytes->numBytes();
-	cout << "Size of Customer Vector is: " << sizeOfCustomers << endl;
-
-	// store copies of the same dataset.
-	for (int i = 1; i <= noOfCopies; ++i) {
-		cout << "Storing Vector of Customers - Copy Number : " << i << endl;
-
-		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-			std::cout << "Failed to send data to dispatcher server" << std::endl;
-			return -1;
-		}
-	}
+//	// store copies of the same dataset.
+//	for (int i = 1; i <= noOfCopies; ++i) {
+//		cout << "Storing Vector of Customers - Copy Number : " << i << endl;
+//
+//		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+//			std::cout << "Failed to send data to dispatcher server" << std::endl;
+//			return -1;
+//		}
+//	}
 
 	// flush to disk
 	distributedStorageManagerClient.flushData(errMsg);
