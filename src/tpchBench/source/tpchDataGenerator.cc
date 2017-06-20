@@ -99,6 +99,8 @@ using namespace std;
 #define MB (1024*KB)
 #define GB (1024*MB)
 
+#define BLOCKSIZE (256*MB)
+
 void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClient, int noOfCopies) {
 
 	// All files to parse:
@@ -322,10 +324,9 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	infile.open(customerFile.c_str());
 
 	// make a new Allocation Block
-//	pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 
-
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	int count = 0;
 	string errMsg;
@@ -335,8 +336,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 		cout << "Storing copy number " << i << endl;
 
-
-		pdb::Handle<Customer> objectToAdd=nullptr;
+		pdb::Handle<Customer> objectToAdd = nullptr;
 
 		while (getline(infile, line)) {
 
@@ -351,30 +351,38 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 			int customerKey = atoi(tokens.at(0).c_str());
 
-
-
 			try {
 
-				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()),
-						tokens.at(6), tokens.at(7));
+				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
 				storeMeCustomerList->push_back(objectToAdd);
 				count++;
 
 			} catch (NotEnoughSpace &e) {
 
 				std::cout << "Got into Exception part. " << std::endl;
+
+				// First send the existing data over
 				if (storeMeCustomerList->size() > 0) {
 					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
 					std::cout << "Sending data! Count: " << count << std::endl;
-				}else {
+				} else {
 					std::cout << "Vector is zero." << count << std::endl;
 				}
 
 				// make a allocation Block and a new vector.
-				pdb::makeObjectAllocatorBlock((size_t) 256 * MB, true);
+				pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+				// second try to make the object and add it to the vector
+				try {
+					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+							tokens.at(7));
+					storeMeCustomerList->push_back(objectToAdd);
+				} catch (NotEnoughSpace &e) {
+					std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
+				}
 			}
 		}
 
@@ -383,8 +391,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
 
-		std::cout << "Send the rest of the data at the end: " << count << std::endl;
-
+		std::cout << "Send the rest of the data at the end: " << (count +  storeMeCustomerList->size()) << std::endl;
 
 	}
 	infile.close();
@@ -427,22 +434,19 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 //
 //}
 
-int main (int argc, char * argv[]) {
-
-
+int main(int argc, char * argv[]) {
 
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
 	string scaleFactor = "0.1";
 	int noOfCopies = 1;
 
 	if (argc > 1) {
-    	noOfCopies = atoi(argv[1]);
-    }
+		noOfCopies = atoi(argv[1]);
+	}
 
-    if (argc > 2) {
-    	scaleFactor = std::string(argv[2]);
-    }
-
+	if (argc > 2) {
+		scaleFactor = std::string(argv[2]);
+	}
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -567,10 +571,23 @@ int main (int argc, char * argv[]) {
 
 	SetIterator<Customer> result_Customers = queryClient.getSetIterator<Customer>("TPCH_db", "output_setCustomer");
 	int count = 0;
+
+	// a set to check if we stored all of the customers correctly.
+	set<int> customerIDs;
+
 	for (auto a : result_Customers) {
 		count++;
+		customerIDs.insert(a->getCustKey());
 	}
 	std::cout << "Number of Customers Stored:" << count << "\n";
+
+
+	for (int i = 1; i <= 15000; ++i) {
+
+		if (customerIDs.find(i) == customerIDs.end()) {
+			cout << "Customer " << i << " Not Stored. " << endl;
+		}
+	}
 
 	// Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
@@ -579,14 +596,6 @@ int main (int argc, char * argv[]) {
 	} else {
 		cout << "Set removed. \n";
 	}
-
-	count = 0;
-
-
-
-
-
-
 
 
 
@@ -598,6 +607,8 @@ int main (int argc, char * argv[]) {
 	// #################################
 	// HERE IS THE MAIN EXPERIMENT
 	// #################################
+
+	count = 0;
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
@@ -641,7 +652,6 @@ int main (int argc, char * argv[]) {
 	count = 0;
 	for (auto a : result) {
 		count++;
-
 //		cout<<"-------------" << endl;
 //		if (count % 1000 == 0) {
 //			std::cout << count << std::endl;
