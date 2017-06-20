@@ -180,8 +180,6 @@ int main (int argc, char * argv[]) {
                             }
                             //std :: cout << myString << std :: endl;
                             Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
-                            storeMe->push_back(myData);
-                            total++;
                             for (int j = 0; j < 10; j++) {
                                  Handle <Employee> temp;
                                  if (i % 2 == 0) {
@@ -190,8 +188,10 @@ int main (int argc, char * argv[]) {
                                  else {
                                      temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
                                  }
-                                 (*storeMe)[i]->addEmp (temp);
+                                 myData->addEmp (temp);
                             }
+                            storeMe->push_back(myData);
+                            total++;
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
@@ -221,13 +221,14 @@ int main (int argc, char * argv[]) {
         QueryClient myClient (8108, "localhost", clientLogger, true);
 	
 	// this is the object allocation block where all of this stuff will reside
-        const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
         catalogClient.registerType ("libraries/libSillySelection.so", errMsg);
         catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
         catalogClient.registerType ("libraries/libSillyAggregation.so", errMsg);
         catalogClient.registerType ("libraries/libFinalSelection.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteDoubleSet.so", errMsg);
+
+        const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 	// create all of the computation objects
 	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test74_db", "test74_set");
 	Handle <Computation> myFilter = makeObject <SillySelection> ();
