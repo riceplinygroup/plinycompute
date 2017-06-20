@@ -350,6 +350,7 @@ common_env.SharedLibrary('libraries/libScanSimpleEmployeeSet.so', ['build/librar
 common_env.SharedLibrary('libraries/libScanStringIntPairSet.so', ['build/libraries/ScanStringIntPairSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanStringSet.so', ['build/libraries/ScanStringSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanSupervisorSet.so', ['build/libraries/ScanSupervisorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanOptimizedSupervisorSet.so', ['build/libraries/ScanOptimizedSupervisorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyAggregation.so', ['build/libraries/SillyAggregation.cc'] + all)
