@@ -136,7 +136,7 @@ public:
 	}
 
         void initDirs() {
-            rootDir = std::string("/mnt/pdbRoot_")+serverAddress+std::string("_")+std::to_string(port);
+            rootDir = std::string("pdbRoot_")+serverAddress+std::string("_")+std::to_string(port);
             //temporarily added for unit tests
             this->createDir(rootDir);
             //dataDirs = "pdbRoot/data1,pdbRoot/data2,pdbRoot/data3,pdbRoot/data4,pdbRoot/data5,pdbRoot/data6,pdbRoot/data7,pdbRoot/data8,pdbRoot/data9,pdbRoot/data10,pdbRoot/data11,pdbRoot/data12";
