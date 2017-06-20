@@ -101,6 +101,20 @@ using namespace std;
 
 #define BLOCKSIZE (256*MB)
 
+
+
+// A function to parse a Line
+std::vector<std::string> parseLine(std::string line) {
+	stringstream lineStream(line);
+	std::vector<std::string> tokens;
+	string token;
+	while (getline(lineStream, token, '|')) {
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+
+
 void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClient, int noOfCopies) {
 
 	// All files to parse:
@@ -129,13 +143,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	map<int, pdb::Handle<Part>> partMap;
 
 	while (getline(infile, line)) {
-		stringstream lineStream(line);
-		std::vector<string> tokens;
-		string token;
 
-		while (getline(lineStream, token, '|')) {
-			tokens.push_back(token);
-		}
+		std::vector<string> tokens=parseLine(line);
 
 		int partID = atoi(tokens.at(0).c_str());
 
@@ -167,13 +176,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	map<int, pdb::Handle<Supplier>> supplierMap;
 
 	while (getline(infile, line)) {
-		stringstream lineStream(line);
-		std::vector<string> tokens;
-		string token;
+		std::vector<string> tokens=parseLine(line);
 
-		while (getline(lineStream, token, '|')) {
-			tokens.push_back(token);
-		}
 
 		int supplierKey = atoi(tokens.at(0).c_str());
 
@@ -206,13 +210,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	map<int, pdb::Handle<pdb::Vector<LineItem>> > lineItemMap;
 
 	while (getline(infile, line)) {
-		stringstream lineStream(line);
-		std::vector<string> tokens;
-		string token;
 
-		while (getline(lineStream, token, '|')) {
-			tokens.push_back(token);
-		}
+		std::vector<string> tokens=parseLine(line);
 
 		int orderKey = atoi(tokens.at(0).c_str());
 		int partKey = atoi(tokens.at(1).c_str());
@@ -274,21 +273,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	map<int, pdb::Vector<Order>> orderMap;
 
 	while (getline(infile, line)) {
-		stringstream lineStream(line);
-		std::vector<string> tokens;
-		string token;
-
-		while (getline(lineStream, token, '|')) {
-			tokens.push_back(token);
-		}
+		std::vector<string> tokens=parseLine(line);
 
 		int orderKey = atoi(tokens.at(0).c_str());
 		int customerKey = atoi(tokens.at(1).c_str());
 
-//		//Sanity Check:
-//		if (lineItemMap.find(orderKey) == lineItemMap.end()) {
-//			throw invalid_argument("There is no such Order.");
-//		}
 
 		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(*lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
 				tokens.at(8));
@@ -326,7 +315,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// make a new Allocation Block
 	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	int count = 0;
 	string errMsg;
@@ -340,22 +329,17 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 		while (getline(infile, line)) {
 
-			stringstream lineStream(line);
-			vector<string> tokens;
-			string token;
+			std::vector<string> tokens=parseLine(line);
 
-			// Read the line as tokens
-			while (getline(lineStream, token, '|')) {
-				tokens.push_back(token);
-			}
 
 			int customerKey = atoi(tokens.at(0).c_str());
+			count++;
+
 
 			try {
 
 				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
 				storeMeCustomerList->push_back(objectToAdd);
-				count++;
 
 			} catch (NotEnoughSpace &e) {
 
@@ -382,6 +366,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 					storeMeCustomerList->push_back(objectToAdd);
 				} catch (NotEnoughSpace &e) {
 					std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
+					return;
 				}
 			}
 		}
@@ -391,7 +376,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
 
-		std::cout << "Send the rest of the data at the end: " << (count +  storeMeCustomerList->size()) << std::endl;
+		std::cout << "Send the rest of the data at the end: " << count  << std::endl;
 
 	}
 	infile.close();
@@ -570,24 +555,36 @@ int main(int argc, char * argv[]) {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	SetIterator<Customer> result_Customers = queryClient.getSetIterator<Customer>("TPCH_db", "output_setCustomer");
-	int count = 0;
+	int customerCount = 0;
 
 	// a set to check if we stored all of the customers correctly.
-	set<int> customerIDs;
+	set<int> supplierIDs;
 
+	// GO deep inside each customer and add their suppliers IDs to the set.
 	for (auto a : result_Customers) {
-		count++;
-		customerIDs.insert(a->getCustKey());
-	}
-	std::cout << "Number of Customers Stored:" << count << "\n";
+		customerCount++;		Vector<Order> orders=a->getOrders();
 
+		for(int i=0; i<orders.size(); i++){
+			Vector<LineItem> lineItems=orders[i].getLineItems();
 
-	for (int i = 1; i <= 15000; ++i) {
-
-		if (customerIDs.find(i) == customerIDs.end()) {
-			cout << "Customer " << i << " Not Stored. " << endl;
+			for(int j=0; j<lineItems.size(); j++){
+				int supp= lineItems[j].getSupplier().getSupplierKey();
+				supplierIDs.insert(supp);
+			}
 		}
 	}
+
+	std::cout << "Number of Customers Stored:" << customerCount << "\n";
+	std::cout << "Number of Customers Stored:" << customerCount << "\n";
+
+
+	// Now check if we have all 1000 suppliers inside the customers
+	for (int i = 1; i <= 1000; ++i) {
+		if (supplierIDs.find(i) == supplierIDs.end()) {
+			cout << "Supplier " << i << " Not Stored. " << endl;
+		}
+	}
+
 
 	// Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
@@ -600,15 +597,11 @@ int main(int argc, char * argv[]) {
 
 
 
-
-
-
-
 	// #################################
 	// HERE IS THE MAIN EXPERIMENT
 	// #################################
 
-	count = 0;
+	int count = 0;
 
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
