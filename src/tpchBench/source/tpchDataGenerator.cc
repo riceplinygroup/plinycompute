@@ -559,7 +559,9 @@ int main(int argc, char * argv[]) {
 
 	// GO deep inside each customer and add their suppliers IDs to the set.
 	for (auto a : result_Customers) {
-		customerCount++;		Vector<Order> orders=a->getOrders();
+		customerCount++;
+
+		Vector<Order> orders=a->getOrders();
 
 		for(int i=0; i<orders.size(); i++){
 			Vector<LineItem> lineItems=orders[i].getLineItems();
@@ -567,6 +569,7 @@ int main(int argc, char * argv[]) {
 			for(int j=0; j<lineItems.size(); j++){
 				int supp= lineItems[j].getSupplier().getSupplierKey();
 				supplierIDs.insert(supp);
+//				cout<< lineItems[j].getSupplier().getName()<<endl;
 			}
 		}
 	}
@@ -581,7 +584,7 @@ int main(int argc, char * argv[]) {
 	}
 
 
-	// Remove the output set
+	// CLEAN UP. Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
