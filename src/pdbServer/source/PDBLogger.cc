@@ -50,7 +50,7 @@ PDBLogger::PDBLogger(std :: string fName) {
     }
 
     pthread_mutex_init(&fileLock, nullptr);
-    loglevel = TRACE;
+    loglevel = WARN;
     this->enabled = true;
 }
 

@@ -34,11 +34,11 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O3 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread')
     common_env.Replace(CXX = "clang++")
 
-common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
+#common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
@@ -370,6 +370,7 @@ common_env.SharedLibrary('libraries/libDoubleVectorAggregation.so', ['build/libr
 common_env.SharedLibrary('libraries/libSupervisorMultiSelection.so', ['build/libraries/SupervisorMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyGroupBy.so', ['build/libraries/SillyGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libEmployeeGroupBy.so', ['build/libraries/EmployeeGroupBy.cc'] + all)
+common_env.SharedLibrary('libraries/libOptimizedEmployeeGroupBy.so', ['build/libraries/OptimizedEmployeeGroupBy.cc'] + all)
 
 # TPCH Benchmakr Libraries
 common_env.SharedLibrary('libraries/libPart.so', ['build/tpchBench/Part.cc'] + all)
@@ -384,6 +385,8 @@ common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/C
 
 common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/SupplierData.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
+
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
@@ -495,12 +498,6 @@ common_env.Program('bin/test67', ['build/tests/Test67.cc'] + all)
 common_env.Program('bin/test68', ['build/tests/Test68.cc'] + all)
 common_env.Program('bin/test69', ['build/tests/Test69.cc'] + all)
 common_env.Program('bin/test70', ['build/tests/Test70.cc'] + all)
-common_env.Program('bin/test71', ['build/tests/Test71.cc'] + all)
-common_env.Program('bin/test72', ['build/tests/Test72.cc'] + all)
-common_env.Program('bin/test73', ['build/tests/Test73.cc'] + all)
-common_env.Program('bin/test74', ['build/tests/Test74.cc'] + all)
-common_env.Program('bin/test75', ['build/tests/Test75.cc'] + all)
-common_env.Program('bin/test76', ['build/tests/Test76.cc'] + all)
 common_env.Program('bin/test77', ['build/tests/Test77.cc'] + all)
 common_env.Program('bin/test78', ['build/tests/Test78.cc'] + all)
 common_env.Program('bin/test79', ['build/tests/Test79.cc'] + all)
@@ -515,6 +512,7 @@ common_env.Program('bin/test86', ['build/tests/Test86.cc'] + all)
 common_env.Program('bin/test87', ['build/tests/Test87.cc'] + all)
 common_env.Program('bin/test88', ['build/tests/Test88.cc'] + all)
 common_env.Program('bin/test89', ['build/tests/Test89.cc'] + all)
+common_env.Program('bin/test90', ['build/tests/Test90.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -642,6 +640,7 @@ main=common_env.Alias('main', [
   'bin/test87',
   'bin/test88',
   'bin/test89',
+  'bin/test90',
   'bin/TestKMeans',
 #  'bin/TestLDA',
   #'bin/testLA01_Transpose',
@@ -672,6 +671,7 @@ main=common_env.Alias('main', [
   'libraries/libIntSillyJoin.so', 
   'libraries/libSillyGroupBy.so',
   'libraries/libEmployeeGroupBy.so',
+  'libraries/libOptimizedEmployeeGroupBy.so',
 #  'libraries/libKMeansQuery.so',  
   
   # TPCH Benchamr Libraries
@@ -722,6 +722,7 @@ main=common_env.Alias('main', [
   'libraries/libScanStringIntPairSet.so', 
   'libraries/libScanStringSet.so', 
   'libraries/libScanSupervisorSet.so', 
+  'libraries/libScanOptimizedSupervisorSet.so',
   'libraries/libSharedEmployee.so', 
   'libraries/libSharedEmployeeTopK.so', 
   'libraries/libSillyAggregation.so', 
@@ -741,11 +742,7 @@ main=common_env.Alias('main', [
   'libraries/libWriteSumResultSet.so',
 
   # LDA 
-#  'libraries/libLDADocIDAggregate.so',  
-#  'libraries/libScanLDADocumentSet.so',  
-#  'libraries/libLDAInitialTopicProbSelection.so',  
-#  'libraries/libWriteIntDoubleVectorPairSet.so',  
-#  'libraries/libIntDoubleVectorPair.so',  
+#  'libraries/libLDADocument.so',  
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',

@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_88_H
-#define TEST_88_H
+#ifndef TEST_90_H
+#define TEST_90_H
 
 //by Jia, May 2017
 
@@ -25,14 +25,14 @@
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
-#include "Supervisor.h"
-#include "Employee.h"
+#include "OptimizedSupervisor.h"
+#include "OptimizedEmployee.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
-#include "ScanSupervisorSet.h"
-#include "EmployeeGroupBy.h"
-#include "DepartmentEmployees.h"
+#include "ScanOptimizedSupervisorSet.h"
+#include "OptimizedEmployeeGroupBy.h"
+#include "OptimizedDepartmentEmployees.h"
 #include "VectorSink.h"
 #include "HashSink.h"
 #include "MapTupleSetIterator.h"
@@ -86,7 +86,7 @@ int main (int argc, char * argv[]) {
        if (argc > 3) {
            numOfMb = atoi(argv[3]);
        }
-       std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
+       std :: cout << "To add data up to size: " << numOfMb << "MB" << std :: endl;
 
        std :: string masterIp = "localhost";
        if (argc > 4) {
@@ -101,6 +101,13 @@ int main (int argc, char * argv[]) {
            }
        }
 
+       int numObjects = 0;
+       if (argc > 6) {
+           numObjects = atoi(argv[6]);
+       }
+       std :: cout << "To add up to " << numObjects << " objects" << std :: endl;
+
+
        PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
        DistributedStorageManagerClient temp (8108, masterIp, clientLogger);
@@ -113,7 +120,7 @@ int main (int argc, char * argv[]) {
 
 
             // now, create a new database
-            if (!temp.createDatabase ("test88_db", errMsg)) {
+            if (!temp.createDatabase ("test90_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit (-1);
             } else {
@@ -121,7 +128,7 @@ int main (int argc, char * argv[]) {
             }
 
             // now, create a new set in that database
-            if (!temp.createSet<Supervisor> ("test88_db", "test88_set", errMsg)) {
+            if (!temp.createSet<OptimizedSupervisor> ("test90_db", "test90_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
             } else {
@@ -132,7 +139,7 @@ int main (int argc, char * argv[]) {
             //Step 2. Add data
             DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-           int total = 0;
+            int total = 0;
             if (numOfMb > 0) {
                 int numIterations = numOfMb/128;
                 int remainder = numOfMb - 128*numIterations;
@@ -143,8 +150,8 @@ int main (int argc, char * argv[]) {
                         blockSize = remainder;
                     }
                     makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                    Handle<Vector<Handle<Supervisor>>> storeMe =
-                        makeObject<Vector<Handle<Supervisor>>> ();
+                    Handle<Vector<Handle<OptimizedSupervisor>>> storeMe =
+                        makeObject<Vector<Handle<OptimizedSupervisor>>> ();
                     char first = 'A', second = 'B', third = 'C', fourth = 'D';
                     char myString[5];
                     myString[4]=0;
@@ -175,24 +182,39 @@ int main (int argc, char * argv[]) {
                             }
                           
 //                            std :: cout << i << ":" << myString << std :: endl;
-                            Handle <Supervisor> myData = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), 3.54);
+                            Handle <OptimizedSupervisor> myData = makeObject <OptimizedSupervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), 3.54);
                             for (int j = 0; j < 10; j++) {
-                                 Handle <Employee> temp;
+                                 OptimizedEmployee temp;
                                  if (i % 3 == 0) {
-                                     temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), 3.54);
+                                     temp.name = "Steve Stevens";
+                                     temp.age = 20 + ((i + j) % 29);
+                                     temp.department = std :: string (myString);
+                                     temp.salary = 3.54;
                                  }
                                  else {
-                                     temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), 3.54);
+                                     temp.name = "Albert Albertson";
+                                     temp.age = 20 + ((i + j) % 29);
+                                     temp.department = std :: string (myString);
+                                     temp.salary = 3.54;
                                  }
                                  myData->addEmp (temp);
                             }
                             storeMe->push_back(myData);
                             total++;
+                            if (total == numObjects) {
+                                if (!dispatcherClient.sendData<OptimizedSupervisor>(std::pair<std::string, std::string>("test90_set", "test90_db"), storeMe, errMsg)) {
+                                     std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                                     return -1;
+                                }
+                                std :: cout << "total = " << total << std :: endl;
+                                temp.flushData (errMsg);
+                                return 0;
+                            }
                        }
                          
                     } catch (pdb :: NotEnoughSpace &n) {
                        //std :: cout << "We comes to " << i << " here" << std :: endl;
-                        if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("test88_set", "test88_db"), storeMe, errMsg)) {
+                        if (!dispatcherClient.sendData<OptimizedSupervisor>(std::pair<std::string, std::string>("test90_set", "test90_db"), storeMe, errMsg)) {
                             std :: cout << "Failed to send data to dispatcher server" << std :: endl;
                             return -1;
                         }
@@ -211,7 +233,7 @@ int main (int argc, char * argv[]) {
         if (strcmp(argv[5],"JustStoreData") != 0) {
 
         PDB_COUT << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<DepartmentEmployees> ("test88_db", "output_set", errMsg)) {
+        if (!temp.createSet<OptimizedDepartmentEmployees> ("test90_db", "output_set", errMsg)) {
                 cout << "Not able to create set: " + errMsg;
                 exit (-1);
         } else {
@@ -223,14 +245,14 @@ int main (int argc, char * argv[]) {
 	// this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType ("libraries/libScanSupervisorSet.so", errMsg);
-        catalogClient.registerType ("libraries/libEmployeeGroupBy.so", errMsg);
+        catalogClient.registerType ("libraries/libScanOptimizedSupervisorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
 	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <ScanSupervisorSet> ("test88_db", "test88_set");
-        Handle <Computation> myAgg = makeObject <EmployeeGroupBy> ("test88_db", "output_set");
+	Handle <Computation> myScanSet = makeObject <ScanOptimizedSupervisorSet> ("test90_db", "test90_set");
+        Handle <Computation> myAgg = makeObject <OptimizedEmployeeGroupBy> ("test90_db", "output_set");
         myAgg->setUsingCombiner (false);        
-        myAgg->setAllocatorPolicy(noReuseAllocator);
+        //myAgg->setAllocatorPolicy(noReuseAllocator);
         myAgg->setInput(myScanSet);
 
         auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -250,7 +272,7 @@ int main (int argc, char * argv[]) {
         // print the resuts of the output set
         if (printResult == true) {
             std :: cout << "to print result..." << std :: endl;
-            SetIterator <DepartmentEmployees> result = myClient.getSetIterator <DepartmentEmployees> ("test88_db", "output_set");
+            SetIterator <OptimizedDepartmentEmployees> result = myClient.getSetIterator <OptimizedDepartmentEmployees> ("test90_db", "output_set");
             std :: cout << "Query results: ";
             int count = 0;
             for (auto a : result)
@@ -266,9 +288,9 @@ int main (int argc, char * argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet ("test88_db", "output_set");
+            myClient.deleteSet ("test90_db", "output_set");
         } else {
-            if (!temp.removeSet ("test88_db", "output_set", errMsg)) {
+            if (!temp.removeSet ("test90_db", "output_set", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit (-1);
             } else {
