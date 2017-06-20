@@ -84,7 +84,7 @@ try:
     if sys.argv[1] == './bin/testLA21_Instance':
         subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost', sys.argv[2]])
     else:
-        subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost'])
+        subprocess.check_call([sys.argv[1], 'Y', 'Y', '1024', 'localhost', 'Y'])
 
 except subprocess.CalledProcessError as e:
     print bcolors.FAIL + "[ERROR] in running distributed test " + sys.argv[1] + bcolors.ENDC
