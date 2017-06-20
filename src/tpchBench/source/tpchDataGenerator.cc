@@ -333,7 +333,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 
 			int customerKey = atoi(tokens.at(0).c_str());
-			count++;
+//			count++;
 
 
 			try {
@@ -350,6 +350,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
+					count+=storeMeCustomerList->size();
+
 					std::cout << "Sending data! Count: " << count << std::endl;
 				} else {
 					std::cout << "Vector is zero." << count << std::endl;
@@ -375,6 +377,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
+		count+=storeMeCustomerList->size();
 
 		std::cout << "Send the rest of the data at the end: " << count  << std::endl;
 
@@ -575,8 +578,6 @@ int main(int argc, char * argv[]) {
 	}
 
 	std::cout << "Number of Customers Stored:" << customerCount << "\n";
-	std::cout << "Number of Customers Stored:" << customerCount << "\n";
-
 
 	// Now check if we have all 1000 suppliers inside the customers
 	for (int i = 1; i <= 1000; ++i) {
