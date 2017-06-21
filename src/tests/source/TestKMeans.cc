@@ -59,17 +59,21 @@
 #include <math.h>
 #include <random>
 
-
+#define COUT std::cout
+//#define COUT term
 
 using namespace pdb;
 int main (int argc, char * argv[]) {
     bool printResult = true;
     bool clusterMode = false;
-    freopen("output.txt","w",stdout);
+//    freopen("output.txt","w",stdout);
+    freopen("/dev/tty","w",stdout);
 
 //    std::ofstream out("output.txt");
-//    std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
-//    std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+//    std::streambuf *COUTbuf = COUT.rdbuf(); //save old buf
+//    COUT.rdbuf(out.rdbuf()); //redirect std::COUT to out.txt!
+
+//    std::ofstream term("/dev/tty", std::ios_base::out);
 
     const std::string red("\033[0;31m");
     const std::string green("\033[1;32m");
@@ -80,28 +84,28 @@ int main (int argc, char * argv[]) {
     const std::string reset("\033[0m");
 
 
-    std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
+    COUT << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
     if (argc > 1) {
         if (strcmp(argv[1],"N") == 0) {
             printResult = false;
-            std :: cout << "You successfully disabled printing result." << std::endl;
+            COUT << "You successfully disabled printing result." << std::endl;
         }else {
             printResult = true;
-            std :: cout << "Will print result." << std :: endl;
+            COUT << "Will print result." << std :: endl;
         }
     } else {
-        std :: cout << "Will print result. If you don't want to print result, you can add N as the first parameter to disable result printing." << std :: endl;
+        COUT << "Will print result. If you don't want to print result, you can add N as the first parameter to disable result printing." << std :: endl;
     }
 
     if (argc > 2) {
         if (strcmp(argv[2],"Y") == 0) {
             clusterMode = true;
-            std :: cout << "You successfully set the test to run on cluster." << std :: endl;
+            COUT << "You successfully set the test to run on cluster." << std :: endl;
         } else {
             clusterMode = false;
         }
     } else {
-        std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
+        COUT << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
     }
 
     int numOfMb = 64; //by default we add 64MB data
@@ -111,13 +115,13 @@ int main (int argc, char * argv[]) {
     numOfMb = 64; //Force it to be 64 by now.
 
 
-    std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
+    COUT << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
     std :: string masterIp = "localhost";
     if (argc > 4) {
         masterIp = argv[4];
     }
-    std :: cout << "Master IP Address is " << masterIp << std :: endl;
+    COUT << "Master IP Address is " << masterIp << std :: endl;
 
     bool whetherToAddData = true;
     if (argc > 5) {
@@ -127,15 +131,15 @@ int main (int argc, char * argv[]) {
     }
 
 
-    std :: cout << std :: endl;
-    std :: cout << "*****************************************" << std :: endl;
-    std :: cout << "K-means starts : " << std :: endl;
-    std :: cout << "*****************************************" << std :: endl;
-    std :: cout << std :: endl;
+    COUT << blue << std :: endl;
+    COUT << "*****************************************" << std :: endl;
+    COUT << "K-means starts : " << std :: endl;
+    COUT << "*****************************************" << std :: endl;
+    COUT << reset << std :: endl;
 
     
-    std :: cout << "The K-means paramers are: " << std :: endl;
-    std :: cout << std :: endl;
+    COUT << "The K-means paramers are: " << std :: endl;
+    COUT << std :: endl;
 
     int iter = 1;
     int k = 3;
@@ -145,25 +149,25 @@ int main (int argc, char * argv[]) {
     if (argc > 6) {
 	iter = std::stoi(argv[6]);
     }
-    std :: cout << "The number of iterations: " << iter << std :: endl;
+    COUT << "The number of iterations: " << iter << std :: endl;
 
     if (argc > 7) {
 	k = std::stoi(argv[7]);
     }
-    std :: cout << "The number of clusters: " << k << std :: endl;
+    COUT << "The number of clusters: " << k << std :: endl;
 
     if (argc > 8) {
 	numData = std::stoi(argv[8]);
     }
-    std :: cout << "The number of data points: " << numData << std :: endl;
+    COUT << "The number of data points: " << numData << std :: endl;
 
     if (argc > 9) {
 	dim = std::stoi(argv[9]);
     }
-    std :: cout << "The dimension of each data point: " << dim << std :: endl;
+    COUT << "The dimension of each data point: " << dim << std :: endl;
 
 
-    std :: cout << std :: endl;
+    COUT << std :: endl;
 
 
     pdb :: PDBLoggerPtr clientLogger = make_shared<pdb :: PDBLogger>("clientLog");
@@ -198,18 +202,18 @@ int main (int argc, char * argv[]) {
 
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
-            cout << "Not able to create database: " + errMsg;
+            COUT << "Not able to create database: " + errMsg;
             exit (-1);
         } else {
-            cout << "Created database.\n";
+            COUT << "Created database.\n";
         }
 
         // now, create a new set in that database
         if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_input_set", errMsg)) {
-            cout << "Not able to create set: " + errMsg;
+            COUT << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
-            cout << "Created set.\n";
+            COUT << "Created set.\n";
         }
 
 
@@ -219,13 +223,13 @@ int main (int argc, char * argv[]) {
 
         if (numOfMb > 0) {
             int numIterations = numOfMb/64;
-            std:: cout << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
+            COUT << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
             int remainder = numOfMb - 64*numIterations;
             if (remainder > 0) { 
                 numIterations = numIterations + 1; 
             }
             for (int num = 0; num < numIterations; num++) {
-                std::cout << "Iterations: "<< num << std::endl;
+                COUT << "Iterations: "<< num << std::endl;
                 int blockSize = 64;
                 if ((num == numIterations - 1) && (remainder > 0)){
                     blockSize = remainder;
@@ -248,19 +252,19 @@ int main (int argc, char * argv[]) {
                         }
                         storeMe->push_back (myData);
                     }
-		    /*std :: cout << "input data: " << std :: endl;
+		    /*COUT << "input data: " << std :: endl;
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
                     }*/
 		    
 
                     if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
-                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                        COUT << "Failed to send data to dispatcher server" << std :: endl;
                         return -1;
                     }
                 } catch (pdb :: NotEnoughSpace &n) {
                     if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
-                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                        COUT << "Failed to send data to dispatcher server" << std :: endl;
                         return -1;
                     }
                 }
@@ -275,28 +279,28 @@ int main (int argc, char * argv[]) {
 
     PDB_COUT << "to create a new set to store the data count" << std :: endl;
     if (!temp.createSet<SumResult> ("kmeans_db", "kmeans_data_count_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+        COUT << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
-        cout << "Created set kmeans_data_count_set.\n";
+        COUT << "Created set kmeans_data_count_set.\n";
     }
 
 
     PDB_COUT << "to create a new set to store the initial model" << std :: endl;
     if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_initial_model_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+        COUT << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
-        cout << "Created set kmeans_initial_model_set.\n";
+        COUT << "Created set kmeans_initial_model_set.\n";
     }
 
     
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
     if (!temp.createSet<KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
+        COUT << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
-        cout << "Created set kmeans_output_set.\n";
+        COUT << "Created set kmeans_output_set.\n";
     }
 
     //Step 3. To execute a Query
@@ -326,7 +330,7 @@ int main (int argc, char * argv[]) {
 	}
     }
     /*
-    std :: cout << "My intial model: " << std :: endl;
+    COUT << "My intial model: " << std :: endl;
     for (int i = 0; i < k; i++) {
 	(*model)[i] = (*tmpModel)[i];
 	(*model)[i].print();
@@ -346,7 +350,7 @@ int main (int argc, char * argv[]) {
     myWriter->setInput(myDataCount);
 
     if (!myClient.executeComputations(errMsg, myWriter)) {
-        std :: cout << "Query failed. Message was: " << errMsg << "\n";
+        COUT << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
     SetIterator <SumResult> dataCountResult = myClient.getSetIterator <SumResult> ("kmeans_db", "kmeans_data_count_set");
@@ -356,8 +360,8 @@ int main (int argc, char * argv[]) {
     }
     
 //    dataCount = 10;
-    std :: cout << "The number of data points: " << dataCount << std :: endl;
-    std :: cout << std :: endl;
+    COUT << "The number of data points: " << dataCount << std :: endl;
+    COUT << std :: endl;
     
     // Randomly sample k data points from the input data through Bernoulli sampling
     // We guarantee the sampled size >= k in 99.99% of the time
@@ -366,7 +370,7 @@ int main (int argc, char * argv[]) {
     double delta = 1e-4;
     double gamma = - log(delta) / dataCount;
     fraction = fmin(1, fraction + gamma + sqrt(gamma * gamma + 2 * gamma * fraction));
-    std :: cout << "The sample threshold is: " << fraction << std :: endl;
+    COUT << "The sample threshold is: " << fraction << std :: endl;
     while(myk < k) {
 	
 	    Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
@@ -377,7 +381,7 @@ int main (int argc, char * argv[]) {
 
 	 
 	    if (!myClient.executeComputations(errMsg, myWriteSet)) {
-		std :: cout << "Query failed. Message was: " << errMsg << "\n";
+		COUT << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	    }
 	    SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_initial_model_set");
@@ -406,30 +410,30 @@ int main (int argc, char * argv[]) {
 			}
 
 			if ( (!notNew) || (previous == 0) ) {
-				std :: cout << "The sample we got is: " << std :: endl;
+				COUT << "The sample we got is: " << std :: endl;
 				for (int i = 0; i < dim; i++) {
 					model[myk][i] = a->getDouble(i);
-					std :: cout << model[myk][i] << ", ";
+					COUT << model[myk][i] << ", ";
 				}
 				myk++;
-				std :: cout << std :: endl;
+				COUT << std :: endl;
 			}
             	} 
 	    }
 	    else {	// Randomly select (k - myk) samples from sampleResult
-		std :: cout << "We got " << sampleCount << " samples. We will randomly select " << (k-myk) << " samples from them." << std :: endl;
+		COUT << "We got " << sampleCount << " samples. We will randomly select " << (k-myk) << " samples from them." << std :: endl;
 		std :: set<int> randomID;
 		int myPos = 0;
 		while (randomID.size() < (k-myk)) {
 			std::uniform_int_distribution<> unif(0, sampleCount - 1);
 			int tempID = unif(randomGen);
-			std :: cout << "The ID for sampling: " << tempID << std :: endl;
+			COUT << "The ID for sampling: " << tempID << std :: endl;
 			randomID.insert(tempID);
 		}
 		for (Handle<DoubleVector> a : sampleResult) {
 			if (randomID.count(myPos)) {
 
-				std :: cout << "The ID we got for sampling: " << myPos << std :: endl;
+				COUT << "The ID we got for sampling: " << myPos << std :: endl;
 
 				// Sample without replacement
 				bool notNew = true;
@@ -446,13 +450,13 @@ int main (int argc, char * argv[]) {
 				}
 
 				if ((!notNew) || (previous == 0)) {
-					std :: cout << "The sample we got is: " << std :: endl;
+					COUT << "The sample we got is: " << std :: endl;
 					for (int i = 0; i < dim; i++) {
 						model[myk][i] = a->getDouble(i);
-						std :: cout << model[myk][i] << ", ";
+						COUT << model[myk][i] << ", ";
 					}
 					myk++;
-					std :: cout << std :: endl;
+					COUT << std :: endl;
 				}
 			}
 			myPos++;
@@ -460,11 +464,11 @@ int main (int argc, char * argv[]) {
 	    }
 
 	
-	    std :: cout << "After this sampling, we will need another " << (myk >= k? 0 : k-myk) << " samples." << std :: endl;
+	    COUT << "After this sampling, we will need another " << (myk >= k? 0 : k-myk) << " samples." << std :: endl;
 
 	    temp.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::DoubleVector", errMsg);
 
-	    std :: cout << std :: endl;
+	    COUT << std :: endl;
     }
     
   
@@ -477,9 +481,9 @@ int main (int argc, char * argv[]) {
 
                 const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 
-		std :: cout << "*****************************************" << std :: endl;
-		std :: cout << "I am in iteration : " << n << std :: endl;
-		std :: cout << "*****************************************" << std :: endl;
+		COUT << "*****************************************" << std :: endl;
+		COUT << "I am in iteration : " << n << std :: endl;
+		COUT << "*****************************************" << std :: endl;
 
 
     		pdb::Handle<pdb::Vector<Handle<DoubleVector>>> my_model = pdb::makeObject<pdb::Vector<Handle<DoubleVector>>> ();
@@ -493,15 +497,15 @@ int main (int argc, char * argv[]) {
 		}
 
 		/*
-                std :: cout << "The std model I have is: " << std :: endl;
+                COUT << "The std model I have is: " << std :: endl;
                 for (int i = 0; i < k; i++) {
                      for (int j = 0; j < dim; j++) {
-                         std :: cout << "model[" << i << "][" << j << "]=" << model[i][j] << std :: endl;
+                         COUT << "model[" << i << "][" << j << "]=" << model[i][j] << std :: endl;
                      }
                 }
 		*/
 
-	    	std :: cout << "The model I have is: " << std :: endl;
+	    	COUT << "The model I have is: " << std :: endl;
 		for (int i = 0; i < k; i++) {
 			(*my_model)[i]->print();
 	    	}		    
@@ -520,11 +524,11 @@ int main (int argc, char * argv[]) {
 		auto begin = std :: chrono :: high_resolution_clock :: now();
 
 		if (!myClient.executeComputations(errMsg, myQuery)) {
-			std :: cout << "Query failed. Message was: " << errMsg << "\n";
+			COUT << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
 
-		std :: cout << "The query is executed successfully!" << std :: endl;
+		COUT << "The query is executed successfully!" << std :: endl;
 
 		// update the model
 		SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
@@ -534,9 +538,9 @@ int main (int argc, char * argv[]) {
 			for (Handle<KMeansAggregateOutputType> a : result) {
 				if (kk >= k)
 						break;
-				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				std :: cout << "The cluster mean sum I got is " << std :: endl;
+				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
+				COUT << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
+				COUT << "The cluster mean sum I got is " << std :: endl;
 				(*a).getValue().getMean().print();
 				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
 				for (int i = 0; i < dim; i++) {
@@ -547,83 +551,83 @@ int main (int argc, char * argv[]) {
 					avgData[i] += (*a).getValue().getMean().getDouble(i);
 				}
 
-				std :: cout << "I am updating the model in position: " << kk << std :: endl;
+				COUT << "I am updating the model in position: " << kk << std :: endl;
 				for(int i = 0; i < dim; i++)
-					std::cout << i << ": " << model[kk][i] << ' ';
-				std :: cout << std :: endl;
-				std :: cout << std :: endl;
+					COUT << i << ": " << model[kk][i] << ' ';
+				COUT << std :: endl;
+				COUT << std :: endl;
 				kk++;
 			}
 			for (int i = 0; i < dim; i++) {
 				avgData[i] = avgData[i] / dataCount;
 			}
-			std :: cout << "The average of data points is : \n";
+			COUT << "The average of data points is : \n";
 			for (int i = 0; i < dim; i++)
-				std::cout << i << ": " << avgData[i] << ' ';
-			std :: cout << std :: endl;
-			std :: cout << std :: endl;
+				COUT << i << ": " << avgData[i] << ' ';
+			COUT << std :: endl;
+			COUT << std :: endl;
 			ifFirst = false;
 		}
 		else {
 			for (Handle<KMeansAggregateOutputType> a : result) {
 				if (kk >= k)
 						break;
-				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				std :: cout << "The cluster mean sum I got is " << std :: endl;
+				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
+				COUT << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
+				COUT << "The cluster mean sum I got is " << std :: endl;
 				(*a).getValue().getMean().print();
 		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
 				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
 				for (int i = 0; i < dim; i++) {
 					model[kk][i] = tmpModel.getDouble(i);
 				}
-				std :: cout << "I am updating the model in position: " << kk << std :: endl;
+				COUT << "I am updating the model in position: " << kk << std :: endl;
 				for(int i = 0; i < dim; i++)
-					std::cout << i << ": " << model[kk][i] << ' ';
-				std :: cout << std :: endl;
-				std :: cout << std :: endl;
+					COUT << i << ": " << model[kk][i] << ' ';
+				COUT << std :: endl;
+				COUT << std :: endl;
 				kk++;
 			}
 		}
 		if (kk < k) {
-			std :: cout << "These clusters do not have data: "  << std :: endl;
+			COUT << "These clusters do not have data: "  << std :: endl;
 			for (int i = kk; i < k; i++) {
-				std :: cout << i << ", ";
+				COUT << i << ", ";
 				for (int j = 0; j < dim; j++) {
 					double bias = ((double) rand() / (RAND_MAX));
 					model[i][j] = avgData[j] + bias;
 				}
 			}
 		}
-		std :: cout << std :: endl;
-		std :: cout << std :: endl;
+		COUT << std :: endl;
+		COUT << std :: endl;
 
 		temp.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
 
 		auto end = std::chrono::high_resolution_clock::now();
-		std::cout << "Time Duration: " <<
+		COUT << "Time Duration: " <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
     }
 
-    std::cout << std::endl;
+    COUT << std::endl;
 
     //QueryClient myClient (8108, "localhost", clientLogger, true);
 
 	// print the resuts
     if (printResult == true) {
-//        std :: cout << "to print result..." << std :: endl;
+//        COUT << "to print result..." << std :: endl;
 
-//	std :: cout << std :: endl;
+//	COUT << std :: endl;
 
 	/*
         SetIterator <DoubleVector> input = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_input_set");
-        std :: cout << "Query input: "<< std :: endl;
+        COUT << "Query input: "<< std :: endl;
         int countIn = 0;
         for (auto a : input) {
             countIn ++;
-            std :: cout << countIn << ":";
+            COUT << countIn << ":";
             a->print();
-            std :: cout << std::endl;
+            COUT << std::endl;
         }
 	*/
 
@@ -631,25 +635,25 @@ int main (int argc, char * argv[]) {
         SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
 
 
-	std :: cout << std :: endl;
-	std :: cout << blue << "*****************************************" << reset << std :: endl;
-	std :: cout << blue << "K-means resultss : " << reset << std :: endl;
-	std :: cout << blue << "*****************************************" << reset << std :: endl;
-	std :: cout << std :: endl;
+	COUT << std :: endl;
+	COUT << blue << "*****************************************" << reset << std :: endl;
+	COUT << blue << "K-means resultss : " << reset << std :: endl;
+	COUT << blue << "*****************************************" << reset << std :: endl;
+	COUT << std :: endl;
 
-//                std :: cout << "The std model I have is: " << std :: endl;
+//                COUT << "The std model I have is: " << std :: endl;
 	for (int i = 0; i < k; i++) {
-	     std :: cout << "Cluster index: " << i << std::endl;
+	     COUT << "Cluster index: " << i << std::endl;
 	     for (int j = 0; j < dim - 1; j++) {
-		 std :: cout << blue << model[i][j] << ", " << reset;
+		 COUT << blue << model[i][j] << ", " << reset;
 	     }
-		 std :: cout << blue << model[i][dim - 1] << reset << std :: endl;
+		 COUT << blue << model[i][dim - 1] << reset << std :: endl;
 	}
 
     }
 
 
-    std :: cout << std :: endl;
+    COUT << std :: endl;
 
     if (clusterMode == false) {
 	    // and delete the sets
@@ -658,27 +662,27 @@ int main (int argc, char * argv[]) {
         myClient.deleteSet ("kmeans_db", "kmeans_data_count_set");
     } else {
         if (!temp.removeSet ("kmeans_db", "kmeans_output_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
+            COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
         else if (!temp.removeSet ("kmeans_db", "kmeans_initial_model_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
+            COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
         else if (!temp.removeSet ("kmeans_db", "kmeans_data_count_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
+            COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
 
 	else {
-            cout << "Removed set.\n";
+            COUT << "Removed set.\n";
         }
     }
     int code = system ("scripts/cleanupSoFiles.sh");
     if (code < 0) {
-        std :: cout << "Can't cleanup so files" << std :: endl;
+        COUT << "Can't cleanup so files" << std :: endl;
     }
-//    std::cout << "Time Duration: " <<
+//    COUT << "Time Duration: " <<
 //    std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
 }
 

@@ -32,6 +32,8 @@ class KMeansSampleSelection : public SelectionComp <DoubleVector, DoubleVector> 
 
 private:
         double fraction;
+	std::uniform_real_distribution<> unif;
+	std::mt19937 gen;
 
 public:
 
@@ -39,19 +41,20 @@ public:
 
 	KMeansSampleSelection () {}
 
-	KMeansSampleSelection (double inputFraction) {
+	KMeansSampleSelection (double inputFraction) : unif(0,1) {
 		this->fraction = inputFraction;
+		std::random_device rd;
+		std::mt19937 gen(rd());
 	}
 
 	Lambda <bool> getSelection (Handle <DoubleVector> checkMe) override {
 		return makeLambda (checkMe, [&] (Handle<DoubleVector> & checkMe) {
 			
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_real_distribution<> unif(0, 1);
-			double myVal = unif(gen);
+		//	std::random_device rd;
+		//	std::mt19937 gen(rd());
+			double myVal = this->unif(this->gen);
 			bool ifSample = (myVal <= (this->fraction));
-//			std :: cout << "The sampled value: " << myVal << std :: endl;
+	//		std :: cout << "The sampled value: " << myVal << std :: endl;
 			if (ifSample)
 				return true;
 			else
