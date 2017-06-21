@@ -25,11 +25,8 @@
 #include <iostream>
 #include <string>
 
-// the special type code for a PDB string
-#define PDB_STRING 1
-
 // the String class has a special type code value reserved for it... even though it is no
-// longer a PDB Object.  Now, whenever the PDBTemplateBase sees a type code of PDB_STRING,
+// longer a PDB Object.  Now, whenever the PDBTemplateBase sees a type code of String_TYPECODE,
 // it knows that it is pointing to a String, and acts accordingly.  No VTable or VTable 
 // fixing is used.  This has been done so as to optimize the storage for this classs,
 // since it is so ubiquitous.  Now, the total storage is a Handle (12B), plus the space 

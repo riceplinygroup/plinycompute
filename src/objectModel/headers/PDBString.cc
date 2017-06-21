@@ -34,29 +34,29 @@ namespace pdb {
 inline String :: String () {
 
 	// view the Handle as actually storing data
-	data.setExactTypeInfoValue (String_TYPEID);
+	data.setExactTypeInfoValue (1);
 	data.setOffset (-1);
 	c_str ()[0] = 0;
 }
 
 inline size_t String :: hash () const {
 
-	if (data.getExactTypeInfoValue () == String_TYPEID) {
-		return hashMe (c_str (), strlen (c_str ()));
+	if (data.getExactTypeInfoValue () >= 0) {
+		return hashMe (c_str (), size () - 1);
 	} else {
-		return hashMe (c_str (), -(data.getExactTypeInfoValue ()) - 1);
+		return hashMe (c_str (), -size () - 1);
 	}
 }
 
 inline String &String :: operator = (const char *toMe) {
 	int len = strlen (toMe) + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		if (data.getExactTypeInfoValue () != String_TYPEID) {
+		if (data.getExactTypeInfoValue () < 0) {
 			data = nullptr;
-			data.setExactTypeInfoValue (String_TYPEID);
 		}
+		data.setExactTypeInfoValue (len);
 	} else {
-		if (data.getExactTypeInfoValue () == String_TYPEID) {
+		if (data.getExactTypeInfoValue () >= 0) {
 			data.setOffset (-1);
 		}
 		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
@@ -70,19 +70,19 @@ inline String &String :: operator = (const char *toMe) {
 inline String :: String (const String &s) {
 
 	// if the other guy is short
-	if (s.data.getExactTypeInfoValue () == String_TYPEID) {
-		data.setExactTypeInfoValue (String_TYPEID);
+	if (s.data.getExactTypeInfoValue () >= 0) {
 		data.setOffset (s.data.getOffset ());
 
 	// the other guy is big
 	} else {
 		data = s.data;
-		data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
 	}
+
+	data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
 }
 
 inline String :: ~String () {
-	if (data.getExactTypeInfoValue () == String_TYPEID) {
+	if (data.getExactTypeInfoValue () >= 0) {
 		data.setOffset (-1);
 	} else {
 		data = nullptr;
@@ -92,33 +92,32 @@ inline String :: ~String () {
 inline String &String :: operator = (const String &s) {
 
 	// if the other guy is short
-	if (s.data.getExactTypeInfoValue () == String_TYPEID) {
-		if (data.getExactTypeInfoValue () != String_TYPEID) {
+	if (s.data.getExactTypeInfoValue () >= 0) {
+		if (data.getExactTypeInfoValue () < 0) {
 			data = nullptr;
-			data.setExactTypeInfoValue (String_TYPEID);
 		}
 		data.setOffset (s.data.getOffset ());
 
 	// the other guy is big
 	} else {
-		if (data.getExactTypeInfoValue () == String_TYPEID) {
+		if (data.getExactTypeInfoValue () >= 0) {
 			data.setOffset (-1);
 		}
 		data = s.data;
-		data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
 	}
+	data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
 	return *this;
 }
 
 inline String &String :: operator = (const std :: string &s) {
 	int len = s.size () + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		if (data.getExactTypeInfoValue () != String_TYPEID) {
+		if (data.getExactTypeInfoValue () < 0) {
 			data = nullptr;
-			data.setExactTypeInfoValue (String_TYPEID);
 		}
+		data.setExactTypeInfoValue (len);
 	} else {
-		if (data.getExactTypeInfoValue () == String_TYPEID) {
+		if (data.getExactTypeInfoValue () >= 0) {
 			data.setOffset (-1);
 		}
 		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
@@ -132,7 +131,7 @@ inline String &String :: operator = (const std :: string &s) {
 inline String :: String (const char *toMe) {
 	int len = strlen (toMe) + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (String_TYPEID);
+		data.setExactTypeInfoValue (len);
 	} else {
 		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
 		data.setExactTypeInfoValue (-len);
@@ -145,7 +144,7 @@ inline String :: String (const char* toMe, size_t n) {
 	int len = n + 1;
 
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (String_TYPEID);
+		data.setExactTypeInfoValue (len);
 	} else {
 		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
 		data.setExactTypeInfoValue (-len);
@@ -159,7 +158,7 @@ inline String :: String (const std :: string &s) {
 	int len = s.size () + 1;
 
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (String_TYPEID);
+		data.setExactTypeInfoValue (len);
 	} else {
 		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
 		data.setExactTypeInfoValue (-len);
@@ -178,7 +177,7 @@ inline String :: operator std :: string () const {
 
 inline char *String :: c_str () const {
 
-	if (data.getExactTypeInfoValue () == String_TYPEID) {
+	if (data.getExactTypeInfoValue () >= 0) {
 		return (char *) &data;	
 	} else {
 		return &(*data);
@@ -186,7 +185,11 @@ inline char *String :: c_str () const {
 }
 
 inline size_t String :: size () const {
-	return strlen (c_str ());
+	if (data.getExactTypeInfoValue () >= 0) {
+		return data.getExactTypeInfoValue ();
+	} else {
+		return -data.getExactTypeInfoValue ();
+	}
 }
 
 inline std::ostream& operator<< (std::ostream& stream, const String &printMe) {

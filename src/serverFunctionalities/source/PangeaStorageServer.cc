@@ -219,7 +219,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
             return ;
         }
         size_t pageSize = myPage->getSize();
-        //std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+        std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
 	
@@ -238,11 +238,8 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 			// while there are still records
 			while (allRecs.size () > 0) {
 
-				//std :: cout << "Processing a record!!\n";
-
 				auto &allObjects = *(allRecs[allRecs.size () - 1]->getRootObject ());
 				numObjectsInRecord = allObjects.size ();
-                                //std :: cout << "PangeaStorageServer: Write back " << numObjectsInRecord << std :: endl;
 				// put all of the data onto the page
 				for (; pos < numObjectsInRecord; pos++) {
 					data->push_back (allObjects[pos]);

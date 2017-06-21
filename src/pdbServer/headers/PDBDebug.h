@@ -1,6 +1,7 @@
 #ifndef PDB_DEBUG_H
 #define PDB_DEBUG_H
 
+#define PDB_DEBUG
 
 #include <ostream>
 #include <iostream>

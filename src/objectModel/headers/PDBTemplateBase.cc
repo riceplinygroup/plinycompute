@@ -138,7 +138,7 @@ inline void PDBTemplateBase :: setUpAndCopyFromConstituentObject (void *target, 
 inline size_t PDBTemplateBase :: getSizeOfConstituentObject (void *ofMe) const {
 
 	// if we are a string
-	if (info == PDB_STRING) {
+	if (info == String_TYPEID) {
 		return sizeof (String);
 
 	// else if we are a handle
