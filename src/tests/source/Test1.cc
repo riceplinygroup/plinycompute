@@ -49,14 +49,12 @@ int main () {
 	// load up the allocator with RAM
 	makeObjectAllocatorBlock (1024 * 1024 * 24, true);
 
-	Handle <String> temp = makeObject <String> ("this is sooo cool");
+	Handle <String> temp = makeObject <String> ("this is soooooo cool");
 	Handle <String> temp2 = makeObject <String> ("this");
 	Handle <String> temp3;
 	temp3 = temp;
 	std :: cout << *temp << " " << *temp2 << " " << *temp3 << "\n";
-	temp = nullptr;
-	temp2 = nullptr;
-	temp3 = nullptr;
+	temp = temp2 = temp3 = nullptr;
 
 	int i = 0;
 	Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> (10);
