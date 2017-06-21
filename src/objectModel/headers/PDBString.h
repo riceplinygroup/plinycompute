@@ -41,8 +41,8 @@ namespace pdb {
 
 class String {
 
-	Handle <char> data;
-	
+	char storage [sizeof (Handle <char>)];
+	Handle <char> &data () const;	
 public:
 
 	String ();

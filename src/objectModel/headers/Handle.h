@@ -89,7 +89,8 @@ class RefCountedObject;
 class GenericHandle;
 
 // so all instantiated Handle types derive from HandleBase
-class HandleBase {};
+class HandleBase {
+};
 
 // Here is the Handle class....
 template <class ObjType> 

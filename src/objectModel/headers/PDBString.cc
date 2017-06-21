@@ -27,40 +27,40 @@
 #include "BuiltInObjectTypeIDs.h"
 
 
-#define CAN_FIT_IN_DATA(len) (len <= sizeof (decltype (data.getOffset ())))
+#define CAN_FIT_IN_DATA(len) (len <= sizeof (decltype (data ().getOffset ())))
 
 namespace pdb {
+
+inline Handle <char> &String :: data () const {
+	return *((Handle <char> *) this->storage);
+}
 
 inline String :: String () {
 
 	// view the Handle as actually storing data
-	data.setExactTypeInfoValue (1);
-	data.setOffset (-1);
+	data ().setExactTypeInfoValue (1);
+	data ().setOffset (-1);
 	c_str ()[0] = 0;
 }
 
 inline size_t String :: hash () const {
 
-	if (data.getExactTypeInfoValue () >= 0) {
-		return hashMe (c_str (), size () - 1);
-	} else {
-		return hashMe (c_str (), -size () - 1);
-	}
+	return hashMe (c_str (), size () - 1);
 }
 
 inline String &String :: operator = (const char *toMe) {
 	int len = strlen (toMe) + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		if (data.getExactTypeInfoValue () < 0) {
-			data = nullptr;
+		if (data ().getExactTypeInfoValue () < 0) {
+			data () = nullptr;
 		}
-		data.setExactTypeInfoValue (len);
+		data ().setExactTypeInfoValue (len);
 	} else {
-		if (data.getExactTypeInfoValue () >= 0) {
-			data.setOffset (-1);
+		if (data ().getExactTypeInfoValue () >= 0) {
+			data ().setOffset (-1);
 		}
-		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-		data.setExactTypeInfoValue (-len);
+		data () = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data ().setExactTypeInfoValue (-len);
 	}
 
 	memmove (c_str (), toMe, len);
@@ -70,58 +70,56 @@ inline String &String :: operator = (const char *toMe) {
 inline String :: String (const String &s) {
 
 	// if the other guy is short
-	if (s.data.getExactTypeInfoValue () >= 0) {
-		data.setOffset (s.data.getOffset ());
+	if (s.data ().getExactTypeInfoValue () >= 0) {
+		data ().setOffset (s.data ().getOffset ());
 
 	// the other guy is big
 	} else {
-		data = s.data;
+		data () = s.data ();
 	}
 
-	data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
+	data ().setExactTypeInfoValue (s.data ().getExactTypeInfoValue ());
 }
 
 inline String :: ~String () {
-	if (data.getExactTypeInfoValue () >= 0) {
-		data.setOffset (-1);
-	} else {
-		data = nullptr;
+	if (data ().getExactTypeInfoValue () < -1) {
+		(&data ())->~Handle ();
 	}
 }
 
 inline String &String :: operator = (const String &s) {
 
 	// if the other guy is short
-	if (s.data.getExactTypeInfoValue () >= 0) {
-		if (data.getExactTypeInfoValue () < 0) {
-			data = nullptr;
+	if (s.data ().getExactTypeInfoValue () >= 0) {
+		if (data ().getExactTypeInfoValue () < 0) {
+			data () = nullptr;
 		}
-		data.setOffset (s.data.getOffset ());
+		data ().setOffset (s.data ().getOffset ());
 
 	// the other guy is big
 	} else {
-		if (data.getExactTypeInfoValue () >= 0) {
-			data.setOffset (-1);
+		if (data ().getExactTypeInfoValue () >= 0) {
+			data ().setOffset (-1);
 		}
-		data = s.data;
+		data () = s.data ();
 	}
-	data.setExactTypeInfoValue (s.data.getExactTypeInfoValue ());
+	data ().setExactTypeInfoValue (s.data ().getExactTypeInfoValue ());
 	return *this;
 }
 
 inline String &String :: operator = (const std :: string &s) {
 	int len = s.size () + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		if (data.getExactTypeInfoValue () < 0) {
-			data = nullptr;
+		if (data ().getExactTypeInfoValue () < 0) {
+			data () = nullptr;
 		}
-		data.setExactTypeInfoValue (len);
+		data ().setExactTypeInfoValue (len);
 	} else {
-		if (data.getExactTypeInfoValue () >= 0) {
-			data.setOffset (-1);
+		if (data ().getExactTypeInfoValue () >= 0) {
+			data ().setOffset (-1);
 		}
-		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-		data.setExactTypeInfoValue (-len);
+		data () = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data ().setExactTypeInfoValue (-len);
 	}
 
 	memmove (c_str (), s.c_str (), len);
@@ -131,10 +129,11 @@ inline String &String :: operator = (const std :: string &s) {
 inline String :: String (const char *toMe) {
 	int len = strlen (toMe) + 1;
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (len);
+		data ().setExactTypeInfoValue (len);
 	} else {
-		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-		data.setExactTypeInfoValue (-len);
+		data ().setOffset (-1);
+		data () = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data ().setExactTypeInfoValue (-len);
 	}
 
 	memmove (c_str (), toMe, len);
@@ -144,10 +143,11 @@ inline String :: String (const char* toMe, size_t n) {
 	int len = n + 1;
 
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (len);
+		data ().setExactTypeInfoValue (len);
 	} else {
-		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-		data.setExactTypeInfoValue (-len);
+		data ().setOffset (-1);
+		data () = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data ().setExactTypeInfoValue (-len);
 	}
 
 	memmove (c_str (), toMe, len - 1);
@@ -158,10 +158,11 @@ inline String :: String (const std :: string &s) {
 	int len = s.size () + 1;
 
 	if (CAN_FIT_IN_DATA (len)) {
-		data.setExactTypeInfoValue (len);
+		data ().setExactTypeInfoValue (len);
 	} else {
-		data = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
-		data.setExactTypeInfoValue (-len);
+		data ().setOffset (-1);
+		data () = makeObjectWithExtraStorage <char> ((len - 1) * sizeof (char));
+		data ().setExactTypeInfoValue (-len);
 	}
 
 	memmove (c_str (), s.c_str (), len);
@@ -177,18 +178,18 @@ inline String :: operator std :: string () const {
 
 inline char *String :: c_str () const {
 
-	if (data.getExactTypeInfoValue () >= 0) {
-		return (char *) &data;	
+	if (data ().getExactTypeInfoValue () >= 0) {
+		return (char *) &data ();	
 	} else {
-		return &(*data);
+		return &(*data ());
 	}
 }
 
 inline size_t String :: size () const {
-	if (data.getExactTypeInfoValue () >= 0) {
-		return data.getExactTypeInfoValue ();
+	if (data ().getExactTypeInfoValue () >= 0) {
+		return data ().getExactTypeInfoValue ();
 	} else {
-		return -data.getExactTypeInfoValue ();
+		return -data ().getExactTypeInfoValue ();
 	}
 }
 
