@@ -749,7 +749,11 @@ main=common_env.Alias('main', [
   'libraries/libWriteSumResultSet.so',
 
   # LDA 
-#  'libraries/libLDADocument.so',  
+#  'libraries/libLDADocIDAggregate.so',
+#  'libraries/libScanLDADocumentSet.so',
+#  'libraries/libLDAInitialTopicProbSelection.so',
+#  'libraries/libWriteIntDoubleVectorPairSet.so',
+#  'libraries/libIntDoubleVectorPair.so',
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',
