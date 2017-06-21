@@ -252,6 +252,7 @@ namespace pdb {
 
                 // just write the shared library to the file
                 int filedesc = open (sharedLibraryFileName.c_str (), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+		PDB_COUT << "Writing file " << sharedLibraryFileName.c_str () << "\n";
                 write (filedesc, sharedLibraryBytes.c_str (), sharedLibraryBytes.size());
                 close (filedesc);
                 afterWrite = std :: chrono :: high_resolution_clock :: now();

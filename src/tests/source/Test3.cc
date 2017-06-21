@@ -63,8 +63,8 @@ int main () {
 	int numSupers = (*mySupers).size ();
 	Handle <Vector <Handle <Employee>>> result = makeObject <Vector <Handle <Employee>>> (10);
 	for (int i = 0; i < numSupers; i++) {
-		result->push_back ((*mySupers)[i]->getEmp (i % 10));
-	}	
+		result->push_back (((*mySupers)[i]->getEmp (i % 10)));
+	}
 
 	// now, we serialize those employees
 	close (filedesc);
