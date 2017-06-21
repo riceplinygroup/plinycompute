@@ -81,6 +81,14 @@ public:
 	}
 };
 
+inline std :: ostream& operator<<(std :: ostream& os, const Handle <Employee>& dt)
+{
+        //Handle <Employee> *foo = (Handle <Employee> *) &dt;
+        //os << "Name is " << *((*foo)->getName ()) << " ";     
+        os << (dt->getAge ());
+        return os;
+}
+
 }
 
 #endif
