@@ -193,7 +193,6 @@ int main (int numArgs, const char *args[]) {
             std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
                     std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
         } else {
-	    std :: cout << "(1):" << _nodeAddress << "(2):" <<  _nodeIP << "(3):" <<  nodePort << "(4):" << _nodeName << "(5):" << _nodeType << "\n";
             std :: cout << "Node metadata successfully added.\n";
         }
         cout << "Done.\n";

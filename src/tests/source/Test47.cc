@@ -175,7 +175,6 @@ class SillyRead : public ScanUserSet <Supervisor> {
 									temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
        		               			         	(*supers)[i]->addEmp (temp);
        		               			 	}
-							(*supers)[i]->print ();
 						}
 					} catch (NotEnoughSpace &e) {}
 						getRecord (supers);
