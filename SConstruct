@@ -576,7 +576,8 @@ common_env.Depends(pdbTest, [
   'libraries/libWriteIntSet.so', 
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
-  'libraries/libWriteSumResultSet.so'
+  'libraries/libWriteSumResultSet.so',
+  'libraries/libWriteDoubleSet.so'
 ])
 common_env.Alias('tests', pdbTest)
 main=common_env.Alias('main', [
