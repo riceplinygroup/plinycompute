@@ -26,7 +26,6 @@
 #include "PDBMap.h"
 #include "BuiltInObjectTypeIDs.h"
 
-
 #define CAN_FIT_IN_DATA(len) (len <= sizeof (decltype (data ().getOffset ())))
 
 namespace pdb {
@@ -75,6 +74,7 @@ inline String :: String (const String &s) {
 
 	// the other guy is big
 	} else {
+		data ().setOffset (-1);
 		data () = s.data ();
 	}
 
@@ -88,6 +88,11 @@ inline String :: ~String () {
 }
 
 inline String &String :: operator = (const String &s) {
+
+	if (this == &s) {
+		std :: cout << "Assigning to myself!!!!\n";
+		exit (1);
+	}
 
 	// if the other guy is short
 	if (s.data ().getExactTypeInfoValue () >= 0) {
