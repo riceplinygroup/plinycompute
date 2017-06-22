@@ -23,7 +23,8 @@
 // LDA using Gibbs Sampling;
 
 #include "PDBDebug.h"
-#include "PDBString.h"
+//#include "PDBVector.h"
+//#include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -33,8 +34,8 @@
 #include "Set.h"
 #include "DataTypes.h"
 #include "DoubleVector.h"
-#include "SumResult.h"
-#include "WriteSumResultSet.h"
+//#include "SumResult.h"
+//#include "WriteSumResultSet.h"
 
 #include "LDADocument.h"
 #include "LDADocIDAggregate.h"
@@ -42,9 +43,13 @@
 #include "LDAInitialTopicProbSelection.h"
 #include "WriteIntDoubleVectorPairSet.h"
 #include "IntDoubleVectorPair.h"
-#include "ScanIntSet.h"
-#include "WriteIntSet.h"
 #include "LDA/LDAInitialWordTopicProbMultiSelection.h"
+#include "LDA/LDADocWordTopicAssignment.h"
+#include "LDA/LDADocWordTopicJoin.h"
+
+#include "ScanIntSet.h"
+//#include "WriteIntSet.h"
+//#include "myOutputUtil.h"
 
 #include <ctime>
 #include <time.h>
@@ -190,6 +195,7 @@ int main (int argc, char * argv[]) {
     if (whetherToAddData == true) {
         //Step 1. Create Database and Set
         // now, register a type for user data
+        catalogClient.registerType ("libraries/libIntDoubleVectorPair.so", errMsg);
 
         // now, create a new database
         if (!temp.createDatabase ("LDA_db", errMsg)) {
@@ -206,13 +212,14 @@ int main (int argc, char * argv[]) {
         } else {
             cout << "Created set.\n";
         }
-
+	
         if (!temp.createSet<int> ("LDA_db", "LDA_meta_data_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
             cout << "Created set.\n";
         }
+	
 
         //Step 2. Add data
         DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
@@ -276,6 +283,12 @@ int main (int argc, char * argv[]) {
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
                     }
+
+	            if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
+                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                        return -1;
+                    }
+
 		    
                 } catch (pdb :: NotEnoughSpace &n) {
                     if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
@@ -291,6 +304,7 @@ int main (int argc, char * argv[]) {
         }
 
     // add meta data
+	
         if (numOfMb > 0) {
             int numIterations = numOfMb/64;
             std:: cout << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
@@ -314,6 +328,12 @@ int main (int argc, char * argv[]) {
 		    term << std :: endl;
 		    term << green << "Dictionary size: " << *((*storeMe)[0]) << reset << std :: endl;
 		    term << std :: endl;
+
+                    if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"), storeMe, errMsg)) {
+                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                        return -1;
+                    }
+
         		    
                 } catch (pdb :: NotEnoughSpace &n) {
                     if (!dispatcherClient.sendData<int>(std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"), storeMe, errMsg)) {
@@ -327,6 +347,7 @@ int main (int argc, char * argv[]) {
             //to write back all buffered records        
             temp.flushData( errMsg );
         }
+	
     }
 
 
@@ -335,23 +356,22 @@ int main (int argc, char * argv[]) {
     // now, create a new set in that database to store output data
     
     PDB_COUT << "to create a new set to store the data count" << std :: endl;
-    if (!temp.createSet<int> ("LDA_db", "LDA_init_test_set", errMsg)) {
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_init_test_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
         cout << "Created set LDA_init_test_set.\n";
     }
 
-
-    PDB_COUT << "to create a new set to store the initial model" << std :: endl;
-    if (!temp.createSet<DoubleVector> ("LDA_db", "LDA_initial_model_set", errMsg)) {
+    PDB_COUT << "to create a new set to store the initial topic probabilities" << std :: endl;
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_init_doc_topic_prob_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
-        cout << "Created set LDA_initial_model_set.\n";
+        cout << "Created set LDA_init_doc_topic_prob_set.\n";
     }
-    
-    
+
+
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
     if (!temp.createSet<DoubleVector> ("LDA_db", "LDA_output_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
@@ -371,9 +391,11 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libScanLDADocumentSet.so", errMsg);
     catalogClient.registerType ("libraries/libLDAInitialTopicProbSelection.so", errMsg);
     catalogClient.registerType ("libraries/libWriteIntDoubleVectorPairSet.so", errMsg);
-    catalogClient.registerType ("libraries/libIntDoubleVectorPair.so", errMsg);
     catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
-    catalogClient.registerType ("libraries/libWriteIntSet.so", errMsg);
+//    catalogClient.registerType ("libraries/libWriteIntSet.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocWordTopicJoin.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocWordTopicAssignment.so", errMsg);
+//    catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
     catalogClient.registerType ("libraries/libLDAInitialWordTopicProbMultiSelection.so", errMsg);
     
 
@@ -385,49 +407,45 @@ int main (int argc, char * argv[]) {
     // Initialization for LDA
        
     // Initialize the topic mixture probabilities for each doc
+        
     
-    /*
     Handle<Computation> myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
     Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
     myDocID->setInput(myInitialScanSet);
     Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
     myDocTopicProb->setInput(myDocID);
-    */
+//    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_doc_topic_prob_set");
+//    myWriter->setInput(myDocTopicProb);
+    
+    
 
     // Initialize the (wordID, topic prob vector)
+    
     Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
-//    Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbMultiSelection>(numWord, numTopic);
-//    myWordTopicProb->setInput(myMetaScanSet);
-//    Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
-//    myDocID->setInput(myMetaScanSet);
-
+    Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbMultiSelection>(numTopic);
+    myWordTopicProb->setInput(myMetaScanSet);
 //    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_test_set");
-//    Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
-//    myDocTopicProb->setInput(myMetaScanSet);
-    Handle <Computation> myWriter = makeObject<WriteIntSet>("LDA_db", "LDA_init_test_set");
-    myWriter->setInput(myMetaScanSet);
-
+//    myWriter->setInput(myWordTopicProb);
+	
+    /*
     if (!myClient.executeComputations(errMsg, myWriter)) {
         std :: cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
 
-    /*
+    
     SetIterator <IntDoubleVectorPair> initTopicProbResult = 
 				myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_init_test_set");
     for (Handle<IntDoubleVectorPair> a : initTopicProbResult) {
-	term << "Word ID: " << a->getInt() << " Topic Probability: ";
+	term << red << "Word ID: " << a->getInt() << " Topic Probability: ";
 	a->getVector()->print(); 
 	term << std::endl;	
-    }*/
-    
-	
-    SetIterator <int> initTopicProbResult = 
-				myClient.getSetIterator <int> ("LDA_db", "LDA_init_test_set");
-    for (auto a : initTopicProbResult) {
-	std::cout << "Word ID: " << *a << " Topic Probability: ";
-	std::cout << std::endl;	
     }
+
+
+    term << reset << std::endl;	
+    */
+    
 
 //    dataCount = 10;
 //    std :: cout << "The number of data points: " << dataCount << std :: endl;
@@ -435,17 +453,17 @@ int main (int argc, char * argv[]) {
    	 
      
     // Start LDA iterations
-    /*	
+    	
     for (int n = 0; n < iter; n++) {
 
 
-                const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
+                //const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 
 		term << "*****************************************" << std :: endl;
 		term << "I am in iteration : " << n << std :: endl;
 		term << "*****************************************" << std :: endl;
-    }
-    */
+    
+    
 		/*
     		pdb::Handle<pdb::Vector<Handle<DoubleVector>>> my_model = pdb::makeObject<pdb::Vector<Handle<DoubleVector>>> ();
 
@@ -457,120 +475,58 @@ int main (int argc, char * argv[]) {
 			}
 		}
 
-		
-                std :: cout << "The std model I have is: " << std :: endl;
-                for (int i = 0; i < k; i++) {
-                     for (int j = 0; j < dim; j++) {
-                         std :: cout << "model[" << i << "][" << j << "]=" << model[i][j] << std :: endl;
-                     }
-                }
-		
 
 	    	std :: cout << "The model I have is: " << std :: endl;
 		for (int i = 0; i < k; i++) {
 			(*my_model)[i]->print();
 	    	}		    
+		*/
 		
 	
-			
+		
     		Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
+		myDocWordTopicJoin->setInput(0, myScanSet);
+		myDocWordTopicJoin->setInput(1, myDocTopicProb);
+		myDocWordTopicJoin->setInput(2, myWordTopicProb);
+		
+	}
 
-		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
-		myQuery->setInput(myScanSet);
-                //myQuery->setAllocatorPolicy(noReuseAllocator);
-                //myQuery->setOutput("LDA_db", "LDA_output_set");
-		//Handle<Computation> myWriteSet = makeObject<WriteKMeansSet>("LDA_db", "LDA_output_set");
-		//myWriteSet->setAllocatorPolicy(noReuseAllocator);
-		//myWriteSet->setInput(myQuery);
-
+		Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_test_set");
+		myWriter->setInput(myWordTopicProb);
+			
 
 		auto begin = std :: chrono :: high_resolution_clock :: now();
-
-		if (!myClient.executeComputations(errMsg, myQuery)) {
+		if (!myClient.executeComputations(errMsg, myWriter)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
 
+		    
 		std :: cout << "The query is executed successfully!" << std :: endl;
 
-		// update the model
-		SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("LDA_db", "LDA_output_set");
-		kk = 0;
-
-		if (ifFirst) {
-			for (Handle<KMeansAggregateOutputType> a : result) {
-				if (kk >= k)
-						break;
-				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				std :: cout << "The cluster mean sum I got is " << std :: endl;
-				(*a).getValue().getMean().print();
-				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
-				for (int i = 0; i < dim; i++) {
-					model[kk][i] = tmpModel.getDouble(i);
-				}
-
-				for (int i = 0; i < dim; i++) {
-					avgData[i] += (*a).getValue().getMean().getDouble(i);
-				}
-
-				std :: cout << "I am updating the model in position: " << kk << std :: endl;
-				for(int i = 0; i < dim; i++)
-					std::cout << i << ": " << model[kk][i] << ' ';
-				std :: cout << std :: endl;
-				std :: cout << std :: endl;
-				kk++;
-			}
-			for (int i = 0; i < dim; i++) {
-				avgData[i] = avgData[i] / dataCount;
-			}
-			std :: cout << "The average of data points is : \n";
-			for (int i = 0; i < dim; i++)
-				std::cout << i << ": " << avgData[i] << ' ';
-			std :: cout << std :: endl;
-			std :: cout << std :: endl;
-			ifFirst = false;
+		SetIterator <IntDoubleVectorPair> initTopicProbResult = 
+						myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_init_test_set");
+		for (Handle<IntDoubleVectorPair> a : initTopicProbResult) {
+			term << red << "Word ID: " << a->getInt() << " Topic Probability: ";
+			a->getVector()->print(); 
+			term << std::endl;	
 		}
-		else {
-			for (Handle<KMeansAggregateOutputType> a : result) {
-				if (kk >= k)
-						break;
-				std :: cout << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				std :: cout << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				std :: cout << "The cluster mean sum I got is " << std :: endl;
-				(*a).getValue().getMean().print();
-		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
-				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
-				for (int i = 0; i < dim; i++) {
-					model[kk][i] = tmpModel.getDouble(i);
-				}
-				std :: cout << "I am updating the model in position: " << kk << std :: endl;
-				for(int i = 0; i < dim; i++)
-					std::cout << i << ": " << model[kk][i] << ' ';
-				std :: cout << std :: endl;
-				std :: cout << std :: endl;
-				kk++;
-			}
-		}
-		if (kk < k) {
-			std :: cout << "These clusters do not have data: "  << std :: endl;
-			for (int i = kk; i < k; i++) {
-				std :: cout << i << ", ";
-				for (int j = 0; j < dim; j++) {
-					double bias = ((double) rand() / (RAND_MAX));
-					model[i][j] = avgData[j] + bias;
-				}
-			}
-		}
+
+
+		term << reset << std::endl;	
+
+		auto end = std::chrono::high_resolution_clock::now();
+		term << "Time Duration: " <<
+		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+
+
+		/*
 		std :: cout << std :: endl;
 		std :: cout << std :: endl;
 
 		temp.clearSet("LDA_db", "LDA_output_set", "pdb::KMeansAggregateOutputType", errMsg);
 
-		auto end = std::chrono::high_resolution_clock::now();
-		std::cout << "Time Duration: " <<
-		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
     }
 
     std::cout << std::endl;
@@ -623,14 +579,10 @@ int main (int argc, char * argv[]) {
     if (clusterMode == false) {
 	    // and delete the sets
         myClient.deleteSet ("LDA_db", "LDA_output_set");
-        myClient.deleteSet ("LDA_db", "LDA_initial_model_set");
         myClient.deleteSet ("LDA_db", "LDA_init_test_set");
+        myClient.deleteSet ("LDA_db", "LDA_init_doc_topic_prob_set");
     } else {
         if (!temp.removeSet ("LDA_db", "LDA_output_set", errMsg)) {
-            cout << "Not able to remove set: " + errMsg;
-            exit (-1);
-        }
-        else if (!temp.removeSet ("LDA_db", "LDA_initial_model_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         }
@@ -638,6 +590,11 @@ int main (int argc, char * argv[]) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         }
+        else if (!temp.removeSet ("LDA_db", "LDA_init_doc_topic_prob_set", errMsg)) {
+            cout << "Not able to remove set: " + errMsg;
+            exit (-1);
+        }
+
 
 	else {
             cout << "Removed set.\n";
