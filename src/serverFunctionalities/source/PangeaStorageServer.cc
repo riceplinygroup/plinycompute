@@ -70,7 +70,7 @@
 #include <stdio.h>
 #include <map>
 #include <iterator>
-
+#include <pthread.h>
 
 #define FLUSH_BUFFER_SIZE 3
 
@@ -135,12 +135,15 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         pthread_mutex_init(&(this->typeLock), nullptr);
         pthread_mutex_init(&(this->tempsetLock), nullptr);
         pthread_mutex_init(&(this->usersetLock), nullptr);
-
+        pthread_mutex_init(&(this->workingMutex), nullptr);
+        pthread_mutex_init(&(this->counterMutex), nullptr);
 
         this->databaseSeqId.initialize(1);//DatabaseID starting from 1
         this->usersetSeqIds = new std :: map<std :: string, SequenceID * >();
         //if meta/data/temp directories do not exist, create them.
         this->createRootDirs();
+       
+        this->numWaitingBufferDataRequests = 0;
         this->initializeFromRootDirs(this->metaRootPath, this->dataRootPaths);
         this->createTempDirs();
         this->conf->createDir(this->metaTempPath);
@@ -159,6 +162,14 @@ SetPtr PangeaStorageServer :: getSet (pair <std :: string, std :: string> databa
 
 void PangeaStorageServer :: cleanup(bool flushOrNot) {
         PDB_COUT << "to clean up for storage..." << std :: endl; 
+
+        pthread_mutex_lock(&counterMutex);
+        while (numWaitingBufferDataRequests > 0) {
+            pthread_mutex_unlock(&counterMutex);
+            sched_yield();
+            pthread_mutex_lock(&counterMutex);
+        }
+        pthread_mutex_unlock(&counterMutex);
         for (auto &a : allRecords) {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first, flushOrNot);
@@ -178,6 +189,8 @@ PangeaStorageServer :: ~PangeaStorageServer () {
         pthread_mutex_destroy(&(this->typeLock));
         pthread_mutex_destroy(&(this->tempsetLock));
         pthread_mutex_destroy(&(this->usersetLock));
+        pthread_mutex_destroy(&(this->workingMutex));
+        pthread_mutex_destroy(&(this->counterMutex));
         delete this->dbs;
         delete this->name2id;
         delete this->tempSets;
@@ -841,6 +854,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                  Handle<JoinMap<Object>> objectToStore = record->getRootObject();
                  //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
                  if (everythingOK) {
+                      pthread_mutex_lock(&counterMutex);
+                      numWaitingBufferDataRequests++;
+                      pthread_mutex_unlock(&counterMutex);
                       auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
                                                         (std :: string) request->getSetName ());
                       // now, get a page to write to
@@ -861,7 +877,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                       key.setId = myPage->getSetID();
                       key.pageId = myPage->getPageID();
                       this->getCache()->decPageRefCount(key);
-
+                      pthread_mutex_lock(&counterMutex);
+                      numWaitingBufferDataRequests--;
+                      pthread_mutex_unlock(&counterMutex);
                  }
                  else {
                       errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
@@ -918,8 +936,10 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                      everythingOK = sendUsingMe->sendObject (response, errMsg);
                  }
 
-		 if (everythingOK) {	
-
+		 if (everythingOK) {
+                                pthread_mutex_lock(&counterMutex);	
+                                numWaitingBufferDataRequests++;
+                                pthread_mutex_unlock(&counterMutex);
                                 const LockGuard guard{workingMutex};
 						// at this point, we have performed the serialization, so remember the record
 				auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
@@ -942,6 +962,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 						      PDB_COUT << "Done with write back.\n";
 						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
                                                 }
+                               pthread_mutex_lock(&counterMutex);
+                               numWaitingBufferDataRequests--;
+                               pthread_mutex_unlock(&counterMutex);
 		 }
 		 else {
 				errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";

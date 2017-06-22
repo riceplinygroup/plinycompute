@@ -409,7 +409,8 @@ private:
         long totalObjects;
 
         pthread_mutex_t workingMutex;
-
+        pthread_mutex_t counterMutex;
+        int numWaitingBufferDataRequests;
 
 };
 
