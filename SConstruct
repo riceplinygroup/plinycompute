@@ -410,11 +410,19 @@ common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/librar
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
 # LDA
-# common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
-# common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
-# common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
-# common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
-# common_env.SharedLibrary('libraries/libWriteIntDoubleVectorPairSet.so', ['build/libraries/WriteIntDoubleVectorPairSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
+#common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
+common_env.SharedLibrary('libraries/libIntIntVectorPair.so', ['build/libraries/IntIntVectorPair.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteIntDoubleVectorPairSet.so', ['build/libraries/WriteIntDoubleVectorPairSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLDAInitialWordTopicProbMultiSelection.so', ['build/libraries/LDA/LDAInitialWordTopicProbMultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocWordTopicAssignment.so', ['build/libraries/LDA/LDADocWordTopicAssignment.cc'] + all)
+#common_env.SharedLibrary('libraries/libLDADocWordTopicJoin.so', ['build/libraries/LDA/LDADocWordTopicJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocTopicAggregate.so', ['build/libraries/LDA/LDADocTopicAggregate.cc'] + all)
+#common_env.SharedLibrary('libraries/libLDADocTopicProbSelection.so', ['build/libraries/LDA/LDADocTopicProbSelection.cc'] + all)
+
+
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
@@ -750,11 +758,17 @@ main=common_env.Alias('main', [
   'libraries/libWriteSumResultSet.so',
 
   # LDA 
-#  'libraries/libLDADocIDAggregate.so',
-#  'libraries/libScanLDADocumentSet.so',
+  'libraries/libLDADocIDAggregate.so',
+  'libraries/libScanLDADocumentSet.so',
 #  'libraries/libLDAInitialTopicProbSelection.so',
-#  'libraries/libWriteIntDoubleVectorPairSet.so',
-#  'libraries/libIntDoubleVectorPair.so',
+  'libraries/libWriteIntDoubleVectorPairSet.so',
+  'libraries/libIntDoubleVectorPair.so',
+  'libraries/libIntIntVectorPair.so',
+  'libraries/libLDAInitialWordTopicProbMultiSelection.so',
+#  'libraries/libLDADocWordTopicJoin.so',
+  'libraries/libLDADocWordTopicAssignment.so',
+  'libraries/libLDADocTopicAggregate.so',
+#  'libraries/libLDADocTopicProbSelection.so',
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',
