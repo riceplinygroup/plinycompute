@@ -24,7 +24,6 @@
 
 #include "PDBDebug.h"
 //#include "PDBVector.h"
-//#include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -43,9 +42,12 @@
 #include "LDAInitialTopicProbSelection.h"
 #include "WriteIntDoubleVectorPairSet.h"
 #include "IntDoubleVectorPair.h"
+#include "IntIntVectorPair.h"
 #include "LDA/LDAInitialWordTopicProbMultiSelection.h"
 #include "LDA/LDADocWordTopicAssignment.h"
 #include "LDA/LDADocWordTopicJoin.h"
+#include "LDA/LDADocTopicAggregate.h"
+#include "LDA/LDADocTopicProbSelection.h"
 
 #include "ScanIntSet.h"
 //#include "WriteIntSet.h"
@@ -152,22 +154,22 @@ int main (int argc, char * argv[]) {
     if (argc > 6) {
 	iter = std::stoi(argv[6]);
     }
-    std :: cout << "The number of iterations: " << iter << std :: endl;
+    term << "The number of iterations: " << iter << std :: endl;
 
     if (argc > 7) {
 	numDoc = std::stoi(argv[7]);
     }
-    std :: cout << "The number of documents: " << numDoc << std :: endl;
+    term << "The number of documents: " << numDoc << std :: endl;
 
     if (argc > 8) {
 	numWord = std::stoi(argv[8]);
     }
-    std :: cout << "The dictionary size: " << numWord << std :: endl;
+    term << "The dictionary size: " << numWord << std :: endl;
 
     if (argc > 9) {
 	numTopic = std::stoi(argv[9]);
     }
-    std :: cout << "The number of topics: " << numTopic << std :: endl;
+    term << "The number of topics: " << numTopic << std :: endl;
 
 
     std :: cout << std :: endl;
@@ -392,11 +394,12 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libLDAInitialTopicProbSelection.so", errMsg);
     catalogClient.registerType ("libraries/libWriteIntDoubleVectorPairSet.so", errMsg);
     catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
-//    catalogClient.registerType ("libraries/libWriteIntSet.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocWordTopicJoin.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocWordTopicAssignment.so", errMsg);
-//    catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
     catalogClient.registerType ("libraries/libLDAInitialWordTopicProbMultiSelection.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocTopicAggregate.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocTopicProbSelection.so", errMsg);
+    catalogClient.registerType ("libraries/libIntIntVectorPair.so", errMsg);
     
 
 
@@ -405,6 +408,8 @@ int main (int argc, char * argv[]) {
 //    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
     
     // Initialization for LDA
+
+    Vector<Handle<Computation>> tempOut;
        
     // Initialize the topic mixture probabilities for each doc
         
@@ -426,6 +431,9 @@ int main (int argc, char * argv[]) {
     myWordTopicProb->setInput(myMetaScanSet);
 //    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_test_set");
 //    myWriter->setInput(myWordTopicProb);
+
+    tempOut.push_back(myDocTopicProb);
+    tempOut.push_back(myWordTopicProb);
 	
     /*
     if (!myClient.executeComputations(errMsg, myWriter)) {
@@ -454,13 +462,13 @@ int main (int argc, char * argv[]) {
      
     // Start LDA iterations
     	
-    for (int n = 0; n < iter; n++) {
+//    for (int n = 0; n < iter; n++) {
 
 
                 //const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 
 		term << "*****************************************" << std :: endl;
-		term << "I am in iteration : " << n << std :: endl;
+//		term << "I am in iteration : " << n << std :: endl;
 		term << "*****************************************" << std :: endl;
     
     
@@ -475,29 +483,36 @@ int main (int argc, char * argv[]) {
 			}
 		}
 
-
-	    	std :: cout << "The model I have is: " << std :: endl;
-		for (int i = 0; i < k; i++) {
-			(*my_model)[i]->print();
-	    	}		    
 		*/
 		
 	
-		
+		// Sample for the topics	
     		Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
 		myDocWordTopicJoin->setInput(0, myScanSet);
 		myDocWordTopicJoin->setInput(1, myDocTopicProb);
+//		myDocWordTopicJoin->setInput(1, tempOut[0]);
 		myDocWordTopicJoin->setInput(2, myWordTopicProb);
+//		myDocWordTopicJoin->setInput(2, tempOut[1]);
+
+		// Sample for the (doc, topic probability)
+		/*
+		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicAggregate> (numTopic);
+		myDocTopicCountAgg->setInput(myDocWordTopicJoin);
+		Handle <Computation> myDocTopicProbThis = makeObject<LDADocTopicProbSelection>(*alpha);
+//		myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
+		myDocTopicProbThis->setInput(myDocTopicCountAgg);
+//		tempOut[0] = myDocTopicProb;
 		
-	}
+//	}
 
 		Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_test_set");
-		myWriter->setInput(myWordTopicProb);
-			
+	//	myWriter->setInput(tempOut[0]);
+		myWriter->setInput(myDocTopicProbThis);
+			*/
 
 		auto begin = std :: chrono :: high_resolution_clock :: now();
-		if (!myClient.executeComputations(errMsg, myWriter)) {
+		if (!myClient.executeComputations(errMsg, myDocWordTopicJoin)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
@@ -505,13 +520,15 @@ int main (int argc, char * argv[]) {
 		    
 		std :: cout << "The query is executed successfully!" << std :: endl;
 
+		/*
 		SetIterator <IntDoubleVectorPair> initTopicProbResult = 
 						myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_init_test_set");
 		for (Handle<IntDoubleVectorPair> a : initTopicProbResult) {
-			term << red << "Word ID: " << a->getInt() << " Topic Probability: ";
-			a->getVector()->print(); 
+			term << red << "Doc ID: " << a->getInt() << " Topic Probability: ";
+			a->getVector().print(); 
 			term << std::endl;	
 		}
+		*/
 
 
 		term << reset << std::endl;	
