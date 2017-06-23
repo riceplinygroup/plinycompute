@@ -500,7 +500,9 @@ std :: string TCAPAnalyzer :: getSourceSetName (int index) {
 
 //to get source set based on name
 Handle<SetIdentifier>  TCAPAnalyzer :: getSourceSetIdentifier (std :: string name) {
+    std :: cout << "search set with name = " << name << std :: endl;
     if (curSourceSets.count (name) == 0) {
+        std :: cout << "name not found for " << name << std :: endl;
         return nullptr;
     } else {
         return curSourceSets[name];
