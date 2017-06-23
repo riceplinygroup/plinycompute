@@ -16,71 +16,67 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef INT_DOUBLE_VECTOR_PAIR_H
-#define INT_DOUBLE_VECTOR_PAIR_H
+#ifndef INT_INT_VECTOR_PAIR_H
+#define INT_INT_VECTOR_PAIR_H
 
 #include "Object.h"
 #include "PDBVector.h"
 #include "Handle.h"
-#include <cstddef>
 
 // By Shangyu
 
 namespace pdb {
 
-class IntDoubleVectorPair : public Object {
+class IntIntVectorPair : public Object {
 
 private:
 
         int myInt;
-	Vector<double> myVector;
+	Vector<int> myVector;
 
 public:
 
 	ENABLE_DEEP_COPY
 
-        ~IntDoubleVectorPair () {}
-        IntDoubleVectorPair () {}
+        ~IntIntVectorPair () {}
+        IntIntVectorPair () {}
 
-	IntDoubleVectorPair (int fromInt, Handle<Vector<double>>& fromVector) {
-		this->myInt = fromInt;
+	IntIntVectorPair (int fromInt, Handle<Vector<int>>& fromVector) {
 		this->myVector = *fromVector;
-		/*
-		int size = fromVector->size();
-		this->myVector = makeObject<Vector<double>>(size, size);
-		for (int i = 0; i < size; i++) {
-			(*(this->myVector))[i] = (*fromVector)[i];
-		}
-		*/
+		this->myInt = fromInt;
 	}
+
 	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
-	}
-
-	void setVector(Handle<Vector<double>>& fromVector) {
-		int size = fromVector->size();
-		this->myVector = *fromVector;
-		/*
-		if (this->myVector->c_ptr() == nullptr || this->myVector->size() < size)
-                	this->myVector = makeObject<Vector<double>>(size, size);
-                for (int i = 0; i < size; i++) {
-                        (*(this->myVector))[i] = (*fromVector)[i];
-                }
-		*/
-	}
-
 	int getInt() {
 		return this->myInt;
 	}
 
-	Vector<double>& getVector() {
+	Vector<int>& getVector() {
 		return this->myVector;
 	}
 
+	int &getKey() {
+         	return this->myInt;
+    	}
 
+     	Vector<int> &getValue() {
+        	 return this->myVector;
+     	}
 
 };
+
+inline Vector<int> &operator+ (Vector<int> &lhs, Vector<int> &rhs) {
+	int size = lhs.size();
+	if (size != rhs.size()) {
+		std :: cout << "You cannot add two vectors in different sizes!" << std :: endl;
+		return lhs;
+	}
+	for (int i = 0; i < size; ++i) {
+		lhs[i] = lhs[i] + rhs[i];
+	}
+	return lhs;
+	
+}
 
 }
 
