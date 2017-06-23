@@ -487,16 +487,16 @@ int main (int argc, char * argv[]) {
 		
 	
 		// Sample for the topics	
-    		Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+    		//Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
-		myDocWordTopicJoin->setInput(0, myScanSet);
+		myDocWordTopicJoin->setInput(0, myInitialScanSet);
 		myDocWordTopicJoin->setInput(1, myDocTopicProb);
 //		myDocWordTopicJoin->setInput(1, tempOut[0]);
 		myDocWordTopicJoin->setInput(2, myWordTopicProb);
 //		myDocWordTopicJoin->setInput(2, tempOut[1]);
 
 		// Sample for the (doc, topic probability)
-		/*
+		
 		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicAggregate> (numTopic);
 		myDocTopicCountAgg->setInput(myDocWordTopicJoin);
 		Handle <Computation> myDocTopicProbThis = makeObject<LDADocTopicProbSelection>(*alpha);
@@ -509,10 +509,10 @@ int main (int argc, char * argv[]) {
 		Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_init_test_set");
 	//	myWriter->setInput(tempOut[0]);
 		myWriter->setInput(myDocTopicProbThis);
-			*/
+			
 
 		auto begin = std :: chrono :: high_resolution_clock :: now();
-		if (!myClient.executeComputations(errMsg, myDocWordTopicJoin)) {
+		if (!myClient.executeComputations(errMsg, myWriter)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
