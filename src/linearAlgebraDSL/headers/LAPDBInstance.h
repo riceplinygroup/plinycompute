@@ -42,9 +42,9 @@
 class LAPDBInstance{
 
 private:
-	bool printResult;
+    bool printResult;
     bool clusterMode;
-    int blockSize;
+    size_t blockSize;
     std :: string masterIP;
     int port;
     pdb :: PDBLoggerPtr clientLogger;
@@ -63,93 +63,103 @@ private:
 
 public:
 
-	LAPDBInstance(bool printResultIn, bool clusterModeIn, int blockSizeIn, std::string masterIPIn, int portIn, pdb::PDBLoggerPtr loggerIn):
-		printResult(printResultIn),
-		clusterMode(clusterModeIn),
-		blockSize(blockSizeIn),
-		masterIP(masterIPIn),
-		port(portIn),
-		clientLogger(loggerIn),
-		storageClient(port, masterIP, clientLogger),
-		catalogClient(port, masterIP, clientLogger),
-		dispatcherClient(port, masterIP, clientLogger),
-		queryClient(port,masterIP,clientLogger,true)
-	{
-		//Register libraries;
-		catalogClient.registerType("libraries/libLAMaxElementOutputType.so", errMsg);
-		catalogClient.registerType("libraries/libLAMaxElementValueType.so", errMsg);
-		catalogClient.registerType("libraries/libLAMinElementOutputType.so", errMsg);
-		catalogClient.registerType("libraries/libLAMinElementValueType.so", errMsg);
-		catalogClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyAddJoin.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyRowMaxAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyRowMinAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyColMaxAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyColMinAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillySubstractJoin.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyMaxElementAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyMinElementAggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyMultiply1Join.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyMultiply2Aggregate.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyTransposeMultiply1Join.so", errMsg);
-		catalogClient.registerType("libraries/libLASillyTransposeSelection.so", errMsg);
-		catalogClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
-		catalogClient.registerType("libraries/libLAWriteMaxElementSet.so", errMsg);
-		catalogClient.registerType("libraries/libLAWriteMinElementSet.so", errMsg);
-		catalogClient.registerType("libraries/libMatrixMeta.so", errMsg);
-		catalogClient.registerType("libraries/libMatrixData.so", errMsg);
-		catalogClient.registerType("libraries/libMatrixBlock.so", errMsg);
+    LAPDBInstance(bool printResultIn, bool clusterModeIn, size_t blockSizeIn, std::string masterIPIn, int portIn, pdb::PDBLoggerPtr loggerIn):
+        printResult(printResultIn),
+        clusterMode(clusterModeIn),
+        blockSize(blockSizeIn),
+        masterIP(masterIPIn),
+        port(portIn),
+        clientLogger(loggerIn),
+        storageClient(port, masterIP, clientLogger),
+        catalogClient(port, masterIP, clientLogger),
+        dispatcherClient(port, masterIP, clientLogger),
+        queryClient(port,masterIP,clientLogger,true)
+    {
+        //Register libraries;
+        catalogClient.registerType("libraries/libLASillyDuplicateColMultiSelection.so",errMsg);
+        catalogClient.registerType("libraries/libLASillyDuplicateRowMultiSelection.so",errMsg);
+        catalogClient.registerType("libraries/libLASillyInverse1Aggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyInverse2Selection.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyInverse3MultiSelection.so", errMsg);
+        catalogClient.registerType("libraries/libLAMaxElementOutputType.so", errMsg);
+        catalogClient.registerType("libraries/libLAMaxElementValueType.so", errMsg);
+        catalogClient.registerType("libraries/libLAMinElementOutputType.so", errMsg);
+        catalogClient.registerType("libraries/libLAMinElementValueType.so", errMsg);
+        catalogClient.registerType("libraries/libLAScanMatrixBlockSet.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyAddJoin.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyRowMaxAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyRowMinAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyRowSumAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyColMaxAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyColMinAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyColSumAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillySubstractJoin.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyScaleMultiplyJoin.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyScaleMultiplyJoin.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyMaxElementAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyMinElementAggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyMultiply1Join.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyMultiply2Aggregate.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyTransposeMultiply1Join.so", errMsg);
+        catalogClient.registerType("libraries/libLASillyTransposeSelection.so", errMsg);
+        catalogClient.registerType("libraries/libLAWriteMatrixBlockSet.so", errMsg);
+        catalogClient.registerType("libraries/libLAWriteMaxElementSet.so", errMsg);
+        catalogClient.registerType("libraries/libLAWriteMinElementSet.so", errMsg);
+        catalogClient.registerType("libraries/libMatrixMeta.so", errMsg);
+        catalogClient.registerType("libraries/libMatrixData.so", errMsg);
+        catalogClient.registerType("libraries/libMatrixBlock.so", errMsg);
+        catalogClient.registerType("libraries/libLASingleMatrix.so", errMsg);
 
-		if (!storageClient.createDatabase ("LA_db", errMsg)) {
+        if (!storageClient.createDatabase ("LA_db", errMsg)) {
             std::cout << "Not able to create database: " + errMsg;
             exit (-1);
         } else {
             std::cout << "Created database <LA_db>.\n";
         }
-	}
+    }
 
 
-	pdb :: DistributedStorageManagerClient& getStorageClient(){
-		return this->storageClient;
-	}
+    pdb :: DistributedStorageManagerClient& getStorageClient(){
+        return this->storageClient;
+    }
 
     pdb :: DispatcherClient& getDispatchClient(){
-    	return this->dispatcherClient;
+        return this->dispatcherClient;
     }
 
     pdb :: QueryClient& getQueryClient(){
-    	return this->queryClient;
+        return this->queryClient;
     }
 
     void increaseDispatchCount(){
-    	this->dispatchCount += 1;
+        this->dispatchCount += 1;
     }
 
     int getDispatchCount(){
-    	return dispatchCount;
+        return dispatchCount;
     }
 
-    int getBlockSize(){
-    	return blockSize;
+    size_t getBlockSize(){
+        return blockSize;
     }
 
     std :: string & instanceErrMsg(){
-    	return errMsg;
+        return errMsg;
     }
 
     void addToCachedSet(std::string setName){
-    	cachedSet.insert(setName);
+        cachedSet.insert(setName);
     }
 
     void deleteFromCachedSet(std::string setName){
-    	cachedSet.erase(setName);
+        cachedSet.erase(setName);
     }
 
     void addToIdentifierComputationMap(std::string identiferName,pdb::Handle<pdb::Computation> scanSet){
-    	if(identifierComputationMap.find(identiferName)!=identifierComputationMap.end()){
-    		identifierComputationMap.erase(identiferName);
-    	}
-    	identifierComputationMap.insert(std::pair<std::string,pdb::Handle<pdb::Computation>>(identiferName,scanSet));
+        if(identifierComputationMap.find(identiferName)!=identifierComputationMap.end()){
+            identifierComputationMap.erase(identiferName);
+        }
+        identifierComputationMap.insert(std::pair<std::string,pdb::Handle<pdb::Computation>>(identiferName,scanSet));
     }
 
     bool existsScanSet(std::string identiferName){
@@ -157,18 +167,18 @@ public:
     }
 
     pdb::Handle<pdb::Computation> findScanSet(std::string identiferName){
-    	return identifierComputationMap[identiferName];
+        return identifierComputationMap[identiferName];
     }
 
     void addToIdentifierDimensionMap(std::string identiferName,LADimension dim){
-    	if(identifierDimensionMap.find(identiferName)!=identifierDimensionMap.end()){
-    		identifierDimensionMap.erase(identiferName);
-    	}
-    	identifierDimensionMap.insert(std::pair<std::string,LADimension>(identiferName,dim));
+        if(identifierDimensionMap.find(identiferName)!=identifierDimensionMap.end()){
+            identifierDimensionMap.erase(identiferName);
+        }
+        identifierDimensionMap.insert(std::pair<std::string,LADimension>(identiferName,dim));
     }
 
     LADimension findDimension(std::string identiferName){
-    	return identifierDimensionMap[identiferName];
+        return identifierDimensionMap[identiferName];
     }
 
     void clearCachedSets(){

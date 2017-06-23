@@ -50,10 +50,13 @@ public:
 			return rightChild->toString();
 		}
 		else if(multiOperator.compare("multiply")==0){
-			return leftChild->toString() + " * " + rightChild->toString();
+			return leftChild->toString() + " %*% " + rightChild->toString();
 		}
 		else if(multiOperator.compare("transpose_multiply")==0){
 			return leftChild->toString() + " '* " + rightChild->toString();
+		}
+		else if(multiOperator.compare("scale_multiply")==0){
+			return leftChild->toString() + " * " + rightChild->toString();
 		}
 		else{
 			return "MultiplicativeExpression invalid operator: " + multiOperator;

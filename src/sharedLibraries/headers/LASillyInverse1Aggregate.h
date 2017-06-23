@@ -15,42 +15,40 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef MATRIX_META_H
-#define MATRIX_META_H
+#ifndef SILLY_LA_INVERSE1_AGGREGATE_H
+#define SILLY_LA_INVERSE1_AGGREGATE_H
 
-#include "Object.h"
+//by Binhang, May 2017
 
-//By Binhang Yuan, May 2017
+#include "ClusterAggregateComp.h"
+#include "MatrixBlock.h"
+#include "LASingleMatrix.h"
+#include "LambdaCreationFunctions.h"
 
-class MatrixMeta : public pdb::Object {
+
+
+using namespace pdb;
+
+
+//This aggregation will 
+class LASillyInverse1Aggregate : public ClusterAggregateComp <SingleMatrix, MatrixBlock, int, MatrixBlock> {
+
 public:
 
-    ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-    ~MatrixMeta(){}
-    MatrixMeta(){}
+        LASillyInverse1Aggregate () {}
 
-    int blockRowIndex;
-    int blockColIndex;
-
-    int totalRows = 0;
-    int totalCols = 0;
-   
-    
-    bool operator == (const MatrixMeta& other) const {
-        if (blockRowIndex == other.blockRowIndex && blockColIndex == other.blockColIndex){
-            return true;
+        // the key type must have == and size_t hash () defined
+        Lambda <int> getKeyProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<MatrixBlock> & aggMe) {return 1;});
         }
-        else{
-            return false;
+
+        // the value type must have + defined
+        Lambda <MatrixBlock> getValueProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<MatrixBlock> & aggMe) {return *aggMe;});
         }
-    }
-
-    size_t hash () const{
-        return 10000*blockRowIndex+blockColIndex;
-    }
-
-   
 };
+
 
 #endif

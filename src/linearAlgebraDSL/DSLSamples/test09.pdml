@@ -1,0 +1,2 @@
+A = ones(10,1,10,1)
+B = duplicateCol(A,10,10)

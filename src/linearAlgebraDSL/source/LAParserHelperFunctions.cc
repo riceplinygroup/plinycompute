@@ -20,7 +20,9 @@
 
 #include <iostream>
 #include <memory>
+
 #include "LAParserHelperFunctions.h"
+#include "LADimension.h"
 #include "LAExpressionNode.h"
 #include "LAIdentifierNode.h"
 #include "LAInitializerNode.h"
@@ -127,6 +129,31 @@ struct LAPrimaryExpressionNode* makePrimaryExpressionFromExpression(const char* 
 	expPtr.reset();
 	return returnVal.get();
 }
+
+struct LAPrimaryExpressionNode* makePrimaryExpressionFromExpressionDuplicate(const char* flag, struct LAExpressionNode* expPointer,int size, int num){
+	if(makePrintFlag){
+		std::cout << "Make PrimaryExpression from Expression (" << flag << ")"  << std::endl;
+	}
+	LAPrimaryExpressionNodePtr returnVal = std::make_shared<LAPrimaryExpressionNode>();
+	returnVal->setShared(returnVal);
+	//This may be buggy
+	LAExpressionNodePtr expPtr(expPointer);
+	returnVal->setChild(flag,expPtr);
+	expPtr.reset();
+	if(strcmp(flag,"duplicateRow")==0){
+		LADimension dupliDim(size,0,num,0);
+		returnVal->setDuplicateDim(dupliDim);
+	}
+	else if(strcmp(flag,"duplicateCol")==0){
+		LADimension dupliDim(0,size,0,num);
+		returnVal->setDuplicateDim(dupliDim);
+	}
+	else{
+		std::cerr << "Invalid flag: " << flag << std::endl;
+	}
+	return returnVal.get();
+}
+
 
 
 struct LAPostfixExpressionNode* makePostfixExpressionFromPrimaryExpression(const char* op, struct LAPrimaryExpressionNode* primaryExpPointer){

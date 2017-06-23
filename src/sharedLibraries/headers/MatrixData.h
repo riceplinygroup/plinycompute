@@ -18,12 +18,12 @@
 #ifndef MATRIX_DATA_H
 #define MATRIX_DATA_H
 
-#define UNSETFLAG 0
-#define MAXTRIXMULTIFLAG 1
-#define MATRIXROWMAXFLAG 2
-#define MATRIXROWMINFLAG 3
-#define MATRIXCOLMAXFLAG 4
-#define MATRIXCOLMINFLAG 5
+#define UNSETFLAG           0
+#define MAXTRIXSUMFLAG      1
+#define MATRIXROWMAXFLAG    2
+#define MATRIXROWMINFLAG    3
+#define MATRIXCOLMAXFLAG    4
+#define MATRIXCOLMINFLAG    5
 
 
 #include "Object.h"
@@ -36,8 +36,8 @@
 class MatrixData :public pdb::Object{
     
 private:
-    void MultiplyAggregate(MatrixData &other){
-        std::cout << "Multiply Aggregation +" << std::endl;
+    void SumAggregate(MatrixData &other){
+        std::cout << "Sum Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             (*rawData)[i] += (*(other.rawData))[i];
         }
@@ -50,7 +50,6 @@ private:
                 (*rawData)[i] = (*(other.rawData))[i];
             }    
         }
-
     }
 
     void RowMinAggregate(MatrixData &other){
@@ -60,7 +59,6 @@ private:
                 (*rawData)[i] = (*(other.rawData))[i];
             }    
         }
-
     }
 
     void ColMaxAggregate(MatrixData &other){
@@ -70,7 +68,6 @@ private:
                 (*rawData)[i] = (*(other.rawData))[i];
             }    
         }
-
     }
 
     void ColMinAggregate(MatrixData &other){
@@ -96,8 +93,8 @@ public:
 
     int flag = UNSETFLAG;
 
-    void setMatrixMultiplyFlag(){
-        flag = MAXTRIXMULTIFLAG;
+    void setSumFlag(){
+        flag = MAXTRIXSUMFLAG;
     }
 
     void setRowMaxFlag(){
@@ -142,9 +139,8 @@ public:
             this->rawData->clear();
         }
         else{
-            //Multiply aggregation:
-            if(flag == MAXTRIXMULTIFLAG){
-                MultiplyAggregate(other);
+            if(flag == MAXTRIXSUMFLAG){
+                SumAggregate(other);
             } 
             else if(flag == MATRIXROWMAXFLAG){
                 RowMaxAggregate(other);

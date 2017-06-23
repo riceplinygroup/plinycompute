@@ -15,42 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef MATRIX_META_H
-#define MATRIX_META_H
+#ifndef LA_SINGLE_MATRIX_CC
+#define LA_SINGLE_MATRIX_CC
 
-#include "Object.h"
+#include "GetVTable.h"
+#include "LASingleMatrix.h"
 
-//By Binhang Yuan, May 2017
-
-class MatrixMeta : public pdb::Object {
-public:
-
-    ENABLE_DEEP_COPY
-
-    ~MatrixMeta(){}
-    MatrixMeta(){}
-
-    int blockRowIndex;
-    int blockColIndex;
-
-    int totalRows = 0;
-    int totalCols = 0;
-   
-    
-    bool operator == (const MatrixMeta& other) const {
-        if (blockRowIndex == other.blockRowIndex && blockColIndex == other.blockColIndex){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    size_t hash () const{
-        return 10000*blockRowIndex+blockColIndex;
-    }
-
-   
-};
+GET_V_TABLE (SingleMatrix)
 
 #endif

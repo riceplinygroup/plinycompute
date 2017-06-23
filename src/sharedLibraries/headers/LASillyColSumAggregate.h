@@ -15,42 +15,36 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef MATRIX_META_H
-#define MATRIX_META_H
+#ifndef SILLY_LA_COL_SUM_AGGREGATE_H
+#define SILLY_LA_COL_SUM_AGGREGATE_H
 
-#include "Object.h"
+//by Binhang, May 2017
 
-//By Binhang Yuan, May 2017
+#include "ClusterAggregateComp.h"
+#include "MatrixBlock.h"
+#include "LambdaCreationFunctions.h"
 
-class MatrixMeta : public pdb::Object {
+
+using namespace pdb;
+
+class LASillyColSumAggregate : public ClusterAggregateComp <MatrixBlock, MatrixBlock, MatrixMeta, MatrixData> {
+
 public:
 
-    ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-    ~MatrixMeta(){}
-    MatrixMeta(){}
+        LASillyColSumAggregate () {}
 
-    int blockRowIndex;
-    int blockColIndex;
-
-    int totalRows = 0;
-    int totalCols = 0;
-   
-    
-    bool operator == (const MatrixMeta& other) const {
-        if (blockRowIndex == other.blockRowIndex && blockColIndex == other.blockColIndex){
-            return true;
+        // the key type must have == and size_t hash () defined
+        Lambda <MatrixMeta> getKeyProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambdaFromMethod (aggMe, getColKey);
         }
-        else{
-            return false;
+
+        // the value type must have + defined
+        Lambda <MatrixData> getValueProjection (Handle <MatrixBlock> aggMe) override {
+                return makeLambdaFromMethod (aggMe, getColSumValue);
         }
-    }
-
-    size_t hash () const{
-        return 10000*blockRowIndex+blockColIndex;
-    }
-
-   
 };
+
 
 #endif

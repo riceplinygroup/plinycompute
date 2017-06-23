@@ -41,6 +41,7 @@ private:
 	LAPrimaryExpressionNodePtr me = NULL;
 	pdb::Handle<pdb::Computation> query;
 	LADimension dim;
+	LADimension duplicateDim;
 
 public:
 	LAPrimaryExpressionNode():LAExpressionNode(LA_ASTNODE_TYPE_PRIMARYEXPRESSION){};
@@ -57,11 +58,18 @@ public:
 		}
 		else if(flag.compare("max")==0 || flag.compare("min")==0 
 			 || flag.compare("rowMax")==0 || flag.compare("rowMin")==0
-			 || flag.compare("colMin")==0 || flag.compare("colMax")==0){
+			 || flag.compare("colMin")==0 || flag.compare("colMax")==0
+			 || flag.compare("rowSum")==0 || flag.compare("colSum")==0){
 			return flag+"(" + child->toString() + ")"; 
 		}
+		else if(flag.compare("duplicateCol")==0){
+			return flag+"(" + child->toString() + "," + std::to_string(duplicateDim.blockRowSize) + "," + std::to_string(duplicateDim.blockRowNum) +")";
+		}
+		else if(flag.compare("duplicateRow")==0){
+			return flag+"(" + child->toString() + "," + std::to_string(duplicateDim.blockColSize) + "," + std::to_string(duplicateDim.blockColNum) +")";
+		}
 		else{
-			return "PostfixExpression invalid flag: " + flag;
+			return "PrimaryExpression invalid flag: " + flag;
 		}
 	}
 
@@ -101,6 +109,10 @@ public:
 
 	void setDimension(LADimension other){
 		dim = other;
+	}
+
+	void setDuplicateDim(LADimension other){
+		duplicateDim = other;
 	}
 };
 

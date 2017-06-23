@@ -54,12 +54,13 @@ public:
             	int colNums = checkMe->getColNums();
             	int blockRowIndex = checkMe->getBlockRowIndex();
             	int blockColIndex = checkMe->getBlockColIndex();
-            	Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix(checkMe->getRawDataHandle()->c_ptr(),rowNums,colNums);
-            	
+            	int totalRows = checkMe->getTotalColNums();
+                int totalCols = checkMe->getTotalRowNums();
+                Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix(checkMe->getRawDataHandle()->c_ptr(),rowNums,colNums);
             	
             	//std::cout <<"Test Safe ?" << std::endl;
             	//std::cout << "Eigen matrix:\n" << currentMatrix << std::endl; 
-            	pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockColIndex,blockRowIndex,colNums,rowNums); 
+            	pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockColIndex,blockRowIndex,colNums,rowNums,totalRows,totalCols); 
             	
             	//std::cout <<"Test Safe ??" << std::endl;
             	Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > transposeMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(),colNums,rowNums);
@@ -73,7 +74,7 @@ public:
         	}
         	else{
         		std::cerr << "Wrong librayCode!" << std::endl;
-            	return checkMe;
+            	exit(1);
         	}
         });
 	}

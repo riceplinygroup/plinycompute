@@ -76,6 +76,18 @@ public:
         std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
     }
 
+    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn, int totalRows, int totalCols) {
+        meta.blockRowIndex = blockRowIndexIn;
+        meta.blockColIndex = blockColIndexIn;
+        meta.totalRows = totalRows;
+        meta.totalCols = totalCols;
+        data.rowNums = rowNumsIn;
+        data.colNums = colNumsIn;
+        data.rawData = pdb::makeObject<pdb::Vector<double> >(rowNumsIn*colNumsIn, rowNumsIn*colNumsIn);
+        std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+    }
+
+
     void print () override {
         std :: cout << "Block: (" << meta.blockRowIndex <<","<< meta.blockColIndex << "), size: (" << data.rowNums <<","<< data.colNums<<"), length:" << data.rawData->size()<<" ";
         if(data.rawData->size()!=data.rowNums*data.colNums){
@@ -120,6 +132,14 @@ public:
     int getColNums() {
         return data.colNums;
     }
+
+    int getTotalRowNums(){
+        return meta.totalRows;
+    }
+
+    int getTotalColNums(){
+        return meta.totalCols;
+    }
         
     pdb::Handle<pdb::Vector <double>>& getRawDataHandle(){
         return data.rawData;
@@ -139,7 +159,7 @@ public:
     }
 
     MatrixData& getMultiplyValue(){
-        data.setMatrixMultiplyFlag();
+        data.setSumFlag();
         return data;
     }
 
@@ -203,6 +223,28 @@ public:
         return minRowData;
     }
 
+    //This is needed for row-wise computation
+    MatrixData getRowSumValue(){
+        MatrixData sumRowData;
+        sumRowData.setSumFlag();
+        sumRowData.rowNums = data.rowNums;
+        sumRowData.colNums = 1;
+        int bufferLength = sumRowData.rowNums*sumRowData.colNums;
+        sumRowData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > rowSumMatrix((sumRowData.rawData)->c_ptr(),sumRowData.rowNums, sumRowData.colNums);
+
+        rowSumMatrix = currentMatrix.rowwise().sum();
+
+        std::cout <<"getRowSumValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Row wise Sum Matrix :"<< std::endl;
+        sumRowData.print();
+        return sumRowData;
+    }
+
     //This is needed for col-wise computation
     MatrixData getColMaxValue(){
         MatrixData maxColData;
@@ -247,6 +289,28 @@ public:
         return minColData;
     }
 
+    //This is needed for col-wise computation
+    MatrixData getColSumValue(){
+        MatrixData sumColData;
+        sumColData.setSumFlag();
+        sumColData.rowNums = 1;
+        sumColData.colNums = data.colNums;
+        int bufferLength = sumColData.rowNums*sumColData.colNums;
+        sumColData.rawData = pdb::makeObject<pdb::Vector<double> >(bufferLength, bufferLength);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix((data.rawData)->c_ptr(),data.rowNums,data.colNums);
+
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > colSumMatrix((sumColData.rawData)->c_ptr(),sumColData.rowNums, sumColData.colNums);
+
+        colSumMatrix = currentMatrix.colwise().sum();
+
+        std::cout <<"getColSumValue Matrix :"<< std::endl;
+        this->print();
+        std::cout <<"Col wise Sum Matrix :"<< std::endl;
+        sumColData.print();
+        return sumColData;
+    }
+
     //This is needed to find the max element
     LAMaxElementValueType getMaxElementValue(){
         LAMaxElementValueType result;
@@ -277,7 +341,47 @@ public:
         }
         std:: cout << "Min element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
         return result;
-    }    
+    } 
+
+
+    //This is needed to merge blocks into a single matrix for the temporal solution of matrix inverse
+    MatrixBlock& operator + (MatrixBlock &other){
+        int totalRows = (this->meta).totalRows;
+        int totalCols = (this->meta).totalCols;
+        //This is already a merged block
+        if((this->data).colNums == (this->meta).totalCols && (this->data).rowNums == (this->meta).totalRows){
+            for(int i=0; i<other.data.rowNums; i++){
+                for(int j=0; j<other.data.colNums; j++){
+                    int finalRowIndex = other.meta.blockRowIndex * other.data.rowNums + i;
+                    int finalColIndex = other.meta.blockColIndex * other.data.colNums + j;
+                    (*((this->data).rawData))[finalRowIndex * totalCols + finalColIndex] = (*(other.data.rawData))[i* other.data.colNums + j];
+                }
+            }
+            this->print();
+            return *this;
+        }
+        //Otherwise, should be called only once.
+        else{
+            Handle<MatrixBlock> result = makeObject<MatrixBlock>(0,0,totalRows,totalCols,totalRows,totalCols);
+            for(int i=0; i<(this->data).rowNums; i++){
+                for(int j=0; j<(this->data).colNums; j++){
+                    int finalRowIndex = (this->meta).blockRowIndex * (this->data).rowNums + i;
+                    int finalColIndex = (this->meta).blockColIndex * (this->data).colNums + j;
+                    (*((result->data).rawData))[finalRowIndex * totalCols + finalColIndex] = (*((this->data).rawData))[i* (this->data).colNums + j];
+                }
+            }
+            for(int i=0; i<other.data.rowNums; i++){
+                for(int j=0; j<other.data.colNums; j++){
+                    int finalRowIndex = other.meta.blockRowIndex * other.data.rowNums + i;
+                    int finalColIndex = other.meta.blockColIndex * other.data.colNums + j;
+                    (*((result->data).rawData))[finalRowIndex * totalCols + finalColIndex] = (*(other.data.rawData))[i* other.data.colNums + j];
+                }
+            }
+            result->print();
+            return *result;
+        }
+    }
+
 };
 
 

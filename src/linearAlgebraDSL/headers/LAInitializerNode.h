@@ -55,7 +55,7 @@ public:
 			return "identity("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
 		}
 		else if(method.compare("load")==0){
-			return "load("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+")";
+			return "load("+std::to_string(dim.blockRowSize)+","+std::to_string(dim.blockColSize)+"," +std::to_string(dim.blockRowNum) +"," +std::to_string(dim.blockColNum)+","+path+")";
 		}
 		else{
 			return "Initializer invalid method: " + method;
