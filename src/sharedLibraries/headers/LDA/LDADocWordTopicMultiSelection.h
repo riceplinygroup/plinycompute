@@ -16,65 +16,48 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef LDA_DOC_WORD_TOPIC_MULTI_SELECT_H
+#define LDA_DOC_WORD_TOPIC_MULTI_SELECT_H
 
-#include "Object.h"
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "MultiSelectionComp.h"
 #include "PDBVector.h"
-#include "Handle.h"
+#include "LDADocWordTopicCount.h"
+#include "LDADocWordTopicAssignment.h"
+#include "LDADocWordTopicCount.h"
 
-// By Shangyu
-
-namespace pdb {
-
-class LDADocWordTopicAssignment : public Object {
-
-private:
-
-        int docID;
-        int wordID;
-	Vector<int> topicAssignment;
+using namespace pdb;
+class LDADocWordTopicMultiSelection : public MultiSelectionComp <LDADocWordTopicCount, LDADocWordTopicAssignment> {
 
 public:
 
 	ENABLE_DEEP_COPY
 
-        ~LDADocWordTopicAssignment () {}
-        LDADocWordTopicAssignment () {}
+	LDADocWordTopicMultiSelection () {}
 
-	
-	LDADocWordTopicAssignment (int fromDoc, int fromWord, Handle<Vector<int>>& fromAssignment) {
-		this->docID = fromDoc;
-		this->wordID = fromWord;
-		this->topicAssignment = *fromAssignment;
-	}
-	
-
-	/*	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
+	Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<LDADocWordTopicAssignment> & checkMe) {return true;});
 	}
 
-	void setVector(Handle<Vector<double>>& fromVector) {
-		this->myVector = fromVector;
+	Lambda <Vector<Handle <LDADocWordTopicCount>>> getProjection (Handle <LDADocWordTopicAssignment> checkMe) override {
+		return makeLambda (checkMe, [&] (Handle<LDADocWordTopicAssignment> & checkMe) {
+		
+			Vector<Handle <LDADocWordTopicCount>> result();
+			Vector<int>& topicAssign = checkMe->getTopicAssignment(); 
+			int docID = checkMe->getDoc();
+			int wordID = checkMe->getWord();			
+
+			for (int i = 0; i < topicAssign.size(); i+=2) {
+				Handle <LDADocWordTopicCount> myDWTC = 
+					makeObject<LDADocWordTopicCount>(docID, wordID, topicAssign[i], topicAssign[i+1]);
+				result.push_back(myDWTC);
+			}
+
+			return result;
+		});
 	}
-	*/
-
-	int getDoc() {
-		return this->docID;
-	}
-
-	
-	Vector<int>& getTopicAssignment() {
-		return this->topicAssignment;
-	}
-	
-	
-
-
-
 };
 
-}
 
 #endif
