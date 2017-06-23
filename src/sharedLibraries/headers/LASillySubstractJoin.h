@@ -56,16 +56,18 @@ public:
                 in2->print();
                 if(in1->getRowNums()!=in2->getRowNums() || in1->getColNums()!=in2->getColNums()){
                     std::cerr << "Block dimemsions mismatch!" << std::endl;
-                    return in1;
+                    exit(1);
                 }
                 int rowNums = in1->getRowNums();
                 int colNums = in1->getColNums();
                 int blockRowIndex = in1->getBlockRowIndex();
                 int blockColIndex = in1->getBlockColIndex();
+                int totalRows = in1->getTotalRowNums();
+                int totalCols = in1->getTotalColNums();
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix1(in1->getRawDataHandle()->c_ptr(),rowNums,colNums);
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix2(in2->getRawDataHandle()->c_ptr(),rowNums,colNums);
                 
-                pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums); 
+                pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums,totalRows,totalCols); 
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > diffMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(),rowNums,colNums);
 
                 diffMatrix = currentMatrix1 - currentMatrix2;
@@ -77,7 +79,7 @@ public:
             }
             else{
                 std::cerr << "Wrong librayCode!" << std::endl;
-                return in1;
+                exit(1);
             }
         });
     }

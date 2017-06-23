@@ -50,6 +50,8 @@ struct LAPrimaryExpressionNode* makePrimaryExpressionFromInitializer(struct LAIn
 
 struct LAPrimaryExpressionNode* makePrimaryExpressionFromExpression(const char* flag, struct LAExpressionNode* expPointer);
 
+struct LAPrimaryExpressionNode* makePrimaryExpressionFromExpressionDuplicate(const char* flag, struct LAExpressionNode* expPointer,int size, int num);
+
 struct LAPostfixExpressionNode* makePostfixExpressionFromPrimaryExpression(const char* op, struct LAPrimaryExpressionNode* primaryExpPointer);
 
 struct LAMultiplicativeExpressionNode* makeMultiplicativeExpressionFromPostfixExpressionSingle(struct LAPostfixExpressionNode * postfixExpPointer);

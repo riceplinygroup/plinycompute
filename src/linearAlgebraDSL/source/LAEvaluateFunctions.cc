@@ -26,21 +26,29 @@
 #include "LAAdditiveExpressionNode.h"
 #include "LAStatementNode.h"
 
-
+#include "LASillyDuplicateColMultiSelection.h"
+#include "LASillyDuplicateRowMultiSelection.h"
 #include "LAMaxElementOutputType.h"
 #include "LAMaxElementValueType.h"
 #include "LAMinElementOutputType.h"
 #include "LAMinElementValueType.h"
 #include "LAScanMatrixBlockSet.h"
 #include "LASillyAddJoin.h"
+#include "LASillyScaleMultiplyJoin.h"
 #include "LASillyColMaxAggregate.h"
 #include "LASillyColMinAggregate.h"
+#include "LASillyColSumAggregate.h"
+#include "LASillyInverse1Aggregate.h"
+#include "LASillyInverse2Selection.h"
+#include "LASillyInverse3MultiSelection.h"
 #include "LASillyMaxElementAggregate.h"
 #include "LASillyMinElementAggregate.h"
 #include "LASillyMultiply1Join.h"
 #include "LASillyMultiply2Aggregate.h"
 #include "LASillyRowMaxAggregate.h"
 #include "LASillyRowMinAggregate.h"
+#include "LASillyRowSumAggregate.h"
+#include "LASillyScaleMultiplyJoin.h"
 #include "LASillySubstractJoin.h"
 #include "LASillyTransposeMultiply1Join.h"
 #include "LASillyTransposeSelection.h"
@@ -51,11 +59,14 @@
 #include "MatrixData.h"
 #include "MatrixMeta.h"
 
+#include <fstream>
+
 
 /*
  *	This does not consider if the block cannot fit in a single page, will be fixed soon.  
  */
 pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& instance){
+	int leftCounter = dim.blockRowNum * dim.blockColNum;
 	std::string setName = "LA_"+method+"_"+std::to_string(instance.getDispatchCount());
 	instance.increaseDispatchCount();
 	 // now, create a new set in LA_db
@@ -66,61 +77,99 @@ pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& insta
         std:: cout << "Created set: " << setName << std::endl;
     }
 	//Dispatch the set;
-	pdb :: makeObjectAllocatorBlock(instance.getBlockSize() * 1024 * 1024, true);
-    pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
-	if(method.compare("zeros")==0){
-		for (int i = 0; i < dim.blockRowNum; i++) {
-            for (int j = 0; j < dim.blockColNum; j++){
-                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize);
-                for(int ii = 0; ii < dim.blockRowSize; ii++){
-                    for(int jj=0; jj < dim.blockColSize; jj++){
-                        (*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = 0;
-                    }
-                }
-                storeMatrix->push_back (myData);
-            }
-        }
-	}
-	else if(method.compare("ones")==0){
-		for (int i = 0; i < dim.blockRowNum; i++) {
-            for (int j = 0; j < dim.blockColNum; j++){
-                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize);
-                for(int ii = 0; ii < dim.blockRowSize; ii++){
-                    for(int jj=0; jj < dim.blockColSize; jj++){
-                        (*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = 1;
-                    }
-                }
-                storeMatrix->push_back (myData);
-            }
-        }
-	}
-	else if(method.compare("identity")==0){
-		for (int i = 0; i < dim.blockRowNum; i++) {
-            for (int j = 0; j < dim.blockColNum; j++){
-                pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize);
-                for(int ii = 0; ii < dim.blockRowSize; ii++){
-                    for(int jj=0; jj < dim.blockColSize; jj++){
-                        (*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = (i==j && ii==jj)?1:0;
-                    }
-                }
-                storeMatrix->push_back (myData);
-            }
-        }	
-	}
-	else if(method.compare("load")==0){
-		//Load to be added soon.
-	}
-	else{
-		std::cerr << "LAInitializerNode <" << method << "> method invalid!" << std::endl;
-		exit(1);
+	//pdb :: makeObjectAllocatorBlock(instance.getBlockSize() * 1024 * 1024, true);
+	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
+	{
+	    pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
+	    int totalRows = dim.blockRowNum * dim.blockRowSize;
+	    int totalCols = dim.blockColNum * dim.blockColSize;
+		if(method.compare("zeros")==0 || method.compare("ones")==0 || method.compare("identity")==0){
+			try{
+				double value = 0.0;
+				if(method.compare("ones")==0){
+					value = 1.0;
+				}
+				for (int i = 0; i < dim.blockRowNum; i++) {
+	            	for (int j = 0; j < dim.blockColNum; j++){
+	                	pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
+	                	for(int ii = 0; ii < dim.blockRowSize; ii++){
+	                    	for(int jj=0; jj < dim.blockColSize; jj++){
+	          					if(method.compare("identity")==0){
+	          						value = (i==j && ii==jj)?1.0:0.0;
+	          					}
+	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+	                    	}
+	                	}
+	                	storeMatrix->push_back (myData);
+	                	leftCounter--;
+	                	if(leftCounter==0){
+	                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+	        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+	        					exit(1);
+	    					}    
+	    					instance.getStorageClient().flushData(instance.instanceErrMsg());
+	                	}
+	                }
+	            }            
+	        }catch(pdb::NotEnoughSpace &n){
+	        	if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+	        		std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+	        		exit(1);
+	    		}    
+	    		instance.getStorageClient().flushData(instance.instanceErrMsg());
+	        }
+		}
+		else if(method.compare("load")==0){ //We assume the input data is already splited into blocks
+			std::ifstream input(path.substr(1,path.length()-2),std::ios::in);
+			if(!input.is_open()){
+				std::cerr << "File Path <" << path.substr(1,path.length()-2) << "> invalid!" << std::endl;
+				exit(1);
+			}
+			try{
+				int inputRowIndex;
+				int inputColIndex;
+				double value;
+				for (int i = 0; i < dim.blockRowNum; i++) {
+	            	for (int j = 0; j < dim.blockColNum; j++){
+	            		input >> inputRowIndex;
+	            		input >> inputColIndex;
+	            		if(i!=inputRowIndex || j!=inputColIndex){
+	            			std::cerr << "Invalid block index from input file ("<< i <<"," <<j <<") != ("<<inputRowIndex<<","<<inputColIndex<<")"<<std::endl;
+	            			exit(1); 
+	            		}
+	                	pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
+	                	for(int ii = 0; ii < dim.blockRowSize; ii++){
+	                    	for(int jj=0; jj < dim.blockColSize; jj++){
+	                        	input >> value;
+	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+	                    	}
+	                	}
+	                	myData->print();
+	                	storeMatrix->push_back (myData);
+	                	leftCounter--;
+	                	if(leftCounter==0){
+	                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+	        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+	        					exit(1);
+	    					}    
+	    					instance.getStorageClient().flushData(instance.instanceErrMsg());
+	                	}
+	                }
+	            }            
+	        }catch(pdb::NotEnoughSpace &n){
+	        	if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+	        		std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+	        		exit(1);
+	    		}    
+	    		instance.getStorageClient().flushData(instance.instanceErrMsg());
+	        }
+		}
+		else{
+			std::cerr << "LAInitializerNode <" << method << "> method invalid!" << std::endl;
+			exit(1);
+		}
 	}
 	
-	
-	if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-        std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-        exit(1);
-    }    
-    instance.getStorageClient().flushData(instance.instanceErrMsg());
     scanSet = makeObject<LAScanMatrixBlockSet>("LA_db", setName);
     instance.addToCachedSet(setName);
 	if(scanSet.isNullPtr()){
@@ -176,6 +225,11 @@ pdb::Handle<pdb::Computation> LAPrimaryExpressionNode :: evaluate(LAPDBInstance&
 		query->setInput(child->evaluate(instance));
 		setDimension(LADimension(child->getDimension().blockRowSize,1,child->getDimension().blockRowNum,1));
 	}
+	else if(flag.compare("rowSum")==0){
+		query = makeObject<LASillyRowSumAggregate>();
+		query->setInput(child->evaluate(instance));
+		setDimension(LADimension(child->getDimension().blockRowSize,1,child->getDimension().blockRowNum,1));
+	}
 	else if(flag.compare("colMax")==0){
 		query = makeObject<LASillyColMaxAggregate>();
 		query->setInput(child->evaluate(instance));
@@ -185,6 +239,23 @@ pdb::Handle<pdb::Computation> LAPrimaryExpressionNode :: evaluate(LAPDBInstance&
 		query = makeObject<LASillyColMinAggregate>();
 		query->setInput(child->evaluate(instance));
 		setDimension(LADimension(1,child->getDimension().blockColSize,1,child->getDimension().blockColNum));
+	}
+	else if(flag.compare("colSum")==0){
+		query = makeObject<LASillyColSumAggregate>();
+		query->setInput(child->evaluate(instance));
+		setDimension(LADimension(1,child->getDimension().blockColSize,1,child->getDimension().blockColNum));
+	}
+	else if(flag.compare("duplicateRow")==0){
+		LADimension updatedDim(duplicateDim.blockRowSize,child->getDimension().blockColSize, duplicateDim.blockRowNum,child->getDimension().blockColNum);
+		query = makeObject<LASillyDuplicateRowMultiSelection>(updatedDim);
+		query->setInput(child->evaluate(instance));
+		setDimension(updatedDim);
+	}
+	else if(flag.compare("duplicateCol")==0){
+		LADimension updatedDim(child->getDimension().blockRowSize,duplicateDim.blockColSize,child->getDimension().blockRowNum,duplicateDim.blockColNum);
+		query = makeObject<LASillyDuplicateColMultiSelection>(updatedDim);
+		query->setInput(child->evaluate(instance));
+		setDimension(updatedDim);
 	}
 	else{
 		std::cerr << "PostfixExpression invalid flag: " + flag << std::endl;
@@ -205,8 +276,16 @@ pdb::Handle<pdb::Computation> LAPostfixExpressionNode :: evaluate(LAPDBInstance&
 		setDimension(child->getDimension().transpose());
 	}
 	else if(postOperator.compare("inverse")==0){
-		std::cerr <<  "Inverse is not supported." << std::endl;
-		exit(1);
+		pdb::Handle<pdb::Computation> queryAgg1 = makeObject<LASillyInverse1Aggregate>();
+    	queryAgg1->setInput(child->evaluate(instance));
+
+    	pdb::Handle<pdb::Computation> querySelect2 = makeObject<LASillyInverse2Selection>();
+    	querySelect2->setInput(queryAgg1);
+    
+    	LADimension targetDim(child->getDimension().transpose());
+    	Handle<Computation> queryMultiSelect3 = makeObject<LASillyInverse3MultiSelection>(targetDim);
+    	queryMultiSelect3->setInput(querySelect2);
+    	query = queryMultiSelect3;
 	}
 	else{
 		std::cerr <<  "PostfixExpression invalid operator: " + postOperator << std::endl;
@@ -220,6 +299,18 @@ pdb::Handle<pdb::Computation> LAMultiplicativeExpressionNode :: evaluate(LAPDBIn
 	if(multiOperator.compare("none")==0){
 		query2 = rightChild->evaluate(instance);
 		setDimension(rightChild->getDimension());
+	}
+	else if(multiOperator.compare("scale_multiply")==0){
+		LADimension dimLeft = leftChild->getDimension();
+		LADimension dimRight = rightChild->getDimension();
+		if(dimLeft != dimRight){
+			std::cerr << "Scale Multiply operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
+			exit(1); 
+		}
+		query2 = makeObject<LASillyScaleMultiplyJoin>();
+		query2->setInput(0,leftChild->evaluate(instance));
+		query2->setInput(1,rightChild->evaluate(instance));
+		setDimension(dimLeft);
 	}
 	else if(multiOperator.compare("multiply")==0){
 		LADimension dimLeft = leftChild->getDimension();
@@ -250,6 +341,10 @@ pdb::Handle<pdb::Computation> LAMultiplicativeExpressionNode :: evaluate(LAPDBIn
 		query2->setInput(query1);
 		LADimension dimNew(dimLeft.blockColSize,dimRight.blockColSize,dimLeft.blockColNum,dimRight.blockColNum);
 		setDimension(dimNew);
+	}
+	else if(multiOperator.compare("diagonal_multiply")==0){
+		std::cerr <<  "Diagonal multiply is not supported." << std::endl;
+		exit(1);
 	}
 	else{
 		std::cerr << "MultiplicativeExpression invalid operator: " + multiOperator << std::endl;
@@ -301,6 +396,7 @@ pdb::Handle<pdb::Computation> LAAdditiveExpressionNode :: evaluate(LAPDBInstance
  *	(2) Max/Min element does not considered yet! (check type for 2 operand operators)
  */
 void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
+	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
 	//Remove the previous set in DB
 	if(instance.existsScanSet(identifier->toString())){//Rename a variable
 		std::cout << "Redefine variable " << identifier->toString() << std::endl;
@@ -398,7 +494,7 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
         		std :: cout << "Max Element output count:" << countOut << "\n";
 			}
 			else if(statementQuery->getOutputType().compare("LAMinElementOutputType")==0){
-				SetIterator <LAMinElementOutputType> result = instance.getQueryClient().getSetIterator <LAMinElementOutputType> ("LA06_db", "LA_min_set");
+				SetIterator <LAMinElementOutputType> result = instance.getQueryClient().getSetIterator <LAMinElementOutputType> ("LA06_db", outputSetName);
         		std :: cout << "Minimal Element query results: "<< std :: endl;
         		int countOut = 0;
         		for (auto a : result) {

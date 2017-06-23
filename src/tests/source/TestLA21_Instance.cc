@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 	assert(argc==6);
 	bool printResult = (strcmp(argv[1],"Y")==0);
 	bool clusterMode = (strcmp(argv[2],"Y")==0);
-	int blockSize = atoi(argv[3]);
+	size_t blockSize = atoi(argv[3]);
 	int port = 8108;
 	std::string masterIP = argv[4];
 	FILE * targetCode = fopen(argv[5],"r");

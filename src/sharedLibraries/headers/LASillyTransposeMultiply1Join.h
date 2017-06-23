@@ -55,16 +55,18 @@ public:
                 in2->print();
                 if(in1->getRowNums()!=in2->getRowNums()){
                     std::cerr << "Block dimemsions mismatch!" << std::endl;
-                    return in1;
+                    exit(1);
                 }
                 int rowNums = in1->getColNums();
                 int colNums = in2->getColNums();
                 int blockRowIndex = in1->getBlockColIndex();
                 int blockColIndex = in2->getBlockColIndex();
+                int totalRows = in1->getTotalColNums();
+                int totalCols = in2->getTotalColNums();
                	Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix1(in1->getRawDataHandle()->c_ptr(),in1->getRowNums(),in1->getColNums());
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix2(in2->getRawDataHandle()->c_ptr(),in2->getRowNums(),in2->getColNums());
                  
-                pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums); 
+                pdb::Handle<MatrixBlock> resultMatrixBlock = pdb::makeObject<MatrixBlock>(blockRowIndex,blockColIndex,rowNums,colNums,totalRows,totalCols); 
                 Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > productMatrix(resultMatrixBlock->getRawDataHandle()->c_ptr(),rowNums,colNums);
 
                 productMatrix = (currentMatrix1.transpose()) * currentMatrix2;
@@ -76,7 +78,7 @@ public:
             }
             else{
                 std::cerr << "Wrong librayCode!" << std::endl;
-                return in1;
+                exit(1);
             }
         });
     }

@@ -15,42 +15,38 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef MATRIX_META_H
-#define MATRIX_META_H
+#ifndef SILLY_LA_INVERSE2_SELECT_H
+#define SILLY_LA_INVERSE2_SELECT_H
 
-#include "Object.h"
+//by Binhang, June 2017
 
-//By Binhang Yuan, May 2017
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "SelectionComp.h"
+#include "LASingleMatrix.h"
 
-class MatrixMeta : public pdb::Object {
+//LA libraries:
+#include <eigen3/Eigen/Dense>
+
+using namespace pdb;
+
+class LASillyInverse2Selection : public SelectionComp <SingleMatrix, SingleMatrix> {
+
 public:
 
-    ENABLE_DEEP_COPY
+	ENABLE_DEEP_COPY
 
-    ~MatrixMeta(){}
-    MatrixMeta(){}
+	LASillyInverse2Selection () {}
 
-    int blockRowIndex;
-    int blockColIndex;
+	Lambda <bool> getSelection (Handle <SingleMatrix> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<SingleMatrix> & checkMe) {return true;});
+	}
 
-    int totalRows = 0;
-    int totalCols = 0;
-   
-    
-    bool operator == (const MatrixMeta& other) const {
-        if (blockRowIndex == other.blockRowIndex && blockColIndex == other.blockColIndex){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
 
-    size_t hash () const{
-        return 10000*blockRowIndex+blockColIndex;
-    }
-
-   
+	Lambda <Handle <SingleMatrix>> getProjection (Handle <SingleMatrix> checkMe) override {
+        return makeLambdaFromMethod (checkMe, getInverse);
+	}
 };
+
 
 #endif

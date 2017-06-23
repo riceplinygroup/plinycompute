@@ -43,10 +43,14 @@
 ","                       { if(LALEXPRINTFLAG){printf("comma token!\n");} return (TOKEN_COMMA); }
 "rowMax"                  { if(LALEXPRINTFLAG){printf("rowMax token!\n");} return (TOKEN_ROWMAX); }
 "rowMin"                  { if(LALEXPRINTFLAG){printf("rowMin token!\n");} return (TOKEN_ROWMIN); }
+"rowSum"                  { if(LALEXPRINTFLAG){printf("rowSum token!\n");} return (TOKEN_ROWSUM); }
 "colMax"                  { if(LALEXPRINTFLAG){printf("colMax token!\n");} return (TOKEN_COLMAX); }
 "colMin"                  { if(LALEXPRINTFLAG){printf("colMin token!\n");} return (TOKEN_COLMIN); }
+"colSum"                  { if(LALEXPRINTFLAG){printf("colSum token!\n");} return (TOKEN_COLSUM); }
 "max"                     { if(LALEXPRINTFLAG){printf("max token!\n");} return (TOKEN_MAX); }
 "min"                     { if(LALEXPRINTFLAG){printf("min token!\n");} return (TOKEN_MIN); }
+"duplicateRow"            { if(LALEXPRINTFLAG){printf("duplicateRow token!\n");} return (TOKEN_DUPLICATEROW); }
+"duplicateCol"            { if(LALEXPRINTFLAG){printf("duplicateCol token!\n");} return (TOKEN_DUPLICATECOL); }
 
 [0-9]+\.[0-9]+            { 
                             yylval->doubleVal = atof(yytext);
@@ -74,7 +78,8 @@
 "+"                       { if(LALEXPRINTFLAG){printf("add token!\n");} return (TOKEN_ADD); } 
 "-"                       { if(LALEXPRINTFLAG){printf("minus token!\n");} return (TOKEN_MINUS); }
 "'*"                      { if(LALEXPRINTFLAG){printf("transposemultiply token!\n");} return (TOKEN_TRANSPOSEMULTIPLY); }
-"*"                       { if(LALEXPRINTFLAG){printf("multiply token!\n");} return (TOKEN_MULTIPLY); }
+"*"                       { if(LALEXPRINTFLAG){printf("scalemultiply token!\n");} return (TOKEN_SCALEMULTIPLY); }
+"%*%"                     { if(LALEXPRINTFLAG){printf("multiply token!\n");} return (TOKEN_MULTIPLY); }
 "^-1"                     { if(LALEXPRINTFLAG){printf("inv token!\n");} return (TOKEN_INV); }
 "^T"                      { if(LALEXPRINTFLAG){printf("transpose token!\n");} return (TOKEN_TRANSPOSE); }
 "("                       { if(LALEXPRINTFLAG){printf("( token!\n");} return (TOKEN_LEFT_BRACKET); }

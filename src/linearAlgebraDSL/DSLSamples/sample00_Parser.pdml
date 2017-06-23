@@ -7,15 +7,20 @@ E = A + B
 F = A - B
 G = A * B
 H = A '* B
+I = A %*% B
 
-I = A^T
-J = A^-1
+J = A^T
+K = A^-1
 
-K = A + B*C
+K = A + B%*%C
 
 L = max(A)
 M = min(A)
 N = rowMax(A)
 O = rowMin(A)
-P = colMax(A)
-Q = colMin(A)
+P = rowSum(A) 
+Q = colMax(A)
+R = colMin(A)
+S = colSum(A)
+T = duplicateRow(A,2,2)
+U = duplicateCol(A,2,2)

@@ -60,28 +60,33 @@
 
 
 
-%token END                                      0     "end of file"
+%token END                      0     "end of file"
 
-%token TOKEN_ZEROS                              701
-%token TOKEN_ONES                               702
-%token TOKEN_IDENTITY                           703
-%token TOKEN_LOAD                               704
-%token TOKEN_TRANSPOSE                          711
-%token TOKEN_INV                                712
-%token TOKEN_MULTIPLY                           721
-%token TOKEN_TRANSPOSEMULTIPLY                  722
-%token TOKEN_ADD                                731
-%token TOKEN_MINUS                              732
-%token TOKEN_LEFT_BRACKET                       741
-%token TOKEN_RIGHT_BRACKET                      742
-%token TOKEN_COMMA                              743
-%token TOKEN_ASSIGN                             744
-%token TOKEN_MAX                                751
-%token TOKEN_MIN                                752
-%token TOKEN_ROWMAX                             753
-%token TOKEN_ROWMIN                             754
-%token TOKEN_COLMAX                             755
-%token TOKEN_COLMIN                             756
+%token TOKEN_ZEROS              701
+%token TOKEN_ONES               702
+%token TOKEN_IDENTITY           703
+%token TOKEN_LOAD               704
+%token TOKEN_TRANSPOSE          711
+%token TOKEN_INV                712
+%token TOKEN_MULTIPLY           721
+%token TOKEN_TRANSPOSEMULTIPLY  722
+%token TOKEN_SCALEMULTIPLY      723
+%token TOKEN_ADD                731
+%token TOKEN_MINUS              732
+%token TOKEN_LEFT_BRACKET       741
+%token TOKEN_RIGHT_BRACKET      742
+%token TOKEN_COMMA              743
+%token TOKEN_ASSIGN             744
+%token TOKEN_MAX                751
+%token TOKEN_MIN                752
+%token TOKEN_ROWMAX             753
+%token TOKEN_ROWMIN             754
+%token TOKEN_ROWSUM             755
+%token TOKEN_COLMAX             756
+%token TOKEN_COLMIN             757
+%token TOKEN_COLSUM             758 
+%token TOKEN_DUPLICATEROW       759
+%token TOKEN_DUPLICATECOL       760
 
 %token <doubleVal>        DOUBLE                790
 %token <intVal>           INTEGER               791
@@ -199,6 +204,14 @@ multiplicativeExpression
     $$ = makeMultiplicativeExpressionFromPostfixExpressionDouble("multiply", $1, $3);
   }
 
+  | multiplicativeExpression TOKEN_SCALEMULTIPLY postfixExpression
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("scale multiply as multiplicativeExpression\n");
+    }
+    $$ = makeMultiplicativeExpressionFromPostfixExpressionDouble("scale_multiply", $1, $3);
+  }
+
   | multiplicativeExpression TOKEN_TRANSPOSEMULTIPLY postfixExpression
   {
     if(LAPARSEPRINTFLAG){
@@ -304,6 +317,14 @@ primaryExpression
     $$ = makePrimaryExpressionFromExpression("rowMin",$3);
   }
 
+  | TOKEN_ROWSUM TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("rowSum function Expression\n");
+    }
+    $$ = makePrimaryExpressionFromExpression("rowSum",$3);
+  }
+
   | TOKEN_COLMAX TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
   {
     if(LAPARSEPRINTFLAG){
@@ -318,6 +339,30 @@ primaryExpression
       printf("colMin function Expression\n");
     }
     $$ = makePrimaryExpressionFromExpression("colMin",$3);
+  }
+
+  | TOKEN_COLSUM TOKEN_LEFT_BRACKET expression TOKEN_RIGHT_BRACKET
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("colSum function Expression\n");
+    }
+    $$ = makePrimaryExpressionFromExpression("colSum",$3);
+  }
+  // suppose expression is a row vector, duplicate to blockColSize, blockColNum 
+  | TOKEN_DUPLICATEROW TOKEN_LEFT_BRACKET expression TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("duplicateRow function Expression\n");
+    }
+    $$ = makePrimaryExpressionFromExpressionDuplicate("duplicateRow",$3,$5,$7);
+  }
+  // suppose experssion is a col vector, duplicate to blockRowSize, blockRowNum
+  | TOKEN_DUPLICATECOL TOKEN_LEFT_BRACKET expression TOKEN_COMMA INTEGER TOKEN_COMMA INTEGER TOKEN_RIGHT_BRACKET
+  {
+    if(LAPARSEPRINTFLAG){
+      printf("duplicateCol function Expression\n");
+    }
+    $$ = makePrimaryExpressionFromExpressionDuplicate("duplicateCol",$3,$5,$7);
   }
   ;
 
