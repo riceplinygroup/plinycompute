@@ -60,24 +60,11 @@ public:
                 // copy src over
                 memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
                 memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
 
                 // lastly, free src
                 gsl_rng_free (src);
 		
-
-		// my way to use gsl
-		/*
-		gsl_rng *rng;
-		rng = gsl_rng_alloc(gsl_rng_mt19937);
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		int spaceNeeded = sizeof (gsl_rng);
-		myMem = makeObject <Vector <char>> (spaceNeeded, spaceNeeded);
-		gsl_rng_set(rng, gen());
-		//memcpy (myMem->c_ptr (), rng, sizeof (gsl_rng));
-		//myMem->c_ptr () = (char*)rng;
-		gsl_rng_free (rng);
-		*/
 		
 	}
 
@@ -96,11 +83,12 @@ public:
 			gsl_rng_set(rng, gen());
 			*/
 				
-			//gsl_rng *rng;
-			//memcpy (rng, this->myMem->c_ptr (), sizeof (this->myMem->size()));
-			//rng = (gsl_rng *) myMem->c_ptr ();
 			
 			gsl_rng *rng = getRng();		
+		//	std::random_device rd;
+                //      std::mt19937 gen(rd());
+                //      gsl_rng_set(rng, gen());
+
 			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>();
 			int topicNum = this->prior.size();
 			result->setInt(checkMe->getKey());
@@ -109,10 +97,9 @@ public:
 			gsl_ran_dirichlet(rng, topicNum, this->prior.c_ptr(), mySamples->c_ptr());
 				
 			result->setVector(mySamples);
-			std::cout << "My samples: " << std::endl;
-			mySamples->print();
+		//	std::cout << "My samples: " << std::endl;
+		//	mySamples->print();
 			
-		//	gsl_rng_free(rng);
 			return result;
 		});
 	}
@@ -120,13 +107,34 @@ public:
 	// gets the GSL RNG from myMem
 	
         gsl_rng *getRng () {
-                gsl_rng *dst;
-                dst = (gsl_rng *) myMem->c_ptr ();
+                gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
                 dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
+		dst->type = gsl_rng_mt19937;
                 return dst;
         }
 	
-	
+	Handle <IntDoubleVectorPair> getResult() {
+
+			gsl_rng *rng = getRng();		
+			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>();
+			int topicNum = this->prior.size();
+			result->setInt(0);
+			Handle<Vector<double>> mySamples= makeObject<Vector<double>>(topicNum, topicNum);	
+		
+			gsl_ran_dirichlet(rng, topicNum, (double *)((this->prior).c_ptr()), (double *)(mySamples->c_ptr()));
+				
+			result->setVector(mySamples);
+			std::cout << "My samples: " << std::endl;
+			mySamples->print();
+			
+			return result;
+
+	}	
+
+	Vector<double> getPrior() {
+		return this->prior;
+	}
+
 };
 
 
