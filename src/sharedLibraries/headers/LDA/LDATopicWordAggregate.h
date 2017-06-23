@@ -15,66 +15,56 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef LDA_TOPIC_WORD_AGGREGATE_H
+#define LDA_TOPIC_WORD_AGGREGATE_H
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+//by Shangyu, May 2017
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "Handle.h"
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "ClusterAggregateComp.h"
+//#include "limits.h"
+#include "IntIntVectorPair.h"
+#include "LDADocWordTopicCount.h"
 
-// By Shangyu
 
-namespace pdb {
 
-class LDADocWordTopicAssignment : public Object {
+using namespace pdb;
+
+
+class LDATopicWordAggregate : public ClusterAggregateComp <IntIntVectorPair, LDADocWordTopicCount, int, Vector<int>> {
 
 private:
-
-        int docID;
-        int wordID;
-	Vector<int> topicAssignment;
+	int numWord;
 
 public:
 
-	ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-        ~LDADocWordTopicAssignment () {}
-        LDADocWordTopicAssignment () {}
-
-	
-	LDADocWordTopicAssignment (int fromDoc, int fromWord, Handle<Vector<int>>& fromAssignment) {
-		this->docID = fromDoc;
-		this->wordID = fromWord;
-		this->topicAssignment = *fromAssignment;
-	}
-	
-
-	/*	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
+        LDATopicWordAggregate () {}
+        LDATopicWordAggregate (int fromWord) {
+		this->numWord = fromWord;
 	}
 
-	void setVector(Handle<Vector<double>>& fromVector) {
-		this->myVector = fromVector;
-	}
-	*/
 
-	int getDoc() {
-		return this->docID;
-	}
+        // the key type must have == and size_t hash () defined
+        Lambda <int> getKeyProjection (Handle <LDADocWordTopicCount> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<LDADocWordTopicCount> & aggMe) {return aggMe->getTopic();});
+        }
 
-	
-	Vector<int>& getTopicAssignment() {
-		return this->topicAssignment;
-	}
-	
-	
+        // the value type must have + defined
+        Lambda <Vector<int>> getValueProjection (Handle <LDADocWordTopicCount> aggMe) override {
+            	return makeLambda (aggMe, [&] (Handle<LDADocWordTopicCount> & aggMe) { 
 
+			Handle<Vector<int>> result = makeObject<Vector<int>>(this->numWord, this->numWord);
+			result->fill(0);
+			(*result)[aggMe->getWord()] = aggMe->getCount(); 
+			return *result;
+		});
+        }
 
 
 };
 
-}
 
 #endif

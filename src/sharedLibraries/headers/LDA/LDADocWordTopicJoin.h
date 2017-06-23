@@ -35,11 +35,34 @@ using namespace pdb;
 
 class LDADocWordTopicJoin : public JoinComp <LDADocWordTopicAssignment, LDADocument, IntDoubleVectorPair, IntDoubleVectorPair> {
 
+private:
+	Handle <Vector <char>> myMem;
+
 public:
 
         ENABLE_DEEP_COPY
 
-        LDADocWordTopicJoin () {}
+        LDADocWordTopicJoin () {
+		
+		// start by setting up the gsl_rng *src...
+                gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                gsl_rng_set(src, gen());
+
+                // now allocate space needed for myRand
+                int spaceNeeded = sizeof (gsl_rng) + src->type->size;
+                myMem = makeObject <Vector <char>> (spaceNeeded, spaceNeeded);
+
+                // copy src over
+                memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
+                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+
+                // lastly, free src
+                gsl_rng_free (src);
+	
+	}
 
         Lambda <bool> getSelection (Handle <LDADocument> doc, Handle <IntDoubleVectorPair> DocTopicProb, 
 		Handle <IntDoubleVectorPair> WordTopicProb) override {
@@ -54,24 +77,24 @@ public:
         Lambda <Handle <LDADocWordTopicAssignment>> getProjection (Handle <LDADocument> doc, 
 		Handle <IntDoubleVectorPair> DocTopicProb, Handle <IntDoubleVectorPair> WordTopicProb) override {
 
-		    return makeLambda (doc, DocTopicProb, WordTopicProb, [] (Handle<LDADocument> & doc, 
+		    return makeLambda (doc, DocTopicProb, WordTopicProb, [&] (Handle<LDADocument> & doc, 
 			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
 				//Handle<Vector<double>> topicProbForDoc = DocTopicProb->getVector();
 				//Handle<Vector<double>> topicProbForWord = WordTopicProb->getVector();
-				int size = DocTopicProb->getVector()->size();
+				int size = DocTopicProb->getVector().size();
 				Handle<Vector<double>> myProb = makeObject<Vector<double>>(size, size);
 				Handle<Vector<int>> topics = makeObject<Vector<int>>(size, size);
 				Handle<Vector<int>> topicAssignment = makeObject<Vector<int>>();
 
-				gsl_rng *rng;
-                        	rng = gsl_rng_alloc(gsl_rng_mt19937);
-                        	std::random_device rd;
-                        	std::mt19937 gen(rd());
-                        	gsl_rng_set(rng, gen());
+				gsl_rng *rng = getRng();
+                        	//rng = gsl_rng_alloc(gsl_rng_mt19937);
+                        	//std::random_device rd;
+                        	//std::mt19937 gen(rd());
+                        	//gsl_rng_set(rng, gen());
 				
 
 				for (int i = 0; i < size; ++i) {
-					(*myProb)[i] = (*(DocTopicProb->getVector()))[i] * (*(WordTopicProb->getVector()))[i]; 
+					(*myProb)[i] = (DocTopicProb->getVector())[i] * (WordTopicProb->getVector())[i]; 
 				}
 				gsl_ran_multinomial (rng, size, doc->getCount(), myProb->c_ptr(), (unsigned int*)topics->c_ptr());
 	
@@ -89,7 +112,15 @@ public:
 			});
 		
         	}
+		
+		// gets the GSL RNG from myMem
 
+        	gsl_rng *getRng () {
+                	gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
+                	dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
+                	dst->type = gsl_rng_mt19937;
+                	return dst;
+	       	 }
 };
 
 

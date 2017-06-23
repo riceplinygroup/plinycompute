@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef LDA_DOC_WORD_TOPIC_COUNT_H
+#define LDA_DOC_WORD_TOPIC_COUNT_H
 
 #include "Object.h"
 #include "PDBVector.h"
@@ -27,50 +27,44 @@
 
 namespace pdb {
 
-class LDADocWordTopicAssignment : public Object {
+class LDADocWordTopicCount {
 
 private:
 
         int docID;
         int wordID;
-	Vector<int> topicAssignment;
+	int topicID;
+	int count;
 
 public:
 
-	ENABLE_DEEP_COPY
+        ~LDADocWordTopicCount () {}
+        LDADocWordTopicCount () {}
 
-        ~LDADocWordTopicAssignment () {}
-        LDADocWordTopicAssignment () {}
-
-	
-	LDADocWordTopicAssignment (int fromDoc, int fromWord, Handle<Vector<int>>& fromAssignment) {
+		
+	LDADocWordTopicCount (int fromDoc, int fromWord, int fromTopic, int fromCount) {
 		this->docID = fromDoc;
 		this->wordID = fromWord;
-		this->topicAssignment = *fromAssignment;
+		this->topicID = fromTopic;
+		this->count = fromCount;
 	}
 	
-
-	/*	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
-	}
-
-	void setVector(Handle<Vector<double>>& fromVector) {
-		this->myVector = fromVector;
-	}
-	*/
 
 	int getDoc() {
 		return this->docID;
 	}
 
-	
-	Vector<int>& getTopicAssignment() {
-		return this->topicAssignment;
+	int getTopic() {
+		return this->topicID;
 	}
-	
-	
 
+	int getWord() {
+		return this->wordID;
+	}
+
+	int getCount() {
+		return this->count;
+	}
 
 
 };
