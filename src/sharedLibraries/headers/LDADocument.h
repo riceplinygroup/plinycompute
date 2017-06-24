@@ -36,7 +36,7 @@ private:
 
 public:
 
-	//ENABLE_DEEP_COPY
+	ENABLE_DEEP_COPY
 
         LDADocument () {}
 	

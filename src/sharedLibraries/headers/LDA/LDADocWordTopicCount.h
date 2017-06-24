@@ -37,6 +37,8 @@ private:
 
 public:
 
+	ENABLE_DEEP_COPY
+
         ~LDADocWordTopicCount () {}
         LDADocWordTopicCount () {}
 

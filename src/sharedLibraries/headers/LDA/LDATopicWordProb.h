@@ -36,6 +36,7 @@ private:
 
 public:
 
+	ENABLE_DEEP_COPY
 
         LDATopicWordProb () {}
         LDATopicWordProb (int fromTopic, int fromWord, double fromProbability) {
