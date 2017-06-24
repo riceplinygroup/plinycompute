@@ -549,7 +549,13 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
 double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     //TODO: to get the cost of source specified by the index
     std :: string key = curSourceSetNames[index];
+    std :: cout << "to search set with name=" << key << std :: endl;
     Handle<SetIdentifier> curSet = this->getSourceSetIdentifier(key);
+    if (curSet == nullptr) {
+        std :: cout << "WARNING: there is no source set" << std :: endl;
+        return 0;
+    }
+    std :: cout << "curSet has database name=" << curSet->getDatabase() << " and set name=" << curSet->getSetName() << std :: endl;
     double cost =  stats->getNumBytes(curSet->getDatabase(), curSet->getSetName()); 
     cost = double ((int)cost/1000000);
 //    std :: cout << "key=" << key << ", cost=" << cost << std :: endl;

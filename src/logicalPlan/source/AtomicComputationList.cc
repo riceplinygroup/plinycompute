@@ -63,7 +63,6 @@ void AtomicComputationList :: addAtomicComputation (AtomicComputationPtr addMe) 
 	// join to the consumers map
 	if (addMe->getAtomicComputationType () == "JoinSets") {
 		ApplyJoin *myPtr = (ApplyJoin *) addMe.get ();
-		std :: cout << "Adding a join, which consumes " << myPtr->getRightInput ().getSetName () << " on the RHS.\n";
 		consumers[myPtr->getRightInput ().getSetName ()].push_back (addMe);	
 	}
 
