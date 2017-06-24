@@ -26,7 +26,7 @@
 
 namespace pdb {
 
-class LDADocument {
+class LDADocument : public Object {
 
 private:
 

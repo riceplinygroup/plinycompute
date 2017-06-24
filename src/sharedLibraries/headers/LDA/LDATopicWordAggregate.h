@@ -23,7 +23,6 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-//#include "limits.h"
 #include "IntIntVectorPair.h"
 #include "LDADocWordTopicCount.h"
 

@@ -77,10 +77,30 @@ public:
 	Vector<double>& getVector() {
 		return this->myVector;
 	}
+	
+	int &getKey() {
+                return this->myInt;
+        }
 
-
+        Vector<double> &getValue() {
+                 return this->myVector;
+        }
 
 };
+
+inline Vector<double> &operator+ (Vector<double> &lhs, Vector<double> &rhs) {
+        int size = lhs.size();
+        if (size != rhs.size()) {
+                std :: cout << "You cannot add two vectors in different sizes!" << std :: endl;
+                return lhs;
+        }
+        for (int i = 0; i < size; ++i) {
+		if (rhs[i] != 0)
+                	lhs[i] = lhs[i] + rhs[i];
+        }
+        return lhs;
+
+}
 
 }
 

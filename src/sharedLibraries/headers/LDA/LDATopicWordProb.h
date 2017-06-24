@@ -16,67 +16,49 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-
-#include "Object.h"
-#include "PDBVector.h"
-#include "Handle.h"
+#ifndef LDA_TOPIC_WORD_PROB_H
+#define LDA_TOPIC_WORD_PROB_H
 
 // By Shangyu
 
+#include "Object.h"
+#include "Handle.h"
+
 namespace pdb {
 
-class LDADocWordTopicAssignment : public Object {
+class LDATopicWordProb  : public Object {
 
 private:
 
-        int docID;
-        int wordID;
-	Vector<int> topicAssignment;
+        int topicID;
+	int wordID;
+	double probability;
 
 public:
 
-	ENABLE_DEEP_COPY
 
-        ~LDADocWordTopicAssignment () {}
-        LDADocWordTopicAssignment () {}
-
-	
-	LDADocWordTopicAssignment (int fromDoc, int fromWord, Handle<Vector<int>>& fromAssignment) {
-		this->docID = fromDoc;
+        LDATopicWordProb () {}
+        LDATopicWordProb (int fromTopic, int fromWord, double fromProbability) {
+		this->topicID = fromTopic;
 		this->wordID = fromWord;
-		this->topicAssignment = *fromAssignment;
-	}
-	
-
-	/*	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
+		this->probability = fromProbability;
 	}
 
-	void setVector(Handle<Vector<double>>& fromVector) {
-		this->myVector = fromVector;
+	int getTopic() {
+		return this->topicID;
 	}
-	*/
 
-	int getDoc() {
-		return this->docID;
-	}
 
 	int getWord() {
 		return this->wordID;
 	}
 
-
-	
-	Vector<int>& getTopicAssignment() {
-		return this->topicAssignment;
+	double getProbability() {
+		return this->probability;
 	}
-	
-	
 
 
+        ~LDATopicWordProb () {}
 
 };
 

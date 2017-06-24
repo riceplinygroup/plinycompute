@@ -43,7 +43,7 @@ public:
 	Lambda <Vector<Handle <LDADocWordTopicCount>>> getProjection (Handle <LDADocWordTopicAssignment> checkMe) override {
 		return makeLambda (checkMe, [&] (Handle<LDADocWordTopicAssignment> & checkMe) {
 		
-			Vector<Handle <LDADocWordTopicCount>> result();
+			Vector<Handle <LDADocWordTopicCount>> result;
 			Vector<int>& topicAssign = checkMe->getTopicAssignment(); 
 			int docID = checkMe->getDoc();
 			int wordID = checkMe->getWord();			

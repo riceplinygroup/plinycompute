@@ -65,11 +65,15 @@ public:
 
         Lambda <bool> getSelection (Handle <LDADocument> doc, Handle <IntDoubleVectorPair> DocTopicProb, 
 		Handle <IntDoubleVectorPair> WordTopicProb) override {
-            
+           	
+		   // return (makeLambdaFromMethod (doc, getDoc) == makeLambdaFromMethod (DocTopicProb, getInt)) && 
+		//		(makeLambdaFromMethod (doc, getWord) == makeLambdaFromMethod (WordTopicProb, getInt));	
+		     
 		    return makeLambda (doc, DocTopicProb, WordTopicProb, [] (Handle<LDADocument> & doc, 
 			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
 				return (doc->getDoc() == DocTopicProb->getInt() && doc->getWord() == WordTopicProb->getInt());
 		    	});
+		    
 
         	}
 
@@ -80,7 +84,10 @@ public:
 			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
 				//Handle<Vector<double>> topicProbForDoc = DocTopicProb->getVector();
 				//Handle<Vector<double>> topicProbForWord = WordTopicProb->getVector();
-				int size = DocTopicProb->getVector().size();
+				int size = (DocTopicProb->getVector()).size();
+
+				std :: cout << "Topic size: " << size << "\n\n";	
+			
 				Handle<Vector<double>> myProb = makeObject<Vector<double>>(size, size);
 				Handle<Vector<int>> topics = makeObject<Vector<int>>(size, size);
 				Handle<Vector<int>> topicAssignment = makeObject<Vector<int>>();
@@ -90,11 +97,23 @@ public:
                         	//std::random_device rd;
                         	//std::mt19937 gen(rd());
                         	//gsl_rng_set(rng, gen());
-				
+							
+				std :: cout << "For doc: " << doc->getDoc() << "\n";
+				std :: cout << "DocTopicProb: " << "\n";
+				(DocTopicProb->getVector()).print();
+				std :: cout << "WordTopicProb: " << "\n";
+				(WordTopicProb->getVector()).print();
+		
 
 				for (int i = 0; i < size; ++i) {
 					(*myProb)[i] = (DocTopicProb->getVector())[i] * (WordTopicProb->getVector())[i]; 
 				}
+
+				std :: cout << "My Prob: " << "\n";
+				(*myProb).print();
+		
+
+
 				gsl_ran_multinomial (rng, size, doc->getCount(), myProb->c_ptr(), (unsigned int*)topics->c_ptr());
 	
 				for (int i = 0; i < size; ++i) {
