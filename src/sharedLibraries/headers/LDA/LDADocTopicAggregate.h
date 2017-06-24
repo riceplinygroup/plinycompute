@@ -23,10 +23,9 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-//#include "limits.h"
 #include "IntIntVectorPair.h"
 #include "LDADocWordTopicAssignment.h"
-
+#include "PDBVector.h"
 
 
 using namespace pdb;

@@ -23,7 +23,7 @@
 // LDA using Gibbs Sampling;
 
 #include "PDBDebug.h"
-//#include "PDBVector.h"
+#include "PDBVector.h"
 #include "Query.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -42,9 +42,9 @@
 #include "WriteIntDoubleVectorPairSet.h"
 #include "IntDoubleVectorPair.h"
 #include "IntIntVectorPair.h"
+#include "LDADocWordTopicAssignment.h"
 
 #include "LDA/LDAInitialWordTopicProbMultiSelection.h"
-#include "LDA/LDADocWordTopicAssignment.h"
 #include "LDA/LDADocWordTopicJoin.h"
 #include "LDA/LDADocTopicAggregate.h"
 #include "LDA/LDADocTopicProbSelection.h"
@@ -52,6 +52,7 @@
 #include "LDA/LDATopicWordAggregate.h"
 #include "LDA/LDATopicWordProbMultiSelection.h"
 #include "LDA/LDAWordTopicAggregate.h"
+#include "LDA/WriteLDADocWordTopicAssignmentSet.h"
 
 #include "LDA/LDADocWordTopicCount.h"
 #include "LDA/LDATopicWordProb.h"
@@ -198,12 +199,13 @@ int main (int argc, char * argv[]) {
     alpha->fill(1.0);
     beta->fill(1.0);
 
+    catalogClient.registerType ("libraries/libIntDoubleVectorPair.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocument.so", errMsg);
+    catalogClient.registerType ("libraries/libLDADocWordTopicAssignment.so", errMsg);
+
 
     if (whetherToAddData == true) {
         //Step 1. Create Database and Set
-        // now, register a type for user data
-        catalogClient.registerType ("libraries/libIntDoubleVectorPair.so", errMsg);
-        catalogClient.registerType ("libraries/libLDADocument.so", errMsg);
 
         // now, create a new database
         if (!temp.createDatabase ("LDA_db", errMsg)) {
@@ -363,7 +365,7 @@ int main (int argc, char * argv[]) {
 
     // now, create a new set in that database to store output data
     
-    PDB_COUT << "to create a new set to store the data count" << std :: endl;
+    PDB_COUT << "to create a new set to store the (doc, topic probability)" << std :: endl;
     if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_doc_topic_prob_test_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
@@ -371,13 +373,22 @@ int main (int argc, char * argv[]) {
         cout << "Created set LDA_doc_topic_prob_test_set.\n";
     }
 
-    PDB_COUT << "to create a new set to store the initial topic probabilities" << std :: endl;
+    PDB_COUT << "to create a new set to store the (word, topic probability)" << std :: endl;
     if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_word_topic_prob_test_set", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
         cout << "Created set LDA_word_topic_prob_test_set.\n";
     }
+
+    PDB_COUT << "to create a new set to store the sampled topics" << std :: endl;
+    if (!temp.createSet<LDADocWordTopicAssignment> ("LDA_db", "LDA_topic_join_test_set", errMsg)) {
+        cout << "Not able to create set: " + errMsg;
+        exit (-1);
+    } else {
+        cout << "Created set LDA_topic_join_test_set.\n";
+    }
+
 
     /*
     PDB_COUT << "to create a new set for storing output data" << std :: endl;
@@ -402,7 +413,6 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libWriteIntDoubleVectorPairSet.so", errMsg);
     catalogClient.registerType ("libraries/libScanIntSet.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocWordTopicJoin.so", errMsg);
-    catalogClient.registerType ("libraries/libLDADocWordTopicAssignment.so", errMsg);
     catalogClient.registerType ("libraries/libLDAInitialWordTopicProbMultiSelection.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocTopicAggregate.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocTopicProbSelection.so", errMsg);
@@ -413,6 +423,7 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libLDAWordTopicAggregate.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocWordTopicCount.so", errMsg);
     catalogClient.registerType ("libraries/libLDATopicWordProb.so", errMsg);
+    catalogClient.registerType ("libraries/libWriteLDADocWordTopicAssignmentSet.so", errMsg);
 
 
 	// connect to the query client
@@ -443,8 +454,8 @@ int main (int argc, char * argv[]) {
 //    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
 //    myWriter->setInput(myWordTopicProb);
 
-    tempOut.push_back(myDocTopicProb);
-    tempOut.push_back(myWordTopicProb);
+//    tempOut.push_back(myDocTopicProb);
+//    tempOut.push_back(myWordTopicProb);
 	
     /*
     if (!myClient.executeComputations(errMsg, myWriter)) {
@@ -464,10 +475,10 @@ int main (int argc, char * argv[]) {
 		term << "*****************************************" << std :: endl;
 //		term << "I am in iteration : " << n << std :: endl;
 		term << "*****************************************" << std :: endl;
-    
-    
+		    
+    		
 		// Sample for the topics	
-
+		
     		//Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
 		myDocWordTopicJoin->setInput(0, myInitialScanSet);
@@ -475,7 +486,8 @@ int main (int argc, char * argv[]) {
 //		myDocWordTopicJoin->setInput(1, tempOut[0]);
 		myDocWordTopicJoin->setInput(2, myWordTopicProb);
 //		myDocWordTopicJoin->setInput(2, tempOut[1]);
-
+		
+		/*
 		// Sample for the (doc, topic probability)
 		
 		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicAggregate> (numTopic);
@@ -484,8 +496,10 @@ int main (int argc, char * argv[]) {
 //		myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
 		myDocTopicProbThis->setInput(myDocTopicCountAgg);
 //		tempOut[0] = myDocTopicProb;
+		*/
 
 		// Sample for the (topic, word probability)
+		/*
 		Handle <Computation> myDocWordTopicCount = makeObject <LDADocWordTopicMultiSelection> ();
 		myDocWordTopicCount->setInput(myDocWordTopicJoin);
 		Handle <Computation> myTopicWordAgg = makeObject <LDATopicWordAggregate> (numWord);
@@ -496,20 +510,24 @@ int main (int argc, char * argv[]) {
 		// Aggregate to get (word, topic probability)
 		Handle <Computation> myWordTopicProbThis = makeObject <LDAWordTopicAggregate> (numTopic);		
 		myWordTopicProbThis->setInput(myTopicWordProb);
-		
+		*/
 //	}
 
-		Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
+	//	Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
 	//	myWriter->setInput(tempOut[0]);
-		myWriter->setInput(myDocTopicProbThis);
-			
+	//	myWriter->setInput(myDocTopicProbThis);
+		
+		/*	
 		Handle <Computation> myWriter1 = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
-	//	myWriter->setInput(tempOut[0]);
-		myWriter->setInput(myWordTopicProbThis);
-	
+		myWriter1->setInput(myWordTopicProbThis);
+		*/
 
+		Handle <Computation> myWriter = makeObject<WriteLDADocWordTopicAssignmentSet>("LDA_db", "LDA_topic_join_test_set");
+		myWriter->setInput(myDocWordTopicJoin);
+	
+	
 		auto begin = std :: chrono :: high_resolution_clock :: now();
-		if (!myClient.executeComputations(errMsg, myWriter, myWriter1)) {
+		if (!myClient.executeComputations(errMsg, myWriter)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
@@ -525,10 +543,9 @@ int main (int argc, char * argv[]) {
 			a->getVector().print(); 
 			term << std::endl;	
 		}
-		*/
-
 
 		term << reset << std::endl;	
+		*/
 
 		auto end = std::chrono::high_resolution_clock::now();
 		term << "Time Duration: " <<
@@ -595,6 +612,7 @@ int main (int argc, char * argv[]) {
        // myClient.deleteSet ("LDA_db", "LDA_output_set");
         myClient.deleteSet ("LDA_db", "LDA_doc_topic_prob_test_set");
         myClient.deleteSet ("LDA_db", "LDA_word_topic_prob_test_set");
+        myClient.deleteSet ("LDA_db", "LDA_topic_join_test_set");
     } else {
 	/*
         if (!temp.removeSet ("LDA_db", "LDA_output_set", errMsg)) {
@@ -607,6 +625,10 @@ int main (int argc, char * argv[]) {
             exit (-1);
         }
         else if (!temp.removeSet ("LDA_db", "LDA_word_topic_prob_test_set", errMsg)) {
+            cout << "Not able to remove set: " + errMsg;
+            exit (-1);
+        }
+        else if (!temp.removeSet ("LDA_db", "LDA_topic_join_test_set", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit (-1);
         }

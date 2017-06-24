@@ -21,10 +21,12 @@
 //by Shangyu, Mar 2017
 
 #include "JoinComp.h"
+#include "Lambda.h"
 #include "LDADocWordTopicAssignment.h"
 #include "LambdaCreationFunctions.h"
 #include "LDADocument.h"
 #include "IntDoubleVectorPair.h"
+#include "PDBVector.h"
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <random>

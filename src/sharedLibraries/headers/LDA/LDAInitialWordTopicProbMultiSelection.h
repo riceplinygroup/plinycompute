@@ -60,6 +60,14 @@ public:
 			//	((*result)[i])->getVector()->print();
 
 			}
+			
+			/*
+			Handle<Vector<int>> tmpVector = makeObject <Vector<int>>(1, 1);
+			tmpVector->push_back(6);
+			Handle<LDADocWordTopicAssignment> tmpDWTA= makeObject <LDADocWordTopicAssignment>(1, 2, tmpVector);
+			std :: cout << "The test doc: " << tmpDWTA->getDoc() << std :: endl;
+			*/
+			
 			return *result;
 		});
 	}
