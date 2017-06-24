@@ -20,14 +20,13 @@
 #define LDA_DOC_WORD_TOPIC_COUNT_H
 
 #include "Object.h"
-#include "PDBVector.h"
 #include "Handle.h"
 
 // By Shangyu
 
 namespace pdb {
 
-class LDADocWordTopicCount {
+class LDADocWordTopicCount : public Object {
 
 private:
 

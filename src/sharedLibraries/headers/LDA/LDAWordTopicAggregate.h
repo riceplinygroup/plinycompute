@@ -15,71 +15,56 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef LDA_WORD_TOPIC_AGGREGATE_H
+#define LDA_WORD_TOPIC_AGGREGATE_H
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+//by Shangyu, May 2017
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "Handle.h"
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "ClusterAggregateComp.h"
+#include "IntDoubleVectorPair.h"
+#include "LDATopicWordProb.h"
 
-// By Shangyu
 
-namespace pdb {
 
-class LDADocWordTopicAssignment : public Object {
+using namespace pdb;
+
+
+class LDAWordTopicAggregate : public ClusterAggregateComp <IntDoubleVectorPair, LDATopicWordProb, int, Vector<double>> {
 
 private:
-
-        int docID;
-        int wordID;
-	Vector<int> topicAssignment;
+	int numTopic;
 
 public:
 
-	ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-        ~LDADocWordTopicAssignment () {}
-        LDADocWordTopicAssignment () {}
-
-	
-	LDADocWordTopicAssignment (int fromDoc, int fromWord, Handle<Vector<int>>& fromAssignment) {
-		this->docID = fromDoc;
-		this->wordID = fromWord;
-		this->topicAssignment = *fromAssignment;
-	}
-	
-
-	/*	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
-	}
-
-	void setVector(Handle<Vector<double>>& fromVector) {
-		this->myVector = fromVector;
-	}
-	*/
-
-	int getDoc() {
-		return this->docID;
-	}
-
-	int getWord() {
-		return this->wordID;
+        LDAWordTopicAggregate () {}
+        LDAWordTopicAggregate (int fromTopic) {
+		this->numTopic = fromTopic;
 	}
 
 
-	
-	Vector<int>& getTopicAssignment() {
-		return this->topicAssignment;
-	}
-	
-	
+        // the key type must have == and size_t hash () defined
+        Lambda <int> getKeyProjection (Handle <LDATopicWordProb> aggMe) override {
+		return makeLambdaFromMethod(aggMe, getWord);
+//                return makeLambda (aggMe, [] (Handle<LDATopicWordProb> & aggMe) {return aggMe->getDoc();});
+        }
 
+        // the value type must have + defined
+        Lambda <Vector<double>> getValueProjection (Handle <LDATopicWordProb> aggMe) override {
+
+            	return makeLambda (aggMe, [&] (Handle<LDATopicWordProb> & aggMe) { 
+
+			Handle<Vector<double>> result = makeObject<Vector<double>>(this->numTopic, this->numTopic);
+			(*result)[aggMe->getTopic()] = aggMe->getProbability();
+			return *result;
+		});
+        }
 
 
 };
 
-}
 
 #endif
