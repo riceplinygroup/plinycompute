@@ -34,8 +34,8 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
-    common_env.Append(LINKFLAGS = '-pthread')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
+    common_env.Append(LINKFLAGS = '-pthread -lgsl -lgslcblas -lm')
     common_env.Replace(CXX = "clang++")
 
 #common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
@@ -320,6 +320,8 @@ common_env.SharedLibrary('libraries/libFinalSelection.so', ['build/libraries/Fin
 common_env.SharedLibrary('libraries/libIntAggregation.so', ['build/libraries/IntAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libIntSelectionOfStringIntPair.so', ['build/libraries/IntSelectionOfStringIntPair.cc'] + all)
 common_env.SharedLibrary('libraries/libIntSillyJoin.so', ['build/libraries/IntSillyJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libMethodJoin.so', ['build/libraries/MethodJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libOptimizedMethodJoin.so', ['build/libraries/OptimizedMethodJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 
 
@@ -423,15 +425,15 @@ common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/librari
 # LDA
 common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
 common_env.SharedLibrary('libraries/libIntIntVectorPair.so', ['build/libraries/IntIntVectorPair.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteIntDoubleVectorPairSet.so', ['build/libraries/WriteIntDoubleVectorPairSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDAInitialWordTopicProbMultiSelection.so', ['build/libraries/LDA/LDAInitialWordTopicProbMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocWordTopicAssignment.so', ['build/libraries/LDA/LDADocWordTopicAssignment.cc'] + all)
-#common_env.SharedLibrary('libraries/libLDADocWordTopicJoin.so', ['build/libraries/LDA/LDADocWordTopicJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocWordTopicJoin.so', ['build/libraries/LDA/LDADocWordTopicJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicAggregate.so', ['build/libraries/LDA/LDADocTopicAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLDADocTopicProbSelection.so', ['build/libraries/LDA/LDADocTopicProbSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocTopicProbSelection.so', ['build/libraries/LDA/LDADocTopicProbSelection.cc'] + all)
 
 
 
@@ -539,7 +541,9 @@ common_env.Program('bin/test87', ['build/tests/Test87.cc'] + all)
 common_env.Program('bin/test88', ['build/tests/Test88.cc'] + all)
 common_env.Program('bin/test89', ['build/tests/Test89.cc'] + all)
 common_env.Program('bin/test90', ['build/tests/Test90.cc'] + all)
-
+common_env.Program('bin/test91', ['build/tests/Test91.cc'] + all)
+common_env.Program('bin/test92', ['build/tests/Test92.cc'] + all)
+common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -562,7 +566,7 @@ common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc']
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
-#common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
+common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 
 
 
@@ -675,8 +679,10 @@ main=common_env.Alias('main', [
   'bin/test88',
   'bin/test89',
   'bin/test90',
+  'bin/test92',
+  'bin/test93',
   'bin/TestKMeans',
-#  'bin/TestLDA',
+  'bin/TestLDA',
   
   #'bin/testLA01_Transpose',
   #'bin/testLA02_Add',
@@ -710,6 +716,8 @@ main=common_env.Alias('main', [
   'libraries/libIntAggregation.so', 
   'libraries/libIntSelectionOfStringIntPair.so', 
   'libraries/libIntSillyJoin.so', 
+  'libraries/libMethodJoin.so',
+  'libraries/libOptimizedMethodJoin.so',
   'libraries/libSillyGroupBy.so',
   'libraries/libEmployeeGroupBy.so',
   'libraries/libOptimizedEmployeeGroupBy.so',
@@ -796,15 +804,15 @@ main=common_env.Alias('main', [
   # LDA 
   'libraries/libLDADocIDAggregate.so',
   'libraries/libScanLDADocumentSet.so',
-#  'libraries/libLDAInitialTopicProbSelection.so',
+  'libraries/libLDAInitialTopicProbSelection.so',
   'libraries/libWriteIntDoubleVectorPairSet.so',
   'libraries/libIntDoubleVectorPair.so',
   'libraries/libIntIntVectorPair.so',
   'libraries/libLDAInitialWordTopicProbMultiSelection.so',
-#  'libraries/libLDADocWordTopicJoin.so',
+  'libraries/libLDADocWordTopicJoin.so',
   'libraries/libLDADocWordTopicAssignment.so',
   'libraries/libLDADocTopicAggregate.so',
-#  'libraries/libLDADocTopicProbSelection.so',
+  'libraries/libLDADocTopicProbSelection.so',
 
   # K-means
   'libraries/libKMeansDataCountAggregate.so',
