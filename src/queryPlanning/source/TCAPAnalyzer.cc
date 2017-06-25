@@ -151,7 +151,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
     }else  {
         std :: cout << "Source Computation Type: " << sourceComputation->getComputationType() << " are not supported as source node right now" << std :: endl;
         this->logger->fatal("Source Computation Type: " + sourceComputation->getComputationType() + " are not supported as source node right now");
-        return false;
+        exit(1);
     }
 
     std :: string outputName = curSource->getOutputName();
@@ -163,7 +163,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
         tupleSetNames.push_back(outputName);
         bool ret = analyze(physicalPlanToOutput, interGlobalSets, tupleSetNames, curSource, sourceComputation, curInputSetIdentifier, curNode, jobStageId, curSource);
         if (ret == false) {
-            return false;
+            exit(1);
         }
     }
     return true;
@@ -323,7 +323,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         } else {
             std :: cout << "Sink Computation Type: " << myComputation->getComputationType() << " are not supported as sink node right now" << std :: endl;
             this->logger->fatal("Source Computation Type: " + myComputation->getComputationType() + " are not supported as sink node right now");
-            return false;
+            exit(1);
         } 
         
     } else if (numConsumersForCurNode == 1) {
@@ -397,7 +397,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
 
                 //We then create a BroadcastJoinBuildHTStage
                 std :: string hashSetName = sink->getDatabase() + ":" + sink->getSetName();
-                std :: cout << "TCAPAnalyzer: hashSetName = " << hashSetName << std :: endl;
+                //std :: cout << "TCAPAnalyzer: hashSetName = " << hashSetName << std :: endl;
                 Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
                 physicalPlanToOutput.push_back(joinBroadcastStage);                
                 //set the probe information
@@ -462,7 +462,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         } else {
             std :: cout << "Computation Type: " << myComputation->getComputationType() << " are not supported to have more than one consumers right now" << std :: endl;
             this->logger->fatal("Computation Type: " + myComputation->getComputationType() + " are not supported to have more than one consumers right now");
-            return false;
+            exit(1);
         }
 
         if (this->dynamicPlanningOrNot == true) {
@@ -503,7 +503,7 @@ std :: string TCAPAnalyzer :: getSourceSetName (int index) {
 
 //to get source set based on name
 Handle<SetIdentifier>  TCAPAnalyzer :: getSourceSetIdentifier (std :: string name) {
-    std :: cout << "search set with name = " << name << std :: endl;
+    //std :: cout << "search set with name = " << name << std :: endl;
     if (curSourceSets.count (name) == 0) {
         std :: cout << "name not found for " << name << std :: endl;
         return nullptr;
@@ -552,13 +552,13 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
 double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     //TODO: to get the cost of source specified by the index
     std :: string key = curSourceSetNames[index];
-    std :: cout << "to search set with name=" << key << std :: endl;
+    //std :: cout << "to search set with name=" << key << std :: endl;
     Handle<SetIdentifier> curSet = this->getSourceSetIdentifier(key);
     if (curSet == nullptr) {
         std :: cout << "WARNING: there is no source set" << std :: endl;
         return 0;
     }
-    std :: cout << "curSet has database name=" << curSet->getDatabase() << " and set name=" << curSet->getSetName() << std :: endl;
+    //std :: cout << "curSet has database name=" << curSet->getDatabase() << " and set name=" << curSet->getSetName() << std :: endl;
     double cost =  stats->getNumBytes(curSet->getDatabase(), curSet->getSetName()); 
     cost = double ((int)cost/1000000);
 //    std :: cout << "key=" << key << ", cost=" << cost << std :: endl;

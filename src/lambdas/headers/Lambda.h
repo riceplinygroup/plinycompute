@@ -74,22 +74,24 @@ private:
 
 
         //JiaNote: below function is to generate a sequence of TCAP Strings for this Lambda tree
-        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") {
+        static void getTCAPString (std :: vector <std :: string> &tcapStrings, std :: vector<std :: string> &inputTupleSetNames, std :: vector<std :: string> &inputColumnNames, std :: vector<std :: string> &inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, GenericLambdaObjectPtr root, int &lambdaLabel, std :: string computationName, int computationLabel, std :: string & addedOutputColumnName, std :: string & myLambdaName, std :: string & outputTupleSetName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "", bool isSelfJoin = false) {
                 std :: vector <std :: string> columnsToApply;
                 std :: vector <std :: string> childrenLambdas;
                 std :: vector <std :: string> inputNames;
                 std :: vector <std :: string> inputColumns;
                 if (root->getNumChildren() > 0) {
                         for (int i = 0; i < inputColumnsToApply.size(); i++) {
-
+                                //std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;
                                 columnsToApply.push_back(inputColumnsToApply[i]);
                         }
                         inputColumnsToApply.clear();
                         for (int i = 0; i < childrenLambdaNames.size(); i++) {
+                                //std :: cout << "childrenLambdaNames[" << i << "]=" << childrenLambdaNames[i] << std :: endl;
                                 childrenLambdas.push_back(childrenLambdaNames[i]);
                         }
                         childrenLambdaNames.clear();
                         for (int i = 0; i < inputTupleSetNames.size(); i++) {
+                                //std :: cout << "inputTupleSetNames[" << i << "]=" << inputTupleSetNames[i] << std :: endl;
                                 auto iter = std :: find(inputNames.begin(), inputNames.end(), inputTupleSetNames[i]);
                                 if (iter == inputNames.end()) {
                                     inputNames.push_back(inputTupleSetNames[i]);
@@ -97,6 +99,7 @@ private:
                         }
                         inputTupleSetNames.clear();
                         for (int i = 0; i < inputColumnNames.size(); i++) {
+                                //std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
                                 inputColumns.push_back(inputColumnNames[i]);
                         }
                         inputColumnNames.clear();
@@ -109,8 +112,13 @@ private:
                 
                 bool isLeftChildOfEqualLambda = false;
                 bool isRightChildOfEqualLambda = false;
+                bool isChildSelfJoin = false;
+                GenericLambdaObjectPtr nextChild = nullptr;
                 for (int i = 0; i < root->getNumChildren (); i++) {
                         GenericLambdaObjectPtr child = root->getChild (i);
+                        if ((i+1) < root->getNumChildren()) {
+                            nextChild = root->getChild(i+1);
+                        }
                         if (myTypeName == "==") {
                             if (i == 0) {
                                 isLeftChildOfEqualLambda = true;
@@ -118,8 +126,20 @@ private:
                             if (i == 1) {
                                 isRightChildOfEqualLambda = true;
                             }
+                        }
+                        if (((isLeftChildOfEqualLambda == true) || (isRightChildOfEqualLambda == true)) && (multiInputsComp!=nullptr)) {
+                           
+                           std :: string nextInputName = "";
+                           if (nextChild != nullptr) {
+                               nextInputName = multiInputsComp->getNameForIthInput(nextChild->getInputIndex(0));
+                           }
+                           std :: string myInputName = multiInputsComp->getNameForIthInput(child->getInputIndex(0));
+                           if (nextInputName == myInputName) {
+                               //std :: cout << "We've detected a self join" << std :: endl;
+                               isChildSelfJoin = true;
+                           }
                         }        
-                        getTCAPString (tcapStrings, inputNames, inputColumns, columnsToApply, childrenLambdas, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, amIPartOfJoinPredicate, isLeftChildOfEqualLambda, isRightChildOfEqualLambda, myName);
+                        getTCAPString (tcapStrings, inputNames, inputColumns, columnsToApply, childrenLambdas, child, lambdaLabel, computationName, computationLabel, addedOutputColumnName, myLambdaName, outputTupleSetName, multiInputsComp, amIPartOfJoinPredicate, isLeftChildOfEqualLambda, isRightChildOfEqualLambda, myName, isChildSelfJoin);
                         inputColumnsToApply.push_back(addedOutputColumnName);
                         childrenLambdaNames.push_back(myLambdaName);
                         if (multiInputsComp != nullptr) {
@@ -146,9 +166,11 @@ private:
                         //}
                         isLeftChildOfEqualLambda = false;
                         isRightChildOfEqualLambda = false;
+                        isChildSelfJoin = false;
+                        nextChild = nullptr;
                 }
                 std :: vector<std :: string> outputColumns;
-                std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amIPartOfJoinPredicate, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName);
+                std :: string tcapString = root->toTCAPString(inputTupleSetNames, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, computationName, computationLabel, outputTupleSetName, outputColumns, addedOutputColumnName, myLambdaName, multiInputsComp, amIPartOfJoinPredicate, amILeftChildOfEqualLambda, amIRightChildOfEqualLambda, parentLambdaName, isSelfJoin);
                 tcapStrings.push_back(tcapString);
                 lambdaLabel++;
                 if (multiInputsComp == nullptr) {

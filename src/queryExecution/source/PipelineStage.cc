@@ -259,6 +259,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                 info[key] = std :: make_shared <JoinArg>(*newPlan, sharedHashSet->getPage());
             }
         }
+    } else {
+        std :: cout << "info contains nothing for this stage" << std :: endl;
     }
 
     PDB_COUT << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std :: endl;
