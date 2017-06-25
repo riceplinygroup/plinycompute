@@ -40,9 +40,12 @@ public:
     LASillyTransposeMultiply1Join () {}
 
     Lambda <bool> getSelection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {
+        /*
         return makeLambda (in1, in2, [] (Handle<MatrixBlock> & in1, Handle<MatrixBlock> & in2) {
            	return in1->getBlockRowIndex() == in2->getBlockRowIndex();
         });
+        */
+        return makeLambdaFromMethod(in1,getBlockRowIndex) == makeLambdaFromMethod(in2,getBlockRowIndex);//This can be recognized by the pdb optimizer.
     }
 
     Lambda <Handle <MatrixBlock>> getProjection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {

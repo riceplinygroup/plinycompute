@@ -39,9 +39,12 @@ public:
     LASillyScaleMultiplyJoin () {}
 
     Lambda <bool> getSelection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {
+        /*
         return makeLambda (in1, in2, [] (Handle<MatrixBlock> & in1, Handle<MatrixBlock> & in2) {
            	return in1->getBlockRowIndex() == in2->getBlockRowIndex() && in1->getBlockColIndex() == in2->getBlockColIndex();
         });
+        */
+        return makeLambdaFromMethod(in1,getKey) == makeLambdaFromMethod(in2,getKey);//This can be recognized by the pdb optimizer.
     }
 
     Lambda <Handle <MatrixBlock>> getProjection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {
