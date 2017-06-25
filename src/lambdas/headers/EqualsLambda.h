@@ -92,7 +92,7 @@ public:
 		return std :: string ("==");
 	}
 
-        std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string& myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
+        std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string& myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "", bool isSelfJoin=false) override {
                 std :: string tcapString = "";
                 myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
                 std :: string computationNameWithLabel = computationName + "_"  + std :: to_string(computationLabel);
@@ -122,6 +122,9 @@ public:
                          if (inputColumnNames.size() == 4) {
                              inputColumnNames[2] = inputColumnNames[1];
                              inputColumnNames[1] = inputColumnsToApply[0];
+                         } else if (inputColumnNames.size() == 3) {
+                             inputColumnNames.push_back(inputColumnNames[2]);
+                             inputColumnNames[2] = inputColumnNames[0];
                          } else {
                              std :: cout << "Error: right now we can't support such complex join selection conditions" << std :: endl;
                              exit(1);
@@ -228,17 +231,17 @@ public:
                     } 
                     tcapString += "), '" + computationNameWithLabel + "')\n";  
                         
-                
-                    for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
-                        std :: string curInput = multiInputsComp->getNameForIthInput(index); 
-                        auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);     
-                        if (iter != outputColumns.end()) {
-                            multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
-                            multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
-                            multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
+                    if (isSelfJoin == false) { 
+                        for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
+                            std :: string curInput = multiInputsComp->getNameForIthInput(index); 
+                            auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);     
+                            if (iter != outputColumns.end()) {
+                                multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
+                                multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
+                                multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
+                            }
                         }
-                    }
-                
+                    }                
 
                 }
                 return tcapString;

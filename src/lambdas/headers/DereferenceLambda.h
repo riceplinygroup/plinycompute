@@ -55,7 +55,7 @@ public:
 		return std :: string ("deref");
 	}
 
-        std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "") override {
+        std :: string toTCAPString (std :: vector<std :: string> & inputTupleSetNames, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, std :: vector<std :: string> & childrenLambdaNames, int lambdaLabel, std :: string computationName, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string> & outputColumns, std :: string& outputColumnName, std :: string & myLambdaName, MultiInputsBase * multiInputsComp = nullptr, bool amIPartOfJoinPredicate = false, bool amILeftChildOfEqualLambda = false, bool amIRightChildOfEqualLambda = false, std :: string parentLambdaName = "", bool isSelfJoin = false) override {
                 std :: string tcapString = "";
                 myLambdaName = getTypeOfLambda() + "_" + std :: to_string(lambdaLabel);
                 std :: string inputTupleSetName = inputTupleSetNames[0];
@@ -154,15 +154,22 @@ public:
                         std :: string computationNameWithLabel = computationName+std :: to_string(computationLabel);
                         tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, hashOperator, computationNameWithLabel, parentLambdaName);;
                     }
-                    for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
-                        std :: string curInput = multiInputsComp->getNameForIthInput(index);
-                        auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);
-                        if (iter != outputColumns.end()) {
-                            multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
-                            multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
-                            multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
-                        }
+                    if (isSelfJoin == false) {
+                        for (unsigned int index = 0; index < multiInputsComp->getNumInputs(); index++) {
+                           std :: string curInput = multiInputsComp->getNameForIthInput(index);
+                           auto iter = std :: find (outputColumns.begin(), outputColumns.end(), curInput);
+                           if (iter != outputColumns.end()) {
+                              multiInputsComp->setTupleSetNameForIthInput(index, outputTupleSetName);
+                              multiInputsComp->setInputColumnsForIthInput(index, outputColumns);
+                              multiInputsComp->setInputColumnsToApplyForIthInput(index, outputColumnName);
+                           }
                         
+                        }
+                    } else {
+                        //only update myIndex
+                        multiInputsComp->setTupleSetNameForIthInput(myIndex, outputTupleSetName);
+                        multiInputsComp->setInputColumnsForIthInput(myIndex, outputColumns);
+                        multiInputsComp->setInputColumnsToApplyForIthInput(myIndex, outputColumnName);
                     }
                 }
 

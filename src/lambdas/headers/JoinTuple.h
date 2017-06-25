@@ -487,7 +487,7 @@ public:
 	
 				// if we get an exception, then we could not fit a new key/value pair
 				} catch (NotEnoughSpace &n) {
-	
+                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;	
 					// if we got here, then we ran out of space, and so we need to delete the already-processed
 					// data so that we can try again...
 					myMap.setUnused (keyColumn[i]);
@@ -508,6 +508,7 @@ public:
 				// an exception means that we couldn't complete the addition
 				} catch (NotEnoughSpace &n) { 
 
+                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
 					throw n;
@@ -520,7 +521,7 @@ public:
 
 				// if the copy didn't work, pop the value off
 				} catch (NotEnoughSpace &n) {
-
+                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					myMap.setUnused (keyColumn[i]);
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
