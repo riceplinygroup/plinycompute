@@ -110,8 +110,27 @@ public:
                     tcapString += this->getTCAPString(inputTupleSetName, inputColumnNames, inputColumnsToApply, outputTupleSetName, outputColumns, outputColumnName, "APPLY", computationNameWithLabel, myLambdaName);
 
                 } else {
+/*                    for (unsigned int i = 0; i < inputColumnsToApply.size(); i++) {
+                         std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std :: endl;
+                    }*/
+                    /*
+                    for (unsigned int i = 0; i < inputColumnNames.size(); i++) {
+                         std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
+                    }*/
+                    
+                    if (inputColumnNames[inputColumnNames.size()-2] == inputColumnsToApply[0]) {
+                         if (inputColumnNames.size() == 4) {
+                             inputColumnNames[2] = inputColumnNames[1];
+                             inputColumnNames[1] = inputColumnsToApply[0];
+                         } else {
+                             std :: cout << "Error: right now we can't support such complex join selection conditions" << std :: endl;
+                             exit(1);
+                         }   
+                    }
+                    //std :: cout << "inputColumnNames[0]=" << inputColumnNames[0] << std :: endl;
                     tcapString += "\n/* Join ( " + inputColumnNames[0] ;
                     for (unsigned int i = 1; i < inputColumnNames.size()-1; i++) {
+                         //std :: cout << "inputColumnNames[" << i << "]=" << inputColumnNames[i] << std :: endl;
                          if (inputColumnNames[i] == inputColumnsToApply[0]) {
                              tcapString += " ) and (";
                          } else {
@@ -146,6 +165,10 @@ public:
                         }
                         tcapString += ", " + inputColumnNames[i];
                     }
+                    if (end1+1 >= inputColumnNames.size()) {
+                        std :: cout << "Can't generate TCAP for this query graph" << std :: endl;
+                        exit(1);
+                    } 
                     tcapString += "), "+ inputTupleSetNames[1] + "(" + inputColumnsToApply[1] + "), " + inputTupleSetNames[1] + "(" + inputColumnNames[end1+1];
                     for (int i = end1 + 2; i < inputColumnNames.size(); i++) {
                         auto iter = std :: find(inputColumnsToApply.begin(), inputColumnsToApply.end(), inputColumnNames[i]);

@@ -132,12 +132,18 @@ private:
                              inputTupleSetNames.push_back(outputTupleSetName);
                              inputColumnNames.clear();
                         }
-                        for (int j = 0; j < inputColumns.size(); j++) {
-                             auto iter = std :: find (inputColumnNames.begin(), inputColumnNames.end(), inputColumns[j]);
-                             if (iter == inputColumnNames.end()) {
+                        /*if (multiInputsComp != nullptr) {
+                             for (int j = 0; j < inputColumns.size(); j++) {
                                  inputColumnNames.push_back(inputColumns[j]);
                              }
-                        }
+                        } else {*/
+                             for (int j = 0; j < inputColumns.size(); j++) {
+                                 auto iter = std :: find (inputColumnNames.begin(), inputColumnNames.end(), inputColumns[j]);
+                                 if (iter == inputColumnNames.end()) {
+                                     inputColumnNames.push_back(inputColumns[j]);
+                                 }
+                             }
+                        //}
                         isLeftChildOfEqualLambda = false;
                         isRightChildOfEqualLambda = false;
                 }

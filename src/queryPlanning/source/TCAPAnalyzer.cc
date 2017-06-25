@@ -71,6 +71,8 @@ TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computatio
            } else  {
                std :: cout << "Source Computation Type: " << sourceComputation->getComputationType() << " are not supported as source node right now" << std :: endl;
                this->logger->fatal("Source Computation Type: " + sourceComputation->getComputationType() + " are not supported as source node right now");
+               std :: cout << "Master exit...Please restart cluster" << std :: endl;
+               exit(1);              
            }
            std :: string mySourceSetName = curInputSetIdentifier->getDatabase() + ":" + curInputSetIdentifier->getSetName();
            curSourceSetNames.push_back(mySourceSetName);
@@ -149,6 +151,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
     }else  {
         std :: cout << "Source Computation Type: " << sourceComputation->getComputationType() << " are not supported as source node right now" << std :: endl;
         this->logger->fatal("Source Computation Type: " + sourceComputation->getComputationType() + " are not supported as source node right now");
+        return false;
     }
 
     std :: string outputName = curSource->getOutputName();

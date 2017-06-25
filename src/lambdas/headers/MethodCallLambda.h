@@ -86,7 +86,7 @@ public:
                 if (multiInputsComp == nullptr) {
                     tupleSetMidTag = "OutFor_";
                 } else {
-                    tupleSetMidTag = "ExtractedFor_)";
+                    tupleSetMidTag = "ExtractedFor_";
                     myIndex = this->getInputIndex(0);
                     inputTupleSetName = multiInputsComp->getTupleSetNameForIthInput(myIndex);
                     inputColumnNames = multiInputsComp->getInputColumnsForIthInput(myIndex);
@@ -98,7 +98,7 @@ public:
 
                 outputTupleSetName = "methodCall_"+std :: to_string(lambdaLabel)+tupleSetMidTag+computationName+std :: to_string(computationLabel);
 
-                outputColumnName = "methodCall_"+tupleSetMidTag+methodName;
+                outputColumnName = "methodCall_"+std :: to_string(lambdaLabel) + tupleSetMidTag+methodName;
                 outputColumns.clear();
                 for (int i = 0; i < inputColumnNames.size(); i++) {
                     outputColumns.push_back(inputColumnNames[i]);
