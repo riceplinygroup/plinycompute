@@ -47,8 +47,6 @@
 
 
 
-
-
 class MatrixBlock : public ExportableObject {
 
 private:
