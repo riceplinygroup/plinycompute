@@ -190,8 +190,33 @@ public:
 		int iteration = 0;
 
 		// while there is still data
-		while ((curChunk = dataSource->getNextTupleSet ()) != nullptr) {
-			
+                //Jia Note: dataSource->getNextTupleSet() can throw exception for certain data sources like MapTupleSetIterator
+		while (true) {
+
+                        try {
+                             curChunk = dataSource->getNextTupleSet();
+                        }
+                        catch (NotEnoughSpace &n) {
+                             std :: cout << "Not enough space when generating chunk-" << iteration << std::endl;
+                             myRAM->setIteration(iteration);
+                             unwrittenPages.push(myRAM);
+                             myRAM = std :: make_shared<MemoryHolder>(getNewPage());
+                             if (myRAM->location == nullptr) {
+                                 std :: cout << "ERROR: insufficient memory in heap" << std :: endl;
+                                 return;
+                             }
+                             // then try again
+                             try {
+                                 curChunk = dataSource->getNextTupleSet();
+                             }
+                             catch (NotEnoughSpace &n) {
+                                 std :: cout << "Error: Batch memory exceeds page size, consider to reduce batch size" << std :: endl;
+                                 return;
+                             }
+                        }
+                        if (curChunk == nullptr) {
+                              break;
+                        }	
 			// go through all of the pipeline stages
 			for (ComputeExecutorPtr &q : pipeline) {
 				
