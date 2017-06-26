@@ -25,7 +25,9 @@
 
 // By Shangyu
 
-namespace pdb {
+//namespace pdb {
+
+using namespace pdb;
 
 class LDADocWordTopicAssignment : public Object {
 
@@ -78,6 +80,6 @@ public:
 
 };
 
-}
+//}
 
 #endif

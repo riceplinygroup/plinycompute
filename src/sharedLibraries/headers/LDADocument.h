@@ -24,7 +24,9 @@
 
 // By Shangyu
 
-namespace pdb {
+//namespace pdb {
+
+using namespace pdb;
 
 class LDADocument : public Object {
 
@@ -75,6 +77,6 @@ public:
 
 };
 
-}
+//}
 
 #endif
