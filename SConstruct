@@ -376,6 +376,7 @@ common_env.SharedLibrary('libraries/libSillyJoin.so', ['build/libraries/SillyJoi
 common_env.SharedLibrary('libraries/libSillySelection.so', ['build/libraries/SillySelection.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleAggregation.so', ['build/libraries/SimpleAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSimpleEmployee.so', ['build/libraries/SimpleEmployee.cc'] + all)
+common_env.SharedLibrary('libraries/libStringIntPairMultiSelection.so', ['build/libraries/StringIntPairMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelection.so', ['build/libraries/StringSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libStringSelectionOfStringIntPair.so', ['build/libraries/StringSelectionOfStringIntPair.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteBuiltinEmployeeSet.so', ['build/libraries/WriteBuiltinEmployeeSet.cc'] + all)
@@ -552,6 +553,7 @@ common_env.Program('bin/test90', ['build/tests/Test90.cc'] + all)
 common_env.Program('bin/test92', ['build/tests/Test92.cc'] + all)
 common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
+common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -690,6 +692,7 @@ main=common_env.Alias('main', [
   'bin/test92',
   'bin/test93',
   'bin/test94',
+  'bin/test95',
  # 'bin/TestKMeans',
  # 'bin/TestLDA',
   
@@ -712,7 +715,7 @@ main=common_env.Alias('main', [
   #'bin/testLA17_ColSum',
   #'bin/testLA20_Parser',
   #'bin/testLA21_Instance',
-
+  'libraries/libStringIntPairMultiSelection.so',
   'libraries/libAllSelection.so', 
   'libraries/libAllSelectionWithCreation.so', 
   'libraries/libCartesianJoin.so', 
@@ -822,14 +825,14 @@ main=common_env.Alias('main', [
 #  'libraries/libLDADocWordTopicAssignment.so',
 #  'libraries/libLDADocTopicAggregate.so',
 #  'libraries/libLDADocTopicProbSelection.so',
-#  "libraries/libLDADocWordTopicMultiSelection.so",
-#  "libraries/libLDATopicWordAggregate.so",
-#  "libraries/libLDATopicWordProbMultiSelection.so",
-#  "libraries/libLDAWordTopicAggregate.so",
-#  "libraries/libLDADocWordTopicCount.so",
-#  "libraries/libLDATopicWordProb.so",
-#  "libraries/libLDADocument.so",
-#  "libraries/libWriteLDADocWordTopicAssignmentSet.so",
+#  'libraries/libLDADocWordTopicMultiSelection.so',
+#  'libraries/libLDATopicWordAggregate.so',
+#  'libraries/libLDATopicWordProbMultiSelection.so',
+#  'libraries/libLDAWordTopicAggregate.so',
+#  'libraries/libLDADocWordTopicCount.so',
+#  'libraries/libLDATopicWordProb.so',
+#  'libraries/libLDADocument.so',
+#  'libraries/libWriteLDADocWordTopicAssignmentSet.so',
   # K-means
 #  'libraries/libKMeansDataCountAggregate.so',
 #  'libraries/libKMeansSampleSelection.so',
