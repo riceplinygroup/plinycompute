@@ -1,2 +1,3 @@
 A = load(2,2,2,2,"./src/linearAlgebraDSL/TestDataGenerator/foo.data")
-B = max(A)
+B = load(2,2,2,2,"./src/linearAlgebraDSL/TestDataGenerator/foo.data")
+C = A '* B
