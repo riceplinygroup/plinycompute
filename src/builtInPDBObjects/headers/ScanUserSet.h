@@ -46,7 +46,7 @@ public:
 
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
-             std :: cout << "ScanUserSet: getComputeSource: BATCHSIZE =" << this->batchSize << std :: endl;
+             //std :: cout << "ScanUserSet: getComputeSource: BATCHSIZE =" << this->batchSize << std :: endl;
              return std :: make_shared <VectorTupleSetIterator> (
 
                  [&] () -> void * {
