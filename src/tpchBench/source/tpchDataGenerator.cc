@@ -618,16 +618,16 @@ int main(int argc, char * argv[]) {
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
 
-	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>("TPCH_db", "t_output_se1");
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	myGroupBy->setInput(myFlatten);
 
-	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
-	myWriteSet->setInput(myGroupBy);
+	//Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
+	//myWriteSet->setInput(myGroupBy);
 
 	begin = std::chrono::high_resolution_clock::now();
 
-	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
+	if (!queryClient.executeComputations(errMsg, myGroupBy)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	}

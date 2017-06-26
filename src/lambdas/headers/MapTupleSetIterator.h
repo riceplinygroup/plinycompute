@@ -55,7 +55,8 @@ public:
 
 	// returns the next tuple set to process, or nullptr if there is not one to process
 	TupleSetPtr getNextTupleSet () override {
-
+                PDBMapIterator <KeyType, ValueType> beginToRecover = begin;
+                PDBMapIterator <KeyType, ValueType> endToRecover = end;
 		// see if there are no more items in the vector to iterate over
 		if (!(begin != end)) {
 	 		return nullptr;			
@@ -64,7 +65,7 @@ public:
 		std :: vector <Handle <OutputType>> &inputColumn = output->getColumn <Handle <OutputType>> (0);
 		int limit = inputColumn.size ();
 		for (int i = 0; i < chunkSize; i++) {
-			
+		     try {	
 			if (i >= limit) {
 				Handle <OutputType> temp = (makeObject <OutputType> ());
 				inputColumn.push_back (temp);
@@ -73,17 +74,22 @@ public:
 			// key the key/value pair
 			inputColumn[i]->getKey () = (*begin).key;
 			inputColumn[i]->getValue () = (*begin).value;
+                     }
+                     catch (NotEnoughSpace &n) {
+                         begin = beginToRecover;
+                         end = endToRecover;
+                         throw n;
+                     }
+	             // move on to the next item
+		     ++begin;
 
-			// move on to the next item
-			++begin;
-
-			// and exit if we are done
-			if (!(begin != end)) {
+		     // and exit if we are done
+		     if (!(begin != end)) {
 				if (i + 1 < limit) {
 					inputColumn.resize (i);	
 				}
 				return output;
-			}
+		     }
 		}
 
 		return output;

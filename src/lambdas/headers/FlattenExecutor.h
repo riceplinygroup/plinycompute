@@ -87,7 +87,7 @@ public:
                 for (int i = 0; i < inputVecData.size(); i++) {
                     Vector<Handle<Object>> & myVec = inputVecData[i];
                     int mySize = myVec.size();
-                    std :: cout << "mySize is" << mySize << std :: endl;
+                    //std :: cout << "mySize is" << mySize << std :: endl;
                     counts[i] = mySize;
                     numFlattenedRows += mySize;
                 }
@@ -110,7 +110,7 @@ public:
                     Vector<Handle<Object>> & myVec = inputVecData[i];
                     for (int j = 0; j < myVec.size(); j++) {
                         outColumn[overallCounter] = myVec[j];
-                        std :: cout << "flattened " << j << "-th object in the " << i << "-th vector" << std :: endl;
+                        //std :: cout << "flattened " << j << "-th object in the " << i << "-th vector" << std :: endl;
                         overallCounter ++;
                     }
                 }
