@@ -69,8 +69,7 @@ public:
 			if (i >= limit) {
 				Handle <OutputType> temp = (makeObject <OutputType> ());
 				inputColumn.push_back (temp);
-			}
-
+			} 
 			// key the key/value pair
 			inputColumn[i]->getKey () = (*begin).key;
 			inputColumn[i]->getValue () = (*begin).value;
@@ -78,6 +77,7 @@ public:
                      catch (NotEnoughSpace &n) {
                          begin = beginToRecover;
                          end = endToRecover;
+                         inputColumn.clear();
                          throw n;
                      }
 	             // move on to the next item
@@ -86,7 +86,7 @@ public:
 		     // and exit if we are done
 		     if (!(begin != end)) {
 				if (i + 1 < limit) {
-					inputColumn.resize (i);	
+					inputColumn.resize (i+1);	
 				}
 				return output;
 		     }

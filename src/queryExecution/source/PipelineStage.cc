@@ -260,7 +260,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             }
         }
     } else {
-        std :: cout << "info contains nothing for this stage" << std :: endl;
+        //std :: cout << "info contains nothing for this stage" << std :: endl;
     }
 
     PDB_COUT << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std :: endl;
