@@ -170,6 +170,10 @@ pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& insta
 		}
 	}
 	
+	if (instance.existsScanSet(setName)){
+		std::cerr << "This is bad, cannot make more than on scanSet for the same set<" << setName <<std::endl;
+		exit(1);
+	}
     scanSet = makeObject<LAScanMatrixBlockSet>("LA_db", setName);
     instance.addToCachedSet(setName);
 	if(scanSet.isNullPtr()){
@@ -181,13 +185,16 @@ pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& insta
 
 
 pdb::Handle<pdb::Computation> LAIdentifierNode :: evaluate(LAPDBInstance& instance){
-	scanSet = instance.findScanSet(name);
+	//scanSet = instance.findScanSet(name);
+	scanSet.shallowCopyToCurrentAllocationBlock(instance.findScanSet(name));//Prevent PDB from Auto deep copy
 	if(scanSet.isNullPtr()){
 		std::cerr << "LAIdentifierNode " << name << " scanSet did not set yet!" << std::endl;
 		exit(1);
 	}
 	setDimension(instance.findDimension(name));
-	return scanSet;
+	std::cout<<"evaluate::Identifier ScanSet Handle Offset: " << scanSet.getOffset() << std::endl;
+	return scanSet; 
+	//return instance.findScanSet(name);//Prevent PDB from Auto deep copy
 }
 
 
@@ -398,7 +405,7 @@ pdb::Handle<pdb::Computation> LAAdditiveExpressionNode :: evaluate(LAPDBInstance
 void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
 	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
 	//Remove the previous set in DB
-	if(instance.existsScanSet(identifier->toString())){//Rename a variable
+	if(instance.existsScanSetForIdentifier(identifier->toString())){//Rename a variable
 		std::cout << "Redefine variable " << identifier->toString() << std::endl;
 		pdb::Handle<pdb::Computation> previousScan = instance.findScanSet(identifier->toString());
 		if(!instance.getStorageClient().removeSet(previousScan->getDatabaseName(),previousScan->getSetName(),instance.instanceErrMsg())){
@@ -459,8 +466,12 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
    	 	std :: cout << std :: endl;
    	 	auto end = std::chrono::high_resolution_clock::now();
 
-   	 	instance.addToCachedSet(outputSetName);
+   	 	if (instance.existsScanSet(outputSetName)){
+			std::cerr << "This is bad, cannot make more than on scanSet for the same set<" << outputSetName <<std::endl;
+			exit(1);
+		}
    	 	pdb::Handle<pdb::Computation> newScanSet = makeObject<LAScanMatrixBlockSet>("LA_db", outputSetName);
+   	 	instance.addToCachedSet(outputSetName);
    	 	identifier->setScanSet(newScanSet);
 		std::cout << "Updated scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
 		identifier->setDimension(expression->getDimension());
