@@ -26,16 +26,15 @@
 
 // By Shangyu
 
-namespace pdb {
-
+using namespace pdb;
 class IntDoubleVectorPair : public Object {
 
 private:
 
-        int myInt;
-	Vector<double> myVector;
 
 public:
+        int myInt;
+	Vector<double> myVector;
 
 	ENABLE_DEEP_COPY
 
@@ -60,7 +59,10 @@ public:
 
 	void setVector(Handle<Vector<double>>& fromVector) {
 		int size = fromVector->size();
-		this->myVector = *fromVector;
+                for (int i = 0; i < fromVector->size(); i++) {
+                    myVector.push_back((*fromVector)[i]);
+                }
+		//this->myVector = *fromVector;
 		/*
 		if (this->myVector->c_ptr() == nullptr || this->myVector->size() < size)
                 	this->myVector = makeObject<Vector<double>>(size, size);
@@ -87,7 +89,7 @@ public:
         }
 
 };
-
+namespace pdb{
 inline Vector<double> &operator+ (Vector<double> &lhs, Vector<double> &rhs) {
         int size = lhs.size();
         if (size != rhs.size()) {
@@ -101,7 +103,6 @@ inline Vector<double> &operator+ (Vector<double> &lhs, Vector<double> &rhs) {
         return lhs;
 
 }
-
 }
 
 #endif
