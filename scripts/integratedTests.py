@@ -39,7 +39,6 @@ def startPseudoCluster():
         serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
         print (bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC)
         time.sleep(9)
-
         #run bin/pdb-server for worker
         num = 0;
         with open('conf/serverlist.test') as f:
@@ -74,39 +73,6 @@ numErrors = 0
 numPassed = 0
 
 
-print("#################################")
-print("RUN STANDALONE INTEGRATION TESTS")
-print("#################################")
-
-try:
-    #run bin/pdb-server
-    print (bcolors.OKBLUE + "start a standalone pdbServer" + bcolors.ENDC)
-    serverProcess = subprocess.Popen(['bin/pdb-server', '1', '2048'])
-    print (bcolors.OKBLUE + "to check whether server has been fully started..." + bcolors.ENDC)
-    subprocess.call(['bash', './scripts/checkProcess.sh', 'pdb-server'])
-    print (bcolors.OKBLUE + "to sleep to wait for server to be fully started" + bcolors.ENDC)
-    time.sleep(30)
-    #run bin/test46 1024
-    print (bcolors.OKBLUE + "start a data client to store data to pdbServer" + bcolors.ENDC)
-    subprocess.check_call(['bin/test46', '640'])
-    #run bin/test44 in a loop for 10 times
-    print (bcolors.OKBLUE + "start a query client to query data from pdbServer" + bcolors.ENDC)
-    subprocess.check_call(['bin/test44', 'n'])
-
-except subprocess.CalledProcessError as e:
-    print (bcolors.FAIL + "[ERROR] in running standalone integration tests" + bcolors.ENDC)
-    print (e.returncode)
-    numErrors = numErrors + 1
-
-else:
-    print (bcolors.OKBLUE + "[PASSED] G1-standalone integration tests" + bcolors.ENDC)
-    numPassed = numPassed + 1
-
-
-
-subprocess.call(['bash', './scripts/cleanupNode.sh'])
-print (bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up...")
-time.sleep(5)
 
 print("#################################")
 print("RUN DISTRIBUTED SELECTION TEST ON G-1 PIPELINE")
@@ -220,6 +186,26 @@ subprocess.call(['bash', './scripts/cleanupNode.sh'])
 print (bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up...")
 time.sleep(5)
 
+print("#################################")
+print("RUN COMPLEX AGGREGATION TEST ON G-2 PIPELINE")
+print("#################################")
+
+try:
+    #start pseudo cluster
+    startPseudoCluster()
+
+    #run bin/test66
+    print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
+    subprocess.check_call(['bin/test90', 'Y', 'Y', '1024', 'localhost', 'Y'])
+
+except subprocess.CalledProcessError as e:
+    print (bcolors.FAIL + "[ERROR] in running distributed selection and join mixed test" + bcolors.ENDC)
+    print (e.returncode)
+    numErrors = numErrors + 1
+
+else:
+    print (bcolors.OKBLUE + "[PASSED] G2-distributed selection and join mixed test" + bcolors.ENDC)
+    numPassed = numPassed + 1
 
 
 
