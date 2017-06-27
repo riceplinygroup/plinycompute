@@ -25,8 +25,7 @@
 
 // By Shangyu
 
-namespace pdb {
-
+using namespace pdb;
 class IntIntVectorPair : public Object {
 
 private:
@@ -65,6 +64,7 @@ public:
 
 };
 
+namespace pdb {
 inline Vector<int> &operator+ (Vector<int> &lhs, Vector<int> &rhs) {
 	int size = lhs.size();
 	if (size != rhs.size()) {
@@ -79,5 +79,4 @@ inline Vector<int> &operator+ (Vector<int> &lhs, Vector<int> &rhs) {
 }
 
 }
-
 #endif

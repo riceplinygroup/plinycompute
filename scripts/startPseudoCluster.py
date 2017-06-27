@@ -37,7 +37,7 @@ if(len(sys.argv)==3) :
     threadNum = sys.argv[1]
     sharedMemorySize = sys.argv[2]
 else:
-    print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numThreads (default: 1) sizeOfSharedMemoryPool (default: 512 MB)"
+    print bcolors.OKBLUE + "Usage: python scripts/startPseduoCluster.py numThreads (default: 1) sizeOfSharedMemoryPool (default: 2048 MB)"
 
 
 print("#################################")

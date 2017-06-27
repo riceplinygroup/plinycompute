@@ -24,8 +24,7 @@
 #include "Object.h"
 #include "Handle.h"
 
-//namespace pdb {
-
+using namespace pdb;
 using namespace pdb;
 
 class LDATopicWordProb  : public Object {
@@ -65,6 +64,5 @@ public:
 
 };
 
-//}
 
 #endif

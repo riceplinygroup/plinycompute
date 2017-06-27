@@ -280,11 +280,11 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         myPolicy = AllocatorPolicy :: noReuseAllocator;
     } 
 
-    PDB_COUT << "Current node's output name=" << outputName << std :: endl;
-    PDB_COUT << "Current node's computation type=" << myComputation->getComputationType() << std :: endl;
-    PDB_COUT << "Current node's computation name=" << mySpecifier << std :: endl;
-    PDB_COUT << "Current node's atomic computation type=" << curNode->getAtomicComputationType() << std :: endl;
-    PDB_COUT << "numConsumersForCurNode=" << numConsumersForCurNode << std :: endl;        
+    //std::cout << "Current node's output name=" << outputName << std :: endl;
+    //std::cout << "Current node's computation type=" << myComputation->getComputationType() << std :: endl;
+    //std::cout << "Current node's computation name=" << mySpecifier << std :: endl;
+    //std::cout << "Current node's atomic computation type=" << curNode->getAtomicComputationType() << std :: endl;
+    //std::cout << "numConsumersForCurNode=" << numConsumersForCurNode << std :: endl;        
     
     if (numConsumersForCurNode == 0) {
         //to get my output set 
@@ -311,6 +311,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             if (this->dynamicPlanningOrNot == true) {
                 this->updateSourceSets (curInputSetIdentifier, nullptr, nullptr);
             }
+            //std::cout<< "return" << std::endl;
             return true;
 
         } else if ((myComputation->getComputationType() == "WriteUserSet") || (myComputation->getComputationType() == "SelectionComp") || (myComputation->getComputationType() == "MultiSelectionComp")) {
@@ -319,6 +320,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             if (this->dynamicPlanningOrNot == true) {
                 this->updateSourceSets (curInputSetIdentifier, nullptr, nullptr);
             }
+            //std::cout<< "return" << std::endl;
             return true;
         } else {
             std :: cout << "Sink Computation Type: " << myComputation->getComputationType() << " are not supported as sink node right now" << std :: endl;
@@ -359,6 +361,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             interGlobalSets.push_back(aggregator);
             if (this->dynamicPlanningOrNot == true) {
                 this->updateSourceSets(curInputSetIdentifier, sink, curNode);
+                //std::cout<< "return" << std::endl;
                 return true;
             } else {
                 buildTheseTupleSets.clear();
@@ -369,6 +372,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
             std :: shared_ptr<ApplyJoin> joinNode = dynamic_pointer_cast<ApplyJoin> (curNode);
             if (joinNode->isTraversed() == false) {
+                //std::cout<<"we met a non-traversed join node" << std::endl;
                 //if the other input has not been processed, I am a pipeline breaker.
                 //We first need to create a TupleSetJobStage with a broadcasting sink
 
@@ -388,8 +392,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 std :: string targetTupleSetName;
                 if(prevNode == nullptr) {
                     targetTupleSetName = curNode->getInputName();//join has two input names
+                    //std::cout<<"prev node is null, and target tuple set is " << targetTupleSetName << std::endl;
                 } else {
                     targetTupleSetName = prevNode->getOutputName();
+                    //std::cout<<"prev node is not null, and target tuple set is " << targetTupleSetName << std::endl;
                 }
                 Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, true, false, false, isProbing, myPolicy);
                 physicalPlanToOutput.push_back(joinPrepStage);
@@ -410,6 +416,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 if (this->dynamicPlanningOrNot == true) {
                     updateSourceSets(curInputSetIdentifier, nullptr, nullptr);
                 }
+                //std :: cout << "return" << std :: endl;
                 return true;
             } else {
                 //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
@@ -419,6 +426,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
 
         } else {
             //I am not a pipeline breaker
+            //std :: cout<< "to push back " << curNode->getOutputName() << std :: endl;
             buildTheseTupleSets.push_back(curNode->getOutputName());
             return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, isProbing, myPolicy);
             

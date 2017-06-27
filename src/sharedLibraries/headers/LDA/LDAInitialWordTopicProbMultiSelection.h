@@ -48,25 +48,19 @@ public:
 		return makeLambda (checkMe, [&] (Handle<int> & checkMe) {
 			int numWord = *checkMe;
 			Handle<Vector<Handle<IntDoubleVectorPair>>> result = 
-				makeObject<Vector<Handle<IntDoubleVectorPair>>>(numWord, numWord);
+				makeObject<Vector<Handle<IntDoubleVectorPair>>>();
 			for (int i = 0; i < numWord; i++) {
-				Handle<Vector<double>> topicProb = 
-					makeObject<Vector<double>>(this->numTopic, this->numTopic);
-				topicProb->fill(1.0);
-				Handle<IntDoubleVectorPair> wordTopicProb= 
-					makeObject<IntDoubleVectorPair>(i, topicProb);
-				(*result)[i] = wordTopicProb;
-			//	std::cout << "The topic probability for word " << i << " : " << std::endl;
-			//	((*result)[i])->getVector()->print();
+                                Handle<IntDoubleVectorPair> wordTopicProb = makeObject<IntDoubleVectorPair> ();
+                                wordTopicProb->myInt = i;
+                                for (int j = 0; j < numTopic; j++) {
+                                    wordTopicProb->myVector.push_back(1.0);
+                                    wordTopicProb->myVector.print();
+                                }
+				result->push_back(wordTopicProb);
+				std::cout << "The topic probability for word " << i << " : " << std::endl;
+				((*result)[i])->getVector().print();
 
 			}
-			
-			/*
-			Handle<Vector<int>> tmpVector = makeObject <Vector<int>>(1, 1);
-			tmpVector->push_back(6);
-			Handle<LDADocWordTopicAssignment> tmpDWTA= makeObject <LDADocWordTopicAssignment>(1, 2, tmpVector);
-			std :: cout << "The test doc: " << tmpDWTA->getDoc() << std :: endl;
-			*/
 			
 			return *result;
 		});
