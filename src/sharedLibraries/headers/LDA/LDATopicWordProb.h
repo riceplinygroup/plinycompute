@@ -25,7 +25,6 @@
 #include "Handle.h"
 
 using namespace pdb;
-using namespace pdb;
 
 class LDATopicWordProb  : public Object {
 

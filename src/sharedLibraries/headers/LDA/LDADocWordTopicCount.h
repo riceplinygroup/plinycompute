@@ -25,7 +25,6 @@
 // By Shangyu
 
 using namespace pdb;
-using namespace pdb;
 
 class LDADocWordTopicCount : public Object {
 

@@ -59,7 +59,7 @@ public:
 
 	void setVector(Handle<Vector<double>>& fromVector) {
 		int size = fromVector->size();
-                for (int i = 0; i < fromVector->size(); i++) {
+                for (int i = 0; i < size; i++) {
                     myVector.push_back((*fromVector)[i]);
                 }
 		//this->myVector = *fromVector;

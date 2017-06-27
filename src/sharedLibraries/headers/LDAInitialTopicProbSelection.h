@@ -36,7 +36,6 @@ class LDAInitialTopicProbSelection : public SelectionComp <IntDoubleVectorPair, 
 private: 
 	Vector<double> prior;
 	Handle <Vector <char>> myMem;
-	//gsl_rng *rng;
 
 public:
 
@@ -60,7 +59,7 @@ public:
                 // copy src over
                 memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
                 memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
-                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+              //  memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
 
                 // lastly, free src
                 gsl_rng_free (src);
