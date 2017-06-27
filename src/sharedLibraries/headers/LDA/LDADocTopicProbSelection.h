@@ -61,7 +61,7 @@ public:
                 // copy src over
                 memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
                 memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
-                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+            //    memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
 
                 // lastly, free src
                 gsl_rng_free (src);
