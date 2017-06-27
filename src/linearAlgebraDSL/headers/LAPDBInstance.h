@@ -155,6 +155,10 @@ public:
         cachedSet.erase(setName);
     }
 
+    bool existsScanSet(std::string setName){
+        return cachedSet.find(setName)!= cachedSet.end();
+    }
+
     void addToIdentifierComputationMap(std::string identiferName,pdb::Handle<pdb::Computation> scanSet){
         if(identifierComputationMap.find(identiferName)!=identifierComputationMap.end()){
             identifierComputationMap.erase(identiferName);
@@ -162,12 +166,14 @@ public:
         identifierComputationMap.insert(std::pair<std::string,pdb::Handle<pdb::Computation>>(identiferName,scanSet));
     }
 
-    bool existsScanSet(std::string identiferName){
+    bool existsScanSetForIdentifier(std::string identiferName){
         return identifierComputationMap.find(identiferName)!=identifierComputationMap.end();
     }
 
-    pdb::Handle<pdb::Computation> findScanSet(std::string identiferName){
-        return identifierComputationMap[identiferName];
+    pdb::Handle<pdb::Computation>& findScanSet(std::string identiferName){
+        pdb::Handle<pdb::Computation>& scanSetHandle = identifierComputationMap[identiferName];
+        std::cout<<"findScanSet::Identifier ScanSet Handle Offset: " << scanSetHandle.getOffset() << std::endl;
+        return scanSetHandle;
     }
 
     void addToIdentifierDimensionMap(std::string identiferName,LADimension dim){
