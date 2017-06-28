@@ -35,8 +35,8 @@ elif  common_env['PLATFORM'] == 'posix':
 
     #for debugging
     common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
-    common_env.Append(LINKFLAGS = '-pthread')
-    #common_env.Append(LINKFLAGS = '-pthread -lgsl -lgslcblas -lm')
+    #common_env.Append(LINKFLAGS = '-pthread')
+    common_env.Append(LINKFLAGS = '-pthread -lgsl -lgslcblas -lm')
     common_env.Replace(CXX = "clang++")
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
@@ -554,6 +554,7 @@ common_env.Program('bin/test92', ['build/tests/Test92.cc'] + all)
 common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
 common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
+common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
 #common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 #common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 #common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -718,6 +719,7 @@ main=common_env.Alias('main', [
   'bin/test93',
   'bin/test94',
   'bin/test95',
+  'bin/test96',
  # 'bin/TestKMeans',
 #  'bin/TestLDA',
   
