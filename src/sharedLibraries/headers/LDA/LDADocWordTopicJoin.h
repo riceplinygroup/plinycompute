@@ -58,7 +58,7 @@ public:
                 // copy src over
                 memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
                 memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
-                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+//                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
 
                 // lastly, free src
                 gsl_rng_free (src);
@@ -88,7 +88,6 @@ public:
 				//Handle<Vector<double>> topicProbForWord = WordTopicProb->getVector();
 				int size = (DocTopicProb->getVector()).size();
 
-				std :: cout << "Topic size: " << size << "\n\n";	
 			
 				Handle<Vector<double>> myProb = makeObject<Vector<double>>(size, size);
 				Handle<Vector<int>> topics = makeObject<Vector<int>>(size, size);
@@ -100,19 +99,19 @@ public:
                         	//std::mt19937 gen(rd());
                         	//gsl_rng_set(rng, gen());
 							
-				std :: cout << "For doc: " << doc->getDoc() << "\n";
-				std :: cout << "DocTopicProb: " << "\n";
-				(DocTopicProb->getVector()).print();
-				std :: cout << "WordTopicProb: " << "\n";
-				(WordTopicProb->getVector()).print();
+		//		std :: cout << "For doc: " << doc->getDoc() << "and Doc: " << doc->getWord() << "\n";
+		//		std :: cout << "DocTopicProb: " << "\n";
+		//		(DocTopicProb->getVector()).print();
+		//		std :: cout << "WordTopicProb: " << "\n";
+		//		(WordTopicProb->getVector()).print();
 		
 
 				for (int i = 0; i < size; ++i) {
 					(*myProb)[i] = (DocTopicProb->getVector())[i] * (WordTopicProb->getVector())[i]; 
 				}
 
-				std :: cout << "My Prob: " << "\n";
-				(*myProb).print();
+			//	std :: cout << "My Prob: " << "\n";
+			//	(*myProb).print();
 		
 
 
@@ -122,9 +121,11 @@ public:
 					if ((*topics)[i] != 0) {
 						topicAssignment->push_back(i);	
 						topicAssignment->push_back((*topics)[i]);	
-						std::cout << "I get topic: " << i << ", count: " << (*topics)[i] << std::endl;
+				//		std::cout << "I get topic: " << i << ", count: " << (*topics)[i] << std::endl;
 					}
 				}
+
+
 				
 				Handle<LDADocWordTopicAssignment> result = 
 					makeObject<LDADocWordTopicAssignment> (doc->getDoc(), doc->getWord(), topicAssignment);

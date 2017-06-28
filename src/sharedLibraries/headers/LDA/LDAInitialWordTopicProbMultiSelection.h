@@ -54,11 +54,11 @@ public:
                                 wordTopicProb->myInt = i;
                                 for (int j = 0; j < numTopic; j++) {
                                     wordTopicProb->myVector.push_back(1.0);
-                                    wordTopicProb->myVector.print();
+                               //     wordTopicProb->myVector.print();
                                 }
 				result->push_back(wordTopicProb);
-				std::cout << "The topic probability for word " << i << " : " << std::endl;
-				((*result)[i])->getVector().print();
+			//	std::cout << "In multi-selection, the topic probability for word " << i << " : " << std::endl;
+			//	((*result)[i])->getVector().print();
 
 			}
 			

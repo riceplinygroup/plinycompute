@@ -74,14 +74,6 @@ public:
 	Lambda <Handle <IntDoubleVectorPair>> getProjection (Handle <SumResult> checkMe) override {
 		return makeLambda (checkMe, [&] (Handle<SumResult> & checkMe) {
 
-			/*
-			gsl_rng *rng;
-			rng = gsl_rng_alloc(gsl_rng_mt19937);
-			std::random_device rd;
-                        std::mt19937 gen(rd());
-			gsl_rng_set(rng, gen());
-			*/
-				
 			
 			gsl_rng *rng = getRng();		
 		//	std::random_device rd;
@@ -96,8 +88,8 @@ public:
 			gsl_ran_dirichlet(rng, topicNum, this->prior.c_ptr(), mySamples->c_ptr());
 				
 			result->setVector(mySamples);
-		//	std::cout << "My samples: " << std::endl;
-		//	mySamples->print();
+			std::cout << "My samples: " << std::endl;
+			result->getVector().print();
 			
 			return result;
 		});
