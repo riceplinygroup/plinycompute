@@ -84,7 +84,8 @@ public:
 
 		//	Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>();
 		//	topicNum = this->prior.size();
-			std :: cout << "Topic number: " << topicNum << "\n\n";
+		//	std :: cout << "Topic number: " << topicNum << "\n\n";
+			std :: cout << "***I am in LDADocTopicProbSelection: ***" << "\n";
 
 		//	result->setInt(checkMe->getInt());
 			Vector<int>& topicCount = checkMe->getVector();
