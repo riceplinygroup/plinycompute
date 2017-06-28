@@ -35,8 +35,9 @@ elif  common_env['PLATFORM'] == 'posix':
 
     #for debugging
     common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
-    #common_env.Append(LINKFLAGS = '-pthread')
-    common_env.Append(LINKFLAGS = '-pthread -lgsl -lgslcblas -lm')
+    common_env.Append(LINKFLAGS = '-pthread')
+    if 'lda' in COMMAND_LINE_TARGETS:
+       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm')    
     common_env.Replace(CXX = "clang++")
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
