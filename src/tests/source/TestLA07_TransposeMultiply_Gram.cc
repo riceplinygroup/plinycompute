@@ -200,16 +200,21 @@ int main (int argc, char * argv[]) {
     QueryClient myClient (8108, "localhost", clientLogger, true);
     
     Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA07_db", "LA_input_set1");
+    Handle<Computation> myMatrixSet2 = myMatrixSet1;
+
+    std::cout<<"ScanSet1 offset<" << myMatrixSet1.getOffset() <<"> ScanSet2 offset<" << myMatrixSet2.getOffset() <<">." <<std::endl; 
 
     Handle<Computation> myMultiply1Join = makeObject<LASillyTransposeMultiply1Join>();
     myMultiply1Join->setInput(0, myMatrixSet1);
-    myMultiply1Join->setInput(1, myMatrixSet1);
+    myMultiply1Join->setInput(1, myMatrixSet2);
 
     Handle<Computation> myMultiply2Aggregate = makeObject<LASillyMultiply2Aggregate>();
     myMultiply2Aggregate->setInput(myMultiply1Join);
     
     Handle<Computation> myProductWriteSet = makeObject<LAWriteMatrixBlockSet>("LA07_db", "LA_product_set");
     myProductWriteSet->setInput(myMultiply2Aggregate);
+
+    std::cout<<"ScanSet1 consumers<" << myMatrixSet1->getNumConsumers() <<"> ScanSet2 consumers<" << myMatrixSet2->getNumConsumers() <<">." <<std::endl; 
 
     auto begin = std :: chrono :: high_resolution_clock :: now();
 

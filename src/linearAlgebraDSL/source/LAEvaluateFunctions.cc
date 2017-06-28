@@ -65,7 +65,7 @@
 /*
  *	This does not consider if the block cannot fit in a single page, will be fixed soon.  
  */
-pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& instance){
+pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& instance){
 	int leftCounter = dim.blockRowNum * dim.blockColNum;
 	std::string setName = "LA_"+method+"_"+std::to_string(instance.getDispatchCount());
 	instance.increaseDispatchCount();
@@ -170,7 +170,7 @@ pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& insta
 		}
 	}
 	
-	if (instance.existsScanSet(setName)){
+	if (instance.existsPDBSet(setName)){
 		std::cerr << "This is bad, cannot make more than on scanSet for the same set<" << setName <<std::endl;
 		exit(1);
 	}
@@ -180,25 +180,39 @@ pdb::Handle<pdb::Computation> LAInitializerNode :: evaluate(LAPDBInstance& insta
 		std::cerr << "LAInitializerNode " << method << " scanSet did not set!" << std::endl;
 		exit(1);
 	}
+	std::cout<< "LAInitializerNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl; 	
 	return scanSet;
 }
 
 
-pdb::Handle<pdb::Computation> LAIdentifierNode :: evaluate(LAPDBInstance& instance){
-	//scanSet = instance.findScanSet(name);
-	scanSet.shallowCopyToCurrentAllocationBlock(instance.findScanSet(name));//Prevent PDB from Auto deep copy
+pdb::Handle<pdb::Computation>& LAIdentifierNode :: evaluate(LAPDBInstance& instance){
+	if(instance.activeScanSet.find(name)!=instance.activeScanSet.end()){
+		scanSet.shallowCopyToCurrentAllocationBlock(instance.activeScanSet[name]);//Prevent PDB from Auto deep copy
+	}
+	else{
+		if(!instance.existsPDBSetForIdentifier(name)){
+			std::cerr << "The variable name <" <<name <<"> does not have a corresponding PDB set!"<<std::endl;
+			exit(1); 
+		}
+		scanSet = pdb::makeObject<LAScanMatrixBlockSet>("LA_db",instance.getPDBSetNameForIdentifier(name));
+		instance.activeScanSet[name] = scanSet;
+	}
 	if(scanSet.isNullPtr()){
 		std::cerr << "LAIdentifierNode " << name << " scanSet did not set yet!" << std::endl;
 		exit(1);
 	}
+	if(!instance.existsDimension(name)){
+		std::cerr << "The variable name <" <<name <<"> does not have a corresponding Dimension!"<<std::endl;
+		exit(1);
+	}
 	setDimension(instance.findDimension(name));
 	std::cout<<"evaluate::Identifier ScanSet Handle Offset: " << scanSet.getOffset() << std::endl;
-	return scanSet; 
-	//return instance.findScanSet(name);//Prevent PDB from Auto deep copy
+	std::cout<< "LAIdentifierNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl;
+	return scanSet;
 }
 
 
-pdb::Handle<pdb::Computation> LAPrimaryExpressionNode :: evaluate(LAPDBInstance& instance){
+pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode :: evaluate(LAPDBInstance& instance){
 	if(flag.compare("identifer")==0){
 		query = identifer->evaluate(instance);
 		setDimension(identifer->getDimension());
@@ -268,11 +282,12 @@ pdb::Handle<pdb::Computation> LAPrimaryExpressionNode :: evaluate(LAPDBInstance&
 		std::cerr << "PostfixExpression invalid flag: " + flag << std::endl;
 		exit(1);
 	}
+	std::cout<< "LAPrimaryExpressionNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl;
 	return query;
 }
 
 
-pdb::Handle<pdb::Computation> LAPostfixExpressionNode :: evaluate(LAPDBInstance& instance){
+pdb::Handle<pdb::Computation>& LAPostfixExpressionNode :: evaluate(LAPDBInstance& instance){
 	if(postOperator.compare("none")==0){
 		query = child->evaluate(instance);
 		setDimension(child->getDimension());
@@ -290,148 +305,137 @@ pdb::Handle<pdb::Computation> LAPostfixExpressionNode :: evaluate(LAPDBInstance&
     	querySelect2->setInput(queryAgg1);
     
     	LADimension targetDim(child->getDimension().transpose());
+    	std::cout<<"Make Inverse Dimension:"<<targetDim.blockRowSize<<","<<targetDim.blockColSize<<","<<targetDim.blockRowNum <<","<<targetDim.blockColNum<<std::endl;
     	Handle<Computation> queryMultiSelect3 = makeObject<LASillyInverse3MultiSelection>(targetDim);
     	queryMultiSelect3->setInput(querySelect2);
     	query = queryMultiSelect3;
+    	setDimension(targetDim);
 	}
 	else{
 		std::cerr <<  "PostfixExpression invalid operator: " + postOperator << std::endl;
 		exit(1);
 	}
+	std::cout<< "LAPostfixExpressionNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl;
 	return query;
 }
 
 
-pdb::Handle<pdb::Computation> LAMultiplicativeExpressionNode :: evaluate(LAPDBInstance& instance){
+pdb::Handle<pdb::Computation>& LAMultiplicativeExpressionNode :: evaluate(LAPDBInstance& instance){
 	if(multiOperator.compare("none")==0){
 		query2 = rightChild->evaluate(instance);
 		setDimension(rightChild->getDimension());
 	}
 	else if(multiOperator.compare("scale_multiply")==0){
+		query2 = makeObject<LASillyScaleMultiplyJoin>();
+		query2->setInput(0,leftChild->evaluate(instance));
+		query2->setInput(1,rightChild->evaluate(instance));
 		LADimension dimLeft = leftChild->getDimension();
 		LADimension dimRight = rightChild->getDimension();
 		if(dimLeft != dimRight){
 			std::cerr << "Scale Multiply operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
 			exit(1); 
 		}
-		query2 = makeObject<LASillyScaleMultiplyJoin>();
-		query2->setInput(0,leftChild->evaluate(instance));
-		query2->setInput(1,rightChild->evaluate(instance));
 		setDimension(dimLeft);
 	}
 	else if(multiOperator.compare("multiply")==0){
+		query1 = makeObject<LASillyMultiply1Join>();
+		query1->setInput(0,leftChild->evaluate(instance));
+		query1->setInput(1,rightChild->evaluate(instance));
 		LADimension dimLeft = leftChild->getDimension();
 		LADimension dimRight = rightChild->getDimension();
 		if(dimLeft.blockColSize != dimRight.blockRowSize || dimLeft.blockColNum != dimRight.blockRowNum){
 			std::cerr << "Multiply operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
 			exit(1); 
 		}
-		query1 = makeObject<LASillyMultiply1Join>();
-		query1->setInput(0,leftChild->evaluate(instance));
-		query1->setInput(1,rightChild->evaluate(instance));
 		query2 = makeObject<LASillyMultiply2Aggregate>();
 		query2->setInput(query1);
 		LADimension dimNew(dimLeft.blockRowSize,dimRight.blockColSize,dimLeft.blockRowNum,dimRight.blockColNum);
 		setDimension(dimNew);
 	}
 	else if(multiOperator.compare("transpose_multiply")==0){
+		query1 = makeObject<LASillyTransposeMultiply1Join>();
+		query1->setInput(0,leftChild->evaluate(instance));
+		query1->setInput(1,rightChild->evaluate(instance));
 		LADimension dimLeft = leftChild->getDimension();
-		LADimension dimRight = rightChild->getDimension();
+		LADimension dimRight = rightChild->getDimension();	
 		if(dimLeft.blockRowSize != dimRight.blockRowSize || dimLeft.blockRowNum != dimRight.blockRowNum){
 			std::cerr << "Transpose Multiply operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
 			exit(1); 
 		}
-		query1 = makeObject<LASillyTransposeMultiply1Join>();
-		query1->setInput(0,leftChild->evaluate(instance));
-		query1->setInput(1,rightChild->evaluate(instance));
 		query2 = makeObject<LASillyMultiply2Aggregate>();
 		query2->setInput(query1);
 		LADimension dimNew(dimLeft.blockColSize,dimRight.blockColSize,dimLeft.blockColNum,dimRight.blockColNum);
 		setDimension(dimNew);
 	}
-	else if(multiOperator.compare("diagonal_multiply")==0){
-		std::cerr <<  "Diagonal multiply is not supported." << std::endl;
-		exit(1);
-	}
 	else{
 		std::cerr << "MultiplicativeExpression invalid operator: " + multiOperator << std::endl;
 		exit(1);
 	}
+	std::cout<< "LAMultiplicativeExpressionNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl;
 	return query2;
 }
 
 
-pdb::Handle<pdb::Computation> LAAdditiveExpressionNode :: evaluate(LAPDBInstance& instance){
+pdb::Handle<pdb::Computation>& LAAdditiveExpressionNode :: evaluate(LAPDBInstance& instance){
 	if(addOperator.compare("none")==0){
 		query = rightChild->evaluate(instance);
 		setDimension(rightChild->getDimension());
 	}
 	else if(addOperator.compare("add")==0){
+		query = makeObject<LASillyAddJoin>();
+		query->setInput(0,leftChild->evaluate(instance));
+		query->setInput(1,rightChild->evaluate(instance));
 		LADimension dimLeft = leftChild->getDimension();
 		LADimension dimRight = rightChild->getDimension();
 		if(dimLeft != dimRight){
 			std::cerr << "Add operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
 			exit(1); 
 		}
-		query = makeObject<LASillyAddJoin>();
-		query->setInput(0,leftChild->evaluate(instance));
-		query->setInput(1,rightChild->evaluate(instance));
 		setDimension(dimLeft);
 	}
 	else if(addOperator.compare("substract")==0){
+		query = makeObject<LASillySubstractJoin>();
+		query->setInput(0,leftChild->evaluate(instance));
+		query->setInput(1,rightChild->evaluate(instance));
 		LADimension dimLeft = leftChild->getDimension();
 		LADimension dimRight = rightChild->getDimension();
 		if(dimLeft != dimRight){
 			std::cerr << "Substract operator dimension not match: " << leftChild->toString() <<"," << rightChild->toString()<<std::endl;
 			exit(1); 
 		}
-		query = makeObject<LASillySubstractJoin>();
-		query->setInput(0,leftChild->evaluate(instance));
-		query->setInput(1,rightChild->evaluate(instance));
 		setDimension(dimLeft);
 	}
 	else{
 		std::cerr << "AdditiveExpression invalid operator: " + addOperator << std::endl;
 		exit(1);
 	}
+	std::cout<< "LAAdditiveExpressionNode:: Dimension "<<dim.blockRowSize<<","<<dim.blockColSize<<","<<dim.blockRowNum <<","<<dim.blockColNum<<std::endl;
 	return query;
 }
 
-/*
- *	Potential problem: 
- *	(1)	Dispatched initializer sets are not removed!
- *	(2) Max/Min element does not considered yet! (check type for 2 operand operators)
- */
+
 void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
 	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
-	//Remove the previous set in DB
-	if(instance.existsScanSetForIdentifier(identifier->toString())){//Rename a variable
-		std::cout << "Redefine variable " << identifier->toString() << std::endl;
-		pdb::Handle<pdb::Computation> previousScan = instance.findScanSet(identifier->toString());
-		if(!instance.getStorageClient().removeSet(previousScan->getDatabaseName(),previousScan->getSetName(),instance.instanceErrMsg())){
-			std::cout << "Not able to remove set: " + instance.instanceErrMsg() << std::endl;
-            exit (-1);
-		}
-		else{
-			std::cout << "Previously linked set " + previousScan->getSetName() + " removed" <<std::endl; 
-		}
-		instance.deleteFromCachedSet(previousScan->getSetName());
-	}
 
 	if(expression->isSyntaxSugarInitializer()){
 		std::cout << "Initialize variable " << identifier->toString() << std::endl;
 		pdb::Handle<pdb::Computation> initializerScan = expression->evaluate(instance);		
-		identifier->setScanSet(initializerScan);
-		std::cout << "Initialized scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
-		identifier->setDimension(expression->getDimension());
-		instance.addToIdentifierComputationMap(identifier->toString(),initializerScan);
-		instance.addToIdentifierDimensionMap(identifier->toString(),identifier->getDimension());
+		//identifier->setScanSet(initializerScan);
+		//std::cout << "Initialized scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
+		//identifier->setDimension(expression->getDimension());
+		instance.addToIdentifierPDBSetNameMap(identifier->toString(),initializerScan->getSetName());
+		instance.addToIdentifierDimensionMap(identifier->toString(),expression->getDimension());
 	}
 	else{
+		instance.activeScanSet.clear();
 		pdb::Handle<pdb::Computation> statementQuery = expression->evaluate(instance);
 		std::cout << "Query output type: "<< statementQuery->getOutputType() << std::endl;
 		Handle<Computation> writeSet;
 		std::string outputSetName = "LA_computation_result_"+identifier->toString();
+		if(instance.existsPDBSet(outputSetName)){//Right now do not support rename a identifier!
+   	 		std::cerr << "This is bad, PDB Set name <" << outputSetName <<"> exists!" <<std::endl;
+   	 		exit(1); 
+   	 	}
 		if(statementQuery->getOutputType().compare("MatrixBlock")==0){
 			if (!instance.getStorageClient().createSet<MatrixBlock> ("LA_db", outputSetName, instance.instanceErrMsg())) {
             	std::cout << "Not able to create set: " + instance.instanceErrMsg() << std::endl;
@@ -466,17 +470,20 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
    	 	std :: cout << std :: endl;
    	 	auto end = std::chrono::high_resolution_clock::now();
 
-   	 	if (instance.existsScanSet(outputSetName)){
+   	 	/*
+   	 	if (instance.existsPDBSet(outputSetName)){
 			std::cerr << "This is bad, cannot make more than on scanSet for the same set<" << outputSetName <<std::endl;
 			exit(1);
 		}
    	 	pdb::Handle<pdb::Computation> newScanSet = makeObject<LAScanMatrixBlockSet>("LA_db", outputSetName);
+   	 	*/
+   	 	
    	 	instance.addToCachedSet(outputSetName);
-   	 	identifier->setScanSet(newScanSet);
-		std::cout << "Updated scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
-		identifier->setDimension(expression->getDimension());
-		instance.addToIdentifierComputationMap(identifier->toString(),newScanSet);
-		instance.addToIdentifierDimensionMap(identifier->toString(),identifier->getDimension());
+   	 	//identifier->setScanSet(newScanSet);
+		//std::cout << "Updated scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
+		//identifier->setDimension(expression->getDimension());
+		instance.addToIdentifierPDBSetNameMap(identifier->toString(),outputSetName);
+		instance.addToIdentifierDimensionMap(identifier->toString(),expression->getDimension());
 
 		if(printQueryResult){
 			std :: cout << "To print result..." << std :: endl;

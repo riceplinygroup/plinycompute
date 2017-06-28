@@ -34,7 +34,7 @@ protected:
 	LAExpressionNode(int t): LAASTNode(t) {}
 
 public:
-	virtual pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) = 0;
+	virtual pdb::Handle<pdb::Computation>& evaluate(LAPDBInstance& instance) = 0;
 	virtual std::string toString() = 0;
 	virtual bool isSyntaxSugarInitializer() = 0;
 	virtual LADimension getDimension() = 0;

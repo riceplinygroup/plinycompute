@@ -63,7 +63,7 @@ public:
 		}
 	}
 
-	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
+	pdb::Handle<pdb::Computation>& evaluate(LAPDBInstance& instance) final;
 
 	void setShared(LAMultiplicativeExpressionNodePtr meIn){
 		me = meIn;

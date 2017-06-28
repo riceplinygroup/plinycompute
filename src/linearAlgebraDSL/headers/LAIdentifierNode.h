@@ -44,7 +44,7 @@ public:
 		return name;
 	}
 
-	pdb::Handle<pdb::Computation> evaluate(LAPDBInstance& instance) final;
+	pdb::Handle<pdb::Computation>& evaluate(LAPDBInstance& instance) final;
 
 	void setScanSet(pdb::Handle<pdb::Computation> setMe){
 		linked = true;
