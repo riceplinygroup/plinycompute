@@ -317,13 +317,12 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	int count = 0;
 	string errMsg;
 
+	// make a new Allocation Block
+	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
-
-		// make a new Allocation Block
-		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-
-		pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 		cout << "Storing copy number " << i << endl;
 		pdb::Handle<Customer> objectToAdd = nullptr;
@@ -376,6 +375,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		count+=storeMeCustomerList->size();
 
 		std::cout << "Send the rest of the data at the end: " << count  << std::endl;
+
+
+		// make a allocation Block and a new vector.
+		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	}
 	infile.close();
