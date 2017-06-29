@@ -197,7 +197,7 @@ public:
                        std :: string leftColumnToApply = lhsInputNames[0];
                        std :: vector < std :: string > leftColumnsToApply;
                        leftColumnsToApply.push_back(leftColumnToApply);
-                       std :: string leftOutputTupleSetName = "hashOneFor_" + leftColumnToApply;
+                       std :: string leftOutputTupleSetName = "hashOneFor_" + leftColumnToApply + "_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                        std :: string leftOutputColumnName = "OneFor_left_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                        std :: vector < std :: string > leftOutputColumns;
                        for (unsigned int i = 0; i < lhsColumnNames.size(); i++) {
@@ -211,7 +211,7 @@ public:
                        std :: string rightColumnToApply = rhsInputNames[0];
                        std :: vector < std :: string > rightColumnsToApply;
                        rightColumnsToApply.push_back(rightColumnToApply);
-                       std :: string rightOutputTupleSetName = "hashOneFor_" + rightColumnToApply;
+                       std :: string rightOutputTupleSetName = "hashOneFor_" + rightColumnToApply + "_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                        std :: string rightOutputColumnName = "OneFor_right_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                        std :: vector < std :: string > rightOutputColumns;
                        for (unsigned int i = 0; i < rhsColumnNames.size(); i++) {
