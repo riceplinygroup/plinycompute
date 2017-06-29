@@ -309,8 +309,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 	cout << "Started Creating Customers ..." << endl;
 
-	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(customerFile.c_str());
+
 
 
 
@@ -324,6 +323,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
 
+		//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
+		infile.open(customerFile.c_str());
 		cout << "Storing copy number " << i << endl;
 		pdb::Handle<Customer> objectToAdd = nullptr;
 
