@@ -312,16 +312,18 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 	infile.open(customerFile.c_str());
 
-	// make a new Allocation Block
-	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 	int count = 0;
 	string errMsg;
 
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
+
+		// make a new Allocation Block
+		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+
+		pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
 		cout << "Storing copy number " << i << endl;
 		pdb::Handle<Customer> objectToAdd = nullptr;
