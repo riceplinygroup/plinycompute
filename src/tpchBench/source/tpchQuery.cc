@@ -145,7 +145,7 @@ int main() {
 
 		float timeDifference =(float (std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count()))/ (float)1000000000;
 
-		std::cout << "Time Duration: " << timeDifference  << " ns." << std::endl;
+		std::cout << "Time Duration: " << timeDifference  << " second " << std::endl;
 
 		std::cout << "to print result..." << std::endl;
 		SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
@@ -183,6 +183,9 @@ int main() {
 			std::cout << "Can't cleanup so files" << std::endl;
 
 		}
+
+	    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
+
 
 }
 #endif
