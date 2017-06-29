@@ -646,6 +646,29 @@ lda=common_env.Alias('lda', [
   'libraries/libLDADocument.so',
   'libraries/libWriteLDADocWordTopicAssignmentSet.so'
 ])
+
+
+tpch=common_env.Alias('tpch', [
+  # TPCH Benchamrk 
+  'libraries/libPart.so',
+  'libraries/libSupplier.so',
+  'libraries/libLineItem.so',
+  'libraries/libOrder.so',
+  'libraries/libCustomer.so',
+  'libraries/libCustomerSupplierPartWriteSet.so',
+  'libraries/libScanCustomerSet.so',
+  'libraries/libCustomerSupplierPartFlat.so',
+  'libraries/libSupplierData.so',
+  'libraries/libCustomerSupplierPartGroupBy.so',
+  'libraries/libCustomerMultiSelection.so',
+  'libraries/libCustomerWriteSet.so',
+  'bin/tpchQuery',
+  'bin/tpchDataGenerator',
+])
+
+
+
+
 common_env.Alias('tests', pdbTest)
 main=common_env.Alias('main', [
   'bin/CatalogServerTests',
@@ -765,22 +788,6 @@ main=common_env.Alias('main', [
   'libraries/libEmployeeGroupBy.so',
   'libraries/libOptimizedEmployeeGroupBy.so',
 #  'libraries/libKMeansQuery.so',  
-  
-  # TPCH Benchamr Libraries
-  'libraries/libPart.so',
-  'libraries/libSupplier.so',
-  'libraries/libLineItem.so',
-  'libraries/libOrder.so',
-  'libraries/libCustomer.so',
-  'libraries/libCustomerSupplierPartWriteSet.so',
-  'libraries/libScanCustomerSet.so',
-  'libraries/libCustomerSupplierPartFlat.so',
-  'libraries/libSupplierData.so',
-  'libraries/libCustomerSupplierPartGroupBy.so',
-  'libraries/libCustomerMultiSelection.so',
-  'libraries/libCustomerWriteSet.so',
-  'bin/tpchQuery',
-  'bin/tpchDataGenerator',
   
 #  'libraries/libLAMaxElementOutputType.so',
 #  'libraries/libLAMaxElementValueType.so',
