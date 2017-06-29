@@ -447,7 +447,7 @@ common_env.SharedLibrary('libraries/libLDATopicWordProb.so', ['build/libraries/L
 common_env.SharedLibrary('libraries/libLDADocument.so', ['build/libraries/LDADocument.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteLDADocWordTopicAssignmentSet.so', ['build/libraries/LDA/WriteLDADocWordTopicAssignmentSet.cc'] + all)
 #common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -583,6 +583,7 @@ common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
+common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
 
 
 
@@ -631,6 +632,7 @@ lda=common_env.Alias('lda', [
   'bin/pdb-cluster',
   'bin/pdb-server',
   'bin/TestLDA',
+  'bin/TestLDA1',
   # LDA 
   'libraries/libLDADocIDAggregate.so',
   'libraries/libScanLDADocumentSet.so',
@@ -653,7 +655,7 @@ lda=common_env.Alias('lda', [
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
 #  "libraries/libWriteLDATopicWordProbSet.so",
   "libraries/libScanIntDoubleVectorPairSet.so",
-#  "libraries/libLDADocTopicFromCountAggregate.so"
+  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 
 
