@@ -184,7 +184,7 @@ int main() {
 
 		}
 
-	    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
+	    const UseTemporaryAllocationBlock tempBlock2 {1024 * 1024 * 128};
 
 
 }
