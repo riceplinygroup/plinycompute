@@ -504,7 +504,7 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator (siz
 //set policy
 template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: setPolicy (AllocatorPolicy policy) {
-        std :: cout << "to set policy " <<policy << std :: endl;
+        //std :: cout << "to set policy " <<policy << std :: endl;
         myPolicies.setPolicy(policy);
 }
 
