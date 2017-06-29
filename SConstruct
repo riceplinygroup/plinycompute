@@ -428,6 +428,7 @@ common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/librari
 # LDA
 common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanIntDoubleVectorPairSet.so', ['build/libraries/ScanIntDoubleVectorPairSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
 common_env.SharedLibrary('libraries/libIntIntVectorPair.so', ['build/libraries/IntIntVectorPair.cc'] + all)
@@ -445,6 +446,8 @@ common_env.SharedLibrary('libraries/libLDADocWordTopicCount.so', ['build/librari
 common_env.SharedLibrary('libraries/libLDATopicWordProb.so', ['build/libraries/LDA/LDATopicWordProb.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocument.so', ['build/libraries/LDADocument.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteLDADocWordTopicAssignmentSet.so', ['build/libraries/LDA/WriteLDADocWordTopicAssignmentSet.cc'] + all)
+#common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
+#common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
@@ -647,7 +650,10 @@ lda=common_env.Alias('lda', [
   'libraries/libLDADocWordTopicCount.so',
   'libraries/libLDATopicWordProb.so',
   'libraries/libLDADocument.so',
-  'libraries/libWriteLDADocWordTopicAssignmentSet.so'
+  'libraries/libWriteLDADocWordTopicAssignmentSet.so',
+#  "libraries/libWriteLDATopicWordProbSet.so",
+  "libraries/libScanIntDoubleVectorPairSet.so",
+#  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 
 
