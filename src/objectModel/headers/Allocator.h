@@ -162,8 +162,9 @@ inline void * getRAM (size_t howMuch, AllocatorState & myState) {
 }
 
 inline void setPolicy (AllocatorPolicy toMe) {
+}
 
-
+inline void unsetPolicy () {
 }
 
 };
@@ -302,14 +303,23 @@ public:
         inline void setPolicy (AllocatorPolicy toMe) {
 
              if (firstPolicy.getPolicyName () == toMe) {
-
+                  //std :: cout << "firstPolicy.getPolicyName()=" << firstPolicy.getPolicyName() << std :: endl;
                   useMe = true;
+                  theRest.unsetPolicy();
 
              } else {
-                        
+                  //std :: cout << "theRest.setPolicy(" << firstPolicy.getPolicyName() << ")" << std :: endl;   
+                  useMe = false;   
                   theRest.setPolicy (toMe);
 
              }
+
+        }
+
+        inline void unsetPolicy () {
+
+             useMe = false;
+             theRest.unsetPolicy ();
 
         }
 
@@ -322,12 +332,14 @@ inline void freeRAM (bool isContained, void *here, std :: vector <InactiveAlloca
 
        if (useMe) {
 #ifdef DEBUG_OBJECT_MODEL
+           //std :: cout << "I am the policy: " << firstPolicy.getPolicyName() << std:: endl;
            firstPolicy.freeRAM (isContained, here, allInactives, myState, typeId);
 #else
            firstPolicy.freeRAM (isContained, here, allInactives, myState);
 #endif
        } else {
 #ifdef DEBUG_OBJECT_MODEL
+           //std :: cout << "I am not the policy: " << firstPolicy.getPolicyName() << std:: endl;
            theRest.freeRAM(isContained, here, allInactives, myState, typeId);
 #else
            theRest.freeRAM(isContained, here, allInactives, myState);
@@ -345,12 +357,14 @@ inline void * getRAM (size_t howMuch, AllocatorState & myState) {
 
        if (useMe) {
 #ifdef DEBUG_OBJECT_MODEL
+           //std :: cout << "I am the policy: " << firstPolicy.getPolicyName() << std:: endl;
            return firstPolicy.getRAM (howMuch, myState, typeId);
 #else
            return firstPolicy.getRAM (howMuch, myState);
 #endif
        } else {
 #ifdef DEBUG_OBJECT_MODEL
+           //std :: cout << "I am not the policy: " << firstPolicy.getPolicyName() << std :: endl;
            return theRest.getRAM (howMuch, myState, typeId);
 #else
            return theRest.getRAM (howMuch, myState);

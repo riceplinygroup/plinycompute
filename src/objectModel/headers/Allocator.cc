@@ -131,6 +131,7 @@ inline void defaultFreeRAM (bool isContained, void *here, std :: vector <Inactiv
                 ALLOCATOR_REF_COUNT--;
 
                 #ifdef DEBUG_OBJECT_MODEL      
+                std :: cout << "**defaultFreeRAM**" << std :: endl;
                 std :: cout << "###################################"<< std :: endl;
                 std :: cout << "allocator block reference count--=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
@@ -209,6 +210,7 @@ inline void * defaultGetRAM (size_t howMuch, AllocatorState & myState) {
                                 ALLOCATOR_REF_COUNT++;
                                 void *retAddress= CHAR_PTR (returnVal) + CHUNK_HEADER_SIZE;
       #ifdef DEBUG_OBJECT_MODEL                          
+                                std :: cout << "**defaultGetRAM**" << std :: endl;
                                 std :: cout << "###################################"<< std :: endl;
                                 std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
                                 std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
@@ -300,6 +302,7 @@ inline void * fastGetRAM (size_t howMuch, AllocatorState & myState) {
         void *retAddress= CHAR_PTR (res) + CHUNK_HEADER_SIZE;
 
         #ifdef DEBUG_OBJECT_MODEL
+        std :: cout << "**fastGetRAM**" << std :: endl;
         std :: cout << "###################################"<< std :: endl;
         std :: cout << "allocator block reference count++=" << ALLOCATOR_REF_COUNT << " with typeId=" << typeId << std :: endl;
         std :: cout << "allocator block start =" << myState.activeRAM << std :: endl;
@@ -381,6 +384,7 @@ inline void * NoReusePolicy :: getRAM (size_t howMuch, AllocatorState & myState)
 // free some RAM
 #ifdef DEBUG_OBJECT_MODEL
 inline void NoReferenceCountPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState, int16_t typeId) {
+    std :: cout << "**NoReferenceCountPolicy**" << std :: endl;
 #else
 inline void NoReferenceCountPolicy :: freeRAM (bool isContained, void *here, std :: vector <InactiveAllocationBlock> & allInactives, AllocatorState & myState) {
 #endif
@@ -500,6 +504,7 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator (siz
 //set policy
 template <typename FirstPolicy, typename... OtherPolicies>
 inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: setPolicy (AllocatorPolicy policy) {
+        std :: cout << "to set policy " <<policy << std :: endl;
         myPolicies.setPolicy(policy);
 }
 
