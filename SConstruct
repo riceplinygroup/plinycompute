@@ -34,7 +34,7 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g  -O0 -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread')
     if 'lda' in COMMAND_LINE_TARGETS:
        common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm')    
@@ -624,6 +624,9 @@ common_env.Depends(pdbTest, [
 ])
 
 lda=common_env.Alias('lda', [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
   'bin/TestLDA',
   # LDA 
   'libraries/libLDADocIDAggregate.so',
