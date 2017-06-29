@@ -43,6 +43,7 @@
 #include "IntDoubleVectorPair.h"
 #include "IntIntVectorPair.h"
 #include "LDADocWordTopicAssignment.h"
+#include "ScanIntDoubleVectorPairSet.h"
 
 #include "LDA/LDAInitialWordTopicProbMultiSelection.h"
 #include "LDA/LDADocWordTopicJoin.h"
@@ -53,7 +54,7 @@
 #include "LDA/LDATopicWordProbMultiSelection.h"
 #include "LDA/LDAWordTopicAggregate.h"
 #include "LDA/WriteLDADocWordTopicAssignmentSet.h"
-#include "LDA/WriteLDATopicWordProbSet.h"
+//#include "LDA/WriteLDATopicWordProbSet.h"
 
 #include "LDA/LDADocWordTopicCount.h"
 #include "LDA/LDATopicWordProb.h"
@@ -419,7 +420,8 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libLDAWordTopicAggregate.so", errMsg);
     catalogClient.registerType ("libraries/libLDADocWordTopicCount.so", errMsg);
     catalogClient.registerType ("libraries/libWriteLDADocWordTopicAssignmentSet.so", errMsg);
-    catalogClient.registerType ("libraries/libWriteLDATopicWordProbSet.so", errMsg);
+//    catalogClient.registerType ("libraries/libWriteLDATopicWordProbSet.so", errMsg);
+    catalogClient.registerType ("libraries/libScanIntDoubleVectorPairSet.so", errMsg);
 
 
 	// connect to the query client
@@ -427,7 +429,7 @@ int main (int argc, char * argv[]) {
 //    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
     // Some meta data
-    pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
+    pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
     pdb::Handle<pdb::Vector<double>> alpha = pdb::makeObject<pdb::Vector<double>> (numTopic, numTopic);
     pdb::Handle<pdb::Vector<double>> beta = pdb::makeObject<pdb::Vector<double>> (numWord, numWord);
     alpha->fill(1.0);
@@ -445,6 +447,16 @@ int main (int argc, char * argv[]) {
     myDocID->setInput(myInitialScanSet);
     Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
     myDocTopicProb->setInput(myDocID);
+    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
+    myWriter->setInput(myDocTopicProb);
+    if (!myClient.executeComputations(errMsg, myWriter)) {
+		std :: cout << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+    }
+	
+    std :: cout << "The query 0 is executed successfully!" << std :: endl;
+
+
     
 
     // Initialize the (wordID, topic prob vector)
@@ -452,20 +464,28 @@ int main (int argc, char * argv[]) {
     Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
     Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbMultiSelection>(numTopic);
     myWordTopicProb->setInput(myMetaScanSet);
-//    Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
-//    myWriter->setInput(myWordTopicProb);
+    Handle <Computation> myWriter2 = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
+    myWriter2->setInput(myWordTopicProb);
+    if (!myClient.executeComputations(errMsg, myWriter2)) {
+		std :: cout << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+    }
 
-    tempOut.push_back(myDocTopicProb);
-    tempOut.push_back(myWordTopicProb);
+    
+    std :: cout << "The query 1 is executed successfully!" << std :: endl;
+
+//    tempOut.push_back(myDocTopicProb);
+//    tempOut.push_back(myWordTopicProb);
 	
 
     // Start LDA iterations
    
+    auto begin = std :: chrono :: high_resolution_clock :: now();
     int to = 0; 	
     for (int n = 0; n < iter; n++) {
 
 
-                //const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
+                const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 
 		term << "*****************************************" << std :: endl;
 		term << "I am in iteration : " << n << std :: endl;
@@ -474,28 +494,45 @@ int main (int argc, char * argv[]) {
     		
 		// Sample for the topics	
 		
-    		//Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+    		Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+    		Handle<Computation> myScanDocTopicProb = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
+    		Handle<Computation> myScanWordTopicProb = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
-		myDocWordTopicJoin->setInput(0, myInitialScanSet);
-//		myDocWordTopicJoin->setInput(1, myDocTopicProb);
-		myDocWordTopicJoin->setInput(1, tempOut[to]);
-//		myDocWordTopicJoin->setInput(2, myWordTopicProb);
-		myDocWordTopicJoin->setInput(2, tempOut[to+1]);
+		myDocWordTopicJoin->setInput(0, myScanSet);
+//		myDocWordTopicJoin->setInput(0, myInitialScanSet);
+		myDocWordTopicJoin->setInput(1, myScanDocTopicProb);
+//		myDocWordTopicJoin->setInput(1, tempOut[to]);
+		myDocWordTopicJoin->setInput(2, myScanWordTopicProb);
+//		myDocWordTopicJoin->setInput(2, tempOut[to+1]);
 		
 		
 		// Sample for the (doc, topic probability)
+
+
+		temp.clearSet("LDA_db", "LDA_doc_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
 		
 		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicAggregate> (numTopic);
 		myDocTopicCountAgg->setInput(myDocWordTopicJoin);
-		Handle <Computation> myDocTopicProbThis = makeObject<LDADocTopicProbSelection>(*alpha);
-//		myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
-		myDocTopicProbThis->setInput(myDocTopicCountAgg);
-//		myDocTopicProb->setInput(myDocTopicCountAgg);
-		tempOut.push_back(myDocTopicProbThis);
+		Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
+		myDocTopicProb->setInput(myDocTopicCountAgg);
+//		tempOut.push_back(myDocTopicProbThis);
 //		tempOut[0] = myDocTopicProb;
-		
+	        Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_doc_topic_prob_test_set");
+    	    	myWriter->setInput(myDocTopicProb);
+
+		/*
+    		if (!myClient.executeComputations(errMsg, myWriter)) {
+			std :: cout << "Query failed. Message was: " << errMsg << "\n";
+			return 1;
+    		}
+		*/
+
+				
+//		std :: cout << "The query "<< to+2 << " is executed successfully!" << std :: endl;
 
 		// Sample for the (topic, word probability)
+
+		temp.clearSet("LDA_db", "LDA_word_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
 				
 		Handle <Computation> myDocWordTopicCount = makeObject <LDADocWordTopicMultiSelection> ();
 		myDocWordTopicCount->setInput(myDocWordTopicJoin);
@@ -506,13 +543,23 @@ int main (int argc, char * argv[]) {
 
 		// Aggregate to get (word, topic probability)
 		
-		Handle <Computation> myWordTopicProbThis = makeObject <LDAWordTopicAggregate> (numTopic);		
-		myWordTopicProbThis->setInput(myTopicWordProb);
+		Handle <Computation> myWordTopicProb = makeObject <LDAWordTopicAggregate> (numTopic);		
+		myWordTopicProb->setInput(myTopicWordProb);
+	        Handle <Computation> myWriter2 = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
+    		myWriter2->setInput(myWordTopicProb);
 
-//		myWordTopicProb = makeObject <LDAWordTopicAggregate> (numTopic);		
-//		myWordTopicProb->setInput(myTopicWordProb);
+
+    		if (!myClient.executeComputations(errMsg, myWriter, myWriter2)) {
+			std :: cout << "Query failed. Message was: " << errMsg << "\n";
+			return 1;
+    		}
+
+
+	//	std :: cout << "The query " << to+3 << " is executed successfully!" << std :: endl;
+		std :: cout << "The query " << to+2 << " and " << to+3 << " is executed successfully!" << std :: endl;
+
 	//	tempOut[1] = myWordTopicProb;
-		tempOut.push_back(myWordTopicProbThis);
+	//	tempOut.push_back(myWordTopicProbThis);
 	
 		to = to+2;
 		
@@ -522,9 +569,9 @@ int main (int argc, char * argv[]) {
 	//	myWriter->setInput(tempOut[0]);
 	//	myWriter->setInput(myDocTopicProb);
 
-		Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
+	//	Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set");
 //		myWriter->setInput(myWordTopicProb);
-		myWriter->setInput(tempOut[to+1]);
+	//	myWriter->setInput(tempOut[to+1]);
 		
 			
 //		Handle <Computation> myWriter = makeObject<WriteLDATopicWordProbSet>("LDA_db", "LDA_word_topic_prob_test_set");
@@ -537,15 +584,14 @@ int main (int argc, char * argv[]) {
 		myWriter->setInput(myDocWordTopicJoin);
 		*/
 	
-		auto begin = std :: chrono :: high_resolution_clock :: now();
+		/*
 		if (!myClient.executeComputations(errMsg, myWriter)) {
 			std :: cout << "Query failed. Message was: " << errMsg << "\n";
 			return 1;
 		}
 
 
-		int totOut = 0;	
-		/*	
+		*	
 		SetIterator <IntDoubleVectorPair> initTopicProbResult = 
 						myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_doc_topic_prob_test_set");
 		for (Handle<IntDoubleVectorPair> a : initTopicProbResult) {
@@ -559,6 +605,8 @@ int main (int argc, char * argv[]) {
 		term << reset << std::endl;	
 		*/
 
+
+		int totOut = 0;	
 		SetIterator <IntDoubleVectorPair> initTopicProbResult = 
 						myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_word_topic_prob_test_set");
 		for (Handle<IntDoubleVectorPair> a : initTopicProbResult) {
