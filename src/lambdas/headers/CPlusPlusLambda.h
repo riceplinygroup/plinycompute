@@ -310,7 +310,7 @@ public:
                             curLeftIndexes = inputPartitions[curLeftInputTupleSetName];
                             curLeftColumnsToKeep = inputColumnNames[0];
                             std :: vector < std :: string > curInputColumnsToApply = inputColumnsToApply[0];
-                            std :: string curPrefix = "hashOneFor";
+                            std :: string curPrefix = "hashOneFor_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                             if (curLeftIndexes.size() > 1) {
                                 curPrefix += "Joined";
                             }
@@ -334,7 +334,7 @@ public:
                         std :: vector < std :: string > curInputColumnNames = inputColumnNames[i+1];
                         std :: vector < std :: string > curInputColumnsToApply = inputColumnsToApply[i+1];
                         std :: vector <unsigned int> curIndexes = inputPartitions[curInputTupleSetName];
-                        std :: string curPrefix = "hashOneFor";
+                        std :: string curPrefix = "hashOneFor_" + std :: to_string(computationLabel) + "_" + std :: to_string(lambdaLabel);
                         if (curIndexes.size() > 1) {
                             curPrefix += "Joined";
                         }
