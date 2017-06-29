@@ -99,11 +99,14 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
 	usedSlots = numUsedSlots;
 	numSlots = numSlotsIn;
 	if (typeInfo.descendsFromObject ()) {
+                //std :: cout << "numUsedSlots=" << numUsedSlots << std :: endl;
 		// run the constructor on each object
 		for (uint32_t i = 0; i < numUsedSlots; i++) {
-			new ((void *) &(data[i])) TypeContained ();
+			new ((void *) &(((TypeContained *)(data))[i])) TypeContained ();
 		}
 	} else {
+                //std :: cout << "numUsedSlots=" << numUsedSlots << std :: endl;
+                //std :: cout << "sizeof(TypeContained)=" << sizeof(TypeContained) << std :: endl;
 		// zero out everything
 		bzero (data, numUsedSlots * sizeof (TypeContained));
 	}
