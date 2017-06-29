@@ -381,10 +381,10 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		// make a allocation Block and a new vector.
 		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-
+		infile.close();
+		infile.clear();
 	}
-	infile.close();
-	infile.clear();
+
 
 }
 
