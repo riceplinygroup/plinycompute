@@ -113,37 +113,9 @@ int main() {
 	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
 	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
-	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-//	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
 	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
 	string errMsg;
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
-		cout << "Not able to register type libOrderWriteSet.\n";
-
-	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
-		cout << "Not able to register type libScanCustomerSet. \n";
-
-	if (!catalogClient.registerType("libraries/libCustomerMapSelection.so", errMsg))
-		cout << "Not able to register type libCustomerMapSelection. \n";
-
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartAgg.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
-		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
-
-	if (!catalogClient.registerType("libraries/libSupplierPart.so", errMsg))
-		cout << "Not able to register type.\n";
-
-	// now, create the sets for storing Customer Data
-		if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
-			cout << "Not able to create set: " + errMsg;
-			exit(-1);
-		} else {
-			cout << "Created set.\n";
-		}
-
 		// for allocations
 	    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
@@ -170,7 +142,10 @@ int main() {
 
 		std::cout << std::endl;
 		auto end = std::chrono::high_resolution_clock::now();
-		std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
+
+		float timeDifference =(float (std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count()))/ (float)1000000000;
+
+		std::cout << "Time Duration: " << timeDifference  << " ns." << std::endl;
 
 		std::cout << "to print result..." << std::endl;
 		SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
@@ -200,8 +175,6 @@ int main() {
 		} else {
 			cout << "Set removed. \n";
 		}
-
-
 
 		// Clean up the SO files.
 		int code = system("scripts/cleanupSoFiles.sh");
