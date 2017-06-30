@@ -336,7 +336,7 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& 
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
         if (mode == DeepCopy) {
-             const UseTemporaryAllocationBlock block(4 * 1024 * 1024);              
+             const UseTemporaryAllocationBlock block(32 * 1024 * 1024);              
              Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (stage);
              stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
              stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
