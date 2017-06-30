@@ -79,7 +79,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     PDB_COUT << "Frontend got a request for BroadcastJoinBuildHTJobStage" << std :: endl;
                     request->print();
 
-                    makeObjectAllocatorBlock(4*1024*1024, true);
+                    makeObjectAllocatorBlock(32*1024*1024, true);
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -195,7 +195,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for AggregationJobStage" << std :: endl;
                     request->print();
-                    makeObjectAllocatorBlock(24*1024*1024, true);
+                    makeObjectAllocatorBlock(32*1024*1024, true);
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -336,7 +336,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for TupleSetJobStage" << std :: endl;
                     request->print();
-                    makeObjectAllocatorBlock(24*1024*1024, true);
+                    makeObjectAllocatorBlock(32*1024*1024, true);
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
