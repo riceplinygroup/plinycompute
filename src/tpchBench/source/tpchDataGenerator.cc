@@ -56,6 +56,9 @@
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
 #include "SupplierData.h"
+#include "CountAggregation.h"
+#include "SumResult.h"
+
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -430,11 +433,11 @@ int main(int argc, char * argv[]) {
 	int noOfCopies = 1;
 
 	if (argc > 1) {
-		noOfCopies = atoi(argv[1]);
+		scaleFactor = std::string(argv[1]);
 	}
 
 	if (argc > 2) {
-		scaleFactor = std::string(argv[2]);
+		noOfCopies = atoi(argv[2]);
 	}
 
 	// Connection info
@@ -451,19 +454,19 @@ int main(int argc, char * argv[]) {
 
 	string errMsg;
 	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register libPart type.\n";
 
 	if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register libSupplier type.\n";
 
 	if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register libLineItem type.\n";
 
 	if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register libOrder type.\n";
 
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
-		cout << "Not able to register type.\n";
+		cout << "Not able to register libCustomer type.\n";
 
 	// now, create a new database
 	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
@@ -525,6 +528,11 @@ int main(int argc, char * argv[]) {
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
 		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
+
+	if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
+		cout << "Not able to register type  libCountAggregation\n";
+
+
 
 	// FIRST WE CHECK THE NUBMER OF STORED CUSTOMERS
 
@@ -606,7 +614,7 @@ int main(int argc, char * argv[]) {
 	int count = 0;
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_set_1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SumResult>("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -626,8 +634,13 @@ int main(int argc, char * argv[]) {
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	myGroupBy->setInput(myFlatten);
 
+	// Get the count by doing a count aggregation on the final results
+	Handle<Computation> countAggregation = makeObject<CountAggregation>();
+	countAggregation->setInput(myGroupBy);
+
+
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
-	myWriteSet->setInput(myGroupBy);
+	myWriteSet->setInput(countAggregation);
 
 	begin = std::chrono::high_resolution_clock::now();
 
@@ -638,21 +651,20 @@ int main(int argc, char * argv[]) {
 
 	std::cout << std::endl;
 	end = std::chrono::high_resolution_clock::now();
-	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
+
+	float timeDifference = (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) / (float) 1000000000;
+
+	std::cout << "Time Duration: " << timeDifference << " second " << std::endl;
+
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_set_1");
+	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
 	std::cout << "Query results: ";
 	count = 0;
 	for (auto a : result) {
 		count++;
-//		cout<<"-------------" << endl;
-//		if (count % 1000 == 0) {
-//			std::cout << count << std::endl;
-//			std::cout <<"CustomerName: "  << a->getName() << std::endl;
-//		a->print();
-//		}
+		std::cout<<"Total count is: " << a->total <<std::endl;
 	}
 	std::cout << "Output count:" << count << "\n";
 

@@ -15,29 +15,46 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef COUNT_AGGREGATION_H
+#define COUNT_AGGREGATION_H
 
-#ifndef CUSTOMER_SUPPLIER_PART_WRITE_SET_H
-#define CUSTOMER_SUPPLIER_PART_WRITE_SET_H
+#include "ClusterAggregateComp.h"
+#include "LambdaCreationFunctions.h"
 
-#include "WriteUserSet.h"
-#include "Customer.h"
+#include "SupplierData.h"
 #include "SumResult.h"
 
 using namespace pdb;
-class CustomerSupplierPartWriteSet : public WriteUserSet <SumResult> {
+
+// template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
+
+class CountAggregation : public ClusterAggregateComp <SumResult, SupplierData, int, int> {
 
 public:
 
-	ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-	CustomerSupplierPartWriteSet () {}
+		CountAggregation () {}
 
-    //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-	CustomerSupplierPartWriteSet (std :: string dbName, std :: string setName) {
-        this->setOutput(dbName, setName);
-    }
+        //the below constructor is NOT REQUIRED
+        //user can also set output later by invoking the setOutput (std :: string dbName, std :: string setName)  method
+        CountAggregation (std :: string dbName, std :: string setName) {
+                this->setOutput(dbName, setName);
+        }
 
+
+        // the key type must have == and size_t hash () defined
+        Lambda <int> getKeyProjection (Handle <SupplierData> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<SupplierData> & aggMe) {
+                            return 0;
+                       });
+        }
+
+        // the value type must have + defined
+        Lambda <int> getValueProjection (Handle <SupplierData> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<SupplierData> & aggMe) {
+                            return 1;
+                       });
+        }
 };
-
-
 #endif
