@@ -56,6 +56,8 @@
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
 #include "SupplierData.h"
+#include "CountAggregation.h"
+#include "SumResult.h"
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -106,7 +108,6 @@ int main() {
 	int noOfCopies = 2;
 	string errMsg;
 
-
 	// Connection info
 	string masterHostname = "localhost";
 	int masterPort = 8108;
@@ -117,15 +118,13 @@ int main() {
 	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
 	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
-
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "tpch_query_output_set_1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SumResult>("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
 		cout << "Created set.\n";
 	}
-
 
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
@@ -137,11 +136,15 @@ int main() {
 	myFlatten->setInput(myScanSet);
 
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
-	//	myGroupBy->setAllocatorPolicy(noReuseAllocator);
+//	myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	myGroupBy->setInput(myFlatten);
 
-	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "tpch_query_output_set_1");
-	myWriteSet->setInput(myGroupBy);
+	// Get the count by doing a count aggregation on the final results
+	Handle<Computation> countAggregation = makeObject<CountAggregation>();
+	countAggregation->setInput(myGroupBy);
+
+	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
+	myWriteSet->setInput(countAggregation);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
@@ -158,24 +161,18 @@ int main() {
 	std::cout << "Time Duration: " << timeDifference << " second " << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "tpch_query_output_set_1");
+	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
 	std::cout << "Query results: ";
 	int count = 0;
 	for (auto a : result) {
 		count++;
-
-		//		cout<<"-------------" << endl;
-		//		if (count % 1000 == 0) {
-		//			std::cout << count << std::endl;
-		//			std::cout <<"CustomerName: "  << a->getName() << std::endl;
-//			    a->print();
-		//		}
+		std::cout << "Total count is: " << a->total << std::endl;
 	}
 	std::cout << "Output count:" << count << "\n";
 
 	// Remove the output set
-	if (!distributedStorageManagerClient.removeSet("TPCH_db", "tpch_query_output_set_1", errMsg)) {
+	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
 	} else {

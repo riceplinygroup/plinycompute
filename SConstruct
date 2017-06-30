@@ -44,9 +44,9 @@ common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
-common_env.Append(CCFLAGS='-DAUTO_TUNING')
-#common_env.Append(CCFLAGS='-DCLEAR_SET')
-#common_env.Append(CCFLAGS='-DPDB_DEBUG')
+# common_env.Append(CCFLAGS='-DAUTO_TUNING')
+# common_env.Append(CCFLAGS='-DCLEAR_SET')
+# common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
@@ -403,12 +403,10 @@ common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
-
 common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/SupplierData.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
-
-common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
+common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/CountAggregation.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
@@ -675,6 +673,7 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerSupplierPartGroupBy.so',
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
+  'libraries/libCountAggregation.so',
   'bin/tpchQuery',
   'bin/tpchDataGenerator',
 ])
