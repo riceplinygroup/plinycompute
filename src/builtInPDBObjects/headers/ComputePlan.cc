@@ -260,48 +260,49 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
 
             // and get the schema for the output TupleSet objects that it is supposed to produce
             if ((allComps.getConsumingAtomicComputations(targetTupleSetName)).size() > 1) {
-                std :: cout << "ERROR: target tuple set in pipeline should have only one consumer" << std :: endl;
-                return nullptr;
-            }
-            //std :: cout << "The target is " << targetSpec << "\n";
+                targetProjection = targetSpec;
+                targetAttsToOpOn = targetSpec;
+            } else {
+                //std :: cout << "The target is " << targetSpec << "\n";
 
-            //JiaNote: change the reference into a new variable based on Chris' Join code
-            //TupleSpec &targetProjection = targetSpec;
+                //JiaNote: change the reference into a new variable based on Chris' Join code
+                //TupleSpec &targetProjection = targetSpec;
 
-            auto a = (allComps.getConsumingAtomicComputations(targetTupleSetName))[0];
+                auto a = (allComps.getConsumingAtomicComputations(targetTupleSetName))[0];
 
-            // we found the consuming computation
-            if (targetSpec == a->getInput ()) {
-                targetProjection = a->getProjection ();
+                // we found the consuming computation
+                if (targetSpec == a->getInput ()) {
+                    targetProjection = a->getProjection ();
 
-                //added following to merge join code
-                if(targetComputationName.find("JoinComp") == std :: string :: npos) {
-                    targetSpec = targetProjection;
+                    //added following to merge join code
+                    if(targetComputationName.find("JoinComp") == std :: string :: npos) {
+                        targetSpec = targetProjection;
+                    }
+
+                    targetAttsToOpOn = a->getInput();
+            
                 }
 
-                targetAttsToOpOn = a->getInput();
-            
-            }
-
-            // the only way that the input to this guy does not match targetSpec is if he is a join, which has two inputs
-            else if (a->getAtomicComputationType () != std :: string ("JoinSets")) {
-                std :: cout << "This is bad... is the target computation name correct??";
-                std :: cout << "Didn't find a JoinSets, target was " << targetSpec.getSetName () << "\n";
-                exit (1);
-            }
-            else {
-                // get the join and make sure it matches
-                ApplyJoin *myGuy = (ApplyJoin *) a.get ();
-                if (!(myGuy->getRightInput () == targetSpec)) {
+                // the only way that the input to this guy does not match targetSpec is if he is a join, which has two inputs
+                else if (a->getAtomicComputationType () != std :: string ("JoinSets")) {
                     std :: cout << "This is bad... is the target computation name correct??";
-                    std :: cout << "Find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                    std :: cout << "Didn't find a JoinSets, target was " << targetSpec.getSetName () << "\n";
                     exit (1);
                 }
                 else {
-                    //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
-                    targetProjection = myGuy->getRightProjection ();
-                    targetAttsToOpOn = myGuy->getRightInput ();
-                    //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                    // get the join and make sure it matches
+                    ApplyJoin *myGuy = (ApplyJoin *) a.get ();
+                    if (!(myGuy->getRightInput () == targetSpec)) {
+                        std :: cout << "This is bad... is the target computation name correct??";
+                        std :: cout << "Find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                        exit (1);
+                    }
+                    else {
+                        //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
+                        targetProjection = myGuy->getRightProjection ();
+                        targetAttsToOpOn = myGuy->getRightInput ();
+                        //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
+                    }
                 }
             }
         } else {

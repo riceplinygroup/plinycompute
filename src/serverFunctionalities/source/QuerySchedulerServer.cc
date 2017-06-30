@@ -929,18 +929,28 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer> (jobId, computations, tcapString, this->logger, true);
                 int jobStageId = 0;
                 while (this->tcapAnalyzerPtr->getNumSources() > 0) {
-
-                    //analyze all sources and select a source based on cost model
-                    int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource(this->statsForOptimization);
-
-                    //get the job stages and intermediate data sets for this source
-                    std :: string sourceName = this->tcapAnalyzerPtr->getSourceSetName (indexOfBestSource);
-                    Handle<SetIdentifier> sourceSet = this->tcapAnalyzerPtr->getSourceSetIdentifier (sourceName);
-                    AtomicComputationPtr sourceAtomicComp = this->tcapAnalyzerPtr->getSourceComputation (sourceName);
                     std :: vector<Handle<AbstractJobStage>> jobStages;
                     std :: vector<Handle<SetIdentifier>> intermediateSets;
-                    this->tcapAnalyzerPtr->getNextStages(jobStages, intermediateSets, sourceAtomicComp, sourceSet, jobStageId);
 
+                    while ((jobStages.size() == 0)&&(this->tcapAnalyzerPtr->getNumSources()>0)) {
+                       //analyze all sources and select a source based on cost model
+                       int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource(this->statsForOptimization);
+
+                       //get the job stages and intermediate data sets for this source
+                       std :: string sourceName = this->tcapAnalyzerPtr->getSourceSetName (indexOfBestSource);
+                       std :: cout << "best source is " << sourceName << std :: endl;
+                       Handle<SetIdentifier> sourceSet = this->tcapAnalyzerPtr->getSourceSetIdentifier (sourceName);
+                       AtomicComputationPtr sourceAtomicComp = this->tcapAnalyzerPtr->getSourceComputation (sourceName);
+                       unsigned int sourceConsumerIndex = this->tcapAnalyzerPtr->getNextConsumerIndex(sourceName);
+                       this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages, intermediateSets, sourceAtomicComp, sourceSet, sourceConsumerIndex, jobStageId);
+                       if (jobStages.size() > 0) { 
+                            this->tcapAnalyzerPtr->incrementConsumerIndex(sourceName);
+                            break;
+                       }
+                       else {
+                            this->tcapAnalyzerPtr->removeSource(sourceName);
+                       }
+                    }
                     //create intermediate sets
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
                         std :: string errMsg;

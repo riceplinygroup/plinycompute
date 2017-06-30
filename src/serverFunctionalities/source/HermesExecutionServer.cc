@@ -323,7 +323,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              }
              this->addHashSet(request->getHashSetName(), sharedHashSet);
-             //std :: cout << "BroadcastJoinBuildHTJobStage: hashSetName=" << request->getHashSetName() << std :: endl; 
+             std :: cout << "BroadcastJoinBuildHTJobStage: hashSetName=" << request->getHashSetName() << std :: endl; 
              //tune backend circular buffer size
              int numThreads = 1;
              int backendCircularBufferSize = 1;
@@ -870,7 +870,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                  for (PDBMapIterator<String, String> mapIter = hashTables->begin(); mapIter != hashTables->end(); ++mapIter) {
                                      std :: string key = (*mapIter).key;
                                      std :: string hashSetName = (*mapIter).value;
-                                     //std :: cout << key << ":" << hashSetName << std :: endl;
+                                     std :: cout << "remove " << key << ":" << hashSetName << std :: endl;
                                      AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
                                      hashSet->cleanup();
                                      this->removeHashSet(hashSetName);

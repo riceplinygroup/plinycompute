@@ -576,8 +576,9 @@ public:
 typedef std::shared_ptr <JoinTupleSingleton> JoinTuplePtr;
 
 inline int findType (std :: string &findMe, std :: vector <std :: string> &typeList) {
-
+        std :: cout << "findMe is " << findMe << std :: endl;
 	for (int i = 0; i < typeList.size (); i++) {
+                std :: cout << "typeList[" << i << "]=" << typeList[i] << std :: endl;
 		if (typeList[i] == findMe) {
 			typeList[i] = std :: string ("");
 			return i;
@@ -654,8 +655,8 @@ typename std :: enable_if<std :: is_base_of <JoinTupleBase, In1> :: value, JoinT
 
 	JoinTuplePtr returnVal;
 	std :: string in2Name = getTypeName <Handle <In2>> ();
+        std :: cout << "in2Name =" << in2Name << std :: endl;
 	int in2Pos = findType (in2Name, typeList);
-
 	if (in2Pos != -1) {
 		returnVal = findCorrectJoinTuple <JoinTuple <In2, In1>, Rest...> (typeList, whereEveryoneGoes);
 		whereEveryoneGoes.push_back (in2Pos);

@@ -47,6 +47,10 @@ template <class TypeContained>
 Vector <TypeContained> :: Vector (uint32_t initSize, uint32_t usedSize) {
 
 	// this way, we'll allocate extra bytes on the end of the array
+        //std :: cout << "sizeof(TypeContained)=" << sizeof(TypeContained) << std :: endl;
+        //std :: cout << "sizeof(Handle)=" << sizeof(Handle<Nothing>) << std :: endl;
+        //std :: cout << "sizeof(HandleBase)=" << sizeof(HandleBase) << std :: endl;
+        //std :: cout << "initSize=" << initSize << std :: endl;
 	myArray = makeObjectWithExtraStorage <Array <TypeContained>> (sizeof (TypeContained) * initSize, initSize, usedSize);
 }
 

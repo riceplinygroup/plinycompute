@@ -78,6 +78,7 @@ TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computatio
            curSourceSetNames.push_back(mySourceSetName);
            curSourceSets[mySourceSetName] = curInputSetIdentifier;
            curSourceNodes[mySourceSetName] = curSource;
+           curProcessedConsumers[mySourceSetName] = 0;
        }
        //check current string
        PDB_COUT << "All initial sources: " << std :: endl;
@@ -128,6 +129,24 @@ bool TCAPAnalyzer::getNextStages(std :: vector<Handle<AbstractJobStage>> & physi
 }
 
 
+//to analyze the subgraph rooted at a source node and only returns a set of job stages corresponding with the subgraph
+bool TCAPAnalyzer::getNextStagesOptimized(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<SetIdentifier>  curInputSetIdentifier, unsigned int curConsumerIndex, int & jobStageId) {
+   std :: string sourceSpecifier = curSource->getComputationName();
+   Handle<Computation> sourceComputation = this->logicalPlan->getNode(sourceSpecifier).getComputationHandle();
+    std :: string outputName = curSource->getOutputName();
+    std :: vector<AtomicComputationPtr> consumers = this->computationGraph.getConsumingAtomicComputations(outputName);
+    AtomicComputationPtr curNode = nullptr;
+    bool ret = false;
+    if (curConsumerIndex < consumers.size()) {
+        curNode = consumers[curConsumerIndex];
+        std :: vector <std :: string> tupleSetNames;
+        tupleSetNames.push_back(outputName);
+        ret = analyze(physicalPlanToOutput, interGlobalSets, tupleSetNames, curSource, sourceComputation, curInputSetIdentifier, curNode, jobStageId, curSource);
+    }
+    return ret;
+}
+
+
 //a source computation for a pipeline can be ScanSet, Selection, ClusterAggregation, and ClusterJoin.
 bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, int & jobStageId) {
     //first get source set identifier
@@ -161,6 +180,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
         AtomicComputationPtr curNode = consumers[i];
         std :: vector <std :: string> tupleSetNames;
         tupleSetNames.push_back(outputName);
+        std :: cout << "set isProbing to false" << std :: endl;  
         bool ret = analyze(physicalPlanToOutput, interGlobalSets, tupleSetNames, curSource, sourceComputation, curInputSetIdentifier, curNode, jobStageId, curSource);
         if (ret == false) {
             exit(1);
@@ -170,6 +190,12 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
 }
 
 Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing, AllocatorPolicy myPolicy) {
+    std :: cout << "to createTupleSetJobStage with probing=" << isProbing ;
+    if (isProbing == true) {
+       std :: cout << "(true)" << std :: endl;
+    } else {
+       std :: cout << "(false)" << std :: endl;
+    }
     Handle<TupleSetJobStage> jobStage = makeObject<TupleSetJobStage> (jobStageId);
     jobStageId ++;
     jobStage->setComputePlan(this->computePlan, sourceTupleSetName, targetTupleSetName, targetComputationName);
@@ -178,10 +204,16 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     jobStage->setSinkContext(sinkContext);
     jobStage->setOutputTypeName(outputTypeName);
     jobStage->setAllocatorPolicy(myPolicy);
-    if ((hashSetsToProbe != nullptr) && (isProbing == true)) {
+    if ((hashSetsToProbe != nullptr) && (outputForJoinSets.size() > 0) && (isProbing == true)) {
         jobStage->setProbing(true);
-        jobStage->setHashSetsToProbe(this->hashSetsToProbe);
-        this->hashSetsToProbe = nullptr;
+        Handle<Map<String, String>> hashSetToProbeForMe = makeObject<Map<String, String>>();
+        for (int i = 0; i < outputForJoinSets.size(); i++) {
+            (*hashSetToProbeForMe)[outputForJoinSets[i]] = (*hashSetsToProbe)[outputForJoinSets[i]]; 
+            std :: cout << "output is " << outputForJoinSets[i] << ", hashSet is " << (*hashSetToProbeForMe)[outputForJoinSets[i]] << std :: endl;
+        }
+        jobStage->setHashSetsToProbe(hashSetToProbeForMe);
+        outputForJoinSets.clear();
+        //hashSetToProbeForMe = nullptr;    
     }
     if (combinerContext != nullptr) {
         jobStage->setCombinerContext(combinerContext);
@@ -221,39 +253,34 @@ Handle<BroadcastJoinBuildHTJobStage> TCAPAnalyzer::createBroadcastJoinBuildHTJob
     return broadcastJoinStage;
 }
 
+//to remove source
+bool TCAPAnalyzer::removeSource (std :: string oldSetName) {
+        bool ret;
+        for (std :: vector<std :: string>::iterator iter = curSourceSetNames.begin(); iter != curSourceSetNames.end(); iter++) {
+            PDB_COUT << "curSetName = " << *iter << std :: endl;
+            std :: string curStr = *iter;
+            if (curStr == oldSetName) {
+                iter = curSourceSetNames.erase(iter);
+                break;
+            }
+        }
+        if (curSourceSets.count(oldSetName) > 0) {
+            curSourceSets.erase(oldSetName);
+        } else {
+            ret = false;
+        }
+        if (curSourceNodes.count(oldSetName) > 0) {
+            curSourceNodes.erase(oldSetName);
+        } else {
+            ret = false;
+        }
+        std :: cout << "removed set " << oldSetName << std :: endl;
+        return ret;
+}
+
+
 bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIdentifier> newSet, AtomicComputationPtr newAtomicComp) {
     bool ret = true;
-    
-    //get old set name
-    std :: string oldSetName = oldSet->getDatabase() + ":" + oldSet->getSetName();
-    PDB_COUT << "oldSetName = " << oldSetName << std :: endl;
-
-    //check current string
-    PDB_COUT << "current source set names: " << std :: endl;
-    for (std :: string & myStr : curSourceSetNames) {
-        PDB_COUT << myStr << std :: endl;
-    }
-
-    //remove the old stuff
-    for (std :: vector<std :: string>::iterator iter = curSourceSetNames.begin(); iter != curSourceSetNames.end(); iter++) {
-        PDB_COUT << "curSetName = " << *iter << std :: endl;
-        std :: string curStr = *iter;
-        if (curStr == oldSetName) {
-            iter = curSourceSetNames.erase(iter);
-            break;
-        }
-    } 
-    if (curSourceSets.count(oldSetName) > 0) {
-        curSourceSets.erase(oldSetName);
-    } else {
-        ret = false;
-    }
-    if (curSourceNodes.count(oldSetName) > 0) {
-        curSourceNodes.erase(oldSetName);
-    } else {
-        ret = false;
-    }
-
     if ((newSet != nullptr) && (newAtomicComp != nullptr)){
         //get new set name
         std :: string newSetName = newSet->getDatabase() + ":" + newSet->getSetName();
@@ -262,6 +289,60 @@ bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIde
         curSourceSets[newSetName] = newSet;
         curSourceNodes[newSetName] = newAtomicComp;
 
+    } 
+    //get old set name
+    std :: string oldSetName = oldSet->getDatabase() + ":" + oldSet->getSetName();
+    std :: cout << "oldSetName = " << oldSetName << std :: endl;
+
+    //check current string
+    std :: cout << "current source set names: " << std :: endl;
+    for (std :: string & myStr : curSourceSetNames) {
+        PDB_COUT << myStr << std :: endl;
+    }
+
+    //remove the old stuff
+    AtomicComputationPtr oldNode;
+    if (curSourceNodes.count(oldSetName) >0) {
+        oldNode = curSourceNodes[oldSetName];
+    } else {
+        std :: cout << oldSetName << " doesn't exist" << std :: endl;
+        return false;
+    }
+    
+    std :: string sourceSpecifier = oldNode->getComputationName();
+    Handle<Computation> sourceComputation = this->logicalPlan->getNode(sourceSpecifier).getComputationHandle();
+    std :: string outputName = oldNode->getOutputName();
+    std :: vector<AtomicComputationPtr> consumers = this->computationGraph.getConsumingAtomicComputations(outputName);
+    unsigned int numConsumers = consumers.size();
+    unsigned int numProcessedConsumers = curProcessedConsumers[oldSetName];
+    if (numConsumers == numProcessedConsumers) {    
+        for (std :: vector<std :: string>::iterator iter = curSourceSetNames.begin(); iter != curSourceSetNames.end(); iter++) {
+            PDB_COUT << "curSetName = " << *iter << std :: endl;
+            std :: string curStr = *iter;
+            if (curStr == oldSetName) {
+                iter = curSourceSetNames.erase(iter);
+                break;
+            }
+        } 
+        if (curSourceSets.count(oldSetName) > 0) {
+            curSourceSets.erase(oldSetName);
+        } else {
+            ret = false;
+        }
+        if (curSourceNodes.count(oldSetName) > 0) {
+            curSourceNodes.erase(oldSetName);
+        } else {
+            ret = false;
+        }
+        if (curProcessedConsumers.count(oldSetName) > 0) {
+            curProcessedConsumers.erase(oldSetName);
+        } else {
+            ret = false;
+        }
+        std :: cout << "removed for " << sourceSpecifier << " in set " << oldSetName << std :: endl;
+    } else {
+        std :: cout << "numConsumers for " << sourceSpecifier << " in set " << oldSetName << " is " << numConsumers << std :: endl;
+        std :: cout << "processedConsumers is " << numProcessedConsumers << std :: endl;
     }
     return ret;
 }
@@ -280,11 +361,11 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         myPolicy = AllocatorPolicy :: noReuseAllocator;
     } 
 
-    //std::cout << "Current node's output name=" << outputName << std :: endl;
-    //std::cout << "Current node's computation type=" << myComputation->getComputationType() << std :: endl;
-    //std::cout << "Current node's computation name=" << mySpecifier << std :: endl;
-    //std::cout << "Current node's atomic computation type=" << curNode->getAtomicComputationType() << std :: endl;
-    //std::cout << "numConsumersForCurNode=" << numConsumersForCurNode << std :: endl;        
+    std::cout << "Current node's output name=" << outputName << std :: endl;
+    std::cout << "Current node's computation type=" << myComputation->getComputationType() << std :: endl;
+    std::cout << "Current node's computation name=" << mySpecifier << std :: endl;
+    std::cout << "Current node's atomic computation type=" << curNode->getAtomicComputationType() << std :: endl;
+    std::cout << "numConsumersForCurNode=" << numConsumersForCurNode << std :: endl;        
     
     if (numConsumersForCurNode == 0) {
         //to get my output set 
@@ -372,7 +453,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
             std :: shared_ptr<ApplyJoin> joinNode = dynamic_pointer_cast<ApplyJoin> (curNode);
             if (joinNode->isTraversed() == false) {
-                //std::cout<<"we met a non-traversed join node" << std::endl;
+                std::cout<<"we met a non-traversed join node" << std::endl;
                 //if the other input has not been processed, I am a pipeline breaker.
                 //We first need to create a TupleSetJobStage with a broadcasting sink
 
@@ -403,7 +484,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
 
                 //We then create a BroadcastJoinBuildHTStage
                 std :: string hashSetName = sink->getDatabase() + ":" + sink->getSetName();
-                //std :: cout << "TCAPAnalyzer: hashSetName = " << hashSetName << std :: endl;
+                //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
                 Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
                 physicalPlanToOutput.push_back(joinBroadcastStage);                
                 //set the probe information
@@ -420,7 +501,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 return true;
             } else {
                 //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
+                std :: cout << "I met a join node I have traversed before" << std :: endl;
                 buildTheseTupleSets.push_back(curNode->getOutputName());
+                outputForJoinSets.push_back(outputName);
+                std :: cout << "isProbing is set to true" << std :: endl;
                 return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, true, myPolicy);
             }
 
@@ -447,7 +531,8 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             std :: string setName = myComputation->getSetName();
             sink = makeObject<SetIdentifier> (dbName, setName);
         }
-        if ((myComputation->getComputationType() == "SelectionComp") ||  (myComputation->getComputationType() == "MultiSelectionComp")) {
+        //if ((myComputation->getComputationType() == "SelectionComp") ||  (myComputation->getComputationType() == "MultiSelectionComp")) {
+        if (myComputation->getComputationType() != "ClusterAggregationComp") {
             buildTheseTupleSets.push_back(curNode->getOutputName());
             Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getOutputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
@@ -467,7 +552,25 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             //to push back the aggregator set
             interGlobalSets.push_back(aggregator);
 
-        } else {
+        } /*else if (myComputation->getComputationType() == "JoinComp") {
+            bool areConsumersDifferentComputations = true;
+            for (int i = 0; i < numConsumersForCurNode; i++) {
+                 AtomicComputationPtr theConsumerNode = consumers[i];
+                 std :: string theConsumerName = theConsumerNode->getComputationName();
+                 if (theConsumerName != mySpecifier) {
+                     std :: cout << "the comsumer computation is " << theConsumerName << " and it is different with current computation which is " << mySpecifier << std :: endl;
+                     areConsumersDifferentComputations = false;
+                     break;
+                 }
+            }
+            if (areConsumersDifferentComputations == false) {
+                 std :: cout << "The query graph is too complex to support, try to simplify it" << std :: endl;
+                 exit(1);
+            }
+            else {
+            }
+
+        } */else {
             std :: cout << "Computation Type: " << myComputation->getComputationType() << " are not supported to have more than one consumers right now" << std :: endl;
             this->logger->fatal("Computation Type: " + myComputation->getComputationType() + " are not supported to have more than one consumers right now");
             exit(1);
@@ -560,7 +663,7 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
 double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     //TODO: to get the cost of source specified by the index
     std :: string key = curSourceSetNames[index];
-    //std :: cout << "to search set with name=" << key << std :: endl;
+    std :: cout << "to search set with name=" << key << std :: endl;
     Handle<SetIdentifier> curSet = this->getSourceSetIdentifier(key);
     if (curSet == nullptr) {
         std :: cout << "WARNING: there is no source set" << std :: endl;
@@ -573,6 +676,16 @@ double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     return cost;
 }
 
+
+//to return the index of next consumer to process for a certain source
+unsigned int TCAPAnalyzer :: getNextConsumerIndex (std :: string name) {
+    return curProcessedConsumers[name];
+}
+
+//to increment the index of next consumer to process for a certain source
+void TCAPAnalyzer :: incrementConsumerIndex(std :: string name) {
+    curProcessedConsumers[name] = curProcessedConsumers[name] + 1;
+}
 
 }
 
