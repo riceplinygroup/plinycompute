@@ -146,6 +146,12 @@ int main() {
 	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
 	myWriteSet->setInput(countAggregation);
 
+
+
+
+
+	// Query Execution and Time Calculation
+
 	auto begin = std::chrono::high_resolution_clock::now();
 
 	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
@@ -158,8 +164,14 @@ int main() {
 
 	float timeDifference = (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) / (float) 1000000000;
 
-	std::cout << "Time Duration: " << timeDifference << " second " << std::endl;
+	std::cout << "#TimeDuration: " << timeDifference << " Second " << std::endl;
 
+
+
+
+
+
+	// Printing results to double check
 	std::cout << "to print result..." << std::endl;
 	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
