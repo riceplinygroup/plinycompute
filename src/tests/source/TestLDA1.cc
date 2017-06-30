@@ -458,7 +458,15 @@ int main (int argc, char * argv[]) {
 	
     std :: cout << "The query 0 is executed successfully!" << std :: endl;
 
-
+    SetIterator <IntDoubleVectorPair> result1 = myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_doc_topic_prob_test_set");
+    std :: cout << "Query result 1: "<< std :: endl;
+    int countIn = 0;
+    for (auto a : result1) {
+            countIn ++;
+            std :: cout << countIn << ":" << a->myInt << std :: endl;
+            a->myVector.print();
+            std :: cout << std::endl;
+    }
     
 
     // Initialize the (wordID, topic prob vector)
@@ -473,9 +481,18 @@ int main (int argc, char * argv[]) {
 		return 1;
     }
 
-    
-    std :: cout << "The query 1 is executed successfully!" << std :: endl;
+    SetIterator <IntDoubleVectorPair> result2 = myClient.getSetIterator <IntDoubleVectorPair> ("LDA_db", "LDA_word_topic_prob_test_set");
+    std :: cout << "Query result 2: "<< std :: endl;
+    countIn = 0;
+    for (auto a : result2) {
+            countIn ++;
+            std :: cout << countIn << ":" << a->myInt << std :: endl;
+            a->myVector.print();
+            std :: cout << std::endl;
+    }
 
+
+    std :: cout << "The query 1 is executed successfully!" << std :: endl;
 //    tempOut.push_back(myDocTopicProb);
 //    tempOut.push_back(myWordTopicProb);
 	
@@ -513,7 +530,6 @@ int main (int argc, char * argv[]) {
 
 		// Sample for the (doc, topic probability)
 
-		temp.clearSet("LDA_db", "LDA_doc_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
 		
 //		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicAggregate> (numTopic);
 		Handle <Computation> myDocTopicCountAgg= makeObject <LDADocTopicFromCountAggregate> (numTopic);
@@ -537,7 +553,6 @@ int main (int argc, char * argv[]) {
 
 		// Sample for the (topic, word probability)
 
-		temp.clearSet("LDA_db", "LDA_word_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
 				
 //		Handle <Computation> myDocWordTopicCount = makeObject <LDADocWordTopicMultiSelection> ();
 //		myDocWordTopicCount->setInput(myDocWordTopicJoin);
@@ -560,6 +575,8 @@ int main (int argc, char * argv[]) {
     		}
 
 
+		temp.clearSet("LDA_db", "LDA_doc_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
+		temp.clearSet("LDA_db", "LDA_word_topic_prob_test_set", "pdb::IntDoubleVectorPair", errMsg);
 	//	std :: cout << "The query " << to+3 << " is executed successfully!" << std :: endl;
 		std :: cout << "The query " << to+2 << " and " << to+3 << " is executed successfully!" << std :: endl;
 
