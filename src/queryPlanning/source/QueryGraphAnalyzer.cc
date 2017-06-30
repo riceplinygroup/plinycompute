@@ -82,8 +82,11 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
                 curSink->setTraversed(true);
             } else {
                 //we met a materialized node
+                //std :: cout << "we met a materialized node!" << std :: endl;
                 outputTupleSetName = curSink->getOutputTupleSetName();
+                //std :: cout << "outputTupleSetName=" << outputTupleSetName << std :: endl;
                 addedOutputColumnName = curSink->getOutputColumnToApply();
+                //std :: cout << "addedOutputColumnName=" << addedOutputColumnName << std :: endl;
                 int j = 0;
                 outputColumnNames.clear();
                 for (; j < outputColumnNames.size(); j++) {
@@ -97,34 +100,36 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
             }
             std :: vector <std :: string> addedOutputColumns;
             addedOutputColumns.push_back(addedOutputColumnName);
-            PDB_COUT << i << ": outputTupleSetName: " << outputTupleSetName << std :: endl;
-            PDB_COUT << i << ": addedOutputColumns: " << addedOutputColumnName << std :: endl;
-            for (int j = 0; j < outputColumnNames.size(); j++) {
-                  PDB_COUT << outputColumnNames[j] << std :: endl;
-            }
+            //std :: cout << i << ": outputTupleSetName: " << outputTupleSetName << std :: endl;
+            //std :: cout << i << ": addedOutputColumns: " << addedOutputColumnName << std :: endl;
+            /*for (int j = 0; j < outputColumnNames.size(); j++) {
+                  std :: cout << outputColumnNames[j] << std :: endl;
+            }*/
             InputTupleSetSpecifier curOutput (outputTupleSetName, outputColumnNames, addedOutputColumns);
             inputTupleSetsForMe.push_back(curOutput);
         }
         outputColumnNames.clear();
         addedOutputColumnName = ""; 
-        PDB_COUT << "######################" << std :: endl;
-        PDB_COUT << computationName << ": " << computationLabel << std :: endl;
-        for (int i = 0; i < inputTupleSetsForMe.size(); i++) {
+        //std::cout << "######################" << std :: endl;
+        //std::cout << computationName << ": " << computationLabel << std :: endl;
+        /*for (int i = 0; i < inputTupleSetsForMe.size(); i++) {
             InputTupleSetSpecifier curSet = inputTupleSetsForMe[i];
-            PDB_COUT << "tupleSetName: " << curSet.getTupleSetName() << std :: endl;
+            std::cout << "tupleSetName: " << curSet.getTupleSetName() << std :: endl;
             std :: vector < std :: string > columnsToApply = curSet.getColumnNamesToApply();
             for (int j = 0; j < columnsToApply.size(); j++) {
-                PDB_COUT << j << ":" << columnsToApply[j] << std :: endl;
+                std::cout << j << ":" << columnsToApply[j] << std :: endl;
             }
             std :: vector < std :: string > columnsToKeep = curSet.getColumnNamesToKeep();
             for (int j = 0; j < columnsToKeep.size(); j++) {
-                PDB_COUT << j << ":" << columnsToKeep[j] << std :: endl;
+                std::cout << j << ":" << columnsToKeep[j] << std :: endl;
             }
         }
-        PDB_COUT << "######################" << std :: endl;
+        std::cout << "######################" << std :: endl;
+        */
         std :: string curTcapString = sink->toTCAPString(inputTupleSetsForMe, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-        PDB_COUT << computationName << ": " << computationLabel << ": outputTupleSetName: " << outputTupleSetName << std :: endl;
-        PDB_COUT << computationName << ": " << computationLabel << ":  addedOutputColumns: " << addedOutputColumnName << std :: endl;
+        //std::cout << computationName << ": " << computationLabel << ": outputTupleSetName: " << outputTupleSetName << std :: endl;
+        //std::cout << computationName << ": " << computationLabel << ":  addedOutputColumns: " << addedOutputColumnName << std :: endl;
+        //std::cout << curTcapString << std :: endl;
         tcapStrings.push_back(curTcapString);
         computationLabel ++;
     } else {
@@ -132,7 +137,7 @@ void QueryGraphAnalyzer :: traverse (std :: vector<std :: string> & tcapStrings,
             outputColumnNames.clear();
             addedOutputColumnName = "";
             std :: string curTcapString = sink->toTCAPString(inputTupleSets, computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
-            PDB_COUT << curTcapString  << std :: endl;
+            //std:: cout << curTcapString  << std :: endl;
             tcapStrings.push_back(curTcapString);
             computationLabel ++;
         } else {

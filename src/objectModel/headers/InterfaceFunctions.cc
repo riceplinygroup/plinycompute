@@ -199,11 +199,16 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 #ifdef DEBUG_OBJECT_MODEL
         PDBTemplateBase temp;
         temp.template setup <ObjType> ();
+        std :: cout << "In makeObjectWithExtraStorage:" << std :: endl;
+        std :: cout << "extra=" << extra << std :: endl;
+        std :: cout << "sizeof(ObjType)=" << sizeof(ObjType) << std :: endl;
+        std :: cout << "REF_COUNT_PREAMBLE_SIZE="<< REF_COUNT_PREAMBLE_SIZE << std:: endl;
         std :: cout << "to get RAM from allocator with size =" << extra+sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE << std :: endl;
 #endif
 	// create a new object
 	RefCountedObject <ObjType> *returnVal = (RefCountedObject <ObjType> *) 
 #ifdef DEBUG_OBJECT_MODEL
+                
 		(getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE, temp.getTypeCode()));
 #else
                 (getAllocator ().getRAM (extra + sizeof (ObjType) + REF_COUNT_PREAMBLE_SIZE));

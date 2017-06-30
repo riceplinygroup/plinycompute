@@ -153,27 +153,27 @@ public:
 	
         // this gets a sink merger
         SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-                //std :: cout << "to get sink merger" << std :: endl;
+                std :: cout << "to get sink merger" << std :: endl;
                 // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
                 std :: vector <std :: string> typeList;
                 AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
-                //std :: cout << "consumeMe was: " << consumeMe << "\n";
-                //std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
-                //std :: cout << "projection was: " << projection << "\n";
+                std :: cout << "consumeMe was: " << consumeMe << "\n";
+                std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
+                std :: cout << "projection was: " << projection << "\n";
                 for (auto &a : projection.getAtts ()) {
 
                         // find the identity of the producing computation
-                        //std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n";
+                        std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n";
                         std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());
-                        //std :: cout << "got " << res.first << " " << res.second << "\n";
+                        std :: cout << "got " << res.first << " " << res.second << "\n";
 
                         // and find its type... in the first case, there is not a particular lambda that we need to ask for
                         if (res.second == "") {
-                                //std :: cout << "my type is " << plan.getPlan ()->getNode (res.first).getComputation ().getOutputType () << std :: endl;
+                                std :: cout << "my type is " << plan.getPlan ()->getNode (res.first).getComputation ().getOutputType () << std :: endl;
                                 typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
                         } else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                //std :: cout << "my type is " << myType << std :: endl;
+                                std :: cout << "my type is " << myType << std :: endl;
 
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
@@ -184,7 +184,7 @@ public:
                 }
 
                 for (auto &aa : typeList) {
-                        //std :: cout << "Got type " << aa << "\n";
+                        std :: cout << "Got type " << aa << "\n";
                 }
 
                 // now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
@@ -192,9 +192,9 @@ public:
                 JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 
                 for (auto &aa : whereEveryoneGoes) {
-                        //std :: cout << aa << " ";
+                        std :: cout << aa << " ";
                 }
-                //std :: cout << "\n";
+                std :: cout << "\n";
 
                 return correctJoinTuple->getMerger ();
 
@@ -202,26 +202,26 @@ public:
 
 	// this gets a compute sink
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-		//std :: cout << "to get compute sink" << std :: endl;
+		std :: cout << "to get compute sink" << std :: endl;
 		// loop through each of the attributes that we are supposed to accept, and for each of them, find the type
 		std :: vector <std :: string> typeList;
 		AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
-		//std :: cout << "consumeMe was: " << consumeMe << "\n";
-		//std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
-		//std :: cout << "projection was: " << projection << "\n";
+		std :: cout << "consumeMe was: " << consumeMe << "\n";
+		std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
+		std :: cout << "projection was: " << projection << "\n";
 		for (auto &a : projection.getAtts ()) {
 
 			// find the identity of the producing computation
-			//std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n"; 
+			std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n"; 
 			std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());	
-			//std :: cout << "got " << res.first << " " << res.second << "\n";
+			std :: cout << "got " << res.first << " " << res.second << "\n";
 
 			// and find its type... in the first case, there is not a particular lambda that we need to ask for
 			if (res.second == "") {
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                //std :: cout << "my type is " << myType << std :: endl;
+                                std :: cout << "my type is " << myType << std :: endl;
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
                                 } else {
@@ -231,7 +231,7 @@ public:
 		}
 
 		for (auto &aa : typeList) {
-			//std :: cout << "Got type " << aa << "\n";
+			std :: cout << "Got type " << aa << "\n";
 		}
 
 		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
@@ -239,9 +239,9 @@ public:
 		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 		
 		for (auto &aa : whereEveryoneGoes) {
-			//std :: cout << aa << " ";
+			std :: cout << aa << " ";
 		}
-		//std :: cout << "\n";
+		std :: cout << "\n";
 
 		return correctJoinTuple->getSink (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
 	}
@@ -303,12 +303,12 @@ public:
                     }
 
                     tcapString += projectionLambda.toTCAPString (inputTupleSetName, inputColumnNames, inputColumnsToApply, childrenLambdaNames, lambdaLabel, "JoinComp", computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName, myLambdaName, true, multiInputsComp, false);
-                    std :: cout << "after Join projection" << std :: endl;
-                    std :: cout << "outputTupleSetName=" << outputTupleSetName << std :: endl;
-                    for (int i = 0; i < outputColumnNames.size(); i++) {
-                         std :: cout << "outputColumnNames[" << i << "]=" << outputColumnNames[i] << std :: endl;
-                    }
-                    std :: cout << "addedOutputColumnName=" << addedOutputColumnName << std :: endl;
+                    //std :: cout << "after Join projection" << std :: endl;
+                    //std :: cout << "outputTupleSetName=" << outputTupleSetName << std :: endl;
+                    //for (int i = 0; i < outputColumnNames.size(); i++) {
+                         //std :: cout << "outputColumnNames[" << i << "]=" << outputColumnNames[i] << std :: endl;
+                    //}
+                    //std :: cout << "addedOutputColumnName=" << addedOutputColumnName << std :: endl;
                     this->setOutputTupleSetName (outputTupleSetName); 
                     this->setOutputColumnToApply(addedOutputColumnName);
                     setMultiInputsBaseToNull(); 

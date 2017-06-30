@@ -58,6 +58,9 @@ bool analyze(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std
 //to analyze the subgraph rooted at a source node and only returns a set of job stages corresponding with the subgraph
 bool getNextStages(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<SetIdentifier>  curInputSetIdentifier, int & jobStageId);
 
+bool getNextStagesOptimized(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<SetIdentifier>  curInputSetIdentifier, unsigned int curConsumerIndex, int & jobStageId);
+
+
 //to create tuple set job stage
 Handle<TupleSetJobStage>  createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing=false, AllocatorPolicy policy=defaultAllocator);
 
@@ -85,6 +88,8 @@ AtomicComputationPtr getSourceComputation (std :: string name);
 //to update source set names
 bool updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIdentifier> newSet, AtomicComputationPtr newAtomicComp);
 
+//to remove source
+bool removeSource (std :: string name);
 
 //to get number of sources
 int getNumSources ();
@@ -95,11 +100,21 @@ int getBestSource (StatisticsPtr stats);
 //to return the cost of the i-th source
 double getCostOfSource (int index, StatisticsPtr stats);
 
+//to return the index of next consumer to process for a certain source
+unsigned int getNextConsumerIndex (std :: string name);
+
+//to increment the index of next consumer to process for a certain source
+void incrementConsumerIndex(std :: string name);
+
+
 private:
 
 //hash sets to probe in current stage
 //needs to be cleared after execution of each stage
 Handle<Map<String, String>> hashSetsToProbe;
+
+//output for current joinSets operation
+std :: vector<String> outputForJoinSets;
 
 //input computations
 Handle<Vector<Handle<Computation>>> computations;
@@ -133,6 +148,9 @@ std :: map<std :: string, Handle<SetIdentifier>> curSourceSets;
 
 //the mapping of set name to source computation node, which will only be used in dynamicPlanning mode, and will keep changing
 std :: map<std :: string, AtomicComputationPtr> curSourceNodes;
+
+//the mapping of set name to number of processed consumers
+std :: map<std :: string, unsigned int> curProcessedConsumers;
 
 //the vector of set names
 std :: vector<std :: string> curSourceSetNames;

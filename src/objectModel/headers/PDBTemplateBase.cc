@@ -60,13 +60,17 @@ void PDBTemplateBase :: setup () {
 	// if we descend from Object, then get the type code
 	if (std::is_base_of <Object, ObjType>::value) {
 		info = (int16_t) getTypeID <ObjType> (); 
+                //std :: cout << "I'm a pdb Object with info="<< info << std :: endl;
 	} else if (std::is_base_of <String, ObjType>::value) {
 		info = String_TYPEID;
+                //std :: cout << "I am a String object with info=" << info << std :: endl;
 	} else if (std::is_base_of <HandleBase, ObjType>::value) {
 		info = Handle_TYPEID;
+                //std :: cout << "I am a Handle object with info=" << info << std :: endl;
 	} else {
 		// we could not recognize this type, so just record the size
 		info = - ((int32_t) sizeof (ObjType));
+                //std :: cout << "I am a C++ object with info=" << info << std :: endl;
 	}
 }
 
