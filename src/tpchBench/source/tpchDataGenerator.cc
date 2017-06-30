@@ -660,7 +660,7 @@ int main(int argc, char * argv[]) {
 	std::cout << "Output count:" << count << "\n";
 
 	// Remove the output set
-	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
 	} else {
