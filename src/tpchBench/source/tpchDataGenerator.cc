@@ -591,7 +591,7 @@ int main(int argc, char * argv[]) {
 	}
 
 
-	// CLEAN UP. Remove the output set
+	// CLEAN UP. Remove the Customer output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
@@ -609,7 +609,7 @@ int main(int argc, char * argv[]) {
 	int count = 0;
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_se1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SupplierData>("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
@@ -629,7 +629,7 @@ int main(int argc, char * argv[]) {
 //	myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	myGroupBy->setInput(myFlatten);
 
-	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_se1");
+	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
 	myWriteSet->setInput(myGroupBy);
 
 	begin = std::chrono::high_resolution_clock::now();
@@ -644,7 +644,7 @@ int main(int argc, char * argv[]) {
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
 	std::cout << "to print result..." << std::endl;
-	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_se1");
+	SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_set_1");
 
 	std::cout << "Query results: ";
 	count = 0;
