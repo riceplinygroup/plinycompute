@@ -97,7 +97,6 @@ public:
         catalogClient.registerType("libraries/libLASillyColSumAggregate.so", errMsg);
         catalogClient.registerType("libraries/libLASillySubstractJoin.so", errMsg);
         catalogClient.registerType("libraries/libLASillyScaleMultiplyJoin.so", errMsg);
-        catalogClient.registerType("libraries/libLASillyScaleMultiplyJoin.so", errMsg);
         catalogClient.registerType("libraries/libLASillyMaxElementAggregate.so", errMsg);
         catalogClient.registerType("libraries/libLASillyMinElementAggregate.so", errMsg);
         catalogClient.registerType("libraries/libLASillyMultiply1Join.so", errMsg);

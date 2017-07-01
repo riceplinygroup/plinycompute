@@ -301,9 +301,9 @@ all = ['build/sqlite/sqlite3.c',
 #       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        component_dir_basename_to_cc_file_paths['lambdas'],
        component_dir_basename_to_cc_file_paths['logicalPlan'],
-#       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
+       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
        component_dir_basename_to_lexer_file_paths['logicalPlan'],
-#       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
+       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
 #       boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
@@ -327,38 +327,38 @@ common_env.SharedLibrary('libraries/libOptimizedMethodJoin.so', ['build/librarie
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 
 
-#common_env.SharedLibrary('libraries/libLAMaxElementOutputType.so', ['build/libraries/LAMaxElementOutputType.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAMaxElementValueType.so', ['build/libraries/LAMaxElementValueType.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAMinElementOutputType.so', ['build/libraries/LAMinElementOutputType.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAMinElementValueType.so', ['build/libraries/LAMinElementValueType.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAScanMatrixBlockSet.so', ['build/libraries/LAScanMatrixBlockSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyAddJoin.so', ['build/libraries/LASillyAddJoin.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyColMaxAggregate.so', ['build/libraries/LASillyColMaxAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyColMinAggregate.so', ['build/libraries/LASillyColMinAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyColSumAggregate.so', ['build/libraries/LASillyColSumAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyDuplicateColMultiSelection.so', ['build/libraries/LASillyDuplicateColMultiSelection.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyDuplicateRowMultiSelection.so', ['build/libraries/LASillyDuplicateRowMultiSelection.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyInverse1Aggregate.so', ['build/libraries/LASillyInverse1Aggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyInverse2Selection.so', ['build/libraries/LASillyInverse2Selection.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyInverse3MultiSelection.so', ['build/libraries/LASillyInverse3MultiSelection.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyMaxElementAggregate.so', ['build/libraries/LASillyMaxElementAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyMinElementAggregate.so', ['build/libraries/LASillyMinElementAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyMultiply1Join.so', ['build/libraries/LASillyMultiply1Join.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyMultiply2Aggregate.so', ['build/libraries/LASillyMultiply2Aggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyRowMaxAggregate.so', ['build/libraries/LASillyRowMaxAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyRowMinAggregate.so', ['build/libraries/LASillyRowMinAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyRowSumAggregate.so', ['build/libraries/LASillyRowSumAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyScaleMultiplyJoin.so', ['build/libraries/LASillyScaleMultiplyJoin.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillySubstractJoin.so', ['build/libraries/LASillySubstractJoin.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyTransposeMultiply1Join.so', ['build/libraries/LASillyTransposeMultiply1Join.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASillyTransposeSelection.so', ['build/libraries/LASillyTransposeSelection.cc'] + all)
-#common_env.SharedLibrary('libraries/libLASingleMatrix.so', ['build/libraries/LASingleMatrix.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAWriteMatrixBlockSet.so', ['build/libraries/LAWriteMatrixBlockSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAWriteMaxElementSet.so', ['build/libraries/LAWriteMaxElementSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libLAWriteMinElementSet.so', ['build/libraries/LAWriteMinElementSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libMatrixBlock.so', ['build/libraries/MatrixBlock.cc'] + all)
-#common_env.SharedLibrary('libraries/libMatrixData.so', ['build/libraries/MatrixData.cc'] + all)
-#common_env.SharedLibrary('libraries/libMatrixMeta.so', ['build/libraries/MatrixMeta.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMaxElementOutputType.so', ['build/libraries/LAMaxElementOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMaxElementValueType.so', ['build/libraries/LAMaxElementValueType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMinElementOutputType.so', ['build/libraries/LAMinElementOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAMinElementValueType.so', ['build/libraries/LAMinElementValueType.cc'] + all)
+common_env.SharedLibrary('libraries/libLAScanMatrixBlockSet.so', ['build/libraries/LAScanMatrixBlockSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyAddJoin.so', ['build/libraries/LASillyAddJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyColMaxAggregate.so', ['build/libraries/LASillyColMaxAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyColMinAggregate.so', ['build/libraries/LASillyColMinAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyColSumAggregate.so', ['build/libraries/LASillyColSumAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyDuplicateColMultiSelection.so', ['build/libraries/LASillyDuplicateColMultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyDuplicateRowMultiSelection.so', ['build/libraries/LASillyDuplicateRowMultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyInverse1Aggregate.so', ['build/libraries/LASillyInverse1Aggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyInverse2Selection.so', ['build/libraries/LASillyInverse2Selection.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyInverse3MultiSelection.so', ['build/libraries/LASillyInverse3MultiSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMaxElementAggregate.so', ['build/libraries/LASillyMaxElementAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMinElementAggregate.so', ['build/libraries/LASillyMinElementAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMultiply1Join.so', ['build/libraries/LASillyMultiply1Join.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyMultiply2Aggregate.so', ['build/libraries/LASillyMultiply2Aggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyRowMaxAggregate.so', ['build/libraries/LASillyRowMaxAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyRowMinAggregate.so', ['build/libraries/LASillyRowMinAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyRowSumAggregate.so', ['build/libraries/LASillyRowSumAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyScaleMultiplyJoin.so', ['build/libraries/LASillyScaleMultiplyJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillySubstractJoin.so', ['build/libraries/LASillySubstractJoin.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyTransposeMultiply1Join.so', ['build/libraries/LASillyTransposeMultiply1Join.cc'] + all)
+common_env.SharedLibrary('libraries/libLASillyTransposeSelection.so', ['build/libraries/LASillyTransposeSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLASingleMatrix.so', ['build/libraries/LASingleMatrix.cc'] + all)
+common_env.SharedLibrary('libraries/libLAWriteMatrixBlockSet.so', ['build/libraries/LAWriteMatrixBlockSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLAWriteMaxElementSet.so', ['build/libraries/LAWriteMaxElementSet.cc'] + all)
+common_env.SharedLibrary('libraries/libLAWriteMinElementSet.so', ['build/libraries/LAWriteMinElementSet.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixBlock.so', ['build/libraries/MatrixBlock.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixData.so', ['build/libraries/MatrixData.cc'] + all)
+common_env.SharedLibrary('libraries/libMatrixMeta.so', ['build/libraries/MatrixMeta.cc'] + all)
 
 
 common_env.SharedLibrary('libraries/libPartialResult.so', ['build/libraries/PartialResult.cc'] + all)
@@ -575,8 +575,8 @@ common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
 #common_env.Program('bin/testLA15_ScaleMultiply', ['build/tests/TestLA15_ScaleMultiply.cc'] + all)
 #common_env.Program('bin/testLA16_RowSum', ['build/tests/TestLA16_RowSum.cc'] + all)
 #common_env.Program('bin/testLA17_ColSum', ['build/tests/TestLA17_ColSum.cc'] + all)
-#common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
-#common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
+common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
+common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
@@ -777,8 +777,8 @@ main=common_env.Alias('main', [
  # 'bin/testLA15_ScaleMultiply',
  # 'bin/testLA16_RowSum',
  # 'bin/testLA17_ColSum',
- # 'bin/testLA20_Parser',
- # 'bin/testLA21_Instance',
+  'bin/testLA20_Parser',
+  'bin/testLA21_Instance',
 
   
   'libraries/libStringIntPairMultiSelection.so',
@@ -801,38 +801,38 @@ main=common_env.Alias('main', [
   'libraries/libOptimizedEmployeeGroupBy.so',
 #  'libraries/libKMeansQuery.so',  
   
-#  'libraries/libLAMaxElementOutputType.so',
-#  'libraries/libLAMaxElementValueType.so',
-#  'libraries/libLAMinElementOutputType.so',
-#  'libraries/libLAMinElementValueType.so',
-#  'libraries/libLAScanMatrixBlockSet.so',
-#  'libraries/libLASillyAddJoin.so',
-#  'libraries/libLASillyColMaxAggregate.so',
-#  'libraries/libLASillyColMinAggregate.so',
-#  'libraries/libLASillyColSumAggregate.so',
-#  'libraries/libLASillyDuplicateColMultiSelection.so',
-#  'libraries/libLASillyDuplicateRowMultiSelection.so',
-#  'libraries/libLASillyInverse1Aggregate.so',
-#  'libraries/libLASillyInverse2Selection.so',
-#  'libraries/libLASillyInverse3MultiSelection.so',
-#  'libraries/libLASillyMaxElementAggregate.so',
-#  'libraries/libLASillyMinElementAggregate.so',
-#  'libraries/libLASillyMultiply1Join.so',
-#  'libraries/libLASillyMultiply2Aggregate.so',
-#  'libraries/libLASillyRowMaxAggregate.so',
-#  'libraries/libLASillyRowMinAggregate.so',
-#  'libraries/libLASillyRowSumAggregate.so',
-#  'libraries/libLASillyScaleMultiplyJoin.so',
-#  'libraries/libLASillySubstractJoin.so',
-#  'libraries/libLASillyTransposeMultiply1Join.so',
-#  'libraries/libLASillyTransposeSelection.so',
-#  'libraries/libLASingleMatrix.so',
-#  'libraries/libLAWriteMatrixBlockSet.so',
-#  'libraries/libLAWriteMaxElementSet.so',
-#  'libraries/libLAWriteMinElementSet.so',
-#  'libraries/libMatrixBlock.so',
-#  'libraries/libMatrixData.so',
-#  'libraries/libMatrixMeta.so',
+  'libraries/libLAMaxElementOutputType.so',
+  'libraries/libLAMaxElementValueType.so',
+  'libraries/libLAMinElementOutputType.so',
+  'libraries/libLAMinElementValueType.so',
+  'libraries/libLAScanMatrixBlockSet.so',
+  'libraries/libLASillyAddJoin.so',
+  'libraries/libLASillyColMaxAggregate.so',
+  'libraries/libLASillyColMinAggregate.so',
+  'libraries/libLASillyColSumAggregate.so',
+  'libraries/libLASillyDuplicateColMultiSelection.so',
+  'libraries/libLASillyDuplicateRowMultiSelection.so',
+  'libraries/libLASillyInverse1Aggregate.so',
+  'libraries/libLASillyInverse2Selection.so',
+  'libraries/libLASillyInverse3MultiSelection.so',
+  'libraries/libLASillyMaxElementAggregate.so',
+  'libraries/libLASillyMinElementAggregate.so',
+  'libraries/libLASillyMultiply1Join.so',
+  'libraries/libLASillyMultiply2Aggregate.so',
+  'libraries/libLASillyRowMaxAggregate.so',
+  'libraries/libLASillyRowMinAggregate.so',
+  'libraries/libLASillyRowSumAggregate.so',
+  'libraries/libLASillyScaleMultiplyJoin.so',
+  'libraries/libLASillySubstractJoin.so',
+  'libraries/libLASillyTransposeMultiply1Join.so',
+  'libraries/libLASillyTransposeSelection.so',
+  'libraries/libLASingleMatrix.so',
+  'libraries/libLAWriteMatrixBlockSet.so',
+  'libraries/libLAWriteMaxElementSet.so',
+  'libraries/libLAWriteMinElementSet.so',
+  'libraries/libMatrixBlock.so',
+  'libraries/libMatrixData.so',
+  'libraries/libMatrixMeta.so',
   
 
  # 'libraries/libPartialResult.so', 
