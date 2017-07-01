@@ -13,7 +13,7 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 # The idea is stolen from Shangyu's ICDE paper
-
+import time
 import random
 import sys
 
@@ -23,16 +23,22 @@ dim = int(sys.argv[2])
 blockRowSize = int(sys.argv[3])
 blockColSize = int(sys.argv[4])
 assert data_num% blockRowSize==0 and dim%blockColSize ==0
+blockRowNum = data_num/blockRowSize
+blockColNum = dim/blockColSize
+
 
 lines_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv", "w")
 lines_mtd_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
 lines_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv", "w")
 lines_mtd_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv.mtd", "w")
-blocks_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data", "w")
-blocks_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data", "w")
+fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
+blocks_X = open(fileNameX, "w")
+fileNamey = "./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data"
+blocks_y = open(fileNamey, "w")
+code = open("./src/linearAlgebraDSL/DSLSamples/Task02_L2_"+str(int(time.time()))+".pdml", "w")
 
 
-print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize)
+print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
 
 
 b=[]
@@ -88,3 +94,8 @@ for i in xrange(data_num/blockRowSize):
     blocks_y.write("\n")
 blocks_X.close()
 blocks_y.close()
+
+code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileNameX+'\")\n')
+code.write("y = load("+str(blockRowSize)+", 1, "+str(blockRowNum,)+ ', 1, \"'+fileNamey+'\")\n')
+code.write("beta = (X '* X)^-1 %*% (X '* y)")
+

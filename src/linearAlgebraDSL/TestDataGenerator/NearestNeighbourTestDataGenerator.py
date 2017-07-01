@@ -13,7 +13,7 @@
 #  limitations under the License.                                           
 #  ======================================================================== 
 # This a new experiments to replace ICDE paper's outlier dectect task.
-
+import time
 import random
 import numpy as np
 import sys
@@ -33,14 +33,16 @@ lines_t = open("./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".
 lines_mtd_t = open("./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".csv.mtd", "w")
 lines_M = open("./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv", "w")
 lines_mtd_M = open("./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv.mtd", "w")
-blocks_X = open("./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data", "w")
-blocks_t = open("./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(dim)+"_"+str(blockColSize)+".data", "w")
-blocks_M = open("./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data", "w")
-#code = open("./src/linearAlgebraDSL/DSLSamples/sample03_NN.pdml")
+fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
+blocks_X = open(fileNameX, "w")
+fileNamet = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(dim)+"_"+str(blockColSize)+".data"
+blocks_t = open(fileNamet, "w")
+fileNameM = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
+blocks_M = open(fileNameM, "w")
+code = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_"+str(int(time.time()))+".pdml","w")
 
 
-print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize)
-
+print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
 
 t=[]
 for i in range(dim):
@@ -136,3 +138,12 @@ for i in xrange(dim/blockColSize):
                 blocks_M.write(" ")
         blocks_M.write("\n")
 blocks_M.close()
+
+
+code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileNameX+'\")\n')
+code.write("t = load(1, "+str(blockColSize)+", 1, "+str(blockColNum,)+ ', \"'+fileNamet+'\")\n')
+code.write("M = load("+str(blockColSize)+","+str(blockColSize)+","+str(blockColNum)+","+str(blockColNum)+',\"'+fileNameM+'\")\n')
+code.write("D = X - duplicateRow(t,"+str(blockRowSize)+","+str(blockRowNum)+")\n")
+code.write("i = max(rowSum(D %*% M * D))")
+
+

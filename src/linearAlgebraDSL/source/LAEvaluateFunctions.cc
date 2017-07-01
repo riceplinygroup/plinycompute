@@ -267,15 +267,17 @@ pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode :: evaluate(LAPDBInstance
 		setDimension(LADimension(1,child->getDimension().blockColSize,1,child->getDimension().blockColNum));
 	}
 	else if(flag.compare("duplicateRow")==0){
+		pdb::Handle<pdb::Computation> input = child->evaluate(instance);
 		LADimension updatedDim(duplicateDim.blockRowSize,child->getDimension().blockColSize, duplicateDim.blockRowNum,child->getDimension().blockColNum);
 		query = makeObject<LASillyDuplicateRowMultiSelection>(updatedDim);
-		query->setInput(child->evaluate(instance));
+		query->setInput(input);
 		setDimension(updatedDim);
 	}
 	else if(flag.compare("duplicateCol")==0){
+		pdb::Handle<pdb::Computation> input = child->evaluate(instance);
 		LADimension updatedDim(child->getDimension().blockRowSize,duplicateDim.blockColSize,child->getDimension().blockRowNum,duplicateDim.blockColNum);
 		query = makeObject<LASillyDuplicateColMultiSelection>(updatedDim);
-		query->setInput(child->evaluate(instance));
+		query->setInput(input);
 		setDimension(updatedDim);
 	}
 	else{
