@@ -186,7 +186,7 @@ DataProxyPtr PipelineStage :: createProxy (int i, pthread_mutex_t connection_mut
 void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector<PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector <PageCircularBufferPtr> & combinerBuffers, HermesExecutionServer * server, std :: string & errMsg) {
 
     //setup an output page to store intermediate results and final output
-    const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+    const UseTemporaryAllocationBlock tempBlock {128 * 1024 * 1024};
 
     PDB_COUT << i << ": to get compute plan" << std :: endl;
     Handle<ComputePlan> plan = this->jobStage->getComputePlan();
@@ -557,7 +557,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   PDB_COUT << "port = " << port << std :: endl;
                   //get aggregate computation 
                   PDB_COUT << i << ": to get compute plan" << std :: endl;
-                  const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+                  const UseTemporaryAllocationBlock tempBlock {32 * 1024 * 1024};
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   plan->nullifyPlanPointer();
                   PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;
