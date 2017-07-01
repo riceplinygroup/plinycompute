@@ -217,7 +217,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                  PDBWorkerPtr myWorker = getWorker();
                  PDBWorkPtr myWork = make_shared <GenericWork> (
                      [&, i, j] (PDBBuzzerPtr callerBuzzer) {
-                          const UseTemporaryAllocationBlock block(4 * 1024 * 1024);
+                          const UseTemporaryAllocationBlock block(32 * 1024 * 1024);
 
                           PDB_COUT << "to schedule the " << i << "-th stage on the " << j << "-th node" << std :: endl;
 

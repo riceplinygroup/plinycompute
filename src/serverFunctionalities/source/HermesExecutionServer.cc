@@ -841,7 +841,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 request->print();
                 bool res = true;
                 std :: string errMsg;
-                const UseTemporaryAllocationBlock block1 {32 * 1024 * 1024};
+                const UseTemporaryAllocationBlock block1 {128 * 1024 * 1024};
                 Handle<SetIdentifier> sourceContext = request->getSourceContext();
                 if( getCurPageScanner() == nullptr) {
                         NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
