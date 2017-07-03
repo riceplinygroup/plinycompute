@@ -153,7 +153,7 @@ int main (int argc, char * argv[]) {
     term << reset << std :: endl;
 
     // Basic parameters for LDA
-    int iter = 1;
+    int iter = 5;
     int numDoc = 10;
     int numWord = 10;
     int numTopic = 4;
