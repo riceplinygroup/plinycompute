@@ -543,6 +543,7 @@ int main (int argc, char * argv[]) {
 				myDocWordTopicJoin->setInput(1, tempOut[to]);
 				myDocWordTopicJoin->setInput(2, tempOut[to+1]);
 
+                		to = to+2;
 
 			}
 
@@ -571,18 +572,17 @@ int main (int argc, char * argv[]) {
 
 			tempOut.push_back(myDocTopicProb);
                		tempOut.push_back(myWordTopicProb);
-                	to = to+2;
 
 		}
 	
 	        Handle <Computation> myWriter = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", docTopicSet + "_" + std::to_string((myNum+1)%2));
-                myWriter->setInput(tempOut[to-2]);
+                myWriter->setInput(tempOut[to]);
 
 				
 //		std :: cout << "The query "<< to+2 << " is executed successfully!" << std :: endl;
 
 	        Handle <Computation> myWriter2 = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", wordTopicSet + "_" + std::to_string((myNum+1)%2));
-    		myWriter2->setInput(tempOut[to-1]);
+    		myWriter2->setInput(tempOut[to+1]);
 
 
     		if (!myClient.executeComputations(errMsg, myWriter, myWriter2)) {
