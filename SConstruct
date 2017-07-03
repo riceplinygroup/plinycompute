@@ -583,7 +583,7 @@ common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
-common_env.Program('bin/TestLDA2iter', ['build/tests/TestLDA-2iter.cc'] + all)
+common_env.Program('bin/TestLDA2', ['build/tests/TestLDA2.cc'] + all)
 
 
 
@@ -633,7 +633,7 @@ lda=common_env.Alias('lda', [
   'bin/pdb-server',
   'bin/TestLDA',
   'bin/TestLDA1',
-  'bin/TestLDA2iter',
+  'bin/TestLDA2',
   # LDA 
   'libraries/libLDADocIDAggregate.so',
   'libraries/libScanLDADocumentSet.so',
