@@ -237,8 +237,13 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         //input are hash tables
         Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator = 
             unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(computation);
-        aggregator->setHashTablePointer(hashSet->getPage(i));
-
+        void * pagePointer = hashSet->getPage(i);
+        if (pagePointer != nullptr) {
+            aggregator->setHashTablePointer(hashSet->getPage(i));
+        } else {
+            std :: cout << "There is no more hash partition for this thread, we simply return" << std :: endl;
+            return;
+        }
     }
 
     //handle probing

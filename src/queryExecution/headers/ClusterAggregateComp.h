@@ -109,7 +109,7 @@ public:
         if( this->materializeAggOut == true) {
             if (outputSetScanner != nullptr) {
                 return outputSetScanner->getComputeSource (outputScheme, plan);
-            } 
+            }
             return nullptr;
 
         //not materialize aggregation result, keep them in hash table
