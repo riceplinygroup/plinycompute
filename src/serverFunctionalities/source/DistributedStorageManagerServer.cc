@@ -151,7 +151,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
     forMe.registerHandler(DistributedStorageClearSet_TYPEID, make_shared<SimpleRequestHandler<DistributedStorageClearSet>> (
             [&] (Handle <DistributedStorageClearSet> request, PDBCommunicatorPtr sendUsingMe) {
                 const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
-                PDB_COUT << "received DistributedStorageClearSet message" << std ::endl;
+                std::cout << "received DistributedStorageClearSet message" << std ::endl;
                 std::string errMsg;
                 bool res = true;
                 mutex lock;
@@ -199,9 +199,19 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                     res = false;
                     errMsg= std :: string("Set to clear with name=") + fullSetName + std :: string( " doesn't exist");
               }
-              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
-              res = sendUsingMe->sendObject (response, errMsg);
-              return make_pair (res, errMsg);
+
+               //update stats
+               StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
+               if (stats == nullptr) {
+                    getFunctionality<QuerySchedulerServer>().collectStats();
+                    stats = getFunctionality<QuerySchedulerServer>().getStats();
+               }
+               stats->setNumPages(request->getDatabase(), request->getSetName(), 0);
+               stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
+
+               Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+               res = sendUsingMe->sendObject (response, errMsg);
+               return make_pair (res, errMsg);
           }
     ));
 

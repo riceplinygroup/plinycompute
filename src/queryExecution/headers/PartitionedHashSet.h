@@ -82,7 +82,11 @@ public:
 
     //get page for a particular partition
     void * getPage (unsigned int partitionId) {
-        return partitionPages[partitionId];
+        if (partitionId < partitionPages.size()) {
+            return partitionPages[partitionId];
+        } else {
+            return nullptr;
+        }
     }
 
     //get number of pages

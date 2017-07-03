@@ -858,6 +858,17 @@ void QuerySchedulerServer :: updateStats (Handle<SetIdentifier> setToUpdateStats
 
 }
 
+void QuerySchedulerServer :: resetStats (Handle<SetIdentifier> setToResetStats) {
+
+        std :: string databaseName = setToResetStats->getDatabase();
+        std :: string setName = setToResetStats->getSetName();
+        statsForOptimization->setNumPages(databaseName, setName, 0);
+        statsForOptimization->setPageSize(databaseName, setName, 0);
+        statsForOptimization->setNumBytes(databaseName, setName, 0);
+
+}
+
+
 void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
    //handler to schedule a Computation-based query graph
