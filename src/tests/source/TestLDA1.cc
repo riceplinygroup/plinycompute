@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LDA_CC
-#define TEST_LDA_CC
+#ifndef TEST_LDA1_CC
+#define TEST_LDA1_CC
 
 
 // By Shangyu, June 2017
@@ -153,7 +153,7 @@ int main (int argc, char * argv[]) {
     term << reset << std :: endl;
 
     // Basic parameters for LDA
-    int iter = 1;
+    int iter = 7;
     int numDoc = 10;
     int numWord = 10;
     int numTopic = 4;
