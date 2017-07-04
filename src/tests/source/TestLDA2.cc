@@ -592,7 +592,8 @@ int main (int argc, char * argv[]) {
 
 
 	//	std :: cout << "The query " << to+3 << " is executed successfully!" << std :: endl;
-		std :: cout << "The query " << n+2 << " and " << n+3 << " are executed successfully!\n\n";
+		term << green << "The query " << n*2+2 << " and " << n*2+3 << " are executed successfully!\n\n";
+		term << reset << std::endl;	
 
 
 		temp.clearSet("LDA_db", docTopicSet + "_" + std::to_string(myNum), "pdb::IntDoubleVectorPair", errMsg);
