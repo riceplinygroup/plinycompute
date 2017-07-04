@@ -591,6 +591,10 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           myCombinerPageSize = conf->getPageSize()-64;
                   }
                   void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
+                  if (combinerPage == nullptr) {
+                      std :: cout << "Fatal Error: insufficient memory can be allocated from memory" << std :: endl;
+                      return;
+                  }
                   std :: cout << i <<": load a combiner page with size = " << myCombinerPageSize << std :: endl;
                   combinerProcessor->loadOutputPage(combinerPage, myCombinerPageSize);
 

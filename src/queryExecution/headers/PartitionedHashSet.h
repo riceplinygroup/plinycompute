@@ -21,6 +21,7 @@
 //by Jia, May 2017
 
 #include "AbstractHashSet.h"
+#include <pthread.h>
 
 namespace pdb {
 
@@ -50,12 +51,16 @@ private:
     //whether this partitioned hash set has been cleaned
     bool isCleaned;
 
+    //mutex
+    pthread_mutex_t myMutex;
+
 public:
 
     //constructor
     PartitionedHashSet ( std :: string myName, size_t pageSize ) {
         this->setName = myName;
         this->pageSize = pageSize;
+        pthread_mutex_init (&myMutex, nullptr);
     }
 
     //destructor
@@ -63,6 +68,7 @@ public:
         if (isCleaned == false) {
             this->cleanup();
         }        
+        pthread_mutex_destroy (&myMutex);
     }
 
     //get type of this hash set
@@ -82,23 +88,31 @@ public:
 
     //get page for a particular partition
     void * getPage (unsigned int partitionId) {
+        void * retPtr = nullptr;
+        pthread_mutex_lock(&myMutex);
         if (partitionId < partitionPages.size()) {
-            return partitionPages[partitionId];
-        } else {
-            return nullptr;
-        }
+            retPtr = partitionPages[partitionId];
+        } 
+        pthread_mutex_unlock(&myMutex);
+        return retPtr;
     }
 
     //get number of pages
     size_t getNumPages () {
-        return partitionPages.size();
+        size_t retNum;
+        pthread_mutex_lock(&myMutex);
+        retNum = partitionPages.size();
+        pthread_mutex_unlock(&myMutex);
+        return retNum;
     }
 
     //add page
     void * addPage () {
         void * block = (void *) malloc (sizeof(char)*pageSize);
         if (block != nullptr) {
+            pthread_mutex_lock(&myMutex);
             partitionPages.push_back(block);
+            pthread_mutex_unlock(&myMutex);
         }
         return block;
     }
