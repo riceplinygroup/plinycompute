@@ -232,7 +232,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
             return ;
         }
         size_t pageSize = myPage->getSize();
-        std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+        //std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
 	
@@ -842,7 +842,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                  void *readToHere = malloc (numBytes);
                  everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
                  {
-                     std :: cout << "Making response object early .\n";
+                     //std :: cout << "Making response object early .\n";
                      const UseTemporaryAllocationBlock block{1024};
                      Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
@@ -927,7 +927,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                  }
 
                  if (request->isFlushing() == false) {
-                     std :: cout << "Making response object early.\n";
+                     //std :: cout << "Making response object early.\n";
                      const UseTemporaryAllocationBlock block{1024};
                      Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 

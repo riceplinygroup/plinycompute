@@ -34,7 +34,7 @@ public:
 	TupleSetSetupMachine (TupleSpec &inputSchema) : inputSchema (inputSchema) {}
 
 	TupleSetSetupMachine (TupleSpec &inputSchema, TupleSpec &attsToIncludeInOutput) : inputSchema (inputSchema) {
-		std :: cout << "input schema: " << inputSchema << " and outputs to include: " << attsToIncludeInOutput << "\n";
+		//std :: cout << "input schema: " << inputSchema << " and outputs to include: " << attsToIncludeInOutput << "\n";
 		matches = match (attsToIncludeInOutput);
 	}	
 	

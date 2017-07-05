@@ -158,7 +158,7 @@ void QuerySchedulerServer :: initialize(bool isRMRunAsServer) {
          //add and print out the resources
          for (int i = 0; i < resourceObjects->size(); i++) {
 
-             std :: cout << i << ": address=" << (*(resourceObjects))[i]->getAddress() << ", port="<< (*(resourceObjects))[i]->getPort() <<", node="<<(*(resourceObjects))[i]->getNodeId() <<", numCores=" << (*(resourceObjects))[i]->getNumCores() << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std :: endl;
+             PDB_COUT << i << ": address=" << (*(resourceObjects))[i]->getAddress() << ", port="<< (*(resourceObjects))[i]->getPort() <<", node="<<(*(resourceObjects))[i]->getNodeId() <<", numCores=" << (*(resourceObjects))[i]->getNumCores() << ", memSize=" << (*(resourceObjects))[i]->getMemSize() << std :: endl;
              StandardResourceInfoPtr currentResource = std :: make_shared<StandardResourceInfo>((*(resourceObjects))[i]->getNumCores(), (*(resourceObjects))[i]->getMemSize(), (*(resourceObjects))[i]->getAddress().c_str(), (*(resourceObjects))[i]->getPort(), (*(resourceObjects))[i]->getNodeId());
              this->standardResources->push_back(currentResource);
          }
@@ -757,7 +757,7 @@ void QuerySchedulerServer :: schedule() {
 }
 
 void QuerySchedulerServer :: collectStats () {
-         std :: cout << "to collect stats" << std :: endl;
+         //std :: cout << "to collect stats" << std :: endl;
          this->statsForOptimization = make_shared<Statistics>();
          int counter = 0;
          PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer> (
@@ -949,7 +949,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
                        //get the job stages and intermediate data sets for this source
                        std :: string sourceName = this->tcapAnalyzerPtr->getSourceSetName (indexOfBestSource);
-                       std :: cout << "best source is " << sourceName << std :: endl;
+                       //std :: cout << "best source is " << sourceName << std :: endl;
                        Handle<SetIdentifier> sourceSet = this->tcapAnalyzerPtr->getSourceSetIdentifier (sourceName);
                        AtomicComputationPtr sourceAtomicComp = this->tcapAnalyzerPtr->getSourceComputation (sourceName);
                        unsigned int sourceConsumerIndex = this->tcapAnalyzerPtr->getNextConsumerIndex(sourceName);
