@@ -257,7 +257,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
             std :: string hashSetName = (*mapIter).value;
-            std :: cout << "to probe " << key << ":" << hashSetName << std :: endl;
+            //std :: cout << "to probe " << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet == nullptr) {
                 std :: cout << "ERROR in pipeline execution: broadcast data not found!" << std :: endl;

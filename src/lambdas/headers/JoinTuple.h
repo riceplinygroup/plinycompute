@@ -89,7 +89,7 @@ public:
         MeTo myOtherData;
 
 	static void *allocate (TupleSet &processMe, int where) {
-		std :: cout << "Creating column for type " << getTypeName <Handle <HoldMe>> () << " at position " << where << "\n";
+		//std :: cout << "Creating column for type " << getTypeName <Handle <HoldMe>> () << " at position " << where << "\n";
 		std :: vector <Handle <HoldMe>> *me = new std :: vector <Handle <HoldMe>>;
 		processMe.addColumn (where, me, true);
 		return me;	
@@ -287,7 +287,7 @@ public:
 
 		// extract the hash table we've been given
 		Record <JoinMap <RHSType>> *input = (Record <JoinMap <RHSType>> *) hashTable;
-		std :: cout << "In join probe\n";
+		//std :: cout << "In join probe\n";
 		inputTable = input->getRootObject ();
 
 		// set up the output tuple
@@ -296,7 +296,7 @@ public:
 		if (needToSwapLHSAndRhs) {
 			offset = positions.size ();
 			createCols <RHSType> (columns, *output, 0, 0, positions);
-			std :: cout << "We do need to add the pipelined data to the back end of the output tuples.\n";
+			//std :: cout << "We do need to add the pipelined data to the back end of the output tuples.\n";
 		} else {
 			offset = 0;
 			createCols <RHSType> (columns, *output, attsToIncludeInOutput.getAtts ().size (), 0, positions);
@@ -377,10 +377,10 @@ public:
                 // get the map we are adding to
                 Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
                 JoinMap <RHSType> &myMap = *mergedMap;
-                std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
+                //std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
                 Handle <JoinMap <RHSType>> mapToMerge = unsafeCast <JoinMap <RHSType>> (mergeMe);
                 JoinMap <RHSType> &theOtherMap = *mapToMerge;
-                std :: cout << "The map to merge size: " << theOtherMap.size() << std :: endl;
+                //std :: cout << "The map to merge size: " << theOtherMap.size() << std :: endl;
                 
                 for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
                     JoinRecordList<RHSType> * myList = *iter;
@@ -487,7 +487,7 @@ public:
 	
 				// if we get an exception, then we could not fit a new key/value pair
 				} catch (NotEnoughSpace &n) {
-                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;	
+                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;	
 					// if we got here, then we ran out of space, and so we need to delete the already-processed
 					// data so that we can try again...
 					myMap.setUnused (keyColumn[i]);
@@ -508,7 +508,7 @@ public:
 				// an exception means that we couldn't complete the addition
 				} catch (NotEnoughSpace &n) { 
 
-                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;
+                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
 					throw n;
@@ -521,7 +521,7 @@ public:
 
 				// if the copy didn't work, pop the value off
 				} catch (NotEnoughSpace &n) {
-                                        std :: cout << "we are running out of space in writing join sink" << std :: endl;
+                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					myMap.setUnused (keyColumn[i]);
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
@@ -576,9 +576,9 @@ public:
 typedef std::shared_ptr <JoinTupleSingleton> JoinTuplePtr;
 
 inline int findType (std :: string &findMe, std :: vector <std :: string> &typeList) {
-        std :: cout << "findMe is " << findMe << std :: endl;
+        //std :: cout << "findMe is " << findMe << std :: endl;
 	for (int i = 0; i < typeList.size (); i++) {
-                std :: cout << "typeList[" << i << "]=" << typeList[i] << std :: endl;
+                //std :: cout << "typeList[" << i << "]=" << typeList[i] << std :: endl;
 		if (typeList[i] == findMe) {
 			typeList[i] = std :: string ("");
 			return i;
@@ -610,7 +610,7 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 	// we must always have one type...
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        std :: cout << "in1Name=" << in1Name << std :: endl;
+        //std :: cout << "in1Name=" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -618,7 +618,7 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 		typeList [in1Pos] = in1Name;
 		return std :: make_shared <JoinSingleton <JoinTuple <In1, char[0]>>> ();
 	} else {
-		std :: cout << "Why did we not find a type?\n";
+		//std :: cout << "Why did we not find a type?\n";
 		exit (1);
 	}
 }
@@ -635,7 +635,7 @@ typename std :: enable_if<sizeof ...(Rest) != 0 && !std :: is_base_of <JoinTuple
 
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        std :: cout << "in1Name =" << in1Name << std :: endl;
+        //std :: cout << "in1Name =" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -655,7 +655,7 @@ typename std :: enable_if<std :: is_base_of <JoinTupleBase, In1> :: value, JoinT
 
 	JoinTuplePtr returnVal;
 	std :: string in2Name = getTypeName <Handle <In2>> ();
-        std :: cout << "in2Name =" << in2Name << std :: endl;
+        //std :: cout << "in2Name =" << in2Name << std :: endl;
 	int in2Pos = findType (in2Name, typeList);
 	if (in2Pos != -1) {
 		returnVal = findCorrectJoinTuple <JoinTuple <In2, In1>, Rest...> (typeList, whereEveryoneGoes);
