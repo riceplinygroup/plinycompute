@@ -10,6 +10,13 @@ import glob
 from os import path
 
 common_env = Environment(CXX = 'clang++')
+#to install prerequisites
+if common_env['PLATFORM'] == 'darwin':
+    os.system("brew install eigen")
+elif common_env['PLATFORM'] == 'posix':
+    os.system("sudo apt-get install libeigen3-dev")
+    os.system("sudo apt-get install libgsl-dev")
+
 #common_env.Append(YACCFLAGS='-d')
 common_env.Append(CFLAGS='-std=c11')
 
