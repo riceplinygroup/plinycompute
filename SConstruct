@@ -796,7 +796,7 @@ main=common_env.Alias('main', [
   'bin/testLA21_Instance'
 ])
 
-libLATest=common_env.Alias('libLDATest', [
+libLATest=common_env.Alias('libLATest', [
 
  # 'bin/testLA01_Transpose',
  # 'bin/testLA02_Add',
