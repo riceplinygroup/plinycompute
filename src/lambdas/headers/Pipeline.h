@@ -197,7 +197,7 @@ public:
                              curChunk = dataSource->getNextTupleSet();
                         }
                         catch (NotEnoughSpace &n) {
-                             std :: cout << "Not enough space when generating chunk-" << iteration << std::endl;
+                             //std :: cout << "Not enough space when generating chunk-" << iteration << std::endl;
                              myRAM->setIteration(iteration);
                              unwrittenPages.push(myRAM);
                              myRAM = std :: make_shared<MemoryHolder>(getNewPage());
@@ -225,7 +225,7 @@ public:
 					curChunk = q->process (curChunk);
 
 				} catch (NotEnoughSpace &n) {
-                                        std :: cout << "Not enough space when processing chunk-" << iteration << std :: endl; 
+                                        //std :: cout << "Not enough space when processing chunk-" << iteration << std :: endl; 
 					// and get a new page
 					myRAM->setIteration (iteration);
 					unwrittenPages.push (myRAM);

@@ -106,6 +106,8 @@ unsigned int getNextConsumerIndex (std :: string name);
 //to increment the index of next consumer to process for a certain source
 void incrementConsumerIndex(std :: string name);
 
+//to get number of consumers for a certain source
+unsigned int getNumConsumers(std :: string name);
 
 private:
 

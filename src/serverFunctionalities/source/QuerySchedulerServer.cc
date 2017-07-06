@@ -919,6 +919,18 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                           PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
                           getFunctionality<QuerySchedulerServer>().scheduleQuery();
 
+                          PDB_COUT << "to remove intermediate sets" << std :: endl;
+                          for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                              std :: string errMsg;
+                              Handle<SetIdentifier> intermediateSet = this->interGlobalSets[i];
+                              bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
+                              if (res != true) {
+                                  std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                              } else {
+                                  PDB_COUT << "Removed set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
+                              }
+                         }
+
                      }
 
                  }
@@ -979,25 +991,70 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
                     
                     //to remember the intermediate sets:
-                    PDB_COUT << "to remember intermediate sets" << std :: endl;
+                    /*PDB_COUT << "to remember intermediate sets" << std :: endl;
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
                         this->interGlobalSets.push_back(intermediateSets[i]);
-                    }
+                    }*/
+
+                    //to remove the intermediate sets:
+                    for ( int i = 0; i < intermediateSets.size(); i++ ) {
+                        std :: string errMsg;
+                        Handle<SetIdentifier> intermediateSet = intermediateSets[i];
+                        //check whether intermediateSet is a source set and has consumer number > 0
+                        std :: string key = intermediateSet->getDatabase()+":"+intermediateSet->getSetName();         
+                        unsigned int numConsumers = this->tcapAnalyzerPtr->getNumConsumers(key);
+                        if (numConsumers > 0) {
+                            //to remember this set
+                            this->interGlobalSets.push_back(intermediateSet);
+
+                        } else { 
+
+                             bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
+                             if (res != true) {
+                                 std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                             } else {
+                                 std :: cout << "Removed set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
+                             }
+
+                        }
+                   }
+/*
+                   auto begin = this->interGlobalSets.begin();
+                   auto end = this->interGlobalSets.end();
+                   while (begin != end) {
+                        std :: string errMsg;
+                        Handle<SetIdentifier> intermediateSet = *begin;
+                        //check whether intermediateSet is a source set and has consumer number > 0
+                        std :: string key = intermediateSet->getDatabase()+":"+intermediateSet->getSetName();
+                        unsigned int numConsumers = this->tcapAnalyzerPtr->getNumConsumers(key);
+                        if (numConsumers == 0) {
+                             bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
+                             if (res != true) {
+                                 std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                             } else {
+                                 std :: cout << "Removed set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
+                             }
+                             begin = this->interGlobalSets.erase(begin);
+                             begin = this->interGlobalSets.erase(begin);
+                        } else {
+                             begin++;
+                        }
+                   }
+*/
 
                 }
-              
-             }
-             //to remove intermediate sets:
-             PDB_COUT << "to remove intermediate sets" << std :: endl;
-             for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
-                 std :: string errMsg;
-                 Handle<SetIdentifier> intermediateSet = this->interGlobalSets[i];
-                 bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
-                 if (res != true) {
-                     std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
-                 } else {
-                     PDB_COUT << "Removed set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
-                 }
+                //to remove remaining intermediate sets:
+                PDB_COUT << "to remove intermediate sets" << std :: endl;
+                for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
+                    std :: string errMsg;
+                    Handle<SetIdentifier> intermediateSet = this->interGlobalSets[i];
+                    bool res = dsmClient.removeTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
+                    if (res != true) {
+                        std :: cout << "can't remove temp set: " <<errMsg << std :: endl;
+                    } else {
+                        PDB_COUT << "Removed set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
+                    }
+                } 
              }
            }
            PDB_COUT << "To send back response to client" << std :: endl;

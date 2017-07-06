@@ -129,6 +129,7 @@ bool TCAPAnalyzer::getNextStages(std :: vector<Handle<AbstractJobStage>> & physi
 }
 
 
+
 //to analyze the subgraph rooted at a source node and only returns a set of job stages corresponding with the subgraph
 bool TCAPAnalyzer::getNextStagesOptimized(std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, AtomicComputationPtr curSource, Handle<SetIdentifier>  curInputSetIdentifier, unsigned int curConsumerIndex, int & jobStageId) {
    std :: string sourceSpecifier = curSource->getComputationName();
@@ -145,6 +146,21 @@ bool TCAPAnalyzer::getNextStagesOptimized(std :: vector<Handle<AbstractJobStage>
     }
     return ret;
 }
+
+
+//to get number of consumers for a certain source
+unsigned int TCAPAnalyzer::getNumConsumers(std :: string name) {
+   if (this->getSourceSetIdentifier(name) == nullptr) {
+       return 0;
+   }
+   AtomicComputationPtr sourceAtomicComp = this->getSourceComputation (name);
+   std :: string outputName = sourceAtomicComp->getOutputName();
+   std :: vector<AtomicComputationPtr> consumers = this->computationGraph.getConsumingAtomicComputations(outputName);
+   unsigned int curConsumerIndex = this->getNextConsumerIndex(name);
+   return (consumers.size()-curConsumerIndex);
+   
+}
+
 
 
 //a source computation for a pipeline can be ScanSet, Selection, ClusterAggregation, and ClusterJoin.
