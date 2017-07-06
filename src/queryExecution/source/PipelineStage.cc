@@ -79,7 +79,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
        if(port <= 0) {
            port = conf->getPort();
        } 
-       std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       //std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
        return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
@@ -257,7 +257,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
             std :: string hashSetName = (*mapIter).value;
-            //std :: cout << "to probe " << key << ":" << hashSetName << std :: endl;
+            std :: cout << "to probe " << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet == nullptr) {
                 std :: cout << "ERROR in pipeline execution: broadcast data not found!" << std :: endl;
