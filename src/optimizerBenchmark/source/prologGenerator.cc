@@ -47,6 +47,12 @@ vector<string> prologRules;
 
 
 
+string getLowerCaseFirstLetter(string data) {
+	data[0] = tolower(data[0]);
+	return data;
+}
+
+
 void toLowerCaseFirstLetter(string & data) {
 	data[0] = tolower(data[0]);
 }
@@ -56,12 +62,17 @@ void toLowerCase(string & data) {
 }
 
 
-void processLamdaName(string & data) {
-	//string prefix("==");
-	//if(!data.compare(0, perfix.size(), prefix)) {
-		data = "lambda_"  + data;
-	//}
+// In the Prolog rules data would appear as 'data'
+void makePrologString(string & data) {
+	data = "'" + data + "'";
 }
+
+
+void processLamdaName(string & data) {
+	//data = "lambda_"  + data;
+	makePrologString(data);
+}
+
 
 void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr result, string & inputName, AtomicComputationPtr oldResult) {
 	
@@ -76,7 +87,7 @@ void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr re
 	toLowerCaseFirstLetter(outputName);
 
 	string computationName = result->getComputationName();
-	toLowerCaseFirstLetter(computationName);
+	makePrologString(computationName);
 
 
 	// Only print node rules if not previously done:
@@ -88,6 +99,9 @@ void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr re
 		stringstream buffer;			
 		if (!computationType.compare("joinsets")) {
 			buffer << "node(" << outputName << ", " << "join" << ", " << computationName << ")." << endl;
+		}
+		else if (!computationType.compare("writeset")) {
+			buffer << "node(" << outputName << ", " << "output" << ", " << computationName << ")." << endl;
 		}
 		else {
 			buffer << "node(" << outputName << ", " << computationType << ", " << computationName << ")." << endl;
@@ -188,7 +202,7 @@ void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr re
 		prologRules.push_back(prologRule);				
 	}
 
-
+//*/
 	
 //*	
 	// 3) Create node specific rules:
@@ -205,34 +219,62 @@ void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr re
 		if (!computationType.compare("apply")) {
 			shared_ptr<ApplyLambda> newResult = dynamic_pointer_cast<ApplyLambda>(result);
 			string lambdaName = newResult->getLambdaToApply();
-			toLowerCaseFirstLetter(lambdaName);
 			processLamdaName(lambdaName);
-			buffer << "apply(" << outputName << ", " << input.getSetName() << ", " << projection.getSetName() << ", " << lambdaName << ")." << endl;
+			buffer << "apply(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ", " << lambdaName << ")." << endl;
 		}		
 		else if (!computationType.compare("filter")) {
 			shared_ptr<ApplyFilter> newResult = dynamic_pointer_cast<ApplyFilter>(result);
-			buffer << "filter(" << outputName << ", " << input.getSetName() << ", " << projection.getSetName() << ")." << endl;
+			buffer << "filter(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ")." << endl;
 		}	
 		else if (!computationType.compare("hashleft")) {
 			shared_ptr<HashLeft> newResult = dynamic_pointer_cast<HashLeft>(result);
 			string lambdaName = newResult->getLambdaToApply();
-			toLowerCaseFirstLetter(lambdaName);
 			processLamdaName(lambdaName);
-			buffer << "hashleft(" << outputName << ", " << input.getSetName() << ", " << projection.getSetName() << ", " << lambdaName << ")." << endl;
+			buffer << "hashleft(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ", " << lambdaName << ")." << endl;
 		}		
 		else if (!computationType.compare("hashright")) {
 			shared_ptr<HashRight> newResult = dynamic_pointer_cast<HashRight>(result);
 			string lambdaName = newResult->getLambdaToApply();
-			toLowerCaseFirstLetter(lambdaName);
 			processLamdaName(lambdaName);
-			buffer << "hashright(" << outputName << ", " << input.getSetName() << ", " << projection.getSetName() << ", " << lambdaName << ")." << endl;
+			buffer << "hashright(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ", " << lambdaName << ")." << endl;
 		}
 		else if (!computationType.compare("joinsets")) {
 			shared_ptr<ApplyJoin> newResult = dynamic_pointer_cast<ApplyJoin>(result);	
 			TupleSpec rInput = newResult->getRightInput();
 			TupleSpec rProjection = newResult->getRightProjection();
-			buffer << "join(" << outputName << ", " << input.getSetName() << ", " << projection.getSetName() << ", " << rInput.getSetName() << ", " << rProjection.getSetName()  << ")." << endl;
+			buffer << "join(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ", " << getLowerCaseFirstLetter(rInput.getSetName()) << ", " << getLowerCaseFirstLetter(rProjection.getSetName())  << ")." << endl;
 		}	
+		// New operations added: AGGREGATE, OUTPUT, FLATTEN, HASHONE.
+		// I guess AGGREGATE has no explicit projection.
+		else if(!computationType.compare("aggregate")) {
+			shared_ptr<ApplyAgg> newResult = dynamic_pointer_cast<ApplyAgg>(result);
+			buffer << "aggregate(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ")." << endl;	// << ", " << getLowerCaseFirstLetter(projection.getSetName()) 
+		}
+		else if(!computationType.compare("hashone")) {
+			shared_ptr<HashOne> newResult = dynamic_pointer_cast<HashOne>(result);
+			buffer << "hashone(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ")." << endl;
+		}
+		else if(!computationType.compare("flatten")) {
+			shared_ptr<Flatten> newResult = dynamic_pointer_cast<Flatten>(result);
+			buffer << "flatten(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << getLowerCaseFirstLetter(projection.getSetName()) << ")." << endl;			
+		}
+		// I guess OUTPUT has no explicit projection.
+		else if(!computationType.compare("writeset")) {
+			shared_ptr<WriteSet> newResult = dynamic_pointer_cast<WriteSet>(result);
+			
+			// Get database name:
+			string dBName = newResult->getDBName();  
+			makePrologString(dBName);
+			
+			// Get set name:
+			string setName = newResult->getSetName();
+			makePrologString(setName);			
+			
+			// Create and save the prolog rule:
+			buffer << "output(" << outputName << ", " << getLowerCaseFirstLetter(input.getSetName()) << ", " << dBName << ", " << setName << ")." << endl;		// << ", " << getLowerCaseFirstLetter(projection.getSetName())	
+		}					
+		
+		// If we encounter some unknown operation, abort.
 		else {
 			cout << computationType << " is not supported currently!" << endl;
 			exit(1);
@@ -246,20 +288,54 @@ void parseAtomicComputation(AtomicComputationList * acl, AtomicComputationPtr re
 	}
 	
 	
-	
-	
-		
-	
-	
 //*/
 
 	
 	// Follow the links upwards:
 	outputName = result->getOutputName();
 	vector <AtomicComputationPtr> consumingAtomicComputations = acl->getConsumingAtomicComputations(outputName);
-	for (int j = 0; j < consumingAtomicComputations.size(); j++) {
-		parseAtomicComputation(acl, consumingAtomicComputations.at(j), outputName, result);
+	
+	if(consumingAtomicComputations.size()) {
+		for (int j = 0; j < consumingAtomicComputations.size(); j++) {
+			parseAtomicComputation(acl, consumingAtomicComputations.at(j), outputName, result);
+		}	
 	}
+	
+	// When we reach the root node:
+	else {	
+		
+		string root = "virtualRootNode";
+		string linkName =  root + ", " + outputName;
+		// Print a link only if has not been printed before:
+		unordered_set<string>::const_iterator findLink = linkNames.find(linkName); 
+		if (findLink == linkNames.end()) {
+			linkNames.insert(linkName);		
+			stringstream buffer;
+			buffer << "link(" << "virtualRootNode" << ", " << outputName << ", ";
+			// Prepare output list:
+			outputAtts = result->getOutput().getAtts();	
+			buffer << "[";
+			for (int i = 0; i < outputAtts.size(); i++) {
+				toLowerCaseFirstLetter(outputAtts.at(i));
+				buffer << outputAtts.at(i);
+				if (i < (outputAtts.size() - 1)) {
+					buffer << ", ";
+				}
+			}
+			buffer << "], ";			
+			buffer << "[], [])." << endl;
+
+			// Extract the prolog rule:
+			string prologRule = buffer.str();
+
+			// Save the created rule to print it later:
+			prologRules.push_back(prologRule);	
+		}
+	}
+		
+		
+		
+
 }
 
 
@@ -269,8 +345,7 @@ void parseAtomicComputationList(AtomicComputationList * result) {
 	
 	// Get all the computation leaves:
 	vector <AtomicComputationPtr> allScanSets = result->getAllScanSets();
-	
-	
+
 	// Iterate through the leaves and go upwards:
 	for (int i = 0; i < allScanSets.size(); i++) {	
 		
@@ -282,7 +357,7 @@ void parseAtomicComputationList(AtomicComputationList * result) {
 		toLowerCaseFirstLetter(outputName);
 		
 		string computationName = allScanSets.at(i)->getComputationName();
-		toLowerCaseFirstLetter(computationName);
+		makePrologString(computationName);
 		
 		
 		// Only print node rules if not previously done:
@@ -309,12 +384,11 @@ void parseAtomicComputationList(AtomicComputationList * result) {
 			
 			// Get database name:
 			string dBName = newResult->getDBName();  
-			toLowerCaseFirstLetter(dBName);
+			makePrologString(dBName);
 			
 			// Get set name:
 			string setName = newResult->getSetName();
-			toLowerCaseFirstLetter(setName);
-			
+			makePrologString(setName);			
 			
 			// Create and save the prolog rule:
 			stringstream buffer;
