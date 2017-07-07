@@ -33,9 +33,11 @@ public:
     std :: string getJobId() {
         return this->jobId;
     }
+    
+    
 
     virtual std :: string getJobStageType() = 0;
-
+    virtual JobStageID getStageId() = 0;
     virtual void print() = 0;
 
 protected:

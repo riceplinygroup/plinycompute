@@ -220,7 +220,7 @@ namespace pdb {
                 return this->combineOrNot;
             }
 
-            JobStageID getStageId() {
+            JobStageID getStageId() override {
                 return this->id;
             }
 
