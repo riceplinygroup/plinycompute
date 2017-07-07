@@ -268,8 +268,8 @@ void PairArray <KeyType, ValueType> :: setUnused (const KeyType &me) {
 
                 // if we found an empty slot, then this guy was not here
                 if (GET_HASH (data, slot) == UNUSED) {
-
-                        break;
+                        std :: cout << "WARNING: setUnused for an empty slot" << std :: endl;
+                        return;
 
                 // found a non-empty slot; check for a match
                 } else if (GET_HASH (data, slot) == hashVal) {
@@ -299,7 +299,7 @@ void PairArray <KeyType, ValueType> :: setUnused (const KeyType &me) {
 
         // we should never reach here
         std :: cout << "in setUnused(): hashVal = " << hashVal << ", slot = " << slot << ", numSlots ="<< numSlots << ". Warning: Ran off the end of the hash table!!\n";
-        exit (1);
+        //exit (1);
 }
 
 
@@ -322,10 +322,15 @@ ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 
 		// if we found an empty slot, then this guy was not here
 		if (GET_HASH (data, slot) == UNUSED) {
-
-			// construct the key and the value
-			new (GET_KEY_PTR (data, slot)) KeyType ();
-			new (GET_VALUE_PTR (data, slot)) ValueType ();
+                        try {
+			    // construct the key and the value
+			    new (GET_KEY_PTR (data, slot)) KeyType ();
+			    new (GET_VALUE_PTR (data, slot)) ValueType ();
+                        } catch (NotEnoughSpace &n) {
+                            std :: cout << "Not enough space when in placement new the key type and value type" << std :: endl;
+                            throw n;
+                        }
+                        
 			
 			// add the key
                         try {
