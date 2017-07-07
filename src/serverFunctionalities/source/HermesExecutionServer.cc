@@ -446,7 +446,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
          #ifdef AUTO_TUNING
               size_t memSize = request->getTotalMemoryOnThisNode();
               size_t sharedMemPoolSize = conf->getShmSize();
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize)*(0.75)/(double)(numPartitions);
+#ifdef ENABLE_LARGE_GRAPH
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024)))*(0.75)/(double)(numPartitions);
+#else
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-(0))*(0.75)/(double)(numPartitions);
+#endif
               if (memSize*((size_t)(1024)) < sharedMemPoolSize + (size_t)512*(size_t)1024*(size_t)1024) {
                   std :: cout << "WARNING: Auto tuning can not work, use default values" << std :: endl;
                   tunedHashPageSize = conf->getHashPageSize();

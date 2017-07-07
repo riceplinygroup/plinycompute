@@ -89,7 +89,7 @@ namespace pdb {
                 return this->sinkContext;
             } 
 
-            JobStageID getStageId() {
+            JobStageID getStageId() override {
                 return this->id;
             }
 

@@ -95,7 +95,7 @@ std :: string getJobStageType() override {
 }
 
 //return job stage id
-JobStageID getStageId() {
+JobStageID getStageId() override {
     return this->id;
 }
 

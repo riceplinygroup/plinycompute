@@ -217,9 +217,13 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                  PDBWorkerPtr myWorker = getWorker();
                  PDBWorkPtr myWork = make_shared <GenericWork> (
                      [&, i, j] (PDBBuzzerPtr callerBuzzer) {
+#ifdef PROFILING
+                         auto scheduleBegin = std :: chrono :: high_resolution_clock :: now();
+#endif
+
+
                           const UseTemporaryAllocationBlock block(32 * 1024 * 1024);
 
-                          PDB_COUT << "to schedule the " << i << "-th stage on the " << j << "-th node" << std :: endl;
 
                           int port = (*(this->standardResources))[j]->getPort();
                           PDB_COUT << "port:" << port << std :: endl;
@@ -271,8 +275,14 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                               std :: cout << errMsg << std :: endl;
                               success = false;
                           }
+#ifdef PROFILING
+                          auto scheduleEnd = std :: chrono :: high_resolution_clock :: now();
+                          std::cout << "Time Duration for Scheduling stage-"<< stage->getStageId() << " on " << ip << ":" <<
+                             std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " ns." << std::endl;
+#endif
                           if (success == false) {
                               errMsg = std :: string ("Can't execute the ") + std :: to_string(i) + std :: string ("-th stage on the ") + std :: to_string(j) + std :: string ("-th node");
+                              std :: cout << errMsg << std :: endl;
                               callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                               return;
                           }
@@ -954,7 +964,10 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 while (this->tcapAnalyzerPtr->getNumSources() > 0) {
                     std :: vector<Handle<AbstractJobStage>> jobStages;
                     std :: vector<Handle<SetIdentifier>> intermediateSets;
-
+#ifdef PROFILING
+                    auto dynamicPlanBegin = std :: chrono :: high_resolution_clock :: now();
+                    std :: cout << "JobStageId " << jobStageId << "============>";
+#endif
                     while ((jobStages.size() == 0)&&(this->tcapAnalyzerPtr->getNumSources()>0)) {
                        //analyze all sources and select a source based on cost model
                        int indexOfBestSource = this->tcapAnalyzerPtr->getBestSource(this->statsForOptimization);
@@ -974,6 +987,13 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                             this->tcapAnalyzerPtr->removeSource(sourceName);
                        }
                     }
+#ifdef PROFILING
+                    std :: cout << "JobStageId " << jobStageId-1 << std :: endl;
+                    auto dynamicPlanEnd = std :: chrono :: high_resolution_clock :: now();
+                    std::cout << "Time Duration for Dynamic Planning: " <<
+                        std::chrono::duration_cast<std::chrono::duration<float>>(dynamicPlanEnd-dynamicPlanBegin).count() << " ns." << std::endl;
+                    auto createSetBegin = std :: chrono :: high_resolution_clock :: now();
+#endif
                     //create intermediate sets
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
                         std :: string errMsg;
@@ -985,11 +1005,22 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                             PDB_COUT << "Created set with database=" << intermediateSet->getDatabase() << ", set=" << intermediateSet->getSetName() << std :: endl;
                         }
                     }
+#ifdef PROFILING
+                    auto createSetEnd = std :: chrono :: high_resolution_clock :: now();
+                    std::cout << "Time Duration for Creating intermdiate sets: " <<
+                        std::chrono::duration_cast<std::chrono::duration<float>>(createSetEnd-createSetBegin).count() << " ns." << std::endl;
+                    auto scheduleBegin = std :: chrono :: high_resolution_clock :: now();
+#endif
                     //schedule this job stages
                     PDB_COUT << "To schedule the query to run on the cluster" << std :: endl;
                     getFunctionality<QuerySchedulerServer>().scheduleStages(jobStages, intermediateSets, shuffleInfo);
 
-                    
+#ifdef PROFILING
+                    auto scheduleEnd = std :: chrono :: high_resolution_clock :: now();
+                    std::cout << "Time Duration for Scheduling stages: " <<
+                        std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " ns." << std::endl;
+                    auto removeSetBegin = std :: chrono :: high_resolution_clock :: now();
+#endif
                     //to remember the intermediate sets:
                     /*PDB_COUT << "to remember intermediate sets" << std :: endl;
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
@@ -1018,6 +1049,11 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
                         }
                    }
+#ifdef PROFILING
+                    auto removeSetEnd = std :: chrono :: high_resolution_clock :: now();
+                    std::cout << "Time Duration for Removing intermediate sets: " <<
+                        std::chrono::duration_cast<std::chrono::duration<float>>(removeSetEnd-removeSetBegin).count() << " ns." << std::endl;
+#endif
 /*
                    auto begin = this->interGlobalSets.begin();
                    auto end = this->interGlobalSets.end();
