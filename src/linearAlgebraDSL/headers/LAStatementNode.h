@@ -28,6 +28,7 @@
 #include "LAMultiplicativeExpressionNode.h"
 #include "LAAdditiveExpressionNode.h"
 
+//by Binhang, June 2017
 
 struct LAStatementNode;
 typedef std::shared_ptr<struct LAStatementNode> LAStatementNodePtr;

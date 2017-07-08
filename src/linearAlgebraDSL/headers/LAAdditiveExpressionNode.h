@@ -18,7 +18,7 @@
 #ifndef LA_ADDITIVEEXPRESSION_NODE_H
 #define LA_ADDITIVEEXPRESSION_NODE_H
 
-
+//by Binhang, June 2017
 
 #include "LAASTNode.h"
 #include "LAExpressionNode.h"

@@ -18,6 +18,8 @@
 #ifndef LA_IR_HEADERS_CC
 #define LA_IR_HEADERS_CC
 
+//by Binhang, June 2017
+
 #include <iostream>
 #include <memory>
 

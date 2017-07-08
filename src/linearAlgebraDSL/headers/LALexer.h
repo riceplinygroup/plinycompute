@@ -21,6 +21,8 @@
 
 #include "LALexerTokens.h"
 
+//by Binhang, June 2017
+
 #ifdef __cplusplus
 extern "C" {
 #endif	  

@@ -18,14 +18,14 @@
 #ifndef LA_PRIMARYEXPRESSION_NODE_H
 #define LA_PRIMARYEXPRESSION_NODE_H
 
-
+//by Binhang, June 2017
 
 #include "LAASTNode.h"
 #include "LAExpressionNode.h"
 #include "LAIdentifierNode.h"
 #include "LAInitializerNode.h"
 
-//#include "LASillyMaxElementAggregate.h"
+
 
 struct LAPrimaryExpressionNode;
 typedef std::shared_ptr<struct LAPrimaryExpressionNode> LAPrimaryExpressionNodePtr;

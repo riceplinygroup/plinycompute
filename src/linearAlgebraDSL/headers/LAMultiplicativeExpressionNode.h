@@ -18,7 +18,7 @@
 #ifndef LA_MULTIPLICATIVEEXPRESSION_NODE_H
 #define LA_MULTIPLICATIVEEXPRESSION_NODE_H
 
-
+//by Binhang, June 2017
 
 #include "LAASTNode.h"
 #include "LAExpressionNode.h"

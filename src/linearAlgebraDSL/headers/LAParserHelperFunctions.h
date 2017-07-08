@@ -18,6 +18,8 @@
 #ifndef LA_IR_HEADERS_H
 #define LA_IR_HEADERS_H
 
+//by Binhang, June 2017
+
 #ifdef __cplusplus
 extern "C" {
 #endif

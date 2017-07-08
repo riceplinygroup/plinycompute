@@ -29,6 +29,8 @@
 #include <iostream>
 #include <memory>
 
+//by Binhang, June 2017
+
 struct LAASTNode;
 typedef std::shared_ptr<struct LAASTNode> LAASTNodePtr;
 
