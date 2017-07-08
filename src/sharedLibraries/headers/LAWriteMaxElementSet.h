@@ -19,7 +19,7 @@
 #ifndef LA_WRITE_MAXELEMENT_SET_H
 #define LA_WRITE_MAXELEMENT_SET_H
 
-//by Jia, Mar 2017
+//by Binhang, Mar 2017
 
 #include "WriteUserSet.h"
 #include "LAMaxElementOutputType.h"

@@ -818,6 +818,7 @@ libLATest=common_env.Alias('libLATest', [
   'bin/testLA17_ColSum',
   'bin/testLA20_Parser',
   'bin/testLA21_Instance',
+  
   'libraries/libLAMaxElementOutputType.so',
   'libraries/libLAMaxElementValueType.so',
   'libraries/libLAMinElementOutputType.so',

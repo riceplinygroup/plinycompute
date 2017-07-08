@@ -21,6 +21,7 @@
 #include "LAASTNode.h"
 #include "LAExpressionNode.h"
 
+//by Binhang, June 2017
 
 struct LAInitializerNode;
 typedef std::shared_ptr<struct LAInitializerNode> LAInitializerNodePtr;

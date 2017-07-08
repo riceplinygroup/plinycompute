@@ -23,6 +23,8 @@
 //#include "BuiltInMatrixBlock.h"
 #include "MatrixBlock.h"
 
+// By Binhang, May 2017
+
 using namespace pdb;
 class LAScanMatrixBlockSet : public ScanUserSet <MatrixBlock> {
 

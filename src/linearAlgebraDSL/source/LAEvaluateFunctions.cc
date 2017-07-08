@@ -61,10 +61,9 @@
 
 #include <fstream>
 
+//by Binhang, June 2017
 
-/*
- *	This does not consider if the block cannot fit in a single page, will be fixed soon.  
- */
+
 pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& instance){
 	int leftCounter = dim.blockRowNum * dim.blockColNum;
 	std::string setName = "LA_"+method+"_"+std::to_string(instance.getDispatchCount());

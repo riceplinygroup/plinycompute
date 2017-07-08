@@ -18,6 +18,8 @@
 #ifndef LA_DIMENSION_H
 #define LA_DIMENSION_H 
 
+//by Binhang, June 2017
+
 typedef struct LADimension{
 	int blockRowSize; 	//Size for each block
 	int blockColSize;

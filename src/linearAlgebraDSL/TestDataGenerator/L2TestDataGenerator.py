@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-# The idea is stolen from Shangyu's ICDE paper
+# The idea is stolen from Shangyu's ICDE paper, created by Binhang, June 2017
 import time
 import random
 import sys

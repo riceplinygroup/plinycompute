@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and      
 #  limitations under the License.                                           
 #  ======================================================================== 
-# This a new experiments to replace ICDE paper's outlier dectect task.
+# This a new experiments to replace ICDE paper's outlier dectect task, created by Binhang, June 2017
 import time
 import random
 import numpy as np
