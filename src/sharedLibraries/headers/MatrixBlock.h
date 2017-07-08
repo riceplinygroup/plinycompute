@@ -71,7 +71,7 @@ public:
         data.rowNums = rowNumsIn;
         data.colNums = colNumsIn;
         data.rawData = pdb::makeObject<pdb::Vector<double> >(rowNumsIn*colNumsIn, rowNumsIn*colNumsIn);
-        std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+        //std::cout << "This is risky, please call the other constructor. MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
     }
 
     MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn, int totalRows, int totalCols) {
@@ -82,7 +82,7 @@ public:
         data.rowNums = rowNumsIn;
         data.colNums = colNumsIn;
         data.rawData = pdb::makeObject<pdb::Vector<double> >(rowNumsIn*colNumsIn, rowNumsIn*colNumsIn);
-        std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+        //std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
     }
 
 
@@ -192,10 +192,10 @@ public:
 
         rowMaxMatrix = currentMatrix.rowwise().maxCoeff();
 
-        std::cout <<"getRowMaxValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Row wise Max Matrix :"<< std::endl;
-        maxRowData.print();
+        //std::cout <<"getRowMaxValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Row wise Max Matrix :"<< std::endl;
+        //maxRowData.print();
         return maxRowData;
     }
 
@@ -214,10 +214,10 @@ public:
 
         rowMinMatrix = currentMatrix.rowwise().minCoeff();
 
-        std::cout <<"getRowMinValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Row wise Min Matrix :"<< std::endl;
-        minRowData.print();
+        //std::cout <<"getRowMinValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Row wise Min Matrix :"<< std::endl;
+        //minRowData.print();
         return minRowData;
     }
 
@@ -236,10 +236,10 @@ public:
 
         rowSumMatrix = currentMatrix.rowwise().sum();
 
-        std::cout <<"getRowSumValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Row wise Sum Matrix :"<< std::endl;
-        sumRowData.print();
+        //std::cout <<"getRowSumValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Row wise Sum Matrix :"<< std::endl;
+        //sumRowData.print();
         return sumRowData;
     }
 
@@ -258,10 +258,10 @@ public:
 
         colMaxMatrix = currentMatrix.colwise().maxCoeff();
 
-        std::cout <<"getColMaxValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Col wise Max Matrix :"<< std::endl;
-        maxColData.print();
+        //std::cout <<"getColMaxValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Col wise Max Matrix :"<< std::endl;
+        //maxColData.print();
         return maxColData;
     }
 
@@ -280,10 +280,10 @@ public:
 
         colMinMatrix = currentMatrix.colwise().minCoeff();
 
-        std::cout <<"getColMinValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Col wise Min Matrix :"<< std::endl;
-        minColData.print();
+        //std::cout <<"getColMinValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Col wise Min Matrix :"<< std::endl;
+        //minColData.print();
         return minColData;
     }
 
@@ -302,10 +302,10 @@ public:
 
         colSumMatrix = currentMatrix.colwise().sum();
 
-        std::cout <<"getColSumValue Matrix :"<< std::endl;
-        this->print();
-        std::cout <<"Col wise Sum Matrix :"<< std::endl;
-        sumColData.print();
+        //std::cout <<"getColSumValue Matrix :"<< std::endl;
+        //this->print();
+        //std::cout <<"Col wise Sum Matrix :"<< std::endl;
+        //sumColData.print();
         return sumColData;
     }
 
@@ -321,7 +321,7 @@ public:
                 result.setColIndex(globalColIndex);
             }
         }
-        std:: cout << "Max element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
+        //std:: cout << "Max element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
         return result;
     }
 
@@ -337,7 +337,7 @@ public:
                 result.setColIndex(globalColIndex);
             }
         }
-        std:: cout << "Min element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
+        //std:: cout << "Min element in this block: "<< result.getValue() << " index:(" << result.getRowIndex() << "," << result.getColIndex() <<")."<< std::endl; 
         return result;
     } 
 
@@ -355,7 +355,7 @@ public:
                     (*((this->data).rawData))[finalRowIndex * totalCols + finalColIndex] = (*(other.data.rawData))[i* other.data.colNums + j];
                 }
             }
-            this->print();
+            //this->print();
             return *this;
         }
         //Otherwise, should be called only once.
@@ -375,7 +375,7 @@ public:
                     (*((result->data).rawData))[finalRowIndex * totalCols + finalColIndex] = (*(other.data.rawData))[i* other.data.colNums + j];
                 }
             }
-            result->print();
+            //result->print();
             return *result;
         }
     }

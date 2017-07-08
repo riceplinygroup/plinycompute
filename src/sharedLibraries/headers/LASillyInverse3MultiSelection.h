@@ -53,11 +53,11 @@ private:
 
 	Vector<Handle <MatrixBlock>> split(Handle<SingleMatrix> checkMe){
 		MatrixBlock largeM = checkMe->getValue();
-		std::cout<<"Split Function" <<std::endl;
-		largeM.print();
+		//std::cout<<"Split Function" <<std::endl;
+		//largeM.print();
 		int totalRows = targetDim.blockRowSize * targetDim.blockRowNum;
         int totalCols = targetDim.blockColSize * targetDim.blockColNum;
-        std::cout<<totalRows<<", "<<totalCols<<std::endl;
+        //std::cout<<totalRows<<", "<<totalCols<<std::endl;
 		Vector<Handle <MatrixBlock>> result;
 		for(int i=0; i<targetDim.blockRowNum; i++){
 			for(int j=0; j<targetDim.blockColNum; j++){
@@ -66,11 +66,11 @@ private:
 					for(int jj=0; jj<targetDim.blockColSize; jj++){
 						int finalRowIndex = i * targetDim.blockRowSize + ii;
                     	int finalColIndex = j * targetDim.blockColSize + jj;
-                    	std::cout<<"("<<finalRowIndex<<","<<finalColIndex<<")"<<endl;
+                    	//std::cout<<"("<<finalRowIndex<<","<<finalColIndex<<")"<<endl;
                     	(*(currentBlock->getRawDataHandle()))[ii * targetDim.blockColSize + jj] = (*(largeM.getRawDataHandle()))[finalRowIndex*totalCols+finalColIndex]; 
 					}
 				}
-				currentBlock->print();
+				//currentBlock->print();
 				result.push_back(currentBlock);
 			}
 		}

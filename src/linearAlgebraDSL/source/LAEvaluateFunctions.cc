@@ -492,11 +492,15 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
 				SetIterator <MatrixBlock> output = instance.getQueryClient().getSetIterator<MatrixBlock> ("LA_db", outputSetName);
         		std :: cout << "Output Matrix:" << std::endl;
         		int count = 0;
+        		int printCount = 0;
         		for (auto a : output) {
+            		if(printCount == count){
+            			std :: cout << count << ":";
+            			a->print();
+            			std :: cout << std::endl;
+            			printCount *= 2;
+            		}
             		count ++;
-            		std :: cout << count << ":";
-            		a->print();
-            		std :: cout << std::endl;
         		}
         		std :: cout << "Matrix output block nums:" << count << "\n";
 			}
@@ -505,10 +509,10 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
         		std :: cout << "Max Element query results: "<< std :: endl;
         		int countOut = 0;
         		for (auto a : result) {
-            		countOut ++;
             		std :: cout << countOut << ":";
             		a->print();
             		std :: cout << std::endl;
+            		countOut ++;
         		}
         		std :: cout << "Max Element output count:" << countOut << "\n";
 			}
@@ -517,10 +521,10 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
         		std :: cout << "Minimal Element query results: "<< std :: endl;
         		int countOut = 0;
         		for (auto a : result) {
-            		countOut ++;
             		std :: cout << countOut << ":";
             		a->print();
             		std :: cout << std::endl;
+            		countOut ++;
         		}
         		std :: cout << "Minimal Element output count:" << countOut << "\n";
 			}
