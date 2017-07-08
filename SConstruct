@@ -334,7 +334,6 @@ common_env.SharedLibrary('libraries/libMethodJoin.so', ['build/libraries/MethodJ
 common_env.SharedLibrary('libraries/libOptimizedMethodJoin.so', ['build/libraries/OptimizedMethodJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansQuery.so', ['build/libraries/KMeansQuery.cc'] + all)
 
-
 common_env.SharedLibrary('libraries/libLAMaxElementOutputType.so', ['build/libraries/LAMaxElementOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libLAMaxElementValueType.so', ['build/libraries/LAMaxElementValueType.cc'] + all)
 common_env.SharedLibrary('libraries/libLAMinElementOutputType.so', ['build/libraries/LAMinElementOutputType.cc'] + all)
@@ -565,24 +564,24 @@ common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
 common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
 common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
-#common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
-#common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
-#common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
-#common_env.Program('bin/testLA04_Multiply', ['build/tests/TestLA04_Multiply.cc'] + all)
-#common_env.Program('bin/testLA05_MaxElement', ['build/tests/TestLA05_MaxElement.cc'] + all)
-#common_env.Program('bin/testLA06_MinElement', ['build/tests/TestLA06_MinElement.cc'] + all)
-#common_env.Program('bin/testLA07_TransposeMultiply', ['build/tests/TestLA07_TransposeMultiply.cc'] + all)
-#common_env.Program('bin/testLA07_TransposeMultiply_Gram', ['build/tests/TestLA07_TransposeMultiply_Gram.cc'] + all)
-#common_env.Program('bin/testLA08_RowMax', ['build/tests/TestLA08_RowMax.cc'] + all)
-#common_env.Program('bin/testLA09_RowMin', ['build/tests/TestLA09_RowMin.cc'] + all)
-#common_env.Program('bin/testLA10_ColMax', ['build/tests/TestLA10_ColMax.cc'] + all)
-#common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + all)
-#common_env.Program('bin/testLA12_DuplicateRow', ['build/tests/TestLA12_DuplicateRow.cc'] + all)
-#common_env.Program('bin/testLA13_DuplicateCol', ['build/tests/TestLA13_DuplicateCol.cc'] + all)
-#common_env.Program('bin/testLA14_Inverse', ['build/tests/TestLA14_Inverse.cc'] + all)
-#common_env.Program('bin/testLA15_ScaleMultiply', ['build/tests/TestLA15_ScaleMultiply.cc'] + all)
-#common_env.Program('bin/testLA16_RowSum', ['build/tests/TestLA16_RowSum.cc'] + all)
-#common_env.Program('bin/testLA17_ColSum', ['build/tests/TestLA17_ColSum.cc'] + all)
+common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
+common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
+common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
+common_env.Program('bin/testLA04_Multiply', ['build/tests/TestLA04_Multiply.cc'] + all)
+common_env.Program('bin/testLA05_MaxElement', ['build/tests/TestLA05_MaxElement.cc'] + all)
+common_env.Program('bin/testLA06_MinElement', ['build/tests/TestLA06_MinElement.cc'] + all)
+common_env.Program('bin/testLA07_TransposeMultiply', ['build/tests/TestLA07_TransposeMultiply.cc'] + all)
+common_env.Program('bin/testLA07_TransposeMultiply_Gram', ['build/tests/TestLA07_TransposeMultiply_Gram.cc'] + all)
+common_env.Program('bin/testLA08_RowMax', ['build/tests/TestLA08_RowMax.cc'] + all)
+common_env.Program('bin/testLA09_RowMin', ['build/tests/TestLA09_RowMin.cc'] + all)
+common_env.Program('bin/testLA10_ColMax', ['build/tests/TestLA10_ColMax.cc'] + all)
+common_env.Program('bin/testLA11_ColMin', ['build/tests/TestLA11_ColMin.cc'] + all)
+common_env.Program('bin/testLA12_DuplicateRow', ['build/tests/TestLA12_DuplicateRow.cc'] + all)
+common_env.Program('bin/testLA13_DuplicateCol', ['build/tests/TestLA13_DuplicateCol.cc'] + all)
+common_env.Program('bin/testLA14_Inverse', ['build/tests/TestLA14_Inverse.cc'] + all)
+common_env.Program('bin/testLA15_ScaleMultiply', ['build/tests/TestLA15_ScaleMultiply.cc'] + all)
+common_env.Program('bin/testLA16_RowSum', ['build/tests/TestLA16_RowSum.cc'] + all)
+common_env.Program('bin/testLA17_ColSum', ['build/tests/TestLA17_ColSum.cc'] + all)
 common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
@@ -790,32 +789,35 @@ main=common_env.Alias('main', [
   'bin/CatalogServerTests',
   'bin/CatalogTests', 
   'bin/pdb-cluster', 
-  'bin/pdb-server', 
-  
-  'bin/testLA20_Parser',
-  'bin/testLA21_Instance'
+  'bin/pdb-server'
 ])
 
 libLATest=common_env.Alias('libLATest', [
+  'bin/CatalogServerTests',
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server', 
 
- # 'bin/testLA01_Transpose',
- # 'bin/testLA02_Add',
- # 'bin/testLA03_Substract',
- # 'bin/testLA04_Multiply',
- # 'bin/testLA05_MaxElement',
- # 'bin/testLA06_MinElement',
- # 'bin/testLA07_TransposeMultiply',
- # 'bin/testLA07_TransposeMultiply_Gram',
- # 'bin/testLA08_RowMax',
- # 'bin/testLA09_RowMin',
- # 'bin/testLA10_ColMax',
- # 'bin/testLA11_ColMin',
- # 'bin/testLA12_DuplicateRow',
- # 'bin/testLA13_DuplicateCol',
- # 'bin/testLA14_Inverse',
- # 'bin/testLA15_ScaleMultiply',
- # 'bin/testLA16_RowSum',
- # 'bin/testLA17_ColSum',
+  'bin/testLA01_Transpose',
+  'bin/testLA02_Add',
+  'bin/testLA03_Substract',
+  'bin/testLA04_Multiply',
+  'bin/testLA05_MaxElement',
+  'bin/testLA06_MinElement',
+  'bin/testLA07_TransposeMultiply',
+  'bin/testLA07_TransposeMultiply_Gram',
+  'bin/testLA08_RowMax',
+  'bin/testLA09_RowMin',
+  'bin/testLA10_ColMax',
+  'bin/testLA11_ColMin',
+  'bin/testLA12_DuplicateRow',
+  'bin/testLA13_DuplicateCol',
+  'bin/testLA14_Inverse',
+  'bin/testLA15_ScaleMultiply',
+  'bin/testLA16_RowSum',
+  'bin/testLA17_ColSum',
+  'bin/testLA20_Parser',
+  'bin/testLA21_Instance',
   'libraries/libLAMaxElementOutputType.so',
   'libraries/libLAMaxElementValueType.so',
   'libraries/libLAMinElementOutputType.so',
@@ -849,6 +851,7 @@ libLATest=common_env.Alias('libLATest', [
   'libraries/libMatrixData.so',
   'libraries/libMatrixMeta.so',
 ])
+
 
 mlBench=common_env.Alias('mlBench', [
 # K-means
