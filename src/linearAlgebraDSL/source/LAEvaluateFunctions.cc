@@ -143,7 +143,7 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
 	                    	}
 	                	}
-	                	myData->print();
+	                	//myData->print();
 	                	storeMatrix->push_back (myData);
 	                	leftCounter--;
 	                	if(leftCounter==0){
