@@ -50,11 +50,11 @@ public:
     Lambda <Handle <MatrixBlock>> getProjection (Handle <MatrixBlock> in1, Handle <MatrixBlock> in2) override {
         return makeLambda (in1, in2, [] (Handle<MatrixBlock> & in1, Handle<MatrixBlock> & in2) {
             if (MatrixBlock::librayCode==EIGEN_CODE){
-                std::cout <<"Test Eigen" << std::endl;
-                std::cout <<"Current Matrix1 :"<< std::endl;
-                in1->print();
-                std::cout <<"Current Matrix2 :"<< std::endl;
-                in2->print();
+                //std::cout <<"Test Eigen" << std::endl;
+                //std::cout <<"Current Matrix1 :"<< std::endl;
+                //in1->print();
+                //std::cout <<"Current Matrix2 :"<< std::endl;
+                //in2->print();
                 if(in1->getColNums()!=in2->getColNums() || in1->getRowNums() != in2->getRowNums()){
                     std::cerr << "Block dimemsions mismatch!" << std::endl;
                     exit(1);
@@ -73,8 +73,8 @@ public:
 
                 scaleProductMatrix = currentMatrix1.array() * currentMatrix2.array();
                 
-                std::cout <<"Result Matrix :"<< std::endl;
-                resultMatrixBlock->print();
+                //std::cout <<"Result Matrix :"<< std::endl;
+                //resultMatrixBlock->print();
                 
                 return resultMatrixBlock;
             }

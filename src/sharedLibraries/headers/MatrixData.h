@@ -37,14 +37,14 @@ class MatrixData :public pdb::Object{
     
 private:
     void SumAggregate(MatrixData &other){
-        std::cout << "Sum Aggregation +" << std::endl;
+        //std::cout << "Sum Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             (*rawData)[i] += (*(other.rawData))[i];
         }
     }
 
     void RowMaxAggregate(MatrixData &other){
-        std::cout << "Row-wise max Aggregation +" << std::endl;
+        //std::cout << "Row-wise max Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             if((*rawData)[i] < (*(other.rawData))[i]){
                 (*rawData)[i] = (*(other.rawData))[i];
@@ -53,7 +53,7 @@ private:
     }
 
     void RowMinAggregate(MatrixData &other){
-        std::cout << "Row-wise min Aggregation +" << std::endl;
+        //std::cout << "Row-wise min Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             if((*rawData)[i] > (*(other.rawData))[i]){
                 (*rawData)[i] = (*(other.rawData))[i];
@@ -62,7 +62,7 @@ private:
     }
 
     void ColMaxAggregate(MatrixData &other){
-        std::cout << "Col-wise max Aggregation +" << std::endl;
+        //std::cout << "Col-wise max Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             if((*rawData)[i] < (*(other.rawData))[i]){
                 (*rawData)[i] = (*(other.rawData))[i];
@@ -71,7 +71,7 @@ private:
     }
 
     void ColMinAggregate(MatrixData &other){
-        std::cout << "Col-wise min Aggregation +" << std::endl;
+        //std::cout << "Col-wise min Aggregation +" << std::endl;
         for(int i=0;i<rowNums*colNums;i++){
             if((*rawData)[i] > (*(other.rawData))[i]){
                 (*rawData)[i] = (*(other.rawData))[i];
@@ -132,9 +132,9 @@ public:
 
 
     MatrixData& operator + (MatrixData &other){
-        std::cout<< "+ operator:" << std::endl;
-        this->print();
-        other.print();
+        //std::cout<< "+ operator:" << std::endl;
+        //this->print();
+        //other.print();
         if(rowNums != other.rowNums || colNums != other.colNums ){
             this->rawData->clear();
         }
@@ -155,7 +155,7 @@ public:
                 ColMinAggregate(other);
             }
             else {
-                std::cout << "Operator not supported yet!" << std::endl; 
+                std::cerr << "Operator not supported yet!" << std::endl; 
             }  
         }
         return *this;

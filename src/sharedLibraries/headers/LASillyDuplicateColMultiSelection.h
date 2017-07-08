@@ -54,8 +54,8 @@ private:
 	LADimension targetDim;
 
 	Vector<Handle <MatrixBlock>> duplicateCol(Handle <MatrixBlock> checkMe){
-		checkMe->print();
-		std::cout<<std::endl;
+		//checkMe->print();
+		//std::cout<<std::endl;
 		Vector<Handle <MatrixBlock> > result;
 		for(int i = 0; i < targetDim.blockColNum; i++){
 			int rowNums = checkMe->getRowNums();
@@ -70,8 +70,8 @@ private:
 					(*(resultMatrixBlock->getRawDataHandle()))[ii*colNums+jj] = (*(checkMe->getRawDataHandle()))[ii];
 				}
 			}
-			resultMatrixBlock->print();
-			std::cout<<std::endl;
+			//resultMatrixBlock->print();
+			//std::cout<<std::endl;
 			result.push_back(resultMatrixBlock);
 		}
 		return result;

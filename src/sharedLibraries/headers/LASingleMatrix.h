@@ -57,8 +57,8 @@ public:
 
 	pdb::Handle<SingleMatrix> getInverse(){
 		if (MatrixBlock::librayCode==EIGEN_CODE){
-        	std::cout <<"Test Eigen" << std::endl;
-        	std::cout <<"Current Matrix :"<< std::endl;
+        	//std::cout <<"Test Eigen" << std::endl;
+        	//std::cout <<"Current Matrix :"<< std::endl;
         	this->print();
         	int rowNums = myValue.getRowNums();
         	int colNums = myValue.getColNums();
@@ -78,8 +78,8 @@ public:
         	//std::cout <<"Test Safe ???" << std::endl;
         	inverseMatrix = currentMatrix.inverse();
         	//std::cout << "Eigen matrix:\n" << inverseMatrix << std::endl; 
-        	std::cout <<"Inverse Matrix :"<< std::endl;
-        	resultMatrixBlock->print();
+        	//std::cout <<"Inverse Matrix :"<< std::endl;
+        	//resultMatrixBlock->print();
 			
 			pdb::Handle<SingleMatrix> result = pdb::makeObject<SingleMatrix>(*resultMatrixBlock);
         	return result;

@@ -47,9 +47,9 @@ public:
 	Lambda <Handle <MatrixBlock>> getProjection (Handle <MatrixBlock> checkMe) override {
         return makeLambda (checkMe, [] (Handle<MatrixBlock> & checkMe) {
         	if (MatrixBlock::librayCode==EIGEN_CODE){
-            	std::cout <<"Test Eigen" << std::endl;
-            	std::cout <<"Current Matrix :"<< std::endl;
-            	checkMe->print();
+            	//std::cout <<"Test Eigen" << std::endl;
+            	//std::cout <<"Current Matrix :"<< std::endl;
+            	//checkMe->print();
             	int rowNums = checkMe->getRowNums();
             	int colNums = checkMe->getColNums();
             	int blockRowIndex = checkMe->getBlockRowIndex();
@@ -67,8 +67,8 @@ public:
             	//std::cout <<"Test Safe ???" << std::endl;
             	transposeMatrix = currentMatrix.transpose();
             	//std::cout << "Eigen matrix:\n" << transposeMatrix << std::endl; 
-            	std::cout <<"Transposed Matrix :"<< std::endl;
-            	resultMatrixBlock->print();
+            	//std::cout <<"Transposed Matrix :"<< std::endl;
+            	//resultMatrixBlock->print();
 				
             	return resultMatrixBlock;
         	}
