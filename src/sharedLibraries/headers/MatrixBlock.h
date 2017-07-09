@@ -85,6 +85,9 @@ public:
         //std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
     }
 
+    void printMeta(){
+        std :: cout << "Block: (" << meta.blockRowIndex <<","<< meta.blockColIndex << "), size: (" << data.rowNums <<","<< data.colNums<<"), length:" << data.rawData->size()<<" ";
+    } 
 
     void print () override {
         std :: cout << "Block: (" << meta.blockRowIndex <<","<< meta.blockColIndex << "), size: (" << data.rowNums <<","<< data.colNums<<"), length:" << data.rawData->size()<<" ";

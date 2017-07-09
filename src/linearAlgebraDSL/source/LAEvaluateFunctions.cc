@@ -492,14 +492,10 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
 				SetIterator <MatrixBlock> output = instance.getQueryClient().getSetIterator<MatrixBlock> ("LA_db", outputSetName);
         		std :: cout << "Output Matrix:" << std::endl;
         		int count = 0;
-        		int printCount = 0;
         		for (auto a : output) {
-            		if(printCount == count){
-            			std :: cout << count << ":";
-            			a->print();
-            			std :: cout << std::endl;
-            			printCount *= 2;
-            		}
+            		std :: cout << count << ":";
+            		a->printMeta();
+            		std :: cout << std::endl;
             		count ++;
         		}
         		std :: cout << "Matrix output block nums:" << count << "\n";
