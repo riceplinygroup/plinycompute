@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TPCH_DATA_GENERATOR_CC
-#define TPCH_DATA_GENERATOR_CC
+#ifndef TPCH_GET_CUSTOMER_COUNT_CC
+#define TPCH_GET_CUSTOMER_COUNT_CC
 
 #include "CatalogClient.h"
 
