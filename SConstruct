@@ -417,6 +417,10 @@ common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/C
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
+common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
+common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
+
+
 
 
 
@@ -689,7 +693,10 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerWriteSet.so',
   'libraries/libCountAggregation.so',
   'bin/tpchQuery',
-  'bin/tpchDataGenerator'
+  'bin/tpchDataGenerator',
+  'bin/tpchGetCustomerCount',
+  'bin/tpchRegisterAndCreateSets'
+  
 ])
 
 

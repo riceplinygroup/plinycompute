@@ -44,7 +44,6 @@
 #include "DispatcherClient.h"
 #include "DataTypes.h"
 #include "InterfaceFunctions.h"
-#include "SupplierData.h"
 
 #include "Part.h"
 #include "Supplier.h"
@@ -52,12 +51,14 @@
 #include "Order.h"
 #include "Customer.h"
 #include "CustomerSupplierPartWriteSet.h"
+#include "CustomerWriteSet.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
 #include "SupplierData.h"
 #include "CountAggregation.h"
 #include "SumResult.h"
+
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -85,7 +86,6 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
-
 #include "WriteStringSet.h"
 
 using namespace std;
@@ -102,10 +102,12 @@ using namespace std;
 #define MB (1024*KB)
 #define GB (1024*MB)
 
-int main() {
+#define BLOCKSIZE (256*MB)
 
-	int noOfCopies = 2;
-	string errMsg;
+
+
+int main(int argc, char * argv[]) {
+
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -115,74 +117,61 @@ int main() {
 	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
 	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
+	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
+	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
 	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
+	string errMsg;
+
+	pdb::makeObjectAllocatorBlock((size_t) 2 * GB, true);
+
+
+
+	// WE CHECK THE NUBMER OF STORED CUSTOMERS
+
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<SumResult>("TPCH_db", "t_output_set_1", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<CustomerWriteSet>("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
 		cout << "Created set.\n";
 	}
-
 	// for allocations
-	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
+	const UseTemporaryAllocationBlock tempBlock_Customers { 1024 * 1024 * 128 };
 
 	// make the query graph
-	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
+	Handle<Computation> myScanSet_CUSTOMER = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
-	myFlatten->setInput(myScanSet);
-
-	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
-	myGroupBy->setInput(myFlatten);
-
-	// Get the count by doing a count aggregation on the final results
-	Handle<Computation> countAggregation = makeObject<CountAggregation>();
-	countAggregation->setInput(myGroupBy);
-
-	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
-	myWriteSet->setInput(countAggregation);
-
-
-
-
-
-	// Query Execution and Time Calculation
+	Handle<Computation> myWriteSet_Customer = makeObject<CustomerWriteSet>("TPCH_db", "output_setCustomer");
+	myWriteSet_Customer->setInput(myScanSet_CUSTOMER);
 
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
+	if (!queryClient.executeComputations(errMsg, myWriteSet_Customer)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	}
 
 	std::cout << std::endl;
 	auto end = std::chrono::high_resolution_clock::now();
+	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
-	float timeDifference = (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) / (float) 1000000000;
+	SetIterator<Customer> result_Customers = queryClient.getSetIterator<Customer>("TPCH_db", "output_setCustomer");
+	int customerCount = 0;
 
-	std::cout << "#TimeDuration: " << timeDifference << " Second " << std::endl;
+	// a set to check if we stored all of the customers correctly.
+	set<int> supplierIDs;
 
-
-
-
-
-
-	// Printing results to double check
-	std::cout << "to print result..." << std::endl;
-	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
-
-	std::cout << "Query results: ";
-	int count = 0;
-	for (auto a : result) {
-		count++;
-		std::cout << "Total count is: " << a->total << std::endl;
+	// GO deep inside each customer and add their suppliers IDs to the set.
+	for (auto a : result_Customers) {
+		customerCount++;
 	}
-	std::cout << "Output count:" << count << "\n";
 
-	// Remove the output set
-	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
+	std::cout << "Number of Customers Stored:" << customerCount << "\n";
+
+
+	// CLEAN UP. Remove the Customer output set
+	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
 		exit(-1);
 	} else {
@@ -197,7 +186,7 @@ int main() {
 
 	}
 
-	const UseTemporaryAllocationBlock tempBlock2 { 1024 * 1024 * 128 };
-
 }
+
 #endif
+
