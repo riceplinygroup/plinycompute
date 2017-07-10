@@ -75,15 +75,29 @@ TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computatio
                exit(1);              
            }
            std :: string mySourceSetName = curInputSetIdentifier->getDatabase() + ":" + curInputSetIdentifier->getSetName();
-           curSourceSetNames.push_back(mySourceSetName);
-           curSourceSets[mySourceSetName] = curInputSetIdentifier;
-           curSourceNodes[mySourceSetName] = curSource;
-           curProcessedConsumers[mySourceSetName] = 0;
+           std :: cout << "mySourceSetName=" << mySourceSetName << std :: endl;
+           int j = 0;
+           for (; j < curSourceSetNames.size(); j ++) {
+              if (curSourceSetNames[j].compare(mySourceSetName)==0) {
+                 std ::cout << "curSourceSetName[" << j << "]=" << curSourceSetNames[j] << std :: endl;
+                 break;
+              }
+           }
+           if (j == curSourceSetNames.size()) {
+              std :: cout << j << ": add new source: " << mySourceSetName << std :: endl;
+              curSourceSetNames.push_back(mySourceSetName);
+              curSourceSets[mySourceSetName] = curInputSetIdentifier;
+              curProcessedConsumers[mySourceSetName] = 0;
+              curSourceNodes[mySourceSetName].push_back(curSource);
+           } else {
+              std :: cout << "add new computation for source: " << mySourceSetName << std :: endl;
+              curSourceNodes[mySourceSetName].push_back(curSource);
+           }
        }
        //check current string
-       PDB_COUT << "All initial sources: " << std :: endl;
+       std :: cout << "All initial sources: " << std :: endl;
        for (std :: string & myStr : curSourceSetNames) {
-           PDB_COUT << myStr << std :: endl;
+           std :: cout << myStr << std :: endl;
        }
     }
 }
@@ -272,6 +286,18 @@ Handle<BroadcastJoinBuildHTJobStage> TCAPAnalyzer::createBroadcastJoinBuildHTJob
 //to remove source
 bool TCAPAnalyzer::removeSource (std :: string oldSetName) {
         bool ret;
+        if (curSourceNodes.count(oldSetName) > 0) {
+            if(curSourceNodes[oldSetName].size()>0) {
+                curSourceNodes[oldSetName].erase(curSourceNodes[oldSetName].begin());
+                curProcessedConsumers[oldSetName] = 0;
+            } 
+            if(curSourceNodes[oldSetName].size()>0) {
+                return true;
+            }else {
+                curSourceNodes.erase(oldSetName);
+            }
+            
+        }
         for (std :: vector<std :: string>::iterator iter = curSourceSetNames.begin(); iter != curSourceSetNames.end(); iter++) {
             PDB_COUT << "curSetName = " << *iter << std :: endl;
             std :: string curStr = *iter;
@@ -280,16 +306,19 @@ bool TCAPAnalyzer::removeSource (std :: string oldSetName) {
                 break;
             }
         }
+
         if (curSourceSets.count(oldSetName) > 0) {
             curSourceSets.erase(oldSetName);
         } else {
             ret = false;
         }
-        if (curSourceNodes.count(oldSetName) > 0) {
-            curSourceNodes.erase(oldSetName);
+
+        if (curProcessedConsumers.count(oldSetName) >0) {
+            curProcessedConsumers.erase(oldSetName);
         } else {
             ret = false;
-        }
+        }      
+
         std :: cout << "removed set " << oldSetName << std :: endl;
         return ret;
 }
@@ -303,8 +332,10 @@ bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIde
         //add new set
         curSourceSetNames.push_back(newSetName);
         curSourceSets[newSetName] = newSet;
-        curSourceNodes[newSetName] = newAtomicComp;
-
+        curSourceNodes[newSetName].push_back(newAtomicComp);
+        if(curProcessedConsumers.count(newSetName) == 0) {
+            curProcessedConsumers[newSetName] = 0;
+        }
     } 
     //get old set name
     std :: string oldSetName = oldSet->getDatabase() + ":" + oldSet->getSetName();
@@ -319,7 +350,7 @@ bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIde
     //remove the old stuff
     AtomicComputationPtr oldNode;
     if (curSourceNodes.count(oldSetName) >0) {
-        oldNode = curSourceNodes[oldSetName];
+        oldNode = curSourceNodes[oldSetName][0];
     } else {
         //std :: cout << oldSetName << " doesn't exist" << std :: endl;
         return false;
@@ -332,29 +363,7 @@ bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIde
     unsigned int numConsumers = consumers.size();
     unsigned int numProcessedConsumers = curProcessedConsumers[oldSetName];
     if (numConsumers == numProcessedConsumers) {    
-        for (std :: vector<std :: string>::iterator iter = curSourceSetNames.begin(); iter != curSourceSetNames.end(); iter++) {
-            PDB_COUT << "curSetName = " << *iter << std :: endl;
-            std :: string curStr = *iter;
-            if (curStr == oldSetName) {
-                iter = curSourceSetNames.erase(iter);
-                break;
-            }
-        } 
-        if (curSourceSets.count(oldSetName) > 0) {
-            curSourceSets.erase(oldSetName);
-        } else {
-            ret = false;
-        }
-        if (curSourceNodes.count(oldSetName) > 0) {
-            curSourceNodes.erase(oldSetName);
-        } else {
-            ret = false;
-        }
-        if (curProcessedConsumers.count(oldSetName) > 0) {
-            curProcessedConsumers.erase(oldSetName);
-        } else {
-            ret = false;
-        }
+        removeSource(oldSetName);
         //std :: cout << "removed for " << sourceSpecifier << " in set " << oldSetName << std :: endl;
     } else {
         //std :: cout << "numConsumers for " << sourceSpecifier << " in set " << oldSetName << " is " << numConsumers << std :: endl;
@@ -644,7 +653,7 @@ AtomicComputationPtr TCAPAnalyzer :: getSourceComputation (std :: string name) {
     if (curSourceNodes.count (name) == 0) {
         return nullptr;
     } else {
-        return curSourceNodes[name];
+        return curSourceNodes[name][0];
     }
 
 }
@@ -682,7 +691,7 @@ double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     //std :: cout << "to search set with name=" << key << std :: endl;
     Handle<SetIdentifier> curSet = this->getSourceSetIdentifier(key);
     if (curSet == nullptr) {
-        std :: cout << "WARNING: there is no source set" << std :: endl;
+        std :: cout << "WARNING: there is no source set for key=" << key << std :: endl;
         return 0;
     }
     //std :: cout << "curSet has database name=" << curSet->getDatabase() << " and set name=" << curSet->getSetName() << std :: endl;
