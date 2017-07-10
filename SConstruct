@@ -419,6 +419,7 @@ common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
 common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
 common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
+common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
 
 
 
@@ -695,7 +696,8 @@ tpch=common_env.Alias('tpch', [
   'bin/tpchQuery',
   'bin/tpchDataGenerator',
   'bin/tpchGetCustomerCount',
-  'bin/tpchRegisterAndCreateSets'
+  'bin/tpchRegisterAndCreateSets',
+  'bin/tpchDataGeneratorAll'
   
 ])
 
