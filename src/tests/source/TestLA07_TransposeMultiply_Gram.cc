@@ -200,7 +200,8 @@ int main (int argc, char * argv[]) {
     QueryClient myClient (8108, "localhost", clientLogger, true);
     
     Handle<Computation> myMatrixSet1 = makeObject<LAScanMatrixBlockSet>("LA07_db", "LA_input_set1");
-    Handle<Computation> myMatrixSet2 = myMatrixSet1;
+    //Handle<Computation> myMatrixSet2 = myMatrixSet1;
+    Handle<Computation> myMatrixSet2 = makeObject<LAScanMatrixBlockSet>("LA07_db", "LA_input_set1");
 
     std::cout<<"ScanSet1 offset<" << myMatrixSet1.getOffset() <<"> ScanSet2 offset<" << myMatrixSet2.getOffset() <<">." <<std::endl; 
 
