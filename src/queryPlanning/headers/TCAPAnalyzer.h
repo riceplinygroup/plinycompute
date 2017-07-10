@@ -149,7 +149,7 @@ bool dynamicPlanningOrNot;
 std :: map<std :: string, Handle<SetIdentifier>> curSourceSets;
 
 //the mapping of set name to source computation node, which will only be used in dynamicPlanning mode, and will keep changing
-std :: map<std :: string, AtomicComputationPtr> curSourceNodes;
+std :: map<std :: string, std :: vector<AtomicComputationPtr>> curSourceNodes;
 
 //the mapping of set name to number of processed consumers
 std :: map<std :: string, unsigned int> curProcessedConsumers;
