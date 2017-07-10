@@ -564,6 +564,7 @@ common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
 common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
 common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
+common_env.Program('bin/test97', ['build/tests/Test97.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -605,7 +606,8 @@ common_env.Depends(pdbTest, [
   'bin/test52', 
   'bin/test74', 
   'bin/test79', 
-  'bin/test78', 
+  'bin/test78',
+  'bin/test90', 
   'libraries/libCartesianJoin.so', 
   'libraries/libChrisSelection.so', 
   'libraries/libEmployeeSelection.so',
@@ -630,7 +632,9 @@ common_env.Depends(pdbTest, [
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
   'libraries/libWriteSumResultSet.so',
-  'libraries/libWriteDoubleSet.so'
+  'libraries/libWriteDoubleSet.so',
+  'libraries/libOptimizedEmployeeGroupBy.so',
+  'libraries/libScanOptimizedSupervisorSet.so'
 ])
 
 lda=common_env.Alias('lda', [
@@ -667,6 +671,9 @@ lda=common_env.Alias('lda', [
 
 
 tpch=common_env.Alias('tpch', [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
   # TPCH Benchamrk 
   'libraries/libPart.so',
   'libraries/libSupplier.so',
@@ -691,6 +698,9 @@ tpch=common_env.Alias('tpch', [
 common_env.Alias('tests', pdbTest)
 
 mainTests=common_env.Alias('mainTests', [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
   'bin/test47',
   'bin/test47Join',
   'bin/test47JoinB',
@@ -738,6 +748,7 @@ mainTests=common_env.Alias('mainTests', [
   'bin/test94',
   'bin/test95',
   'bin/test96',
+  'bin/test97',
   'libraries/libStringIntPairMultiSelection.so',
   'libraries/libAllSelection.so',
   'libraries/libAllSelectionWithCreation.so',
@@ -855,6 +866,9 @@ libLATest=common_env.Alias('libLATest', [
 
 
 mlBench=common_env.Alias('mlBench', [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
