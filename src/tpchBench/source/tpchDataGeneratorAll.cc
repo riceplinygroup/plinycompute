@@ -578,27 +578,27 @@ int main(int argc, char * argv[]) {
 	for (auto a : result_Customers) {
 		customerCount++;
 
-		Vector<Order> orders=a->getOrders();
-
-		for(int i=0; i<orders.size(); i++){
-			Vector<LineItem> lineItems=orders[i].getLineItems();
-
-			for(int j=0; j<lineItems.size(); j++){
-				int supp= lineItems[j].getSupplier().getSupplierKey();
-				supplierIDs.insert(supp);
-//				cout<< lineItems[j].getSupplier().getName()<<endl;
-			}
-		}
+//		Vector<Order> orders=a->getOrders();
+//
+//		for(int i=0; i<orders.size(); i++){
+//			Vector<LineItem> lineItems=orders[i].getLineItems();
+//
+//			for(int j=0; j<lineItems.size(); j++){
+//				int supp= lineItems[j].getSupplier().getSupplierKey();
+//				supplierIDs.insert(supp);
+////				cout<< lineItems[j].getSupplier().getName()<<endl;
+//			}
+//		}
 	}
 
 	std::cout << "Number of Customers Stored:" << customerCount << "\n";
 
-	// Now check if we have all 1000 suppliers inside the customers
-	for (int i = 1; i <= 1000; ++i) {
-		if (supplierIDs.find(i) == supplierIDs.end()) {
-			cout << "Supplier " << i << " Not Stored. " << endl;
-		}
-	}
+//	// Now check if we have all 1000 suppliers inside the customers
+//	for (int i = 1; i <= 1000; ++i) {
+//		if (supplierIDs.find(i) == supplierIDs.end()) {
+//			cout << "Supplier " << i << " Not Stored. " << endl;
+//		}
+//	}
 
 
 	// CLEAN UP. Remove the Customer output set
