@@ -439,7 +439,7 @@ void parseTCAPtoProlog(string & logicalPlan) {
 int main() {
 	
 	// TCAP String:
-/*
+//*
 	std :: string logicalPlan =
 	"inputData (in) <= SCAN ('mySet', 'myData', 'ScanUserSet_0') \n\
 	inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
@@ -456,9 +456,10 @@ int main() {
 	justSales (aggOut, isSales) <= FILTER (checkSales (isSales), checkSales (aggOut), 'SelectionComp_3') \n\
 	final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
 	nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
+	logicalPlan.push_back ('\0');
 //*/	
 	
-//*
+/*
 	std :: string logicalPlan =
 	"inputDataForScanUserSet_0(in0) <= SCAN ('tpch_bench_set1', 'TCAP_db', 'ScanUserSet_0')	\n\
 	inputDataForScanUserSet_1(in1) <= SCAN ('tpch_bench_set2', 'TCAP_db', 'ScanUserSet_1')	\n\
@@ -477,8 +478,9 @@ int main() {
 	equals_2OutForSelectionComp3(nativ_3_2OutFor,att_OutFor_birthYear,att_OutFor_checkBirthYear,bool_2_3) <= APPLY (attAccess_1OutForSelectionComp3(att_OutFor_birthYear,att_OutFor_checkBirthYear), attAccess_1OutForSelectionComp3(nativ_3_2OutFor,att_OutFor_birthYear,att_OutFor_checkBirthYear), 'SelectionComp_3', '==_2')	\n\
 	filteredInputForSelectionComp3(nativ_3_2OutFor) <= FILTER (equals_2OutForSelectionComp3(bool_2_3), equals_2OutForSelectionComp3(nativ_3_2OutFor), 'SelectionComp_3')	\n\
 	nativ_3OutForSelectionComp3 (nativ_3_3OutFor) <= APPLY (filteredInputForSelectionComp3(nativ_3_2OutFor), filteredInputForSelectionComp3(), 'SelectionComp_3', 'native_lambda_3')";
-//*/
 	logicalPlan.push_back ('\0');
+//*/
+	
 
 	
 	parseTCAPtoProlog(logicalPlan);
