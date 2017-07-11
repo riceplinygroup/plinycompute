@@ -172,7 +172,8 @@ bottomUpSearch(Node, Input, Projection, LeavesRemaining, ListofVisitedNodes):-
 				write(Node),
 				link(Next,Node,Out,In,Project),
 				write("("),printList(Out),write(")<= OUTPUT("), 
-				output(Node,SetName,DBName),
+				output(Node, InName, SetName,DBName),
+				printNameListPair(InName, Input), write(","), 
 				printString(SetName),write(","),
 				printString(DBName),write(","),
 				printString(CompName), write(")"),nl, 
@@ -186,7 +187,7 @@ bottomUpSearch(Node, Input, Projection, LeavesRemaining, ListofVisitedNodes):-
 				write(Node),
 				link(Next,Node,Out,In,Project),
 				write("("),printList(Out),write(")<= AGGREGATE("),
-				aggregate(Node, InName, PrName),
+				aggregate(Node, InName),
 				printNameListPair(InName, Input), write(","), 
 				printString(CompName),		
 				write(")"), nl, bottomUpSearch(Next, In, Project, LeavesRemaining, Visited)
