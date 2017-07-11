@@ -316,77 +316,82 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 
 
-	int count = 0;
-	string errMsg;
+	size_t sendingObjectSize = 0;
+		string errMsg;
 
-	// make a new Allocation Block
-	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+		// make a new Allocation Block
+		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+		pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
-	// Copy the same data multiple times to make it bigger.
-	for (int i = 0; i < noOfCopies; ++i) {
+		// Copy the same data multiple times to make it bigger.
+		for (int i = 0; i < noOfCopies; ++i) {
 
-		//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
-		infile.open(customerFile.c_str());
-		cout << "Storing copy number " << i << endl;
-		pdb::Handle<Customer> objectToAdd = nullptr;
 
-		while (getline(infile, line)) {
-			std::vector<string> tokens=parseLine(line);
-			int customerKey = atoi(tokens.at(0).c_str());
 
-			try {
+			//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
+			infile.open(customerFile.c_str());
+			cout << "Storing copy number " << i << endl;
+			pdb::Handle<Customer> objectToAdd = nullptr;
 
-				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
-				storeMeCustomerList->push_back(objectToAdd);
+			while (getline(infile, line)) {
+				std::vector<string> tokens=parseLine(line);
+				int customerKey = atoi(tokens.at(0).c_str());
 
-			} catch (NotEnoughSpace &e) {
-
-				std::cout << "Got into Exception part. " << std::endl;
-
-				// First send the existing data over
-				if (storeMeCustomerList->size() > 0) {
-					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-						std::cout << "Failed to send data to dispatcher server" << std::endl;
-					}
-					count+=storeMeCustomerList->size();
-
-					std::cout << "Sending data! Count: " << count << std::endl;
-				} else {
-					std::cout << "Vector is zero." << count << std::endl;
-				}
-
-				// make a allocation Block and a new vector.
-				pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-
-				// retry to make the object and add it to the vector
 				try {
-					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
-							tokens.at(7));
+
+					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
 					storeMeCustomerList->push_back(objectToAdd);
+
 				} catch (NotEnoughSpace &e) {
-					std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
-					return;
+
+					std::cout << "Got into Exception part. " << std::endl;
+
+					// First send the existing data over
+					if (storeMeCustomerList->size() > 0) {
+						if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+							std::cout << "Failed to send data to dispatcher server" << std::endl;
+						}
+						sendingObjectSize+=storeMeCustomerList->size();
+
+						std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
+					} else {
+						std::cout << "Vector is zero." << sendingObjectSize << std::endl;
+					}
+
+					// make a allocation Block and a new vector.
+					// pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+					storeMeCustomerList->clear();
+
+					// retry to make the object and add it to the vector
+					try {
+						objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+								tokens.at(7));
+						storeMeCustomerList->push_back(objectToAdd);
+					} catch (NotEnoughSpace &e) {
+						std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
+						return;
+					}
 				}
 			}
+
+			// send the rest of data at the end, it can happen that the exception never happens.
+			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+				std::cout << "Failed to send data to dispatcher server" << std::endl;
+			}
+			sendingObjectSize+=storeMeCustomerList->size();
+
+			std::cout << "Send the rest of the data at the end: " << sendingObjectSize  << std::endl;
+
+
+			// make a allocation Block and a new vector.
+	//		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+	//		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+			storeMeCustomerList->clear();
+
+			infile.close();
+			infile.clear();
 		}
-
-		// send the rest of data at the end, it can happen that the exception never happens.
-		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-			std::cout << "Failed to send data to dispatcher server" << std::endl;
-		}
-		count+=storeMeCustomerList->size();
-
-		std::cout << "Send the rest of the data at the end: " << count  << std::endl;
-
-
-		// make a allocation Block and a new vector.
-		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-		infile.close();
-		infile.clear();
-	}
 
 
 }
