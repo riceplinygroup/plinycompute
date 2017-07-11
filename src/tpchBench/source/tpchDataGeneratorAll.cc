@@ -316,7 +316,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 
 
-	int count = 0;
+	size_t sendingObjectSize = 0;
 	string errMsg;
 
 	// make a new Allocation Block
@@ -325,6 +325,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
+
+
 
 		//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 		infile.open(customerFile.c_str());
@@ -349,16 +351,16 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
-					count+=storeMeCustomerList->size();
+					sendingObjectSize+=storeMeCustomerList->size();
 
-					std::cout << "Sending data! Count: " << count << std::endl;
+					std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
 				} else {
-					std::cout << "Vector is zero." << count << std::endl;
+					std::cout << "Vector is zero." << sendingObjectSize << std::endl;
 				}
 
 				// make a allocation Block and a new vector.
-				pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-				storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+				// pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+				storeMeCustomerList->clear();
 
 				// retry to make the object and add it to the vector
 				try {
@@ -376,14 +378,17 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
 		}
-		count+=storeMeCustomerList->size();
+		sendingObjectSize+=storeMeCustomerList->size();
 
-		std::cout << "Send the rest of the data at the end: " << count  << std::endl;
+		std::cout << "Send the rest of the data at the end: " << sendingObjectSize  << std::endl;
 
 
 		// make a allocation Block and a new vector.
-		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+//		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+//		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+		storeMeCustomerList->clear();
+
 		infile.close();
 		infile.clear();
 	}

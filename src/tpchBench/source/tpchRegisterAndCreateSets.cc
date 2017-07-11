@@ -171,7 +171,7 @@ int main(int argc, char * argv[]) {
 		cout << "Not able to register libCustomer type.\n";
 
 
-	cout << "Register furhter Types ... \n";
+	cout << "Register further Types ... \n";
 	cout << errMsg << endl;
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
@@ -197,6 +197,9 @@ int main(int argc, char * argv[]) {
 
 	if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
 		cout << "Not able to register type  libCountAggregation\n";
+
+
+
 
 }
 
