@@ -541,6 +541,11 @@ int main(int argc, char * argv[]) {
 
 	// FIRST WE CHECK THE NUBMER OF STORED CUSTOMERS
 
+	// #################################
+	//   GET the CUSTOMER Number
+	// #################################
+
+
 	// now, create the sets for storing Customer Data
 	if (!distributedStorageManagerClient.createSet<CustomerWriteSet>("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
@@ -577,29 +582,9 @@ int main(int argc, char * argv[]) {
 	// GO deep inside each customer and add their suppliers IDs to the set.
 	for (auto a : result_Customers) {
 		customerCount++;
-
-//		Vector<Order> orders=a->getOrders();
-//
-//		for(int i=0; i<orders.size(); i++){
-//			Vector<LineItem> lineItems=orders[i].getLineItems();
-//
-//			for(int j=0; j<lineItems.size(); j++){
-//				int supp= lineItems[j].getSupplier().getSupplierKey();
-//				supplierIDs.insert(supp);
-////				cout<< lineItems[j].getSupplier().getName()<<endl;
-//			}
-//		}
 	}
 
 	std::cout << "Number of Customers Stored:" << customerCount << "\n";
-
-//	// Now check if we have all 1000 suppliers inside the customers
-//	for (int i = 1; i <= 1000; ++i) {
-//		if (supplierIDs.find(i) == supplierIDs.end()) {
-//			cout << "Supplier " << i << " Not Stored. " << endl;
-//		}
-//	}
-
 
 	// CLEAN UP. Remove the Customer output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
@@ -681,6 +666,7 @@ int main(int argc, char * argv[]) {
 	}
 	std::cout << "Output count:" << count << "\n";
 
+
 	// Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;
@@ -688,6 +674,12 @@ int main(int argc, char * argv[]) {
 	} else {
 		cout << "Set removed. \n";
 	}
+
+
+
+
+
+
 
 	// Clean up the SO files.
 	int code = system("scripts/cleanupSoFiles.sh");
