@@ -420,9 +420,7 @@ common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
 common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
 common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
 common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
-
-
-
+common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc'] + all)
 
 
 # K-means
@@ -697,7 +695,8 @@ tpch=common_env.Alias('tpch', [
   'bin/tpchDataGenerator',
   'bin/tpchGetCustomerCount',
   'bin/tpchRegisterAndCreateSets',
-  'bin/tpchDataGeneratorAll'
+  'bin/tpchDataGeneratorAll',
+  'bin/tpchFlushToDisk'
   
 ])
 
