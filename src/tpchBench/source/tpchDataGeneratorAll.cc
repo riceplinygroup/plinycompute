@@ -330,7 +330,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 		//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
 		infile.open(customerFile.c_str());
-		cout << "Storing copy number " << i << endl;
+//		cout << "Storing copy number " << i << endl;
 		pdb::Handle<Customer> objectToAdd = nullptr;
 
 		while (getline(infile, line)) {
@@ -353,7 +353,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 					}
 					sendingObjectSize+=storeMeCustomerList->size();
 
-					std::cout <<"Copy Number: " <<noOfCopies <<"  Sending data! Count: " << sendingObjectSize << std::endl;
+					std::cout <<"Copy Number: " << i <<"  Sending data! Count: " << sendingObjectSize << std::endl;
 				} else {
 					std::cout << "Vector is zero." << sendingObjectSize << std::endl;
 				}
@@ -510,8 +510,9 @@ int main(int argc, char * argv[]) {
 //	}
 
 	// flush to disk
-	distributedStorageManagerClient.flushData(errMsg);
-	cout << errMsg << endl;
+//	cout<< "Flush data to disk" << endl;
+//	distributedStorageManagerClient.flushData(errMsg);
+//	cout << errMsg << endl;
 
 
 
