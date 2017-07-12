@@ -50,7 +50,7 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
-#include "CustomerSupplierPartWriteSet.h"
+#include "SumResultWriteSet.h"
 #include "CustomerWriteSet.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
