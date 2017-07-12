@@ -51,7 +51,7 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
-#include "CustomerSupplierPartWriteSet.h"
+#include "SumResultWriteSet.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
 #include "ScanCustomerSet.h"
@@ -141,7 +141,7 @@ int main() {
 	Handle<Computation> countAggregation = makeObject<CountAggregation>();
 	countAggregation->setInput(myGroupBy);
 
-	Handle<Computation> myWriteSet = makeObject<CustomerSupplierPartWriteSet>("TPCH_db", "t_output_set_1");
+	Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
 	myWriteSet->setInput(countAggregation);
 
 

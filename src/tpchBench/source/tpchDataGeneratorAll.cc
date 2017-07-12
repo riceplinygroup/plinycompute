@@ -50,7 +50,7 @@
 #include "LineItem.h"
 #include "Order.h"
 #include "Customer.h"
-#include "CustomerSupplierPartWriteSet.h"
+#include "SumResultWriteSet.h"
 #include "CustomerWriteSet.h"
 #include "CustomerSupplierPartGroupBy.h"
 #include "CustomerMultiSelection.h"
@@ -517,8 +517,8 @@ int main(int argc, char * argv[]) {
 
 
 
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
-		cout << "Not able to register type libOrderWriteSet.\n";
+	if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
+		cout << "Not able to register type libSumResultWriteSet.\n";
 
 	if (!catalogClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
 		cout << "Not able to register type libCustomerWriteSet.\n";
