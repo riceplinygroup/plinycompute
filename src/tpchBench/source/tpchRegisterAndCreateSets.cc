@@ -198,7 +198,8 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
 		cout << "Not able to register type  libCountAggregation\n";
 
-
+	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
+		cout << "Not able to register type  libCountCustomer\n";
 
 
 }

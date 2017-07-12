@@ -414,6 +414,7 @@ common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/Suppl
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/CountAggregation.cc'] + all)
+common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/CountCustomer.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
@@ -691,6 +692,7 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
   'libraries/libCountAggregation.so',
+  'libraries/libCountCustomer.so',
   'bin/tpchQuery',
   'bin/tpchDataGenerator',
   'bin/tpchGetCustomerCount',

@@ -58,6 +58,7 @@
 #include "SupplierData.h"
 #include "CountAggregation.h"
 #include "SumResult.h"
+#include "CountCustomer.h"
 
 
 #include "Handle.h"
@@ -130,44 +131,65 @@ int main(int argc, char * argv[]) {
 	// WE CHECK THE NUBMER OF STORED CUSTOMERS
 
 	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<CustomerWriteSet>("TPCH_db", "output_setCustomer", errMsg)) {
+	if (!distributedStorageManagerClient.createSet<SumResultWriteSet>("TPCH_db", "output_setCustomer", errMsg)) {
 		cout << "Not able to create set: " + errMsg;
 		exit(-1);
 	} else {
 		cout << "Created set.\n";
 	}
+
+
+
+
 	// for allocations
 	const UseTemporaryAllocationBlock tempBlock_Customers { 1024 * 1024 * 128 };
 
 	// make the query graph
 	Handle<Computation> myScanSet_CUSTOMER = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myWriteSet_Customer = makeObject<CustomerWriteSet>("TPCH_db", "output_setCustomer");
-	myWriteSet_Customer->setInput(myScanSet_CUSTOMER);
+	// Get the count by doing a count aggregation on the final results
+	Handle<Computation> countAggregation = makeObject<CountCustomer>();
+	countAggregation->setInput(myScanSet_CUSTOMER);
 
+	Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "output_setCustomer");
+	myWriteSet->setInput(countAggregation);
+
+//	Handle<Computation> myWriteSet_Customer = makeObject<CustomerWriteSet>("TPCH_db", "output_setCustomer");
+//	myWriteSet_Customer->setInput(myScanSet_CUSTOMER);
+
+
+
+
+
+	// execute the query
 	auto begin = std::chrono::high_resolution_clock::now();
 
-	if (!queryClient.executeComputations(errMsg, myWriteSet_Customer)) {
+	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
 		std::cout << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	}
-
 	std::cout << std::endl;
 	auto end = std::chrono::high_resolution_clock::now();
 	std::cout << "Time Duration: " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns." << std::endl;
 
-	SetIterator<Customer> result_Customers = queryClient.getSetIterator<Customer>("TPCH_db", "output_setCustomer");
-	int customerCount = 0;
 
-	// a set to check if we stored all of the customers correctly.
-	set<int> supplierIDs;
 
-	// GO deep inside each customer and add their suppliers IDs to the set.
-	for (auto a : result_Customers) {
-		customerCount++;
+
+	// Printing results to double check
+	std::cout << "to print result..." << std::endl;
+	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "output_setCustomer");
+
+	std::cout << "Query results: ";
+	int count = 0;
+	for (auto a : result) {
+		count++;
+		std::cout << "Total count is: " << a->total << std::endl;
 	}
+	std::cout << "Output count:" << count << "\n";
 
-	std::cout << "Number of Customers Stored:" << customerCount << "\n";
+
+
+
 
 
 	// CLEAN UP. Remove the Customer output set
