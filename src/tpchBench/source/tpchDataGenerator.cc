@@ -344,7 +344,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 				} catch (NotEnoughSpace &e) {
 
-					std::cout << "Got into Exception part. " << std::endl;
+//					std::cout << "Got into Exception part. " << std::endl;
 
 					// First send the existing data over
 					if (storeMeCustomerList->size() > 0) {
@@ -353,7 +353,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 						}
 						sendingObjectSize+=storeMeCustomerList->size();
 
-						std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
+						std::cout <<"Copy Number: " <<noOfCopies <<"  Sending data! Count: " << sendingObjectSize << std::endl;
 					} else {
 						std::cout << "Vector is zero." << sendingObjectSize << std::endl;
 					}
