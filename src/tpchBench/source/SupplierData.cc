@@ -19,7 +19,7 @@
 #ifndef CustomerSupplierPartAGG_CC
 #define CustomerSupplierPartAGG_CC
 
-#include "../headers/SupplierData.h"
+#include "SupplierData.h"
 
 #include "GetVTable.h"
 
