@@ -89,13 +89,6 @@
 
 using namespace std;
 
-// Run a Cluster on Localhost
-// ./bin/pdb-cluster localhost 8108 Y
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8109
-// ./bin/pdb-server 4 4000 localhost:8108 localhost:8110
-
-// TPCH data set is available here https://drive.google.com/file/d/0BxMSXpJqaNfNMzV1b1dUTzVqc28/view
-// Just unzip the file and put the folder in main directory of PDB
 
 #define KB 1024
 #define MB (1024*KB)
@@ -104,18 +97,6 @@ using namespace std;
 #define BLOCKSIZE (256*MB)
 
 int main(int argc, char * argv[]) {
-
-	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
-	string scaleFactor = "0.1";
-	int noOfCopies = 1;
-
-	if (argc > 1) {
-		scaleFactor = std::string(argv[1]);
-	}
-
-	if (argc > 2) {
-		noOfCopies = atoi(argv[2]);
-	}
 
 	// Connection info
 	string masterHostname = "localhost";
@@ -126,8 +107,6 @@ int main(int argc, char * argv[]) {
 
 	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
 	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-	pdb::DispatcherClient dispatcherClient = DispatcherClient(masterPort, masterHostname, clientLogger);
-	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
 	string errMsg;
 
@@ -149,6 +128,7 @@ int main(int argc, char * argv[]) {
 
 	cout << "Register further Types ... \n";
 	cout << errMsg << endl;
+
 
 	if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
 		cout << "Not able to register type libSumResultWriteSet.\n";
@@ -176,6 +156,10 @@ int main(int argc, char * argv[]) {
 
 	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
 		cout << "Not able to register type  libCountCustomer\n";
+
+
+	cout << errMsg << endl;
+
 
 	// now, create a new database
 	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
