@@ -59,7 +59,6 @@
 #include "CountAggregation.h"
 #include "SumResult.h"
 
-
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -104,9 +103,6 @@ using namespace std;
 
 #define BLOCKSIZE (256*MB)
 
-
-
-
 int main(int argc, char * argv[]) {
 
 	// TPCH Data file scale - Data should be in folder named "tables_scale_"+"scaleFactor"
@@ -135,25 +131,6 @@ int main(int argc, char * argv[]) {
 
 	string errMsg;
 
-
-	// now, create a new database
-	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
-		cout << "Not able to create database: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created TPCH_db database.\n";
-	}
-
-	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
-		cout << "Not able to create set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created tpch_bench_set1  set.\n";
-	}
-
-
-
 	cout << "Register Types Part, Supplier, LineItem, Order, Customer \n";
 	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
 		cout << "Not able to register libPart type.\n";
@@ -169,7 +146,6 @@ int main(int argc, char * argv[]) {
 
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
 		cout << "Not able to register libCustomer type.\n";
-
 
 	cout << "Register further Types ... \n";
 	cout << errMsg << endl;
@@ -201,17 +177,31 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
 		cout << "Not able to register type  libCountCustomer\n";
 
+	// now, create a new database
+	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
+		cout << "Not able to create database: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created TPCH_db database.\n";
+	}
+
+	// now, create the sets for storing Customer Data
+	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created tpch_bench_set1  set.\n";
+	}
 
 
 
-		// Clean up the SO files.
-		int code = system("scripts/cleanupSoFiles.sh");
-		if (code < 0) {
+	// Clean up the SO files.
+	int code = system("scripts/cleanupSoFiles.sh");
+	if (code < 0) {
 
-			std::cout << "Can't cleanup so files" << std::endl;
+		std::cout << "Can't cleanup so files" << std::endl;
 
-		}
-
+	}
 
 }
 
