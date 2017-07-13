@@ -202,6 +202,17 @@ int main(int argc, char * argv[]) {
 		cout << "Not able to register type  libCountCustomer\n";
 
 
+
+
+		// Clean up the SO files.
+		int code = system("scripts/cleanupSoFiles.sh");
+		if (code < 0) {
+
+			std::cout << "Can't cleanup so files" << std::endl;
+
+		}
+
+
 }
 
 #endif
