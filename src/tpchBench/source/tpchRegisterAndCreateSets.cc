@@ -126,8 +126,29 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
 		cout << "Not able to register libCustomer type.\n";
 
-	cout << "Register further Types ... \n";
 	cout << errMsg << endl;
+
+
+
+	// now, create a new database
+	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
+		cout << "Not able to create database: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created TPCH_db database.\n";
+	}
+
+	// now, create the sets for storing Customer Data
+	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
+		cout << "Not able to create set: " + errMsg;
+		exit(-1);
+	} else {
+		cout << "Created tpch_bench_set1  set.\n";
+	}
+
+
+
+	cout << "Register further Types ... \n";
 
 
 	if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
@@ -161,21 +182,6 @@ int main(int argc, char * argv[]) {
 	cout << errMsg << endl;
 
 
-	// now, create a new database
-	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
-		cout << "Not able to create database: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created TPCH_db database.\n";
-	}
-
-	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
-		cout << "Not able to create set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created tpch_bench_set1  set.\n";
-	}
 
 
 
