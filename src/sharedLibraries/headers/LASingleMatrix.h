@@ -59,7 +59,7 @@ public:
 		if (MatrixBlock::librayCode==EIGEN_CODE){
         	//std::cout <<"Test Eigen" << std::endl;
         	//std::cout <<"Current Matrix :"<< std::endl;
-        	this->print();
+        	//this->print();
         	int rowNums = myValue.getRowNums();
         	int colNums = myValue.getColNums();
         	int blockRowIndex = myValue.getBlockRowIndex();
@@ -67,7 +67,6 @@ public:
             int totalRows = myValue.getTotalRowNums();
             int totalCols = myValue.getTotalColNums();
         	Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > currentMatrix(myValue.getRawDataHandle()->c_ptr(),rowNums,colNums);
-        	
         	
         	//std::cout <<"Test Safe ?" << std::endl;
         	//std::cout << "Eigen matrix:\n" << currentMatrix << std::endl; 
