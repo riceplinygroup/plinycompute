@@ -76,7 +76,6 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
         std:: cout << "Created set: " << setName << std::endl;
     }
 	//Dispatch the set;
-	//pdb :: makeObjectAllocatorBlock(instance.getBlockSize() * 1024 * 1024, true);
 	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
 	{
 	    pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
@@ -143,7 +142,6 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
 	                    	}
 	                	}
-	                	//myData->print();
 	                	storeMatrix->push_back (myData);
 	                	leftCounter--;
 	                	if(leftCounter==0){
@@ -185,17 +183,7 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 
 
 pdb::Handle<pdb::Computation>& LAIdentifierNode :: evaluate(LAPDBInstance& instance){
-	if(instance.activeScanSet.find(name)!=instance.activeScanSet.end()){
-		scanSet.shallowCopyToCurrentAllocationBlock(instance.activeScanSet[name]);//Prevent PDB from Auto deep copy
-	}
-	else{
-		if(!instance.existsPDBSetForIdentifier(name)){
-			std::cerr << "The variable name <" <<name <<"> does not have a corresponding PDB set!"<<std::endl;
-			exit(1); 
-		}
-		scanSet = pdb::makeObject<LAScanMatrixBlockSet>("LA_db",instance.getPDBSetNameForIdentifier(name));
-		instance.activeScanSet[name] = scanSet;
-	}
+    scanSet = pdb::makeObject<LAScanMatrixBlockSet>("LA_db",instance.getPDBSetNameForIdentifier(name));
 	if(scanSet.isNullPtr()){
 		std::cerr << "LAIdentifierNode " << name << " scanSet did not set yet!" << std::endl;
 		exit(1);
@@ -225,7 +213,6 @@ pdb::Handle<pdb::Computation>& LAPrimaryExpressionNode :: evaluate(LAPDBInstance
 		setDimension(child->getDimension());
 	}
 	else if(flag.compare("max")==0){
-		//query = makeObject<SillyGroupBy>();
 		query = makeObject<LASillyMaxElementAggregate>();
 		query->setInput(child->evaluate(instance));
 		setDimension(LADimension(1,1,1,1));	
@@ -417,18 +404,13 @@ pdb::Handle<pdb::Computation>& LAAdditiveExpressionNode :: evaluate(LAPDBInstanc
 
 void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
 	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
-
 	if(expression->isSyntaxSugarInitializer()){
 		std::cout << "Initialize variable " << identifier->toString() << std::endl;
 		pdb::Handle<pdb::Computation> initializerScan = expression->evaluate(instance);		
-		//identifier->setScanSet(initializerScan);
-		//std::cout << "Initialized scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
-		//identifier->setDimension(expression->getDimension());
 		instance.addToIdentifierPDBSetNameMap(identifier->toString(),initializerScan->getSetName());
 		instance.addToIdentifierDimensionMap(identifier->toString(),expression->getDimension());
 	}
 	else{
-		instance.activeScanSet.clear();
 		pdb::Handle<pdb::Computation> statementQuery = expression->evaluate(instance);
 		std::cout << "Query output type: "<< statementQuery->getOutputType() << std::endl;
 		Handle<Computation> writeSet;
@@ -470,20 +452,9 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
     	}
    	 	std :: cout << std :: endl;
    	 	auto end = std::chrono::high_resolution_clock::now();
-
-   	 	/*
-   	 	if (instance.existsPDBSet(outputSetName)){
-			std::cerr << "This is bad, cannot make more than on scanSet for the same set<" << outputSetName <<std::endl;
-			exit(1);
-		}
-   	 	pdb::Handle<pdb::Computation> newScanSet = makeObject<LAScanMatrixBlockSet>("LA_db", outputSetName);
-   	 	*/
    	 	
    	 	instance.addToCachedSet(outputSetName);
-   	 	//identifier->setScanSet(newScanSet);
-		//std::cout << "Updated scanSet: " << identifier->getScanSet()->getSetName() << std::endl;
-		//identifier->setDimension(expression->getDimension());
-		instance.addToIdentifierPDBSetNameMap(identifier->toString(),outputSetName);
+  		instance.addToIdentifierPDBSetNameMap(identifier->toString(),outputSetName);
 		instance.addToIdentifierDimensionMap(identifier->toString(),expression->getDimension());
 
 		if(printQueryResult){
