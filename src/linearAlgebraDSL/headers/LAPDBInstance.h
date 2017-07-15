@@ -64,8 +64,6 @@ private:
 
 public:
 
-    std::map<std::string,pdb::Handle<pdb::Computation>> activeScanSet;
-
     LAPDBInstance(bool printResultIn, bool clusterModeIn, size_t blockSizeIn, std::string masterIPIn, int portIn, pdb::PDBLoggerPtr loggerIn):
         printResult(printResultIn),
         clusterMode(clusterModeIn),
