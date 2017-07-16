@@ -484,8 +484,8 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
         		std :: cout << "Max Element output count:" << countOut << "\n";
 			}
 			else if(statementQuery->getOutputType().compare("LAMinElementOutputType")==0){
-				SetIterator <LAMinElementOutputType> result = instance.getQueryClient().getSetIterator <LAMinElementOutputType> ("LA06_db", outputSetName);
-        		std :: cout << "Minimal Element query results: "<< std :: endl;
+				SetIterator <LAMinElementOutputType> result = instance.getQueryClient().getSetIterator <LAMinElementOutputType> ("LA_db", outputSetName);
+        		std :: cout << "Min Element query results: "<< std :: endl;
         		int countOut = 0;
         		for (auto a : result) {
             		std :: cout << countOut << ":";
@@ -493,7 +493,7 @@ void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
             		std :: cout << std::endl;
             		countOut ++;
         		}
-        		std :: cout << "Minimal Element output count:" << countOut << "\n";
+        		std :: cout << "Min Element output count:" << countOut << "\n";
 			}
 			else{
 				std::cerr << "Invalid query output type!" << std::endl;
