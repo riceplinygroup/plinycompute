@@ -27,12 +27,15 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize 
 assert data_num% blockRowSize==0 and dim%blockColSize ==0
 
-lines_X = open("./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+".csv", "w")
-lines_mtd_X = open("./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
-lines_t = open("./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".csv", "w")
-lines_mtd_t = open("./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".csv.mtd", "w")
-lines_M = open("./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv", "w")
-lines_mtd_M = open("./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv.mtd", "w")
+fileNameX_csv = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+".csv"
+lines_X = open(fileNameX_csv, "w")
+lines_mtd_X = open(fileNameX_csv+".mtd", "w")
+fileNamet_csv = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".csv"
+lines_t = open(fileNamet_csv, "w")
+lines_mtd_t = open(fileNamet_csv+".mtd", "w")
+fileNameM_csv = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv"
+lines_M = open(fileNameM_csv, "w")
+lines_mtd_M = open(fileNameM_csv+".mtd", "w")
 fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
 blocks_X = open(fileNameX, "w")
 fileNamet = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(dim)+"_"+str(blockColSize)+".data"
@@ -40,6 +43,7 @@ blocks_t = open(fileNamet, "w")
 fileNameM = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_M = open(fileNameM, "w")
 code = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_"+str(int(time.time()))+".pdml","w")
+codeSystemML = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_SystemML_"+str(int(time.time()))+".dml","w")
 
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
@@ -139,11 +143,35 @@ for i in xrange(dim/blockColSize):
         blocks_M.write("\n")
 blocks_M.close()
 
-
+# Automatically generate code for pliny DSL
 code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileNameX+'\")\n')
 code.write("t = load(1, "+str(blockColSize)+", 1, "+str(blockColNum,)+ ', \"'+fileNamet+'\")\n')
 code.write("M = load("+str(blockColSize)+","+str(blockColSize)+","+str(blockColNum)+","+str(blockColNum)+',\"'+fileNameM+'\")\n')
 code.write("D = X - duplicateRow(t,"+str(blockRowSize)+","+str(blockRowNum)+")\n")
-code.write("i = max(rowSum(D %*% M * D))")
+code.write("i = min(rowSum(D %*% M * D))")
+code.close()
+
+# Automatically generate code for SystemML DSL
+codeSystemML.write('X = read(\"'+fileNameX_csv+'\");\n')
+codeSystemML.write('t = read(\"'+fileNamet_csv+'\");\n')
+codeSystemML.write('M = read(\"'+fileNameM_csv+'\");\n')
+codeSystemML.write("duplicateRow = function (matrix[double] row, int nums) return (matrix[double] rows) {\n")
+codeSystemML.write("\trows = row;\n")
+codeSystemML.write("\tfor (i in 2:nums) {\n")
+codeSystemML.write("\t\trows = rbind(rows,row);\n")
+codeSystemML.write("\t}\n")
+codeSystemML.write("}\n")
+codeSystemML.write("Dup = duplicateRow(t, nrow(X));\n")
+codeSystemML.write("Diff = X - Dup;\n")
+codeSystemML.write("i = rowIndexMin(t(rowSums(Diff %*% M * Diff)));\n")
+codeSystemML.write('print(\"Nearest item index:\" + toString(i, decimal=0));\n')
+codeSystemML.close()
+
+
+
+
+
+
+
 
 
