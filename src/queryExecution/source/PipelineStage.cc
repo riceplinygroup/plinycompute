@@ -446,8 +446,10 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
 
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);
-                  PDB_COUT << out << std :: endl;
-
+#ifdef PROFILING
+                  std :: cout << "print inactive blocks before running pipeline in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl;
+#endif
                   //create a data proxy
                   DataProxyPtr proxy = createProxy(i, connection_mutex, errMsg);
 
@@ -459,7 +461,14 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
 
                   //restore allocator policy
                   getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
-
+#ifdef PROFILING
+                  out = getAllocator().printInactiveBlocks();
+                  std :: cout << "print inactive blocks after running pipeline in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl;
+#endif
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);            
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }
@@ -544,9 +553,10 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);
-                  PDB_COUT << out << std :: endl;                  
-                  //getAllocator().cleanInactiveBlocks((size_t)(67108844));
-                  //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+#ifdef PROFILING
+                  std :: cout << "inactive blocks before running combiner in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl; 
+#endif                 
                   getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
@@ -647,6 +657,14 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   combinerProcessor->clearOutputPage();
                   free(combinerPage);
                   getAllocator().setPolicy(defaultAllocator);
+#ifdef PROFILING
+                  out = getAllocator().printInactiveBlocks();
+                  std :: cout << "inactive blocks after running combiner in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl; 
+#endif
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, combinerCounter);
              }
 
