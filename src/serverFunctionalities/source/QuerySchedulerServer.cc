@@ -278,7 +278,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
 #ifdef PROFILING
                           auto scheduleEnd = std :: chrono :: high_resolution_clock :: now();
                           std::cout << "Time Duration for Scheduling stage-"<< stage->getStageId() << " on " << ip << ":" <<
-                             std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " ns." << std::endl;
+                             std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " seconds." << std::endl;
 #endif
                           if (success == false) {
                               errMsg = std :: string ("Can't execute the ") + std :: to_string(i) + std :: string ("-th stage on the ") + std :: to_string(j) + std :: string ("-th node");
@@ -991,7 +991,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "JobStageId " << jobStageId-1 << std :: endl;
                     auto dynamicPlanEnd = std :: chrono :: high_resolution_clock :: now();
                     std::cout << "Time Duration for Dynamic Planning: " <<
-                        std::chrono::duration_cast<std::chrono::duration<float>>(dynamicPlanEnd-dynamicPlanBegin).count() << " ns." << std::endl;
+                        std::chrono::duration_cast<std::chrono::duration<float>>(dynamicPlanEnd-dynamicPlanBegin).count() << " seconds." << std::endl;
                     auto createSetBegin = std :: chrono :: high_resolution_clock :: now();
 #endif
                     //create intermediate sets
@@ -1008,7 +1008,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 #ifdef PROFILING
                     auto createSetEnd = std :: chrono :: high_resolution_clock :: now();
                     std::cout << "Time Duration for Creating intermdiate sets: " <<
-                        std::chrono::duration_cast<std::chrono::duration<float>>(createSetEnd-createSetBegin).count() << " ns." << std::endl;
+                        std::chrono::duration_cast<std::chrono::duration<float>>(createSetEnd-createSetBegin).count() << " seconds." << std::endl;
                     auto scheduleBegin = std :: chrono :: high_resolution_clock :: now();
 #endif
                     //schedule this job stages
@@ -1018,7 +1018,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 #ifdef PROFILING
                     auto scheduleEnd = std :: chrono :: high_resolution_clock :: now();
                     std::cout << "Time Duration for Scheduling stages: " <<
-                        std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " ns." << std::endl;
+                        std::chrono::duration_cast<std::chrono::duration<float>>(scheduleEnd-scheduleBegin).count() << " seonds." << std::endl;
                     auto removeSetBegin = std :: chrono :: high_resolution_clock :: now();
 #endif
                     //to remember the intermediate sets:
@@ -1052,7 +1052,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 #ifdef PROFILING
                     auto removeSetEnd = std :: chrono :: high_resolution_clock :: now();
                     std::cout << "Time Duration for Removing intermediate sets: " <<
-                        std::chrono::duration_cast<std::chrono::duration<float>>(removeSetEnd-removeSetBegin).count() << " ns." << std::endl;
+                        std::chrono::duration_cast<std::chrono::duration<float>>(removeSetEnd-removeSetBegin).count() << " seconds." << std::endl;
 #endif
 /*
                    auto begin = this->interGlobalSets.begin();
