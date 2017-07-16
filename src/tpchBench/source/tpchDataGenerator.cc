@@ -59,7 +59,6 @@
 #include "CountAggregation.h"
 #include "SumResult.h"
 
-
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -104,8 +103,6 @@ using namespace std;
 
 #define BLOCKSIZE (256*MB)
 
-
-
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
 	stringstream lineStream(line);
@@ -116,7 +113,6 @@ std::vector<std::string> parseLine(std::string line) {
 	}
 	return tokens;
 }
-
 
 void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClient, int noOfCopies) {
 
@@ -140,14 +136,16 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	infile.open(PartFile.c_str());
+	if (!infile.open(PartFile.c_str())) {
+		cout << "No data directiry for part found, add the data directory " << PartFile << endl;
+	}
 
 	vector<pdb::Handle<Part>> partList;
 	map<int, pdb::Handle<Part>> partMap;
 
 	while (getline(infile, line)) {
 
-		std::vector<string> tokens=parseLine(line);
+		std::vector<string> tokens = parseLine(line);
 
 		int partID = atoi(tokens.at(0).c_str());
 
@@ -174,13 +172,15 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	infile.open(supplierFile.c_str());
+	if (!infile.open(supplierFile.c_str())) {
+		cout << "No data directiry for supplier found, add the data directory " << supplierFile << endl;
+	}
+
 	vector<pdb::Handle<Supplier>> supplierList;
 	map<int, pdb::Handle<Supplier>> supplierMap;
 
 	while (getline(infile, line)) {
-		std::vector<string> tokens=parseLine(line);
-
+		std::vector<string> tokens = parseLine(line);
 
 		int supplierKey = atoi(tokens.at(0).c_str());
 
@@ -206,7 +206,10 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(lineitemFile.c_str());
+
+	if (!infile.open(lineitemFile.c_str())) {
+		cout << "No data directiry for lineitem  found, add the data directory " << lineitemFile << endl;
+	}
 
 	pdb::Handle<pdb::Vector<LineItem>> lineItemList = pdb::makeObject<pdb::Vector<LineItem>>();
 
@@ -214,7 +217,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 	while (getline(infile, line)) {
 
-		std::vector<string> tokens=parseLine(line);
+		std::vector<string> tokens = parseLine(line);
 
 		int orderKey = atoi(tokens.at(0).c_str());
 		int partKey = atoi(tokens.at(1).c_str());
@@ -271,16 +274,17 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
-	infile.open(orderFile.c_str());
+	if (!infile.open(orderFile.c_str())) {
+		cout << "No data directiry for orderFile  found, add the data directory " << orderFile << endl;
+	}
 
 	map<int, pdb::Vector<Order>> orderMap;
 
 	while (getline(infile, line)) {
-		std::vector<string> tokens=parseLine(line);
+		std::vector<string> tokens = parseLine(line);
 
 		int orderKey = atoi(tokens.at(0).c_str());
 		int customerKey = atoi(tokens.at(1).c_str());
-
 
 		pdb::Handle<Order> tOrder = pdb::makeObject<Order>(*lineItemMap[orderKey], orderKey, customerKey, tokens.at(2), atof(tokens.at(3).c_str()), tokens.at(4), tokens.at(5), tokens.at(6), atoi(tokens.at(7).c_str()),
 				tokens.at(8));
@@ -312,87 +316,81 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 	cout << "Started Creating Customers ..." << endl;
 
-
-
-
-
 	size_t sendingObjectSize = 0;
-		string errMsg;
+	string errMsg;
 
-		// make a new Allocation Block
-		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-		pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	// make a new Allocation Block
+	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 
-		// Copy the same data multiple times to make it bigger.
-		for (int i = 0; i < noOfCopies; ++i) {
+	// Copy the same data multiple times to make it bigger.
+	for (int i = 0; i < noOfCopies; ++i) {
 
+		if (!infile.open(customerFile.c_str())) {
+			cout << "No data directiry for customer  found, add the data directory " << customerFile << endl;
+		}
 
+		cout << "Storing copy number " << i << endl;
+		pdb::Handle<Customer> objectToAdd = nullptr;
 
-			//Open "CustomerFile": Iteratively (Read line, Parse line, Create Objects):
-			infile.open(customerFile.c_str());
-			cout << "Storing copy number " << i << endl;
-			pdb::Handle<Customer> objectToAdd = nullptr;
+		while (getline(infile, line)) {
+			std::vector<string> tokens = parseLine(line);
+			int customerKey = atoi(tokens.at(0).c_str());
 
-			while (getline(infile, line)) {
-				std::vector<string> tokens=parseLine(line);
-				int customerKey = atoi(tokens.at(0).c_str());
+			try {
 
-				try {
+				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
+				storeMeCustomerList->push_back(objectToAdd);
 
-					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
-					storeMeCustomerList->push_back(objectToAdd);
-
-				} catch (NotEnoughSpace &e) {
+			} catch (NotEnoughSpace &e) {
 
 //					std::cout << "Got into Exception part. " << std::endl;
 
-					// First send the existing data over
-					if (storeMeCustomerList->size() > 0) {
-						if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-							std::cout << "Failed to send data to dispatcher server" << std::endl;
-						}
-						sendingObjectSize+=storeMeCustomerList->size();
-
-						std::cout <<"Copy Number: " <<noOfCopies <<"  Sending data! Count: " << sendingObjectSize << std::endl;
-					} else {
-						std::cout << "Vector is zero." << sendingObjectSize << std::endl;
+				// First send the existing data over
+				if (storeMeCustomerList->size() > 0) {
+					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
+					sendingObjectSize += storeMeCustomerList->size();
 
-					// make a allocation Block and a new vector.
-					// pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-					storeMeCustomerList->clear();
+					std::cout << "Copy Number: " << noOfCopies << "  Sending data! Count: " << sendingObjectSize << std::endl;
+				} else {
+					std::cout << "Vector is zero." << sendingObjectSize << std::endl;
+				}
 
-					// retry to make the object and add it to the vector
-					try {
-						objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
-								tokens.at(7));
-						storeMeCustomerList->push_back(objectToAdd);
-					} catch (NotEnoughSpace &e) {
-						std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
-						return;
-					}
+				// make a allocation Block and a new vector.
+				// pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+				storeMeCustomerList->clear();
+
+				// retry to make the object and add it to the vector
+				try {
+					objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6),
+							tokens.at(7));
+					storeMeCustomerList->push_back(objectToAdd);
+				} catch (NotEnoughSpace &e) {
+					std::cerr << "This should not happen that we have not enough space after new allocation. Object size is too large. " << std::endl;
+					return;
 				}
 			}
-
-			// send the rest of data at the end, it can happen that the exception never happens.
-			if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
-				std::cout << "Failed to send data to dispatcher server" << std::endl;
-			}
-			sendingObjectSize+=storeMeCustomerList->size();
-
-			std::cout << "Send the rest of the data at the end: " << sendingObjectSize  << std::endl;
-
-
-			// make a allocation Block and a new vector.
-	//		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-	//		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-
-			storeMeCustomerList->clear();
-
-			infile.close();
-			infile.clear();
 		}
 
+		// send the rest of data at the end, it can happen that the exception never happens.
+		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+			std::cout << "Failed to send data to dispatcher server" << std::endl;
+		}
+		sendingObjectSize += storeMeCustomerList->size();
+
+		std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
+
+		// make a allocation Block and a new vector.
+		//		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+		//		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+
+		storeMeCustomerList->clear();
+
+		infile.close();
+		infile.clear();
+	}
 
 }
 
