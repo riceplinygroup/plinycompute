@@ -136,9 +136,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	if (!infile.open(PartFile.c_str())) {
+	infile.open(PartFile.c_str());
+	if (!infile.is_open()) {
 		cout << "No data directiry for part found, add the data directory " << PartFile << endl;
 	}
+
 
 	vector<pdb::Handle<Part>> partList;
 	map<int, pdb::Handle<Part>> partMap;
@@ -172,7 +174,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 	// ####################################
 
-	if (!infile.open(supplierFile.c_str())) {
+	infile.open(supplierFile.c_str());
+	if (!infile.is_open()) {
 		cout << "No data directiry for supplier found, add the data directory " << supplierFile << endl;
 	}
 
@@ -206,8 +209,9 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 
 	//Open "LineitemFile": Iteratively (Read line, Parse line, Create Objects):
+	infile.open(lineitemFile.c_str());
 
-	if (!infile.open(lineitemFile.c_str())) {
+	if (!infile.is_open()) {
 		cout << "No data directiry for lineitem  found, add the data directory " << lineitemFile << endl;
 	}
 
@@ -274,7 +278,9 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// ####################################
 
 	//Open "OrderFile": Iteratively (Read line, Parse line, Create Objects):
-	if (!infile.open(orderFile.c_str())) {
+	infile.open(orderFile.c_str());
+
+	if (!infile.is_open()) {
 		cout << "No data directiry for orderFile  found, add the data directory " << orderFile << endl;
 	}
 
@@ -326,7 +332,11 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
 
-		if (!infile.open(customerFile.c_str())) {
+		// open the data file
+		infile.open(customerFile.c_str());
+
+		// if file does not exists
+		if (!infile.is_open()) {
 			cout << "No data directiry for customer  found, add the data directory " << customerFile << endl;
 		}
 
@@ -344,7 +354,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 
 			} catch (NotEnoughSpace &e) {
 
-//					std::cout << "Got into Exception part. " << std::endl;
+
 
 				// First send the existing data over
 				if (storeMeCustomerList->size() > 0) {
