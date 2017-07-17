@@ -363,7 +363,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 					}
 					sendingObjectSize += storeMeCustomerList->size();
 
-					std::cout << "Copy Number: " << noOfCopies << "  Sending data! Count: " << sendingObjectSize << std::endl;
+					std::cout << "Copy Number: " << i << "  Sending data! Count: " << sendingObjectSize << std::endl;
 				} else {
 					std::cout << "Vector is zero." << sendingObjectSize << std::endl;
 				}
