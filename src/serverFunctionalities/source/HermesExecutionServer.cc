@@ -376,6 +376,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              //make allocator block and allocate the JoinMap
              const UseTemporaryAllocationBlock tempBlock (sharedHashSet->getPage(), hashSetSize) ;
+#ifdef PROFILING
+             std :: string out = getAllocator().printInactiveBlocks();
+             std :: cout << "BroadcastJoinBuildHTJobStage-backend: print inactive blocks:" << std :: endl;
+             std :: cout << out << std :: endl;
+#endif
              PDB_COUT << "hashSetSize = " << hashSetSize << std :: endl;
              getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
              //to get the sink merger
@@ -438,7 +443,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               std :: cout << "Backend got Aggregation JobStage message with Id=" << request->getStageId() << std :: endl;
               request->print();
 
-
+#ifdef PROFILING
+              std :: string out = getAllocator().printInactiveBlocks();
+              std :: cout << "AggregationJobStage-backend: print inactive blocks:" << std :: endl;
+              std :: cout << out << std :: endl;
+#endif
 
               //get number of partitions
               int numPartitions = request->getNumNodePartitions();
@@ -701,6 +710,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
                          }//request->needsToMaterializeAggOut() == true
                          getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
+#ifdef PROFILING
+                         out = getAllocator().printInactiveBlocks();
+                         std :: cout << "AggregationJobStage-backend-thread: print inactive blocks:" << std :: endl;
+                         std :: cout << out << std :: endl;
+#endif
                          callerBuzzer->buzz(PDBAlarm :: WorkAllDone, hashCounter);
                          
                      }
@@ -846,6 +860,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 bool res = true;
                 std :: string errMsg;
                 const UseTemporaryAllocationBlock block1 {128 * 1024 * 1024};
+#ifdef PROFILING
+                std :: string out = getAllocator().printInactiveBlocks();
+                std :: cout << "TupleSetJobStage-backend: print inactive blocks:" << std :: endl;
+                std :: cout << out << std :: endl;
+#endif
                 Handle<SetIdentifier> sourceContext = request->getSourceContext();
                 if( getCurPageScanner() == nullptr) {
                         NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
