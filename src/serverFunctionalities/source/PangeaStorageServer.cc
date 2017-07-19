@@ -654,7 +654,6 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          std :: string typeName = request->getTypeName ();
                          std :: string setName = request->getSetName();
                          bool res = true;
-                         #ifdef REMOVE_SET_WITH_EVICTION
                          SetPtr setToRemove = getSet(std :: pair <std :: string, std :: string>(databaseName, setName));
                          if (setToRemove == nullptr) {
                               // make the response
@@ -665,10 +664,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                               // return the result
                               res = sendUsingMe->sendObject (response, errMsg);
                               return make_pair (res, errMsg);
-                         } else {
-                              setToRemove->evictPages();
-                         }
-                         #endif
+                         } 
                          if (standalone == true) {
                              res = getFunctionality<PangeaStorageServer>().removeSet(databaseName, typeName, setName);
                              if (res == false) {
@@ -1744,6 +1740,9 @@ bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setNa
         PDB_COUT << "set with dbName=" << dbName << " and setName=" << setName << " doesn't exist" << std :: endl;
         return false;
      }
+#ifdef REMOVE_SET_WITH_EVICTION
+     set->evictPages();
+#endif
      DatabaseID dbId = set->getDbID();
      UserTypeID typeId = set->getTypeID();
      SetID setId = set->getSetID();
@@ -1779,6 +1778,9 @@ bool PangeaStorageServer:: removeSet (std :: string dbName, std :: string typeNa
               if (type != nullptr) {
                   SetPtr set = getSet(std :: pair <std :: string, std :: string>(dbName, setName));
                   if (set != nullptr) {
+                  #ifdef REMOVE_SET_WITH_EVICTION
+                       set->evictPages();
+                  #endif
                        SetID setId = set->getSetID();
                        pthread_mutex_lock(&this->usersetLock);
                        type->removeSet(setId);
