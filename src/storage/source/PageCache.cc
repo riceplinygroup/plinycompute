@@ -690,7 +690,9 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                         
                         page->setPinned(false);
                         if((tryFlushOrNot == true) && (page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
-                            PDB_COUT << "going to unpin a dirty page...\n";
+#ifdef PROFILING
+                            std :: cout << "going to unpin a dirty page...\n";
+#endif
                             //update counter
                             //page->updateCounterInRawBytes(); 
                             page->setInFlush(true);
@@ -704,7 +706,9 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
 
                         }
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
-                            PDB_COUT << "going to unpin a clean page...\n";
+#ifdef PROFILING
+                            std :: cout << "going to unpin a clean page...\n";
+#endif
                             //free the page
                             //We use flush lock (which is a read write lock) to synchronize with getPage() that will be invoked in PartitionPageIterator;
                             //One scenario is: PDB load old data from disk to memory through iterators while application pins new pages that requires to evict data, then an old page in checking for loading may get evicted before it is pinned.
@@ -717,7 +721,9 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                             removePage(key);
                             this->flushUnlock();
                         }
-			PDB_COUT<<"PageCache: evicted page with pageID="<<page->getPageID()<<"\n";
+#ifdef PROFILING
+                        std :: cout << "Storage server: evicting page from cache for dbId:" << page->getDbID() << ", typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ", tryFlushing=" << tryFlushOrNot << ".\n";
+#endif
 		}
 
 	} else {
@@ -836,14 +842,11 @@ void PageCache::evict() {
                 this->logger->debug( "PageCache::evict(): got a page, check whether it can be evicted...");
                 if((curPage->getRefCount()==0)&&((curPage->isDirty()==false) || ((curPage->isDirty()==true)&&(curPage->isInFlush()==false)))){
 		    cachedPages->push(curPage);
-                    this->logger->writeLn( "put a page to priority queue.");
                 } else {
-                    this->logger->writeLn( "page can not be flushed." );
                     //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
                 }
 	    }
             this->evictionUnlock();
-            this->logger->writeLn("PageCache::evict(): unlocked for evictionLock()...");
 	    PDBPagePtr page;
             //std :: cout << "this->size=" << this->size << std :: endl;
             //std :: cout << "this->evictStopSize=" << this->evictStopSize << std :: endl;
@@ -856,7 +859,9 @@ void PageCache::evict() {
                     break;
                 }
 		if (this->evictPage(page) == true) {
-			PDB_COUT << "Storage server: evicting page from cache for typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+#ifdef PROFILING
+			std :: cout << "Storage server: evicted page from cache passively for dbId:" << page->getDbID() << ", typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
+#endif
 		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
 		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();
@@ -868,8 +873,10 @@ void PageCache::evict() {
         }
 	this->inEviction = false;
         pthread_mutex_unlock(&this->evictionMutex);
-        this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
-        //cout << "Storage server: finished cache eviction!\n";
+        //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
+#ifdef PROFILING
+        std :: cout << "Storage server: finished cache eviction!\n";
+#endif
         logger->debug( "Storage server: finished cache eviction!\n");
 }
 

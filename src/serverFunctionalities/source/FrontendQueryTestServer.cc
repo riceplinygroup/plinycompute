@@ -78,8 +78,12 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for BroadcastJoinBuildHTJobStage" << std :: endl;
                     request->print();
-
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#ifdef PROFILING
+                    std :: string out = getAllocator().printInactiveBlocks();
+                    std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
+                    std :: cout << out << std :: endl;
+#endif
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -190,12 +194,16 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
       // to handle a request to execute an aggregation stage
       forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler <AggregationJobStage>> (
                [&] (Handle <AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
-                    getAllocator().printInactiveBlocks();
                     std :: string errMsg;
                     bool success;
                     PDB_COUT << "Frontend got a request for AggregationJobStage" << std :: endl;
                     request->print();
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#ifdef PROFILING
+                    std :: string out = getAllocator().printInactiveBlocks();
+                    std :: cout << "AggregationJobStage: print inactive blocks:" << std :: endl;
+                    std :: cout << out << std :: endl;
+#endif
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -331,12 +339,16 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
        // to handle a request to execute a tupleset pipeline stage
        forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler <TupleSetJobStage>> (
                [&] (Handle <TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
-                    getAllocator().printInactiveBlocks();
                     std :: string errMsg;
                     bool success;
                     PDB_COUT << "Frontend got a request for TupleSetJobStage" << std :: endl;
                     request->print();
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#ifdef PROFILING
+                    std :: string out = getAllocator().printInactiveBlocks();
+                    std :: cout << "TupleSetJobStage: print inactive blocks:" << std :: endl;
+                    std :: cout << out << std :: endl;
+#endif
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
