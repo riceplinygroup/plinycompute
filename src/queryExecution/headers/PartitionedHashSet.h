@@ -60,6 +60,7 @@ public:
     PartitionedHashSet ( std :: string myName, size_t pageSize ) {
         this->setName = myName;
         this->pageSize = pageSize;
+        this->isCleaned = false;
         pthread_mutex_init (&myMutex, nullptr);
     }
 
@@ -124,6 +125,9 @@ public:
                 free(partitionPages[i]);
             }
             isCleaned = true;
+#ifdef PROFILING
+            std :: cout << "partitioned hash set: " << this->setName << " is removed" << std :: endl;
+#endif
         }
     }
 

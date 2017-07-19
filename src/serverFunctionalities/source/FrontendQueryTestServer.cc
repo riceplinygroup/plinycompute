@@ -84,6 +84,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
+                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -204,6 +205,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "AggregationJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
+                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -253,12 +255,14 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     //output set
                     std :: string outDatabaseName = request->getSinkContext()->getDatabase();
                     std :: string outSetName = request->getSinkContext()->getSetName();
+                    SetType outSetType = request->getSinkContext()->getSetType();
+                    bool isAggResult = request->getSinkContext()->isAggregationResult();
                     success = true;
                     // add the output set
                     // check whether output set exists
                     std :: pair <std :: string, std :: string> outDatabaseAndSet = std :: make_pair (outDatabaseName, outSetName);
                     SetPtr outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
-                    if (outputSet == nullptr) {
+                    if ((outputSet == nullptr) && (outSetType != PartitionedHashSetType)){
                         success = getFunctionality <PangeaStorageServer> ().addSet(outDatabaseName, request->getOutputTypeName(), outSetName);
                         outputSet = getFunctionality <PangeaStorageServer> ().getSet(outDatabaseAndSet);
                         PDB_COUT << "Output set is created in storage" << std :: endl;
@@ -266,11 +270,13 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                     if (success == true) {
                         newRequest->setOutputTypeName(request->getOutputTypeName());
-                        Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName);
+                        Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName, outSetType, isAggResult);
                         PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
-                        sinkContext->setDatabaseId(outputSet->getDbID());
-                        sinkContext->setTypeId(outputSet->getTypeID());
-                        sinkContext->setSetId(outputSet->getSetID());
+                        if (outSetType != PartitionedHashSetType) {
+                            sinkContext->setDatabaseId(outputSet->getDbID());
+                            sinkContext->setTypeId(outputSet->getTypeID());
+                            sinkContext->setSetId(outputSet->getSetID());
+                        }
                         newRequest->setSinkContext(sinkContext);
                     } else {
                         Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
@@ -349,6 +355,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "TupleSetJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
+                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
