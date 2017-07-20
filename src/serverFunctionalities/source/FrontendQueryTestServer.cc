@@ -84,7 +84,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
-                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
+                    //getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -205,7 +205,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "AggregationJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
-                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
+                    //getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -355,7 +355,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "TupleSetJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
-                    getAllocator().cleanInactiveBlocks((size_t)(1048576));
+                    //getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
