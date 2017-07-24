@@ -46,6 +46,7 @@
 #include "StorageRemoveTempSet.h"
 #include "StorageExportSet.h"
 #include "StorageRemoveUserSet.h"
+#include "StorageRemoveHashSet.h"
 #include "StorageCleanup.h"
 #include "StorageCollectStats.h"
 #include "StorageCollectStatsResponse.h"
@@ -780,6 +781,40 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                }
        ));
 
+       // this handler requests to remove a hash set
+       forMe.registerHandler (StorageRemoveHashSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveHashSet>> (
+               [&] (Handle <StorageRemoveHashSet> request, PDBCommunicatorPtr sendUsingMe) {
+                         std :: string errMsg;
+                         bool success;
+                         //connect to backend
+                         PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                         if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                                std :: cout << errMsg << std :: endl;
+                                success = false;
+                         }
+                         else if (!communicatorToBackend->sendObject(request, errMsg)) {
+                                std :: cout << errMsg << std :: endl;
+                                errMsg = std::string("can't send message to backend: ") +errMsg;
+                                success = false;
+                         } else {
+                                PDB_COUT << "Storage sent request to backend" << std :: endl;
+                                // wait for backend to finish.
+                                communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                                if (!success) {
+                                    std :: cout << "Error waiting for backend to remove hash set. " << errMsg << std :: endl;
+                                    errMsg = std::string("backend failed to remove hash set: ") +errMsg;
+                                }
+                        }
+                        // make the response
+                        const UseTemporaryAllocationBlock tempBlock{1024};
+                        Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+
+                        // return the result
+                        success = sendUsingMe->sendObject (response, errMsg);
+                        return make_pair (success, errMsg);
+               }
+       ));
+
        // this handler requests to export a set to a local file
        forMe.registerHandler (StorageExportSet_TYPEID, make_shared<SimpleRequestHandler<StorageExportSet>> (
                [&] (Handle <StorageExportSet> request, PDBCommunicatorPtr sendUsingMe) {
@@ -846,8 +881,8 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                      //std :: cout << "Sending response object.\n";
                      everythingOK = sendUsingMe->sendObject (response, errMsg);
                  }
-                 Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
-                 Handle<JoinMap<Object>> objectToStore = record->getRootObject();
+                 //Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
+                 //Handle<JoinMap<Object>> objectToStore = record->getRootObject();
                  //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
                  if (everythingOK) {
                       pthread_mutex_lock(&counterMutex);
