@@ -28,6 +28,7 @@
 #include "HermesExecutionServer.h"
 #include "StoragePagePinned.h"
 #include "StorageNoMorePage.h"
+#include "StorageRemoveHashSet.h"
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
 #include "BackendTestSetScan.h"
@@ -882,8 +883,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         if ((sourceContext->isAggregationResult() == true) && (sourceContext->getSetType() == PartitionedHashSetType)) {
                              std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
                              AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
-                             hashSet->cleanup(); 
-                             this->removeHashSet(hashSetName);
+                             if (hashSet != nullptr) {
+                                 hashSet->cleanup(); 
+                                 this->removeHashSet(hashSetName);
+                             } else {
+                                 std :: cout << "Can't remove hash set " << hashSetName << ": set doesn't exist" << std :: endl;
+                             }
                         }
 
                         //if this stage scans hash tables we need remove those hash tables
@@ -895,8 +900,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                      std :: string hashSetName = (*mapIter).value;
                                      std :: cout << "remove " << key << ":" << hashSetName << std :: endl;
                                      AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
-                                     hashSet->cleanup();
-                                     this->removeHashSet(hashSetName);
+                                     if (hashSet != nullptr) {
+                                         hashSet->cleanup();
+                                         this->removeHashSet(hashSetName);
+                                     } else {
+                                         std :: cout << "Can't remove hash set " << hashSetName << ": set doesn't exist" << std :: endl;
+                                     }
                                  }
                              }
                         }
@@ -915,6 +924,31 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                 return make_pair(res, errMsg);
             }
     ));
+
+    forMe.registerHandler (StorageRemoveHashSet_TYPEID, make_shared<SimpleRequestHandler<StorageRemoveHashSet>> (
+           [&] (Handle <StorageRemoveHashSet> request, PDBCommunicatorPtr sendUsingMe) {
+                std :: string errMsg;
+                bool success = true;
+                std :: string hashSetName = request->getDatabase()+":"+request->getSetName();
+                AbstractHashSetPtr hashSet = this->getHashSet(hashSetName);
+                if (hashSet != nullptr) {
+                     hashSet->cleanup();
+                     this->removeHashSet(hashSetName);
+                } else {
+                     errMsg = std :: string("Can't remove hash set ") + hashSetName + std :: string(": set doesn't exist");
+                     success = false;
+                }
+                PDB_COUT << "to send back reply" << std :: endl;
+                const UseTemporaryAllocationBlock block {1024};
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                // return the result
+                success = sendUsingMe->sendObject (response, errMsg);
+                return make_pair(success, errMsg);
+                
+           }
+    ));
+
+
 
     //register a handler to process the BackendTestSetScan message
     forMe.registerHandler (BackendTestSetCopy_TYPEID, make_shared<SimpleRequestHandler<BackendTestSetCopy>> (
