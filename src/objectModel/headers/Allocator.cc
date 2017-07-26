@@ -454,7 +454,7 @@ MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: MultiPolicyAllocator () {
 //	setupBlock (malloc (1024), 1024, true);
         // JiaNote: we need initialize allocator block to make valgrind happy
         #ifdef INITIALIZE_ALLOCATOR_BLOCK
-        void *putMeHere = calloc (1, 1024);
+        void *putMeHere = calloc (1024, 1);
         #else
         void *putMeHere = malloc (1024);
         #endif
@@ -782,7 +782,7 @@ inline AllocatorState MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: tem
 	// and set up the new block
         // JiaNote: we need initialize allocator block to make valgrind happy
         #ifdef INITIALIZE_ALLOCATOR_BLOCK
-        void *putMeHere = calloc (1, numBytesAvailable);
+        void *putMeHere = calloc (numBytesAvailable, 1);
         #else
 	void *putMeHere = malloc (numBytesAvailable);
         #endif

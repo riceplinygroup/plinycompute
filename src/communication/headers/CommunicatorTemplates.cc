@@ -69,13 +69,16 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
 	if (record == nullptr) {
              //JiaNote: below is refactored to make it more flexible.
              //If sendMe is not in this thread's allocator block, we do a deep copy
-             mem = (void *)malloc(DEFAULT_PAGE_SIZE * sizeof(char));
+             mem = (void *)calloc(DEFAULT_PAGE_SIZE,  sizeof(char));
              record = getRecord (sendMe, mem, DEFAULT_PAGE_SIZE);
 	     if (record == nullptr) {
                 int *a = 0;
 		*a = 12;
 		std :: cout << "Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n";
                 logToMe->error("Fatal Error: BAD!  Trying to get a record for an object not created by this thread's allocator.\n");
+                if (mem != nullptr) {
+                    free(mem);
+                }
 		exit (1);
              }
 	}
@@ -87,6 +90,9 @@ bool PDBCommunicator :: sendObject (Handle <ObjType> &sendMe, std :: string &err
                 std :: cout << strerror(errno) << std :: endl;
             	logToMe->error(errMsg);
             	logToMe->error(strerror(errno));
+                if (mem != nullptr) {
+                    free(mem);
+                }
 		return false;
 	}
         if (mem != nullptr) {
