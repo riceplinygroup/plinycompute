@@ -271,7 +271,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     if (success == true) {
                         newRequest->setOutputTypeName(request->getOutputTypeName());
                         Handle<SetIdentifier> sinkContext = makeObject<SetIdentifier>(outDatabaseName, outSetName, outSetType, isAggResult);
-                        PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName << ", setId=" << outputSet->getSetID() << std :: endl;
                         if (outSetType != PartitionedHashSetType) {
                             sinkContext->setDatabaseId(outputSet->getDbID());
                             sinkContext->setTypeId(outputSet->getTypeID());
