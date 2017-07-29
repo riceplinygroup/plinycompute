@@ -55,7 +55,7 @@ common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 # common_env.Append(CCFLAGS='-DCLEAR_SET')
 # common_env.Append(CCFLAGS='-DPDB_DEBUG')
-common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
+common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
@@ -417,6 +417,7 @@ common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/C
 common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/CountCustomer.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
+common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
 common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
 common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
@@ -670,7 +671,9 @@ lda=common_env.Alias('lda', [
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
 #  "libraries/libWriteLDATopicWordProbSet.so",
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so"
+  "libraries/libLDADocTopicFromCountAggregate.so",
+
+  "libraries/libScanIntSet.so"
 ])
 
 
@@ -695,6 +698,7 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCountCustomer.so',
   'bin/tpchQuery',
   'bin/tpchDataGenerator',
+  'bin/tpchDataGeneratorNew',
   'bin/tpchGetCustomerCount',
   'bin/tpchRegisterAndCreateSets',
   'bin/tpchDataGeneratorAll',
@@ -909,6 +913,7 @@ mlBench=common_env.Alias('mlBench', [
   'libraries/libLDADocument.so',
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so"
+  "libraries/libLDADocTopicFromCountAggregate.so",
+  "libraries/libScanIntSet.so"
 ])
 Default(main)
