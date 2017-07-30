@@ -696,7 +696,7 @@ double TCAPAnalyzer :: getCostOfSource (int index, StatisticsPtr stats) {
     }
     //std :: cout << "curSet has database name=" << curSet->getDatabase() << " and set name=" << curSet->getSetName() << std :: endl;
     double cost =  stats->getNumBytes(curSet->getDatabase(), curSet->getSetName()); 
-    cost = double ((int)cost/1000000);
+    cost = double ((size_t)cost/1000000);
     //std :: cout << "key=" << key << ", cost=" << cost << std :: endl;
     return cost;
 }
