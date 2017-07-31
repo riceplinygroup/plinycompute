@@ -88,8 +88,12 @@ int main (int argc, char * argv[]) {
        }
 
        int numOfMb = 256; //by default we add 256MB data for each table
+       int numOfMb1 = 128;
+       int numOfMb2 = 64;
        if (argc > 3) {
-           numOfMb = atoi(argv[3])/8;
+           numOfMb = atoi(argv[3]);
+           numOfMb1 = numOfMb/2;
+           numOfMb2 = numOfMb/4;
        }
        std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
 
@@ -194,9 +198,9 @@ int main (int argc, char * argv[]) {
             //Step 3. Add data to set2
             total = 0;
             i = 0;
-            if (numOfMb > 0) {
-                int numIterations = numOfMb/64;
-                int remainder = numOfMb - 64*numIterations;
+            if (numOfMb1 > 0) {
+                int numIterations = numOfMb1/64;
+                int remainder = numOfMb1 - 64*numIterations;
                 if (remainder > 0) { numIterations = numIterations + 1; }
                 for (int num = 0; num < numIterations; num++) {
                     int blockSize = 64;
@@ -235,9 +239,9 @@ int main (int argc, char * argv[]) {
             //Step 4. Add data to set3
             total = 0;
             i = 0;
-            if (numOfMb > 0) {
-                int numIterations = numOfMb/64;
-                int remainder = numOfMb - 64*numIterations;
+            if (numOfMb2 > 0) {
+                int numIterations = numOfMb2/64;
+                int remainder = numOfMb2 - 64*numIterations;
                 if (remainder > 0) { numIterations = numIterations + 1; }
                 for (int num = 0; num < numIterations; num++) {
                     int blockSize = 64;
