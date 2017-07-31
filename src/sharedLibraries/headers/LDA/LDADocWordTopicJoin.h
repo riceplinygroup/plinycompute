@@ -67,15 +67,15 @@ public:
 
         Lambda <bool> getSelection (Handle <LDADocument> doc, Handle <IntDoubleVectorPair> DocTopicProb, 
 		Handle <IntDoubleVectorPair> WordTopicProb) override {
-           	
-		   // return (makeLambdaFromMethod (doc, getDoc) == makeLambdaFromMethod (DocTopicProb, getInt)) && 
-		//		(makeLambdaFromMethod (doc, getWord) == makeLambdaFromMethod (WordTopicProb, getInt));	
+           	    //JiaNote: we may want to avoid makeLambda in Join selection as much as possible, because it matches all pairs in all tables first, which is very expensive.
+		    return (makeLambdaFromMethod (doc, getDoc) == makeLambdaFromMethod (DocTopicProb, getInt)) && 
+				(makeLambdaFromMethod (doc, getWord) == makeLambdaFromMethod (WordTopicProb, getInt));	
 		     
-		    return makeLambda (doc, DocTopicProb, WordTopicProb, [] (Handle<LDADocument> & doc, 
+		    /*return makeLambda (doc, DocTopicProb, WordTopicProb, [] (Handle<LDADocument> & doc, 
 			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
 				return (doc->getDoc() == DocTopicProb->getInt() && doc->getWord() == WordTopicProb->getInt());
 		    	});
-		    
+		    */
 
         	}
 
