@@ -110,7 +110,7 @@ try:
     #start pseudo cluster
     startPseudoCluster()
 
-    #run bin/test66
+    #run bin/test74
     print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
     subprocess.check_call(['bin/test74', 'Y', 'Y', '1024', 'localhost', 'Y'])
 
@@ -138,7 +138,7 @@ try:
     #start pseudo cluster
     startPseudoCluster()
 
-    #run bin/test66
+    #run bin/test79
     print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
     subprocess.check_call(['bin/test79', 'Y', 'Y', '1024', 'localhost', 'Y'])
 
@@ -166,7 +166,7 @@ try:
     #start pseudo cluster
     startPseudoCluster()
 
-    #run bin/test66
+    #run bin/test78
     print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
     subprocess.check_call(['bin/test78', 'Y', 'Y', '1024', 'localhost', 'Y'])
 
@@ -194,7 +194,7 @@ try:
     #start pseudo cluster
     startPseudoCluster()
 
-    #run bin/test66
+    #run bin/test90
     print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
     subprocess.check_call(['bin/test90', 'Y', 'Y', '1024', 'localhost', 'Y'])
 
