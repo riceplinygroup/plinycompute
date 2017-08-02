@@ -27,10 +27,10 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize
 
 
-lines_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv", "w")
-lines_mtd_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
-lines_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv", "w")
-lines_mtd_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv.mtd", "w")
+#lines_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv", "w")
+#lines_mtd_X = open("./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
+#lines_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv", "w")
+#lines_mtd_y = open("./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+".csv.mtd", "w")
 fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
 blocks_X = open(fileNameX, "w")
 fileNamey = "./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data"
@@ -58,21 +58,21 @@ for i in xrange(data_num):
     X.append(x_i)
     y.append(y_i)
 
-for i in xrange(data_num):
-    for j in xrange(dim-1):
-        lines_X.write(str(X[i][j]))
-        lines_X.write(str(", "))
-    lines_X.write(str(str(X[i][dim-1])))
-    lines_X.write("\n")
-    lines_y.write(str(y[i]))
-    lines_y.write("\n")
-lines_X.close()
-lines_y.close()
+#for i in xrange(data_num):
+#    for j in xrange(dim-1):
+#        lines_X.write(str(X[i][j]))
+#        lines_X.write(str(", "))
+#    lines_X.write(str(str(X[i][dim-1])))
+#    lines_X.write("\n")
+#    lines_y.write(str(y[i]))
+#    lines_y.write("\n")
+#lines_X.close()
+#lines_y.close()
 
-lines_mtd_X.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
-lines_mtd_y.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(1) + ", \"format\": \"csv\"}")
-lines_mtd_X.close()
-lines_mtd_y.close()
+#lines_mtd_X.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
+#lines_mtd_y.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(1) + ", \"format\": \"csv\"}")
+#lines_mtd_X.close()
+#lines_mtd_y.close()
 
 for i in xrange(data_num/blockRowSize):
     for j in xrange(dim/blockColSize):
@@ -98,4 +98,4 @@ blocks_y.close()
 code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileNameX+'\")\n')
 code.write("y = load("+str(blockRowSize)+", 1, "+str(blockRowNum,)+ ', 1, \"'+fileNamey+'\")\n')
 code.write("beta = (X '* X)^-1 %*% (X '* y)")
-
+code.close()
