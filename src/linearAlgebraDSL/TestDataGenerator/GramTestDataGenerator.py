@@ -27,8 +27,8 @@ blockRowNum = data_num/blockRowSize
 blockColNum = dim/blockColSize
 
 
-lines = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv", "w")
-lines_mtd = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
+#lines = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv", "w")
+#lines_mtd = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
 fileName = "./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
 blocks = open(fileName,"w")
 code = open("./src/linearAlgebraDSL/DSLSamples/Task01_Gram_"+str(int(time.time()))+".pdml", "w")
@@ -45,12 +45,12 @@ for i in xrange(data_num):
     data.append(row)
 
 
-for i in xrange(data_num):
-    for j in xrange(dim-1):
-        lines.write(str(data[i][j]))
-        lines.write(", ")
-    lines.write(str(data[i][dim-1]))
-    lines.write("\n")
+#for i in xrange(data_num):
+#    for j in xrange(dim-1):
+#        lines.write(str(data[i][j]))
+#        lines.write(", ")
+#    lines.write(str(data[i][dim-1]))
+#    lines.write("\n")
 
 
 for i in xrange(data_num/blockRowSize):
@@ -66,15 +66,12 @@ for i in xrange(data_num/blockRowSize):
 		blocks.write("\n")
 
 
-lines_mtd.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
+#lines_mtd.write("{\"rows\": " + str(data_num) +", \"cols\": " + str(dim) + ", \"format\": \"csv\"}")
 code.write("X = load("+str(blockRowSize)+","+str(blockColSize)+","+str(blockRowNum)+","+str(blockColNum)+',\"'+fileName+'\")\n')
 code.write("M = X '* X\n")
 
 
-lines.close()
-lines_mtd.close()
+#lines.close()
+#lines_mtd.close()
 blocks.close()
-
-
-
-
+code.close()
