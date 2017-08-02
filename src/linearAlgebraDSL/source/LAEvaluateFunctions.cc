@@ -94,32 +94,33 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 						}
 						pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
 						for(int ii = 0; ii < dim.blockRowSize; ii++){
-                    		for(int jj=0; jj < dim.blockColSize; jj++){
-          						if(method.compare("identity")==0){
-          							value = (i==j && ii==jj)?1.0:0.0;
-          						}
-                        		(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
-                    		}
-                		}
-                		storeMatrix->push_back (myData);
-                		writtenBlocks ++;
+                    		                        for(int jj=0; jj < dim.blockColSize; jj++){
+          						        if(method.compare("identity")==0){
+          							        value = (i==j && ii==jj)?1.0:0.0;
+          						        }
+                        		                        (*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+                    		                        }
+                		                }
+                		                storeMatrix->push_back (myData);
+                		                writtenBlocks ++;
 					}
 					if(writtenBlocks == totalBlocks){
-                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-        					exit(1);
-    					}    
-    					instance.getStorageClient().flushData(instance.instanceErrMsg());
-    					std::cout << "Dispatched data when it is the last patch!" << std::endl;
-                	}
+                		                if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        					        std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        					        exit(1);
+    					        }    
+    					        instance.getStorageClient().flushData(instance.instanceErrMsg());
+    					        std::cout << "Dispatched data when it is the last patch!" << std::endl;
+                	                 }
 				}catch(pdb::NotEnoughSpace &n){
-        			if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-        				std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-        				exit(1);
-    				}    
-    				instance.getStorageClient().flushData(instance.instanceErrMsg());
-    				std::cout << "Dispatched data when allocated block is full!" << std::endl;
-        		}
+        			        if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        				        std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        				        exit(1);
+    				        }
+                                        //JiaNote: from performance perspective, we should not flush frequently, which is unnecessary.       
+    				        //instance.getStorageClient().flushData(instance.instanceErrMsg());
+    				        std::cout << "Dispatched data when allocated block is full!" << std::endl;
+        		        }
 			}
 		}        
 	}
@@ -129,6 +130,12 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 			std::cerr << "File Path <" << path.substr(1,path.length()-2) << "> invalid!" << std::endl;
 			exit(1);
 		}
+
+                //JiaNote: move the declaration of i and j here to facilitate rollback in case of catching NotEnoughSpace exception in middle of processing
+                int i = 0;
+                int j = 0;
+                bool rollback = false;
+
 		int writtenBlocks = 0;
 		while(writtenBlocks < totalBlocks){
 			const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
@@ -136,37 +143,45 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
 				pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
 				try{
 					while(writtenBlocks < totalBlocks){
-						int i;
-						int j;
 						double value = 0.0;
-						input >> i;
-            			input >> j;
+                                                if (rollback == false) {
+						    input >> i;
+                       			            input >> j;
+                                                } else {
+                                                    //JiaNote: rollback is set to be true, so we do not read new value, instead we use old i and j that needs to be rolled back
+                                                    std :: cout << "Redo for i=" << i << " and j=" << j << std :: endl;
+                                                    rollback = false;
+                                                }
 						pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
 						for(int ii = 0; ii < dim.blockRowSize; ii++){
-                    		for(int jj=0; jj < dim.blockColSize; jj++){
-                        		input >> value;
-                        		(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
-                    		}
-                		}
-                		storeMatrix->push_back (myData);
-                		writtenBlocks ++;
+                    		                    for(int jj=0; jj < dim.blockColSize; jj++){
+                        		               input >> value;
+                        		               (*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+                    		                    }
+                		                }
+                		                storeMatrix->push_back (myData);
+                		                writtenBlocks ++;
 					}
 					if(writtenBlocks == totalBlocks){
-                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+                		            if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
         					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
         					exit(1);
-    					}    
-    					instance.getStorageClient().flushData(instance.instanceErrMsg());
-    					std::cout << "Dispatched data when it is the last patch!" << std::endl;
-                	}
+    					    }    
+    					    instance.getStorageClient().flushData(instance.instanceErrMsg());
+    					    std::cout << "Dispatched data when it is the last patch!" << std::endl;
+                	                }         
 				}catch(pdb::NotEnoughSpace &n){
-        			if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-        				std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-        				exit(1);
-    				}    
-    				instance.getStorageClient().flushData(instance.instanceErrMsg());
-    				std::cout << "Dispatched data when allocated block is full!" << std::endl;
-        		}
+        			        if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        				    std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        				    exit(1);
+    				        }
+                                        //JiaNote: in this case, we met a NotEnoughSpace exception in middle of processing, so we need redo or rollback for current i and j;
+                                        rollback = true;
+
+                                        //JiaNote: from performance perspective, we should not flush frequently, which is unnecessary.    
+    				        //instance.getStorageClient().flushData(instance.instanceErrMsg());
+    				        std::cout << "Dispatched data when allocated block is full!" << std::endl;
+        		        }
 			}
 		}
 	}
