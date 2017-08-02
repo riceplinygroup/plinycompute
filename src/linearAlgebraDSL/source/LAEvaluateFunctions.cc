@@ -65,7 +65,7 @@
 
 
 pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& instance){
-	int leftCounter = dim.blockRowNum * dim.blockColNum;
+	int totalBlocks = dim.blockRowNum * dim.blockColNum;
 	std::string setName = "LA_"+method+"_"+std::to_string(instance.getDispatchCount());
 	instance.increaseDispatchCount();
 	 // now, create a new set in LA_db
@@ -76,95 +76,103 @@ pdb::Handle<pdb::Computation>& LAInitializerNode :: evaluate(LAPDBInstance& inst
         std:: cout << "Created set: " << setName << std::endl;
     }
 	//Dispatch the set;
-	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
-	{
-	    pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
-	    int totalRows = dim.blockRowNum * dim.blockRowSize;
-	    int totalCols = dim.blockColNum * dim.blockColSize;
-		if(method.compare("zeros")==0 || method.compare("ones")==0 || method.compare("identity")==0){
-			try{
-				double value = 0.0;
-				if(method.compare("ones")==0){
-					value = 1.0;
-				}
-				for (int i = 0; i < dim.blockRowNum; i++) {
-	            	for (int j = 0; j < dim.blockColNum; j++){
-	                	pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
-	                	for(int ii = 0; ii < dim.blockRowSize; ii++){
-	                    	for(int jj=0; jj < dim.blockColSize; jj++){
-	          					if(method.compare("identity")==0){
-	          						value = (i==j && ii==jj)?1.0:0.0;
-	          					}
-	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
-	                    	}
-	                	}
-	                	storeMatrix->push_back (myData);
-	                	leftCounter--;
-	                	if(leftCounter==0){
-	                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-	        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-	        					exit(1);
-	    					}    
-	    					instance.getStorageClient().flushData(instance.instanceErrMsg());
-	                	}
-	                }
-	            }            
-	        }catch(pdb::NotEnoughSpace &n){
-	        	if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-	        		std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-	        		exit(1);
-	    		}    
-	    		instance.getStorageClient().flushData(instance.instanceErrMsg());
-	        }
-		}
-		else if(method.compare("load")==0){ //We assume the input data is already splited into blocks
-			std::ifstream input(path.substr(1,path.length()-2),std::ios::in);
-			if(!input.is_open()){
-				std::cerr << "File Path <" << path.substr(1,path.length()-2) << "> invalid!" << std::endl;
-				exit(1);
+    int totalRows = dim.blockRowNum * dim.blockRowSize;
+    int totalCols = dim.blockColNum * dim.blockColSize;
+	if(method.compare("zeros")==0 || method.compare("ones")==0 || method.compare("identity")==0){
+        int writtenBlocks = 0;
+        while(writtenBlocks < totalBlocks){
+			const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
+			{	
+				pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
+				try{
+					while(writtenBlocks < totalBlocks){
+						int i = writtenBlocks / dim.blockColNum;
+						int j = writtenBlocks % dim.blockColNum;
+						double value = 0.0;
+						if(method.compare("ones")==0){
+							value = 1.0;
+						}
+						pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
+						for(int ii = 0; ii < dim.blockRowSize; ii++){
+                    		for(int jj=0; jj < dim.blockColSize; jj++){
+          						if(method.compare("identity")==0){
+          							value = (i==j && ii==jj)?1.0:0.0;
+          						}
+                        		(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+                    		}
+                		}
+                		storeMatrix->push_back (myData);
+                		writtenBlocks ++;
+					}
+					if(writtenBlocks == totalBlocks){
+                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        					exit(1);
+    					}    
+    					instance.getStorageClient().flushData(instance.instanceErrMsg());
+    					std::cout << "Dispatched data when it is the last patch!" << std::endl;
+                	}
+				}catch(pdb::NotEnoughSpace &n){
+        			if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        				std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        				exit(1);
+    				}    
+    				instance.getStorageClient().flushData(instance.instanceErrMsg());
+    				std::cout << "Dispatched data when allocated block is full!" << std::endl;
+        		}
 			}
-			try{
-				int inputRowIndex;
-				int inputColIndex;
-				double value;
-				for (int i = 0; i < dim.blockRowNum; i++) {
-	            	for (int j = 0; j < dim.blockColNum; j++){
-	            		input >> inputRowIndex;
-	            		input >> inputColIndex;
-	            		if(i!=inputRowIndex || j!=inputColIndex){
-	            			std::cerr << "Invalid block index from input file ("<< i <<"," <<j <<") != ("<<inputRowIndex<<","<<inputColIndex<<")"<<std::endl;
-	            			exit(1); 
-	            		}
-	                	pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
-	                	for(int ii = 0; ii < dim.blockRowSize; ii++){
-	                    	for(int jj=0; jj < dim.blockColSize; jj++){
-	                        	input >> value;
-	                        	(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
-	                    	}
-	                	}
-	                	storeMatrix->push_back (myData);
-	                	leftCounter--;
-	                	if(leftCounter==0){
-	                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-	        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-	        					exit(1);
-	    					}    
-	    					instance.getStorageClient().flushData(instance.instanceErrMsg());
-	                	}
-	                }
-	            }            
-	        }catch(pdb::NotEnoughSpace &n){
-	        	if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
-	        		std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
-	        		exit(1);
-	    		}    
-	    		instance.getStorageClient().flushData(instance.instanceErrMsg());
-	        }
-		}
-		else{
-			std::cerr << "LAInitializerNode <" << method << "> method invalid!" << std::endl;
+		}        
+	}
+	else if(method.compare("load")==0){ //We assume the input data is already splited into blocks
+		std::ifstream input(path.substr(1,path.length()-2),std::ios::in);
+		if(!input.is_open()){
+			std::cerr << "File Path <" << path.substr(1,path.length()-2) << "> invalid!" << std::endl;
 			exit(1);
 		}
+		int writtenBlocks = 0;
+		while(writtenBlocks < totalBlocks){
+			const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
+			{	
+				pdb::Handle<pdb::Vector<pdb::Handle<MatrixBlock>>> storeMatrix = pdb::makeObject<pdb::Vector<pdb::Handle<MatrixBlock>>>();
+				try{
+					while(writtenBlocks < totalBlocks){
+						int i;
+						int j;
+						double value = 0.0;
+						input >> i;
+            			input >> j;
+						pdb :: Handle <MatrixBlock> myData = pdb::makeObject<MatrixBlock>(i,j,dim.blockRowSize,dim.blockColSize,totalRows,totalCols);
+						for(int ii = 0; ii < dim.blockRowSize; ii++){
+                    		for(int jj=0; jj < dim.blockColSize; jj++){
+                        		input >> value;
+                        		(*(myData->getRawDataHandle()))[ii*dim.blockColSize+jj] = value;
+                    		}
+                		}
+                		storeMatrix->push_back (myData);
+                		writtenBlocks ++;
+					}
+					if(writtenBlocks == totalBlocks){
+                		if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        					std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        					exit(1);
+    					}    
+    					instance.getStorageClient().flushData(instance.instanceErrMsg());
+    					std::cout << "Dispatched data when it is the last patch!" << std::endl;
+                	}
+				}catch(pdb::NotEnoughSpace &n){
+        			if (!instance.getDispatchClient().sendData<MatrixBlock>(std::pair<std::string, std::string>(setName, "LA_db"), storeMatrix, instance.instanceErrMsg())) {
+        				std :: cerr << "Failed to send data to dispatcher server" << std :: endl;
+        				exit(1);
+    				}    
+    				instance.getStorageClient().flushData(instance.instanceErrMsg());
+    				std::cout << "Dispatched data when allocated block is full!" << std::endl;
+        		}
+			}
+		}
+	}
+	else{
+		std::cerr << "LAInitializerNode <" << method << "> method invalid!" << std::endl;
+		exit(1);
 	}
 	
 	if (instance.existsPDBSet(setName)){
