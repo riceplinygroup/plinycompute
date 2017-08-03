@@ -426,7 +426,8 @@ pdb::Handle<pdb::Computation>& LAAdditiveExpressionNode :: evaluate(LAPDBInstanc
 
 
 void LAStatementNode :: evaluateQuery(LAPDBInstance& instance){
-	const UseTemporaryAllocationBlock tempBlock {instance.getBlockSize() * 1024 * 1024};
+	//Set a constant Block size for query objects. 32MB here.
+	const UseTemporaryAllocationBlock tempBlock {32 * 1024 * 1024};
 	if(expression->isSyntaxSugarInitializer()){
 		std::cout << "Initialize variable " << identifier->toString() << std::endl;
 		pdb::Handle<pdb::Computation> initializerScan = expression->evaluate(instance);		
