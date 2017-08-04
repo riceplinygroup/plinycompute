@@ -49,7 +49,7 @@ public:
 private:
 
     // Seed used for the PRNG. It is configurable so that we can deterministically test RandomPolicy's behavior.
-    const int SEED = 0;
+    const int SEED = time(NULL);
 
     std::vector<NodePartitionDataPtr> createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes);
     NodePartitionDataPtr updateExistingNode(NodePartitionDataPtr newNodeData,

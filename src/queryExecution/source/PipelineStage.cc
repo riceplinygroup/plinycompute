@@ -45,6 +45,7 @@
 #include "SharedHashSet.h"
 #include "JoinComp.h"
 #include "SimpleSendObjectRequest.h"
+#include <snappy.h>
 
 namespace pdb {
 
@@ -61,6 +62,11 @@ PipelineStage :: PipelineStage (Handle<TupleSetJobStage> stage, SharedMemPtr shm
     this->conf = conf;
     this->shm = shm;
     this->id = 0;
+    std :: srand (unsigned (std :: time(0)));
+    int numNodes = this->jobStage->getNumNodes();
+    for (int i = 0; i < numNodes; i++) {
+        nodeIds.push_back(i);
+    }    
 }
 
 
@@ -96,18 +102,31 @@ bool PipelineStage :: broadcastData (HermesExecutionServer * server, void * data
         return false;
     }
     int numNodes = this->jobStage->getNumNodes();
+    
     UseTemporaryAllocationBlock tempBlock {4*1024*1024};
     for (int i = 0; i < numNodes; i++) {
+                  std :: random_shuffle (nodeIds.begin(), nodeIds.end());
                   PDBCommunicator temp;
                   bool success;
                   std :: string errMsg;
-                  std :: string address = this->jobStage->getIPAddress (i);
-                  int port = this->jobStage->getPort (i);
-                  PDB_COUT << "address=" << address << ", port=" << port << std :: endl;
+                  int index = nodeIds[i];
+                  std :: cout << "broadcast to node id=" << index << std :: endl;
+                  std :: string address = this->jobStage->getIPAddress (index);
+                  int port = this->jobStage->getPort (index);
+                  std :: cout << "address=" << address << ", port=" << port << std :: endl;
                   temp.connectToInternetServer (logger, port, address, errMsg);
                   Handle<StorageAddObject> request = makeObject <StorageAddObject> (databaseName, setName, "IntermediateData", false, false);
                   temp.sendObject(request, errMsg);
+#ifdef ENABLE_COMPRESSION
+                  char * compressedBytes = new char[snappy::MaxCompressedLength(size)];
+                  size_t compressedSize;
+                  snappy::RawCompress((char *)data, size, compressedBytes, &compressedSize);
+                  std :: cout << "size before compression is " << size << " and size after compression is " << compressedSize << std :: endl;
+                  temp.sendBytes(compressedBytes, compressedSize, errMsg);
+                  delete [] compressedBytes;
+#else
                   temp.sendBytes(data, size, errMsg);
+#endif
                   Handle<SimpleRequestResult> result = temp.getNextObject<SimpleRequestResult>(success, errMsg);
     }
     return true;
@@ -323,8 +342,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           //broadcast the objects
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
-                              Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
-                              PDB_COUT << "Map size: " << map->size() << std :: endl;
+                              //Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
+                              //PDB_COUT << "Map size: " << map->size() << std :: endl;
                               if (objectToSend != nullptr) {
                                   broadcastData (server, page, DEFAULT_NET_PAGE_SIZE, outputSet->getDatabase(), outputSet->getSetName(), errMsg);
                               }

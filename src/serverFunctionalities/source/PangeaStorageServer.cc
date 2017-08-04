@@ -72,6 +72,7 @@
 #include <map>
 #include <iterator>
 #include <pthread.h>
+#include <snappy.h>
 
 #define FLUSH_BUFFER_SIZE 3
 
@@ -870,8 +871,13 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                  // get the record
                  size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+#ifdef ENABLE_COMPRESSION
+                 char * readToHere = new char[numBytes];
+#else
                  void *readToHere = malloc (numBytes);
+#endif
                  everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
+
                  {
                      //std :: cout << "Making response object early .\n";
                      const UseTemporaryAllocationBlock block{1024};
@@ -900,7 +906,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                       }
                       size_t pageSize = myPage->getSize();
                       PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+#ifdef ENABLE_COMPRESSION
+                      snappy::RawUncompress(readToHere, numBytes, (char *)(myPage->getBytes()));
+#else
                       memcpy (myPage->getBytes(), readToHere, numBytes);
+#endif
                        
                       CacheKey key;
                       key.dbId = myPage->getDbID();
@@ -916,7 +926,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                       errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
                       everythingOK = false;
                  }
+#ifdef ENABLE_COMPRESSION
+                 delete[] readToHere;
+#else
                  free (readToHere);
+#endif
                  return make_pair (everythingOK, errMsg);
              }
         ));
