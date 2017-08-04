@@ -103,9 +103,9 @@ bool PipelineStage :: broadcastData (HermesExecutionServer * server, void * data
     }
     int numNodes = this->jobStage->getNumNodes();
     
+    std :: random_shuffle (nodeIds.begin(), nodeIds.end());
     UseTemporaryAllocationBlock tempBlock {4*1024*1024};
     for (int i = 0; i < numNodes; i++) {
-                  std :: random_shuffle (nodeIds.begin(), nodeIds.end());
                   PDBCommunicator temp;
                   bool success;
                   std :: string errMsg;
