@@ -26,6 +26,8 @@ namespace pdb {
         switch(policy) {
             case PartitionPolicy::Policy::RANDOM:
                 return std::make_shared<RandomPolicy>();
+            case PartitionPolicy::Policy::ROUNDROBIN:
+                return std::make_shared<RoundRobinPolicy>();
             case PartitionPolicy::Policy::FAIR:
                 // TODO: Implement this class
                 return nullptr;
@@ -36,7 +38,11 @@ namespace pdb {
     }
 
     PartitionPolicyPtr PartitionPolicyFactory::buildDefaultPartitionPolicy() {
+#ifdef RANDOM_DISPATCHER
         return std::make_shared<RandomPolicy>();
+#else
+        return std::make_shared<RoundRobinPolicy>();
+#endif
     }
 
 }

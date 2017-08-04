@@ -43,7 +43,7 @@ typedef std::shared_ptr<PartitionPolicy> PartitionPolicyPtr;
 class PartitionPolicy {
 public:
 
-    enum Policy {RANDOM, FAIR, DEFAULT};
+    enum Policy {RANDOM, ROUNDROBIN, FAIR, DEFAULT};
 
     std::vector<NodePartitionDataPtr> createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes);
 

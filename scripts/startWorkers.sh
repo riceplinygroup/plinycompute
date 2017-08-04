@@ -56,8 +56,9 @@ do
         ip_addr=${arr[i]}
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
+                echo -e "+++++++++++ to install or update libraries: $ip_addr"
+                ssh -i $pem_file $user@$ip_addr "sudo apt-get install libsnappy1v5 libsnappy-dev libeigen3-dev libgsl-dev"
                 echo -e "\n+++++++++++ start server: $ip_addr"
-
                 ssh -i $pem_file $PDB_SSH_OPTS $user@$ip_addr "cd $pdb_dir;  scripts/startWorker.sh $numThreads $sharedMem $masterIp $ip_addr &" &
                 sleep $PDB_SSH_SLEEP
                 ssh -i $pem_file $user@$ip_addr $pdb_dir/scripts/checkProcess.sh pdb-server

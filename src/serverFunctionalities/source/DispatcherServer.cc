@@ -74,7 +74,11 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << errMsg << std :: endl;
                     return make_pair(false, errMsg);
                 }
+                //JiaNote: to accelerate data dispatching
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                res = sendUsingMe->sendObject (response, errMsg);
 
+               
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
 
@@ -88,8 +92,8 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 size_t newNumBytes = oldNumBytes + numBytes;
                 stats->setNumBytes (request->getDatabaseName(), request->getSetName(), newNumBytes);
 
-                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
-                res = sendUsingMe->sendObject (response, errMsg);
+                //Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                //res = sendUsingMe->sendObject (response, errMsg);
 
                 return make_pair(res, errMsg);
     }));

@@ -35,6 +35,9 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <algorithm>
+#include <ctime>
+#include <cstdlib>
 
 namespace pdb {
 
@@ -70,6 +73,9 @@ private:
 
     // operator id
     OperatorID id;
+
+    //vector of nodeId for shuffling
+    std :: vector<int> nodeIds;
 
 public:
 
