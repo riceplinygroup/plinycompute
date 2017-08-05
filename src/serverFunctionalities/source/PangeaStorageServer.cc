@@ -172,6 +172,7 @@ void PangeaStorageServer :: cleanup(bool flushOrNot) {
             pthread_mutex_lock(&counterMutex);
         }
         pthread_mutex_unlock(&counterMutex);
+        const LockGuard guard{workingMutex};
         for (auto &a : allRecords) {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first, flushOrNot);
