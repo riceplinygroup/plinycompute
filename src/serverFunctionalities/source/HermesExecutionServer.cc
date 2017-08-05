@@ -873,9 +873,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
                         Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, conf->getBatchSize(), conf->getNumThreads());
-                        if ((request->isRepartition() == false) || (request->isCombining() == false)) {
+                        if (((request->isRepartition() == false) || (request->isCombining() == false)) && (request->isBroadcasting() == false)) {
                              PDB_COUT << "run pipeline..." << std :: endl;
                              pipeline->runPipeline(this);
+                        } else if ( request->isBroadcasting() == true) {
+                             PDB_COUT << "run pipeline with broadcasting..." << std :: endl;
+                             pipeline->runPipelineWithBroadcastSink(this);
                         } else {
                              PDB_COUT << "run pipeline with combiner..." << std :: endl;
                              pipeline->runPipelineWithShuffleSink(this);

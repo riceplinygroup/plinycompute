@@ -32,6 +32,7 @@
 #include "HermesExecutionServer.h"
 #include "PartitionedHashSet.h"
 #include "SetSpecifier.h"
+#include "DataPacket.h"
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -77,6 +78,7 @@ private:
     //vector of nodeId for shuffling
     std :: vector<int> nodeIds;
 
+
 public:
 
     //destructor
@@ -89,7 +91,7 @@ public:
     bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
 
     //broadcast data
-    bool broadcastData(HermesExecutionServer * server, void * bytes, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg);
+    bool broadcastData(HermesExecutionServer * server, void * bytes, size_t size, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
 
     //tuning the backend circular buffer size
     size_t getBackendCircularBufferSize (bool & success, std :: string & errMsg);
@@ -101,7 +103,7 @@ public:
     DataProxyPtr createProxy (int i, pthread_mutex_t connection_mutex, std :: string & errMsg);
 
     //execute pipeline
-    void executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector <PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector  <PageCircularBufferPtr> & combinerBuffers, HermesExecutionServer * server, std :: string & errMsg);
+    void executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector <PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector  <PageCircularBufferPtr> & sinkBuffers, HermesExecutionServer * server, std :: string & errMsg);
 
     //return the root job stage corresponding to the pipeline 
     Handle<TupleSetJobStage> & getJobStage(); 
@@ -115,8 +117,12 @@ public:
     //run a pipeline without combining
     void runPipeline (HermesExecutionServer * server);
 
-    //run a pipeline with UserSet source and ShuffleSet sink
+    //run a pipeline with combiner queue
     void runPipelineWithShuffleSink  (HermesExecutionServer * server);
+
+    //run a pipeline with shuffle buffers
+    void runPipelineWithBroadcastSink (HermesExecutionServer * server);
+
 
 };
 
