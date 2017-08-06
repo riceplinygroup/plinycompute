@@ -25,7 +25,7 @@
 #include "SimpleRequestResult.h"
 #include "CatalogServer.h"
 #include "StorageAddData.h"
-#include "StorageAddObject.h"
+#include "StorageAddObjectInLoop.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
 #include "StorageClearSet.h"
@@ -848,13 +848,16 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
 
         // this handler accepts a request to store one large object (e.g. JoinMap) in one page
-        forMe.registerHandler (StorageAddObject_TYPEID, make_shared <SimpleRequestHandler <StorageAddObject>> (
-                [&] (Handle <StorageAddObject> request, PDBCommunicatorPtr sendUsingMe) {
-
+        forMe.registerHandler (StorageAddObjectInLoop_TYPEID, make_shared <SimpleRequestHandler <StorageAddObjectInLoop>> (
+                [&] (Handle <StorageAddObjectInLoop> request, PDBCommunicatorPtr sendUsingMe) {
+                std :: cout << "start StorageAddObjectInLoop" << std :: endl;
                 std :: string errMsg;
                 bool everythingOK = true;
-                bool typeCheckOrNot = request->isTypeCheck();
-                if (typeCheckOrNot == true) {
+                Handle<StorageAddObjectInLoop> curRequest = request;
+                void * requestInLoop = nullptr;
+                while (curRequest->isLoopEnded() == false) {
+                    bool typeCheckOrNot = request->isTypeCheck();
+                    if (typeCheckOrNot == true) {
 #ifdef DEBUG_SET_TYPE
                         // first, check with the catalog to make sure that the given database, set, and type are correct
                         int16_t typeID = getFunctionality <CatalogServer> ().getObjectType (request->getDatabase (), request->getSetName ());
@@ -868,70 +871,93 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         }
 #endif
 
-                 }
+                    }
 
-                 // get the record
-                 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+                    // get the record
+                    size_t numBytes = sendUsingMe->getSizeOfNextObject ();
 #ifdef ENABLE_COMPRESSION
-                 char * readToHere = new char[numBytes];
+                    char * readToHere = new char[numBytes];
 #else
-                 void *readToHere = malloc (numBytes);
+                    void *readToHere = malloc (numBytes);
 #endif
-                 everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
+                    everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
 
-                 {
-                     //std :: cout << "Making response object early .\n";
-                     const UseTemporaryAllocationBlock block{1024};
-                     Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+                    {
+                         //std :: cout << "Making response object early .\n";
+                         const UseTemporaryAllocationBlock block{1024};
+                         Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
 
-                     // return the result
-                     //std :: cout << "Sending response object.\n";
-                     everythingOK = sendUsingMe->sendObject (response, errMsg);
-                 }
-                 //Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
-                 //Handle<JoinMap<Object>> objectToStore = record->getRootObject();
-                 //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
-                 if (everythingOK) {
-                      pthread_mutex_lock(&counterMutex);
-                      numWaitingBufferDataRequests++;
-                      pthread_mutex_unlock(&counterMutex);
-                      auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
+                         // return the result
+                         //std :: cout << "Sending response object.\n";
+                         everythingOK = sendUsingMe->sendObject (response, errMsg);
+                    }
+                    //Record<JoinMap<Object>> * record = (Record<JoinMap<Object>> *)readToHere;
+                    //Handle<JoinMap<Object>> objectToStore = record->getRootObject();
+                    //std :: cout << "PangeaStorageServer: MapSize=" << objectToStore->size() << std :: endl;
+                    if (everythingOK) {
+                      /*
+                         pthread_mutex_lock(&counterMutex);
+                         numWaitingBufferDataRequests++;
+                         pthread_mutex_unlock(&counterMutex);
+                      */
+                         auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
                                                         (std :: string) request->getSetName ());
-                      // now, get a page to write to
-                      PDBPagePtr myPage = getNewPage (databaseAndSet);
-                      if (myPage == nullptr) {
-                          std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
-                          std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
-                          std :: cout << "setName" << databaseAndSet.second << std :: endl;
-                          return make_pair(false, std :: string("FATAL ERROR: set to store data doesn't exist!"));
-                      }
-                      size_t pageSize = myPage->getSize();
-                      PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+                         // now, get a page to write to
+                         PDBPagePtr myPage = getNewPage (databaseAndSet);
+                         if (myPage == nullptr) {
+                             std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
+                             std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
+                             std :: cout << "setName" << databaseAndSet.second << std :: endl;
+                             return make_pair(false, std :: string("FATAL ERROR: set to store data doesn't exist!"));
+                         }
+                         size_t pageSize = myPage->getSize();
+                         PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 #ifdef ENABLE_COMPRESSION
-                      snappy::RawUncompress(readToHere, numBytes, (char *)(myPage->getBytes()));
+                         snappy::RawUncompress(readToHere, numBytes, (char *)(myPage->getBytes()));
 #else
-                      memcpy (myPage->getBytes(), readToHere, numBytes);
+                         memcpy (myPage->getBytes(), readToHere, numBytes);
 #endif
                        
-                      CacheKey key;
-                      key.dbId = myPage->getDbID();
-                      key.typeId = myPage->getTypeID();
-                      key.setId = myPage->getSetID();
-                      key.pageId = myPage->getPageID();
-                      this->getCache()->decPageRefCount(key);
-                      pthread_mutex_lock(&counterMutex);
-                      numWaitingBufferDataRequests--;
-                      pthread_mutex_unlock(&counterMutex);
-                 }
-                 else {
-                      errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
-                      everythingOK = false;
-                 }
+                         CacheKey key;
+                         key.dbId = myPage->getDbID();
+                         key.typeId = myPage->getTypeID();
+                         key.setId = myPage->getSetID();
+                         key.pageId = myPage->getPageID();
+                         this->getCache()->decPageRefCount(key);
+                      /*
+                         pthread_mutex_lock(&counterMutex);
+                         numWaitingBufferDataRequests--;
+                         pthread_mutex_unlock(&counterMutex);
+                       */
+                    }
+                    else {
+                        errMsg = "Tried to add data of the wrong type to a database set or database set doesn't exit.\n";
+                        everythingOK = false;
+                    }
 #ifdef ENABLE_COMPRESSION
-                 delete[] readToHere;
+                    delete[] readToHere;
 #else
-                 free (readToHere);
+                    free (readToHere);
 #endif
+
+                    numBytes = sendUsingMe->getSizeOfNextObject ();
+                    if (requestInLoop == nullptr) {
+                        free (requestInLoop);
+                    }
+                    requestInLoop = malloc(numBytes);
+                    curRequest = sendUsingMe->getNextObject <StorageAddObjectInLoop> (requestInLoop, everythingOK, errMsg);
+                    std :: cout << "got new StorageAddObjectInLoop" << std :: endl; 
+                 }
+                 {
+                    //std :: cout << "Making response object early .\n";
+                    const UseTemporaryAllocationBlock block{1024};
+                    Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);
+
+                    // return the result
+                    //std :: cout << "Sending response object.\n";
+                    everythingOK = sendUsingMe->sendObject (response, errMsg);
+                 }
+                 std :: cout << "end StorageAddObjectInLoop" << std :: endl;
                  return make_pair (everythingOK, errMsg);
              }
         ));

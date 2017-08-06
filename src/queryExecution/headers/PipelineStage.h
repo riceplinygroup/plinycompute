@@ -91,7 +91,7 @@ public:
     bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
 
     //broadcast data
-    bool broadcastData(HermesExecutionServer * server, void * bytes, size_t size, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
+    bool broadcastData(PDBCommunicatorPtr conn, void * bytes, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg);
 
     //tuning the backend circular buffer size
     size_t getBackendCircularBufferSize (bool & success, std :: string & errMsg);
