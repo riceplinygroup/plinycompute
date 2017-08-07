@@ -36,14 +36,24 @@ lines_mtd_t = open(fileNamet_csv+".mtd", "w")
 fileNameM_csv = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".csv"
 lines_M = open(fileNameM_csv, "w")
 lines_mtd_M = open(fileNameM_csv+".mtd", "w")
+
 fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".data"
 blocks_X = open(fileNameX, "w")
 fileNamet = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_t = open(fileNamet, "w")
 fileNameM = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_M = open(fileNameM, "w")
+
+fileNameX_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+".txt"
+spark_X = open(fileNameX_txt,"w")
+fileNamet_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".txt"
+spark_t = open(fileNamet_txt,"w")
+fileNameM_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".txt"
+spark_M = open(fileNameM_txt,"w")
+
 code = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_"+str(int(time.time()))+".pdml","w")
 codeSystemML = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_SystemML_"+str(int(time.time()))+".dml","w")
+scriptSpark = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_Spark_"+str(int(time.time()))+".sh","w")
 
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
@@ -102,6 +112,29 @@ lines_mtd_M.write("{\"rows\": " + str(dim) +", \"cols\": " + str(dim) + ", \"for
 lines_mtd_X.close()
 lines_mtd_t.close()
 lines_mtd_M.close()
+
+for i in xrange(data_num):
+    spark_X.write(str(i))
+    for j in xrange(dim):
+        spark_X.write(",")
+        spark_X.write(str(X[i][j]))
+    spark_X.write("\n")
+spark_X.close()
+
+for j in xrange(dim-1):
+    spark_t.write(str(t[j]))
+    spark_t.write(",")
+spark_t.write(str(t[dim-1]))
+spark_t.write("\n")
+spark_t.close()
+
+for i in xrange(dim):
+    spark_M.write(str(i))
+    for j in xrange(dim):
+        spark_M.write(",")
+        spark_M.write(str(M[i,j]))
+    spark_M.write("\n")
+spark_M.close()
 
 
 
@@ -167,11 +200,19 @@ codeSystemML.write("i = rowIndexMin(t(rowSums(Diff %*% M * Diff)));\n")
 codeSystemML.write('print(\"Nearest item index:\" + toString(i, decimal=0));\n')
 codeSystemML.close()
 
-
-
-
-
-
-
-
+# Automatically generate script to run spark
+scriptSpark.write('YOUR_SPARK_HOME/bin/spark-submit ')
+scriptSpark.write('--class \"NearestNeighbourSearch\" ')
+scriptSpark.write('--master local[4] ')
+scriptSpark.write('target/scala-2.11/NearestNeighbourSearch_2.11-1.0.jar ')
+scriptSpark.write(str(data_num))
+scriptSpark.write(" ")
+scriptSpark.write(str(dim))
+scriptSpark.write(" ")
+scriptSpark.write(fileNameX_txt)
+scriptSpark.write(" ")
+scriptSpark.write(fileNamet_txt)
+scriptSpark.write(" ")
+scriptSpark.write(fileNameM_txt)
+scriptSpark.close()
 
