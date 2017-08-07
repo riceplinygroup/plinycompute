@@ -16,7 +16,7 @@ if common_env['PLATFORM'] == 'darwin':
 elif common_env['PLATFORM'] == 'posix':
     os.system("sudo apt-get install libeigen3-dev")
     os.system("sudo apt-get install libgsl-dev")
-
+    os.system("sudo apt-get install libsnappy1v5 libsnappy-dev")
 #common_env.Append(YACCFLAGS='-d')
 common_env.Append(CFLAGS='-std=c11')
 
