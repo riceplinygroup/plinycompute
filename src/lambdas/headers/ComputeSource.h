@@ -36,6 +36,9 @@ public:
 	// this gets another tuple set for processing
 	virtual TupleSetPtr getNextTupleSet () = 0;
 
+        // JiaNote: to enable auto-tuning of batch size in case of failure.
+        virtual void setChunkSize(size_t chunkSize) = 0;
+
 	virtual ~ComputeSource () {}
 
 };
