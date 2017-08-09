@@ -54,6 +54,11 @@
 #include <vector>
 
 
+#ifndef JOIN_HASH_TABLE_SIZE_RATIO
+    #define JOIN_HASH_TABLE_SIZE_RATIO 1.5
+#endif
+
+
 namespace pdb {
 
 
@@ -307,7 +312,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              //create a SharedHashSet instance 
              //std :: cout << "pageSize = " << conf->getPageSize() << ", numPages = " << request->getNumPages() << std :: endl;
-             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*1.5;
+             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*JOIN_HASH_TABLE_SIZE_RATIO;
              //std :: cout << "BroadcastJoinBuildHTJobStage: hashSetSize=" << hashSetSize << std :: endl;
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              if (sharedHashSet == nullptr) {
