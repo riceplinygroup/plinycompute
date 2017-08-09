@@ -85,6 +85,28 @@ public:
         //std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
     }
 
+    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn, pdb::Handle<pdb::Vector<double>> rawDataIn) {
+        meta.blockRowIndex = blockRowIndexIn;
+        meta.blockColIndex = blockColIndexIn;
+        //meta.rowNums = rowNumsIn;
+        //meta.colNums = colNumsIn;
+        data.rowNums = rowNumsIn;
+        data.colNums = colNumsIn;
+        data.rawData = rawDataIn;
+        //std::cout << "This is risky, please call the other constructor. MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+    }
+
+    MatrixBlock(int blockRowIndexIn, int blockColIndexIn, int rowNumsIn, int colNumsIn, int totalRows, int totalCols, pdb::Handle<pdb::Vector<double>> rawDataIn) {
+        meta.blockRowIndex = blockRowIndexIn;
+        meta.blockColIndex = blockColIndexIn;
+        meta.totalRows = totalRows;
+        meta.totalCols = totalCols;
+        data.rowNums = rowNumsIn;
+        data.colNums = colNumsIn;
+        data.rawData = rawDataIn;
+        //std::cout << "MatrixBlock constructor RawData size:" << (data.rawData)->size() << std::endl;
+    }
+
     void printMeta(){
         std :: cout << "Block: (" << meta.blockRowIndex <<","<< meta.blockColIndex << "), size: (" << data.rowNums <<","<< data.colNums<<"), length:" << data.rawData->size()<<" ";
     } 

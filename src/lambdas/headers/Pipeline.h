@@ -25,6 +25,11 @@
 #include "Handle.h"
 #include <queue>
 
+#ifndef MIN_BATCH_SIZE
+  #define MIN_BATCH_SIZE 10
+#endif
+
+
 namespace pdb {
 
 // this is used to buffer unwritten pages
@@ -210,8 +215,10 @@ public:
                                  curChunk = dataSource->getNextTupleSet();
                              }
                              catch (NotEnoughSpace &n) {
-                                 std :: cout << "Error: Batch memory exceeds page size, consider to reduce batch size" << std :: endl;
-                                 return;
+                                 std :: cout << "Data Source Error: Batch source memory exceeds page size, consider to reduce batch size" << std :: endl;
+                                 std :: cout << "batch size tuned to be " << MIN_BATCH_SIZE << std :: endl; 
+                                 dataSource->setChunkSize(MIN_BATCH_SIZE);
+                                 curChunk = dataSource->getNextTupleSet();
                              }
                         }
                         if (curChunk == nullptr) {
@@ -244,7 +251,7 @@ public:
                                             curChunk = q->process (curChunk);
                                         } 
                                         catch (NotEnoughSpace &n) {
-                                            std :: cout << "Error: Batch memory exceeds page size, consider to reduce batch size" << std :: endl;
+                                            std :: cout << "Pipeline Error: Batch processing memory exceeds page size for executor type: " << q->getType() << ", consider to reduce batch size" << std :: endl;
                                             return;
                                         }
 				}

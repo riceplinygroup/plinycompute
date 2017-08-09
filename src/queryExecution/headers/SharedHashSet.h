@@ -58,6 +58,16 @@ public:
         }
     }
 
+    bool isValid() {
+        if (pageData == nullptr) {
+           return false;
+        } else {
+           return true;
+        }
+    }
+
+
+
     //destructor
     ~ SharedHashSet () {
         this->cleanup();

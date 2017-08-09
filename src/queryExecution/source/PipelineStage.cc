@@ -97,7 +97,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
         }
 
 //broadcast data
-bool PipelineStage :: broadcastData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
     
     bool success;
     if (data != nullptr) {
@@ -795,7 +795,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                           //to load input page
                           numPages++;
                           //send out the page
-                          broadcastData(communicator, page->getBytes(), DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          sendData(communicator, page->getBytes(), DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
@@ -804,7 +804,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                       }
                   }
                   std :: cout << "broadcasted " << numPages << " pages to address: " << address << std :: endl;
-                  broadcastData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                  sendData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
 #ifdef PROFILING
                   out = getAllocator().printInactiveBlocks();
                   std :: cout << "inactive blocks after sending data in this worker:" << std :: endl;

@@ -53,6 +53,12 @@ public:
 		output->addColumn (0, inputColumn, true); 
 	}
 
+        // JiaNote: so that we can tune chunk size automatically in the Pipeline class
+        void setChunkSize (size_t chunkSize) override {
+             this->chunkSize = chunkSize;
+        }
+
+
 	// returns the next tuple set to process, or nullptr if there is not one to process
 	TupleSetPtr getNextTupleSet () override {
                 PDBMapIterator <KeyType, ValueType> beginToRecover = begin;
