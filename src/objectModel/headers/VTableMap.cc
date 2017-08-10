@@ -130,45 +130,39 @@ inline int16_t VTableMap :: getIDByName (std::string objectTypeName, bool withLo
 	if (theVTable->objectTypeNamesList.count (objectTypeName) == 0 && theVTable->catalog != nullptr) {
 		
 		// make sure no one is modifying the map
-        //std :: stringstream ss;
-        //ss << &(theVTable->myLock);
-        //std :: cout << "to get lock at " << ss.str() << "in getIDByName for "<< objectTypeName << std :: endl;
-	    //pthread_mutex_lock(&theVTable->myLock);
-        int16_t identifier;
-        if (withLock == true) {
+                int16_t identifier;
+                if (withLock == true) {
 		    const LockGuard guard {theVTable->myLock};
-            //std :: cout << "got lock at " << ss.str() << " in getIDByName for "<< objectTypeName << std :: endl;
 		    // in this case, we do not have this object type, and we have never looked for it before
 		    // so, go to the catalog and ask for it...
 		    identifier = lookupTypeNameInCatalog (objectTypeName);
-        } else {
-            identifier = lookupTypeNameInCatalog (objectTypeName);
-        }
-        //pthread_mutex_unlock(&theVTable->myLock);
+                } else {
+                    identifier = lookupTypeNameInCatalog (objectTypeName);
+                }
 		// if the identifier is -1, then it means the catalog has never seen this type before
 		// so let the caller know, and remember that we have not seen it
 		if (identifier == -1) {
+                        const LockGuard guard {theVTable->myLock};
 			theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-            //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-            PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
-            return TYPE_NOT_RECOGNIZED;
+                        //PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+                        return TYPE_NOT_RECOGNIZED;
 		    // otherwise, return the ID
 		} else {
+                        const LockGuard guard {theVTable->myLock};
 			theVTable->objectTypeNamesList[objectTypeName] = identifier;
-            //std :: cout << "to released lock at " << ss.str() << " in getIDByName for"<< objectTypeName << std :: endl;
-            PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+                        //PDB_COUT << "not builtin but have catalog connection, typeId for " << objectTypeName << " is " << identifier << std :: endl;
 			return identifier;
 		}
 	} else if (theVTable->objectTypeNamesList.count (objectTypeName) == 0) {
 		// we don't know this type, and we have no catalog client
 		theVTable->objectTypeNamesList[objectTypeName] = TYPE_NOT_RECOGNIZED;
-        PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
+                PDB_COUT << "not builtin and no catalog connection, typeId for " << objectTypeName << " is " << TYPE_NOT_RECOGNIZED << std :: endl;
 		return TYPE_NOT_RECOGNIZED;
 	} else {
 		// in the easy case, we have seen it before, so just return the typeID
 		int16_t identifier = theVTable->objectTypeNamesList[objectTypeName];	
-        PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
-        return identifier;
+                PDB_COUT << "builtin, typeId for " << objectTypeName << " is " << identifier << std :: endl;
+                return identifier;
 	}
 }
 
