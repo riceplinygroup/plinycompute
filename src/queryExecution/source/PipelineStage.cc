@@ -546,9 +546,9 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
     size_t combinerPageSize = conf->getHashPageSize();
     //each queue has multiple producers and one consumer
-    int combinerBufferSize = numThreads/numNodes;
-    if (combinerBufferSize < 5) {
-        combinerBufferSize = 5;
+    int combinerBufferSize = numThreads;
+    if (combinerBufferSize > 12) {
+        combinerBufferSize = 12;
     }
     PDB_COUT << "combinerBufferSize=" << combinerBufferSize << std :: endl; 
     std :: vector <PageCircularBufferPtr> combinerBuffers;
@@ -725,9 +725,9 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
     int numNodes = jobStage->getNumNodes();
 
     //each queue has multiple producers and one consumer
-    int shuffleBufferSize = numThreads/numNodes;
-    if (shuffleBufferSize < numThreads) {
-        shuffleBufferSize = numThreads;
+    int shuffleBufferSize = numThreads;
+    if (shuffleBufferSize > 12) {
+        shuffleBufferSize = 12;
     }
     PDB_COUT << "shuffleBufferSize=" << shuffleBufferSize << std :: endl;
     std :: vector <PageCircularBufferPtr> shuffleBuffers;

@@ -678,6 +678,13 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
               minCost = curCost;
               bestIndexToReturn = i;
           }
+          //below is optimization for nearest neighbor search
+          if (JOIN_HASH_TABLE_SIZE_RATIO > 1.5) {
+              if (curCost == minCost) {
+                 minCost = curCost;
+                 bestIndexToReturn = i;
+              }
+          }
        }
 //       std :: cout << "The Best Source is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
        return bestIndexToReturn;
