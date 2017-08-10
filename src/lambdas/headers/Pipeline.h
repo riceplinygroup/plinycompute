@@ -215,10 +215,23 @@ public:
                                  curChunk = dataSource->getNextTupleSet();
                              }
                              catch (NotEnoughSpace &n) {
-                                 std :: cout << "Data Source Error: Batch source memory exceeds page size, consider to reduce batch size" << std :: endl;
+                                 //std :: cout << "Data Source Error: Batch source memory exceeds page size, consider to reduce batch size" << std :: endl;
                                  std :: cout << "batch size tuned to be " << MIN_BATCH_SIZE << std :: endl; 
                                  dataSource->setChunkSize(MIN_BATCH_SIZE);
-                                 curChunk = dataSource->getNextTupleSet();
+                                 try {
+                                     curChunk = dataSource->getNextTupleSet();
+                                 }
+                                 catch (NotEnoughSpace &n) {
+                                     std :: cout << "batch size tuned to be " << MIN_BATCH_SIZE << std :: endl;
+                                     dataSource->setChunkSize(1);
+                                     try {
+                                          curChunk = dataSource->getNextTupleSet();
+                                     }
+                                     catch (NotEnoughSpace &n) {
+                                          std :: cout << "batch size tuned to be " << MIN_BATCH_SIZE << std :: endl;
+                                          return;
+                                     }
+                                 }
                              }
                         }
                         if (curChunk == nullptr) {
