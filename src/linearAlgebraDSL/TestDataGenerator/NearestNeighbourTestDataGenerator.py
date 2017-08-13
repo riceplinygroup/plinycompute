@@ -44,12 +44,19 @@ blocks_t = open(fileNamet, "w")
 fileNameM = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+"_"+str(blockColSize)+".data"
 blocks_M = open(fileNameM, "w")
 
-fileNameX_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_X_"+str(data_num)+"_"+str(dim)+".txt"
-spark_X = open(fileNameX_txt,"w")
-fileNamet_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_t_"+str(data_num)+".txt"
-spark_t = open(fileNamet_txt,"w")
-fileNameM_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_M_"+str(dim)+".txt"
-spark_M = open(fileNameM_txt,"w")
+fileNameX_Spark_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_Spark_X_"+str(data_num)+"_"+str(dim)+".txt"
+spark_X = open(fileNameX_Spark_txt,"w")
+fileNamet_Spark_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_Spark_t_"+str(data_num)+".txt"
+spark_t = open(fileNamet_Spark_txt,"w")
+fileNameM_Spark_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_Spark_M_"+str(dim)+".txt"
+spark_M = open(fileNameM_Spark_txt,"w")
+
+fileNameX_SciDB_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_SciDB_X_"+str(data_num)+"_"+str(dim)+".txt"
+SciDB_X = open(fileNameX_SciDB_txt,"w")
+fileNamet_SciDB_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_SciDB_t_"+str(data_num)+".txt"
+SciDB_t = open(fileNamet_SciDB_txt,"w")
+fileNameM_SciDB_txt = "./src/linearAlgebraDSL/TestDataGenerator/NN_SciDB_M_"+str(dim)+".txt"
+SciDB_M = open(fileNameM_SciDB_txt,"w")
 
 code = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_"+str(int(time.time()))+".pdml","w")
 codeSystemML = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_SystemML_"+str(int(time.time()))+".dml","w")
@@ -57,7 +64,7 @@ scriptSpark = open("./src/linearAlgebraDSL/DSLSamples/Task03_NN_Spark_"+str(int(
 
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
-
+# Generate the data
 t=[]
 for i in range(dim):
     t.append(random.random())
@@ -81,8 +88,7 @@ while (1):
     if np.all(np.linalg.eigvals(M) > 0):
         break
 
-
-
+# Write the input of SystemML
 for i in xrange(data_num):
     for j in xrange(dim-1):
         lines_X.write(str(X[i][j]))
@@ -113,6 +119,8 @@ lines_mtd_X.close()
 lines_mtd_t.close()
 lines_mtd_M.close()
 
+
+# Write the input of Spark
 for i in xrange(data_num):
     spark_X.write(str(i))
     for j in xrange(dim):
@@ -136,6 +144,38 @@ for i in xrange(dim):
     spark_M.write("\n")
 spark_M.close()
 
+
+# Write the input of SciDB
+SciDB_X.write("[\n")
+for i in xrange(data_num):
+    SciDB_X.write("[")
+    for j in xrange(dim-1):
+        SciDB_X.write("("+str(X[i][j])+"),")
+    if i == data_num-1:
+        SciDB_X.write("("+str(X[i][dim-1])+")]\n")
+    else:
+        SciDB_X.write("("+str(X[i][dim-1])+")],\n")
+SciDB_X.write("]\n")
+SciDB_X.close()
+
+SciDB_t.write("[\n[")
+for j in xrange(dim-1):
+    SciDB_t.write("("+str(t[j])+"),")
+SciDB_t.write("("+str(t[dim-1])+")]")
+SciDB_t.write("\n]")
+SciDB_t.close()
+
+SciDB_M.write("[\n")
+for i in xrange(dim):
+    SciDB_M.write("[")
+    for j in xrange(dim-1):
+        SciDB_M.write("("+str(M[i,j])+"),")
+    if i == dim-1:
+        SciDB_M.write("("+str(M[i,dim-1])+")]\n")
+    else:
+        SciDB_M.write("("+str(M[i,dim-1])+")],\n")
+SciDB_M.write("]\n")
+SciDB_M.close()
 
 
 for i in xrange(data_num/blockRowSize):
@@ -209,10 +249,10 @@ scriptSpark.write(str(data_num))
 scriptSpark.write(" ")
 scriptSpark.write(str(dim))
 scriptSpark.write(" ")
-scriptSpark.write(fileNameX_txt)
+scriptSpark.write(fileNameX_Spark_txt)
 scriptSpark.write(" ")
-scriptSpark.write(fileNamet_txt)
+scriptSpark.write(fileNamet_Spark_txt)
 scriptSpark.write(" ")
-scriptSpark.write(fileNameM_txt)
+scriptSpark.write(fileNameM_Spark_txt)
 scriptSpark.close()
 

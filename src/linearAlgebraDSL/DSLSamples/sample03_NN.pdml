@@ -2,4 +2,4 @@ X = load(100,10,10,1, "./src/linearAlgebraDSL/TestDataGenerator/NN_X_1000_10_100
 t = load(1,10,1,1, "./src/linearAlgebraDSL/TestDataGenerator/NN_t_10_10.data")
 M = load(10,10,1,1, "./src/linearAlgebraDSL/TestDataGenerator/NN_M_10_10.data")
 D = X - duplicateRow(t,100,10)
-i = max(rowSum(D %*% M * D))
+i = min(rowSum(D %*% M * D))
