@@ -71,8 +71,12 @@ inline Vector<int> &operator+ (Vector<int> &lhs, Vector<int> &rhs) {
 		std :: cout << "You cannot add two vectors in different sizes!" << std :: endl;
 		return lhs;
 	}
+        //std :: cout << "operator+: size is " << size << std :: endl;
+        //Optimize below implementation by manipulating c_ptr() directly to reduce vtable fixing overhead
+        int * lhsArray = lhs.c_ptr();
+        int * rhsArray = rhs.c_ptr();
 	for (int i = 0; i < size; ++i) {
-		lhs[i] = lhs[i] + rhs[i];
+		lhsArray[i] = lhsArray[i] + rhsArray[i];
 	}
 	return lhs;
 	

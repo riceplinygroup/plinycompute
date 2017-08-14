@@ -132,8 +132,16 @@ void Vector <TypeContained> :: print () const {
 // Fill the vector with the input val
 template <class TypeContained>
 void Vector <TypeContained> :: fill (const TypeContained& val) {
+        //below code is inefficient due to vtable fixing overhead
+        /*
         for (uint32_t i = 0; i < this->size(); i++) {
 		myArray->assign (i, val);
+        }
+        */
+        //optimized implementation:
+        TypeContained * myData = this->c_ptr();
+        for (uint32_t i = 0; i < this->size(); i++) {
+                myData[i] = val;
         }
 }
 
