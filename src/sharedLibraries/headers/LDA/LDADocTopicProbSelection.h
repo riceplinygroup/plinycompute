@@ -95,14 +95,12 @@ public:
 				(*totalProb)[i] = (this->prior)[i] + topicCount[i];
 			}
 
-			        std :: cout << "For my doc: " << checkMe->getInt() << "\n";
-                          //      std :: cout << "This prior: " << "\n";
-                          //      (this->prior).print();
-                                std :: cout << "Topic count: " << "\n";
-                                topicCount.print();
+			   //     std :: cout << "For my doc: " << checkMe->getInt() << "\n";
+                           //     std :: cout << "Topic count: " << "\n";
+                           //     topicCount.print();
 
-				std :: cout << "Total Prob: " << "\n";
-                                (*totalProb).print();
+			//	std :: cout << "Total Prob: " << "\n";
+                         //       (*totalProb).print();
 		
 			gsl_ran_dirichlet(rng, topicNum, totalProb->c_ptr(), mySamples->c_ptr());
 			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>(checkMe->getInt(), mySamples);
