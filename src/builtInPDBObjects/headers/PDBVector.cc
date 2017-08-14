@@ -139,8 +139,9 @@ void Vector <TypeContained> :: fill (const TypeContained& val) {
         }
         */
         //optimized implementation:
+        size_t size = this->size();
         TypeContained * myData = this->c_ptr();
-        for (uint32_t i = 0; i < this->size(); i++) {
+        for (uint32_t i = 0; i < size; i++) {
                 myData[i] = val;
         }
 }
