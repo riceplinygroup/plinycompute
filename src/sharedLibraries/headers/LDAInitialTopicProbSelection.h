@@ -115,8 +115,8 @@ public:
 			gsl_ran_dirichlet(rng, topicNum, (double *)((this->prior).c_ptr()), (double *)(mySamples->c_ptr()));
 				
 			result->setVector(mySamples);
-			std::cout << "My samples: " << std::endl;
-			mySamples->print();
+//			std::cout << "My samples: " << std::endl;
+//			mySamples->print();
 			
 			return result;
 

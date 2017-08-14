@@ -86,16 +86,21 @@ public:
                                 (*totalProb)[i] = (this->prior)[i] + wordCount[i];
                         }
 
+				/*
                                 std :: cout << "For topic: " << checkMe->getInt() << "\n";
-                                std :: cout << "This prior: " << "\n";
-                                (this->prior).print();
                                 std :: cout << "Word count: " << "\n";
                                 wordCount.print();
 
-                                std :: cout << "Total Prob: " << "\n";
+                                std :: cout << "Total prob: " << "\n";
                                 (*totalProb).print();
+					*/
 
                         gsl_ran_dirichlet(rng, wordNum, totalProb->c_ptr(), mySamples->c_ptr());
+
+                       //         std :: cout << "The prob samples we get: " << "\n";
+                       //         mySamples->print();
+
+
 
 			
 			Handle<Vector<Handle<LDATopicWordProb>>> result = makeObject<Vector<Handle<LDATopicWordProb>>>();
