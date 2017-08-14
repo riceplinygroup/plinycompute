@@ -250,6 +250,20 @@ int main (int argc, char * argv[]) {
                 try {
 
 
+		    std :: ifstream inFile("word_in_doc");
+		    std :: string line;
+		    int docID, wordID, countNum;
+		    while(std::getline(inFile, line)) {
+			inFile >> docID >> wordID >> countNum;
+			pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
+                        myData->setDoc(docID);
+                        myData->setWord(wordID);
+                        myData->setCount(countNum);
+			storeMe->push_back (myData);
+		    }
+		    inFile.close();
+
+			/*
                     for (int i = 0; i < numDoc; i++) {
 
 			int length = storeMe->size();
@@ -283,12 +297,15 @@ int main (int argc, char * argv[]) {
                         	storeMe->push_back (myData);
 			}
                     }
+
+		    
 		    
 		    term << std :: endl;
 		    term << green << "input data: " << reset << std :: endl;
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
                     }
+			*/
 
 	            if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
                         std :: cout << "Failed to send data to dispatcher server" << std :: endl;
@@ -649,58 +666,6 @@ int main (int argc, char * argv[]) {
 		term << "Time Duration: " <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
 
-
-		/*
-		std :: cout << std :: endl;
-		std :: cout << std :: endl;
-
-		temp.clearSet("LDA_db", "LDA_output_set", "pdb::KMeansAggregateOutputType", errMsg);
-
-    }
-
-    std::cout << std::endl;
-
-    //QueryClient myClient (8108, "localhost", clientLogger, true);
-
-	// print the resuts
-    if (printResult == true) {
-//        std :: cout << "to print result..." << std :: endl;
-
-//	std :: cout << std :: endl;
-
-	*
-        SetIterator <DoubleVector> input = myClient.getSetIterator <DoubleVector> ("LDA_db", "LDA_input_set");
-        std :: cout << "Query input: "<< std :: endl;
-        int countIn = 0;
-        for (auto a : input) {
-            countIn ++;
-            std :: cout << countIn << ":";
-            a->print();
-            std :: cout << std::endl;
-        }
-	*
-
-        
-        SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("LDA_db", "LDA_output_set");
-
-
-	std :: cout << std :: endl;
-	std :: cout << blue << "*****************************************" << reset << std :: endl;
-	std :: cout << blue << "K-means resultss : " << reset << std :: endl;
-	std :: cout << blue << "*****************************************" << reset << std :: endl;
-	std :: cout << std :: endl;
-
-//                std :: cout << "The std model I have is: " << std :: endl;
-	for (int i = 0; i < k; i++) {
-	     std :: cout << "Cluster index: " << i << std::endl;
-	     for (int j = 0; j < dim - 1; j++) {
-		 std :: cout << blue << model[i][j] << ", " << reset;
-	     }
-		 std :: cout << blue << model[i][dim - 1] << reset << std :: endl;
-	}
-
-    }
-    */
 
 
     std :: cout << std :: endl;
