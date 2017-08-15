@@ -72,7 +72,9 @@
 #include <map>
 #include <iterator>
 #include <pthread.h>
+#ifdef ENABLE_COMPRESSION
 #include <snappy.h>
+#endif
 
 #define FLUSH_BUFFER_SIZE 3
 
