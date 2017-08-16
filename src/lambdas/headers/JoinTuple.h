@@ -533,7 +533,7 @@ public:
                       curJoinMap = (*iterateOverMe)[pos];
                       pos ++;
                       if (curJoinMap != nullptr) {
-                          if (curJoinMap->getPartitionId() != myPartitionId) {
+                          if ((curJoinMap->getPartitionId() % curJoinMap->getNumPartitions())!= myPartitionId) {
                               //this is not my map
                               curJoinMap = nullptr;
                           } else {
@@ -626,7 +626,10 @@ class PartitionedJoinSink : public ComputeSink {
 private:
 
         // number of partitions
-        int numPartitions;
+        int numPartitionsPerNode;
+
+        // number of nodes for shuffling
+        int numNodes;
 
         // tells us which attribute is the key
         int keyAtt;
@@ -647,10 +650,12 @@ public:
                         delete columns;
         }
 
-        PartitionedJoinSink (int numPartitions, TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &additionalAtts, std :: vector <int> &whereEveryoneGoes) :
+        PartitionedJoinSink (int numPartitionsPerNode, int numNodes, TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &additionalAtts, std :: vector <int> &whereEveryoneGoes) :
                 whereEveryoneGoes (whereEveryoneGoes) {
 
-                this->numPartitions = numPartitions;
+                this->numPartitionsPerNode = numPartitionsPerNode;
+
+                this->numNodes = numNodes;
 
                 // used to manage attributes and set up the output
                 TupleSetSetupMachine myMachine (inputSchema);
@@ -666,9 +671,12 @@ public:
         Handle <Object> createNewOutputContainer () override {
                 PDB_COUT << "PartitionedJoinSink: to create a Vector of JoinMap instance" << std :: endl;
                 // we create a vector of maps to store the output
-                Handle <Vector<Handle<JoinMap <RHSType>>>> returnVal = makeObject <Vector<Handle<JoinMap <RHSType>>>> (numPartitions);
-                for (int i = 0; i < numPartitions; i++) {
-                    (*returnVal)[i] = nullptr;
+                Handle <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> returnVal = makeObject <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> (numNodes);
+                for (int i = 0; i < numNodes; i++) {
+                    (*returnVal)[i] = makeObject<Vector<Handle<JoinMap<RHSType>>>>(numPartitionsPerNode);
+                    for (int j = 0; j < numPartitionsPerNode; j++) {
+                        (*((*returnVal)[i]))[j] = nullptr;
+                    }
                 }
                 return returnVal;
         }
@@ -676,7 +684,7 @@ public:
         void writeOut (TupleSetPtr input, Handle <Object> &writeToMe) override {
                 PDB_COUT << "PartitionedJoinSink: write out tuples in this tuple set" << std :: endl;
                 // get the map we are adding to
-                Handle <Vector<Handle<JoinMap <RHSType>>>> writeMe = unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (writeToMe);
+                Handle <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> writeMe = unsafeCast <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> (writeToMe);
 
                 // get all of the columns
                 if (columns == nullptr)
@@ -695,11 +703,13 @@ public:
 
                 size_t length = keyColumn.size ();
                 for (size_t i = 0; i < length; i++) {
-                        size_t index = keyColumn[i]%numPartitions;
-                        if ((*writeMe)[index] == nullptr) {
-                            (*writeMe)[index] = makeObject<JoinMap<RHSType>>(2, index, numPartitions);
+                        size_t index = keyColumn[i] % (this->numPartitionsPerNode * this->numNodes);
+                        size_t nodeIndex = index / this->numPartitionsPerNode;
+                        size_t partitionIndex = index % this->numPartitionsPerNode;
+                        if ((*((*writeMe)[nodeIndex]))[partitionIndex] == nullptr) {
+                            (*((*writeMe)[nodeIndex]))[partitionIndex] = makeObject<JoinMap<RHSType>>(2, index, numPartitionsPerNode);
                         }
-                        JoinMap <RHSType> &myMap = *((*writeMe)[index]);
+                        JoinMap <RHSType> &myMap = *((*((*writeMe)[nodeIndex]))[partitionIndex]);
 
                         // try to add the key... this will cause an allocation for a new key/val pair
                         if (myMap.count (keyColumn[i]) == 0) {
@@ -890,7 +900,7 @@ public:
 
 	virtual ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
-        virtual ComputeSinkPtr getPartitionedSink (int numPartitions, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
+        virtual ComputeSinkPtr getPartitionedSink (int numPartitionsPerNode, int numNodes, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
 
         virtual ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <void * ()> getAnotherVector, std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) = 0;
@@ -921,8 +931,8 @@ public:
         }
 
         // JiaNote: create a partitioned sink for this particular type
-        ComputeSinkPtr getPartitionedSink (int numPartitions, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) override {
-                return std :: make_shared <PartitionedJoinSink <HoldMe>> (numPartitions, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+        ComputeSinkPtr getPartitionedSink (int numPartitionsPerNode, int numNodes, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) override {
+                return std :: make_shared <PartitionedJoinSink <HoldMe>> (numPartitionsPerNode, numNodes, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
         }
 
         // JiaNote: create a partitioned source for this particular type

@@ -218,7 +218,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     Handle <SetIdentifier > sourceContext = this->jobStage->getSourceContext();
 
     //handle two types of sources
-    if (sourceContext->getSetType() == UserSetType) {
+    if ((sourceContext->getSetType() == UserSetType) && (computation->getComputationType() != "JoinComp")){
         //input is a user set
         Handle<ScanUserSet<Object>> scanner = nullptr;
         if (computation->getComputationType() == "ScanUserSet") {
@@ -248,7 +248,17 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             PDB_COUT << "SCANNER BATCH SIZE: " << scanner->getBatchSize() << std :: endl;
 
         }
-    } else {
+    } else if ((sourceContext->getSetType() == UserSetType) && (computation->getComputationType() == "JoinComp")) {
+
+           Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (computation);
+           join->setIterator (iterators.at(i));
+           join->setProxy(proxy);
+           join->setBatchSize(batchSize);
+           join->setPartitionId(i);
+           join->setNumPartitions(this->jobStage->getNumTotalPartitions());
+           join->setNumNodes(this->jobStage->getNumNodes());
+
+    }else {
         //input are hash tables
         Handle<ClusterAggregateComp<Object, Object, Object, Object>> aggregator = 
             unsafeCast<ClusterAggregateComp<Object, Object, Object, Object>, Computation>(computation);
@@ -277,6 +287,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             if (hashSet->getHashSetType() == "SharedHashSet") {
                 SharedHashSetPtr sharedHashSet = std :: dynamic_pointer_cast<SharedHashSet> (hashSet);
                 info[key] = std :: make_shared <JoinArg>(*newPlan, sharedHashSet->getPage());
+            } else if (hashSet->getHashSetType() == "PartitionedHashSet") {
+                PartitionedHashSetPtr partitionedHashSet = std :: dynamic_pointer_cast<PartitionedHashSet>(hashSet);
+                info[key] = std :: make_shared <JoinArg>(*newPlan, partitionedHashSet->getPage(i));
             }
         }
     } else {
@@ -297,6 +310,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   aggregate->setNumNodes(jobStage->getNumNodes());
                   aggregate->setNumPartitions (numPartitionsInCluster);
                   aggregate->setBatchSize (this->batchSize);
+    } else if (targetSpecifier.find("JoinComp") != std :: string :: npos) {
+                  Handle<Computation> joinComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
+                  Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
+                  join->setNumPartitions(this->jobStage->getNumTotalPartitions());
+                  join->setNumNodes(this->jobStage->getNumNodes());
     }
 
     newPlan->nullifyPlanPointer();
