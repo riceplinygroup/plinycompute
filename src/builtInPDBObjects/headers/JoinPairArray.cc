@@ -453,39 +453,46 @@ ValueType &JoinRecordList <ValueType> :: operator [] (const size_t i) {
 }
 
 template <class ValueType>
-JoinMapIterator <ValueType> :: JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn, bool) : iterateMe (*iterateMeIn) {
+JoinMapIterator <ValueType> :: JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn, bool) : iterateMe (&(*iterateMeIn)) {
 	slot = 0;
 	done = false;
-	int objSize = iterateMe.objSize;
-	while (slot != iterateMe.numSlots && JM_GET_HASH (iterateMe.data, slot) == JM_UNUSED) 
+	int objSize = iterateMe->objSize;
+	while (slot != iterateMe->numSlots && JM_GET_HASH (iterateMe->data, slot) == JM_UNUSED) 
 		slot++;
 
-	if (slot == iterateMe.numSlots)
+	if (slot == iterateMe->numSlots)
 		done = true;
 }
 
 template <class ValueType>
-JoinMapIterator <ValueType> :: JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn) : iterateMe (*iterateMeIn) {
+JoinMapIterator <ValueType> :: JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn) : iterateMe (&(*iterateMeIn)) {
 	done = true;
 }
+
+template <class ValueType>
+JoinMapIterator <ValueType> :: JoinMapIterator () {
+        iterateMe = nullptr;
+        done = true;
+}
+
 
 template <class ValueType>
 void JoinMapIterator <ValueType> :: operator ++ () {
 	if (!done)
 		slot++;
 
-	int objSize = iterateMe.objSize;
-	while (slot != iterateMe.numSlots && JM_GET_HASH (iterateMe.data, slot) == JM_UNUSED) 
+	int objSize = iterateMe->objSize;
+	while (slot != iterateMe->numSlots && JM_GET_HASH (iterateMe->data, slot) == JM_UNUSED) 
 		slot++;
 
-	if (slot == iterateMe.numSlots)
+	if (slot == iterateMe->numSlots)
 		done = true;
 }
 
 template <class ValueType>
 JoinRecordList <ValueType> * JoinMapIterator <ValueType> :: operator * () {
 	
-	JoinRecordList <ValueType> * returnVal = new JoinRecordList<ValueType>(slot, iterateMe);
+	JoinRecordList <ValueType> * returnVal = new JoinRecordList<ValueType>(slot, *iterateMe);
 	return returnVal; 
 }
 

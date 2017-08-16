@@ -25,6 +25,9 @@
 #include "JoinTuple.h"
 #include "JoinCompBase.h"
 #include "MultiInputsBase.h"
+#include "PageCircularBufferIterator.h"
+#include "DataProxy.h"
+#include "PDBPage.h"
 
 namespace pdb {
 
@@ -47,8 +50,10 @@ public:
 
 //Join types
 typedef enum {
-   HashPartitionedJoin,
-   BroadcastJoin
+
+        HashPartitionedJoin,
+        BroadcastJoin
+
 } JoinType;
 
 
@@ -65,6 +70,21 @@ private:
 
        //JiaNote: my partition number, used by hash partition join
        int numPartitions = 0;
+
+       //JiaNote: partitionId for JoinSource, used by hash partition join
+       size_t myPartitionId;
+
+       //JiaNote: the iterator for retrieving TupleSets from JoinMaps in pages
+       //be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
+       PageCircularBufferIteratorPtr iterator=nullptr;
+
+       //JiaNote: the data proxy for accessing pages in frontend storage server.
+       DataProxyPtr proxy=nullptr;
+
+       //batch size
+       int batchSize;
+
+ 
        
 
 public:
@@ -79,16 +99,46 @@ public:
            return this->joinType;
        }
 
-       //set number of partitions
+       //set number of partitions  (used in hash partition join)
        void setNumPartitions (int numPartitions) {
            this->numPartitions = numPartitions;
        }
 
-       //return my number of partitions
+       //return my number of partitions  (used in hash partition join)
        int getNumPartitions() {
            return numPartitions;
        }
 
+       //set my partition id for obtaining JoinSource for one partition  (used in hash partition join)
+       void setPartitionId (size_t myPartitionId) {
+           this->myPartitionId = myPartitionId;
+       }
+
+       //return my partition id for obtaining JoinSource for one partition  (used in hash partition join)
+       int getPartitionId() {
+           return this->myPartitionId;
+       }
+
+        //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object (used in hash partition join)
+        void setIterator(PageCircularBufferIteratorPtr iterator) {
+                this->iterator = iterator;
+        }
+
+        //to set proxy for communicating with frontend storage server (used in hash partition join)
+        void setProxy(DataProxyPtr proxy) {
+                this->proxy = proxy;
+        }
+
+        //to set chunk size for JoinSource (used in hash partition join)
+        void setBatchSize(int batchSize) override {
+                this->batchSize = batchSize;
+
+        }
+
+        //to get batch size for JoinSource (used in hash partition join)
+        int getBatchSize () {
+                return this->batchSize;
+        }
 
 
         MultiInputsBase * getMultiInputsBase () {
@@ -287,6 +337,96 @@ public:
                     return nullptr;
                 }
 	}
+ 
+        //JiaNote: to get compute source for HashPartitionedJoin
+        ComputeSourcePtr getComputeSource (TupleSpec &outputScheme, ComputePlan &plan) override {
+
+                if (this->joinType != HashPartitionedJoin) {
+                    return nullptr;
+                }
+                // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
+                std :: cout << "outputScheme is " << outputScheme << std :: endl;
+                std :: vector < std :: string> typeList;
+                AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (outputScheme.getSetName ());
+		for (auto &a : outputScheme.getAtts ()) {
+
+			// find the identity of the producing computation
+			std :: cout << "finding the source of " << outputScheme.getSetName () << "." << a << "\n"; 
+			std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());	
+			std :: cout << "got " << res.first << " " << res.second << "\n";
+
+			// and find its type... in the first case, there is not a particular lambda that we need to ask for
+			if (res.second == "") {
+				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
+			} else {
+                                std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
+                                std :: cout << "my type is " << myType << std :: endl;
+                                if(myType.find_first_of("pdb::Handle<")==0) {
+                                     typeList.push_back(myType);
+                                } else {
+                                     typeList.push_back ("pdb::Handle<"+myType+">");
+                                }
+			} 
+		}
+
+		for (auto &aa : typeList) {
+			std :: cout << "Got type " << aa << "\n";
+		}
+
+		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
+		std :: vector <int> whereEveryoneGoes;
+		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
+		
+		for (auto &aa : whereEveryoneGoes) {
+			std :: cout << aa << " ";
+		}
+		std :: cout << "\n";
+                return correctJoinTuple->getPartitionedSource (this->myPartitionId, 
+
+                    [&] () -> void * {
+                         if (this->iterator == nullptr) {
+                             return nullptr;
+                         }
+                         while (this->iterator->hasNext() == true) {
+
+                         PDBPagePtr page = this->iterator->next();
+                            if(page != nullptr) {
+                                return page->getBytes();
+                            }
+                         }
+                     
+                         return nullptr;
+
+                    },
+
+                    [&] (void * freeMe) -> void {
+                         if (this->proxy != nullptr) {
+                             char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+                             char * curBytes = pageRawBytes;
+                             NodeID nodeId = (NodeID) (*((NodeID *)(curBytes)));
+                             curBytes = curBytes + sizeof(NodeID);
+                             DatabaseID dbId = (DatabaseID) (*((DatabaseID *)(curBytes)));
+                             curBytes = curBytes + sizeof(DatabaseID);
+                             UserTypeID typeId = (UserTypeID) (*((UserTypeID *)(curBytes)));
+                             curBytes = curBytes + sizeof(UserTypeID);
+                             SetID setId = (SetID) (*((SetID *)(curBytes)));
+                             curBytes = curBytes + sizeof(SetID);
+                             PageID pageId = (PageID) (*((PageID *)(curBytes)));
+                             PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
+                            this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page);
+                        }
+                    },
+
+                    this->batchSize,
+
+                    whereEveryoneGoes
+  
+               );
+
+
+      }
+
+
 
 	// this is a join computation
         std :: string getComputationType () override {
