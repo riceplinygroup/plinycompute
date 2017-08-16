@@ -888,6 +888,9 @@ public:
 
 	virtual ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
+        virtual ComputeSinkPtr getPartitionedSink (int numPartitions, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
+
+
         virtual SinkMergerPtr getMerger() = 0;
 
 };
@@ -911,6 +914,11 @@ public:
 	// creates a compute sink for this particular type
         ComputeSinkPtr getSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) override {
 		return std :: make_shared <JoinSink <HoldMe>> (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+        }
+
+        // JiaNote: create a partitioned sink for this particular type
+        ComputeSinkPtr getPartitionedSink (int numPartitions, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) override {
+                return std :: make_shared <PartitionedJoinSink <HoldMe>> (numPartitions, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
         }
 
         //create a merger

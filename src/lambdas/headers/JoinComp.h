@@ -45,15 +45,51 @@ public:
 };
 
 
+//Join types
+typedef enum {
+   HashPartitionedJoin,
+   BroadcastJoin
+} JoinType;
+
+
 template <typename Out, typename In1, typename In2, typename ...Rest>
 class JoinComp  : public JoinCompBase {
 
 private:
 
-       //this is used to pass to lambda tree to update pipeline information for each input
+       //JiaNote: this is used to pass to lambda tree to update pipeline information for each input
        MultiInputsBase * multiInputsBase = nullptr;
 
+       //JiaNote: this is to specify the JoinType, by default we use broadcast join
+       JoinType joinType = BroadcastJoin;
+
+       //JiaNote: my partition number, used by hash partition join
+       int numPartitions = 0;
+       
+
 public:
+
+       //set join type
+       void setJoinType (JoinType joinType) {
+           this->joinType = joinType;
+       }
+
+       //get join type
+       JoinType getJoinType () {
+           return this->joinType;
+       }
+
+       //set number of partitions
+       void setNumPartitions (int numPartitions) {
+           this->numPartitions = numPartitions;
+       }
+
+       //return my number of partitions
+       int getNumPartitions() {
+           return numPartitions;
+       }
+
+
 
         MultiInputsBase * getMultiInputsBase () {
             if (multiInputsBase == nullptr) {
@@ -151,7 +187,7 @@ public:
 		return getIthInputType <In1, In2, Rest...> (i);
 	}
 	
-        // this gets a sink merger
+        //JiaNote: this gets a sink merger
         SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
                 //std :: cout << "to get sink merger" << std :: endl;
                 // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
@@ -159,7 +195,7 @@ public:
                 AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
                 //std :: cout << "consumeMe was: " << consumeMe << "\n";
                 //std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
-                //std :: cout << "projection was: " << projection << "\n";
+                std :: cout << "projection was: " << projection << "\n";
                 for (auto &a : projection.getAtts ()) {
 
                         // find the identity of the producing computation
@@ -208,7 +244,7 @@ public:
 		AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
 		//std :: cout << "consumeMe was: " << consumeMe << "\n";
 		//std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
-		//std :: cout << "projection was: " << projection << "\n";
+		std :: cout << "getComputeSink: projection was: " << projection << "\n";
 		for (auto &a : projection.getAtts ()) {
 
 			// find the identity of the producing computation
@@ -242,8 +278,14 @@ public:
 			std :: cout << aa << " ";
 		}*/
 		//std :: cout << "\n";
-
-		return correctJoinTuple->getSink (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+                if (this->joinType == BroadcastJoin) {
+		    return correctJoinTuple->getSink (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+                } else if (this->joinType == HashPartitionedJoin) {
+                    return correctJoinTuple->getPartitionedSink (numPartitions, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+                } else {
+                    std :: cout << "JoinType not supported" << std :: endl;
+                    return nullptr;
+                }
 	}
 
 	// this is a join computation
