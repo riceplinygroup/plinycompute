@@ -25,6 +25,24 @@
 namespace pdb {
 
 template <class ValueType>
+JoinMap <ValueType> :: JoinMap (uint32_t initSize, size_t partitionId, int numPartitions) {
+
+        if (initSize < 2) {
+                std :: cout << "Fatal Error: JoinMap initialization:" << initSize << " too small; must be at least one.\n";
+                initSize = 2;
+        }
+
+        // this way, we'll allocate extra bytes on the end of the array
+        JoinMapRecordClass <ValueType> temp;
+        size_t size = temp.getObjSize ();
+        myArray = makeObjectWithExtraStorage <JoinPairArray <ValueType>> (size * initSize, initSize);
+        this->partitionId = partitionId;
+        this->numPartitions = numPartitions;
+
+}
+
+
+template <class ValueType>
 JoinMap <ValueType> :: JoinMap (uint32_t initSize) {
 
 	if (initSize < 2) {
@@ -89,6 +107,27 @@ JoinMapIterator <ValueType> JoinMap <ValueType> :: end () {
 	JoinMapIterator <ValueType> returnVal (myArray);
 	return returnVal;	
 }
+
+template <class ValueType>
+size_t JoinMap <ValueType> :: getPartitionId() {
+    return this->partitionId;
+}
+
+template <class ValueType>
+void JoinMap <ValueType> :: setPartitionId (size_t partitionId) {
+    this->partitionId = partitionId;
+}
+        
+template <class ValueType>
+int JoinMap <ValueType> :: getNumPartitions() {
+    return this->numPartitions;
+}
+
+template <class ValueType>
+void JoinMap <ValueType> :: setNumPartitions(int numPartitions) {
+    this->numPartitions = numPartitions;
+}
+
 
 template <class ValueType>
 size_t JoinMap <ValueType> :: getObjectSize () {

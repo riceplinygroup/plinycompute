@@ -405,6 +405,218 @@ public:
 
 };
 
+//JiaNote: this class is used to create a special JoinSource that will generate a stream of TupleSet from a series of JoinMaps
+
+template <typename RHSType>
+class PartitionedJoinMapTupleSetIterator : public ComputeSource {
+
+private:
+
+        //my partition id
+        size_t myPartitionId;
+
+        // function to call to get another vector to process
+        std :: function <void * ()> getAnotherVector;
+
+        // function to call to free the vector
+        std :: function <void (void *)> doneWithVector;
+
+        // this is the vector to process
+        Handle <Vector<Handle<JoinMap <RHSType>>>> iterateOverMe;
+
+        // the pointer to current page holding the vector, and the last page that we previously processed
+        Record <Vector<Handle<JoinMap <RHSType>>>> *myRec, *lastRec;
+
+        // how many objects to put into a chunk
+        size_t chunkSize;
+
+        // where we are in the Vector
+        size_t pos;
+
+        // the current JoinMap
+        Handle<JoinMap<RHSType>> curJoinMap;
+
+        // where we are in the JoinMap
+        JoinMapIterator<RHSType>  curJoinMapIter;
+
+        // end iterator
+        JoinMapIterator<RHSType> joinMapEndIter;
+
+        // where we are in the Record list
+        size_t posInRecordList;
+
+        // and the tuple set we return
+        TupleSetPtr output;
+
+        // the hash column in the output TupleSet
+        std :: vector<size_t> * hashColumn;
+
+        // this is the list of output columns except the hash column in the output TupleSet
+        void ** columns;
+
+        //whether we have processed all pages
+        bool isDone;
+
+public:
+
+        // the first param is a callback function that the iterator will call in order to obtain the page holding the next vector to iterate
+        // over.  The secomd param is a callback that the iterator will call when the specified page is done being processed and can be
+        // freed.  The third param tells us how many objects to put into a tuple set.
+        // The fourth param tells us positions of those packed columns.
+        PartitionedJoinMapTupleSetIterator (size_t myPartitionId, std :: function <void * ()> getAnotherVector,
+                std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> positions) :
+                getAnotherVector (getAnotherVector), doneWithVector (doneWithVector), chunkSize (chunkSize) {
+
+                //set my partition id
+                this->myPartitionId = myPartitionId;
+                  
+                // create the tuple set that we'll return during iteration
+                output = std :: make_shared <TupleSet> ();
+                // extract the vector from the input page
+                myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) getAnotherVector ();
+
+                if (myRec != nullptr) {
+
+                    iterateOverMe = myRec->getRootObject ();
+                    PDB_COUT << "Got iterateOverMe" << std :: endl;
+                    // create the output vector for hash value and put it into the tuple set
+                    hashColumn = new std :: vector <size_t>;
+                    output->addColumn (0, hashColumn, true);
+                    // create the output vector for objects and put it into the tuple set
+                    columns = new void * [positions.size()];
+                    createCols<RHSType> (columns, *output, 1, 0, positions);
+                    isDone = false;  
+                
+                } else {
+
+                    iterateOverMe = nullptr;
+                    output = nullptr;
+                    isDone = true;
+                }
+
+                // we are at position zero
+                pos = 0;
+                curJoinMap = nullptr;
+                posInRecordList = 0;
+                // and we have no data so far
+                lastRec = nullptr;
+        }
+
+        void setChunkSize (size_t chunkSize) override {
+             this->chunkSize = chunkSize;
+        }
+
+        // returns the next tuple set to process, or nullptr if there is not one to process
+        TupleSetPtr getNextTupleSet () override {
+
+                //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
+                if ((iterateOverMe == nullptr) || (isDone == true)) {
+                     return nullptr;
+                }
+
+
+                // if we made it here with lastRec being a valid pointer, then it means
+                // that we have gone through an entire cycle, and so all of the data that
+                // we will ever reference stored in lastRec has been fluhhed through the
+                // pipeline; hence, we can kill it
+
+                if (lastRec != nullptr) {
+                        doneWithVector (lastRec);
+                        lastRec = nullptr;
+                }
+
+                int overallCounter = 0;
+                while (overallCounter < chunkSize) {
+                   while (curJoinMap == nullptr) {
+                      std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
+                      curJoinMap = (*iterateOverMe)[pos];
+                      pos ++;
+                      if (curJoinMap != nullptr) {
+                          if (curJoinMap->getPartitionId() != myPartitionId) {
+                              //this is not my map
+                              curJoinMap = nullptr;
+                          } else {
+                              curJoinMapIter = curJoinMap->begin();
+                              joinMapEndIter = curJoinMap->end();
+                              posInRecordList = 0;
+                          } 
+                      }
+                      if (curJoinMap == nullptr) {
+                          if (pos == iterateOverMe->size()) {
+                              break;
+                          } else {
+                              continue;
+                          }
+                      }
+                   }
+                   //there are two possibilities, first we find my map, second we come to end of this page
+                   if (curJoinMap != nullptr) {
+                      while (curJoinMapIter != joinMapEndIter) { 
+                          JoinRecordList<RHSType> * myList = *curJoinMapIter;
+                          size_t mySize = myList->size();
+                          size_t myHash = myList->getHash();
+                          posInRecordList = 0;
+                          for (size_t i = 0; i < mySize; i++) {
+                              unpack (myList[i], overallCounter, 0, columns);
+                              (*hashColumn)[overallCounter] = myHash;
+                              posInRecordList++;
+                              overallCounter++;
+                              if (overallCounter == this->chunkSize) {
+                                  hashColumn->resize (overallCounter);
+                                  eraseEnd <RHSType> (overallCounter, 0, columns);
+                                  return output;
+                              }
+                          }
+                      }
+                   } else if (pos == iterateOverMe->size()) {
+                        // this means that we got to the end of the vector
+                        lastRec = myRec;
+
+                        // try to get another vector
+                        myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) getAnotherVector ();
+
+                        // if we could not, then we are outta here
+                        if (myRec == nullptr) {
+                                isDone = true;
+                                iterateOverMe = nullptr;
+                                if (overallCounter > 0) {
+
+                                    hashColumn->resize (overallCounter);
+                                    eraseEnd <RHSType> (overallCounter, 0, columns);
+                                    return output;
+                                    
+                                } else {
+                                    return nullptr;
+                                }
+                        }
+                        // and reset everything
+                        iterateOverMe = myRec->getRootObject ();
+                        pos = 0;
+                    
+                   }                   
+                }
+
+        }
+
+
+        ~PartitionedJoinMapTupleSetIterator () {
+
+                if (columns != nullptr) {
+                     delete columns;
+                }
+                columns = nullptr;
+
+                // if lastRec is not a nullptr, then it means that we have not yet freed it
+                if (lastRec != nullptr)
+                        doneWithVector (lastRec);
+                lastRec = nullptr;
+        }
+
+
+};
+
+
+
 // JiaNote: this class is used to create a special JoinSink that are partitioned into multiple JoinMaps
 template <typename RHSType>
 class PartitionedJoinSink : public ComputeSink {
@@ -452,7 +664,10 @@ public:
         Handle <Object> createNewOutputContainer () override {
                 PDB_COUT << "PartitionedJoinSink: to create a Vector of JoinMap instance" << std :: endl;
                 // we create a vector of maps to store the output
-                Handle <Vector<Handle<JoinMap <RHSType>>>> returnVal = makeObject <Vector<Handle<JoinMap <RHSType>>>> ();
+                Handle <Vector<Handle<JoinMap <RHSType>>>> returnVal = makeObject <Vector<Handle<JoinMap <RHSType>>>> (numPartitions);
+                for (int i = 0; i < numPartitions; i++) {
+                    (*returnVal)[i] = nullptr;
+                }
                 return returnVal;
         }
 
@@ -478,8 +693,11 @@ public:
 
                 size_t length = keyColumn.size ();
                 for (size_t i = 0; i < length; i++) {
-                       
-                        JoinMap <RHSType> &myMap = *((*writeMe)[keyColumn[i]%numPartitions]);
+                        size_t index = keyColumn[i]%numPartitions;
+                        if ((*writeMe)[index] == nullptr) {
+                            (*writeMe)[index] = makeObject<JoinMap<RHSType>>(2, index, numPartitions);
+                        }
+                        JoinMap <RHSType> &myMap = *((*writeMe)[index]);
 
                         // try to add the key... this will cause an allocation for a new key/val pair
                         if (myMap.count (keyColumn[i]) == 0) {

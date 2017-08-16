@@ -42,9 +42,19 @@ private:
       
         // size of ValueType
         size_t objectSize;
+
+        // my partition id
+        size_t partitionId;
+
+        // number of partitions
+        int numPartitions;
+
 public:
 
 	ENABLE_DEEP_COPY
+
+        // this constructor creates a map with specified slots, partitionId and numPartitions
+        JoinMap (uint32_t initSize, size_t partitionId, int numPartitions);
 
 	// this constructor pre-allocates initSize slots... initSize must be a power of two
 	JoinMap (uint32_t initSize);
@@ -76,6 +86,13 @@ public:
         // these are used for iteration
         JoinMapIterator <ValueType> begin ();
         JoinMapIterator <ValueType> end ();
+
+
+        //JiaNote: add partition id to enable hash partitioned join
+        size_t getPartitionId();
+        void setPartitionId (size_t partitionId);
+        int getNumPartitions();
+        void setNumPartitions(int numPartitions);
 
         // JiaNote: add this to enable combination of two JoinMaps
         size_t getObjectSize();
