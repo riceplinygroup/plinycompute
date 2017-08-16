@@ -46,7 +46,7 @@ private:
         // my partition id
         size_t partitionId;
 
-        // number of partitions
+        // number of partitions (per node)
         int numPartitions;
 
 public:

@@ -68,8 +68,11 @@ private:
        //JiaNote: this is to specify the JoinType, by default we use broadcast join
        JoinType joinType = BroadcastJoin;
 
-       //JiaNote: my partition number, used by hash partition join
+       //JiaNote: partition number in the cluster, used by hash partition join
        int numPartitions = 0;
+
+       //JiaNote: number of nodes, used by hash partition join
+       int numNodes = 0;
 
        //JiaNote: partitionId for JoinSource, used by hash partition join
        size_t myPartitionId;
@@ -107,6 +110,16 @@ public:
        //return my number of partitions  (used in hash partition join)
        int getNumPartitions() {
            return numPartitions;
+       }
+
+       //set number of nodes  (used in hash partition join)
+       void setNumNodes (int numNodes) {
+           this->numNodes = numNodes;
+       }
+
+       //return my number of nodes  (used in hash partition join)
+       int getNumNodes() {
+           return numNodes;
        }
 
        //set my partition id for obtaining JoinSource for one partition  (used in hash partition join)
@@ -152,6 +165,8 @@ public:
             if (multiInputsBase == nullptr) {
                 delete (multiInputsBase);
             }
+            this->iterator = nullptr;
+            this->proxy = nullptr;
         }
 
         void setMultiInputsBaseToNull () {
@@ -331,7 +346,7 @@ public:
                 if (this->joinType == BroadcastJoin) {
 		    return correctJoinTuple->getSink (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
                 } else if (this->joinType == HashPartitionedJoin) {
-                    return correctJoinTuple->getPartitionedSink (numPartitions, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
+                    return correctJoinTuple->getPartitionedSink (numPartitions/numNodes, numNodes, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
                 } else {
                     std :: cout << "JoinType not supported" << std :: endl;
                     return nullptr;
