@@ -47,6 +47,7 @@
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
+#include "HashPartitionedJoinBuildHTJobStage.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
 
@@ -69,6 +70,122 @@ FrontendQueryTestServer :: FrontendQueryTestServer (bool isStandalone, bool crea
 FrontendQueryTestServer :: ~FrontendQueryTestServer () {}
 
 void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
+
+     //to handle a request to execute a job stage for building hash tables for hash partition join
+     forMe.registerHandler (HashPartitionedJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler <HashPartitionedJoinBuildHTJobStage>> ( 
+               [&] (Handle<HashPartitionedJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+                    std :: string errMsg;
+                    bool success;
+                    PDB_COUT << "Frontend got a request for HashPartitionedJoinBuildHTJobStage" << std :: endl;
+                    request->print();
+                    makeObjectAllocatorBlock(32*1024*1024, true);
+#ifdef PROFILING
+                    std :: string out = getAllocator().printInactiveBlocks();
+                    std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
+                    std :: cout << out << std :: endl;
+#endif
+                    //getAllocator().cleanInactiveBlocks((size_t)(1048576));
+                    PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
+                    if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
+                        std :: cout << errMsg << std :: endl;
+                        return std :: make_pair(false, errMsg);
+                    }
+                    PDB_COUT << "Frontend connected to backend" << std :: endl;
+
+                    Handle<HashPartitionedJoinBuildHTJobStage> newRequest =
+                         deepCopyToCurrentAllocationBlock<HashPartitionedJoinBuildHTJobStage> (request);
+                    PDB_COUT << "Created HashPartitionedJoinBuildHTJobStage object for forwarding" << std :: endl;
+
+                    //check input set
+                    //input set
+                    //restructure the input information  
+                    std :: string inDatabaseName = request->getSourceContext()->getDatabase();
+                    std :: string inSetName = request->getSourceContext()->getSetName();
+                    Handle<SetIdentifier> sourceContext = makeObject<SetIdentifier>(inDatabaseName, inSetName);
+                    PDB_COUT << "Created SetIdentifier object for input" << std :: endl;
+                    SetPtr inputSet = getFunctionality <PangeaStorageServer> ().getSet (std :: pair<std ::string, std::string>(inDatabaseName, inSetName));
+                    if (inputSet == nullptr) {
+                        PDB_COUT << "FrontendQueryTestServer: input set doesn't exist in this machine" << std :: endl;
+                        //TODO: move data from other servers
+                        //temporarily, we simply return;
+                        // now, we send back the result
+                        Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
+                        result->setNumPages (0);
+                        result->setPageSize (0);
+                        PDB_COUT << "Query is done without data. " << std :: endl;
+                        // return the results
+                        if (!sendUsingMe->sendObject (result, errMsg)) {
+                            return std :: make_pair (false, errMsg);
+                        }
+                        return std :: make_pair (true, std :: string("execution complete"));
+                    } else {
+                        getFunctionality <PangeaStorageServer> ().cleanup();
+                    }
+                    sourceContext->setDatabaseId(inputSet->getDbID());
+                    sourceContext->setTypeId(inputSet->getTypeID());
+                    sourceContext->setSetId(inputSet->getSetID());
+                    newRequest->setSourceContext(sourceContext);
+                    std :: cout << "Broadcasted data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
+                    newRequest->setNumPages(inputSet->getNumPages());
+                    newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
+                    newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set
+                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+
+
+
+                    //forward the request
+                    newRequest->print();
+
+                    if (inputSet->getNumPages() != 0) {
+
+                        if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                            std :: cout << errMsg << std :: endl;
+                            errMsg = std::string("can't send message to backend: ") +errMsg;
+                            success = false;
+                        } else {
+                            PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                            // wait for backend to finish.
+                            communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                            if (!success) {
+                                std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                                errMsg = std::string("backend failure: ") +errMsg;
+                            }
+                       }
+                   } else {
+
+                           success = false;
+                           errMsg = std :: string ("Error: broadcasted data size is 0");
+                           std :: cout << errMsg << std :: endl;
+                   }
+
+                   //remove sets
+                   if (newRequest->getNeedsRemoveInputSet() == true) {
+                       //remove input set
+                       getFunctionality <PangeaStorageServer> ().removeSet(inDatabaseName, inSetName);
+                   }
+
+
+                   //forward result
+                   //now, we send back the result
+                   Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
+                   result->setNumPages (inputSet->getNumPages());
+                   result->setPageSize (getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                   if (success == true) {
+                       PDB_COUT << "Stage is done. " << std :: endl;
+                       errMsg = std :: string("execution complete");
+                   } else {
+                       std :: cout << "Stage failed at server" << std :: endl;
+                   }
+                   // return the results
+                   if (!sendUsingMe->sendObject (result, errMsg)) {
+                       return std :: make_pair (false, errMsg);
+                   }
+                   if (success == false) {
+                       //TODO:restart backend
+                   }
+                   return std :: make_pair (success, errMsg);
+                }
+     ));
 
      //to handle a request to execute a job stage for building hash table for broadcast join
      forMe.registerHandler (BroadcastJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler <BroadcastJoinBuildHTJobStage>> (
