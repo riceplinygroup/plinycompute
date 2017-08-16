@@ -46,6 +46,7 @@
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
+#include "HashPartitionedJoinBuildHTJobStage.h"
 #include "PipelineNetwork.h"
 #include "PipelineStage.h"
 #include "PartitionedHashSet.h"
@@ -862,6 +863,290 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
     ));
 
+    //register a handler to process the HashPartitionedJoinBuildHTJobStage message
+    forMe.registerHandler (HashPartitionedJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler<HashPartitionedJoinBuildHTJobStage>> (
+            [&] (Handle<HashPartitionedJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+              bool success;
+              std :: string errMsg;
+
+              std :: cout << "Backend got HashPartitionedJoinBuildHTJobStage message with Id=" << request->getStageId() << std :: endl;
+              request->print();
+
+#ifdef PROFILING
+              std :: string out = getAllocator().printInactiveBlocks();
+              std :: cout << "HashPartitionedJoinBuildHTJobStage-backend: print inactive blocks:" << std :: endl;
+              std :: cout << out << std :: endl;
+#endif
+
+              //estimate memory for creating the partitioned hash set;
+              //get number of partitions
+              int numPartitions = request->getNumNodePartitions();
+
+         #ifdef AUTO_TUNING
+              size_t memSize = request->getTotalMemoryOnThisNode();
+              size_t sharedMemPoolSize = conf->getShmSize();
+#ifdef ENABLE_LARGE_GRAPH
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024)))*(0.75)/(double)(numPartitions);
+#else
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-(0))*(0.75)/(double)(numPartitions);
+#endif
+              if (memSize*((size_t)(1024)) < sharedMemPoolSize + (size_t)512*(size_t)1024*(size_t)1024) {
+                  std :: cout << "WARNING: Auto tuning can not work, use default values" << std :: endl;
+                  tunedHashPageSize = conf->getHashPageSize();
+              }
+              //std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
+              conf->setHashPageSize(tunedHashPageSize);
+         #endif
+              size_t hashSetSize = conf->getHashPageSize();
+              //create hash set
+              std :: string hashSetName = request->getHashSetName();
+              PartitionedHashSetPtr partitionedSet = make_shared<PartitionedHashSet> (hashSetName, hashSetSize);
+              this->addHashSet(hashSetName, partitionedSet);
+
+              //create multiple page circular queues
+              int buildingHTBufferSize = 2;
+              std :: vector<PageCircularBufferPtr> hashBuffers;
+              std :: vector<PageCircularBufferIteratorPtr> hashIters;
+
+              pthread_mutex_t connection_mutex;
+              pthread_mutex_init (&connection_mutex, nullptr);
+
+              //create data proxy
+              pthread_mutex_lock(&connection_mutex);
+              PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
+              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+              pthread_mutex_unlock(&connection_mutex);
+
+
+              //create a buzzer and counter
+              PDBBuzzerPtr hashBuzzer = make_shared<PDBBuzzer>(
+                   [&] (PDBAlarm myAlarm, int & hashCounter) {
+                        hashCounter ++;
+                        PDB_COUT << "hashCounter = " << hashCounter << std :: endl;
+              });
+              std :: cout << "to build hashtables with " << numPartitions << " threads." << std :: endl;
+              int hashCounter = 0;
+
+
+              //start multiple threads, with each thread have a queue and check pages in the queue
+              //each page has a vector of JoinMap
+              //each thread has a partition id and check whether each JoinMap has the same partition id
+              //if it finds a JoinMap in the same partition, the thread merge it
+
+              //start multiple threads
+              //each thread creates a hash set as temp set, and put key-value pairs to the hash set
+              for ( int i = 0; i < numPartitions; i ++ ) {
+                  PDBLoggerPtr myLogger = make_shared<PDBLogger>(std :: string("buildHT-")+std :: to_string(i));
+                  PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(buildingHTBufferSize, myLogger);
+                  hashBuffers.push_back(buffer);
+                  PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, myLogger);
+                  hashIters.push_back(iter);
+                  PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                  PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
+                  // start threads
+                  PDBWorkPtr myWork = make_shared<GenericWork> (
+                     [&, i] (PDBBuzzerPtr callerBuzzer) {
+
+                         pthread_mutex_lock(&connection_mutex);
+                         PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
+                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                         pthread_mutex_unlock(&connection_mutex);
+                         DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
+
+                         std :: string errMsg;
+
+                         //make allocator block and allocate the JoinMap
+                         const UseTemporaryAllocationBlock tempBlock (partitionedSet->getPage(i), hashSetSize) ;
+#ifdef PROFILING
+                         std :: string out = getAllocator().printInactiveBlocks();
+                         logger->warn(out);
+                         std :: cout << "HashPartitionedJoinBuildHTJobStage-backend: print inactive blocks:" << std :: endl;
+                         std :: cout << out << std :: endl;
+#endif
+                         PDB_COUT << "hashSetSize = " << hashSetSize << std :: endl;
+                         getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
+                         //to get the sink merger
+                         std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
+                         std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
+                         std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
+                         Handle<ComputePlan> myComputePlan = request->getComputePlan();
+                         SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
+                         Handle<Object> myMap = merger->createNewOutputContainer();
+
+                         //setup an output page to store intermediate results and final output
+                         PageCircularBufferIteratorPtr iter = hashIters[i];
+                         PDBPagePtr page = nullptr;
+                         while (iter->hasNext()) {
+                             page = iter->next();
+                             if (page != nullptr) {
+                                  PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                                  //to get the map on the page 
+                                  void * bytes = page->getBytes();
+                                  Handle<Vector<Handle<Object>>> theOtherMaps = ((Record <Vector<Handle<Object>>> *) bytes)->getRootObject();
+                                  Handle<Vector<Handle<JoinMap<Object>>>> theCastedMaps = unsafeCast<Vector<Handle<JoinMap<Object>>>, Vector<Handle<Object>>>(theOtherMaps);
+                                  size_t mySize = theCastedMaps->size();
+                                  for (int j = 0; j < mySize; j++) {
+                                       Handle<JoinMap<Object>> curMap = (*theCastedMaps)[j];
+                                       if (curMap->getPartitionId()%numPartitions != i) {
+                                           continue;
+                                       } else {
+                                           //it's my map!
+                                           //to merge the two maps
+                                           PDB_COUT << "####To merge the map with size = " << curMap->size() << std :: endl;
+                                           merger->writeOut((*theOtherMaps)[j], myMap);
+                                       }
+                                   }
+                                   PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                                   proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                   PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+
+                            } else {
+                                   PDB_COUT << "####Scanner got a null page" << std :: endl;
+                            }
+                       }
+                       PDB_COUT << "To get record" << std :: endl;
+                       getRecord(myMap);
+
+                       getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
+#ifdef PROFILING
+                       out = getAllocator().printInactiveBlocks();
+                       std :: cout << "AggregationJobStage-backend-thread: print inactive blocks:" << std :: endl;
+                       std :: cout << out << std :: endl;
+#endif
+                       callerBuzzer->buzz(PDBAlarm :: WorkAllDone, hashCounter);
+
+                     }
+                );
+                worker->execute(myWork, hashBuzzer);
+
+              }  //for            
+
+             //get input set and start a one thread scanner to scan that input set, and put the pointer to pages to each of the queues
+             //start single-thread scanner
+             //the thread iterates page, and put each page to all queues, in the end close all buffers
+
+             int backendCircularBufferSize = numPartitions;
+             int numThreads = 1;
+             PDBLoggerPtr scanLogger = make_shared<PDBLogger>("buildHTs-scanner.log");
+             PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scanLogger, numThreads, backendCircularBufferSize, nodeId);
+             if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
+                 success = false;
+                 errMsg = "Error: A job is already running!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+             //get iterators
+             PDB_COUT << "To send GetSetPages message" << std :: endl;
+             std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, request->getSourceContext()->getDatabaseId(), request->getSourceContext()->getTypeId(), request->getSourceContext()->getSetId());
+             PDB_COUT << "GetSetPages message is sent" << std :: endl;
+             int numIteratorsReturned = iterators.size();
+             if (numIteratorsReturned != numThreads) {
+                 int k;
+                 for ( k = 0; k < numPartitions; k ++) {
+                     PageCircularBufferPtr buffer = hashBuffers[k];
+                     buffer->close();
+                 }
+
+                 while (hashCounter < numPartitions) {
+                    hashBuzzer->wait();
+                 }
+                 pthread_mutex_destroy(&connection_mutex);
+                 success = false;
+                 errMsg = "Error: number of iterators doesn't match number of threads!";
+                 std :: cout << errMsg << std :: endl;
+                 // return result to frontend
+                 PDB_COUT << "to send back reply" << std :: endl;
+                 const UseTemporaryAllocationBlock block{1024};
+                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+                 // return the result
+                 success = sendUsingMe->sendObject (response, errMsg);
+                 return make_pair(success, errMsg);
+             }
+
+             //create a buzzer and counter
+             PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
+                [&] (PDBAlarm myAlarm, int & counter) {
+                counter ++;
+                PDB_COUT << "scan counter = " << counter << std :: endl;
+             });
+             int counter = 0;
+
+             for (int j = 0; j < numThreads; j++) {
+                PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+                PDB_COUT << "to run the " << j << "-th scan work..." << std :: endl;
+                //start threads
+                PDBWorkPtr myWork = make_shared<GenericWork> (
+                [&, j] (PDBBuzzerPtr callerBuzzer) {
+                     //setup an output page to store intermediate results and final output
+                     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+                     PageCircularBufferIteratorPtr iter = iterators.at(j);
+                     PDBPagePtr page = nullptr;
+                     while (iter->hasNext()) {
+                         page = iter->next();
+                         if (page != nullptr) {
+                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
+                             int k;
+                             for (k = 0; k < numPartitions; k++) {
+                                 page->incRefCount();
+                             }
+                             for (k = 0; k < numPartitions; k++) {
+                                PDB_COUT << "add page to the " << k << "-th buffer" << std :: endl;
+                                hashBuffers[k]->addPageToTail(page);
+                             }
+
+                         }
+                     }
+                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                }
+                );
+
+                worker->execute(myWork, tempBuzzer);
+             }
+
+             while (counter < numThreads) {
+                tempBuzzer->wait();
+             }
+
+             int k;
+             for ( k = 0; k < numPartitions; k ++) {
+                PageCircularBufferPtr buffer = hashBuffers[k];
+                buffer->close();
+             }
+
+
+             //wait for multiple threads to return
+             while (hashCounter < numPartitions) {
+                 hashBuzzer->wait();
+             }
+
+             //reset scanner
+             pthread_mutex_destroy(&connection_mutex);
+                      
+
+             if (getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
+                 success = false;
+                 errMsg = "Error: No job is running!";
+                 std :: cout << errMsg << std :: endl;
+             }
+
+
+             // return result to frontend
+             PDB_COUT << "to send back reply" << std :: endl;
+             const UseTemporaryAllocationBlock block{1024};
+             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
+             // return the result
+             success = sendUsingMe->sendObject (response, errMsg);
+             return make_pair(success, errMsg);
+
+         }
+    ));
+
 
     //register a handler to process the TupleSetJobStage message
     forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler<TupleSetJobStage>> (
@@ -1096,7 +1381,6 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              }
              ));
-
         
 } 
 
