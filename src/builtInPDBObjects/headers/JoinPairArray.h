@@ -87,11 +87,12 @@ public:
 	void operator ++ ();
 	JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn, bool);
 	JoinMapIterator (Handle <JoinPairArray <ValueType>> iterateMeIn);
-
+        JoinMapIterator ();
 private:
 
 	uint32_t slot;
-	JoinPairArray <ValueType> &iterateMe;
+        //JiaNote: I change reference to pointer because I need initialize JoinMapIterator using default constructor for hash partitioned join
+	JoinPairArray <ValueType> * iterateMe;
 	bool done;
 	
 };

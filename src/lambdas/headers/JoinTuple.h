@@ -405,6 +405,7 @@ public:
 
 };
 
+
 //JiaNote: this class is used to create a special JoinSource that will generate a stream of TupleSet from a series of JoinMaps
 
 template <typename RHSType>
@@ -526,7 +527,7 @@ public:
                 }
 
                 int overallCounter = 0;
-                while (overallCounter < chunkSize) {
+                while (true) {
                    while (curJoinMap == nullptr) {
                       std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
                       curJoinMap = (*iterateOverMe)[pos];
@@ -557,7 +558,7 @@ public:
                           size_t myHash = myList->getHash();
                           posInRecordList = 0;
                           for (size_t i = 0; i < mySize; i++) {
-                              unpack (myList[i], overallCounter, 0, columns);
+                              unpack ((*myList)[i], overallCounter, 0, columns);
                               (*hashColumn)[overallCounter] = myHash;
                               posInRecordList++;
                               overallCounter++;
@@ -595,6 +596,7 @@ public:
                     
                    }                   
                 }
+                return nullptr;
 
         }
 
@@ -891,6 +893,8 @@ public:
         virtual ComputeSinkPtr getPartitionedSink (int numPartitions, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
 
+        virtual ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <void * ()> getAnotherVector, std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) = 0;
+
         virtual SinkMergerPtr getMerger() = 0;
 
 };
@@ -921,10 +925,17 @@ public:
                 return std :: make_shared <PartitionedJoinSink <HoldMe>> (numPartitions, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
         }
 
-        //create a merger
+        // JiaNote: create a partitioned source for this particular type
+        ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <void * ()> getAnotherVector, std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) override {
+                return std :: make_shared <PartitionedJoinMapTupleSetIterator<HoldMe>> (myPartitionId, getAnotherVector, doneWithVector, chunkSize, whereEveryoneGoes);
+        }
+
+
+        // JiaNote: create a merger
         SinkMergerPtr getMerger () override {
                 return std :: make_shared <JoinSinkMerger <HoldMe>> ();
         }
+
 };
 
 typedef std::shared_ptr <JoinTupleSingleton> JoinTuplePtr;
