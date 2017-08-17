@@ -399,12 +399,15 @@ struct ApplyJoin : public AtomicComputation {
         //JiaNote: added below for physical planning
         //if traversed is set to true, we know that one input has been processed, and the other input can go through the pipeline
         bool traversed = false;
+        //JiaNote: added below for hash partitioned join
+        bool toPartitionLHS = false;
+
 public:
 
 	ApplyJoin (TupleSpec &output, TupleSpec &lInput, TupleSpec &rInput, TupleSpec &lProjection,
                 TupleSpec &rProjection, std :: string nodeName) :
 		AtomicComputation (lInput, output, lProjection, nodeName), rightInput (rInput),
-		rightProjection (rProjection) { traversed = false; }
+		rightProjection (rProjection) { traversed = false;  toPartitionLHS = false;}
 
 	TupleSpec &getRightProjection () {
 		return rightProjection;
@@ -425,6 +428,15 @@ public:
         void setTraversed (bool traversed) {
                 this->traversed = traversed;
         }
+
+        bool isPartitioningLHS () {
+                return this->toPartitionLHS;
+        }
+
+        void setPartitioningLHS(bool toPartitionLHS) {
+                this->toPartitionLHS = toPartitionLHS;
+        } 
+
 
         std :: pair <std :: string, std :: string> findSource (std :: string attName, AtomicComputationList &allComps) override {
 
