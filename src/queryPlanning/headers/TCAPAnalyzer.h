@@ -28,6 +28,7 @@
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
+#include "HashPartitionedJoinBuildHTJobStage.h"
 #include "Statistics.h"
 
 namespace pdb {
@@ -66,6 +67,9 @@ Handle<TupleSetJobStage>  createTupleSetJobStage(int & jobStageId, std :: string
 
 //to create broadcast join stage
 Handle<BroadcastJoinBuildHTJobStage> createBroadcastJoinBuildHTJobStage (int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName,  Handle<SetIdentifier> sourceContext, std :: string hashSetName, bool needsRemoveInputSet); 
+
+//to create hash partitioned join stage
+Handle<HashPartitionedJoinBuildHTJobStage> createHashPartitionedJoinBuildHTJobStage (int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, Handle<SetIdentifier> sourceContext, std :: string hashSetName, bool needsRemoveInputSet); 
 
 //to create aggregation job stage
 Handle<AggregationJobStage>  createAggregationJobStage(int & jobStageId,  Handle<AbstractAggregateComp> aggComp, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> sinkContext, std :: string outputTypeName, bool materializeOrNot);
@@ -156,6 +160,9 @@ std :: map<std :: string, unsigned int> curProcessedConsumers;
 
 //the vector of set names
 std :: vector<std :: string> curSourceSetNames;
+
+//the size of current source
+double costOfCurSource;
 
 };
 

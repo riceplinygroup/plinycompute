@@ -269,7 +269,15 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                           } else if (stage->getJobStageType() == "BroadcastJoinBuildHTJobStage" ) {
                               Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage = unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage> (stage);
                               success = scheduleStage (j, broadcastJoinStage, communicator, DeepCopy);
-
+                          } else if (stage->getJobStageType() == "HashPartitionedJoinBuildHTJobStage") { 
+                              Handle<HashPartitionedJoinBuildHTJobStage> hashPartitionedJoinStage = unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage> (stage);
+                              int numPartitionsOnThisNode = (int)((double)(standardResources->at(j)->getNumCores())*partitionToCoreRatio);
+                              if(numPartitionsOnThisNode == 0) {
+                                  numPartitionsOnThisNode = 1;
+                              }
+                              hashPartitionedJoinStage->setNumNodePartitions (numPartitionsOnThisNode);
+                              hashPartitionedJoinStage->setTotalMemoryOnThisNode(memory);
+                              success = scheduleStage (j, hashPartitionedJoinStage, communicator, DeepCopy);
                           } else {
                               errMsg = "Unrecognized job stage";
                               std :: cout << errMsg << std :: endl;
@@ -464,6 +472,45 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<AggregationJobStage
         
         return true;
 }
+
+bool QuerySchedulerServer :: scheduleStage(int index, Handle<HashPartitionedJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {
+        bool success;
+        std :: string errMsg;
+        PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
+
+        if (mode == Direct) {
+            success = communicator->sendObject<HashPartitionedJoinBuildHTJobStage>(stage, errMsg);
+            if (!success) {
+                 std :: cout << errMsg << std :: endl;
+                 return false;
+            }
+        }else if (mode == DeepCopy) {
+             Handle<HashPartitionedJoinBuildHTJobStage> stageToSend = deepCopyToCurrentAllocationBlock<HashPartitionedJoinBuildHTJobStage> (stage);
+             stageToSend->nullifyComputePlanPointer ();
+             success = communicator->sendObject<HashPartitionedJoinBuildHTJobStage>(stageToSend, errMsg);
+             if (!success) {
+                     std :: cout << errMsg << std :: endl;
+                     return false;
+             }
+        } else {
+             std :: cout << "Error: No such object creation mode supported in query scheduler" << std :: endl;
+             return false;
+        }
+        PDB_COUT << "to receive query response from the "<< index << "-th remote node" << std :: endl;
+        Handle<SetIdentifier> result = communicator->getNextObject<SetIdentifier>(success, errMsg);
+        if (result != nullptr) {
+             this->updateStats(result);
+             PDB_COUT << "HashPartitionedJoinBuildHTJobStage execute: wrote set:" << result->getDatabase() << ":" << result->getSetName()  << std :: endl;
+        }
+        else {
+            PDB_COUT << "HashPartitionedJoinBuildHTJobStage execute failure: can't get results" << std :: endl;
+            return false;
+        }
+
+        return true;
+
+}
+
 
 //deprecated
 bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode) {

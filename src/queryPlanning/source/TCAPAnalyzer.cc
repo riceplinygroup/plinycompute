@@ -23,8 +23,13 @@
 #include "SelectionComp.h"
 #include "ScanUserSet.h"
 #include "MultiSelectionComp.h"
+#include "JoinComp.h"
 #include <cfloat>
 
+
+#ifndef JOIN_COST_THRESHOLD
+    #define JOIN_COST_THRESHOLD 15000
+#endif
 namespace pdb {
 
 TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, bool isDynamicPlanning) {
@@ -283,6 +288,16 @@ Handle<BroadcastJoinBuildHTJobStage> TCAPAnalyzer::createBroadcastJoinBuildHTJob
     return broadcastJoinStage;
 }
 
+Handle<HashPartitionedJoinBuildHTJobStage> TCAPAnalyzer::createHashPartitionedJoinBuildHTJobStage (int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, Handle<SetIdentifier> sourceContext, std :: string hashSetName, bool needsRemoveInputSet) {
+    Handle<HashPartitionedJoinBuildHTJobStage> hashPartitionedJobStage = makeObject<HashPartitionedJoinBuildHTJobStage> (this->jobId, jobStageId, hashSetName);
+    jobStageId ++;
+    hashPartitionedJobStage->setComputePlan (this->computePlan, sourceTupleSetName, targetTupleSetName, targetComputationName);
+    hashPartitionedJobStage->setSourceContext (sourceContext);
+    hashPartitionedJobStage->setNeedsRemoveInputSet (needsRemoveInputSet);
+    return hashPartitionedJobStage;
+}
+
+
 //to remove source
 bool TCAPAnalyzer::removeSource (std :: string oldSetName) {
         bool ret;
@@ -477,41 +492,67 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             }
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
             std :: shared_ptr<ApplyJoin> joinNode = dynamic_pointer_cast<ApplyJoin> (curNode);
+            std :: string targetTupleSetName;
+            if(prevNode == nullptr) {
+                targetTupleSetName = curNode->getInputName();//join has two input names
+                std::cout<<"prev node is null, and target tuple set is " << targetTupleSetName << std::endl;
+            } else {
+                targetTupleSetName = prevNode->getOutputName();
+                std::cout<<"prev node is not null, and target tuple set is " << targetTupleSetName << std::endl;
+            }
+            Handle<SetIdentifier> sink = nullptr;
+            std :: string hashSetName = "";
             if (joinNode->isTraversed() == false) {
-                //std::cout<<"we met a non-traversed join node" << std::endl;
-                //if the other input has not been processed, I am a pipeline breaker.
-                //We first need to create a TupleSetJobStage with a broadcasting sink
 
-                //sourceSet (curInputSetIdentifier)
-                //sinkSet
-                Handle<SetIdentifier> sink = makeObject<SetIdentifier>(this->jobId, outputName+"_broadcastData");
+                if (this->costOfCurSource > JOIN_COST_THRESHOLD) {
+                    //data is larger than 2GB, so we do hash partition join.
+                    joinNode->setPartitioningLHS (true);
+                    Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (myComputation);
+                    join->setJoinType(HashPartitionedJoin);
+                    
+                    //I am a pipeline breaker.
+                    //We first need to create a TupleSetJobStage with a repartition sink
+                    
+                    sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
+                     
+                    //isBroadcasting = false
+                    //isRepartitioning = true
+                    //collect probing information
+                    //isCombining = false
+                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy);
+                    physicalPlanToOutput.push_back(joinPrepStage);
+                    interGlobalSets.push_back(sink);
 
-                //computePlan
-                //sourceTupleSetName
-                //sinkTupleSetName
-                //sinkComputationName
-                
-                //isBroadcasting = true
-                //isRepartitioning = false
-                //collect probing information
-                //isCombining = false
-                std :: string targetTupleSetName;
-                if(prevNode == nullptr) {
-                    targetTupleSetName = curNode->getInputName();//join has two input names
-                    //std::cout<<"prev node is null, and target tuple set is " << targetTupleSetName << std::endl;
+                    //We then create a BroadcastJoinBuildHTStage
+                    hashSetName = sink->getDatabase() + ":" + sink->getSetName();
+                    //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
+                    Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = createHashPartitionedJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
+                    physicalPlanToOutput.push_back(joinPartitionStage);
+
                 } else {
-                    targetTupleSetName = prevNode->getOutputName();
-                    //std::cout<<"prev node is not null, and target tuple set is " << targetTupleSetName << std::endl;
-                }
-                Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, true, false, false, isProbing, myPolicy);
-                physicalPlanToOutput.push_back(joinPrepStage);
-                interGlobalSets.push_back(sink);
+                    //we are doing broadcast join
 
-                //We then create a BroadcastJoinBuildHTStage
-                std :: string hashSetName = sink->getDatabase() + ":" + sink->getSetName();
-                //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
-                Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
-                physicalPlanToOutput.push_back(joinBroadcastStage);                
+                    //std::cout<<"we met a non-traversed join node" << std::endl;
+                    //if the other input has not been processed, I am a pipeline breaker.
+                    //We first need to create a TupleSetJobStage with a broadcasting sink
+
+                    sink = makeObject<SetIdentifier>(this->jobId, outputName+"_broadcastData");
+
+                
+                    //isBroadcasting = true
+                    //isRepartitioning = false
+                    //collect probing information
+                    //isCombining = false
+                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, true, false, false, isProbing, myPolicy);
+                    physicalPlanToOutput.push_back(joinPrepStage);
+                    interGlobalSets.push_back(sink);
+
+                    //We then create a BroadcastJoinBuildHTStage
+                    hashSetName = sink->getDatabase() + ":" + sink->getSetName();
+                    //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
+                    Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
+                    physicalPlanToOutput.push_back(joinBroadcastStage);    
+                }            
                 //set the probe information
                 if (hashSetsToProbe == nullptr) {
                     hashSetsToProbe = makeObject<Map<String, String>> ();
@@ -524,13 +565,31 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 }
                 //std :: cout << "return" << std :: endl;
                 return true;
+                
             } else {
+                if (joinNode->isPartitioningLHS() == true) {
+                     //we probe the partitioned hash table
+                     //we first create a pipeline breaker to partition RHS
+                     sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
+                     //isBroadcasting = false
+                     //isRepartitioning = true
+                     //collect probing information
+                     //isCombining = false
+                     Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy);
+                     physicalPlanToOutput.push_back(joinPrepStage);
+                     interGlobalSets.push_back(sink);
+
+                     //we then create a pipeline stage to probe the partitioned hash table
+                     buildTheseTupleSets.clear();
+                } 
+                //we probe the broadcasted hash table
                 //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
                 //std :: cout << "I met a join node I have traversed before" << std :: endl;
                 buildTheseTupleSets.push_back(curNode->getOutputName());
                 outputForJoinSets.push_back(outputName);
                 //std :: cout << "isProbing is set to true" << std :: endl;
                 return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, true, myPolicy);
+                
             }
 
         } else {
@@ -686,7 +745,8 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
               }
           }
        }
-//       std :: cout << "The Best Source is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
+       //std :: cout << "The Best Source is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
+       this->costOfCurSource = minCost;
        return bestIndexToReturn;
     }
 }

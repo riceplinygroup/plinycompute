@@ -34,6 +34,7 @@
 #include "TupleSetJobStage.h"
 #include "AggregationJobStage.h"
 #include "BroadcastJoinBuildHTJobStage.h"
+#include "HashPartitionedJoinBuildHTJobStage.h"
 #include "SequenceID.h"
 #include "TCAPAnalyzer.h"
 #include "ShuffleInfo.h"
@@ -95,6 +96,7 @@ public:
        bool scheduleStage(int index, Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
        bool scheduleStage(int index, Handle<AggregationJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
        bool scheduleStage(int index, Handle<BroadcastJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
+       bool scheduleStage(int index, Handle<HashPartitionedJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
        //deprecated
        //to schedule the current job plan on all available resources
        void schedule();
