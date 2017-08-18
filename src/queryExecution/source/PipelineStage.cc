@@ -87,7 +87,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
        if(port <= 0) {
            port = conf->getPort();
        } 
-       //std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = Aggregation" << std :: endl;
+       std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with size = " << data->size() << " to database=" << databaseName << " and set=" << setName << " and type = IntermediateData" << std :: endl;
        return simpleSendDataRequest <StorageAddData, Handle <Object>, SimpleRequestResult, bool> (logger, port, address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {
                      if (result != nullptr)
@@ -99,7 +99,7 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
         }
 
 //broadcast data
-bool PipelineStage :: sendBroadcastData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
+bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
     
     bool success;
     if (data != nullptr) {
@@ -196,6 +196,28 @@ DataProxyPtr PipelineStage :: createProxy (int i, pthread_mutex_t connection_mut
 //combinerBuffers can be empty if no combining is required
 void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector<PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector <PageCircularBufferPtr> & sinkBuffers, HermesExecutionServer * server, std :: string & errMsg) {
 
+
+    //connections
+    std :: vector < PDBCommunicatorPtr > connections;
+    for (int j = 0; j < jobStage->getNumNodes(); j++) {
+
+        //get the i-th address
+        std :: string address = this->jobStage->getIPAddress(j);
+        PDB_COUT << "address = " << address << std :: endl;
+
+        //get the i-th port
+        int port = this->jobStage->getPort(j);
+        PDB_COUT << "port = " << port << std :: endl;
+
+        //get aggregate computation 
+        PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+        communicator->connectToInternetServer (logger, port, address, errMsg);
+        connections.push_back(communicator);
+
+    }
+
+
+
     //setup an output page to store intermediate results and final output
 #ifdef ENABLE_LARGE_GRAPH
     const UseTemporaryAllocationBlock tempBlock {128 * 1024 * 1024};
@@ -281,7 +303,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             std :: cout << "to probe " << key << ":" << hashSetName << std :: endl;
             AbstractHashSetPtr hashSet = server->getHashSet(hashSetName);
             if (hashSet == nullptr) {
-                std :: cout << "ERROR in pipeline execution: broadcast data not found!" << std :: endl;
+                std :: cout << "ERROR in pipeline execution: data not found in hash set " << hashSetName << "!" << std :: endl;
                 return;
             }
             if (hashSet->getHashSetType() == "SharedHashSet") {
@@ -317,6 +339,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   join->setNumNodes(this->jobStage->getNumNodes());
     }
 
+    char * mem = nullptr;
+    if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false)) {
+        mem = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+    }
     newPlan->nullifyPlanPointer();
     std :: vector < std :: string> buildTheseTupleSets;
     jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
@@ -397,7 +423,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false)) {
                           //to handle aggregation without combining
-                          PDB_COUT << "to shuffle data on this page" << std :: endl;
+                          std :: cout << "to shuffle data on this page" << std :: endl;
                           //to handle an aggregation
                           Record<Vector<Handle<Vector<Handle<Object>>>>> * record = (Record<Vector<Handle<Vector<Handle<Object>>>>> *) page;
                           if (record != nullptr) {
@@ -406,17 +432,12 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                               int k;
                               for ( k = 0; k < numNodes; k++) {
                                   Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[k];
+                                  Record<Vector<Handle<Object>>> * myRecord = getRecord(objectToShuffle, mem, DEFAULT_NET_PAGE_SIZE);
+                                  std :: cout << "send " << myRecord->numBytes() << " bytes to node-" << k << std :: endl;
                                   if (objectToShuffle != nullptr) {
-                                      //get the i-th address
-                                      std :: string address = this->jobStage->getIPAddress(k);
-                                      PDB_COUT << "address = " << address << std :: endl;
-
-                                      //get the i-th port
-                                      int port = this->jobStage->getPort(k);
-                                      PDB_COUT << "port = " << port << std :: endl;
-
                                       //to shuffle data
-                                      this->storeShuffleData(objectToShuffle, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                                      //this->storeShuffleData(objectToShuffle, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                                      sendData(connections[k], myRecord, myRecord->numBytes(), jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                                   }
                               }
                           }
@@ -439,6 +460,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
    curPipeline->run();
    curPipeline = nullptr;
    this->jobStage->getComputePlan()->nullifyPlanPointer();
+   makeObjectAllocatorBlock(4 * 1024 * 1024, true);
+   for (int j = 0; j < jobStage->getNumNodes(); j++) {
+        sendData(connections[j], nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+   }
+   free (mem);
 
 }
 
@@ -484,6 +510,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
 
     std :: cout << "to run pipeline with " << numThreads << " threads." << std :: endl;    
     int counter = 0;
+
     for (int i = 0; i < numThreads; i++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
          PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
@@ -819,7 +846,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                           //to load input page
                           numPages++;
                           //send out the page
-                          sendBroadcastData(communicator, page->getBytes(), DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          sendData(communicator, page->getBytes(), DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
@@ -828,7 +855,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                       }
                   }
                   std :: cout << "broadcasted " << numPages << " pages to address: " << address << std :: endl;
-                  sendBroadcastData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                  sendData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
 #ifdef PROFILING
                   out = getAllocator().printInactiveBlocks();
                   std :: cout << "inactive blocks after sending data in this worker:" << std :: endl;

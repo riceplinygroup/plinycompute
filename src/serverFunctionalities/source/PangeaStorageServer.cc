@@ -179,7 +179,7 @@ void PangeaStorageServer :: cleanup(bool flushOrNot) {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first, flushOrNot);
         }
-        PDB_COUT << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
+        std :: cout << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
         //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
         PDB_COUT << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
         sleep(1);
@@ -260,8 +260,10 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 				numObjectsInRecord = allObjects.size ();
 				// put all of the data onto the page
 				for (; pos < numObjectsInRecord; pos++) {
+                                        //std :: cout << "to push back object at pos = " << pos << std :: endl;
 					data->push_back (allObjects[pos]);
                                         totalObjects++;
+                                        //std :: cout << "now there are " << totalObjects << " objects" << std :: endl;
                                 }
 	
 				// now kill this record
@@ -291,7 +293,7 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
 		// put the extra objects tht we could not store back in the record
 		} catch (NotEnoughSpace &n) {
                         // comment the following three lines of code to allow Pangea to manage pages						
-			//std :: cout << "Writing back a page!!\n";
+			std :: cout << "Writing back a page!!\n";
                         getRecord(data);
                         if (data->size() == 0) {
                             std :: cout << "FATAL ERROR: object size is larger than a page, pleases increase page size" << std :: endl;
@@ -943,7 +945,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 #endif
 
                     numBytes = sendUsingMe->getSizeOfNextObject ();
-                    if (requestInLoop == nullptr) {
+                    if (requestInLoop != nullptr) {
                         free (requestInLoop);
                     }
                     requestInLoop = malloc(numBytes);

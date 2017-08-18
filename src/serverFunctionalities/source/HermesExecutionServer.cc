@@ -60,6 +60,10 @@
 #endif
 
 
+#ifndef HASH_PARTITIONED_JOIN_SIZE_RATIO
+    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 1
+#endif
+
 namespace pdb {
 
 
@@ -881,28 +885,23 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               //estimate memory for creating the partitioned hash set;
               //get number of partitions
               int numPartitions = request->getNumNodePartitions();
-
-         #ifdef AUTO_TUNING
-              size_t memSize = request->getTotalMemoryOnThisNode();
-              size_t sharedMemPoolSize = conf->getShmSize();
-#ifdef ENABLE_LARGE_GRAPH
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024)))*(0.75)/(double)(numPartitions);
-#else
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-(0))*(0.75)/(double)(numPartitions);
-#endif
-              if (memSize*((size_t)(1024)) < sharedMemPoolSize + (size_t)512*(size_t)1024*(size_t)1024) {
-                  std :: cout << "WARNING: Auto tuning can not work, use default values" << std :: endl;
-                  tunedHashPageSize = conf->getHashPageSize();
+              int numPages = request->getNumPages();
+              if (numPages == 0) {
+                  numPages = 1;
               }
-              //std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
-              conf->setHashPageSize(tunedHashPageSize);
-         #endif
-              size_t hashSetSize = conf->getHashPageSize();
+              size_t hashSetSize = conf->getPageSize() * numPages * HASH_PARTITIONED_JOIN_SIZE_RATIO;
               //create hash set
               std :: string hashSetName = request->getHashSetName();
               PartitionedHashSetPtr partitionedSet = make_shared<PartitionedHashSet> (hashSetName, hashSetSize);
               this->addHashSet(hashSetName, partitionedSet);
-
+              std :: cout << "Added hash set for HashPartitionedJoin to probe" << std :: endl;
+              for (int i = 0; i < numPartitions; i++) {
+                 void * bytes = partitionedSet->addPage();
+                 if (bytes == nullptr) {
+                     std :: cout << "Insufficient memory in heap" << std :: endl;
+                     exit(1);
+                 }
+              }
               //create multiple page circular queues
               int buildingHTBufferSize = 2;
               std :: vector<PageCircularBufferPtr> hashBuffers;
@@ -979,26 +978,38 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          while (iter->hasNext()) {
                              page = iter->next();
                              if (page != nullptr) {
-                                  PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                                  PDB_COUT << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                                   //to get the map on the page 
                                   void * bytes = page->getBytes();
                                   Handle<Vector<Handle<Object>>> theOtherMaps = ((Record <Vector<Handle<Object>>> *) bytes)->getRootObject();
                                   Handle<Vector<Handle<JoinMap<Object>>>> theCastedMaps = unsafeCast<Vector<Handle<JoinMap<Object>>>, Vector<Handle<Object>>>(theOtherMaps);
                                   size_t mySize = theCastedMaps->size();
+                                  std :: cout << i << ": there are " << mySize << " maps in the page" << std :: endl; 
                                   for (int j = 0; j < mySize; j++) {
                                        Handle<JoinMap<Object>> curMap = (*theCastedMaps)[j];
+                                       if (curMap == nullptr) {
+                                           continue;
+                                       } 
                                        if (curMap->getPartitionId()%numPartitions != i) {
                                            continue;
                                        } else {
                                            //it's my map!
+                                           std :: cout << i <<": curMap->getPartitionId()=" << curMap->getPartitionId() << std :: endl;
                                            //to merge the two maps
-                                           PDB_COUT << "####To merge the map with size = " << curMap->size() << std :: endl;
+                                           std :: cout << i <<": ####To merge the map with size = " << curMap->size() << std :: endl;
                                            merger->writeOut((*theOtherMaps)[j], myMap);
                                        }
                                    }
+                                   //unpin the input page 
                                    PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
-                                   proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-                                   PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                                   page->decRefCount();
+                                   //std :: cout << i << ": processed an input page with pageId = " << page->getPageID() << ", reference count=" << page->getRefCount() << std :: endl;
+                                   if (page->getRefCount() == 0) {
+                                         std :: cout << i << ": to unpin the input page: with dbId="<< page->getDbID() << ", setId=" << page->getSetID() << ", pageId=" << page->getPageID() << std :: endl;
+                                         proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                                         PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                                   }
+
 
                             } else {
                                    PDB_COUT << "####Scanner got a null page" << std :: endl;
@@ -1010,7 +1021,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                        getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
 #ifdef PROFILING
                        out = getAllocator().printInactiveBlocks();
-                       std :: cout << "AggregationJobStage-backend-thread: print inactive blocks:" << std :: endl;
+                       std :: cout << "HashPartitionedJoinBuildHTJobStage-backend-thread: print inactive blocks:" << std :: endl;
                        std :: cout << out << std :: endl;
 #endif
                        callerBuzzer->buzz(PDBAlarm :: WorkAllDone, hashCounter);

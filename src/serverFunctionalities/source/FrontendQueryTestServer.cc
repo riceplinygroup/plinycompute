@@ -81,7 +81,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     makeObjectAllocatorBlock(32*1024*1024, true);
 #ifdef PROFILING
                     std :: string out = getAllocator().printInactiveBlocks();
-                    std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
+                    std :: cout << "HashPartitionedJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
                     //getAllocator().cleanInactiveBlocks((size_t)(1048576));
@@ -125,38 +125,34 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
                     newRequest->setSourceContext(sourceContext);
-                    std :: cout << "Broadcasted data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
+                    std :: cout << "HashPartitioned data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
                     newRequest->setNumPages(inputSet->getNumPages());
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
                     newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set
-                    PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
+                    std :: cout << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
 
 
 
                     //forward the request
                     newRequest->print();
 
-                    if (inputSet->getNumPages() != 0) {
+                    if (inputSet->getNumPages() == 0) {
+                        std :: cout << "WARNING: repartitioned data size is 0" << std :: endl;
+                    }
 
-                        if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
-                            std :: cout << errMsg << std :: endl;
-                            errMsg = std::string("can't send message to backend: ") +errMsg;
-                            success = false;
-                        } else {
-                            PDB_COUT << "Frontend sent request to backend" << std :: endl;
-                            // wait for backend to finish.
-                            communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
-                            if (!success) {
-                                std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
-                                errMsg = std::string("backend failure: ") +errMsg;
-                            }
-                       }
-                   } else {
-
-                           success = false;
-                           errMsg = std :: string ("Error: broadcasted data size is 0");
-                           std :: cout << errMsg << std :: endl;
-                   }
+                    if (!communicatorToBackend->sendObject(newRequest, errMsg)) {
+                        std :: cout << errMsg << std :: endl;
+                        errMsg = std::string("can't send message to backend: ") +errMsg;
+                        success = false;
+                    } else {
+                        PDB_COUT << "Frontend sent request to backend" << std :: endl;
+                        // wait for backend to finish.
+                        communicatorToBackend->getNextObject<SimpleRequestResult>(success, errMsg);
+                        if (!success) {
+                            std :: cout << "Error waiting for backend to finish this job stage. " << errMsg << std :: endl;
+                            errMsg = std::string("backend failure: ") +errMsg;
+                        }
+                    }
 
                    //remove sets
                    if (newRequest->getNeedsRemoveInputSet() == true) {

@@ -254,27 +254,27 @@ public:
 	
         //JiaNote: this gets a sink merger
         SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-                //std :: cout << "to get sink merger" << std :: endl;
+                std :: cout << "to get sink merger" << std :: endl;
                 // loop through each of the attributes that we are supposed to accept, and for each of them, find the type
                 std :: vector <std :: string> typeList;
                 AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
-                //std :: cout << "consumeMe was: " << consumeMe << "\n";
-                //std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
+                std :: cout << "consumeMe was: " << consumeMe << "\n";
+                std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
                 std :: cout << "projection was: " << projection << "\n";
                 for (auto &a : projection.getAtts ()) {
 
                         // find the identity of the producing computation
-                        //std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n";
+                        std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n";
                         std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());
-                        //std :: cout << "got " << res.first << " " << res.second << "\n";
+                        std :: cout << "got " << res.first << " " << res.second << "\n";
 
                         // and find its type... in the first case, there is not a particular lambda that we need to ask for
                         if (res.second == "") {
-                                //std :: cout << "my type is " << plan.getPlan ()->getNode (res.first).getComputation ().getOutputType () << std :: endl;
+                                std :: cout << "my type is " << plan.getPlan ()->getNode (res.first).getComputation ().getOutputType () << std :: endl;
                                 typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
                         } else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                //std :: cout << "my type is " << myType << std :: endl;
+                                std :: cout << "my type is " << myType << std :: endl;
 
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
@@ -284,45 +284,45 @@ public:
                         }
                 }
 
-                /*for (auto &aa : typeList) {
+                for (auto &aa : typeList) {
                         std :: cout << "Got type " << aa << "\n";
-                }*/
+                }
 
                 // now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
                 std :: vector <int> whereEveryoneGoes;
                 JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 
-                /*for (auto &aa : whereEveryoneGoes) {
+                for (auto &aa : whereEveryoneGoes) {
                         std :: cout << aa << " ";
                 }
                 std :: cout << "\n";
-                */
+                
                 return correctJoinTuple->getMerger ();
 
         }
 
 	// this gets a compute sink
 	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-		//std :: cout << "to get compute sink" << std :: endl;
+		std :: cout << "to get compute sink for Join" << std :: endl;
 		// loop through each of the attributes that we are supposed to accept, and for each of them, find the type
 		std :: vector <std :: string> typeList;
 		AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (consumeMe.getSetName ());
-		//std :: cout << "consumeMe was: " << consumeMe << "\n";
-		//std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
+		std :: cout << "consumeMe was: " << consumeMe << "\n";
+		std :: cout << "attsToOpOn was: " << attsToOpOn << "\n";
 		std :: cout << "getComputeSink: projection was: " << projection << "\n";
 		for (auto &a : projection.getAtts ()) {
 
 			// find the identity of the producing computation
-			//std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n"; 
+			std :: cout << "finding the source of " << projection.getSetName () << "." << a << "\n"; 
 			std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());	
-			//std :: cout << "got " << res.first << " " << res.second << "\n";
+			std :: cout << "got " << res.first << " " << res.second << "\n";
 
 			// and find its type... in the first case, there is not a particular lambda that we need to ask for
 			if (res.second == "") {
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                //std :: cout << "my type is " << myType << std :: endl;
+                                std :: cout << "my type is " << myType << std :: endl;
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
                                 } else {
@@ -331,21 +331,23 @@ public:
 			} 
 		}
 
-		/*for (auto &aa : typeList) {
+		for (auto &aa : typeList) {
 			std :: cout << "Got type " << aa << "\n";
-		}*/
+		}
 
 		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
 		std :: vector <int> whereEveryoneGoes;
 		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 		
-		/*for (auto &aa : whereEveryoneGoes) {
+		for (auto &aa : whereEveryoneGoes) {
 			std :: cout << aa << " ";
-		}*/
-		//std :: cout << "\n";
+		}
+		std :: cout << "\n";
                 if (this->joinType == BroadcastJoin) {
+                    std :: cout << "to get sink for broadcast join" << std :: endl;
 		    return correctJoinTuple->getSink (consumeMe, attsToOpOn, projection, whereEveryoneGoes);
                 } else if (this->joinType == HashPartitionedJoin) {
+                    std :: cout << "to get sink for hashPartitioned join" << std :: endl;
                     return correctJoinTuple->getPartitionedSink (numPartitions/numNodes, numNodes, consumeMe, attsToOpOn, projection, whereEveryoneGoes);
                 } else {
                     std :: cout << "JoinType not supported" << std :: endl;
