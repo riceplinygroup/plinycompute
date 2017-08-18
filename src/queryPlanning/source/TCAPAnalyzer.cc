@@ -745,7 +745,7 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
               }
           }
        }
-       //std :: cout << "The Best Source is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
+       std :: cout << "The Best Source (cost= " << minCost << ") is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
        this->costOfCurSource = minCost;
        return bestIndexToReturn;
     }
