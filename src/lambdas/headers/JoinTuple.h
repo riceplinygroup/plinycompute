@@ -645,11 +645,11 @@ public:
         JoinSinkShuffler () {
         }
 
-        void setNodeId (int nodeId) {
+        void setNodeId (int nodeId) override {
                 this->nodeId = nodeId;
         }
 
-        int getNodeId () {
+        int getNodeId () override {
                 return nodeId;
         }
 
