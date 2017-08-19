@@ -322,7 +322,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     PDB_COUT << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std :: endl;
     PDB_COUT << "target computation: " << this->jobStage->getTargetComputationSpecifier() << std :: endl;
 
-
+    bool isJoinSink = false;
     std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
     if (targetSpecifier.find("ClusterAggregationComp") != std :: string :: npos) {
                   Handle<Computation> aggComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
@@ -337,6 +337,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
                   join->setNumPartitions(this->jobStage->getNumTotalPartitions());
                   join->setNumNodes(this->jobStage->getNumNodes());
+                  isJoinSink = true;
     }
 
     char * mem = nullptr;
@@ -464,8 +465,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
    for (int j = 0; j < jobStage->getNumNodes(); j++) {
         sendData(connections[j], nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
    }
-   free (mem);
-
+   if (mem != nullptr) {
+       free (mem);
+   }
 }
 
 
