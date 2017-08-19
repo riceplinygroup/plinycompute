@@ -21,6 +21,7 @@
 
 #include "JoinMap.h"
 #include "SinkMerger.h"
+#include "SinkShuffler.h"
 
 namespace pdb {
 
@@ -628,7 +629,76 @@ public:
 
 };
 
+// JiaNote: this class is used to create a Shuffler that picks all JoinMaps that belong to one node, and push back JoinMaps to another vector.
+template <typename RHSType>
+class JoinSinkShuffler : public SinkShuffler {
 
+private:
+
+        int nodeId;
+
+public:
+
+        ~JoinSinkShuffler () {
+        }
+
+        JoinSinkShuffler () {
+        }
+
+        void setNodeId (int nodeId) {
+                this->nodeId = nodeId;
+        }
+
+        int getNodeId () {
+                return nodeId;
+        }
+
+        Handle <Object> createNewOutputContainer () override {
+
+                // we simply create a new map to store the output
+                Handle <Vector<Handle<JoinMap <RHSType>>>> returnVal = makeObject <Vector<Handle<JoinMap <RHSType>>>> ();
+                return returnVal;
+        }
+
+        void writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) override {
+
+                // get the map we are adding to
+                Handle <Vector<Handle<JoinMap <RHSType>>>> shuffledMaps= unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (shuffleToMe);
+                Vector<Handle<JoinMap <RHSType>>> &myMaps = *shuffledMaps; 
+                Handle<JoinMap<RHSType>> thisMap;
+                try {
+                    thisMap = makeObject<JoinMap<RHSType>> ();
+                }
+                catch (NotEnoughSpace &n) {
+                    std :: cout << "ERROR: can't allocate for new map" << std :: endl;
+                    return;
+                }
+                JoinMap<RHSType> myMap = *thisMap;
+                Handle<JoinMap <RHSType>> theOtherMap = unsafeCast <JoinMap <RHSType>> (shuffleMe);
+                JoinMap<RHSType> mapToShuffle = *theOtherMap;
+                for (JoinMapIterator<RHSType> iter = mapToShuffle.begin(); iter != mapToShuffle.end(); ++iter) {
+                    JoinRecordList<RHSType> * myList = *iter;
+                    size_t mySize = myList->size();
+                    size_t myHash = myList->getHash();
+                    if (mySize > 0) {
+                        for (size_t i = 0; i < mySize; i++) {
+                            try {
+                                RHSType * temp = &(myMap.push(myHash));
+                                packData (*temp, ((*myList)[i]));
+                            } catch (NotEnoughSpace &n) {
+                                std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                delete (myList);
+                                return;
+                            }
+                        }
+                    }
+                    delete (myList);
+                }
+                myMaps.push_back(thisMap);
+         }
+
+
+};
 
 // JiaNote: this class is used to create a special JoinSink that are partitioned into multiple JoinMaps
 template <typename RHSType>
@@ -923,6 +993,8 @@ public:
 
         virtual SinkMergerPtr getMerger() = 0;
 
+        virtual SinkShufflerPtr getShuffler() = 0;
+
 };
 
 // this is an actual class 
@@ -960,6 +1032,11 @@ public:
         // JiaNote: create a merger
         SinkMergerPtr getMerger () override {
                 return std :: make_shared <JoinSinkMerger <HoldMe>> ();
+        }
+
+        // JiaNote: create a shuffler
+        SinkShufflerPtr getShuffler () override {
+                return std :: make_shared <JoinSinkShuffler <HoldMe>> ();
         }
 
 };

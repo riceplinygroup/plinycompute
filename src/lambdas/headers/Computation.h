@@ -24,6 +24,7 @@
 #include "ComputeSource.h"
 #include "ComputeSink.h"
 #include "SinkMerger.h"
+#include "SinkShuffler.h"
 #include "InputTupleSetSpecifier.h"
 #include "PDBString.h"
 #include <map>
@@ -70,6 +71,16 @@ public:
 
         virtual SinkMergerPtr getSinkMerger (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) {
              return getSinkMerger(consumeMe, projection, plan);
+        }
+
+        // JiaNote: add below interface for shuffling multiple join map sinks for hash partitioned join
+        virtual SinkShufflerPtr getSinkShuffler (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) {
+             return nullptr;
+        }
+
+
+        virtual SinkShufflerPtr getSinkShuffler (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) {
+             return getSinkShuffler(consumeMe, projection, plan);
         }
 
 	// returns the type of this Computation

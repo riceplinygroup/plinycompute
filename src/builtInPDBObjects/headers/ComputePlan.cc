@@ -122,6 +122,8 @@ inline std :: string ComputePlan :: getProducingComputationName(std :: string so
 }
 
 
+//JiaNote: ToDo: reuse code to obtain consumer, attsToOperateOn and projection, encapsuelate that into a separate function.
+
 //JiaNote: implemented following method to provide merger for broadcast join
 inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName) {
 
@@ -139,7 +141,6 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
         //std :: cout << "print computations:" << std :: endl;
         //std :: cout << allComps << std :: endl;
 
-
         // and get the schema for the output TupleSet objects that it is supposed to produce
         TupleSpec &targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
         //std :: cout << "The target is " << targetSpec << "\n";
@@ -154,7 +155,6 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
                 if (a->getComputationName () == targetComputationName) {
 
                         //std :: cout << "targetComputationName was " << targetComputationName << "\n";
-
                         // we found the consuming computation
                         if (targetSpec == a->getInput ()) {
                                 targetProjection = a->getProjection ();
@@ -177,19 +177,80 @@ inline SinkMergerPtr ComputePlan :: getMerger (std :: string sourceTupleSetName,
                                 exit (1);
                         }
 
-                        //std :: cout << "Building sink for: " << targetSpec << " " << myGuy->getRightProjection () << " " << myGuy->getRightInput () << "\n";
                         targetProjection = myGuy->getRightProjection ();
                         targetAttsToOpOn = myGuy->getRightInput ();
-                        //std :: cout << "Building sink for: " << targetSpec << " " << targetAttsToOpOn << " " << targetProjection << "\n";
                 }
         }
 
         // now we have the list of computations, and so it is time to get the sink merger
         SinkMergerPtr sinkMerger = myPlan->getNode (targetComputationName).getComputation ().getSinkMerger (targetSpec, targetAttsToOpOn, targetProjection, *this);
-
         return sinkMerger;
-
 }
+
+//JiaNote: implemented following method to provide shuffler for hash partitioned join
+inline SinkShufflerPtr ComputePlan :: getShuffler (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName) {
+
+        if (targetComputationName.find("JoinComp") == std :: string :: npos) {
+               return nullptr;
+        }
+        // build the plan if it is not already done
+        if (myPlan == nullptr)
+                getPlan ();
+
+        // get all of the computations
+        AtomicComputationList &allComps = myPlan->getComputations ();
+
+        //std :: cout << "print computations:" << std :: endl;
+        //std :: cout << allComps << std :: endl;
+
+        // and get the schema for the output TupleSet objects that it is supposed to produce
+        TupleSpec &targetSpec = allComps.getProducingAtomicComputation (targetTupleSetName)->getOutput ();
+        //std :: cout << "The target is " << targetSpec << "\n";
+
+        // and get the projection for this guy
+        std :: vector <AtomicComputationPtr> &consumers = allComps.getConsumingAtomicComputations (targetSpec.getSetName ());
+        //JiaNote: change the reference into a new variable based on Chris' Join code
+        //TupleSpec &targetProjection = targetSpec;
+        TupleSpec targetProjection;
+        TupleSpec targetAttsToOpOn;
+        for (auto &a : consumers) {
+                if (a->getComputationName () == targetComputationName) {
+                        
+                        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
+                        // we found the consuming computation
+                        if (targetSpec == a->getInput ()) {
+                                targetProjection = a->getProjection ();
+                                targetAttsToOpOn = a->getInput();
+                                break;
+                        }
+                        
+                        // the only way that the input to this guy does not match targetSpec is if he is a join, which has two inputs
+                        if (a->getAtomicComputationType () != std :: string ("JoinSets")) {
+                                std :: cout << "This is bad... is the target computation name correct??";
+                                std :: cout << "Didn't find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                                exit (1);
+                        }
+                        
+                        // get the join and make sure it matches
+                        ApplyJoin *myGuy = (ApplyJoin *) a.get ();
+                        if (!(myGuy->getRightInput () == targetSpec)) {
+                                std :: cout << "This is bad... is the target computation name correct??"; 
+                                std :: cout << "Find a JoinSets, target was " << targetSpec.getSetName () << "\n";
+                                exit (1);
+                        }
+
+                        targetProjection = myGuy->getRightProjection ();
+                        targetAttsToOpOn = myGuy->getRightInput ();
+                }
+        }
+
+        // now we have the list of computations, and so it is time to get the sink merger
+        SinkShufflerPtr sinkShuffler = myPlan->getNode (targetComputationName).getComputation ().getSinkShuffler (targetSpec, targetAttsToOpOn, targetProjection, *this);
+        return sinkShuffler;
+}
+
+
+
 
 
 //JiaNote: add a new buildPipeline method to avoid ambiguity
