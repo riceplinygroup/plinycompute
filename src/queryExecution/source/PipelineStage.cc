@@ -45,9 +45,12 @@
 #include "SharedHashSet.h"
 #include "JoinComp.h"
 #include "SimpleSendObjectRequest.h"
+#include "ShuffleSink.h"
 #ifdef ENABLE_COMPRESSION
 #include <snappy.h>
 #endif
+
+
 
 namespace pdb {
 
@@ -196,7 +199,7 @@ DataProxyPtr PipelineStage :: createProxy (int i, pthread_mutex_t connection_mut
 //combinerBuffers can be empty if no combining is required
 void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std :: vector<PageCircularBufferIteratorPtr> & iterators, PartitionedHashSetPtr hashSet, DataProxyPtr proxy, std :: vector <PageCircularBufferPtr> & sinkBuffers, HermesExecutionServer * server, std :: string & errMsg) {
 
-
+#ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
     //connections
     std :: vector < PDBCommunicatorPtr > connections;
     for (int j = 0; j < jobStage->getNumNodes(); j++) {
@@ -215,7 +218,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         connections.push_back(communicator);
 
     }
-
+#endif
 
 
     //setup an output page to store intermediate results and final output
@@ -322,7 +325,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     PDB_COUT << "target specifier: " << this->jobStage->getTargetTupleSetSpecifier() << std :: endl;
     PDB_COUT << "target computation: " << this->jobStage->getTargetComputationSpecifier() << std :: endl;
 
-    bool isJoinSink = false;
+    Handle<JoinComp<Object, Object, Object>> join = nullptr; 
     std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
     if (targetSpecifier.find("ClusterAggregationComp") != std :: string :: npos) {
                   Handle<Computation> aggComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
@@ -334,16 +337,17 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   aggregate->setBatchSize (this->batchSize);
     } else if (targetSpecifier.find("JoinComp") != std :: string :: npos) {
                   Handle<Computation> joinComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
-                  Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
+                  join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
                   join->setNumPartitions(this->jobStage->getNumTotalPartitions());
                   join->setNumNodes(this->jobStage->getNumNodes());
-                  isJoinSink = true;
     }
 
+#ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
     char * mem = nullptr;
-    if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false)) {
+    if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (isJoinSink == false)) {
         mem = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
     }
+#endif
     newPlan->nullifyPlanPointer();
     std :: vector < std :: string> buildTheseTupleSets;
     jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
@@ -405,6 +409,32 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           } else {
                                free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
                           }
+                      } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join != nullptr)) {
+                          PDB_COUT << "to hash partition a page" << std :: endl;
+                          //to handle a hash partition join
+                          //get the objects
+                          Record<Object> * record = (Record<Object> *)page;
+                          //broadcast the objects
+                          if (record != nullptr) {
+                              Handle<Object> objectToSend = record->getRootObject();
+                              if (objectToSend != nullptr) {
+                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  int numNodes = jobStage->getNumNodes();
+                                  int k;
+                                  for ( k = 0; k < numNodes; k++ ) {
+                                     pageToBroadcast->incRefCount();
+                                  }
+                                  for ( k = 0; k < numNodes; k++ ) {
+                                     PageCircularBufferPtr buffer = sinkBuffers[k];
+                                     buffer->addPageToTail(pageToBroadcast);
+                                  }
+                              } else {
+                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                              }
+                          } else {
+                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                          }
+
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
                           //std :: cout << "to combine a page" << std :: endl;
                           //to handle an aggregation
@@ -422,7 +452,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           }
                           free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
 
-                      } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false)) {
+                      } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join == nullptr)) {
                           //to handle aggregation without combining
                           std :: cout << "to shuffle data on this page" << std :: endl;
                           //to handle an aggregation
@@ -433,13 +463,26 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                               int k;
                               for ( k = 0; k < numNodes; k++) {
                                   Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[k];
+#ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
                                   Record<Vector<Handle<Object>>> * myRecord = getRecord(objectToShuffle, mem, DEFAULT_NET_PAGE_SIZE);
                                   std :: cout << "send " << myRecord->numBytes() << " bytes to node-" << k << std :: endl;
                                   if (objectToShuffle != nullptr) {
                                       //to shuffle data
-                                      //this->storeShuffleData(objectToShuffle, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
                                       sendData(connections[k], myRecord, myRecord->numBytes(), jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                                   }
+#else
+                                  if (objectToShuffle != nullptr) {
+                                      //to shuffle data
+                                      //get the i-th address
+                                      std :: string address = this->jobStage->getIPAddress(k);
+                                      PDB_COUT << "address = " << address << std :: endl;
+
+                                      //get the i-th port
+                                      int port = this->jobStage->getPort(k);
+                                      PDB_COUT << "port = " << port << std :: endl;
+                                      this->storeShuffleData(objectToShuffle, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                                  }
+#endif
                               }
                           }
                           free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
@@ -461,6 +504,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
    curPipeline->run();
    curPipeline = nullptr;
    this->jobStage->getComputePlan()->nullifyPlanPointer();
+#ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
    makeObjectAllocatorBlock(4 * 1024 * 1024, true);
    for (int j = 0; j < jobStage->getNumNodes(); j++) {
         sendData(connections[j], nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
@@ -468,6 +512,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
    if (mem != nullptr) {
        free (mem);
    }
+#endif
 }
 
 
@@ -822,10 +867,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                   std :: cout << out << std :: endl;
 #endif
 
-                  //to combine data for node-i
-
                   std :: string errMsg;
-
 
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
@@ -890,7 +932,168 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
     return;
 }
 
+//below method will run hash partitioning
+void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * server) {
 
+    bool success;
+    std :: string errMsg;
+
+    int numNodes = jobStage->getNumNodes();
+
+    //each queue has multiple producers and one consumer
+    int shuffleBufferSize = numThreads;
+    if (shuffleBufferSize > 12) {
+        shuffleBufferSize = 12;
+    }
+    PDB_COUT << "shuffleBufferSize=" << shuffleBufferSize << std :: endl;
+    std :: vector <PageCircularBufferPtr> shuffleBuffers;
+    std :: vector <PageCircularBufferIteratorPtr> shuffleIters;
+
+    pthread_mutex_t connection_mutex;
+    pthread_mutex_init(&connection_mutex, nullptr);
+
+    //create a buzzer and counter
+    PDBBuzzerPtr shuffleBuzzer = make_shared<PDBBuzzer>(
+         [&] (PDBAlarm myAlarm, int & shuffleCounter) {
+             shuffleCounter ++;
+             PDB_COUT << "shuffleCounter = " << shuffleCounter << std :: endl;
+         });
+    PDB_COUT << "to run shuffle with " << numNodes << " threads." << std :: endl;
+    int shuffleCounter = 0;
+
+    int i;
+    NodeID myNodeId = jobStage->getNodeId();
+    for ( i = 0; i < numNodes; i ++ ) {
+        PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(shuffleBufferSize, logger);
+        shuffleBuffers.push_back(buffer);
+        PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, logger);
+        shuffleIters.push_back(iter);
+        PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+        PDB_COUT << "to run the " << i << "-th broadcasting work..." << std :: endl;
+        // start threads
+        PDBWorkPtr myWork = make_shared<GenericWork> (
+             [&, i] (PDBBuzzerPtr callerBuzzer) {
+                  UseTemporaryAllocationBlock tempBlock {32*1024*1024};
+                  std :: string out = getAllocator().printInactiveBlocks();
+                  logger->warn(out);
+#ifdef PROFILING
+                  std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl;
+#endif
+
+                  //to combine data for node-i
+                  std :: string errMsg;
+
+                  //create the data proxy
+                  /* DataProxyPtr proxy = nullptr;
+                  if (i == myNodeId) {
+                       proxy = createProxy(i, connection_mutex, errMsg);
+                  } */
+                  //get the i-th address
+                  std :: string address = this->jobStage->getIPAddress(i);
+                  PDB_COUT << "address = " << address << std :: endl;
+
+                  //get the i-th port
+                  int port = this->jobStage->getPort(i);
+
+                  PDB_COUT << "port = " << port << std :: endl;
+
+                  PDBCommunicatorPtr communicator = std :: make_shared<PDBCommunicator>();
+                  communicator->connectToInternetServer (logger, port, address, errMsg);
+
+                  //get join computation 
+                  PDB_COUT << i << ": to get compute plan" << std :: endl;
+                  Handle<ComputePlan> plan = this->jobStage->getComputePlan();
+                  std :: string sourceTupleSetSpecifier = jobStage->getSourceTupleSetSpecifier();
+                  std :: string targetTupleSetSpecifier = jobStage->getTargetTupleSetSpecifier();
+                  std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
+                  //get shuffler
+                  SinkShufflerPtr shuffler = plan->getShuffler(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetSpecifier);
+                  PageCircularBufferIteratorPtr myIter = shuffleIters[i];
+                  int numPages = 0;
+                  UseTemporaryAllocationBlockPtr blockPtr = nullptr;
+                  char * output = nullptr;
+                  Handle<Object> myMaps = nullptr;
+                  while (myIter->hasNext()) {
+                      PDBPagePtr page = myIter->next();
+                      if (page != nullptr) {
+                          //to load output page
+                          if (output == nullptr) {
+                              output = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                              blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                              myMaps = shuffler->createNewOutputContainer();
+                          }
+                          //get the vector corresponding to the i-th node
+                          //for each the map in the vector, we shuffle the map to the output page 
+                          Record<Vector<Handle<Vector<Handle<Object>>>>> * record = (Record<Vector<Handle<Vector<Handle<Object>>>>> *) (page->getBytes());
+                          if (record != nullptr) {
+                              Handle<Vector<Handle<Vector<Handle<Object>>>>> objectsToShuffle = record->getRootObject();
+                              Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[i];
+                              Vector<Handle<Object>> theOtherMaps = *objectToShuffle;
+                              for (int j = 0; j < theOtherMaps.size(); j++) {
+                                  bool success = shuffler->writeOut(theOtherMaps[j], myMaps);
+                                  if (success == false) {
+                                      //output page is full, send it out
+                                      sendData (communicator, output, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                      numPages ++;
+                                      //free the output page and reload a new output page
+                                      output = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                                      blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                                      myMaps = shuffler->createNewOutputContainer();
+                                      //redo for current map;
+                                      shuffler->writeOut(theOtherMaps[j], myMaps);
+                                  }
+                              }
+
+                          }
+                          //send out the page
+                          if (myMaps != nullptr) {
+                              sendData(communicator, output, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                              numPages ++;
+                              myMaps = nullptr;
+                          }
+                          if (output != nullptr) {
+                              free (output);
+                              output = nullptr;
+                          }
+                          //unpin the input page
+                          page->decRefCount();
+                          if (page->getRefCount() == 0) {
+                              free (page->getRawBytes());
+                          }
+                      }
+                  }
+                  std :: cout << "HashPartitioned " << numPages << " pages to address: " << address << std :: endl;
+                  sendData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+#ifdef PROFILING
+                  out = getAllocator().printInactiveBlocks();
+                  std :: cout << "inactive blocks after sending data in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl;
+#endif
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
+                  getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);
+                  callerBuzzer->buzz(PDBAlarm :: WorkAllDone, shuffleCounter);
+             }
+
+         );
+         worker->execute(myWork, shuffleBuzzer);
+    }
+    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId());
+    runPipeline(server, shuffleBuffers, outputSet);
+    int k;
+    for ( k = 0; k < numNodes; k ++) {
+         PageCircularBufferPtr buffer = shuffleBuffers[k];
+         buffer->close();
+    }
+
+    while (shuffleCounter < numNodes) {
+         shuffleBuzzer->wait();
+    }
+
+    shuffleCounter = 0;
+    return;
 }
 
+}
 #endif

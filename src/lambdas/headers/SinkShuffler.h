@@ -47,7 +47,7 @@ public:
 	virtual Handle <Object> createNewOutputContainer () = 0;
 
 	// this writes the tuple set into the output container
-	virtual void writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) = 0;
+	virtual bool writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) = 0;
 
 	virtual ~SinkShuffler () {}
 
