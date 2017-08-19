@@ -27,6 +27,7 @@
 #include "Pipeline.h"
 #include "ComputeInfo.h"
 #include "SinkMerger.h"
+#include "SinkShuffler.h"
 
 // PRELOAD %ComputePlan%
 
@@ -109,6 +110,9 @@ public:
 
         //JiaNote: add this to get sink merger
         SinkMergerPtr getMerger (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName);
+
+        //JiaNote: add this to get sink shuffler
+        SinkShufflerPtr getShuffler (std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName);
 
 };
 
