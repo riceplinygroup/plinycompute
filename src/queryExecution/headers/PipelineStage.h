@@ -123,6 +123,9 @@ public:
     //run a pipeline with shuffle buffers
     void runPipelineWithBroadcastSink (HermesExecutionServer * server);
 
+    //run a pipeline with hash partitioning
+    void runPipelineWithHashPartitionSink (HermesExecutionServer * server);
+
 
 };
 

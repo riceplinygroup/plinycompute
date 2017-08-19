@@ -660,7 +660,7 @@ public:
                 return returnVal;
         }
 
-        void writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) override {
+        bool writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) override {
 
                 // get the map we are adding to
                 Handle <Vector<Handle<JoinMap <RHSType>>>> shuffledMaps= unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (shuffleToMe);
@@ -671,7 +671,7 @@ public:
                 }
                 catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: can't allocate for new map" << std :: endl;
-                    return;
+                    return false;
                 }
                 JoinMap<RHSType> myMap = *thisMap;
                 Handle<JoinMap <RHSType>> theOtherMap = unsafeCast <JoinMap <RHSType>> (shuffleMe);
@@ -688,13 +688,14 @@ public:
                             } catch (NotEnoughSpace &n) {
                                 std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
                                 delete (myList);
-                                return;
+                                return false;
                             }
                         }
                     }
                     delete (myList);
                 }
                 myMaps.push_back(thisMap);
+                return true;
          }
 
 
