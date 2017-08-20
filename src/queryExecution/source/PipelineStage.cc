@@ -103,7 +103,6 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
 
 //broadcast data
 bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
-    
     bool success;
     if (data != nullptr) {
        Handle<StorageAddObjectInLoop> request = makeObject <StorageAddObjectInLoop> (databaseName, setName, "IntermediateData", false, false);
@@ -985,10 +984,10 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   std :: string errMsg;
 
                   //create the data proxy
-                  /* DataProxyPtr proxy = nullptr;
+                  DataProxyPtr proxy = nullptr;
                   if (i == myNodeId) {
                        proxy = createProxy(i, connection_mutex, errMsg);
-                  } */
+                  }
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
                   PDB_COUT << "address = " << address << std :: endl;
@@ -1009,8 +1008,10 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
                   //get shuffler
                   SinkShufflerPtr shuffler = plan->getShuffler(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetSpecifier);
+                  shuffler->setNodeId(i);
                   PageCircularBufferIteratorPtr myIter = shuffleIters[i];
                   int numPages = 0;
+                  int numMaps = 0;
                   UseTemporaryAllocationBlockPtr blockPtr = nullptr;
                   char * output = nullptr;
                   Handle<Object> myMaps = nullptr;
@@ -1019,52 +1020,109 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       if (page != nullptr) {
                           //to load output page
                           if (output == nullptr) {
-                              output = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
-                              blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                              output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
+                              blockPtr = std::make_shared<UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
                               myMaps = shuffler->createNewOutputContainer();
                           }
                           //get the vector corresponding to the i-th node
                           //for each the map in the vector, we shuffle the map to the output page 
+                          Record<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> * record1 = (Record<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> *) (page->getBytes());
                           Record<Vector<Handle<Vector<Handle<Object>>>>> * record = (Record<Vector<Handle<Vector<Handle<Object>>>>> *) (page->getBytes());
                           if (record != nullptr) {
+                              Handle<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> objectsToShuffle1 = record1->getRootObject();
+                              std :: cout << "objectsToShuffle1->size()=" << objectsToShuffle1->size() << std :: endl;
+                              for (int j = 0; j < objectsToShuffle1->size(); j++) {
+                                  Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> & myVec = (*objectsToShuffle1)[j];
+                                  for (int k = 0; k < myVec->size(); k++) {
+                                      std :: cout << "(*((*objectsToShuffle1)[j]))[k]->size()=" << (*((*objectsToShuffle1)[j]))[k]->size() << std :: endl;
+                                  }
+                              }
                               Handle<Vector<Handle<Vector<Handle<Object>>>>> objectsToShuffle = record->getRootObject();
-                              Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[i];
-                              Vector<Handle<Object>> theOtherMaps = *objectToShuffle;
+                              Handle<Vector<Handle<Object>>> & objectToShuffle = (*objectsToShuffle)[i];
+                              Vector<Handle<Object>> & theOtherMaps = *objectToShuffle;
                               for (int j = 0; j < theOtherMaps.size(); j++) {
                                   bool success = shuffler->writeOut(theOtherMaps[j], myMaps);
                                   if (success == false) {
                                       //output page is full, send it out
-                                      sendData (communicator, output, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
+                                      std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
+                                      for (int j = 0; j < maps->size(); j++) {
+                                          std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl;
+                                      }
+                                      getRecord(myMaps);
+                                      if (i != myNodeId) {
+                                          sendData (communicator, output, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                      } else {
+                                          PDBPagePtr outputPage;
+                                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
+                                          memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
+                                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage);
+                                      }
                                       numPages ++;
                                       //free the output page and reload a new output page
-                                      output = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
-                                      blockPtr = std :: make_shared <UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                                      if (output != nullptr) {
+                                           free(output);
+                                      }
+                                      output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
+                                      blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (output, DEFAULT_NET_PAGE_SIZE);
                                       myMaps = shuffler->createNewOutputContainer();
                                       //redo for current map;
                                       shuffler->writeOut(theOtherMaps[j], myMaps);
                                   }
+                                  numMaps++;
                               }
 
-                          }
-                          //send out the page
-                          if (myMaps != nullptr) {
-                              sendData(communicator, output, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
-                              numPages ++;
-                              myMaps = nullptr;
-                          }
-                          if (output != nullptr) {
-                              free (output);
-                              output = nullptr;
                           }
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
                               free (page->getRawBytes());
                           }
+                      }//if
+                  }//while
+                  //send out the page
+                  out = getAllocator().printInactiveBlocks();
+                  std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
+                  std :: cout << out << std :: endl;
+                  if (myMaps != nullptr) {
+                      getRecord(myMaps);
+                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
+                      std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
+                      for (int j = 0; j < maps->size(); j++) {
+                          std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl; 
                       }
+                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps1 = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (output))->getRootObject();
+                         std :: cout << "myMaps1->size()=" << myMaps1->size() << std :: endl;
+                         for (int i = 0; i < myMaps1->size(); i++) {
+                             std :: cout << "(*myMaps1)[" << i << "].size()=" << (*myMaps1)[i]->size() << std :: endl;
+                         }
+                      out = getAllocator().printInactiveBlocks();
+                      std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
+                      std :: cout << out << std :: endl;
+                      if (i != myNodeId) {
+                          sendData(communicator, output, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                      } else {
+                          PDBPagePtr outputPage;
+                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
+                          memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
+                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage);
+                      }
+                      numPages ++;
+                      myMaps = nullptr;
+                  }
+                  if (output != nullptr) {
+                      free (output);
+                      output = nullptr;
+                  }
+                  if (blockPtr != nullptr) {
+                      blockPtr = nullptr;
                   }
                   std :: cout << "HashPartitioned " << numPages << " pages to address: " << address << std :: endl;
-                  sendData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                  std :: cout << numMaps << " maps are written in total for partition-" << i << std :: endl;
+                  if (i != myNodeId) {
+                      makeObjectAllocatorBlock (128 * 1024, true);                  
+                      sendData(communicator, nullptr, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                  }
 #ifdef PROFILING
                   out = getAllocator().printInactiveBlocks();
                   std :: cout << "inactive blocks after sending data in this worker:" << std :: endl;
