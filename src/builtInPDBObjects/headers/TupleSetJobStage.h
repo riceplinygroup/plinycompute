@@ -210,6 +210,17 @@ namespace pdb {
                 return this->repartitionOrNot;
             }
 
+            //to set whether to repartition the output for a join
+            void setRepartitionJoin (bool repartitionJoinOrNot) {
+                this->repartitionJoinOrNot = repartitionJoinOrNot;
+            }
+
+            //to return whether this stage requires to repartition output for a join
+            bool isRepartitionJoin() {
+                return this->repartitionJoinOrNot;
+            }
+
+
             //to set whether to combine the repartitioned output
             void setCombining (bool combineOrNot) {
                 this->combineOrNot = combineOrNot;
@@ -418,6 +429,9 @@ namespace pdb {
 
             //tuple sets to build the pipeline
             Handle<Vector<String>> buildTheseTupleSets;
+
+            //Does this stage has a PartitionedJoinSink
+            bool repartitionJoinOrNot;
 
             //Does this stage require probing a hash table ?
             bool probeOrNot;

@@ -224,7 +224,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
     return true;
 }
 
-Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing, AllocatorPolicy myPolicy) {
+Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing, AllocatorPolicy myPolicy, bool isRepartitionJoin) {
     //std :: cout << "to createTupleSetJobStage with probing=" << isProbing ;
     if (isProbing == true) {
        //std :: cout << "(true)" << std :: endl;
@@ -239,6 +239,7 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     jobStage->setSinkContext(sinkContext);
     jobStage->setOutputTypeName(outputTypeName);
     jobStage->setAllocatorPolicy(myPolicy);
+    jobStage->setRepartitionJoin(isRepartitionJoin);
     if ((hashSetsToProbe != nullptr) && (outputForJoinSets.size() > 0) && (isProbing == true)) {
         jobStage->setProbing(true);
         Handle<Map<String, String>> hashSetToProbeForMe = makeObject<Map<String, String>>();
@@ -519,7 +520,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //isRepartitioning = true
                     //collect probing information
                     //isCombining = false
-                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy);
+                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
                     physicalPlanToOutput.push_back(joinPrepStage);
                     interGlobalSets.push_back(sink);
 
@@ -575,9 +576,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                      //isRepartitioning = true
                      //collect probing information
                      //isCombining = false
-                     Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy);
+                     Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
                      physicalPlanToOutput.push_back(joinPrepStage);
                      interGlobalSets.push_back(sink);
+                     
 
                      //we then create a pipeline stage to probe the partitioned hash table
                      buildTheseTupleSets.clear();

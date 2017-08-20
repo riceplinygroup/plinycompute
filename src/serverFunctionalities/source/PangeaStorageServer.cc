@@ -62,6 +62,7 @@
 #include "PDBFlushProducerWork.h"
 #include "PDBFlushConsumerWork.h"
 #include "ExportableObject.h"
+#include "JoinTupleBase.h"
 //#include <hdfs/hdfs.h>
 #include <cstdio>
 #include <memory>
@@ -879,12 +880,18 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 
                     // get the record
                     size_t numBytes = sendUsingMe->getSizeOfNextObject ();
+                    std :: cout << "received " << numBytes << " bytes" << std :: endl;
 #ifdef ENABLE_COMPRESSION
                     char * readToHere = new char[numBytes];
 #else
                     void *readToHere = malloc (numBytes);
 #endif
                     everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
+                         Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (readToHere))->getRootObject();
+                         std :: cout << "myMaps->size()=" << myMaps->size() << std :: endl;
+                         for (int i = 0; i < myMaps->size(); i++) {
+                             std :: cout << "(*myMaps)[" << i << "].size()=" << (*myMaps)[i]->size() << std :: endl;
+                         }
 
                     {
                          //std :: cout << "Making response object early .\n";
@@ -920,6 +927,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          snappy::RawUncompress(readToHere, numBytes, (char *)(myPage->getBytes()));
 #else
                          memcpy (myPage->getBytes(), readToHere, numBytes);
+                         /*Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (myPage->getBytes()))->getRootObject();
+                         std :: cout << "myMaps->size()=" << myMaps->size() << std :: endl;
+                         for (int i = 0; i < myMaps->size(); i++) {
+                             std :: cout << "(*myMaps)[" << i << "].size()=" << (*myMaps)[i]->size() << std :: endl;
+                         }*/
 #endif
                        
                          CacheKey key;

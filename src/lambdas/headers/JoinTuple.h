@@ -22,27 +22,28 @@
 #include "JoinMap.h"
 #include "SinkMerger.h"
 #include "SinkShuffler.h"
+#include "JoinTupleBase.h"
 
 namespace pdb {
 
 template <typename T>
 void copyFrom (T &out, Handle <T> &in) {
-        //std :: cout << "copy T from Handle" << std :: endl;
+//        std :: cout << "copy T from Handle" << std :: endl;
         out = *in;
-        //std :: cout << "[IN]" << std :: endl; 
-        //in->printMeta();
-        //std :: cout << "[OUT]" << std :: endl;
-        //out.printMeta();
+//        std :: cout << "[IN]" << std :: endl; 
+//        in->printMeta();
+//        std :: cout << "\n[OUT]" << std :: endl;
+//        out.printMeta();
 }
 
 template <typename T>
 void copyFrom (T &out, T &in) {
-        //std :: cout << "copy T from T" << std :: endl;
-        //std :: cout << "[IN]" << std :: endl;
-        //in.printMeta();
-        //std :: cout << "[OUT]" << std :: endl;
-        //out.printMeta();
+//        std :: cout << "copy T from T" << std :: endl;
         out = in;
+//        std :: cout << "[IN]" << std :: endl;
+//        in.printMeta();
+//        std :: cout << "\n[OUT]" << std :: endl;
+//        out.printMeta();
 }
 
 template <typename T>
@@ -84,10 +85,11 @@ struct IsAbstract {
     static decltype (test<T>(*((T *) 0), 1)) val;
 };
 
-// all join tuples decend from this
+/*// all join tuples decend from this
 class JoinTupleBase {
 
 };
+*/
 
 // this template is used to hold a tuple made of one row from each of a number of columns in a TupleSet
 template <typename HoldMe, typename MeTo>
@@ -663,28 +665,39 @@ public:
         bool writeOut (Handle<Object> shuffleMe, Handle <Object> &shuffleToMe) override {
 
                 // get the map we are adding to
-                Handle <Vector<Handle<JoinMap <RHSType>>>> shuffledMaps= unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (shuffleToMe);
+                Handle<JoinMap <RHSType>> theOtherMap = unsafeCast <JoinMap <RHSType>> (shuffleMe);
+                JoinMap<RHSType> mapToShuffle = *theOtherMap;
+
+                Handle <Vector<Handle<JoinMap <RHSType>>>> shuffledMaps= unsafeCast <Vector<Handle<JoinMap <RHSType>>>, Object> (shuffleToMe);
                 Vector<Handle<JoinMap <RHSType>>> &myMaps = *shuffledMaps; 
                 Handle<JoinMap<RHSType>> thisMap;
                 try {
-                    thisMap = makeObject<JoinMap<RHSType>> ();
+                    std :: cout << "mapToShuffle.size()=" << mapToShuffle.size() << std :: endl;
+                    std :: cout << "mapToShuffle.getPartitionId()=" << mapToShuffle.getPartitionId() << std :: endl;
+                    std :: cout << "mapToShuffle.getNumPartitions()=" << mapToShuffle.getNumPartitions() << std :: endl;
+                    thisMap = makeObject<JoinMap<RHSType>> (mapToShuffle.size(), mapToShuffle.getPartitionId(), mapToShuffle.getNumPartitions());
                 }
                 catch (NotEnoughSpace &n) {
                     std :: cout << "ERROR: can't allocate for new map" << std :: endl;
                     return false;
                 }
-                JoinMap<RHSType> myMap = *thisMap;
-                Handle<JoinMap <RHSType>> theOtherMap = unsafeCast <JoinMap <RHSType>> (shuffleMe);
-                JoinMap<RHSType> mapToShuffle = *theOtherMap;
+                JoinMap<RHSType>& myMap = *thisMap;
+                int counter = 0;
+                int numPacked = 0;
                 for (JoinMapIterator<RHSType> iter = mapToShuffle.begin(); iter != mapToShuffle.end(); ++iter) {
                     JoinRecordList<RHSType> * myList = *iter;
                     size_t mySize = myList->size();
                     size_t myHash = myList->getHash();
+                    //std :: cout << "\n" << counter << ": Shuffler: mySize=" << mySize << ", myHash=" << myHash << std :: endl;
+                    
+                    counter ++;
                     if (mySize > 0) {
                         for (size_t i = 0; i < mySize; i++) {
                             try {
                                 RHSType * temp = &(myMap.push(myHash));
                                 packData (*temp, ((*myList)[i]));
+                                numPacked++;
+                                //std :: cout << counter << ": Shuffler: myMap.size()=" << myMap.size() << std :: endl;
                             } catch (NotEnoughSpace &n) {
                                 std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
                                 delete (myList);
@@ -694,7 +707,13 @@ public:
                     }
                     delete (myList);
                 }
+                //We push back only when the whole map has been copied. If it throws exception earlier than this point, the whole map will be discarded and will not add to the vector of maps.
+                std :: cout << "Shuffler: we push back the map with " << thisMap->size() << " elements" << std :: endl;
                 myMaps.push_back(thisMap);
+                for (int i = 0; i < myMaps.size(); i++) {
+                    std :: cout << "Shuffler: myMaps[" << i << "].size()=" << myMaps[i]->size() << std :: endl;
+                }
+                std :: cout << "Shuffler: counter=" << counter << ", and numPacked=" << numPacked << std :: endl;
                 return true;
          }
 
@@ -790,7 +809,7 @@ public:
                         size_t nodeIndex = index / this->numPartitionsPerNode;
                         size_t partitionIndex = index % this->numPartitionsPerNode;
                         JoinMap <RHSType> &myMap = *((*((*writeMe)[nodeIndex]))[partitionIndex]);
-                        //std :: cout << "to write value with hash=" << keyColumn[i] << " to JoinMap with nodeIndex=" << nodeIndex << " and partitionIndex=" << partitionIndex << " and size=" << myMap.size() << std ::endl;
+                        std :: cout << "to write value with hash=" << keyColumn[i] << " to JoinMap with nodeIndex=" << nodeIndex << " and partitionIndex=" << partitionIndex << " and size=" << myMap.size() << std ::endl;
                         // try to add the key... this will cause an allocation for a new key/val pair
                         if (myMap.count (keyColumn[i]) == 0) {
                                 //std :: cout << "key doesn't exist" << std :: endl;

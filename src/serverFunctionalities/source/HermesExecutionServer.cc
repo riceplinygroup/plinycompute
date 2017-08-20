@@ -978,7 +978,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          while (iter->hasNext()) {
                              page = iter->next();
                              if (page != nullptr) {
-                                  PDB_COUT << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                                  std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                                   //to get the map on the page 
                                   void * bytes = page->getBytes();
                                   Handle<Vector<Handle<Object>>> theOtherMaps = ((Record <Vector<Handle<Object>>> *) bytes)->getRootObject();
@@ -1179,7 +1179,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                         SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
                         ConfigurationPtr conf = getFunctionality<HermesExecutionServer>().getConf();
                         Handle<PipelineStage> pipeline = makeObject<PipelineStage>(request, shm, logger, conf, nodeId, conf->getBatchSize(), conf->getNumThreads());
-                        if (((request->isRepartition() == false) || (request->isCombining() == false)) && (request->isBroadcasting() == false)) {
+                        if (request->isRepartitionJoin() == true) {
+                             PDB_COUT << "run pipeline for hash partitioned join" << std :: endl;
+                             pipeline->runPipelineWithHashPartitionSink(this);
+                        } else if (((request->isRepartition() == false) || (request->isCombining() == false)) && (request->isBroadcasting() == false)) {
                              PDB_COUT << "run pipeline..." << std :: endl;
                              pipeline->runPipeline(this);
                         } else if ( request->isBroadcasting() == true) {
