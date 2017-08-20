@@ -72,6 +72,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <sstream>
 
 
 
@@ -232,6 +233,7 @@ int main (int argc, char * argv[]) {
 
 
         if (numOfMb > 0) {
+/*
             int numIterations = numOfMb/64;
             std:: cout << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
             int remainder = numOfMb - 64*numIterations;
@@ -244,109 +246,71 @@ int main (int argc, char * argv[]) {
                 if ((num == numIterations - 1) && (remainder > 0)){
                     blockSize = remainder;
                 }
-                pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-		pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe = 
-			pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>> ();
-                try {
+*/
+		int blockSize = 64;
+		std :: ifstream inFile("word_in_doc");
+		std :: string line;
+		int docID, wordID, countNum;
+		bool rollback = false;
+		bool end = false;
 
+		while(!end) {
+	                pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+			pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe = 
+				pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>> ();
 
-		    std :: ifstream inFile("word_in_doc");
-		    std :: string line;
-		    int docID, wordID, countNum;
-		    while(std::getline(inFile, line)) {
-			inFile >> docID >> wordID >> countNum;
-			pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
-                        myData->setDoc(docID);
-                        myData->setWord(wordID);
-                        myData->setCount(countNum);
-			storeMe->push_back (myData);
-		    }
-		    inFile.close();
-
-			/*
-                    for (int i = 0; i < numDoc; i++) {
-
-			int length = storeMe->size();
-			std::uniform_int_distribution<> int_unif(1, 3);
-                        for (int j = 0; j < numWord; j++){
-			    std::uniform_real_distribution<> real_unif(0, 1);
-			    double ifWord = real_unif(randomGen);
-			    if (ifWord > 0.3) {
-                                pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
-				myData->setDoc(i);
-				myData->setWord(j);
-				myData->setCount(int_unif(randomGen));
-      			//        myData->push_back(i);
-                        //    	myData->push_back(j);
-			//	myData->push_back(int_unif(randomGen));
-
-                        	storeMe->push_back (myData);
+			try {
+				while(1){	
+					if (!rollback){
+					//	std::istringstream iss(line);
+						if(!(inFile >> docID >> wordID >> countNum)) {
+							end = true;
+							break;
+						}
+					}
+					else
+						rollback = false;
+					pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
+					myData->setDoc(docID);
+					myData->setWord(wordID);
+					myData->setCount(countNum);
+					storeMe->push_back (myData);
+//					std::cout << "Count number: " << countNum << endl;
+				}
+			        if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
+						std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+						return -1;
+					    }
+			        std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+            			temp.flushData( errMsg );
+			    
+			} catch (pdb :: NotEnoughSpace &n) {
+			    if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
+				std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+				return -1;
 			    }
-                        }
-			if (storeMe->size() == length) {
-				term << "We do not get any words for this document: " << i << std::endl;
-				std::uniform_int_distribution<> int_unif2(0, numWord - 1);
-                                pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
-				myData->setDoc(i);
-				myData->setWord(int_unif2(randomGen));
-				myData->setCount(int_unif(randomGen));
-
-      			      //  myData->push_back(i);
-			      //myData->push_back(int_unif2(randomGen));
-				//myData->push_back(int_unif(randomGen));
-                        	storeMe->push_back (myData);
+			    std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
+			    rollback = false;
 			}
-                    }
+	                PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+	//            }
 
-		    
-		    
-		    term << std :: endl;
-		    term << green << "input data: " << reset << std :: endl;
-                    for (int i=0; i<storeMe->size();i++){
-                        (*storeMe)[i]->print();
-                    }
-			*/
+	    } // while the file has data
 
-	            if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
-                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-
-		    
-                } catch (pdb :: NotEnoughSpace &n) {
-                    if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
-                        std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-                }
-                PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-            }
+            inFile.close();
 
             //to write back all buffered records        
-            temp.flushData( errMsg );
+       //     temp.flushData( errMsg );
         }
 
     // add meta data
 	
         if (numOfMb > 0) {
-            int numIterations = numOfMb/64;
-            std:: cout << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
-            int remainder = numOfMb - 64*numIterations;
-            if (remainder > 0) { 
-                numIterations = numIterations + 1; 
-            }
-            for (int num = 0; num < numIterations; num++) {
-                std::cout << "Iterations: "<< num << std::endl;
-                int blockSize = 64;
-                if ((num == numIterations - 1) && (remainder > 0)){
-                    blockSize = remainder;
-                }
-                pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+                pdb :: makeObjectAllocatorBlock(64 * 1024 * 1024, true);
 		pdb::Handle<pdb::Vector<pdb::Handle<int>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<int>>> ();
                 try {
 		    Handle <int> myData = makeObject <int> (numWord);
 		    storeMe->push_back(myData);
-		  //  storeMe->push_back(&numWord);
 
 		    term << std :: endl;
 		    term << green << "Dictionary size: " << *((*storeMe)[0]) << reset << std :: endl;
@@ -364,8 +328,7 @@ int main (int argc, char * argv[]) {
                         return -1;
                     }
                 }
-                PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-            }
+           //     PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
 
             //to write back all buffered records        
             temp.flushData( errMsg );
