@@ -746,15 +746,35 @@ public:
                     counter ++;
                     if (mySize > 0) {
                         for (size_t i = 0; i < mySize; i++) {
-                            try {
-                                RHSType * temp = &(myMap.push(myHash));
-                                packData (*temp, ((*myList)[i]));
-                                numPacked++;
-                                //std :: cout << counter << ": Shuffler: myMap.size()=" << myMap.size() << std :: endl;
-                            } catch (NotEnoughSpace &n) {
-                                std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
-                                delete (myList);
-                                return false;
+                            if (myMap.count(myHash) == 0) {
+                                try {
+                                    RHSType * temp = &(myMap.push(myHash));
+                                    packData (*temp, ((*myList)[i]));
+                                    numPacked++;
+                                    //std :: cout << counter << ": Shuffler: myMap.size()=" << myMap.size() << std :: endl;
+                                } catch (NotEnoughSpace &n) {
+                                    myMap.setUnused (myHash);
+                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    delete (myList);
+                                    return false;
+                                }
+                            } else {
+                                RHSType * temp;
+                                try {
+                                    temp = &(myMap.push(myHash));
+                                } catch (NotEnoughSpace &n) {
+                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    delete (myList);
+                                    return false;
+                                }
+                                try {
+                                    packData (*temp, ((*myList)[i]));
+                                } catch (NotEnoughSpace &n) {
+                                    myMap.setUnused (myHash);
+                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    delete (myList);
+                                    return false;
+                                }
                             }
                         }
                     }

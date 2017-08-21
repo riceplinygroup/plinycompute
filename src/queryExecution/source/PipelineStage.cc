@@ -406,7 +406,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   NodeID myNodeId = jobStage->getNodeId();
-                                  for ( k = 0; k < numNodes-1; k++ ) {
+                                  for ( k = 0; k < numNodes; k++ ) {
                                      pageToBroadcast->incRefCount();
                                   }
                                   for ( k = 0; k < numNodes; k++ ) {
@@ -419,6 +419,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                                   proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                                  pageToBroadcast->decRefCount();
+                                  if (pageToBroadcast->getRefCount() == 0) {
+                                     free(pageToBroadcast->getRawBytes());
+                                  }
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
                               }
@@ -1032,7 +1036,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   int numMaps = 0;
            
                   //set non-reuse policy
-                  getAllocator().setPolicy(noReuseAllocator);
+                  //getAllocator().setPolicy(noReuseAllocator);
 
                   UseTemporaryAllocationBlockPtr blockPtr = nullptr;
                   char * output = nullptr;
@@ -1082,13 +1086,16 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                       }
                                       numPages ++;
                                       //free the output page and reload a new output page
+                                      myMaps = nullptr;
+                                      char * buffer = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
+                                      blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (buffer, DEFAULT_NET_PAGE_SIZE);
+
                                       if (output != nullptr) {
                                            free(output);
                                       }
-                                      output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
-                                      blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (output, DEFAULT_NET_PAGE_SIZE);
-                                      myMaps = shuffler->createNewOutputContainer();
+                                      output = buffer;
                                       //redo for current map;
+                                      myMaps = shuffler->createNewOutputContainer();
                                       shuffler->writeOut(theOtherMaps[j], myMaps);
                                   }
                                   numMaps++;
@@ -1133,12 +1140,12 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       numPages ++;
                       myMaps = nullptr;
                   }
+                  if (blockPtr != nullptr) {
+                      blockPtr = nullptr;
+                  }
                   if (output != nullptr) {
                       free (output);
                       output = nullptr;
-                  }
-                  if (blockPtr != nullptr) {
-                      blockPtr = nullptr;
                   }
                   std :: cout << "HashPartitioned " << numPages << " pages to address: " << address << std :: endl;
                   std :: cout << numMaps << " maps are written in total for partition-" << i << std :: endl;
