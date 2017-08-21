@@ -232,11 +232,27 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     plan->nullifyPlanPointer();
     PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;
     Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
+ 
+    bool isHashPartitionedJoinProbing = false;
+    Handle<Computation> computation = nullptr;
+    std :: vector <std :: string> buildTheseTupleSets;
+    jobStage->getTupleSetsToBuildPipeline(buildTheseTupleSets);
+    PDB_COUT << "buildTheseTupleSets[0]=" << buildTheseTupleSets[0] << std :: endl;
     std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
     PDB_COUT << "Source tupleset name=" << sourceSpecifier << std :: endl;
-    std :: string producerComputationName = newPlan->getProducingComputationName(sourceSpecifier);
-    PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
-    Handle<Computation> computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
+    if (buildTheseTupleSets[0] != sourceSpecifier) {
+         std :: string producerComputationName = newPlan->getProducingComputationName(buildTheseTupleSets[0]);
+         PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
+         computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
+         if (computation->getComputationType() == "JoinComp") {
+             isHashPartitionedJoinProbing = true;
+         }
+    } 
+    if (isHashPartitionedJoinProbing == false) {
+         std :: string producerComputationName = newPlan->getProducingComputationName(sourceSpecifier);
+         PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
+         computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
+    }
 
 
     Handle <SetIdentifier > sourceContext = this->jobStage->getSourceContext();
@@ -348,13 +364,14 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     }
 #endif
     newPlan->nullifyPlanPointer();
-    std :: vector < std :: string> buildTheseTupleSets;
-    jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
+    //std :: vector < std :: string> buildTheseTupleSets;
+    //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
                   //this->jobStage->getSourceTupleSetSpecifier(),
                   //this->jobStage->getTargetTupleSetSpecifier(),
                   //this->jobStage->getTargetComputationSpecifier(),
                   buildTheseTupleSets,
+                  this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
                   [] () -> std :: pair <void *, size_t> {
                       //TODO: move this to Pangea
@@ -538,6 +555,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
         iterators = getUserSetIterators (server, success, errMsg);
     } else {
         std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
+        //std :: cout << "hashSetName of this source is " << hashSetName << std :: endl;
         AbstractHashSetPtr abstractHashSet = server->getHashSet(hashSetName);
         hashSet = std :: dynamic_pointer_cast<PartitionedHashSet>(abstractHashSet);
         numThreads = hashSet->getNumPages();
@@ -1012,6 +1030,10 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   PageCircularBufferIteratorPtr myIter = shuffleIters[i];
                   int numPages = 0;
                   int numMaps = 0;
+           
+                  //set non-reuse policy
+                  getAllocator().setPolicy(noReuseAllocator);
+
                   UseTemporaryAllocationBlockPtr blockPtr = nullptr;
                   char * output = nullptr;
                   Handle<Object> myMaps = nullptr;
@@ -1029,14 +1051,14 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                           Record<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> * record1 = (Record<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> *) (page->getBytes());
                           Record<Vector<Handle<Vector<Handle<Object>>>>> * record = (Record<Vector<Handle<Vector<Handle<Object>>>>> *) (page->getBytes());
                           if (record != nullptr) {
-                              Handle<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> objectsToShuffle1 = record1->getRootObject();
+                              /* Handle<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>> objectsToShuffle1 = record1->getRootObject();
                               std :: cout << "objectsToShuffle1->size()=" << objectsToShuffle1->size() << std :: endl;
                               for (int j = 0; j < objectsToShuffle1->size(); j++) {
                                   Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> & myVec = (*objectsToShuffle1)[j];
                                   for (int k = 0; k < myVec->size(); k++) {
                                       std :: cout << "(*((*objectsToShuffle1)[j]))[k]->size()=" << (*((*objectsToShuffle1)[j]))[k]->size() << std :: endl;
                                   }
-                              }
+                              }*/
                               Handle<Vector<Handle<Vector<Handle<Object>>>>> objectsToShuffle = record->getRootObject();
                               Handle<Vector<Handle<Object>>> & objectToShuffle = (*objectsToShuffle)[i];
                               Vector<Handle<Object>> & theOtherMaps = *objectToShuffle;
@@ -1045,10 +1067,10 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                   if (success == false) {
                                       //output page is full, send it out
                                       Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
-                                      std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
+                                      /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
                                       for (int j = 0; j < maps->size(); j++) {
                                           std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl;
-                                      }
+                                      }*/
                                       getRecord(myMaps);
                                       if (i != myNodeId) {
                                           sendData (communicator, output, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
@@ -1087,15 +1109,16 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   if (myMaps != nullptr) {
                       getRecord(myMaps);
                       Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
-                      std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
+                      /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
                       for (int j = 0; j < maps->size(); j++) {
                           std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl; 
-                      }
-                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps1 = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (output))->getRootObject();
+                      }*/
+                      /*Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps1 = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (output))->getRootObject();
                          std :: cout << "myMaps1->size()=" << myMaps1->size() << std :: endl;
                          for (int i = 0; i < myMaps1->size(); i++) {
                              std :: cout << "(*myMaps1)[" << i << "].size()=" << (*myMaps1)[i]->size() << std :: endl;
                          }
+                      */
                       out = getAllocator().printInactiveBlocks();
                       std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
                       std :: cout << out << std :: endl;

@@ -284,7 +284,7 @@ namespace pdb {
                 // if this is the Master catalog retrieves .so bytes from local catalog copy
                 if (this->isMasterCatalogServer == true) {
                     // Allocates 128Mb for sending .so libraries
-                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                     Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
 
@@ -303,7 +303,7 @@ namespace pdb {
                         res = sendUsingMe->sendObject (notFoundResponse, errMsg);
 
                     } else {
-
+                        const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
                         // resolves typeName given the typeId
                         typeName = allTypeCodes[typeId];
                         PDB_COUT << "Resolved typeName " << typeName << "  for typeId=" + std::to_string(typeId) << endl;
@@ -347,7 +347,7 @@ namespace pdb {
                         // process the case where the type is not registered in this local catalog
                         // Allocates 124Mb for sending .so libraries
                         // TODO change this constant
-                        const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
+                        const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                         Handle <CatalogUserTypeMetadata> response = makeObject<CatalogUserTypeMetadata>();
 
@@ -397,7 +397,7 @@ namespace pdb {
                             PDB_COUT << "     before sending response Vtable fixed!!!!" << endl;
 
                             //TODO change this constant
-                            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+                            const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                             // prepares Object to be sent to caller
                             Handle <CatalogUserTypeMetadata> objectToBeSent = makeObject<CatalogUserTypeMetadata>();

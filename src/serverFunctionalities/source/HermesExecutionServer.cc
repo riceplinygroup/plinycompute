@@ -986,7 +986,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                   size_t mySize = theCastedMaps->size();
                                   std :: cout << i << ": there are " << mySize << " maps in the page" << std :: endl; 
                                   for (int j = 0; j < mySize; j++) {
-                                       Handle<JoinMap<Object>> curMap = (*theCastedMaps)[j];
+                                       Handle<JoinMap<Object>> & curMap = (*theCastedMaps)[j];
                                        if (curMap == nullptr) {
                                            continue;
                                        } 

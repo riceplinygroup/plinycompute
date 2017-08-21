@@ -388,7 +388,7 @@ bool TCAPAnalyzer::updateSourceSets (Handle<SetIdentifier> oldSet, Handle<SetIde
     return ret;
 }
 
-bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, std :: vector <std :: string> & buildTheseTupleSets, AtomicComputationPtr curSource, Handle<Computation> sourceComputation, Handle<SetIdentifier> curInputSetIdentifier, AtomicComputationPtr curNode, int &jobStageId, AtomicComputationPtr prevNode, bool isProbing, AllocatorPolicy myPolicy) {
+bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPlanToOutput, std :: vector<Handle<SetIdentifier>> & interGlobalSets, std :: vector <std :: string> & buildTheseTupleSets, AtomicComputationPtr curSource, Handle<Computation> sourceComputation, Handle<SetIdentifier> curInputSetIdentifier, AtomicComputationPtr curNode, int &jobStageId, AtomicComputationPtr prevNode, bool isProbing, AllocatorPolicy myPolicy, std :: string joinSource) {
     //to get consumers
     std :: string outputName = curNode->getOutputName();
     std :: vector<AtomicComputationPtr> consumers = this->computationGraph.getConsumingAtomicComputations(outputName);
@@ -420,7 +420,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
             }
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy); 
+            std :: string sourceTupleSetName = curSource->getOutputName();
+            if (joinSource != "") {
+                sourceTupleSetName = joinSource;
+                joinSource = "";
+            }
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy); 
             //to push back the job stage
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
@@ -437,7 +442,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             return true;
 
         } else if ((myComputation->getComputationType() == "WriteUserSet") || (myComputation->getComputationType() == "SelectionComp") || (myComputation->getComputationType() == "MultiSelectionComp")) {
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing, myPolicy);
+            std :: string sourceTupleSetName = curSource->getOutputName();
+            if (joinSource != "") {
+                sourceTupleSetName = joinSource;
+                joinSource = "";
+            }
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
             if (this->dynamicPlanningOrNot == true) {
                 this->updateSourceSets (curInputSetIdentifier, nullptr, nullptr);
@@ -461,7 +471,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
             }
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
+            std :: string sourceTupleSetName = curSource->getOutputName();
+            if (joinSource != "") {
+                sourceTupleSetName = joinSource;
+                joinSource = "";
+            }
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AggregationJobStage> aggStage;
@@ -520,14 +535,19 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //isRepartitioning = true
                     //collect probing information
                     //isCombining = false
-                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
+                    std :: string sourceTupleSetName = curSource->getOutputName();
+                    if (joinSource != "") {
+                         sourceTupleSetName = joinSource;
+                         joinSource = "";
+                    }
+                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
                     physicalPlanToOutput.push_back(joinPrepStage);
                     interGlobalSets.push_back(sink);
 
                     //We then create a BroadcastJoinBuildHTStage
                     hashSetName = sink->getDatabase() + ":" + sink->getSetName();
                     //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
-                    Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = createHashPartitionedJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
+                    Handle<HashPartitionedJoinBuildHTJobStage> joinPartitionStage = createHashPartitionedJoinBuildHTJobStage (jobStageId, sourceTupleSetName, targetTupleSetName, mySpecifier, sink, hashSetName, false);
                     physicalPlanToOutput.push_back(joinPartitionStage);
 
                 } else {
@@ -544,14 +564,19 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //isRepartitioning = false
                     //collect probing information
                     //isCombining = false
-                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, true, false, false, isProbing, myPolicy);
+                    std :: string sourceTupleSetName = curSource->getOutputName();
+                    if (joinSource != "") {
+                         sourceTupleSetName = joinSource;
+                         joinSource = "";
+                    }
+                    Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, true, false, false, isProbing, myPolicy);
                     physicalPlanToOutput.push_back(joinPrepStage);
                     interGlobalSets.push_back(sink);
 
                     //We then create a BroadcastJoinBuildHTStage
                     hashSetName = sink->getDatabase() + ":" + sink->getSetName();
                     //std :: cout << "TCAPAnalyzer: outputName = " << outputName << ", hashSetName = " << hashSetName << std :: endl;
-                    Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, sink, hashSetName, false);
+                    Handle<BroadcastJoinBuildHTJobStage> joinBroadcastStage = createBroadcastJoinBuildHTJobStage (jobStageId, sourceTupleSetName, targetTupleSetName, mySpecifier, sink, hashSetName, false);
                     physicalPlanToOutput.push_back(joinBroadcastStage);    
                 }            
                 //set the probe information
@@ -576,29 +601,50 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                      //isRepartitioning = true
                      //collect probing information
                      //isCombining = false
-                     Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
+                     std :: string sourceTupleSetName = curSource->getOutputName();
+                     if (joinSource != "") {
+                         sourceTupleSetName = joinSource;
+                         joinSource = "";
+                     }
+                     Handle<TupleSetJobStage> joinPrepStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, targetTupleSetName, mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, nullptr, sink, false, true, false, isProbing, myPolicy, true);
+                     std :: string myJoinSource = curSource->getOutputName();
                      physicalPlanToOutput.push_back(joinPrepStage);
                      interGlobalSets.push_back(sink);
-                     
-
-                     //we then create a pipeline stage to probe the partitioned hash table
+                     /*if (this->dynamicPlanningOrNot == true) {                     
+                          updateSourceSets(curInputSetIdentifier, sink, nullptr);
+                          return true;
+                     } else {
+                          buildTheseTupleSets.clear();
+                          buildTheseTupleSets.push_back(curNode->getOutputName());
+                          outputForJoinSets.push_back(outputName);
+                          //Now I am the source!
+                          return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curNode, myComputation, sink, nextNode, jobStageId, curNode, true, myPolicy);
+                     }*/
                      buildTheseTupleSets.clear();
-                } 
-                //we probe the broadcasted hash table
-                //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
-                //std :: cout << "I met a join node I have traversed before" << std :: endl;
-                buildTheseTupleSets.push_back(curNode->getOutputName());
-                outputForJoinSets.push_back(outputName);
-                //std :: cout << "isProbing is set to true" << std :: endl;
-                return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, true, myPolicy);
-                
+                     outputForJoinSets.push_back(outputName);
+                     buildTheseTupleSets.push_back(curNode->getInputName());
+                     buildTheseTupleSets.push_back(curNode->getOutputName());
+                     
+                     //Now I am the source!
+                     return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curNode, myComputation, sink, nextNode, jobStageId, curNode, true, myPolicy, myJoinSource);
+                     //we then create a pipeline stage to probe the partitioned hash table
+                     //buildTheseTupleSets.clear();
+                } else {
+                     //we probe the broadcasted hash table
+                     //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
+                     //std :: cout << "I met a join node I have traversed before" << std :: endl;
+                     buildTheseTupleSets.push_back(curNode->getOutputName());
+                     outputForJoinSets.push_back(outputName);
+                     //std :: cout << "isProbing is set to true" << std :: endl;
+                     return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, true, myPolicy, joinSource);
+                }
             }
 
         } else {
             //I am not a pipeline breaker
             //std :: cout<< "to push back " << curNode->getOutputName() << std :: endl;
             buildTheseTupleSets.push_back(curNode->getOutputName());
-            return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, isProbing, myPolicy);
+            return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curSource, sourceComputation, curInputSetIdentifier, nextNode, jobStageId, curNode, isProbing, myPolicy, joinSource);
             
         } 
 
@@ -620,7 +666,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         //if ((myComputation->getComputationType() == "SelectionComp") ||  (myComputation->getComputationType() == "MultiSelectionComp")) {
         if (myComputation->getComputationType() != "ClusterAggregationComp") {
             buildTheseTupleSets.push_back(curNode->getOutputName());
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getOutputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing, myPolicy);
+            std :: string sourceTupleSetName = curSource->getOutputName();
+            if (joinSource != "") {
+                sourceTupleSetName = joinSource;
+                joinSource = "";
+            }
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getOutputName(), mySpecifier, buildTheseTupleSets, myComputation->getOutputType(), curInputSetIdentifier, nullptr, sink, false, false, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
@@ -628,7 +679,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
             }
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, curSource->getOutputName(), curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
+            std :: string sourceTupleSetName = curSource->getOutputName();
+            if (joinSource != "") {
+                sourceTupleSetName = joinSource;
+                joinSource = "";
+            }
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy);
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);

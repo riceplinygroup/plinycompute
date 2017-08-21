@@ -426,6 +426,7 @@ public:
 
 			// and find its type... in the first case, there is not a particular lambda that we need to ask for
 			if (res.second == "") {
+                              
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
@@ -454,12 +455,14 @@ public:
 
                     [&] () -> void * {
                          if (this->iterator == nullptr) {
+                             std :: cout << "Error in JoinComp: partitioned join source has a null iterator" << std :: endl;
                              return nullptr;
                          }
                          while (this->iterator->hasNext() == true) {
 
-                         PDBPagePtr page = this->iterator->next();
+                            PDBPagePtr page = this->iterator->next();
                             if(page != nullptr) {
+                                std :: cout << "return a page for partitioned join source" << std :: endl;
                                 return page->getBytes();
                             }
                          }
