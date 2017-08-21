@@ -887,11 +887,11 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                     void *readToHere = malloc (numBytes);
 #endif
                     everythingOK = sendUsingMe->receiveBytes (readToHere, errMsg);
-                         Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (readToHere))->getRootObject();
+                         /*Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (readToHere))->getRootObject();
                          std :: cout << "myMaps->size()=" << myMaps->size() << std :: endl;
                          for (int i = 0; i < myMaps->size(); i++) {
                              std :: cout << "(*myMaps)[" << i << "].size()=" << (*myMaps)[i]->size() << std :: endl;
-                         }
+                         }*/
 
                     {
                          //std :: cout << "Making response object early .\n";

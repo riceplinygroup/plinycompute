@@ -620,9 +620,10 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                           //Now I am the source!
                           return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curNode, myComputation, sink, nextNode, jobStageId, curNode, true, myPolicy);
                      }*/
+                     std :: string lastOne = buildTheseTupleSets[buildTheseTupleSets.size()-1];
                      buildTheseTupleSets.clear();
                      outputForJoinSets.push_back(outputName);
-                     buildTheseTupleSets.push_back(curNode->getInputName());
+                     buildTheseTupleSets.push_back(lastOne);
                      buildTheseTupleSets.push_back(curNode->getOutputName());
                      
                      //Now I am the source!
