@@ -351,10 +351,12 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   aggregate->setNumPartitions (numPartitionsInCluster);
                   aggregate->setBatchSize (this->batchSize);
     } else if (targetSpecifier.find("JoinComp") != std :: string :: npos) {
-                  Handle<Computation> joinComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
+                  Handle<Computation>  joinComputation = newPlan->getPlan()->getNode(targetSpecifier).getComputationHandle();
                   join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
                   join->setNumPartitions(this->jobStage->getNumTotalPartitions());
                   join->setNumNodes(this->jobStage->getNumNodes());
+                  std :: cout << "Join set to have " << join->getNumPartitions() << std :: endl;
+                  std :: cout << "Join set to have " << join->getNumNodes() << std :: endl;
     }
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
@@ -523,7 +525,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
    std :: cout << "\nRunning Pipeline\n";
    curPipeline->run();
    curPipeline = nullptr;
-   this->jobStage->getComputePlan()->nullifyPlanPointer();
+   newPlan->nullifyPlanPointer();
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
    makeObjectAllocatorBlock(4 * 1024 * 1024, true);
    for (int j = 0; j < jobStage->getNumNodes(); j++) {
@@ -1115,7 +1117,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   std :: cout << out << std :: endl;
                   if (myMaps != nullptr) {
                       getRecord(myMaps);
-                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
+                      //Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
                       /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
                       for (int j = 0; j < maps->size(); j++) {
                           std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl; 
