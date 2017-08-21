@@ -101,10 +101,10 @@ public:
 
 
         //JiaNote: add new buildPipeline methods to avoid ambiguity
-        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string sourceTupleSetName, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage, std :: map <std :: string, ComputeInfoPtr> &params);
 
-        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+        PipelinePtr buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string sourceTupleSetName, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage);
 
 

@@ -254,12 +254,12 @@ inline SinkShufflerPtr ComputePlan :: getShuffler (std :: string sourceTupleSetN
 
 
 //JiaNote: add a new buildPipeline method to avoid ambiguity
-inline PipelinePtr ComputePlan :: buildPipeline (std :: vector <std :: string> buildTheseTupleSets, std :: string targetComputationName,
+inline PipelinePtr ComputePlan :: buildPipeline (std :: vector <std :: string> buildTheseTupleSets, std :: string sourceTupleSetName, std :: string targetComputationName,
         std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage) {
 
         std :: map <std :: string, ComputeInfoPtr> params;
-        return buildPipeline (buildTheseTupleSets, targetComputationName, getPage, discardTempPage, writeBackPage, params);
+        return buildPipeline (buildTheseTupleSets, sourceTupleSetName, targetComputationName, getPage, discardTempPage, writeBackPage, params);
 }
 
 
@@ -275,7 +275,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: string sourceTupleSetNam
 
 
 //JiaNote: add below method to make sure the pipeline to build is unique, and no ambiguity.
-inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
+inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> buildTheseTupleSets, std :: string sourceTupleSetName, std :: string targetComputationName, std :: function <std :: pair <void *, size_t> ()> getPage, std :: function <void (void *)> discardTempPage,
         std :: function <void (void *)> writeBackPage, std :: map <std :: string, ComputeInfoPtr> &params) {
 
 
@@ -298,13 +298,15 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         }
 
 
-        std :: string sourceTupleSetName = buildTheseTupleSets[0];
+        //std :: string sourceTupleSetName = buildTheseTupleSets[0];
 
-        std :: string producerName = allComps.getProducingAtomicComputation (sourceTupleSetName)->getComputationName ();
-        //std :: cout << "producerName = " << producerName << std :: endl;
+        std :: string producerName = allComps.getProducingAtomicComputation (buildTheseTupleSets[0])->getComputationName ();
+        std :: cout << "producerName = " << producerName << std :: endl;
 
         // and get the schema for the output TupleSet objects that it is supposed to produce
         TupleSpec &origSpec = allComps.getProducingAtomicComputation (sourceTupleSetName)->getOutput ();
+
+        std :: cout << "origSpec: " << origSpec << std :: endl;
 
         // now we are going to ask that particular node for the compute source
         ComputeSourcePtr computeSource = myPlan->getNode (producerName).getComputation ().getComputeSource (origSpec, *this);
@@ -316,7 +318,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         TupleSpec targetProjection;
         TupleSpec targetAttsToOpOn;
 
-        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
+        std :: cout << "targetComputationName was " << targetComputationName << "\n";
         if (targetComputationName.find("SelectionComp") == std :: string :: npos) {
 
             // and get the schema for the output TupleSet objects that it is supposed to produce
@@ -377,7 +379,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         PipelinePtr returnVal = std :: make_shared <Pipeline> (getPage, discardTempPage, writeBackPage, computeSource, computeSink);
 
         // add the operations to the pipeline
-        AtomicComputationPtr lastOne = myPlan->getComputations ().getProducingAtomicComputation (sourceTupleSetName);
+        AtomicComputationPtr lastOne = myPlan->getComputations ().getProducingAtomicComputation (buildTheseTupleSets[0]);
 
         for (int i = 1; i < buildTheseTupleSets.size(); i++) {
 
