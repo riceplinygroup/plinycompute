@@ -49,7 +49,7 @@
 #ifdef ENABLE_COMPRESSION
 #include <snappy.h>
 #endif
-
+#include <fstream>
 
 
 namespace pdb {
@@ -105,6 +105,14 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
 bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
     bool success;
     if (data != nullptr) {
+#ifdef DEBUG_SHUFFLING
+         //write the data to a test file
+         std :: string fileName = jobStage->getJobId() + "_" + std :: to_string (jobStage->getStageId())+"_shuffle";
+         FILE * myFile = fopen (fileName.c_str(), "w");
+         fwrite(data, 1, size, myFile); 
+         fclose(myFile);
+#endif
+     
        Handle<StorageAddObjectInLoop> request = makeObject <StorageAddObjectInLoop> (databaseName, setName, "IntermediateData", false, false);
        conn->sendObject(request, errMsg);
 #ifdef ENABLE_COMPRESSION
@@ -116,6 +124,13 @@ bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t siz
        delete [] compressedBytes;
 #else
        conn->sendBytes(data, size, errMsg);
+#endif
+#ifdef DEBUG_SHUFFLING
+         //write the data to a test file
+         std :: string fileName1 = jobStage->getJobId() + "_" + std :: to_string (jobStage->getStageId())+"_sent";
+         FILE * myFile1 = fopen (fileName1.c_str(), "w");
+         fwrite(data, 1, size, myFile1);
+         fclose(myFile1);
 #endif
     } else {
        Handle<StorageAddObjectInLoop> request = makeObject <StorageAddObjectInLoop>();
@@ -355,8 +370,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (joinComputation);
                   join->setNumPartitions(this->jobStage->getNumTotalPartitions());
                   join->setNumNodes(this->jobStage->getNumNodes());
-                  std :: cout << "Join set to have " << join->getNumPartitions() << std :: endl;
-                  std :: cout << "Join set to have " << join->getNumNodes() << std :: endl;
+                  std :: cout << "Join set to have " << join->getNumPartitions() << " partitions" << std :: endl;
+                  std :: cout << "Join set to have " << join->getNumNodes() << " nodes" << std :: endl;
     }
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
@@ -365,7 +380,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         mem = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
     }
 #endif
-    newPlan->nullifyPlanPointer();
+    //newPlan->nullifyPlanPointer();
     //std :: vector < std :: string> buildTheseTupleSets;
     //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
@@ -1027,11 +1042,14 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   //get join computation 
                   PDB_COUT << i << ": to get compute plan" << std :: endl;
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
+                  plan->nullifyPlanPointer();
+                  PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;
+                  Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
                   std :: string sourceTupleSetSpecifier = jobStage->getSourceTupleSetSpecifier();
                   std :: string targetTupleSetSpecifier = jobStage->getTargetTupleSetSpecifier();
                   std :: string targetSpecifier = jobStage->getTargetComputationSpecifier();
                   //get shuffler
-                  SinkShufflerPtr shuffler = plan->getShuffler(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetSpecifier);
+                  SinkShufflerPtr shuffler = newPlan->getShuffler(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetSpecifier);
                   shuffler->setNodeId(i);
                   PageCircularBufferIteratorPtr myIter = shuffleIters[i];
                   int numPages = 0;
@@ -1050,6 +1068,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                           if (output == nullptr) {
                               output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
                               blockPtr = std::make_shared<UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                              std :: cout << getAllocator().printCurrentBlock() << std :: endl;
                               myMaps = shuffler->createNewOutputContainer();
                           }
                           //get the vector corresponding to the i-th node
@@ -1079,7 +1098,15 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                       }*/
                                       getRecord(myMaps);
                                       if (i != myNodeId) {
-                                          sendData (communicator, output, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                          std :: cout << getAllocator().printCurrentBlock() << std :: endl;
+                                          char * sendBuffer = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                                          if (sendBuffer == nullptr) {
+                                               std :: cout << "Out of memory on heap" << std :: endl;
+                                               exit(-1);
+                                          }
+                                          memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                                          sendData (communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                          free (sendBuffer);
                                       } else {
                                           PDBPagePtr outputPage;
                                           proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
@@ -1132,7 +1159,14 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
                       std :: cout << out << std :: endl;
                       if (i != myNodeId) {
-                          sendData(communicator, output, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          std :: cout << getAllocator().printCurrentBlock() << std :: endl;
+                          char * sendBuffer = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                          if (sendBuffer == nullptr) {
+                               std :: cout << "Out of memory on heap" << std :: endl;
+                               exit(-1);
+                          }
+                          memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                          sendData(communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                       } else {
                           PDBPagePtr outputPage;
                           proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
