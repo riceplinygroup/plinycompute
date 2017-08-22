@@ -933,7 +933,17 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                              std :: cout << "(*myMaps)[" << i << "].size()=" << (*myMaps)[i]->size() << std :: endl;
                          }*/
 #endif
-                       
+#ifdef DEBUG_SHUFFLING
+                         //write the data to a test file
+                         std :: string fileName = request->getDatabase() + "_" + request->getSetName() +"_received";
+                         FILE * myFile = fopen (fileName.c_str(), "w");
+                         fwrite(readToHere, 1, numBytes, myFile);
+                         fclose(myFile);
+                         std :: string fileName1 = request->getDatabase() + "_" + request->getSetName() +"_copied";
+                         FILE * myFile1 = fopen (fileName1.c_str(), "w");
+                         fwrite(myPage->getBytes(), 1, DEFAULT_NET_PAGE_SIZE, myFile1);
+                         fclose(myFile1);
+#endif 
                          CacheKey key;
                          key.dbId = myPage->getDbID();
                          key.typeId = myPage->getTypeID();

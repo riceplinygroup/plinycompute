@@ -926,6 +926,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               std :: cout << "to build hashtables with " << numPartitions << " threads." << std :: endl;
               int hashCounter = 0;
 
+              //to get the sink merger
+              std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
+              std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
+              std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
+              Handle<ComputePlan> myComputePlan = request->getComputePlan();
+              SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
 
               //start multiple threads, with each thread have a queue and check pages in the queue
               //each page has a vector of JoinMap
@@ -965,11 +971,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          PDB_COUT << "hashSetSize = " << hashSetSize << std :: endl;
                          getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
                          //to get the sink merger
-                         std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
+                         /*std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
                          std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
                          std :: string targetComputationSpecifier = request->getTargetComputationSpecifier();
                          Handle<ComputePlan> myComputePlan = request->getComputePlan();
                          SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier, targetTupleSetSpecifier, targetComputationSpecifier);
+                         */
                          Handle<Object> myMap = merger->createNewOutputContainer();
 
                          //setup an output page to store intermediate results and final output
@@ -981,34 +988,17 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                   std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                                   //to get the map on the page 
                                   void * bytes = page->getBytes();
-                                  Handle<Vector<Handle<Object>>> theOtherMaps = ((Record <Vector<Handle<Object>>> *) bytes)->getRootObject();
-                                  Handle<Vector<Handle<JoinMap<Object>>>> theCastedMaps = unsafeCast<Vector<Handle<JoinMap<Object>>>, Vector<Handle<Object>>>(theOtherMaps);
-                                  size_t mySize = theCastedMaps->size();
-                                  std :: cout << i << ": there are " << mySize << " maps in the page" << std :: endl; 
-                                  for (int j = 0; j < mySize; j++) {
-                                       Handle<JoinMap<Object>> & curMap = (*theCastedMaps)[j];
-                                       if (curMap == nullptr) {
-                                           continue;
-                                       } 
-                                       if (curMap->getPartitionId()%numPartitions != i) {
-                                           continue;
-                                       } else {
-                                           //it's my map!
-                                           std :: cout << i <<": curMap->getPartitionId()=" << curMap->getPartitionId() << std :: endl;
-                                           //to merge the two maps
-                                           std :: cout << i <<": ####To merge the map with size = " << curMap->size() << std :: endl;
-                                           merger->writeOut((*theOtherMaps)[j], myMap);
-                                       }
-                                   }
-                                   //unpin the input page 
-                                   PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
-                                   page->decRefCount();
-                                   //std :: cout << i << ": processed an input page with pageId = " << page->getPageID() << ", reference count=" << page->getRefCount() << std :: endl;
-                                   if (page->getRefCount() == 0) {
+                                  Handle<Object> mapsToMerge = ((Record<Handle<Object>> *)bytes)->getRootObject();
+                                  merger->writeVectorOut(mapsToMerge, myMap);
+                                  //unpin the input page 
+                                  PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                                  page->decRefCount();
+                                  //std :: cout << i << ": processed an input page with pageId = " << page->getPageID() << ", reference count=" << page->getRefCount() << std :: endl;
+                                  if (page->getRefCount() == 0) {
                                          std :: cout << i << ": to unpin the input page: with dbId="<< page->getDbID() << ", setId=" << page->getSetID() << ", pageId=" << page->getPageID() << std :: endl;
                                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
                                          PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
-                                   }
+                                  }
 
 
                             } else {

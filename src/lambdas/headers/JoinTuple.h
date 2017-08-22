@@ -435,6 +435,43 @@ public:
                 }
          }
 
+         void writeVectorOut (Handle<Object> mergeMe, Handle<Object> & mergeToMe) override {
+
+                // get the map we are adding to
+                Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
+                JoinMap <RHSType> &myMap = *mergedMap;
+                //std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
+                Handle <Vector<Handle<JoinMap <RHSType>>>> mapsToMerge = unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (mergeMe);
+                Vector<Handle<JoinMap <RHSType>>> &theOtherMaps = *mapsToMerge;
+                std :: cout << "The number of maps to merge: " << theOtherMaps.size() << std :: endl;
+                for (int i = 0; i < theOtherMaps.size(); i++) {
+                    std :: cout << "maps[i].size()=" << theOtherMaps[i]->size() << std :: endl;
+                }
+                for (int i = 0; i < theOtherMaps.size(); i++) {
+                    JoinMap<RHSType> & theOtherMap = *(theOtherMaps[i]);
+                    for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
+                        JoinRecordList<RHSType> * myList = *iter;
+                        size_t mySize = myList->size();
+                        size_t myHash = myList->getHash();
+                        //std :: cout << "myHash is " << myHash << " and mySize is " << mySize << std :: endl;
+                        if (mySize > 0) {
+                            for (size_t j = 0; j < mySize; j++) {
+                                try {
+                                    RHSType * temp = &(myMap.push(myHash));
+                                    packData (*temp, ((*myList)[j]));
+                                    //std :: cout << "merged one with myHash=" << myHash << " j=" << j << " and my size=" << mySize << std :: endl;
+                                } catch (NotEnoughSpace &n) {
+                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                     delete (myList);
+                                     return;
+                                }
+                            }
+                         }
+                         delete (myList);
+                     }
+                }
+         } 
+
 
 };
 

@@ -882,6 +882,7 @@ void QuerySchedulerServer :: collectStats () {
                                callerBuzzer->buzz (PDBAlarm :: GenericError, counter);
                                return;
                           }   
+                          result = nullptr;
 
                           if (success == false) {
                               errMsg = std :: string ("Can't collect stats from node with id=") + std :: to_string(i) + std :: string (" and ip=") + ip;
