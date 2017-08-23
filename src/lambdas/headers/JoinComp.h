@@ -87,8 +87,6 @@ private:
        //batch size
        int batchSize;
 
- 
-       
 
 public:
 
@@ -453,7 +451,7 @@ public:
 		std :: cout << "\n";
                 return correctJoinTuple->getPartitionedSource (this->myPartitionId, 
 
-                    [&] () -> void * {
+                    [&] () -> PDBPagePtr {
                          if (this->iterator == nullptr) {
                              std :: cout << "Error in JoinComp: partitioned join source has a null iterator" << std :: endl;
                              return nullptr;
@@ -463,7 +461,7 @@ public:
                             PDBPagePtr page = this->iterator->next();
                             if(page != nullptr) {
                                 std :: cout << "return a page for partitioned join source" << std :: endl;
-                                return page->getBytes();
+                                return page;
                             }
                          }
                      
@@ -471,10 +469,9 @@ public:
 
                     },
 
-                    [&] (void * freeMe) -> void {
+                    [&] (PDBPagePtr freeMe) -> void {
                          if (this->proxy != nullptr) {
-                             char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-                             char * curBytes = pageRawBytes;
+                             char * curBytes = freeMe->getRawBytes();
                              NodeID nodeId = (NodeID) (*((NodeID *)(curBytes)));
                              curBytes = curBytes + sizeof(NodeID);
                              DatabaseID dbId = (DatabaseID) (*((DatabaseID *)(curBytes)));
@@ -482,10 +479,10 @@ public:
                              UserTypeID typeId = (UserTypeID) (*((UserTypeID *)(curBytes)));
                              curBytes = curBytes + sizeof(UserTypeID);
                              SetID setId = (SetID) (*((SetID *)(curBytes)));
-                             curBytes = curBytes + sizeof(SetID);
-                             PageID pageId = (PageID) (*((PageID *)(curBytes)));
-                             PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
-                            this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page);
+                             freeMe->decEmbeddedRefCount();
+                             if (freeMe->getEmbeddedRefCount() == 0) {
+                                 this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
+                             }
                         }
                     },
 

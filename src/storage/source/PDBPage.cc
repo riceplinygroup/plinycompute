@@ -52,6 +52,8 @@ PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
     pthread_mutex_init(&(this->refCountMutex), nullptr);
     pthread_rwlock_init(&(this->flushLock), nullptr);
     this->internalOffset = internalOffset;
+    char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+    *((int *) refCountBytes) = 0;
 }
 
 PDBPage::~PDBPage() {
@@ -79,7 +81,8 @@ void PDBPage::preparePage() {
    cur = cur + sizeof (SetID);
    * ((PageID *) cur) = pageID;
    cur = cur + sizeof (PageID);
-   this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID);
+   *((int *) cur) = 0;
+   this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
    return;     
 }
 
@@ -102,13 +105,13 @@ void PDBPage::writeUnlock() {
 
 void * PDBPage::getBytes() {
 
-        return this->rawBytes + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID);
+        return this->rawBytes + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
 
 }
 
 size_t PDBPage::getSize() {
 
-        return this->size - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+        return this->size - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int));
 
 }
 
