@@ -1201,8 +1201,9 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   //set non-reuse policy
                   //getAllocator().setPolicy(noReuseAllocator);
 
-                  UseTemporaryAllocationBlockPtr blockPtr = nullptr;
+                  //UseTemporaryAllocationBlockPtr blockPtr = nullptr;
                   char * output = nullptr;
+                  char * buffer = nullptr;
                   Handle<Object> myMaps = nullptr;
                   while (myIter->hasNext()) {
                       PDBPagePtr page = myIter->next();
@@ -1210,7 +1211,8 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                           //to load output page
                           if (output == nullptr) {
                               output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
-                              blockPtr = std::make_shared<UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                              //blockPtr = std::make_shared<UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
+                              makeObjectAllocatorBlock(output, DEFAULT_NET_PAGE_SIZE, true);
                               std :: cout << getAllocator().printCurrentBlock() << std :: endl;
                               myMaps = shuffler->createNewOutputContainer();
                           }
@@ -1231,6 +1233,8 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                               Handle<Vector<Handle<Object>>> & objectToShuffle = (*objectsToShuffle)[i];
                               Vector<Handle<Object>> & theOtherMaps = *objectToShuffle;
                               for (int j = 0; j < theOtherMaps.size(); j++) {
+                                {  
+
                                   bool success = shuffler->writeOut(theOtherMaps[j], myMaps);
                                   if (success == false) {
                                       //output page is full, send it out
@@ -1248,32 +1252,36 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                                exit(-1);
                                           }
                                           memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                                          makeObjectAllocatorBlock (128 * 1024, true);
                                           sendData (communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                                           free (sendBuffer);
                                       } else {
                                           PDBPagePtr outputPage;
-                                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
+                                          makeObjectAllocatorBlock (128 * 1024, true);
+                                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
                                           memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
-                                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage);
+                                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
                                       }
                                       numPages ++;
                                       //free the output page and reload a new output page
                                       myMaps = nullptr;
-                                      char * buffer = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
-                                      blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (buffer, DEFAULT_NET_PAGE_SIZE);
-
-                                      if (output != nullptr) {
-                                           free(output);
-                                      }
-                                      output = buffer;
+                                      maps = nullptr;
+                                      buffer = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
+                                      //blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (buffer, DEFAULT_NET_PAGE_SIZE);
+                                      makeObjectAllocatorBlock(buffer, DEFAULT_NET_PAGE_SIZE, true);
                                       //redo for current map;
                                       myMaps = shuffler->createNewOutputContainer();
                                       shuffler->writeOut(theOtherMaps[j], myMaps);
                                   }
-                                  numMaps++;
-                              }
+                               }
+                               numMaps++;
+                               if ((output != nullptr)&&(buffer!= nullptr)&&(output != buffer)) {
+                                  free(output);
+                                  output = buffer;
+                               }
+                            }//for
 
-                          }
+                          }//if (record != nullptr)
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
@@ -1309,19 +1317,21 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                exit(-1);
                           }
                           memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                          makeObjectAllocatorBlock (128 * 1024, true);
                           sendData(communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                       } else {
                           PDBPagePtr outputPage;
-                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage);
+                          makeObjectAllocatorBlock (128 * 1024, true);
+                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
                           memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
-                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage);
+                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
                       }
                       numPages ++;
                       myMaps = nullptr;
                   }
-                  if (blockPtr != nullptr) {
+                  /*if (blockPtr != nullptr) {
                       blockPtr = nullptr;
-                  }
+                  }*/
                   if (output != nullptr) {
                       free (output);
                       output = nullptr;
