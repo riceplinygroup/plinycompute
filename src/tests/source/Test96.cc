@@ -48,7 +48,7 @@ int main () {
         int numWord = 10;
         int numTopic = 4;
 
-	std :: cout << "ABOUT TO MAKE THE OBJECT.\n";
+	//std :: cout << "ABOUT TO MAKE THE OBJECT.\n";
         Handle<Vector<Handle<IntDoubleVectorPair>>> result =
             makeObject<Vector<Handle<IntDoubleVectorPair>>>(numWord, numWord);
 
