@@ -101,6 +101,7 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
 	if (typeInfo.descendsFromObject ()) {
                 //std :: cout << "numUsedSlots=" << numUsedSlots << std :: endl;
 		// run the constructor on each object
+		std :: cout << "Calling object constructor.\n";
 		for (uint32_t i = 0; i < numUsedSlots; i++) {
 			new ((void *) &(((TypeContained *)(data))[i])) TypeContained ();
 		}
@@ -108,6 +109,7 @@ Array <TypeContained> :: Array (uint32_t numSlotsIn, uint32_t numUsedSlots) {
                 //std :: cout << "numUsedSlots=" << numUsedSlots << std :: endl;
                 //std :: cout << "sizeof(TypeContained)=" << sizeof(TypeContained) << std :: endl;
 		// zero out everything
+		std :: cout << "Just b-zeroing everything.\n";
 		bzero (data, numUsedSlots * sizeof (TypeContained));
 	}
 }
