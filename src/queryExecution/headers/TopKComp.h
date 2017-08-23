@@ -33,7 +33,7 @@ template <class InputClass, class Score, class ValueType>
 class TopKComp : public ClusterAggregateComp <TopKQueue <Score, ValueType>, InputClass, 
 	int, TopKQueue <Score, ValueType>> {
 
-	unsigned k;
+	unsigned k = 1;
 
 public:
 

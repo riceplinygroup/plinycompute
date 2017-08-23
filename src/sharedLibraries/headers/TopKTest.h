@@ -34,8 +34,9 @@ public:
 
         TopKTest () {}
 
-	TopKTest (Vector <double> &myQuery) {
+	TopKTest (Vector <double> &myQuery, unsigned k) {
 		query = myQuery;
+		setK (k);		
 	}
 
 	// this just looks at the vector contained in the EmpWithVector object, and computes the
