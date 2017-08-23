@@ -24,6 +24,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <pthread.h>
 
 
 namespace pdb {
@@ -52,15 +53,15 @@ private:
     std :: unordered_map<std :: string, DataStatistics> dataStatistics;
     std :: unordered_map<std :: string, double> atomicComputationSelectivity;
     std :: unordered_map<std :: string, double> lambdaSelectivity;
-    
+    pthread_mutex_t mutex;    
 
 public:
 
     //constructor    
-    Statistics () {}
+    Statistics () { pthread_mutex_init (&mutex, nullptr); }
     
     //destructor
-    ~Statistics () {}
+    ~Statistics () { pthread_mutex_destroy (&mutex); }
 
     //remove set
     void removeSet (std :: string databaseName, std :: string setName) {
@@ -84,7 +85,9 @@ public:
     //to set number of pages of a set
     void setNumPages (std :: string databaseName, std :: string setName, int numPages) {
         std :: string key = databaseName + ":" + setName;
+        pthread_mutex_lock(&mutex);
         dataStatistics[key].numPages = numPages;
+        pthread_mutex_unlock(&mutex);
     }
 
     //to return page size of a set
@@ -100,7 +103,9 @@ public:
     //to set page size of a set
     void setPageSize (std :: string databaseName, std :: string setName, size_t pageSize) {
         std :: string key = databaseName + ":" + setName;
+        pthread_mutex_lock(&mutex);
         dataStatistics[key].pageSize = pageSize;
+        pthread_mutex_unlock(&mutex);
     }
 
     //to return numBytes of a set
@@ -116,7 +121,9 @@ public:
     //to set numBytes of a set
     void setNumBytes (std :: string databaseName, std :: string setName, size_t numBytes) {
         std :: string key = databaseName + ":" + setName;
+        pthread_mutex_lock(&mutex);
         dataStatistics[key].numBytes = numBytes;
+        pthread_mutex_unlock(&mutex);
     }
 
 
@@ -133,7 +140,9 @@ public:
     //to set number of tuples of a set
     void setNumTuples (std :: string databaseName, std :: string setName, int numTuples) {
         std :: string key = databaseName + ":" + setName;
+        pthread_mutex_lock(&mutex);
         dataStatistics[key].numTuples = numTuples;
+        pthread_mutex_unlock(&mutex);
     }
 
     //to return average tuple size of a set
@@ -149,7 +158,9 @@ public:
     //to set average tuple size of a set
     void setAvgTupleSize (std :: string databaseName, std :: string setName, size_t avgTupleSize) {
         std :: string key = databaseName + ":" + setName;
+        pthread_mutex_lock(&mutex);
         dataStatistics[key].avgTupleSize = avgTupleSize;
+        pthread_mutex_unlock(&mutex);
     }
 
 
@@ -164,7 +175,9 @@ public:
 
     //to set selectivity for an atomic computation
     void setAtomicComputationSelectivity (std :: string atomicComputationType, double selectivity) {
+       pthread_mutex_lock(&mutex);
        atomicComputationSelectivity[atomicComputationType] = selectivity;
+       pthread_mutex_unlock(&mutex);
     }
 
     //to return selectivity of a lambda
@@ -178,7 +191,9 @@ public:
 
     //to set selectivity for a lambda
     void setLambdaSelectivity (std :: string lambdaType, double selectivity) {
+        pthread_mutex_lock(&mutex);
         lambdaSelectivity[lambdaType] = selectivity;
+        pthread_mutex_unlock(&mutex);
     }
 
    
