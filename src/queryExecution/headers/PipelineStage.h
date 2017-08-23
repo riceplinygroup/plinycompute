@@ -97,7 +97,10 @@ public:
     size_t getBackendCircularBufferSize (bool & success, std :: string & errMsg);
 
     //get iterators to scan a user set
-    std :: vector <PageCircularBufferIteratorPtr> getUserSetIterators (HermesExecutionServer * server, bool & success, std :: string & errMsg);
+    std :: vector <PageCircularBufferIteratorPtr> getUserSetIterators (HermesExecutionServer * server, int numThreads, bool & success, std :: string & errMsg);
+
+    //get bufferss to scan a user set in a sharing way, so that each iterator is linked to a buffer and will scan all pages
+    void feedSharedBuffers (HermesExecutionServer * server, std :: vector<PageCircularBufferPtr> & sourceBuffers, int numPartitions, int & counter, PDBBuzzerPtr tempBuzzer, bool & success, std :: string & errMsg);
 
     //create proxy
     DataProxyPtr createProxy (int i, pthread_mutex_t connection_mutex, std :: string & errMsg);

@@ -1097,7 +1097,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                                  int numPages = set->getNumPages();
                                  {
                                      const UseTemporaryAllocationBlock tempBlock{1024};
-                                     Handle<StorageGetDataResponse> response = makeObject<StorageGetDataResponse>(numPages, request->getDatabase(), request->getSetName(), conf->getPageSize(), conf->getPageSize()-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)), res, errMsg);
+                                     Handle<StorageGetDataResponse> response = makeObject<StorageGetDataResponse>(numPages, request->getDatabase(), request->getSetName(), conf->getPageSize(), conf->getPageSize()-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)), res, errMsg);
                                      res = sendUsingMe->sendObject (response, errMsg);
                                  }
                                  if(getFunctionality<PangeaStorageServer>().isStandalone() == true) {

@@ -46,9 +46,7 @@ typedef shared_ptr <PDBPage> PDBPagePtr;
  * - DatabaseID
  * - UserTypeID
  * - PageID
- * - NumObjects
- * - NumMiniPages
- *
+ * - reference count for on-page reference count 
  * 2) A page body that consists of a series of <object raw data size, object raw data> pairs ,
  * with each pair aligned with miniPage size (often set to be cacheline size).
  *
@@ -98,6 +96,37 @@ public:
             this->setPinned(false);
         }
         pthread_mutex_unlock(&this->refCountMutex);
+    }
+
+    //this is to increment the reference count embeded in page bytes
+    inline void incEmbeddedRefCount() {
+        pthread_mutex_lock(&this->refCountMutex);
+        char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+        *((int *) refCountBytes) = *((int*)refCountBytes) + 1;
+        this->pinned = true;
+        pthread_mutex_unlock(&this->refCountMutex);
+    }
+
+    inline void decEmbeddedRefCount() {
+        pthread_mutex_lock(&this->refCountMutex);
+        char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+        *((int *) refCountBytes) = *((int*)refCountBytes) - 1;
+        if (*((int *) refCountBytes) < 0) {
+            //there is a problem:
+            //reference count should always >= 0
+            pthread_mutex_unlock(&this->refCountMutex);
+            PDB_COUT << "Error: page reference count < 0" << std :: endl;
+            this->setPinned(false);
+            *((int *) refCountBytes) = 0;
+        } else if (*((int *) refCountBytes) == 0) {
+            this->setPinned(false);
+        }
+        pthread_mutex_unlock(&this->refCountMutex);
+    }
+
+    inline int getEmbeddedRefCount() {
+        char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+        return *((int *) refCountBytes);
     }
 
     /**

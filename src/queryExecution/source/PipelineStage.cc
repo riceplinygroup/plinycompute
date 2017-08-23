@@ -163,7 +163,7 @@ size_t PipelineStage :: getBackendCircularBufferSize (bool & success, std :: str
 }
 
 //to get iterators to scan a user set
-std :: vector <PageCircularBufferIteratorPtr> PipelineStage :: getUserSetIterators (HermesExecutionServer * server, bool & success, std :: string & errMsg) {
+std :: vector <PageCircularBufferIteratorPtr> PipelineStage :: getUserSetIterators (HermesExecutionServer * server, int numScanThreads, bool & success, std :: string & errMsg) {
 
     //initialize the data proxy, scanner and set iterators
     PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
@@ -172,7 +172,7 @@ std :: vector <PageCircularBufferIteratorPtr> PipelineStage :: getUserSetIterato
     PDBLoggerPtr scannerLogger = make_shared<PDBLogger>("scanner.log");
     //getScanner
     int backendCircularBufferSize = getBackendCircularBufferSize (success, errMsg);
-    PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scannerLogger, numThreads, backendCircularBufferSize, nodeId);
+    PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scannerLogger, numScanThreads, backendCircularBufferSize, nodeId);
      
     std :: vector<PageCircularBufferIteratorPtr> iterators;
 
@@ -184,12 +184,54 @@ std :: vector <PageCircularBufferIteratorPtr> PipelineStage :: getUserSetIterato
     }
 
     //get iterators
-    PDB_COUT << "To send GetSetPages message" << std :: endl;
+    std :: cout << "To send GetSetPages message" << std :: endl;
     iterators = scanner->getSetIterators(nodeId, jobStage->getSourceContext()->getDatabaseId(), jobStage->getSourceContext()->getTypeId(), jobStage->getSourceContext()->getSetId());
-    PDB_COUT << "GetSetPages message is sent" << std :: endl;
+    std :: cout << "GetSetPages message is sent" << std :: endl;
 
     //return iterators
     return iterators;
+
+}
+
+
+//to get iterators to scan a user set in a shared way so that each iterator gets all pages
+void PipelineStage :: feedSharedBuffers (HermesExecutionServer * server, std :: vector<PageCircularBufferPtr> & sourceBuffers, int numPartitions, int & counter, PDBBuzzerPtr tempBuzzer, bool & success, std :: string & errMsg) {
+    std :: cout << "to feed shared buffers for " << numPartitions << " partitions" << std :: endl;
+    //get scan iterators
+    std :: vector<PageCircularBufferIteratorPtr> scanIterators = getUserSetIterators(server, 1, success, errMsg);
+    int numScanThreads = scanIterators.size();
+    std :: cout << "we've got " << numScanThreads << " iterators" << std :: endl;
+    //start multiple thread to scan the set
+    counter = 0;
+    for (int i = 0; i < numScanThreads; i++) {
+        //each threads get a page and put the page to each source buffer
+        PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+        std :: cout << "to run the " << i << "-th scan work..." << std :: endl;
+        //start threads
+        PDBWorkPtr myWork = make_shared<GenericWork> (
+           [&, i] (PDBBuzzerPtr callerBuzzer) {
+                     //setup an output page to store intermediate results and final output
+                     PageCircularBufferIteratorPtr iter = scanIterators.at(i);
+                     PDBPagePtr page = nullptr;
+                     while (iter->hasNext()) {
+                         page = iter->next();
+                         if (page != nullptr) {
+                             std :: cout << "Scanner got a non-null page" << std :: endl;
+                             for (int j = 0; j < numPartitions; j++) {
+                                 page->incEmbeddedRefCount();
+                             }
+                             for (int j = 0; j < numPartitions; j++) {
+                                std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
+                                sourceBuffers[j]->addPageToTail(page);
+                             }
+                         }
+                     }
+                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone, counter);
+                }
+         );
+
+                worker->execute(myWork, tempBuzzer);
+    }
 
 }
 
@@ -397,12 +439,12 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       if (myPage == nullptr) {
                           std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
                       }
-                      return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)), DEFAULT_NET_PAGE_SIZE);
+                      return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
                   },
 
                   [] (void * page) {
                       PDB_COUT << "to discard a page" << std :: endl;
-                      free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                      free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                   },
 
                   [&] (void * page) {
@@ -419,7 +461,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                               //Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
                               //PDB_COUT << "Map size: " << map->size() << std :: endl;
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   NodeID myNodeId = jobStage->getNodeId();
@@ -441,10 +483,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      free(pageToBroadcast->getRawBytes());
                                   }
                               } else {
-                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
                               }
                           } else {
-                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                           }
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join != nullptr)) {
                           PDB_COUT << "to hash partition a page" << std :: endl;
@@ -455,7 +497,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   for ( k = 0; k < numNodes; k++ ) {
@@ -466,10 +508,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      buffer->addPageToTail(pageToBroadcast);
                                   }
                               } else {
-                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                               }
                           } else {
-                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                           }
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
@@ -487,7 +529,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                              PageCircularBufferPtr buffer = sinkBuffers[k];
                              buffer->addPageToTail(output);
                           }
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join == nullptr)) {
                           //to handle aggregation without combining
@@ -522,7 +564,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 #endif
                               }
                           }
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
 
                       } else {
                           std :: cout << "to write to user set" << std :: endl;
@@ -531,7 +573,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                           memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                           proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)));
+                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                       }
                   },
 
@@ -567,13 +609,53 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
     //std :: cout << "Pipeline network is running" << std :: endl;
     bool success;
     std :: string errMsg;
-    
+    int numPartitions = 0; 
+    int sourceCounter = 0;
+    PDBBuzzerPtr sourceBuzzer; 
+    std :: vector<PageCircularBufferPtr> sourceBuffers;  
     //get user set iterators
     std :: vector <PageCircularBufferIteratorPtr> iterators;
     PartitionedHashSetPtr hashSet;
     Handle <SetIdentifier > sourceContext = this->jobStage->getSourceContext();
-    if (sourceContext->getSetType() == UserSetType) {
-        iterators = getUserSetIterators (server, success, errMsg);
+
+    //to get computations
+    Handle<ComputePlan> plan = this->jobStage->getComputePlan(); 
+    bool isHashPartitionedJoinProbing = false;
+    Handle<Computation> computation = nullptr;
+    std :: vector <std :: string> buildTheseTupleSets;
+    jobStage->getTupleSetsToBuildPipeline(buildTheseTupleSets);
+    PDB_COUT << "buildTheseTupleSets[0]=" << buildTheseTupleSets[0] << std :: endl;
+    std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
+    PDB_COUT << "Source tupleset name=" << sourceSpecifier << std :: endl;
+    if (buildTheseTupleSets[0] != sourceSpecifier) {
+         std :: string producerComputationName = plan->getProducingComputationName(buildTheseTupleSets[0]);
+         PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
+         computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
+         if (computation->getComputationType() == "JoinComp") {
+             isHashPartitionedJoinProbing = true;
+         }
+    }
+    if (isHashPartitionedJoinProbing == false) {
+         std :: string producerComputationName = plan->getProducingComputationName(sourceSpecifier);
+         PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
+         computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
+    }
+
+
+    if ((sourceContext->getSetType() == UserSetType) && (computation->getComputationType() != "JoinComp")) {
+        iterators = getUserSetIterators (server, numThreads, success, errMsg);
+    } else if ((sourceContext->getSetType() == UserSetType) && (computation->getComputationType() == "JoinComp")) {
+         int sourceBufferSize = 2;
+         int numPartitionsInCluster = this->jobStage->getNumTotalPartitions();
+         int numNodes = this->jobStage->getNumNodes();
+         numPartitions = numPartitionsInCluster/numNodes;
+         for (int i = 0; i < numPartitions; i++) { 
+                  PDBLoggerPtr myLogger = make_shared<PDBLogger>(std :: string("scanPartitionedSource-")+std :: to_string(i));
+                  PageCircularBufferPtr buffer = make_shared<PageCircularBuffer>(sourceBufferSize, myLogger);
+                  sourceBuffers.push_back(buffer);
+                  PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, myLogger);
+                  iterators.push_back(iter);
+         }
     } else {
         std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
         //std :: cout << "hashSetName of this source is " << hashSetName << std :: endl;
@@ -592,11 +674,14 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
              //std :: cout << "counter = " << counter << std :: endl;
          });
 
-
-    std :: cout << "to run pipeline with " << numThreads << " threads." << std :: endl;    
+    int numSourceThreads = numThreads;
+    if (numPartitions > 0) {
+         numSourceThreads = numPartitions;
+    }
+    std :: cout << "to run pipeline with " << numSourceThreads << " threads." << std :: endl;    
     int counter = 0;
-
-    for (int i = 0; i < numThreads; i++) {
+    
+    for (int i = 0; i < numSourceThreads; i++) {
          PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
          PDB_COUT << "to run the " << i << "-th work..." << std :: endl;
          //TODO: start threads
@@ -636,12 +721,70 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
          worker->execute(myWork, tempBuzzer);
     }
 
-    while (counter < numThreads) {
+    if ((sourceContext->getSetType() == UserSetType) && (computation->getComputationType() == "JoinComp")) {
+         //start the scanning thread
+         std :: cout << "start scanning source set and put pages to source buffers" << std :: endl;
+         sourceCounter = 0;
+         sourceBuzzer = make_shared<PDBBuzzer>(
+             [&] (PDBAlarm myAlarm, int & sourceCounter) {
+                  sourceCounter ++;
+                  PDB_COUT << "source counter = " << sourceCounter << std :: endl;
+         });
+         //get scan iterators
+         std :: vector<PageCircularBufferIteratorPtr> scanIterators = getUserSetIterators(server, 1, success, errMsg);
+         int numScanThreads = scanIterators.size();
+         std :: cout << "we've got " << numScanThreads << " iterators" << std :: endl;
+         //start multiple thread to scan the set
+         for (int i = 0; i < numScanThreads; i++) {
+             //each threads get a page and put the page to each source buffer
+             PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
+             std :: cout << "to run the " << i << "-th scan work..." << std :: endl;
+             //start threads
+             PDBWorkPtr myWork = make_shared<GenericWork> (
+                 [&, i] (PDBBuzzerPtr callerBuzzer) {
+                     //setup an output page to store intermediate results and final output
+                     const UseTemporaryAllocationBlock tempBlock {4 * 1024 * 1024};
+                     PageCircularBufferIteratorPtr iter = scanIterators[i];
+                     PDBPagePtr page = nullptr;
+                     while (iter->hasNext()) {
+                         page = iter->next();
+                         if (page != nullptr) {
+                             std :: cout << "Scanner got a non-null page" << std :: endl;
+                             for (int j = 0; j < numPartitions; j++) {
+                                 page->incEmbeddedRefCount();
+                             }
+                             for (int j = 0; j < numPartitions; j++) {
+                                std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
+                                sourceBuffers[j]->addPageToTail(page);
+                             }
+                         }
+                     }
+                     callerBuzzer->buzz (PDBAlarm :: WorkAllDone, sourceCounter);
+                }
+              );
+
+              worker->execute(myWork, sourceBuzzer);
+         }
+
+         while (sourceCounter < 1) {
+             sourceBuzzer->wait();
+         }
+         sourceCounter = 0;
+         std :: cout << "Scanned all pages, now we close all source buffers" << std :: endl;
+         
+         for ( int j = 0; j < numPartitions; j ++) {
+             PageCircularBufferPtr buffer = sourceBuffers[j];
+             buffer->close();
+         }
+    }
+
+    while (counter < numSourceThreads) {
          tempBuzzer->wait();
     }
 
     counter = 0;
     pthread_mutex_destroy(&connection_mutex);
+
 
     if (server->getFunctionality<HermesExecutionServer>().setCurPageScanner(nullptr) == false) {
         success = false;

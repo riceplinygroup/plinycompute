@@ -23,6 +23,7 @@
 #include "SinkMerger.h"
 #include "SinkShuffler.h"
 #include "JoinTupleBase.h"
+#include "PDBPage.h"
 
 namespace pdb {
 
@@ -445,7 +446,7 @@ public:
                 Vector<Handle<JoinMap <RHSType>>> &theOtherMaps = *mapsToMerge;
                 std :: cout << "The number of maps to merge: " << theOtherMaps.size() << std :: endl;
                 for (int i = 0; i < theOtherMaps.size(); i++) {
-                    std :: cout << "maps[i].size()=" << theOtherMaps[i]->size() << std :: endl;
+                    std :: cout << "maps[" << i << "].size()=" << theOtherMaps[i]->size() << std :: endl;
                 }
                 for (int i = 0; i < theOtherMaps.size(); i++) {
                     JoinMap<RHSType> & theOtherMap = *(theOtherMaps[i]);
@@ -487,16 +488,19 @@ private:
         size_t myPartitionId;
 
         // function to call to get another vector to process
-        std :: function <void * ()> getAnotherVector;
+        std :: function <PDBPagePtr ()> getAnotherVector;
 
         // function to call to free the vector
-        std :: function <void (void *)> doneWithVector;
+        std :: function <void (PDBPagePtr)> doneWithVector;
 
         // this is the vector to process
         Handle <Vector<Handle<JoinMap <RHSType>>>> iterateOverMe;
 
         // the pointer to current page holding the vector, and the last page that we previously processed
         Record <Vector<Handle<JoinMap <RHSType>>>> *myRec, *lastRec;
+
+        // the page contains record
+        PDBPagePtr myPage, lastPage;
 
         // how many objects to put into a chunk
         size_t chunkSize;
@@ -538,8 +542,8 @@ public:
         // over.  The secomd param is a callback that the iterator will call when the specified page is done being processed and can be
         // freed.  The third param tells us how many objects to put into a tuple set.
         // The fourth param tells us positions of those packed columns.
-        PartitionedJoinMapTupleSetIterator (size_t myPartitionId, std :: function <void * ()> getAnotherVector,
-                std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> positions) :
+        PartitionedJoinMapTupleSetIterator (size_t myPartitionId, std :: function <PDBPagePtr ()> getAnotherVector,
+                std :: function <void (PDBPagePtr)> doneWithVector, size_t chunkSize, std :: vector<int> positions) :
                 getAnotherVector (getAnotherVector), doneWithVector (doneWithVector), chunkSize (chunkSize) {
 
                 //set my partition id
@@ -548,7 +552,12 @@ public:
                 // create the tuple set that we'll return during iteration
                 output = std :: make_shared <TupleSet> ();
                 // extract the vector from the input page
-                myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) getAnotherVector ();
+                myPage = getAnotherVector();
+                if (myPage != nullptr) {
+                    myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myPage->getBytes());
+                } else {
+                    myRec = nullptr;
+                }
                 if (myRec != nullptr) {
 
                     iterateOverMe = myRec->getRootObject ();
@@ -580,6 +589,7 @@ public:
                 posInRecordList = 0;
                 // and we have no data so far
                 lastRec = nullptr;
+                lastPage = nullptr;
         }
 
         void setChunkSize (size_t chunkSize) override {
@@ -591,7 +601,7 @@ public:
 
                 //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
                 if ((iterateOverMe == nullptr) || (isDone == true)) {
-                     //std :: cout << "PartitionedSource: I'm done" << std :: endl;
+                     std :: cout << "PartitionedSource: I'm done" << std :: endl;
                      return nullptr;
                 }
 
@@ -602,23 +612,24 @@ public:
                 // pipeline; hence, we can kill it
 
                 if (lastRec != nullptr) {
-                        doneWithVector (lastRec);
+                        doneWithVector (lastPage);
                         lastRec = nullptr;
+                        lastPage = nullptr;
                 }
 
                 int overallCounter = 0;
                 hashColumn->clear();
                 while (true) {
                    while (curJoinMap == nullptr) {
-                      //std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
+                      std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
                       curJoinMap = (*iterateOverMe)[pos];
                       pos ++;
                       if (curJoinMap != nullptr) {
                           if ((curJoinMap->getPartitionId() % curJoinMap->getNumPartitions())!= myPartitionId) {
-                              //std :: cout << "PartitionedSource: Not my partition" << std :: endl;
+                              std :: cout << "PartitionedSource: Not my partition" << std :: endl;
                               curJoinMap = nullptr;
                           } else {
-                              //std :: cout << "I've found a map for me with partitionId=" << myPartitionId << std :: endl;
+                              std :: cout << "I've found a map for me with partitionId=" << myPartitionId << std :: endl;
                               curJoinMapIter = curJoinMap->begin();
                               joinMapEndIter = curJoinMap->end();
                               posInRecordList = 0;
@@ -645,7 +656,7 @@ public:
                       while (curJoinMapIter != joinMapEndIter) { 
                           for (size_t i = posInRecordList; i < myListSize; i++) {
                               unpack ((*myList)[i], overallCounter, 0, columns);
-                              //std :: cout << "packed one tuple with myHash=" << myHash << " and overallCounter=" << overallCounter << std :: endl;
+                              //std :: cout << "unpacked one tuple with myHash=" << myHash << " and overallCounter=" << overallCounter << std :: endl;
                               hashColumn->push_back(myHash);
                               posInRecordList++;
                               overallCounter++;
@@ -671,18 +682,22 @@ public:
                               }
                           }
                       }
-                      //std :: cout << "finished JoinMap at pos=" << pos << std :: endl;
+                      std :: cout << "finished JoinMap at pos=" << pos << std :: endl;
                       curJoinMap = nullptr;
                       
                    } 
                    if ((curJoinMap == nullptr) && (pos == iterateOverMe->size())) {
                         // this means that we got to the end of the vector
-                        //std :: cout <<"finished a vector" << std :: endl;
+                        std :: cout <<"finished a vector" << std :: endl;
                         lastRec = myRec;
-
+                        lastPage = myPage;
                         // try to get another vector
-                        myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) getAnotherVector ();
-
+                        myPage = getAnotherVector();
+                        if (myPage != nullptr) {
+                             myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myPage->getBytes());
+                        } else {
+                             myRec = nullptr;
+                        }
                         // if we could not, then we are outta here
                         if (myRec == nullptr) {
                                 isDone = true;
@@ -691,8 +706,8 @@ public:
 
                                     hashColumn->resize (overallCounter);
                                     eraseEnd <RHSType> (overallCounter, 0, columns);
-                                    //std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
-                                    //std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
+                                    std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
+                                    std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
                                     return output;
                                     
                                 } else {
@@ -714,8 +729,9 @@ public:
 
                 // if lastRec is not a nullptr, then it means that we have not yet freed it
                 if (lastRec != nullptr)
-                        doneWithVector (lastRec);
+                        doneWithVector (lastPage);
                 lastRec = nullptr;
+                myPage = nullptr;
         }
 
 
@@ -1119,7 +1135,7 @@ public:
         virtual ComputeSinkPtr getPartitionedSink (int numPartitionsPerNode, int numNodes, TupleSpec &consumeMe, TupleSpec &attsToOpOn, TupleSpec &projection, std :: vector <int> & whereEveryoneGoes) = 0;
 
 
-        virtual ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <void * ()> getAnotherVector, std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) = 0;
+        virtual ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <PDBPagePtr ()> getAnotherVector, std :: function <void (PDBPagePtr)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) = 0;
 
         virtual SinkMergerPtr getMerger() = 0;
 
@@ -1154,7 +1170,7 @@ public:
         }
 
         // JiaNote: create a partitioned source for this particular type
-        ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <void * ()> getAnotherVector, std :: function <void (void *)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) override {
+        ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <PDBPagePtr ()> getAnotherVector, std :: function <void (PDBPagePtr)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) override {
                 //std :: cout << "to get compute source for PartitionedJoin for partitionId=" << myPartitionId << std :: endl;
                 return std :: make_shared <PartitionedJoinMapTupleSetIterator<HoldMe>> (myPartitionId, getAnotherVector, doneWithVector, chunkSize, whereEveryoneGoes);
         }
