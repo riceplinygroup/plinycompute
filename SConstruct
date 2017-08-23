@@ -29,7 +29,7 @@ SRC_ROOT = os.path.join(Dir('.').abspath, "src") # assume the root source dir is
 # OSX settings
 if common_env['PLATFORM'] == 'darwin':
     print 'Compiling on OSX'
-    common_env.Append(CXXFLAGS = '-std=c++1y -Wall -O3 -g')
+    common_env.Append(CXXFLAGS = '-std=c++1y -Wall -O0 -g')
     common_env.Replace(CXX = "clang++")
 
 # Linux settings
@@ -310,9 +310,9 @@ all = ['build/sqlite/sqlite3.c',
 #       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        component_dir_basename_to_cc_file_paths['lambdas'],
        component_dir_basename_to_cc_file_paths['logicalPlan'],
-       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
+#       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
        component_dir_basename_to_lexer_file_paths['logicalPlan'],
-       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
+#       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
 #       boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
@@ -321,6 +321,10 @@ all = ['build/sqlite/sqlite3.c',
 
 
 common_env.SharedLibrary('libraries/libAllSelection.so', ['build/libraries/AllSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libEmpWithVector.so', ['build/libraries/EmpWithVector.cc'] + all)
+common_env.SharedLibrary('libraries/libTopKTest.so', ['build/libraries/TopKTest.cc'] + all)
+common_env.SharedLibrary('libraries/libScanEmpWithVector.so', ['build/libraries/ScanEmpWithVector.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteEmpWithVector.so', ['build/libraries/WriteEmpWithVector.cc'] + all)
 common_env.SharedLibrary('libraries/libAllSelectionWithCreation.so', ['build/libraries/AllSelectionWithCreation.cc'] + all)
 common_env.SharedLibrary('libraries/libCartesianJoin.so', ['build/libraries/CartesianJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libChrisSelection.so', ['build/libraries/ChrisSelection.cc'] + all)
@@ -474,8 +478,10 @@ common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.
 common_env.Program('bin/storeSharedEmployeeInDBTest', ['build/tests/StoreSharedEmployeeInDBTest.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
+common_env.Program('bin/topK', ['build/tests/TopK.cc'] + all)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
 common_env.Program('bin/test4', ['build/tests/Test4.cc'] + all)
+common_env.Program('bin/test4queue', ['build/tests/Test4Queue.cc'] + all)
 common_env.Program('bin/test5', ['build/tests/Test5.cc'] + all)
 common_env.Program('bin/test6', ['build/tests/Test6.cc'] + all)
 common_env.Program('bin/test7', ['build/tests/Test7.cc'] + all)

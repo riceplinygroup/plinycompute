@@ -47,6 +47,8 @@ int main () {
 	makeObjectAllocatorBlock (1024 * 1024 * 24, true);
         int numWord = 10;
         int numTopic = 4;
+
+	std :: cout << "ABOUT TO MAKE THE OBJECT.\n";
         Handle<Vector<Handle<IntDoubleVectorPair>>> result =
             makeObject<Vector<Handle<IntDoubleVectorPair>>>(numWord, numWord);
 
