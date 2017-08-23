@@ -54,6 +54,7 @@ common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
+common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=5000')
 # common_env.Append(CCFLAGS='-DCLEAR_SET')
 # common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
@@ -292,7 +293,6 @@ print 'Version: ' + platform.version()
 
 all = ['build/sqlite/sqlite3.c',
        component_dir_basename_to_cc_file_paths['serverFunctionalities'],
-#       component_dir_basename_to_cc_file_paths['bufferMgr'],
        component_dir_basename_to_cc_file_paths['communication'],
        component_dir_basename_to_cc_file_paths['catalog'],
        component_dir_basename_to_cc_file_paths['dispatcher'],
@@ -305,17 +305,13 @@ all = ['build/sqlite/sqlite3.c',
        component_dir_basename_to_cc_file_paths['memory'],
        component_dir_basename_to_cc_file_paths['storage'],
        component_dir_basename_to_cc_file_paths['distributionManager'],
-#       component_dir_basename_to_cc_file_paths['tcapLexer'],
-#       component_dir_basename_to_cc_file_paths['tcapParser'],
-#       component_dir_basename_to_cc_file_paths['tcapIntermediaryRep'],
        component_dir_basename_to_cc_file_paths['lambdas'],
        component_dir_basename_to_cc_file_paths['logicalPlan'],
-#       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
+       component_dir_basename_to_cc_file_paths['linearAlgebraDSL'],
        component_dir_basename_to_lexer_file_paths['logicalPlan'],
-#       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
+       component_dir_basename_to_lexer_file_paths['linearAlgebraDSL'],
        boost_component_dir_basename_to_cc_file_paths['filesystem'],
        boost_component_dir_basename_to_cc_file_paths['program_options'],
-#       boost_component_dir_basename_to_cc_file_paths['smart_ptr'],
        boost_component_dir_basename_to_cc_file_paths['system'],
       ]
 
