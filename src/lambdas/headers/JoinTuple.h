@@ -444,10 +444,10 @@ public:
                 //std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
                 Handle <Vector<Handle<JoinMap <RHSType>>>> mapsToMerge = unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (mergeMe);
                 Vector<Handle<JoinMap <RHSType>>> &theOtherMaps = *mapsToMerge;
-                std :: cout << "The number of maps to merge: " << theOtherMaps.size() << std :: endl;
+                /*std :: cout << "The number of maps to merge: " << theOtherMaps.size() << std :: endl;
                 for (int i = 0; i < theOtherMaps.size(); i++) {
                     std :: cout << "maps[" << i << "].size()=" << theOtherMaps[i]->size() << std :: endl;
-                }
+                }*/
                 for (int i = 0; i < theOtherMaps.size(); i++) {
                     JoinMap<RHSType> & theOtherMap = *(theOtherMaps[i]);
                     for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
@@ -601,7 +601,7 @@ public:
 
                 //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
                 if ((iterateOverMe == nullptr) || (isDone == true)) {
-                     std :: cout << "PartitionedSource: I'm done" << std :: endl;
+                     //std :: cout << "PartitionedSource: I'm done" << std :: endl;
                      return nullptr;
                 }
 
@@ -621,15 +621,15 @@ public:
                 hashColumn->clear();
                 while (true) {
                    while (curJoinMap == nullptr) {
-                      std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
+                      //std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
                       curJoinMap = (*iterateOverMe)[pos];
                       pos ++;
                       if (curJoinMap != nullptr) {
                           if ((curJoinMap->getPartitionId() % curJoinMap->getNumPartitions())!= myPartitionId) {
-                              std :: cout << "PartitionedSource: Not my partition" << std :: endl;
+                              //std :: cout << "PartitionedSource: Not my partition" << std :: endl;
                               curJoinMap = nullptr;
                           } else {
-                              std :: cout << "I've found a map for me with partitionId=" << myPartitionId << std :: endl;
+                              //std :: cout << "I've found a map for me with partitionId=" << myPartitionId << std :: endl;
                               curJoinMapIter = curJoinMap->begin();
                               joinMapEndIter = curJoinMap->end();
                               posInRecordList = 0;
@@ -682,13 +682,13 @@ public:
                               }
                           }
                       }
-                      std :: cout << "finished JoinMap at pos=" << pos << std :: endl;
+                      //std :: cout << "finished JoinMap at pos=" << pos << std :: endl;
                       curJoinMap = nullptr;
                       
                    } 
                    if ((curJoinMap == nullptr) && (pos == iterateOverMe->size())) {
                         // this means that we got to the end of the vector
-                        std :: cout <<"finished a vector" << std :: endl;
+                        //std :: cout <<"finished a vector" << std :: endl;
                         lastRec = myRec;
                         lastPage = myPage;
                         // try to get another vector
@@ -706,8 +706,8 @@ public:
 
                                     hashColumn->resize (overallCounter);
                                     eraseEnd <RHSType> (overallCounter, 0, columns);
-                                    std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
-                                    std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
+                                    //std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
+                                    //std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
                                     return output;
                                     
                                 } else {
@@ -807,7 +807,7 @@ public:
                                     //std :: cout << counter << ": Shuffler: myMap.size()=" << myMap.size() << std :: endl;
                                 } catch (NotEnoughSpace &n) {
                                     myMap.setUnused (myHash);
-                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    std :: cout << "Run out of space in shuffling, to allocate a new page" << std :: endl;
                                     delete (myList);
                                     return false;
                                 }
@@ -816,7 +816,7 @@ public:
                                 try {
                                     temp = &(myMap.push(myHash));
                                 } catch (NotEnoughSpace &n) {
-                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    std :: cout << "Run out of space in shuffling, to allocate a new page!" << std :: endl;
                                     delete (myList);
                                     return false;
                                 }
@@ -824,7 +824,7 @@ public:
                                     packData (*temp, ((*myList)[i]));
                                 } catch (NotEnoughSpace &n) {
                                     myMap.setUnused (myHash);
-                                    std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
+                                    std :: cout << "Run out of space in shuffling, to allocate a new page" << std :: endl;
                                     delete (myList);
                                     return false;
                                 }

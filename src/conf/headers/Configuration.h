@@ -39,11 +39,11 @@
 using namespace std;
 
 #ifndef DEFAULT_PAGE_SIZE
-#define DEFAULT_PAGE_SIZE ((size_t)(256)*(size_t)(1024)*(size_t)(1024))
+#define DEFAULT_PAGE_SIZE ((size_t)(64)*(size_t)(1024)*(size_t)(1024))
 #endif
 
 #ifndef DEFAULT_NET_PAGE_SIZE
-#define DEFAULT_NET_PAGE_SIZE DEFAULT_PAGE_SIZE-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID))
+#define DEFAULT_NET_PAGE_SIZE DEFAULT_PAGE_SIZE-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int))
 #endif
 
 #ifndef DEFAULT_MAX_CONNECTIONS
@@ -69,7 +69,7 @@ using namespace std;
 
 //unit: KB
 #ifndef DEFAULT_MEM_SIZE
-#define DEFAULT_MEM_SIZE ((size_t)(16)*(size_t)(1024)*(size_t)(1024))
+#define DEFAULT_MEM_SIZE ((size_t)(68)*(size_t)(1024)*(size_t)(1024))
 #endif
 
 #ifndef DEFAULT_NUM_CORES

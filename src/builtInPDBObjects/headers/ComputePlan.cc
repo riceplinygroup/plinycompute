@@ -301,12 +301,12 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         //std :: string sourceTupleSetName = buildTheseTupleSets[0];
 
         std :: string producerName = allComps.getProducingAtomicComputation (buildTheseTupleSets[0])->getComputationName ();
-        std :: cout << "producerName = " << producerName << std :: endl;
+        //std :: cout << "producerName = " << producerName << std :: endl;
 
         // and get the schema for the output TupleSet objects that it is supposed to produce
         TupleSpec &origSpec = allComps.getProducingAtomicComputation (sourceTupleSetName)->getOutput ();
 
-        std :: cout << "origSpec: " << origSpec << std :: endl;
+        //std :: cout << "origSpec: " << origSpec << std :: endl;
 
         // now we are going to ask that particular node for the compute source
         ComputeSourcePtr computeSource = myPlan->getNode (producerName).getComputation ().getComputeSource (origSpec, *this);
@@ -318,7 +318,7 @@ inline PipelinePtr ComputePlan :: buildPipeline (std :: vector<std :: string> bu
         TupleSpec targetProjection;
         TupleSpec targetAttsToOpOn;
 
-        std :: cout << "targetComputationName was " << targetComputationName << "\n";
+        //std :: cout << "targetComputationName was " << targetComputationName << "\n";
         if (targetComputationName.find("SelectionComp") == std :: string :: npos) {
 
             // and get the schema for the output TupleSet objects that it is supposed to produce

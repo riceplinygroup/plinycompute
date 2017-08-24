@@ -413,23 +413,23 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              while (iter->hasNext()) {
                 page = iter->next();
                 if (page != nullptr) {
-                    PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                    //PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                     //to get the map on the page 
                     void * bytes = page->getBytes();
                     Handle<Object> theOtherMap = ((Record <Handle<Object>> *) bytes)->getRootObject();
                     Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
                     //to merge the two maps
-                    PDB_COUT << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
+                    //PDB_COUT << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
                     merger->writeOut(theOtherMap, myMap);
-                    PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                    //PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
                     proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-                    PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                    //PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
 
-               } else {
+               } /*else {
                     PDB_COUT << "####Scanner got a null page" << std :: endl;
-               }
+               }*/
              }
-             PDB_COUT << "To get record" << std :: endl;
+             //PDB_COUT << "To get record" << std :: endl;
              getRecord(myMap);
 
              getAllocator().setPolicy(AllocatorPolicy :: defaultAllocator);
@@ -985,7 +985,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          while (iter->hasNext()) {
                              page = iter->next();
                              if (page != nullptr) {
-                                  std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                                  //std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                                   //to get the map on the page 
                                   void * bytes = page->getBytes();
                                   Handle<Object> mapsToMerge = ((Record<Handle<Object>> *)bytes)->getRootObject();
@@ -1091,13 +1091,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                      while (iter->hasNext()) {
                          page = iter->next();
                          if (page != nullptr) {
-                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
+                             //PDB_COUT << "Scanner got a non-null page" << std :: endl;
                              int k;
                              for (k = 0; k < numPartitions; k++) {
                                  page->incRefCount();
                              }
                              for (k = 0; k < numPartitions; k++) {
-                                PDB_COUT << "add page to the " << k << "-th buffer" << std :: endl;
+                                //PDB_COUT << "add page to the " << k << "-th buffer" << std :: endl;
                                 hashBuffers[k]->addPageToTail(page);
                              }
 
