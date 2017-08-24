@@ -350,7 +350,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
            Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (computation);
            join->setIterator (iterators.at(i));
            join->setProxy(proxy);
-           join->setBatchSize(batchSize);
+           if (join->getBatchSize() == 0) {
+               join->setBatchSize(3);
+           }
            join->setPartitionId(i);
            join->setNumPartitions(this->jobStage->getNumTotalPartitions());
            join->setNumNodes(this->jobStage->getNumNodes());
