@@ -106,8 +106,12 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                                 //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for lockDirtyPageSet()...");
 				PDB_COUT<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
                          }
-
+#ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
                          if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
+#else 
+                          if((page->getRawBytes() != nullptr)&&(page->isInEviction()==true)) {
+#endif
+
                              //remove the page from cache!
                              PDB_COUT << "to free the page!\n";
 		             this->server->getSharedMem()->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
@@ -124,7 +128,11 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                          }
                          */
                          //remove the page from cache!
+#ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
                          if((page->getRefCount()==0)&&(page->isInEviction()==true)) {
+#else
+                         if(page->isInEviction()==true) {
+#endif
                              this->server->getCache()->removePage(key);
                          } 
                          else {
