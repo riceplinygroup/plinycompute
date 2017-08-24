@@ -617,6 +617,15 @@ public:
                         lastPage = nullptr;
                 }
 
+                size_t posToRecover = pos;
+                Handle<JoinMap<RHSType>> curJoinMapToRecover = curJoinMap;
+                JoinMapIterator<RHSType>  curJoinMapIterToRecover = curJoinMapIter;
+                JoinMapIterator<RHSType> joinMapEndIterToRecover = joinMapEndIter;
+                size_t posInRecordListToRecover = posInRecordList;
+                JoinRecordList<RHSType> * myListToRecover = myList;
+                size_t myListSizeToRecover = myListSize;
+                size_t myHashToRecover = myHash;
+
                 int overallCounter = 0;
                 hashColumn->clear();
                 while (true) {
@@ -655,7 +664,19 @@ public:
                       }
                       while (curJoinMapIter != joinMapEndIter) { 
                           for (size_t i = posInRecordList; i < myListSize; i++) {
-                              unpack ((*myList)[i], overallCounter, 0, columns);
+                              try {
+                                  unpack ((*myList)[i], overallCounter, 0, columns);
+                              } catch (NotEnoughSpace &n) {
+                                  pos = posToRecover;
+                                  curJoinMap = curJoinMapToRecover;
+                                  curJoinMapIter = curJoinMapIterToRecover;
+                                  joinMapEndIter = joinMapEndIterToRecover;
+                                  posInRecordList = posInRecordListToRecover;
+                                  myList = myListToRecover;
+                                  myListSize = myListSizeToRecover;
+                                  myHash = myHashToRecover;
+                                  throw n;
+                              }
                               //std :: cout << "unpacked one tuple with myHash=" << myHash << " and overallCounter=" << overallCounter << std :: endl;
                               hashColumn->push_back(myHash);
                               posInRecordList++;
@@ -726,9 +747,10 @@ public:
 
 
         ~PartitionedJoinMapTupleSetIterator () {
-
+     
                 // if lastRec is not a nullptr, then it means that we have not yet freed it
                 if (lastRec != nullptr)
+                        makeObjectAllocatorBlock (4096, true);
                         doneWithVector (lastPage);
                 lastRec = nullptr;
                 myPage = nullptr;

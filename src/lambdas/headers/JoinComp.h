@@ -482,7 +482,13 @@ public:
                              SetID setId = (SetID) (*((SetID *)(curBytes)));
                              freeMe->decEmbeddedRefCount();
                              if (freeMe->getEmbeddedRefCount() == 0) {
-                                 this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
+                                 try {
+                                     this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
+                                 } catch (NotEnoughSpace &n) {
+                                     makeObjectAllocatorBlock (4096, true);
+                                     this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
+                                     throw n;  
+                                 }
                              }
                         }
                     },
