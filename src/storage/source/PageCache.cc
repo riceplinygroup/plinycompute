@@ -680,13 +680,16 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                 //cout << "find the key!\n";
 		PDBPagePtr page = this->cache->at(key);
                 //cout << "got the page!\n";
+#ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
 		if (page->getRefCount() > 0) {
                         cout << "can't be unpinned due to non-zero reference count\n";
 			this->logger->writeLn(
 					"LRUPageCache: can not evict page because it has been pinned by at least one client");
 			this->logger->writeInt(page->getPageID());
 			return false;
-		} else {
+		} else 
+#endif
+                      {
                         
                         page->setPinned(false);
                         if((tryFlushOrNot == true) && (page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
