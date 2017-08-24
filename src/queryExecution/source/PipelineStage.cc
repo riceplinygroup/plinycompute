@@ -609,6 +609,11 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server) {
 //combinerBuffers can be empty if the pipeline doesn't need combining
 void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector<PageCircularBufferPtr> sinkBuffers, SetSpecifierPtr outputSet) {
     //std :: cout << "Pipeline network is running" << std :: endl;
+#ifdef ENABLE_LARGE_GRAPH
+    UseTemporaryAllocationBlock tempBlock {128*1024*1024};
+#else
+    UseTemporaryAllocationBlock tempBlock {32*1024*1024};
+#endif
     bool success;
     std :: string errMsg;
     int numPartitions = 0; 
@@ -622,6 +627,9 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
 
     //to get computations
     Handle<ComputePlan> plan = this->jobStage->getComputePlan(); 
+    plan->nullifyPlanPointer();
+    PDB_COUT << "to deep copy ComputePlan object" << std :: endl;
+    Handle<ComputePlan> newPlan = deepCopyToCurrentAllocationBlock<ComputePlan>(plan);
     bool isHashPartitionedJoinProbing = false;
     Handle<Computation> computation = nullptr;
     std :: vector <std :: string> buildTheseTupleSets;
@@ -630,17 +638,17 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
     std :: string sourceSpecifier = jobStage->getSourceTupleSetSpecifier();
     PDB_COUT << "Source tupleset name=" << sourceSpecifier << std :: endl;
     if (buildTheseTupleSets[0] != sourceSpecifier) {
-         std :: string producerComputationName = plan->getProducingComputationName(buildTheseTupleSets[0]);
+         std :: string producerComputationName = newPlan->getProducingComputationName(buildTheseTupleSets[0]);
          PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
-         computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
+         computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
          if (computation->getComputationType() == "JoinComp") {
              isHashPartitionedJoinProbing = true;
          }
     }
     if (isHashPartitionedJoinProbing == false) {
-         std :: string producerComputationName = plan->getProducingComputationName(sourceSpecifier);
+         std :: string producerComputationName = newPlan->getProducingComputationName(sourceSpecifier);
          PDB_COUT << "Producer computation name=" << producerComputationName << std :: endl;
-         computation = plan->getPlan()->getNode(producerComputationName).getComputationHandle();
+         computation = newPlan->getPlan()->getNode(producerComputationName).getComputationHandle();
     }
 
 
