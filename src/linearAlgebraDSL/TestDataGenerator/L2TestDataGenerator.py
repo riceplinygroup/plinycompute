@@ -35,7 +35,7 @@ fileNameX = "./src/linearAlgebraDSL/TestDataGenerator/L2_X_"+str(data_num)+"_"+s
 blocks_X = open(fileNameX, "w")
 fileNamey = "./src/linearAlgebraDSL/TestDataGenerator/L2_y_"+str(data_num)+"_"+str(blockRowSize)+".data"
 blocks_y = open(fileNamey, "w")
-code = open("./src/linearAlgebraDSL/DSLSamples/Task02_L2_"+str(int(time.time()))+".pdml", "w")
+code = open("./src/linearAlgebraDSL/DSLSamples/Task02_L2_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
 
 
 print "data_num: " + str(data_num) + "  dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
