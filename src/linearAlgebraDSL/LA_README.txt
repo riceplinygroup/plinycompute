@@ -6,7 +6,7 @@ First run: 
 ************************************************************************************
 python ./src/linearAlgebraDSL/TestDataGenerator/GramTestDataGenerator.py N1 N2 N3 N4 
 ************************************************************************************
-To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size, N2 is the matrix col size, N3 is the block row size, N4 is the block col size. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task01_Gram_XXX.pdml, where XXX is the timestamp to prevent overwriting the same file. 
+To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size, N2 is the matrix col size, N3 is the block row size, N4 is the block col size. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task01_Gram_$N1_$N2_$N3_$N4.pdml. 
 
 Then run: 
 *************************************************************************************************************
@@ -19,7 +19,7 @@ First run: 
 **********************************************************************************
 python ./src/linearAlgebraDSL/TestDataGenerator/L2TestDataGenerator.py N1 N2 N3 N4 
 **********************************************************************************
-To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size for X, N2 is the matrix col size for X, N3 is the block row size for X, N4 is the block col size for X. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task02_L2_XXX.pdml, where XXX is the timestamp to prevent overwriting the same file. 
+To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size for X, N2 is the matrix col size for X, N3 is the block row size for X, N4 is the block col size for X. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task02_L2_$N1_$N2_$N3_$N4.pdml, where XXX is the timestamp to prevent overwriting the same file. 
 
 Then run: 
 ***********************************************************************************************************
@@ -32,7 +32,7 @@ First run: 
 ************************************************************************************************
 python ./src/linearAlgebraDSL/TestDataGenerator/NearestNeighbourTestDataGenerator.py N1 N2 N3 N4 
 ************************************************************************************************
-To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size for X, N2 is the matrix col size for X, N3 is the block row size for X, N4 is the block col size for X. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task03_NN_XXX.pdml, where XXX is the timestamp to prevent overwriting the same file. 
+To generate the simulated data and code for my linear algebra DSL, where N1 is the matrix row size for X, N2 is the matrix col size for X, N3 is the block row size for X, N4 is the block col size for X. The generated data will be located in ./src/linearAlgebraDSL/TestDataGenerator/, while the generated data will be located in /src/linearAlgebraDSL/DSLSamples/Task03_NN_$N1_$N2_$N3_$N4.pdml, where XXX is the timestamp to prevent overwriting the same file. 
 
 Then run: 
 ***********************************************************************************************************

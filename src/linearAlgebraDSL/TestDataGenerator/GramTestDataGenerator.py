@@ -31,7 +31,7 @@ blockColNum = dim/blockColSize
 #lines_mtd = open("./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(data_num)+"_"+str(dim)+".csv.mtd", "w")
 fileName = "./src/linearAlgebraDSL/TestDataGenerator/Gram_M_"+str(blockRowSize)+"_"+str(blockColSize)+"_"+str(blockRowNum)+"_"+str(blockColNum)+".data"
 blocks = open(fileName,"w")
-code = open("./src/linearAlgebraDSL/DSLSamples/Task01_Gram_"+str(int(time.time()))+".pdml", "w")
+code = open("./src/linearAlgebraDSL/DSLSamples/Task01_Gram_"+str(data_num)+"_"+str(dim)+"_"+str(blockRowSize)+"_"+str(blockColSize)+".pdml", "w")
 
 
 print "data_num: " + str(data_num) + "	dim: " + str(dim) + "  block row size: " +str(blockRowSize) + "  block col size: " + str(blockColSize) + "  block row number: "+ str(blockRowNum) +"  block col number: "+str(blockColNum)
