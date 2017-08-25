@@ -310,6 +310,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
    //register a handler to process the BroadcastJoinBuildHTJobStage message
    forMe.registerHandler (BroadcastJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler<BroadcastJoinBuildHTJobStage>>(
           [&] (Handle<BroadcastJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+
+             getAllocator().cleanInactiveBlocks((size_t)(67108844));
+             getAllocator().cleanInactiveBlocks((size_t)(12582912));
+             getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+             getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+             const UseTemporaryAllocationBlock block {(size_t)((size_t)32 * (size_t)1024 * (size_t)1024)};
              bool success;
              std :: string errMsg;
              PDB_COUT << "Backend got Broadcast JobStage message with Id=" << request->getStageId() << std :: endl;
@@ -441,7 +447,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              }
              // return result to frontend
              PDB_COUT << "to send back reply" << std :: endl;
-             const UseTemporaryAllocationBlock block{1024};
+             const UseTemporaryAllocationBlock block1 {1024};
              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
              // return the result
              success = sendUsingMe->sendObject (response, errMsg);
@@ -453,6 +459,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
    //register a handler to process the AggregationJobStge message
    forMe.registerHandler (AggregationJobStage_TYPEID, make_shared<SimpleRequestHandler<AggregationJobStage>> (
           [&] (Handle<AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+              getAllocator().cleanInactiveBlocks((size_t)(67108844));
+              getAllocator().cleanInactiveBlocks((size_t)(12582912));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+              const UseTemporaryAllocationBlock block{32*1024*1024};
               bool success;
               std :: string errMsg;
 
@@ -539,8 +550,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          std :: string out = getAllocator().printInactiveBlocks();
                          logger->warn(out);
                          PDB_COUT << out << std :: endl;                  
-                         //getAllocator().cleanInactiveBlocks((size_t)(67108844));
-                         //getAllocator().cleanInactiveBlocks((size_t)(12582912));
+                         getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                         getAllocator().cleanInactiveBlocks((size_t)(12582912));
+                         getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+                         getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
                          getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
                          pthread_mutex_lock(&connection_mutex);
                          PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
@@ -855,7 +868,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
     
              // return result to frontend
              PDB_COUT << "to send back reply" << std :: endl;
-             const UseTemporaryAllocationBlock block{1024};
+             const UseTemporaryAllocationBlock block1{1024};
              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
              // return the result
              success = sendUsingMe->sendObject (response, errMsg);
@@ -870,6 +883,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
     //register a handler to process the HashPartitionedJoinBuildHTJobStage message
     forMe.registerHandler (HashPartitionedJoinBuildHTJobStage_TYPEID, make_shared<SimpleRequestHandler<HashPartitionedJoinBuildHTJobStage>> (
             [&] (Handle<HashPartitionedJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+              getAllocator().cleanInactiveBlocks((size_t)(67108844));
+              getAllocator().cleanInactiveBlocks((size_t)(12582912));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+              const UseTemporaryAllocationBlock block{32*1024*1024};
               bool success;
               std :: string errMsg;
 
@@ -1139,7 +1157,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              // return result to frontend
              PDB_COUT << "to send back reply" << std :: endl;
-             const UseTemporaryAllocationBlock block{1024};
+             const UseTemporaryAllocationBlock block1 {1024};
              Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (success, errMsg);
              // return the result
              success = sendUsingMe->sendObject (response, errMsg);
@@ -1152,6 +1170,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
     //register a handler to process the TupleSetJobStage message
     forMe.registerHandler (TupleSetJobStage_TYPEID, make_shared<SimpleRequestHandler<TupleSetJobStage>> (
             [&] (Handle<TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
+                getAllocator().cleanInactiveBlocks((size_t)(67108844));
+                getAllocator().cleanInactiveBlocks((size_t)(12582912));
+                getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+                getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
                 PDB_COUT << "Backend got Tuple JobStage message with Id=" << request->getStageId() << std :: endl;
                 request->print();
                 bool res = true;
