@@ -299,7 +299,7 @@ public:
 
 	~JoinProbe () {
 		if (columns != nullptr)
-			delete columns;
+			delete [] columns;
 	}
 
 	// when we probe a hash table, a subset of the atts that we need to put into the output stream are stored in the hash table... the positions
@@ -896,7 +896,7 @@ public:
 
         ~PartitionedJoinSink () {
                 if (columns != nullptr)
-                        delete columns;
+                        delete [] columns;
         }
 
         PartitionedJoinSink (int numPartitionsPerNode, int numNodes, TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &additionalAtts, std :: vector <int> &whereEveryoneGoes) :
@@ -1042,7 +1042,7 @@ public:
 
 	~JoinSink () {
 		if (columns != nullptr)
-			delete columns;
+			delete [] columns;
 	}
 
 	JoinSink (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &additionalAtts, std :: vector <int> &whereEveryoneGoes) :
