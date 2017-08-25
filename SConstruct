@@ -45,7 +45,7 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread')
     if 'lda' in COMMAND_LINE_TARGETS:
-       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm')    
+       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm -lsnappy')    
     common_env.Replace(CXX = "clang++")
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
@@ -56,7 +56,8 @@ common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=10000')
-common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
+common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
+#common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
 # common_env.Append(CCFLAGS='-DCLEAR_SET')
 # common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
