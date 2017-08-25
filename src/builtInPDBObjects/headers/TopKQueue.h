@@ -24,6 +24,10 @@
 
 namespace pdb {
 
+// this class is used to access items from the TopKQueue class
+template <class Score, class ValueType> 
+class ScoreValuePair;
+
 // template class that is used by top-K aggregation... a top-k aggregation query
 // returns one of these queues, containing the items with the top-K largest scores
 
@@ -53,7 +57,7 @@ private:
 	// the offset (in bytes) from the start of the object until tempValue
 	unsigned valueOffset;
 
-	// the number of items we can score
+	// the number of items we can store
 	unsigned k = 1;
 
 	// in the case where there is just one item, these store them
@@ -96,11 +100,32 @@ public:
 	// merges the two queues, returning this one
 	TopKQueue <Score, ValueType> &operator + (TopKQueue <Score, ValueType> &addMeIn);
 
-	// gets all of the scores
-	Handle <Vector <Score>> &getScores ();
+	// access the i^th item in the queue
+	ScoreValuePair <Score, ValueType> operator [] (unsigned i);	
 
-	// gets all of the values
-	Handle <Vector <ValueType>> &getValues ();
+	// get the numer of items in the queue
+	unsigned size ();
+};
+
+template <class Score, class ValueType> 
+class ScoreValuePair {
+
+	Score &myScore;
+	ValueType &myValue;
+
+public:
+
+	ScoreValuePair (ScoreValuePair &fromMe) : myScore (fromMe.myScore), myValue (fromMe.myValue) {}
+
+	ScoreValuePair (Score &myScore, ValueType &myValue) : myScore (myScore), myValue (myValue) {}
+
+	Score &getScore () {
+		return myScore;
+	}
+
+	ValueType &getValue () {
+		return myValue;
+	}
 };
 
 }

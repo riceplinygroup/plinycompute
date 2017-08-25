@@ -126,7 +126,7 @@ void PDBServer::listen() {
         serv_addr.sin_port = htons(portNumber);
         int retVal = ::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (serv_addr));
         if (retVal < 0) {
-            myLogger->error("PDBServer: could not bind to local socket");
+            myLogger->error("PDBServer: could not bind to internet socket");
             myLogger->error(strerror(errno));
             close(sockFD);
             exit(0);

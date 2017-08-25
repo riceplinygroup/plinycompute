@@ -78,10 +78,15 @@ int main (int argc, char * argv[]) {
 	if (registerSharedLibs) {
 
 		std :: string errMsg;
-		catalogClient.registerType ("libraries/libEmpWithVector.so", errMsg);
-		catalogClient.registerType ("libraries/libTopKTest.so", errMsg);
-		catalogClient.registerType ("libraries/libScanEmpWithVector.so", errMsg);
-		catalogClient.registerType ("libraries/libWriteEmpWithVector.so", errMsg);
+		bool result = true;
+		result = result && catalogClient.registerType ("libraries/libEmpWithVector.so", errMsg);
+		result = result && catalogClient.registerType ("libraries/libTopKTest.so", errMsg);
+		result = result && catalogClient.registerType ("libraries/libScanEmpWithVector.so", errMsg);
+		result = result && catalogClient.registerType ("libraries/libWriteEmpWithVector.so", errMsg);
+		if (!result) {
+			std :: cout << "Registering type failed: " << errMsg << "\n";
+			exit (1);
+		}
 	}
 
 	// if we add data
@@ -93,6 +98,13 @@ int main (int argc, char * argv[]) {
 	if (numOfMb > 0) {
 
 		if (createNewDBAndSet) {
+
+			if (!client.createDatabase ("topK_db", errMsg)) {
+				cout << "Not able to create database: " + errMsg;
+				exit (-1);
+			} else {
+				cout << "Created database.\n";
+			}
 
 			if (!client.createSet <EmpWithVector> ("topK_db", "topK_set", errMsg)) {
 				cout << "Not able to create data set: " + errMsg;
@@ -138,10 +150,8 @@ int main (int argc, char * argv[]) {
 						return -1;
 					} else {
 
-						if (j == numOfMb) {
-							break;
-						}
 						std :: cout << "Added " << j << " EmpWithVector objects to the database.\n";
+						break;
 					}
 				}
 			}
@@ -149,9 +159,11 @@ int main (int argc, char * argv[]) {
 	}
 
 	// now we create the output set
+	if (!client.removeSet ("topK_db", "topKOutput_set", errMsg)) {
+		cout << "Not able to delete output data set: " + errMsg;
+	}
 	if (!client.createSet <TopKQueue <double, Handle <EmpWithVector>>> ("topK_db", "topKOutput_set", errMsg)) {
 		cout << "Not able to create output data set: " + errMsg;
-		exit (-1);
 	}
 
 	// for building the query
@@ -164,16 +176,16 @@ int main (int argc, char * argv[]) {
 	}
 
 	// connect to the query client
-	QueryClient myClient (8108, "localhost", clientLogger, true);
 
 	// make the query graph
 	Handle <Computation> myInitialScanSet = makeObject <ScanEmpWithVector> ("topK_db", "topK_set");
-	Handle <Computation> myQuery = makeObject <TopKTest> (query);
+	Handle <Computation> myQuery = makeObject <TopKTest> (query, 10);
 	myQuery->setInput (myInitialScanSet);
 	Handle <Computation> myWriter = makeObject <WriteEmpWithVector> ("topK_db", "topKOutput_set");
 	myWriter->setInput (myQuery);
 
 	// execute the query
+	QueryClient myClient (8108, "localhost", clientLogger, true);
         if (!myClient.executeComputations (errMsg, myWriter)) {
             std :: cout << "Query failed. Message was: " << errMsg << "\n";
             return 0;
@@ -183,22 +195,21 @@ int main (int argc, char * argv[]) {
 	SetIterator <TopKQueue <double, Handle <EmpWithVector>>> result = 
 		myClient.getSetIterator <TopKQueue <double, Handle <EmpWithVector>>> ("topK_db", "topKOutput_set");
 	for (auto &a : result) {
-		int size = a->getScores ()->size ();
-		std :: cout << "Got back " << size << " items from the top-k query.\n";
+		std :: cout << "Got back " << a->size () << " items from the top-k query.\n";
 		std :: cout << "These items are:\n";
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < a->size (); i++) {
+			std :: cout << "score: " << (*a)[i].getScore () << "\n";
 			std :: cout << "vector: ";
-			for (int j = 0; j < a->getScores ()->size (); j++) {
-				std :: cout << (*(a->getScores ()))[i] << " ";
+			for (int j = 0; j < (*a)[i].getValue ()->getVector ().size (); j++) {
+				std :: cout << ((*a)[i].getValue ()->getVector ())[j] << " ";
 			}
-			std :: cout << "emp: " ;
-			(*(a->getValues ()))[i]->getEmp ().print ();
-			std :: cout << "\n";
+			std :: cout << "\nemp ";
+			(*a)[i].getValue ()->getEmp ().print ();
+			std :: cout << "\n\n";
 		}
 	}
 
 	// now, remove the output set
-	myClient.deleteSet ("topK_db", "topKOutput_set");
         int code = system ("scripts/cleanupSoFiles.sh");
         if (code < 0) {
             std :: cout << "Can't cleanup so files" << std :: endl;

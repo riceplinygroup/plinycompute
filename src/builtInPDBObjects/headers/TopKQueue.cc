@@ -82,6 +82,9 @@ void TopKQueue <Score, ValueType> :: setUpAndCopyFrom (void *target, void *sourc
 	to->allScores.setOffset (-1);
 	to->allValues.setOffset (-1);
 
+	// copy the key
+	to->myKey = from->myKey;
+
 	// set up the type info
 	to->scoreTypeInfo = from->scoreTypeInfo;
 	to->valueTypeInfo = from->valueTypeInfo;
@@ -170,7 +173,7 @@ void TopKQueue <Score, ValueType> :: insert (Score &score, ValueType &value) {
 	ValueType *values = allValues->c_ptr ();
 
 	int current = allScores->size () - 1;
-	while (current >= 0 && scores[current] < scores[(current - 1) / 2]) {
+	while (current > 0 && scores[current] < scores[(current - 1) / 2]) {
 		swap (current, current / 2);
 		current = (current - 1) / 2;
 	}
@@ -250,9 +253,9 @@ TopKQueue <Score, ValueType> &TopKQueue <Score, ValueType> ::operator + (TopKQue
 	}
 
 	// in this case, just add in the other guy
-	int len = allScores->size ();
-	Score *scores = allScores->c_ptr ();
-	ValueType *values = allValues->c_ptr ();
+	int len = addMeIn.allScores->size ();
+	Score *scores = addMeIn.allScores->c_ptr ();
+	ValueType *values = addMeIn.allValues->c_ptr ();
 	for (int i = 0; i < len; i++) {
 		insert (scores[i], values[i]);
 	}
@@ -261,13 +264,34 @@ TopKQueue <Score, ValueType> &TopKQueue <Score, ValueType> ::operator + (TopKQue
 }
 
 template <class Score, class ValueType>
-Handle <Vector <Score>> &TopKQueue <Score, ValueType> :: getScores () {
-	return allScores;
+unsigned TopKQueue <Score, ValueType> :: size () {
+	return allValues->size ();
 }
 
 template <class Score, class ValueType>
-Handle <Vector <ValueType>> &TopKQueue <Score, ValueType> :: getValues () {
-	return allValues;
+ScoreValuePair <Score, ValueType> TopKQueue <Score, ValueType> :: operator [] (unsigned i) {
+	if (empty) {
+		std :: cout << "You tried to extract a value from an empty queue!\n";
+		exit (1);
+	}
+	
+	if (allValues == nullptr && i == 0) {
+		ScoreValuePair <Score, ValueType> temp (tempScore, tempValue);
+		return temp;
+	}
+
+	if (allValues == nullptr) {
+		std :: cout << "You tried to extract a value from past the end of the queue!\n";
+		exit (1);
+	}
+
+	if (i < allValues->size ()) {
+		ScoreValuePair <Score, ValueType> temp ((*allScores)[i], (*allValues)[i]);
+		return temp;
+	}
+
+	std :: cout << "You tried to extract a value from past the end of the queue!\n";
+	exit (1);
 }
 
 }

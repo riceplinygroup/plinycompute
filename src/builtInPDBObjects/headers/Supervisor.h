@@ -82,7 +82,7 @@ public:
 		return me;
 	}
 
-        void print () override {
+        void print () final {
                 me->print ();
                 std :: cout << "\nPlus have " << myGuys.size () << " employees.\n";
 		/*if (myGuys.size () > 0) {
