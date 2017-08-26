@@ -653,20 +653,21 @@ common_env.Depends(pdbTest, [
 ])
 
 #GMM
-gmmTest=common_env.Command('gmm', 'scripts/testgmm.py', 'python $SOURCE -o $TARGET')
-common_env.Depends(gmmTest, [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',  
 
-  'bin/TestGmm21',
+#gmmTest=common_env.Command('gmm', 'scripts/testgmm.py', 'python $SOURCE -o $TARGET')
+#common_env.Depends(gmmTest, [
+#  'bin/CatalogTests',
+#  'bin/pdb-cluster',
+#  'bin/pdb-server',  
 
-  'libraries/libGmmNewComp.so',
+#  'bin/TestGmm21',
+
+#  'libraries/libGmmNewComp.so',
   #'libraries/libGmmModel.so',		
-  'libraries/libGmmAggregate.so',	
+#  'libraries/libGmmAggregate.so',	
 
-  'libraries/libScanDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so',
+#  'libraries/libScanDoubleVectorSet.so',
+#  'libraries/libGmmAggregateOutputType.so',
 
   #'libraries/libScanGmmCentroid.so',
   #'libraries/libWriteGmmCentroid.so'
