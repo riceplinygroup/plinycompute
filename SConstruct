@@ -671,7 +671,7 @@ common_env.Depends(pdbTest, [
 
   #'libraries/libScanGmmCentroid.so',
   #'libraries/libWriteGmmCentroid.so'
-])
+#])
 
 cgmm=common_env.Alias('cgmm', [
   'bin/CatalogTests',
