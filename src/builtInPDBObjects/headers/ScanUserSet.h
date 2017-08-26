@@ -44,6 +44,10 @@ public:
 
         ENABLE_DEEP_COPY
 
+        ~ScanUserSet () {
+            this->iterator = nullptr;
+            this->proxy = nullptr;
+        }
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
              //std :: cout << "ScanUserSet: getComputeSource: BATCHSIZE =" << this->batchSize << std :: endl;
@@ -67,7 +71,7 @@ public:
 
                  [&] (void * freeMe) -> void {
                      if (this->proxy != nullptr) {
-                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int));
                          char * curBytes = pageRawBytes;
                          NodeID nodeId = (NodeID) (*((NodeID *)(curBytes)));
                          curBytes = curBytes + sizeof(NodeID);
