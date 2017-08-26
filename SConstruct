@@ -46,6 +46,8 @@ elif  common_env['PLATFORM'] == 'posix':
     common_env.Append(LINKFLAGS = '-pthread')
     if 'lda' in COMMAND_LINE_TARGETS:
        common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm -lsnappy')    
+    if 'gmm' or 'cgmm' in COMMAND_LINE_TARGETS:
+       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm')    
     common_env.Replace(CXX = "clang++")
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
@@ -56,11 +58,11 @@ common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=10000')
-common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
-#common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
+#common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
+common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
 # common_env.Append(CCFLAGS='-DCLEAR_SET')
-# common_env.Append(CCFLAGS='-DPDB_DEBUG')
-common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
+#common_env.Append(CCFLAGS='-DPDB_DEBUG')
+common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
@@ -410,7 +412,7 @@ common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.
 common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
-common_env.SharedLibrary('libraries/libSumResultWriteSet.so', ['build/tpchBench/SumResultWriteSet.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
@@ -418,15 +420,10 @@ common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/Suppl
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/CountAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/CountCustomer.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
-common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
-common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
-common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc'] + all)
+
 
 
 # K-means
@@ -463,6 +460,17 @@ common_env.SharedLibrary('libraries/libWriteLDADocWordTopicAssignmentSet.so', ['
 #common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
+#GMM
+
+common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/GmmNewComp.cc'] + all)
+#common_env.SharedLibrary('libraries/libGmmModel.so', ['build/libraries/GMM/GmmModel.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
+common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
+
+common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
+#common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
@@ -575,7 +583,6 @@ common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
 common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
 common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
-common_env.Program('bin/test97', ['build/tests/Test97.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -617,8 +624,7 @@ common_env.Depends(pdbTest, [
   'bin/test52', 
   'bin/test74', 
   'bin/test79', 
-  'bin/test78',
-  'bin/test90', 
+  'bin/test78', 
   'libraries/libCartesianJoin.so', 
   'libraries/libChrisSelection.so', 
   'libraries/libEmployeeSelection.so',
@@ -643,9 +649,44 @@ common_env.Depends(pdbTest, [
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
   'libraries/libWriteSumResultSet.so',
-  'libraries/libWriteDoubleSet.so',
-  'libraries/libOptimizedEmployeeGroupBy.so',
-  'libraries/libScanOptimizedSupervisorSet.so'
+  'libraries/libWriteDoubleSet.so'
+])
+
+#GMM
+gmmTest=common_env.Command('gmm', 'scripts/testgmm.py', 'python $SOURCE -o $TARGET')
+common_env.Depends(gmmTest, [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',  
+
+  'bin/TestGmm21',
+
+  'libraries/libGmmNewComp.so',
+  #'libraries/libGmmModel.so',		
+  'libraries/libGmmAggregate.so',	
+
+  'libraries/libScanDoubleVectorSet.so',
+  'libraries/libGmmAggregateOutputType.so',
+
+  #'libraries/libScanGmmCentroid.so',
+  #'libraries/libWriteGmmCentroid.so'
+])
+
+cgmm=common_env.Alias('cgmm', [
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',  
+  'bin/TestGmm21',
+
+  'libraries/libGmmNewComp.so',
+  #'libraries/libGmmModel.so',		
+  'libraries/libGmmAggregate.so',	
+
+  'libraries/libScanDoubleVectorSet.so',
+  'libraries/libGmmAggregateOutputType.so',		 
+
+  #'libraries/libScanGmmCentroid.so',
+  #'libraries/libWriteGmmCentroid.so'
 ])
 
 lda=common_env.Alias('lda', [
@@ -677,23 +718,18 @@ lda=common_env.Alias('lda', [
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
 #  "libraries/libWriteLDATopicWordProbSet.so",
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-
-  "libraries/libScanIntSet.so"
+  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 
 
 tpch=common_env.Alias('tpch', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
   # TPCH Benchamrk 
   'libraries/libPart.so',
   'libraries/libSupplier.so',
   'libraries/libLineItem.so',
   'libraries/libOrder.so',
   'libraries/libCustomer.so',
-  'libraries/libSumResultWriteSet.so',
+  #'libraries/libCustomerSupplierPartWriteSet.so',
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPartFlat.so',
   'libraries/libSupplierData.so',
@@ -701,15 +737,8 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
   'libraries/libCountAggregation.so',
-  'libraries/libCountCustomer.so',
   'bin/tpchQuery',
-  'bin/tpchDataGenerator',
-  'bin/tpchDataGeneratorNew',
-  'bin/tpchGetCustomerCount',
-  'bin/tpchRegisterAndCreateSets',
-  'bin/tpchDataGeneratorAll',
-  'bin/tpchFlushToDisk'
-  
+  'bin/tpchDataGenerator' 
 ])
 
 
@@ -718,9 +747,7 @@ tpch=common_env.Alias('tpch', [
 common_env.Alias('tests', pdbTest)
 
 mainTests=common_env.Alias('mainTests', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
+  'bin/test18',
   'bin/test47',
   'bin/test47Join',
   'bin/test47JoinB',
@@ -768,7 +795,6 @@ mainTests=common_env.Alias('mainTests', [
   'bin/test94',
   'bin/test95',
   'bin/test96',
-  'bin/test97',
   'libraries/libStringIntPairMultiSelection.so',
   'libraries/libAllSelection.so',
   'libraries/libAllSelectionWithCreation.so',
@@ -821,6 +847,18 @@ main=common_env.Alias('main', [
   'bin/CatalogTests', 
   'bin/pdb-cluster', 
   'bin/pdb-server'
+])
+
+libKMeansTest=common_env.Alias('libKMeansTest', [
+# K-means
+  'libraries/libKMeansDataCountAggregate.so',
+  'libraries/libKMeansSampleSelection.so',
+  'libraries/libWriteDoubleVectorSet.so',
+  'libraries/libKMeansAggregate.so',
+  'libraries/libScanDoubleVectorSet.so',
+  'libraries/libWriteKMeansSet.so',
+  'libraries/libKMeansAggregateOutputType.so',
+  'libraries/libKMeansCentroid.so',
 ])
 
 libLATest=common_env.Alias('libLATest', [
@@ -886,9 +924,6 @@ libLATest=common_env.Alias('libLATest', [
 
 
 mlBench=common_env.Alias('mlBench', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
@@ -919,7 +954,6 @@ mlBench=common_env.Alias('mlBench', [
   'libraries/libLDADocument.so',
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-  "libraries/libScanIntSet.so"
+  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 Default(main)
