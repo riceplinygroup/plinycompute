@@ -88,12 +88,20 @@ public:
         if (this->refCount < 0) {
             //there is a problem:
             //reference count should always >= 0
-            pthread_mutex_unlock(&this->refCountMutex);
             PDB_COUT << "Error: page reference count < 0" << std :: endl;
             this->setPinned(false);
             this->refCount = 0;
         } else if (this->refCount == 0) {
             this->setPinned(false);
+        }
+        pthread_mutex_unlock(&this->refCountMutex);
+    }
+
+    inline void freeContent() {
+        pthread_mutex_lock(&this->refCountMutex);
+        if (this->rawBytes != nullptr) {
+            free(this->rawBytes);
+            this->rawBytes = nullptr;
         }
         pthread_mutex_unlock(&this->refCountMutex);
     }

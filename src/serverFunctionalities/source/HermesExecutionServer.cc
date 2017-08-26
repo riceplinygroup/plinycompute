@@ -61,7 +61,7 @@
 
 
 #ifndef HASH_PARTITIONED_JOIN_SIZE_RATIO
-    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 1
+    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 1.5
 #endif
 
 namespace pdb {
@@ -478,20 +478,27 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
               //get number of partitions
               int numPartitions = request->getNumNodePartitions();
+#ifdef USE_VALGRIND
+              double ratio = 0.05;
+#else
+              double ratio = 0.75;
+#endif
+
 
          #ifdef AUTO_TUNING
               size_t memSize = request->getTotalMemoryOnThisNode();
               size_t sharedMemPoolSize = conf->getShmSize();
+
 #ifdef ENABLE_LARGE_GRAPH
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024)))*(0.75)/(double)(numPartitions);
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024))- getFunctionality<HermesExecutionServer>().getHashSetsSize())*(ratio)/(double)(numPartitions);
 #else
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-(0))*(0.75)/(double)(numPartitions);
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-getFunctionality<HermesExecutionServer>().getHashSetsSize())*(ratio)/(double)(numPartitions);
 #endif
               if (memSize*((size_t)(1024)) < sharedMemPoolSize + (size_t)512*(size_t)1024*(size_t)1024) {
                   std :: cout << "WARNING: Auto tuning can not work, use default values" << std :: endl;
                   tunedHashPageSize = conf->getHashPageSize();
               }
-              //std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
+              std :: cout << "Tuned hash page size is " << tunedHashPageSize << std :: endl;
               conf->setHashPageSize(tunedHashPageSize);
          #endif
 
@@ -584,7 +591,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                      PDB_COUT << "aggregation without materialization: got one non-null page" << std :: endl;
                                      Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
                                      Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
-                                     for (int j = 0; j < inputData->size(); j++) {
+                                     int inputSize = 0;
+                                     if (inputData != nullptr) {
+                                         inputSize = inputData->size();
+                                     }
+                                     for (int j = 0; j < inputSize; j++) {
                                          //std :: cout << i << ": AggregationProcessor: got an object " << j << " in "<< inputData->size() << " objects" << std :: endl;
                                          aggregateProcessor->loadInputObject((*inputData)[j]);
                                          if (aggregateProcessor->needsProcessInput() == false) {
@@ -595,6 +606,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                              PDB_COUT << "aggregation without materialization: add output page" << std :: endl; 
                                              outBytes = aggregationSet->addPage();                                          
                                              PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
+                                             if(outBytes == nullptr) {
+                                                 std :: cout << "insufficient memory in heap" << std :: endl;
+                                                 exit(-1);
+                                             }
                                              aggregateProcessor->loadOutputPage(outBytes, aggregationSet->getPageSize());
                                          }
                                          if (aggregateProcessor->fillNextOutputPage()) {
@@ -646,8 +661,12 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                      //std :: cout << i << ": AggregationProcessor: got a non-null page for aggregation with pageId="<< page->getPageID() << ", reference count =" << page->getRefCount() << std :: endl;
                                      Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
                                      Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
-                                     
-                                     for (int j = 0; j < inputData->size(); j++) {
+                                     //to make valgrind happy
+                                     int inputSize = 0;
+                                     if (inputData != nullptr) {
+                                         inputSize = inputData->size();
+                                     } 
+                                     for (int j = 0; j < inputSize; j++) {
                                          //std :: cout << i << ": AggregationProcessor: got an object" << std :: endl;
                                          aggregateProcessor->loadInputObject((*inputData)[j]);
                                          if (aggregateProcessor->needsProcessInput() == false) {

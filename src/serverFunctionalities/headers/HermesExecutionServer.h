@@ -125,6 +125,11 @@ public:
             return this->hashSetMgr.removeHashSet(name);
         }
 
+        size_t getHashSetsSize() {
+
+            return this->hashSetMgr.getTotalSize();
+
+        }
 private:
 
         ConfigurationPtr conf;

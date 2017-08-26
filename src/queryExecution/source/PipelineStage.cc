@@ -392,7 +392,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
             }
         }
     } else {
-        //std :: cout << "info contains nothing for this stage" << std :: endl;
+        std :: cout << "info contains nothing for this stage" << std :: endl;
     }
 
     PDB_COUT << "source specifier: " << this->jobStage->getSourceTupleSetSpecifier() << std :: endl;
@@ -424,7 +424,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
         mem = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
     }
 #endif
-    //newPlan->nullifyPlanPointer();
+    newPlan->nullifyPlanPointer();
     //std :: vector < std :: string> buildTheseTupleSets;
     //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
@@ -437,7 +437,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   [] () -> std :: pair <void *, size_t> {
                       //TODO: move this to Pangea
                       PDB_COUT << "to get a new page for writing" << std :: endl;
-                      void * myPage = malloc (DEFAULT_PAGE_SIZE);
+                      void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
                       if (myPage == nullptr) {
                           std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
                       }
@@ -482,7 +482,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                   proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
                                   pageToBroadcast->decRefCount();
                                   if (pageToBroadcast->getRefCount() == 0) {
-                                     free(pageToBroadcast->getRawBytes());
+                                     pageToBroadcast->freeContent();
                                   }
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
@@ -499,15 +499,15 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  PDBPagePtr pageToSend = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   for ( k = 0; k < numNodes; k++ ) {
-                                     pageToBroadcast->incRefCount();
+                                     pageToSend->incRefCount();
                                   }
                                   for ( k = 0; k < numNodes; k++ ) {
                                      PageCircularBufferPtr buffer = sinkBuffers[k];
-                                     buffer->addPageToTail(pageToBroadcast);
+                                     buffer->addPageToTail(pageToSend);
                                   }
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
@@ -761,7 +761,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
                          if (page != nullptr) {
                              std :: cout << "Scanner got a non-null page" << std :: endl;
                              for (int j = 0; j < numPartitions; j++) {
-                                 page->incEmbeddedRefCount();
+                                 page->incRefCount();
                              }
                              for (int j = 0; j < numPartitions; j++) {
                                 std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
@@ -774,7 +774,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
               );
 
               worker->execute(myWork, sourceBuzzer);
-         }
+         } //for
 
          while (sourceCounter < 1) {
              sourceBuzzer->wait();
@@ -782,8 +782,8 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
          sourceCounter = 0;
          std :: cout << "Scanned all pages, now we close all source buffers" << std :: endl;
          
-         for ( int j = 0; j < numPartitions; j ++) {
-             PageCircularBufferPtr buffer = sourceBuffers[j];
+         for ( int i = 0; i < numPartitions; i ++) {
+             PageCircularBufferPtr buffer = sourceBuffers[i];
              buffer->close();
          }
     }
@@ -818,7 +818,11 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 #ifdef AUTO_TUNING
     size_t memSize = jobStage->getTotalMemoryOnThisNode();
     size_t sharedMemPoolSize = conf->getShmSize();
-    size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize)*(0.75)/(double)(numNodes);
+#ifndef USE_VALGRIND
+    size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-server->getHashSetsSize())*(0.8)/(double)(numNodes);
+#else
+    size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-server->getHashSetsSize())*(0.5)/(double)(numNodes);
+#endif
     if (memSize*((size_t)(1024)) < sharedMemPoolSize +  (size_t)512*(size_t)1024*(size_t)1024) {
          std :: cout << "WARNING: Auto tuning can not work for this case, we use default value" << std :: endl;
          tunedHashPageSize = conf->getHashPageSize();
@@ -912,7 +916,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   if (myCombinerPageSize > conf->getPageSize()-64) {
                           myCombinerPageSize = conf->getPageSize()-64;
                   }
-                  void * combinerPage = (void *) malloc (myCombinerPageSize * sizeof(char));
+                  void * combinerPage = (void *) calloc (myCombinerPageSize, sizeof(char));
                   if (combinerPage == nullptr) {
                       std :: cout << "Fatal Error: insufficient memory can be allocated from memory" << std :: endl;
                       exit(-1);
@@ -1085,7 +1089,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
-                              free (page->getRawBytes());
+                              page->freeContent();
                           }
                       }
                   }
@@ -1160,7 +1164,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
         PageCircularBufferIteratorPtr iter = make_shared<PageCircularBufferIterator> (i, buffer, logger);
         shuffleIters.push_back(iter);
         PDBWorkerPtr worker = server->getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-        PDB_COUT << "to run the " << i << "-th broadcasting work..." << std :: endl;
+        PDB_COUT << "to run the " << i << "-th hash partitioning work..." << std :: endl;
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
@@ -1295,7 +1299,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
-                              free (page->getRawBytes());
+                              page->freeContent();
                           }
                       }//if
                   }//while
