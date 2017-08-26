@@ -133,8 +133,6 @@ PangeaStorageServer :: PangeaStorageServer (SharedMemPtr shm,
         this->names2ids = new std :: map< std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>>();
         this->typename2id = new std :: map< std :: string, SetID>(); 
 
-
-
         //initialize meta data mutex
         pthread_mutex_init(&(this->databaseLock), nullptr);
         pthread_mutex_init(&(this->typeLock), nullptr);

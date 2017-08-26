@@ -417,11 +417,13 @@ public:
                 std :: vector < std :: string> typeList;
                 AtomicComputationPtr producer = plan.getPlan ()->getComputations ().getProducingAtomicComputation (outputScheme.getSetName ());
 		for (auto &a : outputScheme.getAtts ()) {
-
+                        if (a.find("hash")!= std::string::npos) {
+                            continue;
+                        }
 			// find the identity of the producing computation
-			//std :: cout << "finding the source of " << outputScheme.getSetName () << "." << a << "\n"; 
+			std :: cout << "finding the source of " << outputScheme.getSetName () << "." << a << "\n"; 
 			std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());	
-			//std :: cout << "got " << res.first << " " << res.second << "\n";
+			std :: cout << "got " << res.first << " " << res.second << "\n";
 
 			// and find its type... in the first case, there is not a particular lambda that we need to ask for
 			if (res.second == "") {
@@ -438,9 +440,9 @@ public:
 			} 
 		}
 
-		/*for (auto &aa : typeList) {
+		for (auto &aa : typeList) {
 			std :: cout << "Got type " << aa << "\n";
-		}*/
+		}
 
 		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
 		std :: vector <int> whereEveryoneGoes;
