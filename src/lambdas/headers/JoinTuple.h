@@ -611,7 +611,7 @@ public:
                 // we will ever reference stored in lastRec has been fluhhed through the
                 // pipeline; hence, we can kill it
 
-                if (lastRec != nullptr) {
+                if ((lastRec != nullptr)&& (lastPage != nullptr)) {
                         doneWithVector (lastPage);
                         lastRec = nullptr;
                         lastPage = nullptr;
@@ -749,10 +749,13 @@ public:
         ~PartitionedJoinMapTupleSetIterator () {
      
                 // if lastRec is not a nullptr, then it means that we have not yet freed it
-                if (lastRec != nullptr)
+                if ((lastRec != nullptr) && (lastPage != nullptr)) {
                         makeObjectAllocatorBlock (4096, true);
                         doneWithVector (lastPage);
+                }
                 lastRec = nullptr;
+                lastPage = nullptr;
+                myRec = nullptr;
                 myPage = nullptr;
         }
 
@@ -1247,7 +1250,7 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 	// we must always have one type...
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        //std :: cout << "in1Name=" << in1Name << std :: endl;
+        std :: cout << "in1Name=" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -1255,7 +1258,7 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 		typeList [in1Pos] = in1Name;
 		return std :: make_shared <JoinSingleton <JoinTuple <In1, char[0]>>> ();
 	} else {
-		//std :: cout << "Why did we not find a type?\n";
+		std :: cout << "Why did we not find a type?\n";
 		exit (1);
 	}
 }
@@ -1272,7 +1275,7 @@ typename std :: enable_if<sizeof ...(Rest) != 0 && !std :: is_base_of <JoinTuple
 
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        //std :: cout << "in1Name =" << in1Name << std :: endl;
+        std :: cout << "in1Name =" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
