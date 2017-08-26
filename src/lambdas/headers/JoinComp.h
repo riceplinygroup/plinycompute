@@ -429,7 +429,7 @@ public:
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                //std :: cout << "my type is " << myType << std :: endl;
+                                std :: cout << "my type is " << myType << std :: endl;
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
                                 } else {
@@ -446,10 +446,10 @@ public:
 		std :: vector <int> whereEveryoneGoes;
 		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 		
-		/*for (auto &aa : whereEveryoneGoes) {
+		for (auto &aa : whereEveryoneGoes) {
 			std :: cout << aa << " ";
 		}
-		std :: cout << "\n";*/
+		std :: cout << "\n";
                 return correctJoinTuple->getPartitionedSource (this->myPartitionId, 
 
                     [&] () -> PDBPagePtr {
