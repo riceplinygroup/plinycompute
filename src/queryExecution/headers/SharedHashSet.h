@@ -66,7 +66,9 @@ public:
         }
     }
 
-
+    size_t getSize() override {
+        return pageSize;
+    }
 
     //destructor
     ~ SharedHashSet () {

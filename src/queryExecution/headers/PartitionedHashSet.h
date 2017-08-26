@@ -131,6 +131,12 @@ public:
         }
     }
 
+    //get size
+    size_t getSize() override {
+        return pageSize * partitionPages.size();
+    }
+
+
 };
 
 

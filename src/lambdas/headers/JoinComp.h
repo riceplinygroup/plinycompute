@@ -480,8 +480,8 @@ public:
                              UserTypeID typeId = (UserTypeID) (*((UserTypeID *)(curBytes)));
                              curBytes = curBytes + sizeof(UserTypeID);
                              SetID setId = (SetID) (*((SetID *)(curBytes)));
-                             freeMe->decEmbeddedRefCount();
-                             if (freeMe->getEmbeddedRefCount() == 0) {
+                             freeMe->decRefCount();
+                             if (freeMe->getRefCount() == 0) {
                                  try {
                                      this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
                                  } catch (NotEnoughSpace &n) {

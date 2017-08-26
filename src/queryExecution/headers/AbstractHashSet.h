@@ -45,6 +45,9 @@ public:
     //clean up
     virtual void cleanup() = 0;
 
+    //get size
+    virtual size_t getSize() = 0;
+
 };
 
 
