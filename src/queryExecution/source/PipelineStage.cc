@@ -1333,6 +1333,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                           memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
                           makeObjectAllocatorBlock (128 * 1024, true);
                           sendData(communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          free(sendBuffer);
                       } else {
                           PDBPagePtr outputPage;
                           makeObjectAllocatorBlock (128 * 1024, true);
