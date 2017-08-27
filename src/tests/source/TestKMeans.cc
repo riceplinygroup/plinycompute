@@ -58,6 +58,8 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <sstream>
+#include <vector>
 
 #define COUT std::cout
 //#define COUT term
@@ -145,6 +147,7 @@ int main (int argc, char * argv[]) {
     int k = 3;
     int dim = 3;
     int numData = 10;
+    bool addDataFromFile = true;
 
     if (argc > 6) {
 	iter = std::stoi(argv[6]);
@@ -156,13 +159,15 @@ int main (int argc, char * argv[]) {
     }
     COUT << "The number of clusters: " << k << std :: endl;
 
+    /*
     if (argc > 8) {
 	numData = std::stoi(argv[8]);
     }
     COUT << "The number of data points: " << numData << std :: endl;
+    */
 
-    if (argc > 9) {
-	dim = std::stoi(argv[9]);
+    if (argc > 8) {
+	dim = std::stoi(argv[8]);
     }
     COUT << "The dimension of each data point: " << dim << std :: endl;
 
@@ -222,18 +227,83 @@ int main (int argc, char * argv[]) {
 
 
         if (numOfMb > 0) {
-            int numIterations = numOfMb/64;
-            COUT << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
-            int remainder = numOfMb - 64*numIterations;
-            if (remainder > 0) { 
-                numIterations = numIterations + 1; 
-            }
-            for (int num = 0; num < numIterations; num++) {
-                COUT << "Iterations: "<< num << std::endl;
-                int blockSize = 64;
-                if ((num == numIterations - 1) && (remainder > 0)){
-                    blockSize = remainder;
-                }
+		if (addDataFromFile) {
+			int blockSize = 64;
+			std :: ifstream inFile("kmeans_data");
+			std :: string line;
+			std::vector<double>   lineData;
+			bool rollback = false;
+			bool end = false;
+
+			while(!end) {
+				pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+				pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+				try {
+					
+					while(1){       
+						if (!rollback){
+						//      std::istringstream iss(line);
+							if(!std::getline(inFile, line)){
+								end = true;
+								break;
+							}
+							else {
+								lineData.clear();
+								std::stringstream  lineStream(line);
+								double value;
+								while(lineStream >> value)
+								{
+
+								    lineData.push_back(value);
+								}
+							}
+						}
+						else    
+							rollback = false;
+						pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+				//		std::vector<double>::iterator it; 
+				//		for(it = lineData.begin() ; it < lineData.end(); it++) {
+						for(int i = 0; i < lineData.size(); ++i) {
+							myData->setDouble(i, lineData[i]);
+						//	myData->data->push_back(*it);
+
+						}
+						storeMe->push_back (myData);
+						COUT << "first number: " << myData->getDouble(0) << endl;
+					}
+					
+				    COUT << "input data: " << std :: endl;
+				    for (int i=0; i<storeMe->size();i++){
+					(*storeMe)[i]->print();
+				    }
+				    end = true;
+
+				    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
+				    }
+					std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+					temp.flushData( errMsg );
+				} catch (pdb :: NotEnoughSpace &n) {
+				    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
+				    }
+				    std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
+				    rollback = false;
+				}
+				PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+
+			} // while not end
+		//            }
+			inFile.close();
+
+		    //to write back all buffered records        
+		  //  temp.flushData( errMsg );
+		}
+	}
+	else {
+		int blockSize = 64;
                 pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
                 pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
                 try {
@@ -244,21 +314,20 @@ int main (int argc, char * argv[]) {
                         pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
                         for (int j = 0; j < dim; j++){
 
-			    std::uniform_real_distribution<> unif(0, 1);
-			    bias = unif(randomGen) * 0.01;
+                            std::uniform_real_distribution<> unif(0, 1);
+                            bias = unif(randomGen) * 0.01;
                             //bias = ((double) rand() / (RAND_MAX)) * 0.01;
                             //myData->push_back(tmp);
-			    myData->setDouble(j, i%k*3 + bias);
+                            myData->setDouble(j, i%k*3 + bias);
                         }
                         storeMe->push_back (myData);
                     }
-		    /*COUT << "input data: " << std :: endl;
+                    /*COUT << "input data: " << std :: endl;
                     for (int i=0; i<storeMe->size();i++){
                         (*storeMe)[i]->print();
                     }*/
-		    
 
-                    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
+			if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
                         COUT << "Failed to send data to dispatcher server" << std :: endl;
                         return -1;
                     }
@@ -269,11 +338,12 @@ int main (int argc, char * argv[]) {
                     }
                 }
                 PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-            }
+         //   }
 
             //to write back all buffered records        
             temp.flushData( errMsg );
-        }
+
+	}
     }
     // now, create a new set in that database to store output data
 
@@ -504,11 +574,12 @@ int main (int argc, char * argv[]) {
                      }
                 }
 		*/
-
+		/*
 	    	COUT << "The model I have is: " << std :: endl;
 		for (int i = 0; i < k; i++) {
 			(*my_model)[i]->print();
-	    	}		    
+	    	}
+		*/		    
 
 		
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
@@ -561,11 +632,13 @@ int main (int argc, char * argv[]) {
 			for (int i = 0; i < dim; i++) {
 				avgData[i] = avgData[i] / dataCount;
 			}
+			/*
 			COUT << "The average of data points is : \n";
 			for (int i = 0; i < dim; i++)
 				COUT << i << ": " << avgData[i] << ' ';
 			COUT << std :: endl;
 			COUT << std :: endl;
+			*/
 			ifFirst = false;
 		}
 		else {

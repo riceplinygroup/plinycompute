@@ -850,8 +850,14 @@ main=common_env.Alias('main', [
   'bin/pdb-server'
 ])
 
-libKMeansTest=common_env.Alias('libKMeansTest', [
+KMeans=common_env.Alias('KMeans', [
 # K-means
+  'bin/CatalogServerTests',
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
+  'bin/TestKMeans',
+
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
   'libraries/libWriteDoubleVectorSet.so',
@@ -860,6 +866,10 @@ libKMeansTest=common_env.Alias('libKMeansTest', [
   'libraries/libWriteKMeansSet.so',
   'libraries/libKMeansAggregateOutputType.so',
   'libraries/libKMeansCentroid.so',
+  
+  'libraries/libWriteSumResultSet.so'
+  
+
 ])
 
 libLATest=common_env.Alias('libLATest', [
