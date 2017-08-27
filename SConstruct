@@ -62,7 +62,7 @@ common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
 #common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
 # common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
-common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.9')
+common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
