@@ -61,7 +61,7 @@
 
 
 #ifndef HASH_PARTITIONED_JOIN_SIZE_RATIO
-    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 1.5
+    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 12
 #endif
 
 namespace pdb {
@@ -572,9 +572,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          std :: string errMsg;
 
                          //get aggregate computation 
-                         PDB_COUT << i << ": to get aggregation computation" << std :: endl;
+                         std :: cout << i << ": to get aggregation computation" << std :: endl;
                          Handle<AbstractAggregateComp> aggComputation = request->getAggComputation();
-                         PDB_COUT << i << ": to deep copy aggregation computation object" << std :: endl;
+                         std :: cout << i << ": to deep copy aggregation computation object" << std :: endl;
                          Handle<AbstractAggregateComp> newAgg = deepCopyToCurrentAllocationBlock<AbstractAggregateComp>(aggComputation);
 
                          //get aggregate processor
@@ -588,7 +588,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              while(myIter->hasNext()) {
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
-                                     PDB_COUT << "aggregation without materialization: got one non-null page" << std :: endl;
+                                     std :: cout << "aggregation without materialization: got one non-null page" << std :: endl;
                                      Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
                                      Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
                                      int inputSize = 0;
@@ -596,16 +596,16 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          inputSize = inputData->size();
                                      }
                                      for (int j = 0; j < inputSize; j++) {
-                                         //std :: cout << i << ": AggregationProcessor: got an object " << j << " in "<< inputData->size() << " objects" << std :: endl;
+                                         std :: cout << i << ": AggregationProcessor: got an object " << j << " in "<< inputData->size() << " objects" << std :: endl;
                                          aggregateProcessor->loadInputObject((*inputData)[j]);
                                          if (aggregateProcessor->needsProcessInput() == false) {
                                              continue;
                                          }
                                          if (outBytes == nullptr) {
                                              //create a new partition
-                                             PDB_COUT << "aggregation without materialization: add output page" << std :: endl; 
+                                             std :: cout << "aggregation without materialization: add output page" << std :: endl; 
                                              outBytes = aggregationSet->addPage();                                          
-                                             PDB_COUT << "add a new page to hash set for partition-" << i << std :: endl;
+                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
                                              if(outBytes == nullptr) {
                                                  std :: cout << "insufficient memory in heap" << std :: endl;
                                                  exit(-1);
@@ -792,9 +792,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              }
 
              //get iterators
-             PDB_COUT << "To send GetSetPages message" << std :: endl;
+             std :: cout << "To send GetSetPages message" << std :: endl;
              std :: vector<PageCircularBufferIteratorPtr> iterators = scanner->getSetIterators(nodeId, request->getSourceContext()->getDatabaseId(), request->getSourceContext()->getTypeId(), request->getSourceContext()->getSetId());
-             PDB_COUT << "GetSetPages message is sent" << std :: endl;
+             std :: cout << "GetSetPages message is sent" << std :: endl;
              int numIteratorsReturned = iterators.size();
              if (numIteratorsReturned != numThreads) {
                  int k;
@@ -829,7 +829,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
  
              for (int j = 0; j < numThreads; j++) {
                 PDBWorkerPtr worker = getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-                PDB_COUT << "to run the " << j << "-th scan work..." << std :: endl;
+                std :: cout << "to run the " << j << "-th scan work..." << std :: endl;
                 //start threads
                 PDBWorkPtr myWork = make_shared<GenericWork> (
                 [&, j] (PDBBuzzerPtr callerBuzzer) {
@@ -840,13 +840,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                      while (iter->hasNext()) {
                          page = iter->next();
                          if (page != nullptr) {
-                             PDB_COUT << "Scanner got a non-null page" << std :: endl;
+                             std :: cout << "Scanner got a non-null page" << std :: endl;
                              int k;
                              for (k = 0; k < numPartitions; k++) {
                                  page->incRefCount();
                              }
                              for (k = 0; k < numPartitions; k++) {
-                                PDB_COUT << "add page to the " << k << "-th buffer" << std :: endl;
+                                std :: cout << "add page to the " << k << "-th buffer" << std :: endl;
                                 hashBuffers[k]->addPageToTail(page);
                              }
                        
@@ -926,7 +926,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               if (numPages == 0) {
                   numPages = 1;
               }
-              size_t hashSetSize = conf->getPageSize() * numPages * HASH_PARTITIONED_JOIN_SIZE_RATIO;
+              double sizeRatio = HASH_PARTITIONED_JOIN_SIZE_RATIO;
+              if (sizeRatio > numPartitions) {
+                  sizeRatio = numPartitions;
+              }
+              size_t hashSetSize = (double) (conf->getPageSize()) * (double) (numPages) * sizeRatio / (double) (numPartitions);
               //create hash set
               std :: string hashSetName = request->getHashSetName();
               PartitionedHashSetPtr partitionedSet = make_shared<PartitionedHashSet> (hashSetName, hashSetSize);
@@ -1017,10 +1021,10 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          Handle<Object> myMap = merger->createNewOutputContainer();
 
                          //setup an output page to store intermediate results and final output
-                         PageCircularBufferIteratorPtr iter = hashIters[i];
+                         PageCircularBufferIteratorPtr myIter = hashIters[i];
                          PDBPagePtr page = nullptr;
-                         while (iter->hasNext()) {
-                             page = iter->next();
+                         while (myIter->hasNext()) {
+                             page = myIter->next();
                              if (page != nullptr) {
                                   //std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                                   //to get the map on the page 
