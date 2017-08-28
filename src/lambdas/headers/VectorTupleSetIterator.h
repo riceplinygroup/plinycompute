@@ -146,8 +146,11 @@ public:
 	~VectorTupleSetIterator () {
 		
 		// if lastRec is not a nullptr, then it means that we have not yet freed it
-		if (lastRec != nullptr)
+		if (lastRec != nullptr) {
+                        makeObjectAllocatorBlock (4096, true);
 			doneWithVector (lastRec);
+                }
+
 		lastRec = nullptr;
 	}
 };
