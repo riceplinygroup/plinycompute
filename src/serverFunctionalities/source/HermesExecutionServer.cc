@@ -596,7 +596,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          inputSize = inputData->size();
                                      }
                                      for (int j = 0; j < inputSize; j++) {
-                                         std :: cout << i << ": AggregationProcessor: got an object " << j << " in "<< inputData->size() << " objects" << std :: endl;
+                                         //std :: cout << i << ": AggregationProcessor: got an object " << j << " in "<< inputData->size() << " objects" << std :: endl;
                                          aggregateProcessor->loadInputObject((*inputData)[j]);
                                          if (aggregateProcessor->needsProcessInput() == false) {
                                              continue;
