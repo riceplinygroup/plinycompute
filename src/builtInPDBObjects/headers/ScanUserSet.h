@@ -83,7 +83,14 @@ public:
                          curBytes = curBytes + sizeof(SetID);
                          PageID pageId = (PageID) (*((PageID *)(curBytes)));
                          PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
-                         this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page);
+                         try {
+                            this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);
+                         }
+                         catch (NotEnoughSpace &n) {
+                             makeObjectAllocatorBlock(4096, true);
+                             this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);
+                             throw n;
+                         }
                      }
                  },
 
