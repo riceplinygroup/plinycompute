@@ -1841,6 +1841,7 @@ bool PangeaStorageServer :: removeSet (std :: string dbName, std :: string setNa
         return false;
      }
 #ifdef REMOVE_SET_WITH_EVICTION
+     std :: cout << "To evict all pages in set with dbName=" << dbName << " and setName=" << setName << " to remove the set" << std :: endl;
      set->evictPages();
 #endif
      DatabaseID dbId = set->getDbID();

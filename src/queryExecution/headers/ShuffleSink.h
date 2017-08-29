@@ -83,8 +83,11 @@ public:
 		for (size_t i = 0; i < length; i++) {
 
                         hashVal = Hasher <KeyType> :: hash(keyColumn[i]);
-
-                        Map <KeyType, ValueType> & myMap = *((*writeMe)[hashVal%numPartitions]);
+#ifndef NO_MOD_PARTITION
+                        Map <KeyType, ValueType> & myMap = *((*writeMe)[(hashVal)%numPartitions]);
+#else  
+                        Map <KeyType, ValueType> & myMap = *((*writeMe)[(hashVal/numPartitions)%numPartitions]);
+#endif
 			// if this key is not already there...
 			if (myMap.count (keyColumn[i]) == 0) {
 

@@ -561,7 +561,7 @@ public:
                 if (myRec != nullptr) {
 
                     iterateOverMe = myRec->getRootObject ();
-                    Vector<Handle<JoinMap <RHSType>>> & myVec = *iterateOverMe;
+                    //Vector<Handle<JoinMap <RHSType>>> & myVec = *iterateOverMe;
                     ////std :: cout << "myVec.size()=" << myVec.size() << std :: endl;
                     //for (int i = 0; i < myVec.size(); i++) {
                       //  Handle<JoinMap<RHSType>> myMap = myVec[i];
@@ -601,20 +601,11 @@ public:
 
                 //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
                 if ((iterateOverMe == nullptr) || (isDone == true)) {
-                     //std :: cout << "PartitionedSource: I'm done" << std :: endl;
+                     /*if((lastPage == nullptr) && (lastRec == nullptr) && (myPage != nullptr)) {
+                         lastPage = myPage;
+                         lastRec = myRec;
+                     }*/
                      return nullptr;
-                }
-
-
-                // if we made it here with lastRec being a valid pointer, then it means
-                // that we have gone through an entire cycle, and so all of the data that
-                // we will ever reference stored in lastRec has been fluhhed through the
-                // pipeline; hence, we can kill it
-
-                if ((lastRec != nullptr)&& (lastPage != nullptr)) {
-                        doneWithVector (lastPage);
-                        lastRec = nullptr;
-                        lastPage = nullptr;
                 }
 
                 size_t posToRecover = pos;
@@ -629,6 +620,18 @@ public:
                 int overallCounter = 0;
                 hashColumn->clear();
                 while (true) {
+
+                  // if we made it here with lastRec being a valid pointer, then it means
+                  // that we have gone through an entire cycle, and so all of the data that
+                  // we will ever reference stored in lastRec has been fluhhed through the
+                  // pipeline; hence, we can kill it
+
+                   if ((lastRec != nullptr)&& (lastPage != nullptr)) {
+                        doneWithVector (lastPage);
+                        lastRec = nullptr;
+                        lastPage = nullptr;
+                   }
+
                    while (curJoinMap == nullptr) {
                       //std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
                       curJoinMap = (*iterateOverMe)[pos];
@@ -739,8 +742,12 @@ public:
                         iterateOverMe = myRec->getRootObject ();
                         pos = 0;
                     
-                   }                   
+                   }
+                   //our counter hasn't been full, so we continue the loop
+                                      
                 }
+                isDone = true;
+                iterateOverMe = nullptr;
                 return nullptr;
 
         }
@@ -956,7 +963,11 @@ public:
 
                 size_t length = keyColumn.size ();
                 for (size_t i = 0; i < length; i++) {
-                        size_t index = keyColumn[i] % (this->numPartitionsPerNode * this->numNodes);
+#ifndef NO_MOD_PARTITION
+                        size_t index = keyColumn[i]% (this->numPartitionsPerNode * this->numNodes);
+#else
+                        size_t index = (keyColumn[i]/(this->numPartitionsPerNode * this->numNodes)) % (this->numPartitionsPerNode * this->numNodes);
+#endif
                         size_t nodeIndex = index / this->numPartitionsPerNode;
                         size_t partitionIndex = index % this->numPartitionsPerNode;
                         JoinMap <RHSType> &myMap = *((*((*writeMe)[nodeIndex]))[partitionIndex]);
@@ -1250,7 +1261,7 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 	// we must always have one type...
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        std :: cout << "in1Name=" << in1Name << std :: endl;
+        //std :: cout << "in1Name=" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -1275,7 +1286,7 @@ typename std :: enable_if<sizeof ...(Rest) != 0 && !std :: is_base_of <JoinTuple
 
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        std :: cout << "in1Name =" << in1Name << std :: endl;
+        //std :: cout << "in1Name =" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
