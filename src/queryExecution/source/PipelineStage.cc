@@ -763,8 +763,9 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
                              for (int j = 0; j < numPartitions; j++) {
                                  page->incRefCount();
                              }
+                             std :: cout << "Initialize join source page reference count to " << page->getRefCount() << std :: endl;
                              for (int j = 0; j < numPartitions; j++) {
-                                std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
+                                //std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
                                 sourceBuffers[j]->addPageToTail(page);
                              }
                          }

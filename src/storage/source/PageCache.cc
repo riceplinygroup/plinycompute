@@ -190,7 +190,7 @@ PDBPagePtr PageCache::buildPageFromSharedMemoryData(PDBFilePtr file,
 			+ sizeof(UserTypeID) + sizeof(SetID);
 	PageID pageId = (PageID)(*(PageID *) cur);
         //cout << "buildPageFromSharedMemoryData: pageId="<<pageId<<"\n";
-	cur = cur + sizeof(PageID);
+	//cur = cur + sizeof(PageID);
 	//unsigned int numObjects = (unsigned int) (*(unsigned int *) cur);
         //cout << "internalOffset=" << internalOffset<<"\n";
 	//create a new PDBPagePtr
@@ -682,7 +682,7 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                 //cout << "got the page!\n";
 #ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
 		if (page->getRefCount() > 0) {
-                        cout << "can't be unpinned due to non-zero reference count\n";
+                        cout << "can't be unpinned due to non-zero reference count " << page->getRefCount()  << "with DatabaseID=" << page->getDbID() << ", TypeID=" << page->getTypeID() << ", SetID=" << page->getSetID() << ", PageID=" << page->getPageID() << "\n";
 			this->logger->writeLn(
 					"LRUPageCache: can not evict page because it has been pinned by at least one client");
 			this->logger->writeInt(page->getPageID());
@@ -693,7 +693,7 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                         
                         page->setPinned(false);
                         if((tryFlushOrNot == true) && (page->isDirty() == true)&&(page->isInFlush()==false)&&((page->getDbID()!=0)||(page->getTypeID()!=1))&&((page->getDbID()!=0)||(page->getTypeID()!=2))) {
-#ifdef PROFILING
+#ifdef PROFILING_CACHE
                             std :: cout << "going to unpin a dirty page...\n";
 #endif
                             //update counter
@@ -709,7 +709,7 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
 
                         }
                         else if /*((page->isDirty() == false) &&*/ (page->isInFlush()==false) {
-#ifdef PROFILING
+#ifdef PROFILING_CACHE
                             std :: cout << "going to unpin a clean page...\n";
 #endif
                             //free the page
@@ -724,7 +724,7 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                             removePage(key);
                             this->flushUnlock();
                         }
-#ifdef PROFILING
+#ifdef PROFILING_CACHE
                         std :: cout << "Storage server: evicting page from cache for dbId:" << page->getDbID() << ", typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ", tryFlushing=" << tryFlushOrNot << ".\n";
 #endif
 		}
@@ -770,6 +770,9 @@ void PageCache::evict() {
 	if (this->inEviction == true) {
 		return;
 	}
+#ifdef PROFILING
+        std :: cout << "Storage server: starting cache eviction to get more room!\n";
+#endif
 	//this->logger->writeLn("PageCache::evict(): to get lock for evictionMutex...");
         pthread_mutex_lock(&this->evictionMutex);
         //this->logger->writeLn("PageCache::evict(): got the lock for evictionMutex...");
@@ -845,6 +848,9 @@ void PageCache::evict() {
                 this->logger->debug( "PageCache::evict(): got a page, check whether it can be evicted...");
                 if((curPage->getRefCount()==0)&&((curPage->isDirty()==false) || ((curPage->isDirty()==true)&&(curPage->isInFlush()==false)))){
 		    cachedPages->push(curPage);
+#ifdef PROFILING_CACHE
+                    std :: cout << "Add to eviction queue: curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush)=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
+#endif
                 } else {
                     //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
                 }

@@ -421,9 +421,9 @@ public:
                             continue;
                         }
 			// find the identity of the producing computation
-			std :: cout << "finding the source of " << outputScheme.getSetName () << "." << a << "\n"; 
+			//std :: cout << "finding the source of " << outputScheme.getSetName () << "." << a << "\n"; 
 			std :: pair <std :: string, std :: string> res = producer->findSource (a, plan.getPlan ()->getComputations ());	
-			std :: cout << "got " << res.first << " " << res.second << "\n";
+			//std :: cout << "got " << res.first << " " << res.second << "\n";
 
 			// and find its type... in the first case, there is not a particular lambda that we need to ask for
 			if (res.second == "") {
@@ -431,7 +431,7 @@ public:
 				typeList.push_back ("pdb::Handle<"+plan.getPlan ()->getNode (res.first).getComputation ().getOutputType ()+">");
 			} else {
                                 std :: string myType = plan.getPlan ()->getNode (res.first).getLambda (res.second)->getOutputType ();
-                                std :: cout << "my type is " << myType << std :: endl;
+                                //std :: cout << "my type is " << myType << std :: endl;
                                 if(myType.find_first_of("pdb::Handle<")==0) {
                                      typeList.push_back(myType);
                                 } else {
@@ -440,18 +440,18 @@ public:
 			} 
 		}
 
-		for (auto &aa : typeList) {
+		/*for (auto &aa : typeList) {
 			std :: cout << "Got type " << aa << "\n";
-		}
+		}*/
 
 		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
 		std :: vector <int> whereEveryoneGoes;
 		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 		
-		for (auto &aa : whereEveryoneGoes) {
+		/*for (auto &aa : whereEveryoneGoes) {
 			std :: cout << aa << " ";
 		}
-		std :: cout << "\n";
+		std :: cout << "\n";*/
                 return correctJoinTuple->getPartitionedSource (this->myPartitionId, 
 
                     [&] () -> PDBPagePtr {
@@ -484,6 +484,10 @@ public:
                              SetID setId = (SetID) (*((SetID *)(curBytes)));
                              freeMe->decRefCount();
                              if (freeMe->getRefCount() == 0) {
+#ifdef PROFILING_CACHE
+                                 std :: cout << "To unpin Join source page with DatabaseID=" << dbId << ", UserTypeID="
+                                    << typeId << ", SetID=" << setId << ", PageID=" << freeMe->getPageID() << std :: endl;
+#endif
                                  try {
                                      this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, freeMe, false);
                                  } catch (NotEnoughSpace &n) {
@@ -492,6 +496,15 @@ public:
                                      throw n;  
                                  }
                              }
+#ifdef PROFILING_CACHE
+                             else {
+                                 std :: cout << "Can't unpin Join source page with DatabaseID=" << dbId << ", UserTypeID="
+                                    << typeId << ", SetID=" << setId << ", PageID=" << freeMe->getPageID() << ", reference count=" <<
+                                     freeMe->getRefCount() << std :: endl;
+
+                             }
+#endif
+
                         }
                     },
 
