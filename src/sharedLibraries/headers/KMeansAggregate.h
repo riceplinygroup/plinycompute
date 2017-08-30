@@ -74,7 +74,7 @@ public:
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computClusterMember(aggMe);});
+                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computClusterMemberOptimized(aggMe);});
         }
 
         // the value type must have + defined
