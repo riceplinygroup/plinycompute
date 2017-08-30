@@ -125,7 +125,7 @@ int main (int argc, char * argv[]) {
     if (argc > 3) {
         numOfMb = atoi(argv[3]);
     }
-    numOfMb = 10; //Force it to be 64 by now.
+    //numOfMb = 10; //Force it to be 64 by now.
 
 
     COUT << "To add data with size: " << numOfMb << "MB" << std :: endl;
@@ -460,7 +460,7 @@ int main (int argc, char * argv[]) {
 
 
 
-    pdb :: makeObjectAllocatorBlock(256 * 1024 * 1024, true);
+    pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
 
 	//iter = 2;
 	for (int currentIter=0; currentIter < iter; currentIter++){
