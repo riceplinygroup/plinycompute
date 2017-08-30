@@ -99,11 +99,7 @@ public:
 
         	for(int j = 0; j < (this->model).size(); j ++) {
         		Handle<DoubleVector> mean = (this->model)[j];
-			double distance = 0;
-
-			for ( int i = 0; i < mean->getSize(); i++ ) {
-			    distance += ((*data).getDouble(i)-mean->getDouble(i)) * ((*data).getDouble(i)-mean->getDouble(i));
-			}
+			double distance = data->getSquaredDistance(*mean);
 
 			if (distance < closestDistance) {
 				closestDistance = distance;
@@ -113,6 +109,24 @@ public:
         	}
 //		std :: cout << "my cluster is: " << cluster << std :: endl;
         	return cluster;
+        }
+
+
+        int computClusterMemberOptimized(Handle<DoubleVector> data) {
+                int closestDistance = INT_MAX;
+                int cluster = 0;
+
+                for(int j = 0; j < (this->model).size(); j ++) {
+                        Handle<DoubleVector> mean = (this->model)[j];
+                        double distance = data->getFastSquaredDistance(*mean);
+
+                        if (distance < closestDistance) {
+                                closestDistance = distance;
+                                cluster = j;
+                        }
+
+                }
+                return cluster;
         }
 
 

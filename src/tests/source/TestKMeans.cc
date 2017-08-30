@@ -229,7 +229,7 @@ int main (int argc, char * argv[]) {
         if (numOfMb > 0) {
 		if (addDataFromFile) {
 			int blockSize = 64;
-			std :: ifstream inFile("kmeans_data");
+			std :: ifstream inFile("/home/ubuntu/kmeans_data");
 			std :: string line;
 			std::vector<double>   lineData;
 			bool rollback = false;
@@ -269,13 +269,13 @@ int main (int argc, char * argv[]) {
 
 						}
 						storeMe->push_back (myData);
-						COUT << "first number: " << myData->getDouble(0) << endl;
+						//COUT << "first number: " << myData->getDouble(0) << endl;
 					}
 					
-				    COUT << "input data: " << std :: endl;
+				    /*COUT << "input data: " << std :: endl;
 				    for (int i=0; i<storeMe->size();i++){
 					(*storeMe)[i]->print();
-				    }
+				    }*/
 				    end = true;
 
 				    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
@@ -392,6 +392,8 @@ int main (int argc, char * argv[]) {
     
     // pdb::Handle<pdb::Vector<DoubleVector>> model = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
 
+    auto iniBegin = std :: chrono :: high_resolution_clock :: now();
+
     std :: vector< std :: vector <double> > model(k, vector<double>(dim));
     for (int i = 0; i < k; i++) {
 	for (int j = 0; j < dim; j++) {
@@ -399,13 +401,6 @@ int main (int argc, char * argv[]) {
        		model[i][j] = 0;
 	}
     }
-    /*
-    COUT << "My intial model: " << std :: endl;
-    for (int i = 0; i < k; i++) {
-	(*model)[i] = (*tmpModel)[i];
-	(*model)[i].print();
-    }
-    */
 
     // Initialization for the model in the KMeansAggregate
        
@@ -467,9 +462,11 @@ int main (int argc, char * argv[]) {
 
 			// Sample without replacement
 			bool notNew = true;
+                        //JiaNote: use raw C++ data
+                        double * rawData = a->getRawData();
 			for (int i = 0; i < previous; i++) {
 				for (int j = 0; j < dim; j++)
-					notNew = (model[i][j] == a->getDouble(j)) && notNew;
+					notNew = (model[i][j] == rawData[j]) && notNew;
 				if (notNew) {
 					break;
 				}
@@ -482,7 +479,7 @@ int main (int argc, char * argv[]) {
 			if ( (!notNew) || (previous == 0) ) {
 				COUT << "The sample we got is: " << std :: endl;
 				for (int i = 0; i < dim; i++) {
-					model[myk][i] = a->getDouble(i);
+					model[myk][i] = rawData[i];
 					COUT << model[myk][i] << ", ";
 				}
 				myk++;
@@ -507,9 +504,11 @@ int main (int argc, char * argv[]) {
 
 				// Sample without replacement
 				bool notNew = true;
+                                //JiaNote: use raw C++ data
+                                double * rawData = a->getRawData();
 				for (int i = 0; i < previous; i++) {
 					for (int j = 0; j < dim; j++)
-						notNew = (model[i][j] == a->getDouble(j)) && notNew;
+						notNew = (model[i][j] == rawData[j]) && notNew;
 					if (notNew) {
 						break;
 					}
@@ -520,13 +519,13 @@ int main (int argc, char * argv[]) {
 				}
 
 				if ((!notNew) || (previous == 0)) {
-					COUT << "The sample we got is: " << std :: endl;
+					//COUT << "The sample we got is: " << std :: endl;
 					for (int i = 0; i < dim; i++) {
-						model[myk][i] = a->getDouble(i);
-						COUT << model[myk][i] << ", ";
+						model[myk][i] = rawData[i];
+						//COUT << model[myk][i] << ", ";
 					}
 					myk++;
-					COUT << std :: endl;
+					//COUT << std :: endl;
 				}
 			}
 			myPos++;
@@ -540,15 +539,16 @@ int main (int argc, char * argv[]) {
 
 	    COUT << std :: endl;
     }
-    
-  
 
+    auto iniEnd = std :: chrono :: high_resolution_clock :: now();
+  
+    
     // Start k-means iterations
     // QueryClient myClient (8108, "localhost", clientLogger, true);
 
-    for (int n = 0; n <= iter; n++) {
+    for (int n = 0; n < iter; n++) {
 
-
+                auto  iterBegin = std :: chrono :: high_resolution_clock :: now();
                 const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 24};
 
 		COUT << "*****************************************" << std :: endl;
@@ -561,8 +561,10 @@ int main (int argc, char * argv[]) {
 		for (int i = 0; i < k; i++) {
 			Handle<DoubleVector> tmp = pdb::makeObject<DoubleVector>(dim);
 			my_model->push_back(tmp);
+                        //JiaNote: use raw C++ data directly
+                        double * rawData = (*my_model)[i]->getRawData();
 			for (int j = 0; j < dim; j++) {
-				(*my_model)[i]->setDouble(j, model[i][j]);
+				rawData[j] = model[i][j];
 			}
 		}
 
@@ -599,6 +601,7 @@ int main (int argc, char * argv[]) {
 			return 1;
 		}
 
+		auto end = std::chrono::high_resolution_clock::now();
 		COUT << "The query is executed successfully!" << std :: endl;
 
 		// update the model
@@ -612,14 +615,18 @@ int main (int argc, char * argv[]) {
 				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
 				COUT << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
 				COUT << "The cluster mean sum I got is " << std :: endl;
-				(*a).getValue().getMean().print();
-				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
+                                //JiaNote: use reference                                
+                                DoubleVector & meanVec = (*a).getValue().getMean();
+				meanVec.print();
+				DoubleVector tmpModel = meanVec / (*a).getValue().getCount();
+                                //JiaNote: use rawData
+                                double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
-					model[kk][i] = tmpModel.getDouble(i);
+					model[kk][i] = rawData[i];
 				}
-
+                                rawData = meanVec.getRawData();
 				for (int i = 0; i < dim; i++) {
-					avgData[i] += (*a).getValue().getMean().getDouble(i);
+					avgData[i] += rawData[i];
 				}
 
 				COUT << "I am updating the model in position: " << kk << std :: endl;
@@ -651,8 +658,10 @@ int main (int argc, char * argv[]) {
 				(*a).getValue().getMean().print();
 		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
 				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
+                                //JiaNote: using raw C++ data
+                                double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
-					model[kk][i] = tmpModel.getDouble(i);
+					model[kk][i] = rawData[i];
 				}
 				COUT << "I am updating the model in position: " << kk << std :: endl;
 				for(int i = 0; i < dim; i++)
@@ -676,14 +685,22 @@ int main (int argc, char * argv[]) {
 		COUT << std :: endl;
 
 		temp.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
-
-		auto end = std::chrono::high_resolution_clock::now();
-		COUT << "Time Duration: " <<
+                auto iterEnd = std :: chrono :: high_resolution_clock :: now();
+		COUT << "Server-side Time Duration for Iteration-: " << n << " is:" <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+                COUT << "Total Time Duration for Iteration-: " << n << " is:" <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd-iterBegin).count() << " secs." << std::endl;
     }
 
-    COUT << std::endl;
+    auto allEnd = std :: chrono :: high_resolution_clock :: now();
 
+    COUT << std::endl;
+/*
+    COUT << "Initialization Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
+    COUT << "Total Processing Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
+*/
     //QueryClient myClient (8108, "localhost", clientLogger, true);
 
 	// print the resuts
@@ -727,7 +744,10 @@ int main (int argc, char * argv[]) {
 
 
     COUT << std :: endl;
-
+    COUT << "Initialization Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
+    COUT << "Total Processing Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
     if (clusterMode == false) {
 	    // and delete the sets
         myClient.deleteSet ("kmeans_db", "kmeans_output_set");
