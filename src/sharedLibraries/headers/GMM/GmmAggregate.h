@@ -111,8 +111,12 @@ public:
 
 
 			//Now normalize r,
+			//std::cout << "RVALUES before: " << std::endl; r_values->print();
+
 			gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
 			gsl_vector_scale(&gnewSumR.vector, 1/totalR);
+
+			//std::cout << "RVALUES after: " << std::endl; r_values->print();
 
 			//And calculate r * x and r * x * x^T
 			Handle<Vector<size_t>> newcount = makeObject<Vector<size_t>>(); //num data points
