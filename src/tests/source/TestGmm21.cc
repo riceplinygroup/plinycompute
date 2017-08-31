@@ -44,6 +44,7 @@
 #include "GMM/GmmAggregate.h"
 #include "GMM/GmmAggregateOutputType.h"
 #include "GMM/GmmNewComp.h"
+//#include "GMM/WriteGmmAggregateOutputTypeSet.h"
 
 
 #include "DispatcherClient.h"
@@ -216,6 +217,11 @@ int main (int argc, char * argv[]) {
     std::mt19937 randomGen(rd());
 
 
+    //***********************************************************************************
+   	//****READ INPUT DATA ***************************************************************
+   	//***********************************************************************************
+
+
     if (whetherToAddData == true) {
         //Step 1. Create Database and Set
         // now, register a type for user data
@@ -241,75 +247,60 @@ int main (int argc, char * argv[]) {
         //Step 2. Add data
         DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
+        int addedData = 0;
+        int blockSize = 64;
+        while (addedData < numData) {
 
-        if (numOfMb > 0) {
-            int numIterations = numOfMb/64;
-            COUT << "Number of MB: " << numOfMb << " Number of Iterations: " << numIterations << std::endl;
-            int remainder = numOfMb - 64*numIterations;
-            if (remainder > 0) { 
-                numIterations = numIterations + 1; 
-            }
-            for (int num = 0; num < numIterations; num++) {
-                COUT << "Iterations: "<< num << std::endl;
-                int blockSize = 1024;
-                if ((num == numIterations - 1) && (remainder > 0)){
-                    blockSize = remainder;
-                }
-                pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
-                try {
+        	pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+			pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+			try {
+				double bias = 0;
+				for (int i = addedData; i < numData; i++) {
+					pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+					for (int j = 0; j < dim; j++){
 
-                    double bias = 0;
+						std::uniform_real_distribution<> unif(0, 1);
+						bias = unif(randomGen) * 0.01;
+						myData->setDouble(j, i%k*3 + bias);
+					}
+					storeMe->push_back (myData);
+					addedData += 1;
+				}
 
-                    for (int i = 0; i < numData; i++) {
-                        pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-                        for (int j = 0; j < dim; j++){
+				/*for (int i=0; i<storeMe->size();i++) {
+					//(*storeMe)[i]->print();
+					std::cout << "[" << (*storeMe)[i]->getDouble(0) << ", ";
+					for (int j=1;j<dim-1; j++)
+						std::cout << (*storeMe)[i]->getDouble(j) << ", ";
+					std::cout << (*storeMe)[i]->getDouble(dim-1) << "]," << std::endl;
 
-							std::uniform_real_distribution<> unif(0, 1);
-							bias = unif(randomGen) * 0.01;
-							//bias = unif(randomGen) * 1.0;
-										//bias = ((double) rand() / (RAND_MAX)) * 0.01;
-										//myData->push_back(tmp);
+				}*/
 
-							/*if (i%2	 == 0){
-								myData->setDouble(j, 0 + bias);
-							}
-							else
-								myData->setDouble(j, 10 + bias);*/
+				COUT << "Added " << storeMe->size() << std:: endl;
 
-							myData->setDouble(j, i%k*3 + bias);
-						}
-                        storeMe->push_back (myData);
-                    }
-					COUT << "input data: " << std :: endl;
-					/*for (int i=0; i<storeMe->size();i++) {
-						//(*storeMe)[i]->print();
-						std::cout << "[" << (*storeMe)[i]->getDouble(0) << ", ";
-						for (int j=1;j<dim-1; j++)
-							std::cout << (*storeMe)[i]->getDouble(j) << ", ";
-						std::cout << (*storeMe)[i]->getDouble(dim-1) << "]," << std::endl;
+				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
+				}
+			} catch (pdb :: NotEnoughSpace &n) {
+				COUT << "Added: " << storeMe->size() << std:: endl;
 
-					}*/
+				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
+				}
+			}
+			COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
 
+        } //End while
 
-                    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-                        COUT << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-                } catch (pdb :: NotEnoughSpace &n) {
-                    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-                        COUT << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-                }
-                COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-            }
-
-            //to write back all buffered records        
-            temp.flushData( errMsg );
-        }
+		//to write back all buffered records
+		temp.flushData( errMsg );
 
     }
+
+
+
 
     //***********************************************************************************
 	//****REGISTER SO ***************************************************************
@@ -321,6 +312,8 @@ int main (int argc, char * argv[]) {
 	catalogClient.registerType ("libraries/libGmmModel.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmNewComp.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmAggregateOutputType.so", errMsg);
+	catalogClient.registerType ("libraries/libWriteGmmAggregateOutputTypeSet.so", errMsg);
+
 
 
 	//I WILL REUSE SOME OF THEM!
@@ -384,7 +377,7 @@ int main (int argc, char * argv[]) {
 	// derived from the samples
 
 
-    //pdb :: makeObjectAllocatorBlock(256 * 1024 * 1024, true);
+    pdb :: makeObjectAllocatorBlock(64 * 1024 * 1024, true);
     // connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
 
@@ -460,9 +453,8 @@ int main (int argc, char * argv[]) {
 
 
 
-    pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+    //pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
 
-	//iter = 2;
 	for (int currentIter=0; currentIter < iter; currentIter++){
 
 		std::cout << "***MY MODEL AT ITERATION " << currentIter << std::endl;
@@ -473,10 +465,10 @@ int main (int argc, char * argv[]) {
 		Handle<Computation> scanInputSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
 		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(model);
 		gmmIteration->setInput(scanInputSet);
-	    //gmmIteration->setAllocatorPolicy(noReuseAllocator);
+	    gmmIteration->setAllocatorPolicy(noReuseAllocator);
 		gmmIteration->setOutput("gmm_db", "gmm_output_set");
-		//Handle <Computation> myWriter = makeObject<WriteSumResultSet>("gmm_db", "gmm_data_count_set");
-		//myWriter->setInput(myDataCount);
+		//Handle <Computation> myWriter = makeObject<WriteGmmAggregateOutputTypeSet>("gmm_db", "gmm_output_set");
+		//myWriter->setInput(gmmIteration);
 
 		std::cout << "Ready to start computations" << std::endl;
 
@@ -489,20 +481,13 @@ int main (int argc, char * argv[]) {
 
 		//Read output and update Means, Weights and Covars in Model
 		SetIterator <GmmAggregateOutputType> result = myClient.getSetIterator <GmmAggregateOutputType> ("gmm_db", "gmm_output_set");
-		kk = 0;
-		std::cout << "ITERATION OUTPUT " << currentIter << std :: endl;
+
+		std::cout << "ITERATION OUTPUT " << currentIter
+						<< " , FROM " << iter << " ITERATIONS" << std :: endl;
 
 		for (Handle<GmmAggregateOutputType> a : result) {
 			GmmNewComp output = (*a).getValue();
-			/*std::cout << "SumR"  << std :: endl;
-					output.getSumR().print();
-			for (int i=0; i<k; i++){
-				std::cout << "--Comp " << i << std :: endl;
-				std::cout << "    WeightedX " << i << std :: endl;
-				output.getWeightedX(i).print();
-				std::cout << "    WeightedX2 " << i << std :: endl;
-				output.getWeightedX2(i).print();
-			}*/
+
 			model->updateModel(output);
 			model->print();
 		}
@@ -512,9 +497,6 @@ int main (int argc, char * argv[]) {
 		auto end = std::chrono::high_resolution_clock::now();
 		COUT << "Time Duration: " <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
-
-		long x = 2000;
-		std::this_thread::sleep_for(std::chrono::milliseconds(x));
 	}
 
 

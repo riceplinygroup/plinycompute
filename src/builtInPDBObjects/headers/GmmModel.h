@@ -87,6 +87,7 @@ public:
 			this->inv_covars->push_back(makeObject<DoubleVector>(ndim*ndim));
 		}
 
+		std::cout << "Model created!" << std::endl;
 	}
 
 
@@ -166,9 +167,10 @@ public:
 		int s;
 		double ax;
 
-		gsl_matrix* cov = gsl_matrix_calloc(ndim,ndim);
 
 		for (int i = 0; i<this->getNumK(); i++){
+			gsl_matrix* cov = gsl_matrix_calloc(ndim,ndim);
+
 			gsl_matrix_view covar = gsl_matrix_view_array((*covars)[i]->data->c_ptr(), ndim, ndim);
 			gsl_matrix_view inv_covar = gsl_matrix_view_array((*inv_covars)[i]->data->c_ptr(), ndim, ndim);
 			gsl_matrix_memcpy (cov, &covar.matrix);
@@ -179,16 +181,31 @@ public:
 			gsl_linalg_LU_invert(cov, p, &inv_covar.matrix);
 
 			ax = gsl_linalg_LU_det(&covar.matrix, s);
-			(*this->dets).setDouble(i,ax);
+			dets->setDouble(i,ax);
+			//std::cout << "ax " << i << " " << ax << std::endl;
+
 
 			gsl_permutation_free(p);
+			gsl_matrix_free(cov);
+
+			//std::cout << "covars " << i << std::endl; (*covars)[i]->print();
+			//std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();;
 
 		}
-		gsl_matrix_free(cov);
+
+		std::cout << "dets calculated" << std::endl; dets->print();
 
 	}
 
 	double log10_normpdf(int i, Handle<DoubleVector> inputData, bool log) {
+
+		/*std::cout << "means " << i << std::endl; (*means)[i]->print();
+		std::cout << "covars " << i << std::endl; (*covars)[i]->print();
+		std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();
+		std::cout << "dets" << i << std::endl; dets->print();*/
+
+
+
 
 		gsl_vector_view data = gsl_vector_view_array(inputData->data->c_ptr(), ndim);
 		gsl_vector_view mean = gsl_vector_view_array((*means)[i]->data->c_ptr(), ndim);
@@ -201,21 +218,34 @@ public:
 		gsl_vector *ym;
 		gsl_vector *datan = gsl_vector_alloc(ndim);
 
-		ax = (*this->dets).getDouble(i);
+		ax = dets->getDouble(i);
+
+		//ax = 1.00498e-15;
 		gsl_vector_memcpy(datan, &data.vector);
 		gsl_vector_sub(datan, &mean.vector);
 
 		ym = gsl_vector_alloc(ndim);
 
+		//std::cout << "inv_covars BEFORE" << i << std::endl; (*inv_covars)[i]->print();
+
 		gsl_blas_dsymv(CblasUpper, 1.0, &inv_covar.matrix, datan, 0.0, ym);
+
+		//std::cout << "covars AFTER" << i << std::endl; (*inv_covars)[i]->print();
+
 		gsl_blas_ddot(datan, ym, &ay);
 
 
 		gsl_vector_free(ym);
 		gsl_vector_free(datan);
 
+		//std::cout << "ax " << ax << std::endl;
+
+		//std::cout << "exp(-0.5*ay) " << exp(-0.5*ay) << std::endl;
 
 		ay = exp(-0.5*ay)/sqrt(pow(((double)2*3.1415926), (double)ndim)*ax);
+
+		//std::cout << "ay " << ay << std::endl;
+
 
 		if (!log){
 			return (ay);
@@ -277,7 +307,7 @@ public:
 			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
 
 			gsl_vector_scale (&covar.vector, 1.0/(*weights).getDouble(i));
-			gsl_vector_add_constant(&covar.vector, EPSILON);
+			//gsl_vector_add_constant(&covar.vector, EPSILON);
 		}
 
 		calcInvCovars();

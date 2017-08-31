@@ -54,7 +54,7 @@ common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
-common_env.Append(CCFLAGS='-DAUTO_TUNING')
+#common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=10000')
@@ -466,8 +466,9 @@ common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/Gmm
 #common_env.SharedLibrary('libraries/libGmmModel.so', ['build/libraries/GMM/GmmModel.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
-common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
+#common_env.SharedLibrary('libraries/libWriteGmmAggregateOutputTypeSet.so', ['build/libraries/GMM/WriteGmmAggregateOutputTypeSet.cc'] + all)
+#common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
+#common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
 
 common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
@@ -680,14 +681,12 @@ cgmm=common_env.Alias('cgmm', [
   'bin/TestGmm21',
 
   'libraries/libGmmNewComp.so',
-  #'libraries/libGmmModel.so',		
   'libraries/libGmmAggregate.so',	
 
   'libraries/libScanDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so',		 
+  'libraries/libGmmAggregateOutputType.so',	
+  #'libraries/libWriteGmmAggregateOutputTypeSet.so'
 
-  #'libraries/libScanGmmCentroid.so',
-  #'libraries/libWriteGmmCentroid.so'
 ])
 
 lda=common_env.Alias('lda', [
