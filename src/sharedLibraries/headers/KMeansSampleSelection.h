@@ -25,34 +25,70 @@
 #include "DoubleVector.h"
 #include "PDBVector.h"
 #include "PDBString.h"
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_vector.h>
 #include <random>
+#include <ctime>
+#include <cstdlib>
 
 using namespace pdb;
 class KMeansSampleSelection : public SelectionComp <DoubleVector, DoubleVector> {
 
 private:
         double fraction;
-	std::uniform_real_distribution<> unif;
-	std::mt19937 gen;
+        //JiaNote: below can't work in a cluster
+	//std::uniform_real_distribution<> unif;
+	//std::mt19937 gen;
+
+        //JiaNote: so we create a pdbObject to store the random stuff
+        Handle <Vector <char>> myMem;
 
 public:
 
 	ENABLE_DEEP_COPY
 
-	KMeansSampleSelection () {}
+	KMeansSampleSelection () {
 
-	KMeansSampleSelection (double inputFraction) : unif(0,1) {
+        }
+
+	KMeansSampleSelection (double inputFraction) {
 		this->fraction = inputFraction;
-		std::random_device rd;
-		std::mt19937 gen(rd());
+
+                //JiaNote: below can't work in a cluster
+		//std::random_device rd;
+		//std::mt19937 gen(rd());
+                //srand (time(0));
+
+                //JiaNote: so I move the gsl sampling logic here (stealed from LDA)
+                gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                gsl_rng_set(src, gen());
+
+                // now allocate space needed for myRand
+                int spaceNeeded = sizeof (gsl_rng) + src->type->size;
+                myMem = makeObject <Vector <char>> (spaceNeeded, spaceNeeded);
+
+                // copy src over
+                memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
+                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+
+                // lastly, free src
+                gsl_rng_free (src);
+
 	}
 
+        //srand has already been invoked in server
 	Lambda <bool> getSelection (Handle <DoubleVector> checkMe) override {
 		return makeLambda (checkMe, [&] (Handle<DoubleVector> & checkMe) {
-			
+                //JiaNote: below can't work in a cluster			
 		//	std::random_device rd;
 		//	std::mt19937 gen(rd());
-			double myVal = this->unif(this->gen);
+			//double myVal = this->unif(this->gen);
+                        gsl_rng * rng = getRng();
+                        //this function seems perfect for our use
+                        double myVal = gsl_rng_uniform(rng);
 			bool ifSample = (myVal <= (this->fraction));
 	//		std :: cout << "The sampled value: " << myVal << std :: endl;
 			if (ifSample)
@@ -61,6 +97,18 @@ public:
 				return false;
                 });
 	}
+
+
+        // gets the GSL RNG from myMem
+        gsl_rng *getRng () {
+                gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
+                dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
+                dst->type = gsl_rng_mt19937;
+                return dst;
+        }
+
+
+
 
 	Lambda <Handle <DoubleVector>> getProjection (Handle <DoubleVector> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<DoubleVector> & checkMe) {return checkMe;});
