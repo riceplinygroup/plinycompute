@@ -1022,21 +1022,26 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
 
                        //get the job stages and intermediate data sets for this source
                        std :: string sourceName = this->tcapAnalyzerPtr->getSourceSetName (indexOfBestSource);
-                       //std :: cout << "best source is " << sourceName << std :: endl;
+                       std :: cout << "best source is " << sourceName << std :: endl;
                        Handle<SetIdentifier> sourceSet = this->tcapAnalyzerPtr->getSourceSetIdentifier (sourceName);
                        AtomicComputationPtr sourceAtomicComp = this->tcapAnalyzerPtr->getSourceComputation (sourceName);
                        unsigned int sourceConsumerIndex = this->tcapAnalyzerPtr->getNextConsumerIndex(sourceName);
-                       this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages, intermediateSets, sourceAtomicComp, sourceSet, sourceConsumerIndex, jobStageId);
+                       bool hasConsumers = this->tcapAnalyzerPtr->getNextStagesOptimized(jobStages, intermediateSets, sourceAtomicComp, sourceSet, sourceConsumerIndex, jobStageId);
                        if (jobStages.size() > 0) { 
+                            //std :: cout << "get " << jobStages.size() << " stages" << std :: endl;
                             this->tcapAnalyzerPtr->incrementConsumerIndex(sourceName);
                             break;
                        }
                        else {
-                            this->tcapAnalyzerPtr->removeSource(sourceName);
+                            //std :: cout << "get 0 jobStage" << std :: endl;
+                            if (hasConsumers == false) {
+                                std :: cout << "we didn't meet a penalized set and we remove source " << sourceName << std :: endl;
+                                this->tcapAnalyzerPtr->removeSource(sourceName);
+                            }
                        }
                     }
 #ifdef PROFILING
-                    std :: cout << "JobStageId " << jobStageId-1 << std :: endl;
+                    //std :: cout << "JobStageId " << jobStageId-1 << std :: endl;
                     auto dynamicPlanEnd = std :: chrono :: high_resolution_clock :: now();
                     std::cout << "Time Duration for Dynamic Planning: " <<
                         std::chrono::duration_cast<std::chrono::duration<float>>(dynamicPlanEnd-dynamicPlanBegin).count() << " seconds." << std::endl;

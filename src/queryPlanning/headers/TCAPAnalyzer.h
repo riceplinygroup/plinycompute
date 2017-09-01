@@ -164,6 +164,12 @@ std :: vector<std :: string> curSourceSetNames;
 //the size of current source
 double costOfCurSource;
 
+//the name of current chosen source set
+std :: string curSourceSetName;
+
+//the names of source sets that are hold on
+std :: vector<std :: string> penalizedSourceSets;
+
 };
 
 
