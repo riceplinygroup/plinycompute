@@ -56,6 +56,7 @@ common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
+#for nearest neighbor search, below flag should be set to large like 200 for 64MB page size
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 #below flag should only be used for nearest neighbor search
 #common_env.Append(CCFLAGS='-DNO_MOD_PARTITION')
@@ -606,7 +607,7 @@ common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + a
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
-common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
+common_env.Program('bin/TestKMeans1', ['build/tests/TestKMeansMLLibCompliant.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
 common_env.Program('bin/TestLDA2', ['build/tests/TestLDA2.cc'] + all)
@@ -855,7 +856,7 @@ KMeans=common_env.Alias('KMeans', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
-  'bin/TestKMeans',
+  'bin/TestKMeans1',
 
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
@@ -934,6 +935,14 @@ libLATest=common_env.Alias('libLATest', [
 
 
 mlBench=common_env.Alias('mlBench', [
+  'bin/CatalogServerTests',
+  'bin/CatalogTests',
+  'bin/pdb-cluster',
+  'bin/pdb-server',
+  'bin/TestKMeans1',
+  'bin/TestLDA',
+  'bin/TestLDA1',
+  'bin/TestLDA2',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
