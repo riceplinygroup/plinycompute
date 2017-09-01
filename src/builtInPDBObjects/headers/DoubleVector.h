@@ -220,26 +220,35 @@ public:
          
      }
 
-
-
-
-     /*
-     DoubleVector operator + (DoubleVector other) {
-	 
-	 if (this->getSize() != other.getSize()) {
-		std :: cout << "Can not add two DoubleVector with different sizes!" << std :: endl;
-		return *this;
-	 }
-
-	 DoubleVector result = DoubleVector(this->getSize());
-     	 for (int i = 0; i < this->getSize(); i++) {
-		result.setDouble(i, (*data)[i] + other.getDouble(i));
-     	 }
-
-         return result;
-         
+     //Shuffle the elements of an array into a random order, modifying the original array. Returns the original array.
+     DoubleVector& randomizeInPlace () {
+         double * rawData = data->c_ptr();
+         size_t mySize = this->getSize();
+         for (int i = mySize-1; i >= 0; i--) { 
+             int j = rand()%mySize;
+             double tmp = rawData[j];
+             rawData[j] = rawData[i];
+             rawData[i] = tmp;
+         }
+         return *this;
      }
-     */
+
+    bool equals (Handle<DoubleVector>& other)  {
+        size_t mySize = this->size;
+        size_t otherSize = other->getSize();
+        if (mySize != otherSize) {
+             return false;
+        }
+        double * rawData =this->getRawData();
+        double * otherRawData = other->getRawData();
+        for (int i = 0; i < mySize; i++) {
+             if (rawData[i] != otherRawData[i]) {
+                 return false;
+             }
+        }
+        return true;
+    }
+
 
 
      ENABLE_DEEP_COPY
