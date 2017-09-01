@@ -59,12 +59,8 @@ common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 #below flag should only be used for nearest neighbor search
 #common_env.Append(CCFLAGS='-DNO_MOD_PARTITION')
-common_env.Append(CCFLAGS='-DPROFILING')
-#common_env.Append(CCFLAGS='-DPROFILING_CACHE')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
-#common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
-# common_env.Append(CCFLAGS='-DCLEAR_SET')
 #common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
 # Make the build multithreaded
