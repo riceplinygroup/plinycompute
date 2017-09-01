@@ -162,6 +162,9 @@ bool TCAPAnalyzer::getNextStagesOptimized(std :: vector<Handle<AbstractJobStage>
         std :: vector <std :: string> tupleSetNames;
         tupleSetNames.push_back(outputName);
         ret = analyze(physicalPlanToOutput, interGlobalSets, tupleSetNames, curSource, sourceComputation, curInputSetIdentifier, curNode, jobStageId, curSource);
+        if (ret == false) {
+            return true;
+        }
     }
     return ret;
 }
@@ -218,7 +221,8 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
         //std :: cout << "set isProbing to false" << std :: endl;  
         bool ret = analyze(physicalPlanToOutput, interGlobalSets, tupleSetNames, curSource, sourceComputation, curInputSetIdentifier, curNode, jobStageId, curSource);
         if (ret == false) {
-            exit(1);
+           std :: cout << "We met a penalized source set and simply return." << std :: endl;
+           return true;
         }
     }
     return true;
@@ -322,6 +326,17 @@ bool TCAPAnalyzer::removeSource (std :: string oldSetName) {
                 break;
             }
         }
+
+        for (std :: vector<std :: string>::iterator iter = penalizedSourceSets.begin(); iter != penalizedSourceSets.end(); iter++) {
+            PDB_COUT << "curSetName = " << *iter << std :: endl;
+            std :: string curStr = *iter;
+            if (curStr == oldSetName) {
+                iter = penalizedSourceSets.erase(iter);
+                break;
+            }
+        }
+
+
 
         if (curSourceSets.count(oldSetName) > 0) {
             curSourceSets.erase(oldSetName);
@@ -507,20 +522,45 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 return analyze(physicalPlanToOutput, interGlobalSets, buildTheseTupleSets, curNode, myComputation, sink, nextNode, jobStageId, curNode);
             }
         } else if (curNode->getAtomicComputationType() == "JoinSets") {
+            //std :: cout << "we'met a JoinSets node" << std :: endl;
             std :: shared_ptr<ApplyJoin> joinNode = dynamic_pointer_cast<ApplyJoin> (curNode);
             std :: string targetTupleSetName;
             if(prevNode == nullptr) {
                 targetTupleSetName = curNode->getInputName();//join has two input names
-                std::cout<<"prev node is null, and target tuple set is " << targetTupleSetName << std::endl;
+                //std::cout<<"prev node is null, and target tuple set is " << targetTupleSetName << std::endl;
             } else {
                 targetTupleSetName = prevNode->getOutputName();
-                std::cout<<"prev node is not null, and target tuple set is " << targetTupleSetName << std::endl;
+                //std::cout<<"prev node is not null, and target tuple set is " << targetTupleSetName << std::endl;
             }
             Handle<SetIdentifier> sink = nullptr;
             std :: string hashSetName = "";
             if (joinNode->isTraversed() == false) {
+                //std :: cout << "this node hasn't been traversed before" << std :: endl;
+                if (isProbing == true) {
+                         //std :: cout << "We are probing join with a broadcast sink" << std :: endl;
+                         //this is too bad that we we've already probed join tables and join results could be huge.
+                         //so we do nothing just clear the pipeline stages and return;
+                         buildTheseTupleSets.clear();
+                         //update current source set cost;
+                         size_t j = 0;
+                         //std :: cout << "curSourceSetName=" << this->curSourceSetName << std :: endl;
+                         for (j = 0; j < penalizedSourceSets.size(); j++) {
+                             //std :: cout << "penalizedSourceSets[" << j << "]=" << penalizedSourceSets[j] << std :: endl;
+                             if (this->curSourceSetName == penalizedSourceSets[j]) {
+                                 break;
+                             }
+                         }
+                         if ((penalizedSourceSets.size() == 0) && (j == penalizedSourceSets.size())) {
+                             std :: cout << "WARNING: met a Broadcasting join on probed results, to return and put "
+                                    << this->curSourceSetName << " to penalized list" << std :: endl;
+                             penalizedSourceSets.push_back(this->curSourceSetName);
+                         }
+                         return false;
 
+                }
+                //std :: cout << "we haven't probed any join yet" << std :: endl;
                 if (this->costOfCurSource > JOIN_COST_THRESHOLD) {
+                    //std :: cout << "it is not a partitioned join" << std :: endl;
                     //data is larger than 2GB, so we do hash partition join.
                     joinNode->setPartitioningLHS (true);
                     Handle<JoinComp<Object, Object, Object>> join = unsafeCast<JoinComp<Object, Object, Object>, Computation> (myComputation);
@@ -553,10 +593,12 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 } else {
                     //we are doing broadcast join
 
-                    //std::cout<<"we met a non-traversed join node" << std::endl;
+                    //std::cout<<"we met a non-traversed broadcast join node" << std::endl;
+
+
                     //if the other input has not been processed, I am a pipeline breaker.
                     //We first need to create a TupleSetJobStage with a broadcasting sink
-
+                    
                     sink = makeObject<SetIdentifier>(this->jobId, outputName+"_broadcastData");
 
                 
@@ -593,7 +635,9 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 return true;
                 
             } else {
+                //std :: cout << "We've been traversed before " << std :: endl;
                 if (joinNode->isPartitioningLHS() == true) {
+                     //std :: cout << "We are a hash partition join" << std :: endl;
                      //we probe the partitioned hash table
                      //we first create a pipeline breaker to partition RHS
                      sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
@@ -633,7 +677,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 } else {
                      //we probe the broadcasted hash table
                      //if my other input has been processed, I am not a pipeline breaker, but we should set the correct hash set names for probing
-                     //std :: cout << "I met a join node I have traversed before" << std :: endl;
+                     //std :: cout << "I met a broadcasting join node I have traversed before" << std :: endl;
                      buildTheseTupleSets.push_back(curNode->getOutputName());
                      outputForJoinSets.push_back(outputName);
                      //std :: cout << "isProbing is set to true" << std :: endl;
@@ -792,6 +836,14 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
        double minCost = DBL_MAX;
        for (int i = 0; i < curSourceSetNames.size(); i++) {
           double curCost = getCostOfSource(i, stats);
+          //std :: cout << "curSourceSetNames[" << i << "]=" << curSourceSetNames[i] << std :: endl;
+          for (int j = 0; j < penalizedSourceSets.size(); j++) {
+             if (curSourceSetNames[i] == penalizedSourceSets[j]) {
+                 curCost = curCost * 1000;
+                 std :: cout << "Meet a penalized source set: " << curSourceSetNames[i] << ", we increase its cost by 1000 times to be " << curCost  << std :: endl;
+                 break;
+             }
+          }
           if (curCost < minCost) {
               minCost = curCost;
               bestIndexToReturn = i;
@@ -806,6 +858,7 @@ int TCAPAnalyzer :: getBestSource (StatisticsPtr stats) {
        }
        std :: cout << "The Best Source (cost= " << minCost << ") is " << bestIndexToReturn << ": " << curSourceSetNames[bestIndexToReturn] << std :: endl;
        this->costOfCurSource = minCost;
+       this->curSourceSetName = curSourceSetNames[bestIndexToReturn];
        return bestIndexToReturn;
     }
 }
