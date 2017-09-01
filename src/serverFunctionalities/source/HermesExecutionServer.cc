@@ -61,7 +61,7 @@
 
 
 #ifndef HASH_PARTITIONED_JOIN_SIZE_RATIO
-    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 12
+    #define HASH_PARTITIONED_JOIN_SIZE_RATIO 1
 #endif
 
 namespace pdb {
@@ -926,7 +926,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               if (numPages == 0) {
                   numPages = 1;
               }
-              double sizeRatio = HASH_PARTITIONED_JOIN_SIZE_RATIO;
+              double sizeRatio = HASH_PARTITIONED_JOIN_SIZE_RATIO * numPartitions;
               if (sizeRatio > numPartitions) {
                   sizeRatio = numPartitions;
               }
