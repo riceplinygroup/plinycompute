@@ -21,6 +21,7 @@
 
 #include "OutputIterator.h"
 #include "SetScan.h"
+#include <snappy.h>
 
 namespace pdb {
 

@@ -197,6 +197,37 @@ int main (int argc, char * argv[]) {
     std::random_device rd;
     std::mt19937 randomGen(rd());
 
+    if ((numOfMb > 0) && (whetherToAddData == false)) {
+        //Step 1. Create Database and Set
+        // now, register a type for user data
+        //TODO: once sharedLibrary is supported, add this line back!!!
+        catalogClient.registerType ("libraries/libKMeansAggregateOutputType.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansCentroid.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
+        // register this query class
+        catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
+        // now, create a new database
+        if (!temp.createDatabase ("kmeans_db", errMsg)) {
+            COUT << "Not able to create database: " + errMsg;
+            exit (-1);
+        } else {
+            COUT << "Created database.\n";
+        }
+
+        // now, create a new set in that database
+        if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_input_set", errMsg)) {
+            COUT << "Not able to create set: " + errMsg;
+            exit (-1);
+        } else {
+            COUT << "Created set.\n";
+        }
+    }
 
     if (whetherToAddData == true) {
         //Step 1. Create Database and Set
@@ -205,7 +236,14 @@ int main (int argc, char * argv[]) {
         catalogClient.registerType ("libraries/libKMeansAggregateOutputType.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansCentroid.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
-
+        // register this query class
+        catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
@@ -377,16 +415,6 @@ int main (int argc, char * argv[]) {
     //Step 3. To execute a Query
 	// for allocations
 
-	// register this query class
-    catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
-    catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
-    catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
-    catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
-    catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
-    catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
-    catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
-    
-
 
 	// connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
@@ -527,7 +555,7 @@ int main (int argc, char * argv[]) {
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
-                myQuery->setAllocatorPolicy(noReuseAllocator);
+                //myQuery->setAllocatorPolicy(noReuseAllocator);
                 myQuery->setOutput("kmeans_db", "kmeans_output_set");
 
 		auto begin = std :: chrono :: high_resolution_clock :: now();
@@ -548,13 +576,15 @@ int main (int argc, char * argv[]) {
 			for (Handle<KMeansAggregateOutputType> a : result) {
 				if (kk >= k)
 						break;
+                                
 				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				COUT << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				COUT << "The cluster mean sum I got is " << std :: endl;
+                                size_t count = (*a).getValue().getCount();
+				COUT << "The cluster count sum I got is " << count << std :: endl;
+				//COUT << "The cluster mean sum I got is " << std :: endl;
                                 //JiaNote: use reference                                
                                 DoubleVector & meanVec = (*a).getValue().getMean();
-				meanVec.print();
-				DoubleVector tmpModel = meanVec / (*a).getValue().getCount();
+				//meanVec.print();
+				DoubleVector tmpModel = meanVec /count;
                                 //JiaNote: use rawData
                                 double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
@@ -589,21 +619,24 @@ int main (int argc, char * argv[]) {
 				if (kk >= k)
 						break;
 				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
-				COUT << "The cluster count sum I got is " << (*a).getValue().getCount() << std :: endl;
-				COUT << "The cluster mean sum I got is " << std :: endl;
-				(*a).getValue().getMean().print();
+                                size_t count = (*a).getValue().getCount();
+				COUT << "The cluster count sum I got is " << count << std :: endl;
+				//COUT << "The cluster mean sum I got is " << std :: endl;
+				//(*a).getValue().getMean().print();
 		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
-				DoubleVector tmpModel = (*a).getValue().getMean() / (*a).getValue().getCount();
+                                DoubleVector & meanVec = (*a).getValue().getMean();
+				DoubleVector tmpModel = meanVec / count;
                                 //JiaNote: using raw C++ data
                                 double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
 					model[kk][i] = rawData[i];
 				}
-				COUT << "I am updating the model in position: " << kk << std :: endl;
+				/*COUT << "I am updating the model in position: " << kk << std :: endl;
 				for(int i = 0; i < dim; i++)
 					COUT << i << ": " << model[kk][i] << ' ';
 				COUT << std :: endl;
 				COUT << std :: endl;
+                                */
 				kk++;
 			}
 		}

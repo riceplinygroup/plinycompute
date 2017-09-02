@@ -770,7 +770,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
 
          //to send SetScan message to slave servers iteratively 
 
-         Record<Vector<Handle<Object>>>* curPage = nullptr;
+         char* curPage = nullptr;
          Handle<KeepGoing> temp;
          bool keepGoingSent = false;
          for (int i = 0; i < nodesToBroadcast.size(); i++) {
@@ -857,17 +857,17 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                      communicator = nullptr; 
                      break;
                  }
-                 curPage = (Record <Vector<Handle<Object>>> *) malloc (objSize);
+                 curPage = (char *) malloc (objSize);
                  if (!communicator->receiveBytes (curPage, errMsg)) {
                      PDB_COUT << "Problem getting data from slave: " << errMsg << std :: endl;
                      communicator = nullptr;
                      break;
                  }  
-                 Handle<Vector<Handle<Object>>> vector = curPage->getRootObject();
+                 /*Handle<Vector<Handle<Object>>> vector = curPage->getRootObject();
                  PDB_COUT << "got vector size =" << vector->size() << std :: endl;
                  PDB_COUT << "got data from this slave!" << std :: endl;
 
-                 PDB_COUT << "got Record size =" << curPage->numBytes() << std :: endl;
+                 PDB_COUT << "got Record size =" << curPage->numBytes() << std :: endl;*/
                  if (!sendUsingMe->sendBytes(curPage, objSize, errMsg)) {
                      std :: cout << "Problem forwarding data to client: " << errMsg << std :: endl;
                      communicator = nullptr;

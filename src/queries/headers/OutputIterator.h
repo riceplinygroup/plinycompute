@@ -28,7 +28,7 @@
 #include "KeepGoing.h"
 #include <string>
 #include <memory>
-
+#include <snappy.h>
 #include "UseTemporaryAllocationBlock.h"
 
 namespace pdb {
@@ -89,15 +89,30 @@ public:
 				connection = nullptr;
 				return;	
 			}
-
+#ifdef ENABLE_COMPRESSION
+                        char * readToHere = new char[objSize];
+#else
+                        void *readToHere = malloc (objSize);
+#endif
 			// we've got some more data
-			page = (Record <Vector <Handle <OutType>>> *) malloc (objSize);
-			if (!connection->receiveBytes (page, errMsg)) {
+			page = (Record <Vector <Handle <OutType>>> *) malloc (DEFAULT_PAGE_SIZE);
+			if (!connection->receiveBytes (readToHere, errMsg)) {
 				std :: cout << "Problem getting data: " << errMsg << "\n";
 				connection = nullptr;
 				return;
 			}
                         PDB_COUT << "received " << objSize << " bytes" << std :: endl;
+#ifdef ENABLE_COMPRESSION
+                         snappy::RawUncompress(readToHere, objSize, (char *)(page));
+#else
+                         memcpy (page, readToHere, objSize);
+#endif
+
+#ifdef ENABLE_COMPRESSION
+                        delete[] readToHere;
+#else
+                        free (readToHere);
+#endif
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
                         PDB_COUT << "to obtain size of vector" << std :: endl;
