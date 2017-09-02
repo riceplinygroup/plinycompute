@@ -50,6 +50,7 @@
 #include "HashPartitionedJoinBuildHTJobStage.h"
 #include "ProjectionOperator.h"
 #include "FilterOperator.h"
+#include <snappy.h>
 
 namespace pdb {
 
@@ -926,9 +927,18 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                 PDB_COUT << "in the page to sent: vector size =" << vecSize << std :: endl;
                                 if (vecSize != 0) {          
       						const UseTemporaryAllocationBlock tempBlock {2048};
-						if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
+#ifdef ENABLE_COMPRESSION
+                                                char * compressedBytes = new char[snappy::MaxCompressedLength(nextPage->getSize())];
+                                                size_t compressedSize;
+                                                snappy::RawCompress((char *)(nextPage->getBytes()), nextPage->getSize(), compressedBytes, &compressedSize);
+                                                std :: cout << "size before compression is " << nextPage->getBytes() << " and size after compression is " << compressedSize << std :: endl;
+                                                sendUsingMe->sendBytes(compressedBytes, compressedSize, errMsg);
+                                                delete [] compressedBytes;
+#else
+		                                if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	
 						}
+#endif
                                                 PDB_COUT << "Page sent to client!" << std :: endl;
 						// see whether or not the client wants to see more results
 						bool success;

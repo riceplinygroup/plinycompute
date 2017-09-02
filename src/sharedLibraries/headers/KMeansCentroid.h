@@ -63,8 +63,10 @@ public:
 
     KMeansCentroid& operator + (KMeansCentroid &other) {
 
-	Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count + other.getCount(), this->mean + other.getMean());
-	return *result;
+	//Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count + other.getCount(), this->mean + other.getMean());
+        this->count += other.getCount();
+        this->mean = this->mean + other.getMean();
+	return *this;
 
     }
 
