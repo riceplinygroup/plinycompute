@@ -230,7 +230,7 @@ int main (int argc, char * argv[]) {
         if (numOfMb >= 0) {
 		if (addDataFromFile) {
 			int blockSize = 256;
-			std :: ifstream inFile("/home/ubuntu/data_generator_kmeans/gaussian_pdb/kmeans_data");
+			std :: ifstream inFile("/mnt/gaussian_pdb/kmeans_data");
 			std :: string line;
 			std::vector<double>   lineData;
 			bool rollback = false;
@@ -291,7 +291,7 @@ int main (int argc, char * argv[]) {
 					return -1;
 				    }
 				    std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
-				    rollback = false;
+				    rollback = true;
 				}
 				PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
 
