@@ -25,10 +25,10 @@
 #include "DoubleVector.h"
 #include "PDBVector.h"
 #include "PDBString.h"
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_vector.h>
-#include <random>
+//#include <gsl/gsl_rng.h>
+//#include <gsl/gsl_randist.h>
+//#include <gsl/gsl_vector.h>
+//#include <random>
 #include <ctime>
 #include <cstdlib>
 
@@ -60,7 +60,8 @@ public:
 		//std::mt19937 gen(rd());
                 //srand (time(0));
 
-                //JiaNote: so I move the gsl sampling logic here (stealed from LDA)
+                //JiaNote: below is still not good as each thread will have the same seed.
+                /*
                 gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
                 std::random_device rd;
                 std::mt19937 gen(rd());
@@ -76,6 +77,7 @@ public:
 
                 // lastly, free src
                 gsl_rng_free (src);
+                */
 
 	}
 
@@ -86,9 +88,15 @@ public:
 		//	std::random_device rd;
 		//	std::mt19937 gen(rd());
 			//double myVal = this->unif(this->gen);
+
+                //JiaNote: below is still not good as each thread will have the same seed.
+                        /*
                         gsl_rng * rng = getRng();
                         //this function seems perfect for our use
                         double myVal = gsl_rng_uniform(rng);
+                        */
+
+                        double myVal = (double)rand()/(double)RAND_MAX;
 			bool ifSample = (myVal <= (this->fraction));
 	//		std :: cout << "The sampled value: " << myVal << std :: endl;
 			if (ifSample)
@@ -98,14 +106,14 @@ public:
                 });
 	}
 
-
+        //JiaNote: we need to provide different seeds for different threads, so we do not need below function that is mainly used to store one value for all threads.
         // gets the GSL RNG from myMem
-        gsl_rng *getRng () {
+        /*gsl_rng *getRng () {
                 gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
                 dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
                 dst->type = gsl_rng_mt19937;
                 return dst;
-        }
+        }*/
 
 
 

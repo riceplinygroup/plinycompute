@@ -63,10 +63,10 @@ static void randomizeInPlace (std :: vector <Handle<DoubleVector>> & samples) {
 
     size_t mySize = samples.size();
     for (int i = mySize - 1; i >= 0; i--) {
-        int j = rand()%mySize;
+        int j = rand()%(i+1);
         Handle<DoubleVector> tmp = samples[j];
         samples[j] = samples[i];
-        samples[i] = samples[j];
+        samples[i] = tmp;
     }
 
 
@@ -77,10 +77,10 @@ static void randomizeInPlace (Vector <Handle<DoubleVector>> & samples) {
 
     size_t mySize = samples.size();
     for (int i = mySize - 1; i >= 0; i--) {
-        int j = rand()%mySize;
+        int j = rand()%(i+1);
         Handle<DoubleVector> tmp = samples[j];
         samples[j] = samples[i];
-        samples[i] = samples[j];
+        samples[i] = tmp;
     }
 
 

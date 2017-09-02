@@ -67,7 +67,6 @@ PipelineStage :: PipelineStage (Handle<TupleSetJobStage> stage, SharedMemPtr shm
     this->conf = conf;
     this->shm = shm;
     this->id = 0;
-    std :: srand (unsigned (std :: time(0)));
     int numNodes = this->jobStage->getNumNodes();
     for (int i = 0; i < numNodes; i++) {
         nodeIds.push_back(i);
@@ -275,6 +274,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
     }
 #endif
+
+
+    //seed the random number generator for each thread
+    srand(time(NULL)+i);
 
 
     //setup an output page to store intermediate results and final output

@@ -445,6 +445,9 @@ int main (int argc, char * argv[]) {
 	    SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_initial_model_set");
                
 	    for (Handle<DoubleVector> a : sampleResult) {
+                 std :: cout << "received 1 sample" << std :: endl;
+                 a->print();
+                 std :: cout << std :: endl;
                  Handle<DoubleVector> myDoubles = makeObject<DoubleVector>(dim);
                  double * rawData = a->getRawData();
                  double * myRawData = myDoubles->getRawData();
@@ -461,19 +464,18 @@ int main (int argc, char * argv[]) {
     mySamples.resize(k);
     //distinct
     Vector <Handle<DoubleVector>> myDistinctSamples;
-    for (size_t i = 0; i < mySamples.size(); i++) {
-        size_t j = 0;
+    for (size_t i = 0; i < k; i++) {
+        std :: cout << "the " << i << "-th element" << std :: endl;
         (mySamples[i])->print();
-        for (j = 0; j < mySamples.size(); j++) {
-            if (i == j) {
-                continue;
-            } else {
+        std :: cout << std :: endl;
+        int j;
+        for (j = i+1; j < k; j++) {
                 if (((mySamples[i])->equals(mySamples[j]))) {
+                    std :: cout << "it equals with the " << j << "-th element" << std :: endl;
                     break;
                 }
-            }
         }
-        if ((mySamples.size() > 0) && (j == mySamples.size())) {
+        if ((mySamples.size() > 0) && (j == k)) {
             myDistinctSamples.push_back(mySamples[i]);
         }
     }                        
