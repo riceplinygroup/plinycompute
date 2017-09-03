@@ -180,7 +180,11 @@ int main (int argc, char * argv[]) {
     }
     COUT << "The dimension of each data point: " << dim << std :: endl;
 
-
+    std :: string fileName = "/mnt/data_generator_kmeans/gaussian_pdb/kmeans_data";
+    if (argc > 9) {
+        fileName = argv[9];
+    }
+    COUT << "Input file: " << fileName << std :: endl;
     COUT << std :: endl;
 
 
@@ -280,7 +284,8 @@ int main (int argc, char * argv[]) {
         if (numOfMb >= 0) {
 		if (addDataFromFile) {
 			int blockSize = 256;
-			std :: ifstream inFile("/home/ubuntu/data_generator_kmeans/gaussian_pdb/kmeans_data");
+			//std :: ifstream inFile("/mnt/data_generator_kmeans/gaussian_pdb/kmeans_data");
+                        std ::ifstream inFile(fileName.c_str());
 			std :: string line;
 			bool rollback = false;
 			bool end = false;
