@@ -31,12 +31,16 @@
 #include "PartitionPolicyFactory.h"
 #include "DispatcherRegisterPartitionPolicy.h"
 
+#define MAX_CONCURRENT_REQUESTS 10
+
 namespace pdb {
 
 DispatcherServer :: DispatcherServer (PDBLoggerPtr logger) {
     this->logger = logger;
     this->storageNodes = pdb::makeObject<Vector<Handle<NodeDispatcherData>>>();
     this->partitionPolicies = std::map<std::pair<std::string, std::string>, PartitionPolicyPtr>();
+    pthread_mutex_init (&mutex, nullptr);
+    numRequestsInProcessing = 0;
 }
 
 void DispatcherServer :: initialize() {
@@ -44,13 +48,20 @@ void DispatcherServer :: initialize() {
 }
 
 DispatcherServer :: ~DispatcherServer () {
-
+   pthread_mutex_destroy (&mutex);
 }
 
 void DispatcherServer :: registerHandlers (PDBServer &forMe) {
     forMe.registerHandler(DispatcherAddData_TYPEID, make_shared<SimpleRequestHandler<DispatcherAddData>> (
             [&] (Handle <DispatcherAddData> request, PDBCommunicatorPtr sendUsingMe) {
-
+                pthread_mutex_lock(&mutex);
+                while (numRequestsInProcessing > MAX_CONCURRENT_REQUESTS) {
+                   pthread_mutex_unlock(&mutex);
+                   sleep(1);
+                   pthread_mutex_lock(&mutex);
+                }
+                numRequestsInProcessing += 1;
+                pthread_mutex_unlock(&mutex);
                 std :: string errMsg;
                 bool res = true;
                 PDB_COUT << "DispatcherAddData handler running" << std :: endl;
@@ -74,12 +85,15 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << errMsg << std :: endl;
                     return make_pair(false, errMsg);
                 }
+                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
+                res = sendUsingMe->sendObject (response, errMsg);
 
                
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
 
                 //update stats
+                pthread_mutex_lock(&mutex);
                 StatisticsPtr stats = getFunctionality<QuerySchedulerServer>().getStats();
                 if (stats == nullptr) {
                     getFunctionality<QuerySchedulerServer>().collectStats();
@@ -88,10 +102,8 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 size_t oldNumBytes = stats->getNumBytes(request->getDatabaseName(), request->getSetName());
                 size_t newNumBytes = oldNumBytes + numBytes;
                 stats->setNumBytes (request->getDatabaseName(), request->getSetName(), newNumBytes);
-
-                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
-                res = sendUsingMe->sendObject (response, errMsg);
-
+                numRequestsInProcessing = numRequestsInProcessing - 1;
+                pthread_mutex_unlock(&mutex);
                 return make_pair(res, errMsg);
     }));
 
