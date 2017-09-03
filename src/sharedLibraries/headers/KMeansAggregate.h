@@ -74,7 +74,7 @@ public:
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computClusterMemberOptimized(aggMe);});
+                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computeClusterMemberOptimized(aggMe);});
         }
 
         // the value type must have + defined
@@ -85,7 +85,7 @@ public:
 		});
         }
 
-        int computClusterMember(Handle<DoubleVector> data) {
+        int computeClusterMember(Handle<DoubleVector> data) {
         	int closestDistance = INT_MAX;
         	int cluster = 0;
 		/*
@@ -96,8 +96,8 @@ public:
 			(this->model)[j]->print();
 		}
 		*/	
-
-        	for(int j = 0; j < (this->model).size(); j ++) {
+                size_t modelSize = (this->model).size();
+        	for(int j = 0; j < modelSize; j ++) {
         		Handle<DoubleVector> mean = (this->model)[j];
 			double distance = data->getSquaredDistance(*mean);
 
@@ -112,11 +112,11 @@ public:
         }
 
 
-        int computClusterMemberOptimized(Handle<DoubleVector> data) {
+        int computeClusterMemberOptimized(Handle<DoubleVector> data) {
                 int closestDistance = INT_MAX;
                 int cluster = 0;
-
-                for(int j = 0; j < (this->model).size(); j ++) {
+                 size_t modelSize = (this->model).size();
+                for(int j = 0; j < modelSize; j ++) {
                         Handle<DoubleVector> mean = (this->model)[j];
                         double distance = data->getFastSquaredDistance(*mean);
 

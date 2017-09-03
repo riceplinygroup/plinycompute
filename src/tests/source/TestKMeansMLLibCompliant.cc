@@ -34,10 +34,12 @@
 #include "KMeansAggregate.h"
 #include "KMeansDataCountAggregate.h"
 #include "ScanDoubleVectorSet.h"
+#include "ScanDoubleArraySet.h"
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"
 #include "KMeansDataCountAggregate.h"
 #include "KMeansSampleSelection.h"
+#include "KMeansNormVectorMap.h"
 #include "WriteDoubleVectorSet.h"
 
 #include "DispatcherClient.h"
@@ -66,6 +68,12 @@
 //#define COUT term
 
 using namespace pdb;
+
+#ifndef NUM_KMEANS_DIMENTIONS
+    #define NUM_KMEANS_DIMENSIONS 100
+#endif
+
+
 int main (int argc, char * argv[]) {
     bool printResult = true;
     bool clusterMode = false;
@@ -208,9 +216,11 @@ int main (int argc, char * argv[]) {
         catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanDoubleArraySet.so", errMsg);
         catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansNormVectorMap.so", errMsg);
         catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
@@ -221,7 +231,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_input_set", errMsg)) {
+        if (!temp.createSet<double[]> ("kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -240,9 +250,11 @@ int main (int argc, char * argv[]) {
         catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanDoubleArraySet.so", errMsg);
         catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
+        catalogClient.registerType ("libraries/libKMeansNormVectorMap.so", errMsg);
         catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
@@ -253,7 +265,7 @@ int main (int argc, char * argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_input_set", errMsg)) {
+        if (!temp.createSet<double[NUM_KMEANS_DIMENSIONS]> ("kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -268,18 +280,17 @@ int main (int argc, char * argv[]) {
         if (numOfMb >= 0) {
 		if (addDataFromFile) {
 			int blockSize = 256;
-			std :: ifstream inFile("/mnt/gaussian_pdb/kmeans_data");
+			std :: ifstream inFile("/home/ubuntu/data_generator_kmeans/gaussian_pdb/kmeans_data");
 			std :: string line;
-			std::vector<double>   lineData;
 			bool rollback = false;
 			bool end = false;
 
 			while(!end) {
 				pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-				pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+				pdb::Handle<pdb::Vector<pdb :: Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> ();
 				try {
 					
-					while(1){       
+				     while(1){       
 						if (!rollback){
 						//      std::istringstream iss(line);
 							if(!std::getline(inFile, line)){
@@ -287,44 +298,46 @@ int main (int argc, char * argv[]) {
 								break;
 							}
 							else {
-								lineData.clear();
+								pdb :: Handle<double [NUM_KMEANS_DIMENSIONS]> myData =
+                                                                     pdb :: makeObject<double [NUM_KMEANS_DIMENSIONS]>();
 								std::stringstream  lineStream(line);
 								double value;
+                                                                int index = 0;
+                                                                double * myRawData = *myData;
 								while(lineStream >> value)
 								{
-
-								    lineData.push_back(value);
+                                                                    myRawData[index] = value;
+                                                                    index++;
 								}
+                                                                storeMe->push_back (myData);
 							}
 						}
-						else    
+						else    {   
 							rollback = false;
-						pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-				//		std::vector<double>::iterator it; 
-				//		for(it = lineData.begin() ; it < lineData.end(); it++) {
-						for(int i = 0; i < lineData.size(); ++i) {
-							myData->setDouble(i, lineData[i]);
-						//	myData->data->push_back(*it);
-
+						        pdb :: Handle <double[NUM_KMEANS_DIMENSIONS]> myData = pdb::makeObject<double[NUM_KMEANS_DIMENSIONS]>();
+                                                        std :: stringstream lineStream(line);
+                                                        double value;
+                                                        int index = 0;
+                                                        double * myRawData = *myData;
+                                                        while(lineStream >> value)
+                                                        {
+                                                              myRawData[index] = value;
+                                                              index++;
+                                                        }
+						        storeMe->push_back (myData);
 						}
-						storeMe->push_back (myData);
-						//COUT << "first number: " << myData->getDouble(0) << endl;
-					}
+		                    }
 					
-				    /*COUT << "input data: " << std :: endl;
-				    for (int i=0; i<storeMe->size();i++){
-					(*storeMe)[i]->print();
-				    }*/
 				    end = true;
 
-				    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
+				    if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
 					COUT << "Failed to send data to dispatcher server" << std :: endl;
 					return -1;
 				    }
-					std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
-					temp.flushData( errMsg );
+			            std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+				    temp.flushData( errMsg );
 				} catch (pdb :: NotEnoughSpace &n) {
-				    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
+				    if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
 					COUT << "Failed to send data to dispatcher server" << std :: endl;
 					return -1;
 				    }
@@ -334,57 +347,21 @@ int main (int argc, char * argv[]) {
 				PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
 
 			} // while not end
-		//            }
 			inFile.close();
 
-		    //to write back all buffered records        
-		  //  temp.flushData( errMsg );
 		}
-	}
-	else {
-		int blockSize = 256;
-                pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-                pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
-                try {
-
-                    double bias = 0;
-
-                    for (int i = 0; i < numData; i++) {
-                        pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-                        for (int j = 0; j < dim; j++){
-
-                            std::uniform_real_distribution<> unif(0, 1);
-                            bias = unif(randomGen) * 0.01;
-                            //bias = ((double) rand() / (RAND_MAX)) * 0.01;
-                            //myData->push_back(tmp);
-                            myData->setDouble(j, i%k*3 + bias);
-                        }
-                        storeMe->push_back (myData);
-                    }
-                    /*COUT << "input data: " << std :: endl;
-                    for (int i=0; i<storeMe->size();i++){
-                        (*storeMe)[i]->print();
-                    }*/
-
-			if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
-                        COUT << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-                } catch (pdb :: NotEnoughSpace &n) {
-                    if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("kmeans_input_set", "kmeans_db"), storeMe, errMsg)) {
-                        COUT << "Failed to send data to dispatcher server" << std :: endl;
-                        return -1;
-                    }
-                }
-                PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
-         //   }
-
-            //to write back all buffered records        
-            temp.flushData( errMsg );
-
 	}
     }
     // now, create a new set in that database to store output data
+
+    PDB_COUT << "to create a new set to store the norm vectors" << std :: endl;
+    if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+        COUT << "Not able to create set: " + errMsg;
+        exit (-1);
+    } else { 
+        COUT << "Created set kmeans_norm_vector_set.\n";
+    }
+
 
     PDB_COUT << "to create a new set to store the data count" << std :: endl;
     if (!temp.createSet<SumResult> ("kmeans_db", "kmeans_data_count_set", errMsg)) {
@@ -419,19 +396,28 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
     
-    // pdb::Handle<pdb::Vector<DoubleVector>> model = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
-
     auto iniBegin = std :: chrono :: high_resolution_clock :: now();
 
     // Initialization for the model in the KMeansAggregate
        
     // Calculate the count of input data points 
     
-    Handle<Computation> myInitialScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+    
+    Handle<Computation> myInitialScanSet = makeObject<ScanDoubleArraySet>("kmeans_db", "kmeans_input_set");
+    Handle<Computation> myNormVectorMap = makeObject<KMeansNormVectorMap>();
+    myNormVectorMap->setInput(myInitialScanSet);
+    Handle<Computation> myNormVectorWriter = makeObject<WriteDoubleVectorSet> ("kmeans_db", "kmeans_norm_vector_set");
+    myNormVectorWriter->setInput(myNormVectorMap);
+
+    if (!myClient.executeComputations(errMsg, myNormVectorWriter)) {
+        COUT << "Query failed. Message was: " << errMsg << "\n";
+        return 1;
+    }
+    auto iniNormEnd = std :: chrono :: high_resolution_clock :: now();
+    
+    Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
     Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
-    myDataCount->setInput(myInitialScanSet);
-//    myDataCount->setAllocatorPolicy(noReuseAllocator);
-//    myDataCount->setOutput("kmeans_db", "kmeans_data_count_set");
+    myDataCount->setInput(myScanSet);
     Handle <Computation> myWriter = makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
     myWriter->setInput(myDataCount);
 
@@ -460,7 +446,7 @@ int main (int argc, char * argv[]) {
     Vector <Handle<DoubleVector>> mySamples;
     while(mySamples.size() < k) {
             std :: cout << "Needed to sample due to insufficient sample size." << std :: endl;	
-	    Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+	    Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
     	    Handle<Computation> myDataSample = makeObject<KMeansSampleSelection>(fraction);
     	    myDataSample->setInput(mySampleScanSet);
 	    Handle<Computation> myWriteSet = makeObject<WriteDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
@@ -473,9 +459,9 @@ int main (int argc, char * argv[]) {
 	    SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_initial_model_set");
                
 	    for (Handle<DoubleVector> a : sampleResult) {
-                 std :: cout << "received 1 sample" << std :: endl;
-                 a->print();
-                 std :: cout << std :: endl;
+                 //std :: cout << "received 1 sample" << std :: endl;
+                 //a->print();
+                 //std :: cout << std :: endl;
                  Handle<DoubleVector> myDoubles = makeObject<DoubleVector>(dim);
                  double * rawData = a->getRawData();
                  double * myRawData = myDoubles->getRawData();
@@ -493,13 +479,13 @@ int main (int argc, char * argv[]) {
     //distinct
     Vector <Handle<DoubleVector>> myDistinctSamples;
     for (size_t i = 0; i < k; i++) {
-        std :: cout << "the " << i << "-th element" << std :: endl;
-        (mySamples[i])->print();
+        //std :: cout << "the " << i << "-th element" << std :: endl;
+        //(mySamples[i])->print();
         std :: cout << std :: endl;
         int j;
         for (j = i+1; j < k; j++) {
                 if (((mySamples[i])->equals(mySamples[j]))) {
-                    std :: cout << "it equals with the " << j << "-th element" << std :: endl;
+                    //std :: cout << "it equals with the " << j << "-th element" << std :: endl;
                     break;
                 }
         }
@@ -552,7 +538,8 @@ int main (int argc, char * argv[]) {
 			}
 		}
 
-    		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
+    		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
+                //Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
                 //myQuery->setAllocatorPolicy(noReuseAllocator);
@@ -664,32 +651,9 @@ int main (int argc, char * argv[]) {
     auto allEnd = std :: chrono :: high_resolution_clock :: now();
 
     COUT << std::endl;
-/*
-    COUT << "Initialization Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
-    COUT << "Total Processing Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
-*/
-    //QueryClient myClient (8108, "localhost", clientLogger, true);
 
-	// print the resuts
+    // print the resuts
     if (printResult == true) {
-//        COUT << "to print result..." << std :: endl;
-
-//	COUT << std :: endl;
-
-	/*
-        SetIterator <DoubleVector> input = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_input_set");
-        COUT << "Query input: "<< std :: endl;
-        int countIn = 0;
-        for (auto a : input) {
-            countIn ++;
-            COUT << countIn << ":";
-            a->print();
-            COUT << std::endl;
-        }
-	*/
-
         
         SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
 
@@ -713,8 +677,10 @@ int main (int argc, char * argv[]) {
 
 
     COUT << std :: endl;
-    COUT << "Initialization Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
+    COUT << "Norm Vector Map Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(iniNormEnd-iniBegin).count() << " secs." << std::endl;
+    COUT << "Sampling Time Duration: " <<
+                std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniNormEnd).count() << " secs." << std::endl;
     COUT << "Total Processing Time Duration: " <<
                 std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
     if (clusterMode == false) {
@@ -722,6 +688,8 @@ int main (int argc, char * argv[]) {
         myClient.deleteSet ("kmeans_db", "kmeans_output_set");
         myClient.deleteSet ("kmeans_db", "kmeans_initial_model_set");
         myClient.deleteSet ("kmeans_db", "kmeans_data_count_set");
+        myClient.deleteSet ("kmeans_db", "kmeans_norm_vector_set");
+
     } else {
         if (!temp.removeSet ("kmeans_db", "kmeans_output_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
@@ -735,7 +703,10 @@ int main (int argc, char * argv[]) {
             COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
-
+        else if (!temp.removeSet ("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+            COUT << "Not able to remove set: " + errMsg;
+            exit (-1);
+        }
 	else {
             COUT << "Removed set.\n";
         }

@@ -55,6 +55,7 @@ common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 common_env.Append(CCFLAGS='-DAUTO_TUNING')
+common_env.Append(CCFLAGS='-DPROFILING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 #for nearest neighbor search, below flag should be set to large like 200 for 64MB page size
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
@@ -428,6 +429,7 @@ common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
 
 
 # K-means
+common_env.SharedLibrary('libraries/libScanDoubleArraySet.so', ['build/libraries/ScanDoubleArraySet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
@@ -435,6 +437,7 @@ common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/li
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/libraries/KMeansDataCountAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libKMeansNormVectorMap.so', ['build/libraries/KMeansNormVectorMap.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
 # LDA
@@ -860,9 +863,11 @@ KMeans=common_env.Alias('KMeans', [
 
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
+  'libraries/libKMeansNormVectorMap.so',
   'libraries/libWriteDoubleVectorSet.so',
   'libraries/libKMeansAggregate.so',
   'libraries/libScanDoubleVectorSet.so',
+  'libraries/libScanDoubleArraySet.so',
   'libraries/libWriteKMeansSet.so',
   'libraries/libKMeansAggregateOutputType.so',
   'libraries/libKMeansCentroid.so',
