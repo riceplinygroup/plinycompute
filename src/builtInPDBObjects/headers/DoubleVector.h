@@ -83,7 +83,8 @@ public:
          if (i < this->size) {
             return (*data)[i];
          } else {
-            return -1;
+            std :: cout << "Error in DoubleVector: Cannot get the value at the pos " << i << std :: endl;;
+            exit(-1);
          }
      }
 
@@ -91,15 +92,17 @@ public:
          if (i < this->size) {
              (*data)[i] = val;
          } else {
-            std :: cout << "Cannot assign the value " << val << "to the pos " << i << std :: endl;;
+            std :: cout << "Error in DoubleVector: Cannot assign the value " << val << "to the pos " << i << std :: endl;
+            exit(-1);
          }
      }
 
      //following implementation of Spark MLLib
      //https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/linalg/Vectors.scala
      double getNorm2() {
-         double * rawData = data->c_ptr();
          if (norm < 0 ) {
+             norm = 0;
+             double * rawData = data->c_ptr();
              size_t mySize = this->getSize();
              for ( int i = 0; i < mySize; i++) {
                  norm += rawData[i] * rawData[i];
@@ -166,9 +169,6 @@ public:
          double precision = 0.000001;
          double myNorm = norm;
          double otherNorm = other.getNorm2();
-         if (norm < 0) {
-             myNorm = getNorm2();
-         }
          double sumSquaredNorm = myNorm * myNorm + otherNorm * otherNorm;
          double normDiff = myNorm - otherNorm;
          double sqDist = 0.0;

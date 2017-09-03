@@ -923,17 +923,22 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                 PDB_COUT << "check the page at server side" << std :: endl;
                                 Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
                                 Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
+
+
                                 int vecSize = inputVec->size();
                                 PDB_COUT << "in the page to sent: vector size =" << vecSize << std :: endl;
                                 if (vecSize != 0) {          
       						const UseTemporaryAllocationBlock tempBlock {2048};
 #ifdef ENABLE_COMPRESSION
-                                                char * compressedBytes = new char[snappy::MaxCompressedLength(nextPage->getSize())];
+                                                char * newRecord = (char *) calloc(nextPage->getSize(), 1);
+                                                myRec = getRecord(inputVec, newRecord, nextPage->getSize());
+                                                char * compressedBytes = new char[snappy::MaxCompressedLength(myRec->numBytes())];
                                                 size_t compressedSize;
-                                                snappy::RawCompress((char *)(nextPage->getBytes()), nextPage->getSize(), compressedBytes, &compressedSize);
-                                                std :: cout << "size before compression is " << nextPage->getBytes() << " and size after compression is " << compressedSize << std :: endl;
+                                                snappy::RawCompress((char *)(nextPage->getBytes()), myRec->numBytes(), compressedBytes, &compressedSize);
+                                                std :: cout << "Frontend=>Client: size before compression is " << myRec->numBytes() << " and size after compression is " << compressedSize << std :: endl;
                                                 sendUsingMe->sendBytes(compressedBytes, compressedSize, errMsg);
                                                 delete [] compressedBytes;
+                                                free(newRecord);
 #else
 		                                if (!sendUsingMe->sendBytes (nextPage->getBytes (), nextPage->getSize (), errMsg)) {
 							return std :: make_pair (false, errMsg);	

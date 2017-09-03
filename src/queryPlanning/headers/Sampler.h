@@ -49,7 +49,7 @@ static double computeFractionForSampleSize (int sampleSizeLowerBound, long total
         return fmax(sampleSizeLowerBound + numStd(sampleSizeLowerBound) * sqrt(sampleSizeLowerBound), 1e-15)/total;
     } else {
         //BinomialBounds.getUpperBound()
-        double fraction = sampleSizeLowerBound/total;
+        double fraction = (double)sampleSizeLowerBound/(double) (total);
         double delata = 1e-4;
         double gamma = -log(delata) /total;
         return fmin(1, fmax(1e-10, fraction + gamma + sqrt(gamma*gamma + 2*gamma*fraction))); 
