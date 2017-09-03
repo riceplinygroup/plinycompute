@@ -80,7 +80,15 @@ public:
      * @return true on success
      */
     bool dispatchData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<Vector<Handle<Object>>> toDispatch);
-
+    void waitAllRequestsProcessed() {
+                pthread_mutex_lock(&mutex);
+                while (numRequestsInProcessing > 0) {
+                   pthread_mutex_unlock(&mutex);
+                   sleep(1);
+                   pthread_mutex_lock(&mutex);
+                }
+                pthread_mutex_unlock(&mutex);         
+    }
 private:
 
     PDBLoggerPtr logger;
@@ -97,6 +105,9 @@ private:
                   Handle<Vector<Handle<Object>>> toSend);
 
     Handle<NodeDispatcherData> findNode(NodeID nodeId);
+    int numRequestsInProcessing = 0;
+    pthread_mutex_t mutex;
+
 
 };
 }

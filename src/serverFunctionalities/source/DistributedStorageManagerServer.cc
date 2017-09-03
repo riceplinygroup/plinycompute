@@ -23,6 +23,7 @@
 #include "CatalogClient.h"
 #include "CatalogServer.h"
 #include "ResourceManagerServer.h"
+#include "DispatcherServer.h"
 #include "PDBCatalogMsgType.h"
 #include "CatalogDatabaseMetadata.h"
 #include "CatalogSetMetadata.h"
@@ -652,6 +653,8 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                auto failureNodes = std::vector<std::string>();
 
                std::vector<std::string> allNodes;
+               getFunctionality<DispatcherServer>().waitAllRequestsProcessed();
+               std :: cout << "All data requests have been served" << std :: endl;
                const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
                for (int i = 0; i < nodes->size(); i++) {
                    std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
