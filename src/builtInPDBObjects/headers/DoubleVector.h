@@ -113,21 +113,14 @@ public:
      }
      
      inline double dot (DoubleVector &other) {
-          size_t mySize = this->getSize();
-          size_t otherSize = other.getSize();
+          size_t mySize = this->size;
           double * rawData = data->c_ptr();
           double * otherRawData = other.getRawData();
-          if (mySize != otherSize) {
-              std :: cout << "Error in DoubleVector: dot size doesn't match" << std :: endl;
-              exit(-1);
+          double dotSum = 0;
+          for (size_t i = 0; i < mySize; i++) {
+               dotSum += rawData[i] * otherRawData[i];
           }
-          else {
-               double dotSum = 0;
-               for (int i = 0; i < mySize; i++) {
-                   dotSum += rawData[i] * otherRawData[i];
-               }
-               return dotSum;
-          }
+          return dotSum;
      }
 
      //to get squared distance following SparkMLLib
@@ -174,7 +167,6 @@ public:
          double sqDist = 0.0;
          double precisionBound1 = 2.0 * KMEANS_EPSILON * sumSquaredNorm / (normDiff * normDiff + KMEANS_EPSILON);
          if (precisionBound1 < precision) {
-         //if (true) {
              sqDist = sumSquaredNorm - 2.0 * dot (other);
          } else {
              sqDist = getSquaredDistance(other);
