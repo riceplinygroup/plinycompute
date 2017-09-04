@@ -73,7 +73,9 @@ using namespace pdb;
     #define NUM_KMEANS_DIMENSIONS 100
 #endif
 
-
+#ifndef KMEANS_CONVERGE_THRESHOLD 
+    #define KMEANS_CONVERGE_THRESHOLD 0.00001
+#endif
 int main (int argc, char * argv[]) {
     bool printResult = true;
     bool clusterMode = false;
@@ -94,7 +96,14 @@ int main (int argc, char * argv[]) {
     const std::string magenta("\033[0;35m");
     const std::string reset("\033[0m");
 
-
+    if (argc <= 5) {
+       double eps = 1.0;
+       while ((1.0 + (eps / 2.0)) != 1.0) {
+          eps = eps/2.0;
+       }
+       std :: cout << "EPSILON=" << eps << std :: endl;
+       return 0;
+    }
     COUT << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
     if (argc > 1) {
         if (strcmp(argv[1],"N") == 0) {
@@ -535,12 +544,15 @@ int main (int argc, char * argv[]) {
 
 		for (int i = 0; i < k; i++) {
 			Handle<DoubleVector> tmp = pdb::makeObject<DoubleVector>(dim);
-			my_model->push_back(tmp);
                         //JiaNote: use raw C++ data directly
-                        double * rawData = (*my_model)[i]->getRawData();
+                        double * rawData = tmp->getRawData();
+                        double norm = 0;
 			for (int j = 0; j < dim; j++) {
 				rawData[j] = model[i][j];
+                                norm += rawData[j] * rawData[j];
 			}
+                        tmp->norm = norm;
+			my_model->push_back(tmp);
 		}
 
     		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
@@ -563,7 +575,7 @@ int main (int argc, char * argv[]) {
 		// update the model
 		SetIterator <KMeansAggregateOutputType> result = myClient.getSetIterator <KMeansAggregateOutputType> ("kmeans_db", "kmeans_output_set");
 		kk = 0;
-
+                bool converge = true;
 		if (ifFirst) {
 			for (Handle<KMeansAggregateOutputType> a : result) {
 				if (kk >= k)
@@ -572,11 +584,18 @@ int main (int argc, char * argv[]) {
 				COUT << "The cluster index I got is " << (*a).getKey() << std :: endl;
                                 size_t count = (*a).getValue().getCount();
 				COUT << "The cluster count sum I got is " << count << std :: endl;
+                                if (count == 0) {
+                                    kk++;
+                                    continue;
+                                }
 				//COUT << "The cluster mean sum I got is " << std :: endl;
                                 //JiaNote: use reference                                
                                 DoubleVector & meanVec = (*a).getValue().getMean();
 				//meanVec.print();
 				DoubleVector tmpModel = meanVec /count;
+                                if (converge && (tmpModel.getFastSquaredDistance(*((*my_model)[kk])) > KMEANS_CONVERGE_THRESHOLD)) {
+                                     converge = false;
+                                }
                                 //JiaNote: use rawData
                                 double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
@@ -616,8 +635,15 @@ int main (int argc, char * argv[]) {
 				//COUT << "The cluster mean sum I got is " << std :: endl;
 				//(*a).getValue().getMean().print();
 		//		(*model)[kk] = (*a).getValue().getMean() / (*a).getValue().getCount();
+                                if (count == 0) {
+                                     kk++;
+                                     continue;
+                                }
                                 DoubleVector & meanVec = (*a).getValue().getMean();
 				DoubleVector tmpModel = meanVec / count;
+                                if (converge && (tmpModel.getFastSquaredDistance((*(*my_model)[kk])) > KMEANS_CONVERGE_THRESHOLD)) {
+                                     converge = false;
+                                }
                                 //JiaNote: using raw C++ data
                                 double * rawData = tmpModel.getRawData();
 				for (int i = 0; i < dim; i++) {
@@ -632,19 +658,9 @@ int main (int argc, char * argv[]) {
 				kk++;
 			}
 		}
-		if (kk < k) {
-			COUT << "These clusters do not have data: "  << std :: endl;
-			for (int i = kk; i < k; i++) {
-				COUT << i << ", ";
-				for (int j = 0; j < dim; j++) {
-					double bias = ((double) rand() / (RAND_MAX));
-					model[i][j] = avgData[j] + bias;
-				}
-			}
-		}
-		COUT << std :: endl;
-		COUT << std :: endl;
-
+                if (converge == true) {
+                    std :: cout << "It converges...." << std :: endl;
+                }
 		temp.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
                 auto iterEnd = std :: chrono :: high_resolution_clock :: now();
 		COUT << "Server-side Time Duration for Iteration-: " << n << " is:" <<

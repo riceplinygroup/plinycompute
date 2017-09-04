@@ -118,13 +118,15 @@ public:
                  size_t modelSize = (this->model).size();
                 for(int j = 0; j < modelSize; j ++) {
                         Handle<DoubleVector> mean = (this->model)[j];
-                        double distance = data->getFastSquaredDistance(*mean);
-
-                        if (distance < closestDistance) {
+                        double lowerBoundOfSqDist = mean->norm - data->norm;
+                        lowerBoundOfSqDist = lowerBoundOfSqDist * lowerBoundOfSqDist;
+                        if (lowerBoundOfSqDist < closestDistance) {
+                            double distance = data->getFastSquaredDistance(*mean);
+                            if (distance < closestDistance) {
                                 closestDistance = distance;
                                 cluster = j;
+                            }
                         }
-
                 }
                 return cluster;
         }

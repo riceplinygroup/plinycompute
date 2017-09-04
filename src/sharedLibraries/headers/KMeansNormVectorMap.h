@@ -56,10 +56,12 @@ public:
                         Handle<DoubleVector> ret = makeObject<DoubleVector> (NUM_KMEANS_DIMENSIONS);
                         double * rawData = ret->getRawData();
                         double * myRawData = *checkMe;
+                        double norm = 0;
                         for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
                             rawData[i] = myRawData[i];
+                            norm = norm + rawData[i] * rawData[i];
                         }
-                        ret->getNorm2();
+                        ret->norm = norm;
                         return ret;
                 });
 	}
