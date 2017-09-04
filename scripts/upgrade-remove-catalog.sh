@@ -42,7 +42,7 @@ else
 fi
 
 rm -rf $PDB_HOME/CatalogDir
-
+rm /var/tmp/*.so
 arr=($(awk '{print $0}' $PDB_HOME/conf/serverlist))
 length=${#arr[@]}
 echo "There are $length servers"
@@ -52,7 +52,7 @@ do
         if [ ${#ip_addr} -gt "$ip_len_valid" ]
         then
                 echo -e "\n+++++++++++ install server: $ip_addr"
-                ssh $PDB_SSH_OPTS $user@$ip_addr "rm $pdb_dir/log.out; rm -rf $pdb_dir/Catalog*; rm $pdb_dir/logs/*"
+                ssh $PDB_SSH_OPTS $user@$ip_addr "rm /var/tmp/*.so; rm $pdb_dir/log.out; rm -rf $pdb_dir/Catalog*; rm $pdb_dir/logs/*"
                 scp $PDB_SSH_OPTS -r $PDB_HOME/bin/pdb-server $user@$ip_addr:$pdb_dir/bin/ 
                 scp $PDB_SSH_OPTS -r $PDB_HOME/scripts/cleanupNode.sh $PDB_HOME/scripts/startWorker.sh $PDB_HOME/scripts/stopWorker.sh $PDB_HOME/scripts/checkProcess.sh $user@$ip_addr:$pdb_dir/scripts/
         fi

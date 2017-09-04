@@ -29,7 +29,7 @@
 
 
 #ifndef KMEANS_EPSILON
-   #define KMEANS_EPSILON 0.01
+   #define KMEANS_EPSILON 2.22045e-16
 #endif
 
 namespace pdb {
@@ -99,7 +99,7 @@ public:
 
      //following implementation of Spark MLLib
      //https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/linalg/Vectors.scala
-     double getNorm2() {
+     inline double getNorm2() {
          if (norm < 0 ) {
              norm = 0;
              double * rawData = data->c_ptr();
@@ -112,7 +112,7 @@ public:
          return norm;
      }
      
-     double dot (DoubleVector &other) {
+     inline double dot (DoubleVector &other) {
           size_t mySize = this->getSize();
           size_t otherSize = other.getSize();
           double * rawData = data->c_ptr();
@@ -132,7 +132,7 @@ public:
 
      //to get squared distance following SparkMLLib
     
-     double getSquaredDistance (DoubleVector &other) {
+     inline double getSquaredDistance (DoubleVector &other) {
           size_t mySize = this->getSize();
           size_t otherSize = other.getSize();
           double * rawData = data->c_ptr();
@@ -165,15 +165,16 @@ public:
 
      //this implementation is following Spark MLLib
      //https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/util/MLUtils.scala
-     double getFastSquaredDistance (DoubleVector &other) {
-         double precision = 0.000001;
+     inline double getFastSquaredDistance (DoubleVector &other) {
+         double precision = 0.00001;
          double myNorm = norm;
-         double otherNorm = other.getNorm2();
+         double otherNorm = other.norm;
          double sumSquaredNorm = myNorm * myNorm + otherNorm * otherNorm;
          double normDiff = myNorm - otherNorm;
          double sqDist = 0.0;
          double precisionBound1 = 2.0 * KMEANS_EPSILON * sumSquaredNorm / (normDiff * normDiff + KMEANS_EPSILON);
          if (precisionBound1 < precision) {
+         //if (true) {
              sqDist = sumSquaredNorm - 2.0 * dot (other);
          } else {
              sqDist = getSquaredDistance(other);
@@ -182,7 +183,7 @@ public:
      }
 
 
-     DoubleVector& operator + (DoubleVector &other) {
+     inline DoubleVector& operator + (DoubleVector &other) {
          //std :: cout << "me:" << this->getSize() << std :: endl;
          //this->print();
          //std :: cout << "other:" << other.getSize() << std :: endl;
@@ -203,7 +204,7 @@ public:
      }
 
      
-     DoubleVector& operator / (int val) {
+     inline DoubleVector& operator / (int val) {
          if (val == 0) {
              std :: cout << "Error in DoubleVector: division by zero" << std :: endl;
              exit(-1);
@@ -221,7 +222,7 @@ public:
      }
 
      //Shuffle the elements of an array into a random order, modifying the original array. Returns the original array.
-     DoubleVector& randomizeInPlace () {
+     inline DoubleVector& randomizeInPlace () {
          double * rawData = data->c_ptr();
          size_t mySize = this->getSize();
          for (int i = mySize-1; i >= 0; i--) { 
@@ -233,7 +234,7 @@ public:
          return *this;
      }
 
-    bool equals (Handle<DoubleVector>& other)  {
+    inline bool equals (Handle<DoubleVector>& other)  {
         size_t mySize = this->size;
         size_t otherSize = other->getSize();
         if (mySize != otherSize) {
