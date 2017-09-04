@@ -275,9 +275,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     }
 #endif
 
-
+#ifdef CLEANUP_INACTIVE_BLOCKS
+    getAllocator().cleanInactiveBlocks((size_t)(1048576));
+#endif
     //seed the random number generator for each thread
-    srand(time(NULL)+i);
+    srand(time(NULL));
 
 
     //setup an output page to store intermediate results and final output
