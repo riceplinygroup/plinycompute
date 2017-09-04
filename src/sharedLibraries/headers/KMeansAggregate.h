@@ -74,7 +74,7 @@ public:
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computeClusterMemberOptimized(aggMe);});
+                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computeClusterMemberOptimized(*aggMe);});
         }
 
         // the value type must have + defined
@@ -111,20 +111,20 @@ public:
         	return cluster;
         }
 
-
-        int computeClusterMemberOptimized(Handle<DoubleVector> data) {
+        //JiaNote: add this to be consistent with Spark MLLib
+        int computeClusterMemberOptimized(DoubleVector & data) {
                 int closestDistance = INT_MAX;
                 int cluster = 0;
-                 size_t modelSize = (this->model).size();
-                for(int j = 0; j < modelSize; j ++) {
-                        Handle<DoubleVector> mean = (this->model)[j];
-                        double lowerBoundOfSqDist = mean->norm - data->norm;
+                size_t modelSize = (this->model).size();
+                for(int i = 0; i < modelSize; i ++) {
+                        DoubleVector & mean = *((this->model)[i]);
+                        double lowerBoundOfSqDist = mean.norm - data.norm;
                         lowerBoundOfSqDist = lowerBoundOfSqDist * lowerBoundOfSqDist;
                         if (lowerBoundOfSqDist < closestDistance) {
-                            double distance = data->getFastSquaredDistance(*mean);
+                            double distance = data.getFastSquaredDistance(mean);
                             if (distance < closestDistance) {
                                 closestDistance = distance;
-                                cluster = j;
+                                cluster = i;
                             }
                         }
                 }
