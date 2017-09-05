@@ -20,7 +20,7 @@ numThreads=$3
 sharedMem=$4
 user=ubuntu
 ip_len_valid=3
-pdb_dir=/home/ubuntu/pdb_install
+pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=10
 
 # By default disable strict host key checking

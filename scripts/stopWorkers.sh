@@ -17,7 +17,7 @@
 pem_file=$1
 user=ubuntu
 ip_len_valid=3
-pdb_dir="/home/ubuntu/pdb_install"
+pdb_dir=$PDB_INSTALL
 PDB_SSH_SLEEP=30
 
 pkill -9 pdb-cluster

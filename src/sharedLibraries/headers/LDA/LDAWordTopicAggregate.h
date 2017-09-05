@@ -31,39 +31,21 @@
 using namespace pdb;
 
 
-class LDAWordTopicAggregate : public ClusterAggregateComp <IntDoubleVectorPair, LDATopicWordProb, int, Vector<double>> {
-
-private:
-	int numTopic;
+class LDAWordTopicAggregate : public ClusterAggregateComp <LDATopicWordProb, LDATopicWordProb, unsigned, LDATopicWordProb> {
 
 public:
 
         ENABLE_DEEP_COPY
 
-        LDAWordTopicAggregate () {}
-        LDAWordTopicAggregate (int fromTopic) {
-		this->numTopic = fromTopic;
-	}
-
-
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <LDATopicWordProb> aggMe) override {
-		return makeLambdaFromMethod(aggMe, getWord);
-//                return makeLambda (aggMe, [] (Handle<LDATopicWordProb> & aggMe) {return aggMe->getDoc();});
+        Lambda <unsigned> getKeyProjection (Handle <LDATopicWordProb> aggMe) override {
+		return makeLambdaFromMethod(aggMe, getKey);
         }
 
         // the value type must have + defined
-        Lambda <Vector<double>> getValueProjection (Handle <LDATopicWordProb> aggMe) override {
-
-            	return makeLambda (aggMe, [&] (Handle<LDATopicWordProb> & aggMe) { 
-
-			Handle<Vector<double>> result = makeObject<Vector<double>>(this->numTopic, this->numTopic);
-			(*result)[aggMe->getTopic()] = aggMe->getProbability();
-			return *result;
-		});
+        Lambda <LDATopicWordProb> getValueProjection (Handle <LDATopicWordProb> aggMe) override {
+		return makeLambdaFromMethod (aggMe, getValue);
         }
-
-
 };
 
 

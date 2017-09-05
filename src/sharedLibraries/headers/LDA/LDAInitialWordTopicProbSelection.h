@@ -16,54 +16,54 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef LDA_INITIAL_WORD_TOPIC_PROB_SELECT_H
+#define LDA_INITIAL_WORD_TOPIC_PROB_SELECT_H
 
-#include "Object.h"
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "SelectionComp.h"
 #include "PDBVector.h"
-#include "Handle.h"
-#include "LDA/TopicAssignment.h"
-#include "LDA/DocAssignment.h"
-
-// By Shangyu
+#include "IntDoubleVectorPair.h"
+#include "LDA/LDATopicWordProb.h"
 
 using namespace pdb;
-
-class LDADocWordTopicAssignment : public Object {
+class LDAInitialWordTopicProbSelection : public SelectionComp <LDATopicWordProb, int> {
 
 private:
+	unsigned numTopic;
 
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
 
 	ENABLE_DEEP_COPY
 
-        LDADocWordTopicAssignment () {}
-
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
+	LDAInitialWordTopicProbSelection () {}
+	LDAInitialWordTopicProbSelection (unsigned numTopicIn) {
+		this->numTopic = numTopicIn;
 	}
 
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
+	Lambda <bool> getSelection (Handle <int> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<int> & checkMe) {return true;});
 	}
 
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
-	}
+	Lambda <Handle <LDATopicWordProb>> getProjection (Handle <int> checkMe) override {
 
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
-	}
-	
-        ~LDADocWordTopicAssignment () {}
 
+		return makeLambda (checkMe, [&] (Handle<int> & checkMe) {
+
+			int numWord = *checkMe;
+
+			// first, seed the RNG
+			srand48 (numWord);
+
+                        Handle<Vector <double>> wordTopicProb = makeObject<Vector <double>> (numTopic);
+                        for (int j = 0; j < numTopic; j++) {
+                        	wordTopicProb->push_back(drand48 ());
+                        }
+			Handle <LDATopicWordProb> myList = makeObject <LDATopicWordProb> (numWord, wordTopicProb);
+			
+			return myList;
+		});
+	}
 };
 
 

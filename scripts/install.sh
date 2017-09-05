@@ -18,7 +18,7 @@ pem_file=$1
 
 user=ubuntu
 ip_len_valid=3
-pdb_dir=/home/ubuntu/pdb_install
+pdb_dir=$PDB_INSTALL
 
 scripts/cleanupNode.sh
 
@@ -33,6 +33,8 @@ then
 else
   PDB_SSH_OPTS="-i ${pem_file} $PDB_SSH_OPTS"
 fi
+
+echo $PDB_HOME/conf/serverlist
 
 if [ "$PLINY_HOME" = "" ]; then
   echo "We do not have pliny dependency."

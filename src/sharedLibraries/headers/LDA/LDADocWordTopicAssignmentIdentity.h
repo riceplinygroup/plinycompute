@@ -15,56 +15,31 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef LDA_DOC_WORD_TOPIC_IDENT_H
+#define LDA_DOC_WORD_TOPIC_IDENT_H
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-
-#include "Object.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "LDA/TopicAssignment.h"
-#include "LDA/DocAssignment.h"
-
-// By Shangyu
+#include "SelectionComp.h"
+#include "Lambda.h"
+#include "LDADocWordTopicAssignment.h"
+#include "LambdaCreationFunctions.h"
 
 using namespace pdb;
 
-class LDADocWordTopicAssignment : public Object {
+class LDADocWordTopicAssignmentIdentity : public SelectionComp <LDADocWordTopicAssignment, LDADocWordTopicAssignment> {
 
-private:
-
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
 
-	ENABLE_DEEP_COPY
+        ENABLE_DEEP_COPY
 
-        LDADocWordTopicAssignment () {}
+	LDADocWordTopicAssignmentIdentity () {}
 
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
+        Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> in) override {
+		return makeLambda (in, [&] (Handle<LDADocWordTopicAssignment> &in) {return true;});
 	}
 
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
+        Lambda <Handle <LDADocWordTopicAssignment>> getProjection (Handle <LDADocWordTopicAssignment> in) override {
+		return makeLambda (in, [&] (Handle<LDADocWordTopicAssignment> &in) {return in;});
 	}
-
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
-	}
-
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
-	}
-	
-        ~LDADocWordTopicAssignment () {}
-
 };
-
 
 #endif

@@ -30,9 +30,9 @@ class LDADocument : public Object {
 
 private:
 
-        int docID;
-	int wordID;
-	int count;
+        unsigned docID;
+	unsigned wordID;
+	unsigned count;
 
 public:
 
@@ -40,11 +40,11 @@ public:
 
         LDADocument () {}
 	
-	void setDoc(int fromDoc) {
+	void setDoc(unsigned fromDoc) {
 		this->docID = fromDoc;
 	}
 
-	int getDoc() {
+	unsigned getDoc() {
 		return this->docID;
 	}
 
@@ -53,16 +53,16 @@ public:
 		this->wordID = fromWord;
 	}
 
-	int getWord() {
+	unsigned getWord() {
 		return this->wordID;
 	}
 
 
-	void setCount(int fromCount) {
+	void setCount(unsigned fromCount) {
 		this->count = fromCount;
 	}
 
-	int getCount() {
+	unsigned getCount() {
 		return this->count;
 	}
 

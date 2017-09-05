@@ -16,53 +16,26 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef WRITE_DOC_WORD_TOPIC_H
+#define WRITE_DOC_WORD_TOPIC_H
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "Handle.h"
-#include "LDA/TopicAssignment.h"
-#include "LDA/DocAssignment.h"
+//by Shangyu, June 2017
 
-// By Shangyu
+#include "WriteUserSet.h"
+#include "LDADocWordTopicAssignment.h"
 
 using namespace pdb;
+class WriteLDADocWordTopicAssignment : public WriteUserSet <LDADocWordTopicAssignment> {
 
-class LDADocWordTopicAssignment : public Object {
-
-private:
-
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
 
 	ENABLE_DEEP_COPY
 
-        LDADocWordTopicAssignment () {}
+        WriteLDADocWordTopicAssignment () {}
 
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
-	}
-
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
-	}
-
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
-	}
-
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
-	}
-	
-        ~LDADocWordTopicAssignment () {}
+        WriteLDADocWordTopicAssignment (std :: string dbName, std :: string setName) {
+            this->setOutput(dbName, setName);
+        }
 
 };
 

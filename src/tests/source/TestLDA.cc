@@ -329,7 +329,6 @@ int main (int argc, char * argv[]) {
                 try {
 		    Handle <int> myData = makeObject <int> (numWord);
 		    storeMe->push_back(myData);
-		  //  storeMe->push_back(&numWord);
 
 		    term << std :: endl;
 		    term << green << "Dictionary size: " << *((*storeMe)[0]) << reset << std :: endl;
@@ -370,52 +369,13 @@ int main (int argc, char * argv[]) {
     }
 
     PDB_COUT << "to create a new set to store the (word, topic probability)" << std :: endl;
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_word_topic_prob_test_set_0", errMsg)) {
+    if (!temp.createSet<LDATopicWordProb> ("LDA_db", "LDA_word_topic_prob_test_set_0", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
         cout << "Created set LDA_word_topic_prob_test_set_0.\n";
     }
 
-    PDB_COUT << "to create a new set to store the (doc, topic probability) 2" << std :: endl;
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_doc_topic_prob_test_set_1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit (-1);
-    } else {
-        cout << "Created set LDA_doc_topic_prob_test_set_1.\n";
-    }
-
-    PDB_COUT << "to create a new set to store the (word, topic probability) 2" << std :: endl;
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", "LDA_word_topic_prob_test_set_1", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit (-1);
-    } else {
-        cout << "Created set LDA_word_topic_prob_test_set_1.\n";
-    }
-
-	/*
-    PDB_COUT << "to create a new set to store the sampled topics" << std :: endl;
-    if (!temp.createSet<LDADocWordTopicAssignment> ("LDA_db", "LDA_topic_join_test_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit (-1);
-    } else {
-        cout << "Created set LDA_topic_join_test_set.\n";
-    }
-	*/
-
-
-    /*
-    PDB_COUT << "to create a new set for storing output data" << std :: endl;
-    if (!temp.createSet<DoubleVector> ("LDA_db", "LDA_output_set", errMsg)) {
-        cout << "Not able to create set: " + errMsg;
-        exit (-1);
-    } else {
-        cout << "Created set LDA_output_set.\n";
-    }
-	*/
-
-
-    
     //Step 3. To execute a Query
 	// for allocations
 
@@ -443,9 +403,8 @@ int main (int argc, char * argv[]) {
     catalogClient.registerType ("libraries/libLDADocTopicFromCountAggregate.so", errMsg);
 
 
-	// connect to the query client
+// connect to the query client
     QueryClient myClient (8108, "localhost", clientLogger, true);
-//    const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
     // Some meta data
     pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
@@ -485,7 +444,7 @@ int main (int argc, char * argv[]) {
     Handle<Computation> myMetaScanSet = makeObject<ScanIntSet>("LDA_db", "LDA_meta_data_set");
     Handle<Computation> myWordTopicProb = makeObject<LDAInitialWordTopicProbMultiSelection>(numTopic);
     myWordTopicProb->setInput(myMetaScanSet);
-    Handle <Computation> myWriter2 = makeObject<WriteIntDoubleVectorPairSet>("LDA_db", "LDA_word_topic_prob_test_set_0");
+    Handle <Computation> myWriter2 = makeObject<WriteTopicsPerWord>("LDA_db", "LDA_word_topic_prob_test_set_0");
     myWriter2->setInput(myWordTopicProb);
     if (!myClient.executeComputations(errMsg, myWriter2)) {
 		std :: cout << "Query failed. Message was: " << errMsg << "\n";
@@ -495,12 +454,7 @@ int main (int argc, char * argv[]) {
     
     std :: cout << "The query 1 is executed successfully!" << std :: endl;
 
-//    tempOut.push_back(myDocTopicProb);
-//    tempOut.push_back(myWordTopicProb);
-	
-
     // Start LDA iterations
-   
     auto begin = std :: chrono :: high_resolution_clock :: now();
     int to = 0; 	
     for (int n = 0; n < iter; n++) {
@@ -518,7 +472,7 @@ int main (int argc, char * argv[]) {
 		
     		Handle<Computation> myScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
     		Handle<Computation> myScanDocTopicProb = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", docTopicSet + "_" + std::to_string(myNum));
-    		Handle<Computation> myScanWordTopicProb = makeObject<ScanIntDoubleVectorPairSet>("LDA_db", wordTopicSet + "_" + std::to_string(myNum));
+    		Handle<Computation> myScanWordTopicProb = makeObject<ScanTopicsPerWord>("LDA_db", wordTopicSet + "_" + std::to_string(myNum));
 		Handle <Computation> myDocWordTopicJoin = makeObject <LDADocWordTopicJoin> ();
 		myDocWordTopicJoin->setInput(0, myScanSet);
 //		myDocWordTopicJoin->setInput(0, myInitialScanSet);

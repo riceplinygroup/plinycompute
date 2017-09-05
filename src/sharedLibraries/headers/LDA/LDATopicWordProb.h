@@ -23,6 +23,7 @@
 
 #include "Object.h"
 #include "Handle.h"
+#include "NumericalVector.h"
 
 using namespace pdb;
 
@@ -30,34 +31,41 @@ class LDATopicWordProb  : public Object {
 
 private:
 
-        int topicID;
-	int wordID;
-	double probability;
+	// the word for which we have all of the topic probabilities
+	unsigned whichWord;
+
+	// the list of probabilities
+	NumericalVector <double> probabilities;
 
 public:
 
 	ENABLE_DEEP_COPY
 
         LDATopicWordProb () {}
-        LDATopicWordProb (int fromTopic, int fromWord, double fromProbability) {
-		this->topicID = fromTopic;
-		this->wordID = fromWord;
-		this->probability = fromProbability;
+
+        LDATopicWordProb (unsigned numTopics, unsigned fromWord, unsigned fromTopic, double fromProbability) : 
+		whichWord (fromWord), 
+		probabilities (numTopics, fromTopic, fromProbability) {}
+
+	LDATopicWordProb (unsigned whichWord, Handle <Vector <double>> probabilities) : whichWord (whichWord), 
+		probabilities (probabilities) {}
+
+	unsigned &getKey () {
+		return whichWord;
+	}	
+
+	LDATopicWordProb &operator + (LDATopicWordProb &me) {
+		probabilities += me.probabilities;
+		return *this;
 	}
 
-	int getTopic() {
-		return this->topicID;
+	LDATopicWordProb &getValue () {
+		return *this;
 	}
 
-
-	int getWord() {
-		return this->wordID;
-	}
-
-	double getProbability() {
-		return this->probability;
-	}
-
+        Vector <double> &getVector () {
+                return probabilities.getVector ();
+        }
 
         ~LDATopicWordProb () {}
 

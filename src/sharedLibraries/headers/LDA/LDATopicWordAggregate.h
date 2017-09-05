@@ -22,44 +22,26 @@
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
+#include "TopicAssignment.h"
 #include "ClusterAggregateComp.h"
-#include "IntIntVectorPair.h"
-#include "LDADocWordTopicCount.h"
-
-
 
 using namespace pdb;
 
 
-class LDATopicWordAggregate : public ClusterAggregateComp <IntIntVectorPair, LDADocWordTopicCount, int, Vector<int>> {
-
-private:
-	int numWord;
+class LDATopicWordAggregate : public ClusterAggregateComp <TopicAssignment, TopicAssignment, unsigned, TopicAssignment> {
 
 public:
 
         ENABLE_DEEP_COPY
 
-        LDATopicWordAggregate () {}
-        LDATopicWordAggregate (int fromWord) {
-		this->numWord = fromWord;
-	}
-
-
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <LDADocWordTopicCount> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<LDADocWordTopicCount> & aggMe) {return aggMe->getTopic();});
+        Lambda <unsigned> getKeyProjection (Handle <TopicAssignment> aggMe) override {
+                return makeLambdaFromMethod (aggMe, getKey);
         }
 
         // the value type must have + defined
-        Lambda <Vector<int>> getValueProjection (Handle <LDADocWordTopicCount> aggMe) override {
-            	return makeLambda (aggMe, [&] (Handle<LDADocWordTopicCount> & aggMe) { 
-
-			Handle<Vector<int>> result = makeObject<Vector<int>>(this->numWord, this->numWord);
-			result->fill(0);
-			(*result)[aggMe->getWord()] = aggMe->getCount(); 
-			return *result;
-		});
+        Lambda <TopicAssignment> getValueProjection (Handle <TopicAssignment> aggMe) override {
+            	return makeLambdaFromMethod (aggMe, getValue);
         }
 
 
