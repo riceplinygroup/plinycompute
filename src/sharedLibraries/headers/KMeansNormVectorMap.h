@@ -29,7 +29,7 @@
 #include <cstdlib>
 
 #ifndef NUM_KMEANS_DIMENSIONS
-   #define NUM_KMEANS_DIMENSIONS 100
+   #define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
 
