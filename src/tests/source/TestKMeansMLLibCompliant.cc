@@ -70,7 +70,7 @@
 using namespace pdb;
 
 #ifndef NUM_KMEANS_DIMENTIONS
-    #define NUM_KMEANS_DIMENSIONS 100
+    #define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
 #ifndef KMEANS_CONVERGE_THRESHOLD 
@@ -317,10 +317,9 @@ int main (int argc, char * argv[]) {
 								std::stringstream  lineStream(line);
 								double value;
                                                                 int index = 0;
-                                                                double * myRawData = *myData;
 								while(lineStream >> value)
 								{
-                                                                    myRawData[index] = value;
+                                                                    (*myData)[index] = value;
                                                                     index++;
 								}
                                                                 storeMe->push_back (myData);
@@ -332,10 +331,9 @@ int main (int argc, char * argv[]) {
                                                         std :: stringstream lineStream(line);
                                                         double value;
                                                         int index = 0;
-                                                        double * myRawData = *myData;
                                                         while(lineStream >> value)
                                                         {
-                                                              myRawData[index] = value;
+                                                              (*myData)[index] = value;
                                                               index++;
                                                         }
 						        storeMe->push_back (myData);
