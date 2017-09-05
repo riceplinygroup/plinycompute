@@ -604,10 +604,10 @@ int main (int argc, char * argv[]) {
 					avgData[i] += rawData[i];
 				}
 
-				COUT << "I am updating the model in position: " << kk << std :: endl;
+				/*COUT << "I am updating the model in position: " << kk << std :: endl;
 				for(int i = 0; i < dim; i++)
 					COUT << i << ": " << model[kk][i] << ' ';
-				COUT << std :: endl;
+				COUT << std :: endl;*/
 				COUT << std :: endl;
 				kk++;
 			}
