@@ -41,10 +41,12 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
-    common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
+    common_env.Append(LINKFLAGS = '-pthread -lsnappy')
     if 'lda' in COMMAND_LINE_TARGETS:
+       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm -lsnappy')    
+    if 'gmm' or 'cgmm' in COMMAND_LINE_TARGETS:
        common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm -lsnappy')    
     common_env.Replace(CXX = "clang++")
 
@@ -53,14 +55,21 @@ common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
 common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 common_env.Append(CCFLAGS='-DAUTO_TUNING')
-common_env.Append(CCFLAGS='-DPROFILING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
-#for nearest neighbor search, below flag should be set to large like 200 for 64MB page size
-common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
+common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=200')
+#Below can be only used for Nearest Neighbor Search
+#common_env.Append(CCFLAGS='-DNO_MOD_PARTITION')
 common_env.Append(CCFLAGS='-DPROFILING')
-common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
+common_env.Append(CCFLAGS='-DPROFILING_CACHE')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
-# common_env.Append(CCFLAGS='-DPDB_DEBUG')
+common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=2000')
+#common_env.Append(CCFLAGS='-DUSE_VALGRIND')
+#common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
+#common_env.Append(CCFLAGS='-DDEBUG_SHUFFLING')
+#common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
+#common_env.Append(CCFLAGS='-DUNPIN_FOR_NON_ZERO_REF_COUNT')
+# common_env.Append(CCFLAGS='-DCLEAR_SET')
+#common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
@@ -411,7 +420,7 @@ common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.
 common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
-common_env.SharedLibrary('libraries/libSumResultWriteSet.so', ['build/tpchBench/SumResultWriteSet.cc'] + all)
+common_env.SharedLibrary('libraries/libCustomerSupplierPartWriteSet.so', ['build/tpchBench/CustomerSupplierPartWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
@@ -419,19 +428,13 @@ common_env.SharedLibrary('libraries/libSupplierData.so', ['build/tpchBench/Suppl
 common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchBench/CustomerMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/CountAggregation.cc'] + all)
-common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/CountCustomer.cc'] + all)
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
-common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
-common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
-common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc'] + all)
+
 
 
 # K-means
-common_env.SharedLibrary('libraries/libScanDoubleArraySet.so', ['build/libraries/ScanDoubleArraySet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
@@ -439,25 +442,20 @@ common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/li
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/libraries/KMeansDataCountAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libKMeansNormVectorMap.so', ['build/libraries/KMeansNormVectorMap.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
 
 # LDA
 common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
-common_env.SharedLibrary('libraries/libScanTopicsPerWord.so', ['build/libraries/LDA/ScanTopicsPerWord.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteLDADocWordTopicAssignment.so', ['build/libraries/LDA/WriteLDADocWordTopicAssignment.cc'] + all)
 common_env.SharedLibrary('libraries/libScanLDADocumentSet.so', ['build/libraries/ScanLDADocumentSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanIntDoubleVectorPairSet.so', ['build/libraries/ScanIntDoubleVectorPairSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDAInitialTopicProbSelection.so', ['build/libraries/LDAInitialTopicProbSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libIntDoubleVectorPair.so', ['build/libraries/IntDoubleVectorPair.cc'] + all)
 common_env.SharedLibrary('libraries/libIntIntVectorPair.so', ['build/libraries/IntIntVectorPair.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteIntDoubleVectorPairSet.so', ['build/libraries/WriteIntDoubleVectorPairSet.cc'] + all)
-common_env.SharedLibrary('libraries/libLDAInitialWordTopicProbSelection.so', ['build/libraries/LDA/LDAInitialWordTopicProbSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libLDAInitialWordTopicProbMultiSelection.so', ['build/libraries/LDA/LDAInitialWordTopicProbMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocWordTopicAssignment.so', ['build/libraries/LDADocWordTopicAssignment.cc'] + all)
-common_env.SharedLibrary('libraries/libLDADocWordTopicAssignmentIdentity.so', ['build/libraries/LDA/LDADocWordTopicAssignmentIdentity.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocWordTopicJoin.so', ['build/libraries/LDA/LDADocWordTopicJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicAggregate.so', ['build/libraries/LDA/LDADocTopicAggregate.cc'] + all)
-common_env.SharedLibrary('libraries/libWriteTopicsPerWord.so', ['build/libraries/LDA/WriteTopicsPerWord.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicProbSelection.so', ['build/libraries/LDA/LDADocTopicProbSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocWordTopicMultiSelection.so', ['build/libraries/LDA/LDADocWordTopicMultiSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libLDATopicWordAggregate.so', ['build/libraries/LDA/LDATopicWordAggregate.cc'] + all)
@@ -467,22 +465,17 @@ common_env.SharedLibrary('libraries/libLDADocWordTopicCount.so', ['build/librari
 common_env.SharedLibrary('libraries/libLDATopicWordProb.so', ['build/libraries/LDA/LDATopicWordProb.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocument.so', ['build/libraries/LDADocument.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteLDADocWordTopicAssignmentSet.so', ['build/libraries/LDA/WriteLDADocWordTopicAssignmentSet.cc'] + all)
-common_env.SharedLibrary('libraries/libTopicsPerWord.so', ['build/libraries/LDA/TopicsPerWord.cc'] + all)
-common_env.SharedLibrary('libraries/libLDADocAssignmentMultiSelection.so', ['build/libraries/LDA/LDADocAssignmentMultiSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libLDATopicAssignmentMultiSelection.so', ['build/libraries/LDA/LDATopicAssignmentMultiSelection.cc'] + all)
-common_env.SharedLibrary('libraries/libDocAssignment.so', ['build/libraries/LDA/DocAssignment.cc'] + all)
-common_env.SharedLibrary('libraries/libTopicAssignment.so', ['build/libraries/LDA/TopicAssignment.cc'] + all)
 #common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
+#GMM
 
 common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/GmmNewComp.cc'] + all)
 #common_env.SharedLibrary('libraries/libGmmModel.so', ['build/libraries/GMM/GmmModel.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libWriteGmmAggregateOutputTypeSet.so', ['build/libraries/GMM/WriteGmmAggregateOutputTypeSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
-#common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
+common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
+common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
 
 common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
@@ -564,8 +557,8 @@ common_env.Program('bin/test52', ['build/tests/Test52.cc'] + all)
 common_env.Program('bin/test53', ['build/tests/Test53.cc'] + all)
 common_env.Program('bin/test54', ['build/tests/Test54.cc'] + all)
 common_env.Program('bin/test56', ['build/tests/Test56.cc'] + all)
-common_env.Program('bin/test57', ['build/tests/Test57.cc'] + all)
-common_env.Program('bin/test58', ['build/tests/Test58.cc'] + all)
+#common_env.Program('bin/test57', ['build/tests/Test57.cc'] + all)
+#common_env.Program('bin/test58', ['build/tests/Test58.cc'] + all)
 common_env.Program('bin/test60', ['build/tests/Test60.cc'] + all)
 common_env.Program('bin/test62', ['build/tests/Test62.cc'] + all)
 common_env.Program('bin/test63', ['build/tests/Test63.cc'] + all)
@@ -598,7 +591,7 @@ common_env.Program('bin/test93', ['build/tests/Test93.cc'] + all)
 common_env.Program('bin/test94', ['build/tests/Test94.cc'] + all)
 common_env.Program('bin/test95', ['build/tests/Test95.cc'] + all)
 common_env.Program('bin/test96', ['build/tests/Test96.cc'] + all)
-common_env.Program('bin/test97', ['build/tests/Test97.cc'] + all)
+common_env.Program('bin/test98', ['build/tests/Test98.cc'] + all)
 common_env.Program('bin/testLA01_Transpose', ['build/tests/TestLA01_Transpose.cc'] + all)
 common_env.Program('bin/testLA02_Add', ['build/tests/TestLA02_Add.cc'] + all)
 common_env.Program('bin/testLA03_Substract', ['build/tests/TestLA03_Substract.cc'] + all)
@@ -621,7 +614,7 @@ common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + a
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
-common_env.Program('bin/TestKMeans1', ['build/tests/TestKMeansMLLibCompliant.cc'] + all)
+common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
 common_env.Program('bin/TestLDA2', ['build/tests/TestLDA2.cc'] + all)
@@ -640,8 +633,7 @@ common_env.Depends(pdbTest, [
   'bin/test52', 
   'bin/test74', 
   'bin/test79', 
-  'bin/test78',
-  'bin/test90', 
+  'bin/test78', 
   'libraries/libCartesianJoin.so', 
   'libraries/libChrisSelection.so', 
   'libraries/libEmployeeSelection.so',
@@ -666,9 +658,7 @@ common_env.Depends(pdbTest, [
   'libraries/libWriteStringIntPairSet.so', 
   'libraries/libWriteStringSet.so',
   'libraries/libWriteSumResultSet.so',
-  'libraries/libWriteDoubleSet.so',
-  'libraries/libOptimizedEmployeeGroupBy.so',
-  'libraries/libScanOptimizedSupervisorSet.so'
+  'libraries/libWriteDoubleSet.so'
 ])
 
 #GMM
@@ -699,12 +689,14 @@ cgmm=common_env.Alias('cgmm', [
   'bin/TestGmm21',
 
   'libraries/libGmmNewComp.so',
+  #'libraries/libGmmModel.so',		
   'libraries/libGmmAggregate.so',	
 
   'libraries/libScanDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so',	
-  #'libraries/libWriteGmmAggregateOutputTypeSet.so'
+  'libraries/libGmmAggregateOutputType.so',		 
 
+  #'libraries/libScanGmmCentroid.so',
+  #'libraries/libWriteGmmCentroid.so'
 ])
 
 lda=common_env.Alias('lda', [
@@ -721,7 +713,7 @@ lda=common_env.Alias('lda', [
   'libraries/libWriteIntDoubleVectorPairSet.so',
   'libraries/libIntDoubleVectorPair.so',
   'libraries/libIntIntVectorPair.so',
-  'libraries/libLDAInitialWordTopicProbSelection.so',
+  'libraries/libLDAInitialWordTopicProbMultiSelection.so',
   'libraries/libLDADocWordTopicJoin.so',
   'libraries/libLDADocWordTopicAssignment.so',
   'libraries/libLDADocTopicAggregate.so',
@@ -736,23 +728,18 @@ lda=common_env.Alias('lda', [
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
 #  "libraries/libWriteLDATopicWordProbSet.so",
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-  "libraries/libLDADocWordTopicAssignmentIdentity",
-  "libraries/libScanIntSet.so"
+  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 
 
 tpch=common_env.Alias('tpch', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
   # TPCH Benchamrk 
   'libraries/libPart.so',
   'libraries/libSupplier.so',
   'libraries/libLineItem.so',
   'libraries/libOrder.so',
   'libraries/libCustomer.so',
-  'libraries/libSumResultWriteSet.so',
+  #'libraries/libCustomerSupplierPartWriteSet.so',
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPartFlat.so',
   'libraries/libSupplierData.so',
@@ -760,15 +747,8 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
   'libraries/libCountAggregation.so',
-  'libraries/libCountCustomer.so',
   'bin/tpchQuery',
-  'bin/tpchDataGenerator',
-  'bin/tpchDataGeneratorNew',
-  'bin/tpchGetCustomerCount',
-  'bin/tpchRegisterAndCreateSets',
-  'bin/tpchDataGeneratorAll',
-  'bin/tpchFlushToDisk'
-  
+  'bin/tpchDataGenerator' 
 ])
 
 
@@ -777,9 +757,7 @@ tpch=common_env.Alias('tpch', [
 common_env.Alias('tests', pdbTest)
 
 mainTests=common_env.Alias('mainTests', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
+  'bin/test18',
   'bin/test47',
   'bin/test47Join',
   'bin/test47JoinB',
@@ -827,7 +805,6 @@ mainTests=common_env.Alias('mainTests', [
   'bin/test94',
   'bin/test95',
   'bin/test96',
-  'bin/test97',
   'libraries/libStringIntPairMultiSelection.so',
   'libraries/libAllSelection.so',
   'libraries/libAllSelectionWithCreation.so',
@@ -888,15 +865,13 @@ KMeans=common_env.Alias('KMeans', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
-  'bin/TestKMeans1',
+  'bin/TestKMeans',
 
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
-  'libraries/libKMeansNormVectorMap.so',
   'libraries/libWriteDoubleVectorSet.so',
   'libraries/libKMeansAggregate.so',
   'libraries/libScanDoubleVectorSet.so',
-  'libraries/libScanDoubleArraySet.so',
   'libraries/libWriteKMeansSet.so',
   'libraries/libKMeansAggregateOutputType.so',
   'libraries/libKMeansCentroid.so',
@@ -967,22 +942,8 @@ libLATest=common_env.Alias('libLATest', [
   'libraries/libMatrixMeta.so',
 ])
 
-lda2=common_env.Alias('lda2', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
-  'bin/TestLDA1', 
-  'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libScanIntSet.so', 
-  'libraries/libLDADocument.so', 'libraries/libScanLDADocumentSet.so', 'libraries/libLDADocIDAggregate.so', 'libraries/libLDAInitialTopicProbSelection.so', 'libraries/libLDAInitialWordTopicProbSelection.so', 'libraries/libLDADocWordTopicJoin.so', 'libraries/libLDADocAssignmentMultiSelection.so', 'libraries/libLDADocTopicAggregate.so', 'libraries/libLDADocTopicProbSelection.so', 'libraries/libIntDoubleVectorPair.so', 'libraries/libLDATopicAssignmentMultiSelection.so', 'libraries/libLDATopicWordAggregate.so', 'libraries/libLDATopicWordProbMultiSelection.so', 'libraries/libLDAWordTopicAggregate.so', 'libraries/libWriteTopicsPerWord.so', 'libraries/libDocAssignment.so', 'libraries/libTopicAssignment.so', 'libraries/libLDATopicWordProb.so', 'libraries/libWriteLDADocWordTopicAssignment.so', 'libraries/libLDADocWordTopicAssignment.so', 'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libLDADocWordTopicAssignmentIdentity.so', 'libraries/libScanTopicsPerWord.so', 'libraries/libScanIntDoubleVectorPairSet.so'
-])
 
 mlBench=common_env.Alias('mlBench', [
-  'bin/CatalogServerTests',
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
-  'bin/TestKMeans1',
-  'bin/TestLDA1',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
@@ -999,7 +960,7 @@ mlBench=common_env.Alias('mlBench', [
   'libraries/libWriteIntDoubleVectorPairSet.so',
   'libraries/libIntDoubleVectorPair.so',
   'libraries/libIntIntVectorPair.so',
-  'libraries/libLDAInitialWordTopicProbSelection.so',
+  'libraries/libLDAInitialWordTopicProbMultiSelection.so',
   'libraries/libLDADocWordTopicJoin.so',
   'libraries/libLDADocWordTopicAssignment.so',
   'libraries/libLDADocTopicAggregate.so',
@@ -1013,7 +974,6 @@ mlBench=common_env.Alias('mlBench', [
   'libraries/libLDADocument.so',
   'libraries/libWriteLDADocWordTopicAssignmentSet.so',
   "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-  "libraries/libScanIntSet.so"
+  "libraries/libLDADocTopicFromCountAggregate.so"
 ])
 Default(main)

@@ -31,39 +31,21 @@
 using namespace pdb;
 
 
-class LDADocTopicAggregate : public ClusterAggregateComp <IntIntVectorPair, LDADocWordTopicAssignment, int, Vector<int>> {
-
-private:
-	int numTopic;
+class LDADocTopicAggregate : public ClusterAggregateComp <DocAssignment, DocAssignment, unsigned, DocAssignment> {
 
 public:
 
         ENABLE_DEEP_COPY
 
-        LDADocTopicAggregate () {}
-        LDADocTopicAggregate (int fromTopic) {
-		this->numTopic = fromTopic;
-	}
-
-
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <LDADocWordTopicAssignment> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<LDADocWordTopicAssignment> & aggMe) {return aggMe->getDoc();});
+        Lambda <unsigned> getKeyProjection (Handle <DocAssignment> aggMe) override {
+		return makeLambdaFromMethod (aggMe, getKey);
         }
 
         // the value type must have + defined
-        Lambda <Vector<int>> getValueProjection (Handle <LDADocWordTopicAssignment> aggMe) override {
-            	return makeLambda (aggMe, [&] (Handle<LDADocWordTopicAssignment> & aggMe) { 
-			Handle<Vector<int>> result = makeObject<Vector<int>>(this->numTopic, this->numTopic);
-			result->fill(0);
-			Vector<int>& topicAssign = aggMe->getTopicAssignment();
-			for (int i = 0; i < topicAssign.size(); i+=2){
-				(*result)[topicAssign[i]] += topicAssign[i+1]; 	
-			}
-			return *result;
-		});
+        Lambda <DocAssignment> getValueProjection (Handle <DocAssignment> aggMe) override {
+		return makeLambdaFromMethod (aggMe, getValue);
         }
-
 
 };
 

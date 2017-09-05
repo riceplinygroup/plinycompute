@@ -15,7 +15,7 @@
 #!/bin/bash
 
 pem_file=$1
-pdb_dir=/home/ubuntu/pdb_install
+pdb_dir=$PDB_INSTALL
 user=ubuntu
 ip_len_valid=3
 

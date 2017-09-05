@@ -43,7 +43,7 @@ public:
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <LDADocument> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<LDADocument> & aggMe) {return aggMe->getDoc();});
+                return makeLambda (aggMe, [] (Handle<LDADocument> & aggMe) {return (int) aggMe->getDoc();});
         }
 
         // the value type must have + defined

@@ -23,6 +23,7 @@
 #include "JoinComp.h"
 #include "Lambda.h"
 #include "LDADocWordTopicAssignment.h"
+#include "LDA/LDATopicWordProb.h"
 #include "LambdaCreationFunctions.h"
 #include "LDADocument.h"
 #include "IntDoubleVectorPair.h"
@@ -34,16 +35,19 @@
 
 using namespace pdb;
 
-class LDADocWordTopicJoin : public JoinComp <LDADocWordTopicAssignment, LDADocument, IntDoubleVectorPair, IntDoubleVectorPair> {
+class LDADocWordTopicJoin : public JoinComp <LDADocWordTopicAssignment, LDADocument, IntDoubleVectorPair, LDATopicWordProb> {
 
 private:
 	Handle <Vector <char>> myMem;
+	unsigned numWords;
 
 public:
 
         ENABLE_DEEP_COPY
 
-        LDADocWordTopicJoin () {
+	LDADocWordTopicJoin () {}
+
+        LDADocWordTopicJoin (unsigned numWords) : numWords (numWords) {
 		
 		// start by setting up the gsl_rng *src...
                 gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
@@ -58,7 +62,6 @@ public:
                 // copy src over
                 memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
                 memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
-//                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
 
                 // lastly, free src
                 gsl_rng_free (src);
@@ -66,70 +69,56 @@ public:
 	}
 
         Lambda <bool> getSelection (Handle <LDADocument> doc, Handle <IntDoubleVectorPair> DocTopicProb, 
-		Handle <IntDoubleVectorPair> WordTopicProb) override {
-           	    //JiaNote: we may want to avoid makeLambda in Join selection as much as possible, because it matches all pairs in all tables first, which is very expensive.
-		    return (makeLambdaFromMethod (doc, getDoc) == makeLambdaFromMethod (DocTopicProb, getInt)) && 
-				(makeLambdaFromMethod (doc, getWord) == makeLambdaFromMethod (WordTopicProb, getInt));	
-		     
-		    /*return makeLambda (doc, DocTopicProb, WordTopicProb, [] (Handle<LDADocument> & doc, 
-			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
-				return (doc->getDoc() == DocTopicProb->getInt() && doc->getWord() == WordTopicProb->getInt());
-		    	});
-		    */
-
+		Handle <LDATopicWordProb> WordTopicProb) override {
+		    return (makeLambdaFromMethod (doc, getDoc) == makeLambdaFromMethod (DocTopicProb, getUnsigned)) && 
+				(makeLambdaFromMethod (doc, getWord) == makeLambdaFromMethod (WordTopicProb, getKey));	
         	}
 
         Lambda <Handle <LDADocWordTopicAssignment>> getProjection (Handle <LDADocument> doc, 
-		Handle <IntDoubleVectorPair> DocTopicProb, Handle <IntDoubleVectorPair> WordTopicProb) override {
+		Handle <IntDoubleVectorPair> DocTopicProb, Handle <LDATopicWordProb> WordTopicProb) override {
 
 		    return makeLambda (doc, DocTopicProb, WordTopicProb, [&] (Handle<LDADocument> & doc, 
-			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<IntDoubleVectorPair> & WordTopicProb) {
-				//Handle<Vector<double>> topicProbForDoc = DocTopicProb->getVector();
-				//Handle<Vector<double>> topicProbForWord = WordTopicProb->getVector();
+			Handle<IntDoubleVectorPair> & DocTopicProb, Handle<LDATopicWordProb> & WordTopicProb) {
 				int size = (DocTopicProb->getVector()).size();
 
-			
-				Handle<Vector<double>> myProb = makeObject<Vector<double>>(size, size);
-				Handle<Vector<int>> topics = makeObject<Vector<int>>(size, size);
-				Handle<Vector<int>> topicAssignment = makeObject<Vector<int>>();
-
-				gsl_rng *rng = getRng();
-                        	//rng = gsl_rng_alloc(gsl_rng_mt19937);
-                        	//std::random_device rd;
-                        	//std::mt19937 gen(rd());
-                        	//gsl_rng_set(rng, gen());
-							
-		//		std :: cout << "For doc: " << doc->getDoc() << "and Doc: " << doc->getWord() << "\n";
-		//		std :: cout << "DocTopicProb: " << "\n";
-		//		(DocTopicProb->getVector()).print();
-		//		std :: cout << "WordTopicProb: " << "\n";
-		//		(WordTopicProb->getVector()).print();
-		
-
+				// compute the posterior probailities of the word coming from each topic	
+				double *myProb = new double[size];
+				double *topicProbs = DocTopicProb->getVector().c_ptr ();
+				double *wordProbs = WordTopicProb->getVector().c_ptr ();
 				for (int i = 0; i < size; ++i) {
-					(*myProb)[i] = (DocTopicProb->getVector())[i] * (WordTopicProb->getVector())[i]; 
+					myProb[i] = topicProbs[i] * wordProbs[i]; 
 				}
 
-			//	std :: cout << "My Prob: " << "\n";
-			//	(*myProb).print();
-		
+				// do the random assignment
+				gsl_rng *rng = getRng();
+				unsigned *topics = new unsigned[size];
+				gsl_ran_multinomial (rng, size, doc->getCount(), myProb, topics);
 
+				// get the container for the return value
+				Handle <LDADocWordTopicAssignment> retVal = makeObject <LDADocWordTopicAssignment> ();
+				retVal->setup ();
+				LDADocWordTopicAssignment &myGuy = *retVal;	
+					
+				// get the meta-data
+				unsigned myDoc = doc->getDoc();
+				unsigned myWord = doc->getWord();
 
-				gsl_ran_multinomial (rng, size, doc->getCount(), myProb->c_ptr(), (unsigned int*)topics->c_ptr());
-	
+				// extract all of the words and put the in the return value
 				for (int i = 0; i < size; ++i) {
-					if ((*topics)[i] != 0) {
-						topicAssignment->push_back(i);	
-						topicAssignment->push_back((*topics)[i]);	
-				//		std::cout << "I get topic: " << i << ", count: " << (*topics)[i] << std::endl;
+					if (topics[i] != 0) {
+						Handle <DocAssignment> whichDoc = makeObject <DocAssignment> (size, myDoc, i, topics[i]);
+						Handle <TopicAssignment> whichTopic = makeObject <TopicAssignment> (numWords, i, myWord, topics[i]);
+						myGuy.push_back (whichDoc);
+						myGuy.push_back (whichTopic);
 					}
 				}
 
-
+				// free the memory we allocated
+				delete [] myProb;
+				delete [] topics;
 				
-				Handle<LDADocWordTopicAssignment> result = 
-					makeObject<LDADocWordTopicAssignment> (doc->getDoc(), doc->getWord(), topicAssignment);
-				return result;
+				// and get outta here
+				return retVal;
 			});
 		
         	}

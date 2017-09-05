@@ -16,55 +16,46 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef DOC_ASSIGNMENT_H
+#define DOC_ASSIGNMENT_H
 
 #include "Object.h"
-#include "PDBVector.h"
 #include "Handle.h"
-#include "LDA/TopicAssignment.h"
-#include "LDA/DocAssignment.h"
-
-// By Shangyu
+#include "NumericalVector.h"
 
 using namespace pdb;
 
-class LDADocWordTopicAssignment : public Object {
+class DocAssignment : public Object {
 
-private:
+	unsigned whichDoc = 0;
+	NumericalVector <unsigned> whichTopics;
 
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
 
 	ENABLE_DEEP_COPY
 
-        LDADocWordTopicAssignment () {}
+	DocAssignment (unsigned numDims, unsigned whichDoc, unsigned whichTopic, unsigned cnt) : whichDoc (whichDoc),
+		whichTopics (numDims, whichTopic, cnt) {}
 
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
+	DocAssignment () {}
+
+	DocAssignment &operator + (DocAssignment &addMe) {
+		whichTopics += addMe.whichTopics;
+		return *this;	
 	}
 
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
+	unsigned &getKey () {
+		return whichDoc;
 	}
 
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
+	DocAssignment &getValue () {
+		return *this;
 	}
 
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
+	Vector <unsigned> &getVector () {
+		return whichTopics.getVector ();
 	}
-	
-        ~LDADocWordTopicAssignment () {}
-
 };
 
-
 #endif
+

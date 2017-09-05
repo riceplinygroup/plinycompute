@@ -76,6 +76,10 @@ public:
 		return this->myInt;
 	}
 
+	unsigned getUnsigned () {
+		return this->myInt;
+	}
+
 	Vector<double>& getVector() {
 		return this->myVector;
 	}

@@ -24,7 +24,7 @@
 #include "MultiSelectionComp.h"
 #include "PDBVector.h"
 #include "LDATopicWordProb.h"
-#include "IntIntVectorPair.h"
+#include "TopicAssignment.h"
 #include "LDATopicWordProb.h"
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
@@ -32,12 +32,12 @@
 #include <gsl/gsl_vector.h>
 
 using namespace pdb;
-class LDATopicWordProbMultiSelection : public MultiSelectionComp <LDATopicWordProb, IntIntVectorPair> {
+class LDATopicWordProbMultiSelection : public MultiSelectionComp <LDATopicWordProb, TopicAssignment> {
 
 private:
         Vector<double> prior;
         Handle <Vector <char>> myMem;
-	int wordNum;
+	int numTopics;
 
 public:
 
@@ -45,10 +45,10 @@ public:
 
 	LDATopicWordProbMultiSelection () {}
 
-	LDATopicWordProbMultiSelection (Vector<double>& fromPrior) {
+	LDATopicWordProbMultiSelection (Vector<double>& fromPrior, unsigned numTopics) {
 
                 this->prior = fromPrior;
-		this->wordNum = fromPrior.size();
+		this->numTopics = numTopics;
 
                 // start by setting up the gsl_rng *src...
                 gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
@@ -70,48 +70,37 @@ public:
 
         }
 
-	Lambda <bool> getSelection (Handle <IntIntVectorPair> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<IntIntVectorPair> & checkMe) {return true;});
+	Lambda <bool> getSelection (Handle <TopicAssignment> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<TopicAssignment> & checkMe) {return true;});
 	}
 
-	Lambda <Vector<Handle <LDATopicWordProb>>> getProjection (Handle <IntIntVectorPair> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<IntIntVectorPair> & checkMe) {
+	Lambda <Vector<Handle <LDATopicWordProb>>> getProjection (Handle <TopicAssignment> checkMe) override {
+		return makeLambda (checkMe, [&] (Handle<TopicAssignment> & checkMe) {
 	
 			gsl_rng *rng = getRng();
-			Vector<int>& wordCount = checkMe->getVector();
+			Vector<unsigned> &wordCount = checkMe->getVector();
 
-                        Handle<Vector<double>> mySamples= makeObject<Vector<double>>(wordNum, wordNum);
-                        Handle<Vector<double>> totalProb= makeObject<Vector<double>>(wordNum, wordNum);
+			unsigned wordNum = prior.size ();
+			double *mySamples = new double[wordNum];
+			double *totalProb = new double[wordNum];
+			double *myPrior = prior.c_ptr (); 
                         for (int i = 0; i < wordNum; i++) {
-                                (*totalProb)[i] = (this->prior)[i] + wordCount[i];
+                                totalProb[i] = myPrior[i] + wordCount[i];
                         }
 
-				/*
-                                std :: cout << "For topic: " << checkMe->getInt() << "\n";
-                                std :: cout << "Word count: " << "\n";
-                                wordCount.print();
-
-                                std :: cout << "Total prob: " << "\n";
-                                (*totalProb).print();
-					*/
-
-                        gsl_ran_dirichlet(rng, wordNum, totalProb->c_ptr(), mySamples->c_ptr());
-
-                       //         std :: cout << "The prob samples we get: " << "\n";
-                       //         mySamples->print();
-
-
-
+                        gsl_ran_dirichlet(rng, wordNum, totalProb, mySamples);
 			
-			Handle<Vector<Handle<LDATopicWordProb>>> result = makeObject<Vector<Handle<LDATopicWordProb>>>();
+			Vector<Handle<LDATopicWordProb>> result (wordNum);
 			for (int i = 0; i < wordNum; i++) {
 				Handle<LDATopicWordProb> myTWP = 
-					makeObject<LDATopicWordProb>(checkMe->getInt(), i, (*mySamples)[i]);
-				result->push_back(myTWP);
-				
+					makeObject<LDATopicWordProb>(numTopics, i, checkMe->getKey (), mySamples[i]);
+				result.push_back(myTWP);
 			}
 
-                        return *result;		
+			delete [] mySamples;
+			delete [] totalProb;
+
+                        return result;		
 				
 		});
 	}

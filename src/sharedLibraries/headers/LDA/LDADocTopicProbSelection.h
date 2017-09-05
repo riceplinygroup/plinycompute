@@ -25,13 +25,14 @@
 #include "PDBVector.h"
 #include "IntIntVectorPair.h"
 #include "IntDoubleVectorPair.h"
+#include "DocAssignment.h"
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <random>
 #include <gsl/gsl_vector.h>
 
 using namespace pdb;
-class LDADocTopicProbSelection : public SelectionComp <IntDoubleVectorPair, IntIntVectorPair> {
+class LDADocTopicProbSelection : public SelectionComp <IntDoubleVectorPair, DocAssignment> {
 
 private: 
 	Vector<double> prior;
@@ -43,6 +44,7 @@ public:
 	ENABLE_DEEP_COPY
 
 	LDADocTopicProbSelection () {}
+
 	LDADocTopicProbSelection (Vector<double>& fromPrior) { 
 
 		this->prior = fromPrior;
@@ -68,47 +70,26 @@ public:
 		
 	}
 
-	Lambda <bool> getSelection (Handle <IntIntVectorPair> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<IntIntVectorPair> & checkMe) {return true;});
+	Lambda <bool> getSelection (Handle <DocAssignment> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<DocAssignment> & checkMe) {return true;});
 	}
 
-	Lambda <Handle <IntDoubleVectorPair>> getProjection (Handle <IntIntVectorPair> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<IntIntVectorPair> & checkMe) {
+	Lambda <Handle <IntDoubleVectorPair>> getProjection (Handle <DocAssignment> checkMe) override {
+		return makeLambda (checkMe, [&] (Handle<DocAssignment> & checkMe) {
 
-			
 			gsl_rng *rng = getRng();		
-		//	std::random_device rd;
-                //      std::mt19937 gen(rd());
-                //      gsl_rng_set(rng, gen());
-
-		//	Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>();
-		//	topicNum = this->prior.size();
-		//	std :: cout << "Topic number: " << topicNum << "\n\n";
-			std :: cout << "***I am in LDADocTopicProbSelection: ***" << "\n";
-
-		//	result->setInt(checkMe->getInt());
-			Vector<int>& topicCount = checkMe->getVector();
-
-			Handle<Vector<double>> mySamples= makeObject<Vector<double>>(topicNum, topicNum);	
-			Handle<Vector<double>> totalProb= makeObject<Vector<double>>(topicNum, topicNum);	
+			Vector<unsigned> &topicCount = checkMe->getVector();
+			Handle <Vector <double>> mySamples= makeObject<Vector<double>>(topicNum, topicNum);	
+			double *totalProb = new double[topicNum];
 			for (int i = 0; i < topicNum; i++) {
-				(*totalProb)[i] = (this->prior)[i] + topicCount[i];
+				totalProb[i] = (this->prior)[i] + topicCount[i];
 			}
 
-			   //     std :: cout << "For my doc: " << checkMe->getInt() << "\n";
-                           //     std :: cout << "Topic count: " << "\n";
-                           //     topicCount.print();
+			gsl_ran_dirichlet(rng, topicNum, totalProb, mySamples->c_ptr());
+			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>(checkMe->getKey (), mySamples);
 
-			//	std :: cout << "Total Prob: " << "\n";
-                         //       (*totalProb).print();
-		
-			gsl_ran_dirichlet(rng, topicNum, totalProb->c_ptr(), mySamples->c_ptr());
-			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>(checkMe->getInt(), mySamples);
+			delete [] totalProb;
 				
-		//	result->setVector(mySamples);
-		//	std::cout << "My samples: " << std::endl;
-		//	mySamples->print();
-			
 			return result;
 		});
 	}

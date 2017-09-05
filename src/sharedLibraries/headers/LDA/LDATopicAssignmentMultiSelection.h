@@ -16,54 +16,30 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
-#define LDA_DOC_WORD_TOPIC_ASSIGNMENT_H
+#ifndef LDA_TOPIC_ASSIGN_MULTI_SELECT_H
+#define LDA_TOPIC_ASSIGN_MULTI_SELECT_H
 
-#include "Object.h"
+#include "Lambda.h"
+#include "LambdaCreationFunctions.h"
+#include "MultiSelectionComp.h"
 #include "PDBVector.h"
-#include "Handle.h"
-#include "LDA/TopicAssignment.h"
-#include "LDA/DocAssignment.h"
-
-// By Shangyu
+#include "LDA/LDADocWordTopicCount.h"
+#include "LDADocWordTopicAssignment.h"
 
 using namespace pdb;
+class LDATopicAssignmentMultiSelection  : public MultiSelectionComp <TopicAssignment, LDADocWordTopicAssignment> {
 
-class LDADocWordTopicAssignment : public Object {
-
-private:
-
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
 
 	ENABLE_DEEP_COPY
 
-        LDADocWordTopicAssignment () {}
-
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
+	Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<LDADocWordTopicAssignment> & checkMe) {return true;});
 	}
 
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
+	Lambda <Vector <Handle <TopicAssignment>>> getProjection (Handle <LDADocWordTopicAssignment> checkMe) override {
+		return makeLambdaFromMethod (checkMe, getTopicAssigns);
 	}
-
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
-	}
-
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
-	}
-	
-        ~LDADocWordTopicAssignment () {}
-
 };
 
 
