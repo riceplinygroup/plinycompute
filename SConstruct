@@ -62,6 +62,8 @@ common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
 # common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
+#common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
+#common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=1000')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
@@ -622,6 +624,7 @@ common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc']
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
 common_env.Program('bin/TestKMeans1', ['build/tests/TestKMeansMLLibCompliant.cc'] + all)
+common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
 common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
 common_env.Program('bin/TestLDA2', ['build/tests/TestLDA2.cc'] + all)
@@ -889,7 +892,7 @@ KMeans=common_env.Alias('KMeans', [
   'bin/pdb-cluster',
   'bin/pdb-server',
   'bin/TestKMeans1',
-
+  'bin/KMeansDataLoader',
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
   'libraries/libKMeansNormVectorMap.so',
@@ -982,6 +985,8 @@ mlBench=common_env.Alias('mlBench', [
   'bin/pdb-cluster',
   'bin/pdb-server',
   'bin/TestKMeans1',
+  'bin/KMeansDataLoader',
+  'bin/TestLDA',
   'bin/TestLDA1',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
