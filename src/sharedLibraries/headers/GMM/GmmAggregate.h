@@ -81,6 +81,8 @@ public:
             });
         }
 
+
+
         Handle<GmmNewComp> createNewComp(Handle<DoubleVector> & data){
         	/* For each component in the model, calculate:
 			 * - responsabilities: r
@@ -100,23 +102,45 @@ public:
 			double totalR = 0.0;
 			double r;
 
-			for (int i = 0; i < k; i++) {
-				r = model->getWeight(i);
-				r *= model->log10_normpdf(i, data, false);
-				r += EPSILON; //See Spark implementation
 
-				totalR += r;
+			/* https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
+			 * lpr = (self.log_multivariate_normal_density_diag_Nd(x) + np.log(self.Weights))
+        		log_likelihood_x = logsumexp(lpr)
+				prob_x = np.exp(lpr-log_likelihood_x)
+			 */
+			for (int i = 0; i < k; i++) {
+				//r = model->getWeight(i);
+				//r *= model->log10_normpdf(i, data, false);
+				//r += EPSILON; //See Spark implementation
+				////totalR += r;
+
+				//in log space
+				r = model->log_normpdf(i, data, true);
+				r += log(model->getWeight(i));
+
 				r_values->setDouble(i,r); //Update responsability
 			}
 
-
-			//Now normalize r,
 			//std::cout << "RVALUES before: " << std::endl; r_values->print();
 
-			gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
-			gsl_vector_scale(&gnewSumR.vector, 1/totalR);
 
+			//Now normalize r
+			double loglikelihoodx = model->logSumExp(*r_values);
+			//std::cout << "loglikelihoodx: " << loglikelihoodx << std::endl;
+
+			for (int i = 0; i < k; i++) {
+				r = exp(r_values->getDouble(i) - loglikelihoodx);
+				//r = 1.0/k;
+				r_values->setDouble(i,r);
+				totalR += r;
+			}
 			//std::cout << "RVALUES after: " << std::endl; r_values->print();
+
+
+			//gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
+			//gsl_vector_scale(&gnewSumR.vector, 1/totalR);
+
+
 
 			//And calculate r * x and r * x * x^T
 			Handle<Vector<size_t>> newcount = makeObject<Vector<size_t>>(); //num data points

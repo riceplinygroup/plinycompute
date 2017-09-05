@@ -79,8 +79,20 @@ public:
 		this->sumR = this->sumR + other.getSumR();
 
 		for (int i = 0; i < sumR.size; i++) {
+			double a = this->weightedX[i].getDouble(0) + other.getWeightedX(i).getDouble(0);
+
+			if (a != a) {
+				std::cout << "****************************************************" << std::endl;
+				std::cout << "**********NAN!!! " << std::endl;
+				this->weightedX[i].print();
+				other.getWeightedX(i).print();
+				exit(-1);
+			}
+
+
 			this->weightedX[i] = this->weightedX[i] + other.getWeightedX(i);
 			this->weightedX2[i] = this->weightedX2[i] + other.getWeightedX2(i);
+
 		}
 
 		Handle<GmmNewComp> result = makeObject<GmmNewComp>

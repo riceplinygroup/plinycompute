@@ -197,7 +197,7 @@ public:
 
 	}
 
-	double log10_normpdf(int i, Handle<DoubleVector> inputData, bool log) {
+	double log_normpdf(int i, Handle<DoubleVector> inputData, bool isLog) {
 
 		/*std::cout << "means " << i << std::endl; (*means)[i]->print();
 		std::cout << "covars " << i << std::endl; (*covars)[i]->print();
@@ -247,16 +247,42 @@ public:
 		//std::cout << "ay " << ay << std::endl;
 
 
-		if (!log){
+		if (!isLog){
 			return (ay);
 		}
-		return log10(ay);
+		return log(ay);//log10(ay);
+	}
+
+	double logSumExp(DoubleVector v)
+	{
+	   if(v.size > 0 ){
+	      double maxVal = v.getDouble(0);
+	      double sum = 0;
+
+	      for (int i = 1 ; i < v.size ; i++){
+	         if (v.getDouble(i) > maxVal){
+	            maxVal = v.getDouble(i);
+	         }
+	      }
+
+	      for (int i = 0; i < v.size ; i++){
+	         sum += exp(v.getDouble(i) - maxVal);
+	      }
+	      double result = log(sum) + maxVal;
+	      return result;
+	   }
+	   else
+	   {
+	      return 0.0;
+	   }
+
+	   //e = log(sum(exp(v-maxVal))) + maxVal
 	}
 
 
 	void updateModel(GmmNewComp update){
 
-    	const double EPSILON = 2.22044604925e-16;
+    	const double MIN_COVAR = 1e-3;
 
 		double totalSumR = 0.0;
 		for (int i=0; i<k; i++){
@@ -278,6 +304,35 @@ public:
 			gsl_vector_memcpy (&mean.vector, &gweightedX.vector);
 			gsl_vector_scale (&mean.vector, 1.0/update.getR(i));
 
+
+
+			//Update covars -> weightedX2 / sumR - mean*mean^T + MIN_COVAR
+			//According to PYTHON GMM https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
+
+			gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
+			gsl_vector_scale (&gweightedX2v.vector, 1.0/update.getR(i));
+
+			gsl_matrix_view gweightedX2m = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
+			gsl_blas_dsyr (CblasUpper, -1.0, &mean.vector, &gweightedX2m.matrix);
+
+			//Add constant to diagonal
+			//Copy lower triangular
+			double d;
+			for (int row=0; row<ndim; row++){
+				d = gsl_matrix_get(&gweightedX2m.matrix,row,row);
+				gsl_matrix_set(&gweightedX2m.matrix,row,row, d + MIN_COVAR);
+
+				for (int col=row+1; col<ndim; col++){
+					//matrix[j][i] = matrix[i][j]
+					d = gsl_matrix_get(&gweightedX2m.matrix,row,col);
+					gsl_matrix_set(&gweightedX2m.matrix,col,row, d);
+				}
+			}
+
+			gsl_vector_view covar = gsl_vector_view_array((*covars)[i]->data->c_ptr(), ndim*ndim);
+			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
+
+			// According to SCALA GMM MLLIB
 			/*
 			 * val mu = (mean /= weight)
 				BLAS.syr(-weight, Vectors.fromBreeze(mu),
@@ -286,8 +341,8 @@ public:
 				val newGaussian = new MultivariateGaussian(mu, sigma / weight)
 			 */
 
-			//Update covars ->
-			gsl_matrix_view gweightedX2 = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
+			/*gsl_matrix_view gweightedX2 = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
+
 			//gsl_blas_dsyr (CBLAS_UPLO_t Uplo, double alpha, const gsl_vector * x, gsl_matrix * A) - //A = \alpha x x^T + A
 			//update A = \alpha x x^T + A
 			//gweightedX2 - r * mean mean^T
@@ -307,7 +362,7 @@ public:
 			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
 
 			gsl_vector_scale (&covar.vector, 1.0/(*weights).getDouble(i));
-			//gsl_vector_add_constant(&covar.vector, EPSILON);
+			gsl_vector_add_constant(&covar.vector, MIN_COVAR);*/
 		}
 
 		calcInvCovars();
