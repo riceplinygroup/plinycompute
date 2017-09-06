@@ -65,17 +65,23 @@ public:
 		return this->weightedX[index];
 	}
 
-    void setWeightedX(DoubleVector& sumR) {
-           this->sumR = sumR;
+    void setWeightedX(int index, DoubleVector& weightedx) {
+           this->weightedX[index] = weightedx;
     }
 
     DoubleVector& getWeightedX2(int index) {
     	return this->weightedX2[index];
     }
 
+    void setWeightedX2(int index, DoubleVector& weightedx2) {
+        this->weightedX2[index] = weightedx2;
+    }
 
-    GmmNewComp& operator + (GmmNewComp &other) {
 
+
+    /*GmmNewComp& operator + (GmmNewComp &other) {
+
+    	std::cout << "Entering GmmNew Comp operator+" << std::endl;
 		this->sumR = this->sumR + other.getSumR();
 
 		for (int i = 0; i < sumR.size; i++) {
@@ -89,7 +95,6 @@ public:
 				exit(-1);
 			}
 
-
 			this->weightedX[i] = this->weightedX[i] + other.getWeightedX(i);
 			this->weightedX2[i] = this->weightedX2[i] + other.getWeightedX2(i);
 
@@ -100,7 +105,7 @@ public:
 
 		return *result;
 
-    }
+    }*/
 
 };
 
