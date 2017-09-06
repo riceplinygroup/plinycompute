@@ -312,8 +312,6 @@ int main (int argc, char * argv[]) {
 	catalogClient.registerType ("libraries/libGmmModel.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmNewComp.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmAggregateOutputType.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteGmmAggregateOutputTypeSet.so", errMsg);
-
 
 
 	//I WILL REUSE SOME OF THEM!
@@ -465,10 +463,7 @@ int main (int argc, char * argv[]) {
 		Handle<Computation> scanInputSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
 		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(model);
 		gmmIteration->setInput(scanInputSet);
-	    //gmmIteration->setAllocatorPolicy(noReuseAllocator);
 		gmmIteration->setOutput("gmm_db", "gmm_output_set");
-		//Handle <Computation> myWriter = makeObject<WriteGmmAggregateOutputTypeSet>("gmm_db", "gmm_output_set");
-		//myWriter->setInput(gmmIteration);
 
 		std::cout << "Ready to start computations" << std::endl;
 
@@ -488,9 +483,11 @@ int main (int argc, char * argv[]) {
 		std::cout << "ITERATION OUTPUT " << currentIter
 						<< " , FROM " << iter << " ITERATIONS" << std :: endl;
 
-		for (Handle<GmmAggregateOutputType> a : result) {
-			GmmNewComp output = (*a).getValue().getNewComp();
 
+
+		for (Handle<GmmAggregateOutputType> a : result) {
+			std::cout << "Entering loop to process result" << std::endl;
+			GmmNewComp output = (*a).getValue();
 			model->updateModel(output);
 			model->print();
 		}
