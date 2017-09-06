@@ -102,13 +102,19 @@ public:
 			double totalR = 0.0;
 			double r;
 
+			for (int i = 0; i < k; i++) {
+				r = 1.0/k;
+				r_values->setDouble(i,r);
+				totalR += r;
+			}
 
 			/* https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
 			 * lpr = (self.log_multivariate_normal_density_diag_Nd(x) + np.log(self.Weights))
         		log_likelihood_x = logsumexp(lpr)
 				prob_x = np.exp(lpr-log_likelihood_x)
 			 */
-			for (int i = 0; i < k; i++) {
+
+			/*for (int i = 0; i < k; i++) {
 				//r = model->getWeight(i);
 				//r *= model->log10_normpdf(i, data, false);
 				//r += EPSILON; //See Spark implementation
@@ -130,11 +136,11 @@ public:
 
 			for (int i = 0; i < k; i++) {
 				r = exp(r_values->getDouble(i) - loglikelihoodx);
-				//r = 1.0/k;
+				r = 1.0/k;
 				r_values->setDouble(i,r);
 				totalR += r;
 			}
-			//std::cout << "RVALUES after: " << std::endl; r_values->print();
+			//std::cout << "RVALUES after: " << std::endl; r_values->print();*/
 
 
 			//gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
