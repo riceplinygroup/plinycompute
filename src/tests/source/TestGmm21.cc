@@ -465,7 +465,7 @@ int main (int argc, char * argv[]) {
 		Handle<Computation> scanInputSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
 		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(model);
 		gmmIteration->setInput(scanInputSet);
-	    gmmIteration->setAllocatorPolicy(noReuseAllocator);
+	    //gmmIteration->setAllocatorPolicy(noReuseAllocator);
 		gmmIteration->setOutput("gmm_db", "gmm_output_set");
 		//Handle <Computation> myWriter = makeObject<WriteGmmAggregateOutputTypeSet>("gmm_db", "gmm_output_set");
 		//myWriter->setInput(gmmIteration);
@@ -479,6 +479,9 @@ int main (int argc, char * argv[]) {
 			return 1;
 		}
 
+		std::cout << "Query finished!	" << std::endl;
+
+
 		//Read output and update Means, Weights and Covars in Model
 		SetIterator <GmmAggregateOutputType> result = myClient.getSetIterator <GmmAggregateOutputType> ("gmm_db", "gmm_output_set");
 
@@ -486,7 +489,7 @@ int main (int argc, char * argv[]) {
 						<< " , FROM " << iter << " ITERATIONS" << std :: endl;
 
 		for (Handle<GmmAggregateOutputType> a : result) {
-			GmmNewComp output = (*a).getValue();
+			GmmNewComp output = (*a).getValue().getNewComp();
 
 			model->updateModel(output);
 			model->print();

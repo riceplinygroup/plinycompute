@@ -104,7 +104,7 @@ public:
 		//Print mean
 		std::cout << "**Current model**" << std::endl;
 		std::cout << "Weights: ";
-		print_vector(this->weights);
+		//print_vector(this->weights);
 		for (int i = 0; i < k; i++) {
 			std::cout <<"**Component " << i << std::endl;
 			std::cout <<"Mean: ";
@@ -309,7 +309,7 @@ public:
 			//Update covars -> weightedX2 / sumR - mean*mean^T + MIN_COVAR
 			//According to PYTHON GMM https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
 
-			gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
+			/*gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
 			gsl_vector_scale (&gweightedX2v.vector, 1.0/update.getR(i));
 
 			gsl_matrix_view gweightedX2m = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
@@ -330,18 +330,18 @@ public:
 			}
 
 			gsl_vector_view covar = gsl_vector_view_array((*covars)[i]->data->c_ptr(), ndim*ndim);
-			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
+			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);*/
 
 			// According to SCALA GMM MLLIB
-			/*
-			 * val mu = (mean /= weight)
+
+			/* val mu = (mean /= weight)
 				BLAS.syr(-weight, Vectors.fromBreeze(mu),
 				Matrices.fromBreeze(sigma).asInstanceOf[DenseMatrix])
 				val newWeight = weight / sumWeights
 				val newGaussian = new MultivariateGaussian(mu, sigma / weight)
 			 */
 
-			/*gsl_matrix_view gweightedX2 = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
+			gsl_matrix_view gweightedX2 = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
 
 			//gsl_blas_dsyr (CBLAS_UPLO_t Uplo, double alpha, const gsl_vector * x, gsl_matrix * A) - //A = \alpha x x^T + A
 			//update A = \alpha x x^T + A
@@ -362,7 +362,7 @@ public:
 			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
 
 			gsl_vector_scale (&covar.vector, 1.0/(*weights).getDouble(i));
-			gsl_vector_add_constant(&covar.vector, MIN_COVAR);*/
+			gsl_vector_add_constant(&covar.vector, MIN_COVAR);
 		}
 
 		calcInvCovars();
