@@ -79,10 +79,14 @@ public:
 
         // the value type must have + defined
         Lambda <KMeansCentroid> getValueProjection (Handle <DoubleVector> aggMe) override {
-            	return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
+            	/*return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
 			Handle<KMeansCentroid> result = makeObject<KMeansCentroid>(1, *aggMe);
 			return *result;
-		});
+		}); */
+
+                return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
+                        return KMeansCentroid(1, *aggMe);
+                }); 
         }
 
         int computeClusterMember(Handle<DoubleVector> data) {
