@@ -69,7 +69,7 @@
 
 using namespace pdb;
 
-#ifndef NUM_KMEANS_DIMENTIONS
+#ifndef NUM_KMEANS_DIMENSIONS
     #define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
