@@ -73,6 +73,7 @@
 #include <fstream>
 #include <math.h>
 #include <random>
+#include <sstream>
 
 
 
@@ -88,8 +89,8 @@ int main (int argc, char * argv[]) {
     const std::string magenta("\033[0;35m");
     const std::string reset("\033[0m");
 
-    if (argc != 7 && argc != 6) {
-    	std :: cout << "Usage: #masterIp #iterations #words #topics #addData[Y/N] #docs\n";        
+    if (argc != 8 && argc != 6) {
+    	std :: cout << "Usage: #masterIp #iterations #words #topics #addData[Y/N] #addDataFromFile[Y/N] #docs(If addDataFromFile = N)/#inputFile (If addDataFromFile = Y) \n";        
 	return (-1);
     }
 
@@ -110,10 +111,18 @@ int main (int argc, char * argv[]) {
 	whetherToAddData = false;
     }
 
-    int numDoc;
+    bool whetherAddFromFile = false;
+    int numDoc = 0;
+    std :: string inFileName = "";
     if (whetherToAddData) {
-	numDoc = std::stoi(argv[6]);
-	term << "The number of documents: " << numDoc << std :: endl;
+	if (strcmp(argv[6],"N") == 0) {
+		numDoc = std::stoi(argv[7]);
+		term << "The number of documents: " << numDoc << std :: endl;
+	}
+	else {
+		whetherAddFromFile = true;	
+		inFileName = argv[7];
+	}
     }
 
     std :: cout << "Got here.\n";
@@ -194,7 +203,7 @@ int main (int argc, char * argv[]) {
         DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
 	int blockSize = 8;
-        if (numDoc > 0) {
+        if (!whetherAddFromFile && numDoc > 0) {
 
 		pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
 		pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe = 
@@ -232,7 +241,7 @@ int main (int argc, char * argv[]) {
 					storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>> ();
 				}
 			}
-			if (docNum % 100 == 0)
+			if (docNum % 100000 == 0)
 				std :: cout << "Added " << wordsSoFar << " words for doc " << docNum << "\n";
 		}
 
@@ -264,9 +273,81 @@ int main (int argc, char * argv[]) {
 
 		//to write back all buffered records        
 		temp.flushData( errMsg );
-        }
+        } // If not add from file
+
+	else {
+                int blockSize = 8;
+		std :: cout << "Start reading the file" << endl;
+                std :: ifstream inFile(inFileName);
+                std :: string line;
+                int docID, wordID, countNum;
+                bool rollback = false;
+                bool end = false;
+
+                while(!end) {
+                        pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+                        pdb::Handle<pdb::Vector<pdb::Handle<LDADocument>>> storeMe =
+                                pdb::makeObject<pdb::Vector<pdb::Handle<LDADocument>>> ();
+
+                        try {
+                                while(1){
+                                        if (!rollback){
+                                                if(!(inFile >> docID >> wordID >> countNum)) {
+                                                        end = true;
+                                                        break;
+                                                }
+                                        }
+                                        else
+                                                rollback = false;
+                                        pdb :: Handle <LDADocument> myData = pdb::makeObject<LDADocument>();
+                                        myData->setDoc(docID);
+                                        myData->setWord(wordID);
+                                        myData->setCount(countNum);
+                                        storeMe->push_back (myData);
+                             //           std::cout << "Count number: " << countNum << endl;
+                                }
+                                if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
+                                                std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                                                return -1;
+                                            }
+                                std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+                             //   temp.flushData( errMsg );
+
+                        } catch (pdb :: NotEnoughSpace &n) {
+                            if (!dispatcherClient.sendData<LDADocument>(std::pair<std::string, std::string>("LDA_input_set", "LDA_db"), storeMe, errMsg)) {
+                                std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+                                return -1;
+                            }
+                            std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
+                            rollback = false;
+                        }
+            //            PDB_COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+
+            } // while the file has data
+
+            inFile.close();
+
+  	    // now we create one entry per word
+	    pdb::Handle<pdb::Vector<pdb::Handle<int>>> storeMeToo = pdb::makeObject<pdb::Vector<pdb::Handle<int>>> ();
+	    for (int i = 0; i < numWord; i++) {
+			Handle <int> me = makeObject <int> (i);
+			storeMeToo->push_back (me);
+	    }
+
+	    std :: cout << "Sending all of the words\n";
+	    if (!dispatcherClient.sendData <int>
+	    		(std::pair<std::string, std::string>("LDA_meta_data_set", "LDA_db"), storeMeToo, errMsg)) {
+				std :: cout << "Failed to send data to dispatcher server" << std :: endl;
+				return -1;
+			pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+	    }
+	    temp.flushData( errMsg );
+
+        } // if add data from file
+
+
 	
-    }
+    } // if add data
 
     std :: string myNextReaderForTopicsPerWordSetName = std :: string ("TopicsPerWord") + std :: to_string (0);
     std :: string myNextReaderForTopicsPerDocSetName = std :: string ("TopicsPerDoc") + std :: to_string (0);
@@ -310,6 +391,8 @@ int main (int argc, char * argv[]) {
 
     // Some meta data
     pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
+
+    auto total_begin = std :: chrono :: high_resolution_clock :: now();
     pdb::Handle<pdb::Vector<double>> alpha = pdb::makeObject<pdb::Vector<double>> (numTopic, numTopic);
     pdb::Handle<pdb::Vector<double>> beta = pdb::makeObject<pdb::Vector<double>> (numWord, numWord);
     alpha->fill(1.0);
@@ -334,8 +417,10 @@ int main (int argc, char * argv[]) {
     Handle<Computation> input2 = myWordTopicProb;
 
     // Start LDA iterations
-    auto begin = std :: chrono :: high_resolution_clock :: now();
+//    auto begin = std :: chrono :: high_resolution_clock :: now();
     for (int n = 0; n < iter; n++) {
+
+		auto iter_begin = std :: chrono :: high_resolution_clock :: now();
 
 		term << "*****************************************" << std :: endl;
 		term << "I am in iteration : " << n << std :: endl;
@@ -412,6 +497,15 @@ int main (int argc, char * argv[]) {
 		input2 = makeObject <ScanTopicsPerWord> ("LDA_db", myWriterForTopicsPerWordSetName);
 		input1 = makeObject <ScanIntDoubleVectorPairSet> ("LDA_db", myWriterForTopicsPerDocSetName);
 		myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
+		auto iter_end = std::chrono::high_resolution_clock::now();
+		if (n == 0) {
+			term << "Time Duration for iteration " << n << ": " <<
+        			std::chrono::duration_cast<std::chrono::duration<float>>(iter_end-total_begin).count() << " secs." << std::endl;
+		}
+		else {
+			term << "Time Duration for iteration " << n << ": " <<
+        			std::chrono::duration_cast<std::chrono::duration<float>>(iter_end-iter_begin).count() << " secs." << std::endl;
+		}
     }
 
     std :: cout << "The query is executed successfully!" << std :: endl;
@@ -422,14 +516,14 @@ int main (int argc, char * argv[]) {
     SetIterator <LDATopicWordProb> initTopicProbResult = 
     myClient.getSetIterator <LDATopicWordProb> ("LDA_db", myWriterForTopicsPerWordSetName);
     for (auto &a : initTopicProbResult) {
-    		std :: cout << "Word ID: " << a->getKey () << " Topic probabilities: ";
-    		a->getVector().print(); 
-    		std :: cout << std::endl;	
+//    		std :: cout << "Word ID: " << a->getKey () << " Topic probabilities: ";
+    //		a->getVector().print(); 
+  //  		std :: cout << std::endl;	
     		totOut++;
     }
 
     term << "Time Duration: " <<
-    	std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+    	std::chrono::duration_cast<std::chrono::duration<float>>(end-total_begin).count() << " secs." << std::endl;
     term << "The total number of output I have: " << totOut << std::endl;
     term << reset << std::endl;	
 		
