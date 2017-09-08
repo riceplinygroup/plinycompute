@@ -879,7 +879,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   std :: cout << "inactive blocks before running combiner in this worker:" << std :: endl;
                   std :: cout << out << std :: endl; 
 #endif                 
-                  getAllocator().setPolicy(noReuseAllocator);
+                  //getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
 
