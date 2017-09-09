@@ -23,7 +23,7 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 #include "limits.h"
 #include "SumResult.h"
 
@@ -32,7 +32,7 @@
 using namespace pdb;
 
 
-class KMeansDataCountAggregate : public ClusterAggregateComp <SumResult, DoubleVector, int, int> {
+class KMeansDataCountAggregate : public ClusterAggregateComp <SumResult, KMeansDoubleVector, int, int> {
 
 public:
 
@@ -42,13 +42,13 @@ public:
 
 
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {return 0;});
+        Lambda <int> getKeyProjection (Handle <KMeansDoubleVector> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<KMeansDoubleVector> & aggMe) {return 0;});
         }
 
         // the value type must have + defined
-        Lambda <int> getValueProjection (Handle <DoubleVector> aggMe) override {
-            	return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) { return 1;});
+        Lambda <int> getValueProjection (Handle <KMeansDoubleVector> aggMe) override {
+            	return makeLambda (aggMe, [] (Handle<KMeansDoubleVector> & aggMe) { return 1;});
         }
 
 

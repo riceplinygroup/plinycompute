@@ -291,7 +291,7 @@ int main (int argc, char * argv[]) {
 
 			while(!end) {
 				pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-				pdb::Handle<pdb::Vector<pdb :: Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> ();
+				pdb::Handle<pdb::Vector<pdb :: Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> (544418);
 				try {
 					
 				     while(1){       

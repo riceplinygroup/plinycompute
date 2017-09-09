@@ -22,7 +22,7 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "SelectionComp.h"
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 #include "PDBVector.h"
 #include "PDBString.h"
 //#include <gsl/gsl_rng.h>
@@ -33,7 +33,7 @@
 #include <cstdlib>
 
 using namespace pdb;
-class KMeansSampleSelection : public SelectionComp <DoubleVector, DoubleVector> {
+class KMeansSampleSelection : public SelectionComp <KMeansDoubleVector, KMeansDoubleVector> {
 
 private:
         double fraction;
@@ -42,7 +42,7 @@ private:
 	//std::mt19937 gen;
 
         //JiaNote: so we create a pdbObject to store the random stuff
-        Handle <Vector <char>> myMem;
+        //Handle <Vector <char>> myMem;
 
 public:
 
@@ -82,8 +82,8 @@ public:
 	}
 
         //srand has already been invoked in server
-	Lambda <bool> getSelection (Handle <DoubleVector> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<DoubleVector> & checkMe) {
+	Lambda <bool> getSelection (Handle <KMeansDoubleVector> checkMe) override {
+		return makeLambda (checkMe, [&] (Handle<KMeansDoubleVector> & checkMe) {
                 //JiaNote: below can't work in a cluster			
 		//	std::random_device rd;
 		//	std::mt19937 gen(rd());
@@ -118,8 +118,8 @@ public:
 
 
 
-	Lambda <Handle <DoubleVector>> getProjection (Handle <DoubleVector> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<DoubleVector> & checkMe) {return checkMe;});
+	Lambda <Handle <KMeansDoubleVector>> getProjection (Handle <KMeansDoubleVector> checkMe) override {
+		return makeLambda (checkMe, [] (Handle<KMeansDoubleVector> & checkMe) {return checkMe;});
 	}
 };
 

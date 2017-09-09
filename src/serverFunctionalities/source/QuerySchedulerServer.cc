@@ -268,6 +268,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                               success = scheduleStage (j, aggStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "BroadcastJoinBuildHTJobStage" ) {
                               Handle<BroadcastJoinBuildHTJobStage> broadcastJoinStage = unsafeCast<BroadcastJoinBuildHTJobStage, AbstractJobStage> (stage);
+                              broadcastJoinStage->setTotalMemoryOnThisNode(memory);
                               success = scheduleStage (j, broadcastJoinStage, communicator, DeepCopy);
                           } else if (stage->getJobStageType() == "HashPartitionedJoinBuildHTJobStage") { 
                               Handle<HashPartitionedJoinBuildHTJobStage> hashPartitionedJoinStage = unsafeCast<HashPartitionedJoinBuildHTJobStage, AbstractJobStage> (stage);
