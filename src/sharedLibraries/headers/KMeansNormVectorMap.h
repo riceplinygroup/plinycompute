@@ -22,7 +22,7 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "SelectionComp.h"
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 #include "PDBVector.h"
 #include "PDBString.h"
 #include <ctime>
@@ -34,7 +34,7 @@
 
 
 using namespace pdb;
-class KMeansNormVectorMap : public SelectionComp <DoubleVector, double[NUM_KMEANS_DIMENSIONS]> {
+class KMeansNormVectorMap : public SelectionComp <KMeansDoubleVector, double[NUM_KMEANS_DIMENSIONS]> {
 
 public:
 
@@ -51,9 +51,9 @@ public:
                 });
 	}
 
-	Lambda <Handle <DoubleVector>> getProjection (Handle <double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
+	Lambda <Handle <KMeansDoubleVector>> getProjection (Handle <double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
 		return makeLambda (checkMe, [] (Handle<double[NUM_KMEANS_DIMENSIONS]> & checkMe) {
-                        Handle<DoubleVector> ret = makeObject<DoubleVector> (NUM_KMEANS_DIMENSIONS);
+                        Handle<KMeansDoubleVector> ret = makeObject<KMeansDoubleVector> ();
                         double * rawData = ret->getRawData();
                         double * myRawData = *checkMe;
                         double norm = 0;

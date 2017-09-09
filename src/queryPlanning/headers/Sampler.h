@@ -22,7 +22,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 
 namespace pdb {
 
@@ -59,12 +59,12 @@ static double computeFractionForSampleSize (int sampleSizeLowerBound, long total
 }
 
 //srand must be initialized before invoking below function
-static void randomizeInPlace (std :: vector <Handle<DoubleVector>> & samples) {
+static void randomizeInPlace (std :: vector <Handle<KMeansDoubleVector>> & samples) {
 
     size_t mySize = samples.size();
     for (int i = mySize - 1; i >= 0; i--) {
         int j = rand()%(i+1);
-        Handle<DoubleVector> tmp = samples[j];
+        Handle<KMeansDoubleVector> tmp = samples[j];
         samples[j] = samples[i];
         samples[i] = tmp;
     }
@@ -73,12 +73,12 @@ static void randomizeInPlace (std :: vector <Handle<DoubleVector>> & samples) {
 }
 
 //srand must be initialized before invoking below function
-static void randomizeInPlace (Vector <Handle<DoubleVector>> & samples) {
+static void randomizeInPlace (Vector <Handle<KMeansDoubleVector>> & samples) {
 
     size_t mySize = samples.size();
     for (int i = mySize - 1; i >= 0; i--) {
         int j = rand()%(i+1);
-        Handle<DoubleVector> tmp = samples[j];
+        Handle<KMeansDoubleVector> tmp = samples[j];
         samples[j] = samples[i];
         samples[i] = tmp;
     }

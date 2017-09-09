@@ -61,7 +61,8 @@ private:
     //target computation
     String targetComputationSpecifier;
 
-
+    //memory size on this node
+    size_t totalMemoryOnThisNode;
 
 public:
 
@@ -167,6 +168,15 @@ std::string getTargetComputationSpecifier() {
 //to get compute plan
 Handle<ComputePlan> getComputePlan() {
     return this->sharedPlan;
+}
+
+
+void setTotalMemoryOnThisNode (size_t totalMem) {
+    this->totalMemoryOnThisNode = totalMem;
+}
+
+size_t getTotalMemoryOnThisNode () {
+    return this->totalMemoryOnThisNode;
 }
 
 

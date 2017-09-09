@@ -15,62 +15,13 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef K_MEANS_CENTROID_H
-#define K_MEANS_CENTROID_H
 
-//by Shangyu, May 2017
+#ifndef SCAN_KMEANS_DOUBLE_VECTOR_SET_CC
+#define SCAN_KMEANS_DOUBLE_VECTOR_SET_CC
 
-#include "Object.h"
-#include "Handle.h"
-#include "KMeansDoubleVector.h"
+#include "ScanKMeansDoubleVectorSet.h"
+#include "GetVTable.h"
 
-using namespace pdb;
-
-class KMeansCentroid : public Object {
-
-private:
-    KMeansDoubleVector mean;
-    size_t count;
-
-public:
-
-    ENABLE_DEEP_COPY
-
-    KMeansCentroid () {}
-
-    /*
-    KMeansCentroid ( size_t count, size_t size ) {
-        this->count = count;
-        this->mean = *(makeObject<DoubleVector> ( size ));
-    }
-    */
-
-    KMeansCentroid ( size_t count, KMeansDoubleVector value ) {
-        this->count = count;
-        this->mean = value;
-    }
-
-    ~KMeansCentroid () {
-    }
-
-    size_t getCount() {
-        return this->count;
-    }
-
-    KMeansDoubleVector& getMean() {
-        return this->mean;
-    }
-
-    KMeansCentroid& operator + (KMeansCentroid &other) {
-
-	//Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count + other.getCount(), this->mean + other.getMean());
-        this->count += other.getCount();
-        this->mean = this->mean + other.getMean();
-	return *this;
-
-    }
-
-
-};
+GET_V_TABLE (ScanKMeansDoubleVectorSet)
 
 #endif

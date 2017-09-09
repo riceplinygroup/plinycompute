@@ -15,62 +15,30 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef K_MEANS_CENTROID_H
-#define K_MEANS_CENTROID_H
+
+#ifndef WRITE_KMEANS_DOUBLE_Vector_SET_H
+#define WRITE_KMEANS_DOUBLE_Vector_SET_H
 
 //by Shangyu, May 2017
 
-#include "Object.h"
-#include "Handle.h"
+#include "WriteUserSet.h"
 #include "KMeansDoubleVector.h"
 
 using namespace pdb;
-
-class KMeansCentroid : public Object {
-
-private:
-    KMeansDoubleVector mean;
-    size_t count;
+class WriteKMeansDoubleVectorSet : public WriteUserSet <KMeansDoubleVector> {
 
 public:
 
-    ENABLE_DEEP_COPY
+	ENABLE_DEEP_COPY
 
-    KMeansCentroid () {}
+        WriteKMeansDoubleVectorSet () {}
 
-    /*
-    KMeansCentroid ( size_t count, size_t size ) {
-        this->count = count;
-        this->mean = *(makeObject<DoubleVector> ( size ));
-    }
-    */
-
-    KMeansCentroid ( size_t count, KMeansDoubleVector value ) {
-        this->count = count;
-        this->mean = value;
-    }
-
-    ~KMeansCentroid () {
-    }
-
-    size_t getCount() {
-        return this->count;
-    }
-
-    KMeansDoubleVector& getMean() {
-        return this->mean;
-    }
-
-    KMeansCentroid& operator + (KMeansCentroid &other) {
-
-	//Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count + other.getCount(), this->mean + other.getMean());
-        this->count += other.getCount();
-        this->mean = this->mean + other.getMean();
-	return *this;
-
-    }
-
+        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
+        WriteKMeansDoubleVectorSet (std :: string dbName, std :: string setName) {
+            this->setOutput(dbName, setName);
+        }
 
 };
+
 
 #endif

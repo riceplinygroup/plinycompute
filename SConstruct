@@ -41,7 +41,7 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g -O3 -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
     if 'lda' in COMMAND_LINE_TARGETS:
@@ -62,8 +62,9 @@ common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
 # common_env.Append(CCFLAGS='-DPDB_DEBUG')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
-#common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
-#common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=1000')
+#uncomment following for KMeans
+common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
+common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=10')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
@@ -436,6 +437,7 @@ common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc']
 common_env.SharedLibrary('libraries/libScanDoubleArraySet.so', ['build/libraries/ScanDoubleArraySet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanKMeansDoubleVectorSet.so', ['build/libraries/ScanKMeansDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
@@ -443,7 +445,7 @@ common_env.SharedLibrary('libraries/libKMeansDataCountAggregate.so', ['build/lib
 common_env.SharedLibrary('libraries/libKMeansSampleSelection.so', ['build/libraries/KMeansSampleSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansNormVectorMap.so', ['build/libraries/KMeansNormVectorMap.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteDoubleVectorSet.so', ['build/libraries/WriteDoubleVectorSet.cc'] + all)
-
+common_env.SharedLibrary('libraries/libWriteKMeansDoubleVectorSet.so', ['build/libraries/WriteKMeansDoubleVectorSet.cc'] + all)
 # LDA
 common_env.SharedLibrary('libraries/libLDADocIDAggregate.so', ['build/libraries/LDADocIDAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanTopicsPerWord.so', ['build/libraries/LDA/ScanTopicsPerWord.cc'] + all)
@@ -897,8 +899,10 @@ KMeans=common_env.Alias('KMeans', [
   'libraries/libKMeansSampleSelection.so',
   'libraries/libKMeansNormVectorMap.so',
   'libraries/libWriteDoubleVectorSet.so',
+  'libraries/libWriteKMeansDoubleVectorSet.so',
   'libraries/libKMeansAggregate.so',
   'libraries/libScanDoubleVectorSet.so',
+  'libraries/libScanKMeansDoubleVectorSet.so',
   'libraries/libScanDoubleArraySet.so',
   'libraries/libWriteKMeansSet.so',
   'libraries/libKMeansAggregateOutputType.so',

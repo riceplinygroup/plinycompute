@@ -33,19 +33,19 @@
 #include "WriteKMeansSet.h"
 #include "KMeansAggregate.h"
 #include "KMeansDataCountAggregate.h"
-#include "ScanDoubleVectorSet.h"
+#include "ScanKMeansDoubleVectorSet.h"
 #include "ScanDoubleArraySet.h"
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"
 #include "KMeansDataCountAggregate.h"
 #include "KMeansSampleSelection.h"
 #include "KMeansNormVectorMap.h"
-#include "WriteDoubleVectorSet.h"
+#include "WriteKMeansDoubleVectorSet.h"
 
 #include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 #include "SumResult.h"
 #include "WriteSumResultSet.h"
 
@@ -128,11 +128,11 @@ int main (int argc, char * argv[]) {
         COUT << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
     }
 
-    int numOfMb = 64; //by default we add 64MB data
+    int numOfMb = 256; //by default we add 64MB data
     if (argc > 3) {
         numOfMb = atoi(argv[3]);
     }
-    numOfMb = 64; //Force it to be 64 by now.
+    numOfMb = 256; //Force it to be 64 by now.
 
 
     COUT << "To add data with size: " << numOfMb << "MB" << std :: endl;
@@ -228,13 +228,13 @@ int main (int argc, char * argv[]) {
         // register this query class
         catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanDoubleArraySet.so", errMsg);
         catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
@@ -262,13 +262,13 @@ int main (int argc, char * argv[]) {
         // register this query class
         catalogClient.registerType ("libraries/libKMeansAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
         catalogClient.registerType ("libraries/libScanDoubleArraySet.so", errMsg);
         catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
         catalogClient.registerType ("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
+        catalogClient.registerType ("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
         // now, create a new database
         if (!temp.createDatabase ("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
@@ -301,7 +301,7 @@ int main (int argc, char * argv[]) {
 
 			while(!end) {
 				pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
-				pdb::Handle<pdb::Vector<pdb :: Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> ();
+				pdb::Handle<pdb::Vector<pdb :: Handle<double[NUM_KMEANS_DIMENSIONS]>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<double[NUM_KMEANS_DIMENSIONS]>>> (2177672);
 				try {
 					
 				     while(1){       
@@ -367,7 +367,7 @@ int main (int argc, char * argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set to store the norm vectors" << std :: endl;
-    if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+    if (!temp.createSet<KMeansDoubleVector> ("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit (-1);
     } else { 
@@ -385,7 +385,7 @@ int main (int argc, char * argv[]) {
 
 
     PDB_COUT << "to create a new set to store the initial model" << std :: endl;
-    if (!temp.createSet<DoubleVector> ("kmeans_db", "kmeans_initial_model_set", errMsg)) {
+    if (!temp.createSet<KMeansDoubleVector> ("kmeans_db", "kmeans_initial_model_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -418,7 +418,7 @@ int main (int argc, char * argv[]) {
     Handle<Computation> myInitialScanSet = makeObject<ScanDoubleArraySet>("kmeans_db", "kmeans_input_set");
     Handle<Computation> myNormVectorMap = makeObject<KMeansNormVectorMap>();
     myNormVectorMap->setInput(myInitialScanSet);
-    Handle<Computation> myNormVectorWriter = makeObject<WriteDoubleVectorSet> ("kmeans_db", "kmeans_norm_vector_set");
+    Handle<Computation> myNormVectorWriter = makeObject<WriteKMeansDoubleVectorSet> ("kmeans_db", "kmeans_norm_vector_set");
     myNormVectorWriter->setInput(myNormVectorMap);
 
     if (!myClient.executeComputations(errMsg, myNormVectorWriter)) {
@@ -427,7 +427,7 @@ int main (int argc, char * argv[]) {
     }
     auto iniNormEnd = std :: chrono :: high_resolution_clock :: now();
     
-    Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
+    Handle<Computation> myScanSet = makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
     Handle<Computation> myDataCount = makeObject<KMeansDataCountAggregate>();
     myDataCount->setInput(myScanSet);
     Handle <Computation> myWriter = makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
@@ -455,26 +455,23 @@ int main (int argc, char * argv[]) {
     COUT << "The sample threshold is: " << fraction << std :: endl;
     int initialCount = dataCount;
    
-    Vector <Handle<DoubleVector>> mySamples;
+    Vector <Handle<KMeansDoubleVector>> mySamples;
     while(mySamples.size() < k) {
             std :: cout << "Needed to sample due to insufficient sample size." << std :: endl;	
-	    Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
+	    Handle<Computation> mySampleScanSet = makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
     	    Handle<Computation> myDataSample = makeObject<KMeansSampleSelection>(fraction);
     	    myDataSample->setInput(mySampleScanSet);
-	    Handle<Computation> myWriteSet = makeObject<WriteDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
+	    Handle<Computation> myWriteSet = makeObject<WriteKMeansDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
 	    myWriteSet->setInput(myDataSample);
 	 
 	    if (!myClient.executeComputations(errMsg, myWriteSet)) {
 		COUT << "Query failed. Message was: " << errMsg << "\n";
 		return 1;
 	    }
-	    SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("kmeans_db", "kmeans_initial_model_set");
+	    SetIterator <KMeansDoubleVector> sampleResult = myClient.getSetIterator <KMeansDoubleVector> ("kmeans_db", "kmeans_initial_model_set");
                
-	    for (Handle<DoubleVector> a : sampleResult) {
-                 //std :: cout << "received 1 sample" << std :: endl;
-                 //a->print();
-                 //std :: cout << std :: endl;
-                 Handle<DoubleVector> myDoubles = makeObject<DoubleVector>(dim);
+	    for (Handle<KMeansDoubleVector> a : sampleResult) {
+                 Handle<KMeansDoubleVector> myDoubles = makeObject<KMeansDoubleVector>();
                  double * rawData = a->getRawData();
                  double * myRawData = myDoubles->getRawData();
                  for (int i = 0; i < dim; i++) {
@@ -483,13 +480,13 @@ int main (int argc, char * argv[]) {
                  mySamples.push_back(myDoubles);
 	    }
             std :: cout << "Now we have " << mySamples.size() << " samples" << std :: endl;
-	    temp.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::DoubleVector", errMsg);
+	    temp.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::KMeansDoubleVector", errMsg);
     }
     Sampler::randomizeInPlace(mySamples);
     //take k samples
     mySamples.resize(k);
     //distinct
-    Vector <Handle<DoubleVector>> myDistinctSamples;
+    Vector <Handle<KMeansDoubleVector>> myDistinctSamples;
     for (size_t i = 0; i < k; i++) {
         //std :: cout << "the " << i << "-th element" << std :: endl;
         //(mySamples[i])->print();
@@ -510,7 +507,7 @@ int main (int argc, char * argv[]) {
     std :: cout << "There are " << k << "distinct clusters" << std :: endl;
     std :: vector< std :: vector <double> > model(k, vector<double>(dim));
     for (int i = 0; i < k; i++) {
-        Handle<DoubleVector> tmp = myDistinctSamples[i];
+        Handle<KMeansDoubleVector> tmp = myDistinctSamples[i];
         COUT << "The " << i << "-th sample is:" << endl;
         double * rawData = tmp->getRawData();
         for (int j = 0; j < dim; j++) {
@@ -538,10 +535,10 @@ int main (int argc, char * argv[]) {
 		COUT << "*****************************************" << std :: endl;
 
 
-    		pdb::Handle<pdb::Vector<Handle<DoubleVector>>> my_model = pdb::makeObject<pdb::Vector<Handle<DoubleVector>>> ();
+    		pdb::Handle<pdb::Vector<Handle<KMeansDoubleVector>>> my_model = pdb::makeObject<pdb::Vector<Handle<KMeansDoubleVector>>> ();
 
 		for (int i = 0; i < k; i++) {
-			Handle<DoubleVector> tmp = pdb::makeObject<DoubleVector>(dim);
+			Handle<KMeansDoubleVector> tmp = pdb::makeObject<KMeansDoubleVector>();
                         //JiaNote: use raw C++ data directly
                         double * rawData = tmp->getRawData();
                         double norm = 0;
@@ -553,7 +550,7 @@ int main (int argc, char * argv[]) {
 			my_model->push_back(tmp);
 		}
 
-    		Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
+    		Handle<Computation> myScanSet = makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
                 //Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db", "kmeans_input_set");
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
@@ -588,9 +585,9 @@ int main (int argc, char * argv[]) {
                                 }
 				//COUT << "The cluster mean sum I got is " << std :: endl;
                                 //JiaNote: use reference                                
-                                DoubleVector & meanVec = (*a).getValue().getMean();
+                                KMeansDoubleVector & meanVec = (*a).getValue().getMean();
 				//meanVec.print();
-				DoubleVector tmpModel = meanVec /count;
+				KMeansDoubleVector tmpModel = meanVec /count;
                                 if (converge && (tmpModel.getFastSquaredDistance(*((*my_model)[kk])) > KMEANS_CONVERGE_THRESHOLD)) {
                                      converge = false;
                                 }
@@ -637,8 +634,8 @@ int main (int argc, char * argv[]) {
                                      kk++;
                                      continue;
                                 }
-                                DoubleVector & meanVec = (*a).getValue().getMean();
-				DoubleVector tmpModel = meanVec / count;
+                                KMeansDoubleVector & meanVec = (*a).getValue().getMean();
+				KMeansDoubleVector tmpModel = meanVec / count;
                                 if (converge && (tmpModel.getFastSquaredDistance((*(*my_model)[kk])) > KMEANS_CONVERGE_THRESHOLD)) {
                                      converge = false;
                                 }

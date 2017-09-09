@@ -328,6 +328,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              if ((sharedHashSet->isValid() == false) && (JOIN_HASH_TABLE_SIZE_RATIO > 1.5)) {
                 hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*1.5;
+#ifdef AUTO_TUNING
+                size_t memSize = request->getTotalMemoryOnThisNode();
+                size_t sharedMemPoolSize = conf->getShmSize();
+                if (hashSetSize > (memSize - sharedMemPoolSize)*0.9) {
+                    hashSetSize = (memSize - sharedMemPoolSize)*0.9;
+                    std :: cout << "WARNING: no more memory on heap can be allocated for hash set, we reduce hash set size." << std :: endl;
+                }
+#endif
                 std :: cout << "BroadcastJoinBuildHTJobStage: tuned hashSetSize to be " << hashSetSize << std :: endl;
                 sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              }
