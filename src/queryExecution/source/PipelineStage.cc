@@ -887,15 +887,23 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
 
                   //create data proxy
                   DataProxyPtr proxy = createProxy(i, connection_mutex, errMsg);
-
+#ifndef COLLECT_RESULTS_AS_ONE_PARTITION
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
                   PDB_COUT << "address = " << address << std :: endl;
 
                   //get the i-th port
                   int port = this->jobStage->getPort(i);
-    
                   PDB_COUT << "port = " << port << std :: endl;
+#else
+                  //get the 1-st address
+                  std :: string address = this->jobStage->getIPAddress(0);
+                  PDB_COUT << "address = " << address << std :: endl;
+
+                  //get the i-th port
+                  int port = this->jobStage->getPort(0);
+                  PDB_COUT << "port = " << port << std :: endl;
+#endif
                   //get aggregate computation 
                   PDB_COUT << i << ": to get compute plan" << std :: endl;
                   const UseTemporaryAllocationBlock tempBlock {32 * 1024 * 1024};
