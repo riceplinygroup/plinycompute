@@ -125,7 +125,7 @@ public:
      //this implementation is following Spark MLLib
      //https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/util/MLUtils.scala
      inline double getFastSquaredDistance (KMeansDoubleVector &other) {
-         double precision = 0.00001;
+         double precision = 0.000001;
          double myNorm = norm;
          double otherNorm = other.norm;
          double sumSquaredNorm = myNorm * myNorm + otherNorm * otherNorm;
