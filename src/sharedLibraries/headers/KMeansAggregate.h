@@ -23,7 +23,7 @@
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "ClusterAggregateComp.h"
-#include "DoubleVector.h"
+#include "KMeansDoubleVector.h"
 #include "limits.h"
 #include "KMeansCentroid.h"
 #include "KMeansAggregateOutputType.h"
@@ -33,10 +33,11 @@
 using namespace pdb;
 
 
-class KMeansAggregate : public ClusterAggregateComp <KMeansAggregateOutputType, DoubleVector, int, KMeansCentroid> {
+class KMeansAggregate : public ClusterAggregateComp <KMeansAggregateOutputType, KMeansDoubleVector, int, KMeansCentroid> {
 
 private:
-		Vector<Handle<DoubleVector>> model;
+
+        Vector<KMeansDoubleVector> model;
 
 public:
 
@@ -44,52 +45,43 @@ public:
 
         KMeansAggregate () {}
 
-/*        KMeansAggregate (Handle<Vector<DoubleVector>> inputModel) {
-        	this->model = *inputModel;
-	        std :: cout << "The model I get is: " << std :: endl;
-		for(int j = 0; j < (this->model).size(); j ++) {
-			(this->model)[j].print();
-		}	
-
-        }*/
-
-        KMeansAggregate (Handle<Vector<Handle<DoubleVector>>>& inputModel) {
+        KMeansAggregate (Handle<Vector<Handle<KMeansDoubleVector>>>& inputModel) {
                 if (model.size() > 0) {
                     model.clear();
                 }
                 for (int i = 0; i < inputModel->size(); i++) {
-                     model.push_back((*inputModel)[i]);
+                     model.push_back(*(*inputModel)[i]);
 
                 }
 		
-		/*
-                std :: cout << "The model I get is: " << std :: endl;
-                for(int j = 0; j < (this->model).size(); j ++) {
-                        (this->model)[j]->print();
-                }
-		*/
+	
+                /*std :: cout << "The model I get is: " << std :: endl;
+                for(int i = 0; i < (this->model).size(); i ++) {
+                        (this->model)[i].print();
+                }*/
+	
 
         }
 
 
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {return this->computeClusterMemberOptimized(*aggMe);});
+        Lambda <int> getKeyProjection (Handle <KMeansDoubleVector> aggMe) override {
+                return makeLambda (aggMe, [&] (Handle<KMeansDoubleVector> & aggMe) {return this->computeClusterMemberOptimized(*aggMe);});
         }
 
         // the value type must have + defined
-        Lambda <KMeansCentroid> getValueProjection (Handle <DoubleVector> aggMe) override {
+        Lambda <KMeansCentroid> getValueProjection (Handle <KMeansDoubleVector> aggMe) override {
             	/*return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
 			Handle<KMeansCentroid> result = makeObject<KMeansCentroid>(1, *aggMe);
 			return *result;
 		}); */
 
-                return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
+                return makeLambda (aggMe, [] (Handle<KMeansDoubleVector> & aggMe) {
                         return KMeansCentroid(1, *aggMe);
                 }); 
         }
 
-        int computeClusterMember(Handle<DoubleVector> data) {
+        int computeClusterMember(Handle<KMeansDoubleVector> data) {
         	int closestDistance = INT_MAX;
         	int cluster = 0;
 		/*
@@ -99,11 +91,13 @@ public:
 		for(int j = 0; j < (this->model).size(); j ++) {
 			(this->model)[j]->print();
 		}
-		*/	
-                size_t modelSize = (this->model).size();
+		*/
+                Vector<KMeansDoubleVector> & myModel = this->model;
+                KMeansDoubleVector & myData = *data;	
+                size_t modelSize = myModel.size();
         	for(int j = 0; j < modelSize; j ++) {
-        		Handle<DoubleVector> mean = (this->model)[j];
-			double distance = data->getSquaredDistance(*mean);
+        		KMeansDoubleVector & mean = myModel[j];
+			double distance = myData.getSquaredDistance(mean);
 
 			if (distance < closestDistance) {
 				closestDistance = distance;
@@ -116,12 +110,13 @@ public:
         }
 
         //JiaNote: add this to be consistent with Spark MLLib
-        int computeClusterMemberOptimized(DoubleVector & data) {
+        int computeClusterMemberOptimized(KMeansDoubleVector & data) {
                 int closestDistance = INT_MAX;
                 int cluster = 0;
-                size_t modelSize = (this->model).size();
+                Vector<KMeansDoubleVector> & myModel = model;
+                size_t modelSize = myModel.size();
                 for(int i = 0; i < modelSize; i ++) {
-                        DoubleVector & mean = *((this->model)[i]);
+                        KMeansDoubleVector & mean = myModel[i];
                         double lowerBoundOfSqDist = mean.norm - data.norm;
                         lowerBoundOfSqDist = lowerBoundOfSqDist * lowerBoundOfSqDist;
                         if (lowerBoundOfSqDist < closestDistance) {

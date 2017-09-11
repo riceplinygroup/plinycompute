@@ -326,7 +326,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*JOIN_HASH_TABLE_SIZE_RATIO;
              std :: cout << "BroadcastJoinBuildHTJobStage: hashSetSize=" << hashSetSize << std :: endl;
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
-             if ((sharedHashSet->isValid() == false) && (JOIN_HASH_TABLE_SIZE_RATIO > 1.5)) {
+             if (sharedHashSet->isValid() == false) {
                 hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*1.5;
 #ifdef AUTO_TUNING
                 size_t memSize = request->getTotalMemoryOnThisNode();
