@@ -79,11 +79,12 @@ public:
 					connection = nullptr;
 					return;
 				}
+                                //std :: cout << "sent keep going" << std :: endl;
 			}
 
 			// get the next page
 			size_t objSize = connection->getSizeOfNextObject ();
-                        PDB_COUT << "to receive " << objSize << " bytes" << std :: endl;
+                        //std :: cout << "to receive " << objSize << " bytes" << std :: endl;
 			// if the file is done, then we're good 
 			if (connection->getObjectTypeID () == DoneWithResult_TYPEID) {
 				connection = nullptr;
@@ -101,7 +102,7 @@ public:
 				connection = nullptr;
 				return;
 			}
-                        PDB_COUT << "received " << objSize << " bytes" << std :: endl;
+                        //std :: cout << "received " << objSize << " bytes" << std :: endl;
 #ifdef ENABLE_COMPRESSION
                          snappy::RawUncompress(readToHere, objSize, (char *)(page));
 #else
@@ -115,9 +116,9 @@ public:
 #endif
 			// gets the vector that we are going to iterate over
 			data = page->getRootObject ();	
-                        PDB_COUT << "to obtain size of vector" << std :: endl;
+                        //std :: cout << "to obtain size of vector" << std :: endl;
 			size = data->size ();
-                        PDB_COUT << "got a page with size="<< size  << std :: endl;			
+                        //std :: cout << "got a page with size="<< size  << std :: endl;			
                         // added by Jia to fix a segfault when size=0
                         if (size > 0) {
 			     pos = 0;

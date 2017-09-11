@@ -56,7 +56,7 @@
 #include <chrono>
 #include <ctime>
 #include <unistd.h>
-
+#include <snappy.h>
 
 #define USING_ALL_NODES
 
@@ -823,17 +823,17 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                          if (sendUsingMe->getObjectTypeID() != DoneWithResult_TYPEID) {
                              Handle <KeepGoing> temp = sendUsingMe->getNextObject <KeepGoing> (success, errMsg);
                              if (!success) {
-                                 std :: cout << "Problem getting keep going from client: "<< errMsg << std :: endl;
+                                 //std :: cout << "DistributedStorageMangerServer: Problem getting keep going from client: "<< errMsg << std :: endl;
                                  communicator = nullptr;
                                  break;
                              }         
-                             PDB_COUT << "got keep going" << std :: endl;
+                             //std :: cout << "got keep going" << std :: endl;
                              if (!communicator->sendObject(temp, errMsg)) {
                                  std :: cout << "Problem forwarding keep going: " << errMsg << std :: endl;
                                  communicator = nullptr;
                                  break;
                              }         
-                             PDB_COUT << "sent keep going" << std :: endl;
+                             //std :: cout << "sent keep going" << std :: endl;
                              keepGoingSent = true;
                          } else {
                              Handle <DoneWithResult> doneMsg = sendUsingMe->getNextObject <DoneWithResult> (success, errMsg);
@@ -842,19 +842,19 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                                  communicator = nullptr;
                                  return std :: make_pair (false, errMsg);
                              }
-                             PDB_COUT << "got done from this client!" <<  std :: endl;
+                             //std :: cout << "got done from this client!" <<  std :: endl;
                              if (!communicator->sendObject(doneMsg, errMsg)) {
                                  std :: cout << "Problem forwarding done message: " << errMsg << std :: endl;
                                  communicator = nullptr;
                                  return std :: make_pair (false, errMsg);
                              }
-                             PDB_COUT << "sent done message!" << std :: endl;
+                             //std :: cout << "sent done message!" << std :: endl;
                              return std :: make_pair (true, errMsg);
                          }
                      }
                  }
                  size_t objSize = communicator->getSizeOfNextObject();
-                 PDB_COUT << "Distributed storage to receive size " << objSize << std :: endl;
+                 //std :: cout << "Distributed storage to receive size " << objSize << std :: endl;
                  if (communicator->getObjectTypeID() == DoneWithResult_TYPEID) {
                      PDB_COUT << "got done from this slave!" << std :: endl;
                      communicator = nullptr; 
@@ -862,10 +862,21 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                  }
                  curPage = (char *) malloc (objSize);
                  if (!communicator->receiveBytes (curPage, errMsg)) {
-                     PDB_COUT << "Problem getting data from slave: " << errMsg << std :: endl;
+                     std :: cout << "Problem getting data from slave: " << errMsg << std :: endl;
                      communicator = nullptr;
                      break;
-                 }  
+                 }
+                 /*
+                 //to verify data compression correctness
+                 Record<Vector<Handle<Object>>> * page = (Record <Vector <Handle <Object>>> *) malloc (DEFAULT_PAGE_SIZE);
+                 snappy::RawUncompress(curPage, objSize, (char *)(page));
+                 // gets the vector that we are going to iterate over
+                 Handle<Vector<Handle<Object>>> data = page->getRootObject ();
+                 std :: cout << "to obtain size of vector" << std :: endl;
+                 size_t size = data->size ();
+                 std :: cout << "got a page with size="<< size  << std :: endl;
+                 free(page);
+                 */  
                  /*Handle<Vector<Handle<Object>>> vector = curPage->getRootObject();
                  PDB_COUT << "got vector size =" << vector->size() << std :: endl;
                  PDB_COUT << "got data from this slave!" << std :: endl;
@@ -876,7 +887,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                      communicator = nullptr;
                      break;
                  }
-                 PDB_COUT << "sent data to client!" << std :: endl;
+                 //std :: cout << "sent data to client!" << std :: endl;
                  keepGoingSent = false;
             }
       }
