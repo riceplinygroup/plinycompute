@@ -105,8 +105,9 @@ public:
 			lastRec = nullptr;
 		}
 
+                size_t mySize = iterateOverMe->size();
 		// see if there are no more items in the vector to iterate over
-		if (pos == iterateOverMe->size ()) {
+		if (pos == mySize) {
 
 			// this means that we got to the end of the vector
 			lastRec = myRec;
@@ -125,9 +126,11 @@ public:
 
 		// compute how many slots in the output vector we can fill
 		int numSlotsToIterate = chunkSize;
-		if (numSlotsToIterate + pos > iterateOverMe->size ()) {
-			numSlotsToIterate = iterateOverMe->size () - pos;
+		if (numSlotsToIterate + pos > mySize) {
+			numSlotsToIterate = mySize - pos;
 		}
+
+                Vector<Handle<Object>> & myVec = *iterateOverMe;
 
 		// resize the output vector as appropriate
 		std :: vector <Handle <Object>> &inputColumn = output->getColumn <Handle <Object>> (0);
@@ -135,7 +138,7 @@ public:
 
 		// fill it up
 		for (int i = 0; i < numSlotsToIterate; i++) {
-			inputColumn[i] = (*iterateOverMe)[pos];	
+			inputColumn[i] = myVec[pos];	
 			pos++;
 		}
 
