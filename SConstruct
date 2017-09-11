@@ -41,7 +41,7 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -O3 -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
     if 'lda' in COMMAND_LINE_TARGETS:
@@ -64,7 +64,8 @@ common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
 common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
 #uncomment following for KMeans
 common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
-common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=10')
+#common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=10')
+#common_env.Append(CCFLAGS='-DCOLLECT_RESULTS_AS_ONE_PARTITION')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
