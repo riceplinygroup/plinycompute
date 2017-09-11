@@ -19,9 +19,9 @@ pem_file=$1
 user=ubuntu
 ip_len_valid=3
 pdb_dir=/home/ubuntu/pdb_install
-echo "To strip shared libraries..."
-strip libraries/*.so
-echo "stripped all shared libraries!"
+#echo "To strip shared libraries..."
+#strip libraries/*.so
+#echo "stripped all shared libraries!"
 
 # By default disable strict host key checking
 if [ "$PDB_SSH_OPTS" = "" ]; then
