@@ -662,6 +662,10 @@ int main (int argc, char * argv[]) {
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
                 COUT << "Total Time Duration for Iteration-: " << n << " is:" <<
                 std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd-iterBegin).count() << " secs." << std::endl;
+                if (converge == true) {
+                    break;
+                }
+
     }
 
     auto allEnd = std :: chrono :: high_resolution_clock :: now();

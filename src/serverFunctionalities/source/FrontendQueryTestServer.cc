@@ -909,24 +909,38 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 		    vector<PageIteratorPtr> * pageIters = loopingSet->getIterators();
 		    // loop through all pages
 		    int numIterators = pageIters->size();
-		    PDB_COUT << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
-                    PDB_COUT << "Number of iterators" << numIterators << std :: endl;
+		    //PDB_COUT << "Number pages to send " << std::to_string(loopingSet->getNumPages()) << std::endl;
+                    //PDB_COUT << "Number of iterators" << numIterators << std :: endl;
 		    for (int i = 0; i < numIterators; i++) {
-                        PDB_COUT << "the " << i << "-th iterator" << std :: endl;
+                        //PDB_COUT << "the " << i << "-th iterator" << std :: endl;
 		        PageIteratorPtr iter = pageIters->at(i);
 		        while (iter->hasNext()){
 		            PDBPagePtr nextPage = iter->next();
-                            PDB_COUT << "Got a page!" << std :: endl;
+                            //PDB_COUT << "Got a page!" << std :: endl;
 		            // send the relevant page.
 		            if (nextPage != nullptr) {
-		            	PDB_COUT << "Page is not null!! Sending out next page!" << std::endl;
-                                PDB_COUT << "check the page at server side" << std :: endl;
+		            	//PDB_COUT << "Page is not null!! Sending out next page!" << std::endl;
+                                //PDB_COUT << "check the page at server side" << std :: endl;
                                 Record <Vector <Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) (nextPage->getBytes());
                                 Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-
+                                if (inputVec == nullptr) {
+                                    std :: cout << "no vector in this page" << std :: endl;
+                                    //to evict this page
+                                    PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
+                                    CacheKey key;
+                                    key.dbId = nextPage->getDbID();
+                                    key.typeId = nextPage->getTypeID();
+                                    key.setId = nextPage->getSetID();
+                                    key.pageId = nextPage->getPageID();
+                                    cache->decPageRefCount(key);
+                               #ifndef REMOVE_SET_WITH_EVICTION
+                                    cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush() or clear set in the end.
+                               #endif
+                                    continue;
+                                }
 
                                 int vecSize = inputVec->size();
-                                PDB_COUT << "in the page to sent: vector size =" << vecSize << std :: endl;
+                                //std :: cout << "in the page to sent: vector size =" << vecSize << std :: endl;
                                 if (vecSize != 0) {          
       						const UseTemporaryAllocationBlock tempBlock {2048};
 #ifdef ENABLE_COMPRESSION
@@ -934,9 +948,21 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                                 myRec = getRecord(inputVec, newRecord, nextPage->getSize());
                                                 char * compressedBytes = new char[snappy::MaxCompressedLength(myRec->numBytes())];
                                                 size_t compressedSize;
-                                                snappy::RawCompress((char *)(nextPage->getBytes()), myRec->numBytes(), compressedBytes, &compressedSize);
+                                                snappy::RawCompress((char *)(myRec), myRec->numBytes(), compressedBytes, &compressedSize);
                                                 std :: cout << "Frontend=>Client: size before compression is " << myRec->numBytes() << " and size after compression is " << compressedSize << std :: endl;
                                                 sendUsingMe->sendBytes(compressedBytes, compressedSize, errMsg);
+                                                /*
+                                                //to verify data compression correctness
+                                                Record<Vector<Handle<Object>>> * page = (Record <Vector <Handle <Object>>> *) malloc (DEFAULT_PAGE_SIZE);
+                                                snappy::RawUncompress(compressedBytes, compressedSize, (char *)(page));
+                                                // gets the vector that we are going to iterate over
+                                                Handle<Vector<Handle<Object>>> data = page->getRootObject ();
+                                                std :: cout << "to obtain size of vector" << std :: endl;
+                                                size_t size = data->size ();
+                                                std :: cout << "got a page with size="<< size  << std :: endl;  
+                                                free(page);
+                                                */
+
                                                 delete [] compressedBytes;
                                                 free(newRecord);
 #else
@@ -944,7 +970,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 							return std :: make_pair (false, errMsg);	
 						}
 #endif
-                                                PDB_COUT << "Page sent to client!" << std :: endl;
+                                                //std :: cout << "Page sent to client!" << std :: endl;
 						// see whether or not the client wants to see more results
 						bool success;
 						if (sendUsingMe->getObjectTypeID () != DoneWithResult_TYPEID) {
@@ -986,6 +1012,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 				return std :: make_pair (false, "could not send done message: " + errMsg);
 			}
 			// we got to here means success!!  We processed the query, and got all of the results
+                        //std :: cout << "sent DoneWithResult" << std :: endl;
 			return std :: make_pair (true, std :: string ("query completed!!"));
 		}));
 }
