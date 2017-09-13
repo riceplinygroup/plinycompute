@@ -89,7 +89,7 @@ public:
 
     //store shuffle data
     bool storeShuffleData(Handle <Vector <Handle<Object>>> data, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
-
+    bool storeCompressedShuffleData(char * bytes, size_t numBytes, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg);
     //send Shuffle data
     bool sendData(PDBCommunicatorPtr conn, void * bytes, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg);
 

@@ -96,13 +96,15 @@ public:
                         void *readToHere = malloc (objSize);
 #endif
 			// we've got some more data
-			page = (Record <Vector <Handle <OutType>>> *) malloc (DEFAULT_PAGE_SIZE);
+                             
 			if (!connection->receiveBytes (readToHere, errMsg)) {
 				std :: cout << "Problem getting data: " << errMsg << "\n";
 				connection = nullptr;
 				return;
 			}
-                        //std :: cout << "received " << objSize << " bytes" << std :: endl;
+                        size_t uncompressedSize = 0;
+                        snappy::GetUncompressedLength(readToHere, objSize, &uncompressedSize);
+			page = (Record <Vector <Handle <OutType>>> *) malloc (uncompressedSize);
 #ifdef ENABLE_COMPRESSION
                          snappy::RawUncompress(readToHere, objSize, (char *)(page));
 #else

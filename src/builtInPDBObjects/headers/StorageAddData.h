@@ -35,19 +35,21 @@ public:
 	StorageAddData () {}
 	~StorageAddData () {}
 
-	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true, bool flushOrNot = true) : dataBase (dataBase), setName (setName),
+	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true, bool flushOrNot = true, bool compressedOrNot = false) : dataBase (dataBase), setName (setName),
 		typeName (typeName) {
                 this->typeCheck = typeCheck;
                 this->typeID = -1;
                 this->flushOrNot = flushOrNot;
+                this->compressedOrNot = compressedOrNot;
         }
 
 
-        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true, bool flushOrNot = true) : dataBase (dataBase), setName (setName),
+        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true, bool flushOrNot = true, bool compressedOrNot = false) : dataBase (dataBase), setName (setName),
                 typeName (typeName) {
                 this->typeCheck = typeCheck;
                 this->typeID = typeID;
                 this->flushOrNot = flushOrNot;
+                this->compressedOrNot = compressedOrNot;
         }
 
 	std :: string getDatabase () {
@@ -74,6 +76,12 @@ public:
                 return flushOrNot;
         }
 
+        bool isCompressed() {
+                return compressedOrNot;
+        }
+
+       
+
 	ENABLE_DEEP_COPY
 
 private:
@@ -84,6 +92,7 @@ private:
         int typeID;
         bool typeCheck;
         bool flushOrNot;
+        bool compressedOrNot;
 };
 
 }
