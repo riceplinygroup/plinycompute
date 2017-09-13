@@ -133,7 +133,7 @@ int main() {
 
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-
+        myFlatten->setAllocatorPolicy(noReuseAllocator);
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 	myGroupBy->setInput(myFlatten);
         myGroupBy->setAllocatorPolicy(noReuseAllocator);
