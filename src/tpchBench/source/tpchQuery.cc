@@ -136,11 +136,11 @@ int main() {
 
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 	myGroupBy->setInput(myFlatten);
-
+        myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	// Get the count by doing a count aggregation on the final results
 	Handle<Computation> countAggregation = makeObject<CountAggregation>();
 	countAggregation->setInput(myGroupBy);
-
+       
 	Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
 	myWriteSet->setInput(countAggregation);
 
