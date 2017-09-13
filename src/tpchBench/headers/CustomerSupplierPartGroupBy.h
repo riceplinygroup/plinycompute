@@ -49,8 +49,8 @@ public:
         // the key type must have == and size_t hash () defined
         Lambda <String> getKeyProjection (Handle <CustomerSupplierPartFlat> aggMe) override {
             return makeLambda (aggMe, [] (Handle <CustomerSupplierPartFlat> & aggMe) {
-                      	String myKey = aggMe->getSupplierName();
-                             		 return myKey;
+                      	return aggMe->getSupplierName();
+                             		 
                           });
         }
 
@@ -75,37 +75,39 @@ namespace pdb {
 
 inline Handle<Map<String, Vector<int>>> &operator+ (Handle<Map<String, Vector<int>>> &lhs, Handle<Map<String, Vector<int>>> &rhs) {
        auto iter = rhs->begin();
-       while (iter != rhs->end()) {
-           String myKey = (*iter).key;
+       PDBMapIterator<String, Vector<int>> endIter = rhs->end();
+       while (iter != endIter) {
+           String & myKey = (*iter).key;
+           Vector<int> & myVec = (*lhs)[myKey];
            if (lhs->count(myKey) == 0) {
                try {
-                   (*lhs)[myKey] = (*iter).value;
+                   myVec = (*iter).value;
                } catch ( NotEnoughSpace &n ) {
                    //std :: cout << "not enough space when inserting new pair" << std :: endl;
                    lhs->setUnused (myKey);
                    throw n;
                }
            } else {
-
-                   size_t mySize = (*lhs)[myKey].size();
-                   size_t otherSize = (*iter).value.size();
+                   Vector<int> &otherVec = (*iter).value;
+                   size_t mySize = myVec.size();
+                   size_t otherSize = otherVec.size();
                    //std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std :: endl;
                    for (size_t i = mySize; i < mySize + otherSize; i++) {
                        try {
 
-                               (*lhs)[myKey].push_back((*iter).value[i-mySize]);
+                               myVec.push_back(otherVec[i-mySize]);
 
                        } catch (NotEnoughSpace &n) {
 
                                //std :: cout << i << ": not enough space when updating value for pushing back: " << (*lhs)[myKey].size() << std :: endl;
-                               size_t curSize = (*lhs)[myKey].size();
+                               size_t curSize = myVec.size();
                                for (size_t j = mySize; j < curSize; j++) {
-                                    (*lhs)[myKey].pop_back();
+                                    myVec.pop_back();
                                }
                                //std :: cout << "size restored to " << (*lhs)[myKey].size() << std :: endl;
-                               for (size_t j = 0; j < (*lhs)[myKey].size(); j++) {
+                               /*for (size_t j = 0; j < (*lhs)[myKey].size(); j++) {
                                     std :: cout << j << ": " << (*lhs)[myKey][j]<< ";";
-                               }
+                               }*/
                                throw n;
 
                        }
