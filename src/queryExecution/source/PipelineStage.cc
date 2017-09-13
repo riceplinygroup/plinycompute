@@ -45,6 +45,7 @@
 #include "SharedHashSet.h"
 #include "JoinComp.h"
 #include "SimpleSendObjectRequest.h"
+#include "SimpleSendBytesRequest.h"
 #include "ShuffleSink.h"
 #ifdef ENABLE_COMPRESSION
 #include <snappy.h>
@@ -98,7 +99,23 @@ bool PipelineStage :: storeShuffleData (Handle <Vector <Handle<Object>>> data, s
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
                          return true;}, data, databaseName, setName, "IntermediateData", false, false);
+
         }
+
+bool PipelineStage :: storeCompressedShuffleData(char * bytes, size_t numBytes, std :: string databaseName, std :: string setName, std :: string address, int port, std :: string &errMsg) {
+       if(port <= 0) {
+           port = conf->getPort();
+       }
+       std :: cout << "store shuffle data to address=" << address << " and port=" << port << ", with compressed byte size = " << numBytes << " to database=" << databaseName << " and set=" << setName << " and type = IntermediateData" << std :: endl;
+       return simpleSendBytesRequest <StorageAddData, SimpleRequestResult, bool> (logger, port, address, false, 1024,
+                 [&] (Handle <SimpleRequestResult> result) {
+                     if (result != nullptr)
+                         if (!result->getRes ().first) {
+                             logger->error ("Error sending data: " + result->getRes ().second);
+                             errMsg = "Error sending data: " + result->getRes ().second;
+                         }
+                         return true;}, bytes, numBytes, databaseName, setName, "IntermediateData", false, false, true);
+}
 
 //broadcast data
 bool PipelineStage :: sendData (PDBCommunicatorPtr conn, void * data, size_t size, std :: string databaseName, std :: string setName, std :: string &errMsg) {
@@ -879,7 +896,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   std :: cout << "inactive blocks before running combiner in this worker:" << std :: endl;
                   std :: cout << out << std :: endl; 
 #endif                 
-                  //getAllocator().setPolicy(noReuseAllocator);
+                  getAllocator().setPolicy(noReuseAllocator);
 
                   //to combine data for node-i
 
@@ -949,8 +966,20 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           while (combinerProcessor->fillNextOutputPage()) {
                               //send out the output page
                               Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
-
+#ifndef ENABLE_COMPRESSION
                               this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg); 
+#else
+                              char * compressedBytes = new char[snappy::MaxCompressedLength(record->numBytes())];
+                              size_t compressedSize;
+                              snappy::RawCompress((char *)record, record->numBytes(), compressedBytes, &compressedSize);
+                              std :: cout << "size before compression is " << record->numBytes() << " and size after compression is " << compressedSize << std :: endl;
+                              this->storeCompressedShuffleData(compressedBytes, compressedSize, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                              delete [] compressedBytes;                      
+
+#endif
+
+
+
                               //free the output page
                               combinerProcessor->clearOutputPage();
                               free(combinerPage);
@@ -985,7 +1014,17 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                       PDB_COUT << l << "-th map partition id is " << ((* mapVec)[l])->getHashPartitionId() << std :: endl;
                   }
                   */
-                  this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+#ifndef ENABLE_COMPRESSION
+                              this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+#else
+                              char * compressedBytes = new char[snappy::MaxCompressedLength(record->numBytes())];
+                              size_t compressedSize;
+                              snappy::RawCompress((char *)record, record->numBytes(), compressedBytes, &compressedSize);
+                              std :: cout << "size before compression is " << record->numBytes() << " and size after compression is " << compressedSize << std :: endl;
+                              this->storeCompressedShuffleData(compressedBytes, compressedSize, this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
+                              delete [] compressedBytes;
+
+#endif
 
                   //free the output page
                   combinerProcessor->clearOutputPage();

@@ -1012,9 +1012,23 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 					
 	         // get the record
 		 size_t numBytes = sendUsingMe->getSizeOfNextObject ();
-	         void *readToHere = malloc (numBytes);
-                 
-		 Handle<Vector<Handle<Object>>> objectsToStore = sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+                 bool compressedOrNot = request->isCompressed();
+                 Handle<Vector<Handle<Object>>> objectsToStore = nullptr;
+                 char * readToHere = nullptr;
+                 if (compressedOrNot == false) { 
+	             readToHere = (char *) malloc (numBytes);
+		     objectsToStore = sendUsingMe->getNextObject <Vector <Handle <Object>>> (readToHere, everythingOK, errMsg);
+                 } else {
+                     char * temp = new char[numBytes];
+                     sendUsingMe->receiveBytes (temp, errMsg);
+                     size_t uncompressedSize = 0;
+                     snappy::GetUncompressedLength(temp, numBytes, &uncompressedSize);
+                     readToHere = (char *) malloc (uncompressedSize);
+                     snappy::RawUncompress(temp, numBytes, (char *)(readToHere));
+                     Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> * )readToHere;
+                     objectsToStore = myRecord->getRootObject(); 
+                     free(temp);
+                 }
 
                  if (objectsToStore->size() == 0) {
                      everythingOK = false;
