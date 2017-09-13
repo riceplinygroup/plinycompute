@@ -541,9 +541,9 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
                           //std :: cout << "to combine a page" << std :: endl;
                           //to handle an aggregation
-                          PDBPagePtr output;
-                          proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                          memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                          PDBPagePtr output = make_shared<PDBPage>((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                          //proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                          //memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                           int numNodes = jobStage->getNumNodes();
                           int k;
                           for ( k = 0; k < numNodes; k ++ ) {
@@ -553,7 +553,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                              PageCircularBufferPtr buffer = sinkBuffers[k];
                              buffer->addPageToTail(output);
                           }
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          //free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join == nullptr)) {
                           //to handle aggregation without combining
@@ -998,7 +998,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           //combinerProcessor->clearInputPage();
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
-                               proxy->unpinUserPage (nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                               //proxy->unpinUserPage (nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
+                               page->freeContent();
                           }        
                       }
                   }
