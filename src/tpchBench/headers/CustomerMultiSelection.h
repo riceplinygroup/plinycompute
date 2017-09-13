@@ -49,29 +49,29 @@ public:
 
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
-					pdb::Vector<Order> m_orders= checkMe-> getOrders();
+					pdb::Vector<Order>  m_orders= checkMe-> getOrders();
 
-					pdb::Handle<pdb::Vector<pdb::Handle<CustomerSupplierPartFlat>>> customerSupplierPartFlat_vector = pdb::makeObject<pdb::Vector<pdb::Handle<CustomerSupplierPartFlat>>> ();
+					pdb::Vector<pdb::Handle<CustomerSupplierPartFlat>> customerSupplierPartFlat_vector;
 
 					// get the orders
 					for (int i = 0; i < m_orders.size(); i++) {
-						auto lineItems = m_orders[i].getLineItems();
+						pdb::Vector<LineItem> lineItems = m_orders[i].getLineItems();
 
 						// get the LineItems
 						for (int j = 0; j < lineItems.size(); j++) {
-							auto supplier = lineItems[j].getSupplier();
-							auto part = lineItems[j].getPart();
+							Supplier  supplier = lineItems[j].getSupplier();
+							Part part = lineItems[j].getPart();
 
-							Handle<Vector<int>>  partKeyVector=pdb::makeObject<pdb::Vector<int>>();
-							partKeyVector->push_back(part.getPartKey());
+							Vector<int>  partKeyVector;
+							partKeyVector.push_back(part.getPartKey());
 
-							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier.getName(), *partKeyVector);
-							customerSupplierPartFlat_vector->push_back(supplierPart);
+							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier.getName(), partKeyVector);
+							customerSupplierPartFlat_vector.push_back(supplierPart);
 						}
 					}
 
 
-					return *customerSupplierPartFlat_vector;
+					return customerSupplierPartFlat_vector;
 				});
 	}
 };
