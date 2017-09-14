@@ -1027,7 +1027,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                      snappy::RawUncompress(temp, numBytes, (char *)(readToHere));
                      Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> * )readToHere;
                      objectsToStore = myRecord->getRootObject(); 
-                     delete temp;
+                     delete[] temp;
                  }
 
                  if (objectsToStore->size() == 0) {
