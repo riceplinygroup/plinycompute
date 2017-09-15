@@ -53,6 +53,17 @@ struct MapRecordClass {
 // a special code that tells us when a hash slot is unused
 #define UNUSED 493295393
 
+unsigned int newHash (unsigned int x);
+
+// added by Shangyu
+inline size_t specialHash (unsigned u) {
+     return newHash (u);
+}
+
+inline size_t specialHash (int u) {
+     return newHash ((unsigned) u);
+}
+
 // this uses SFINAE to call std::hash () on KeyType if applicable; otherwise, it calls KeyType.hash ()
 template <class KeyType>
 class Hasher {
@@ -81,6 +92,13 @@ public:
 
 		return temp;
         }
+
+        // allows us to specify a specialized hash function by defining specialHash (U const u)
+        template <typename U>
+        static auto hash_impl(U const& u, int)
+                -> decltype(specialHash (u)) {
+                 return specialHash (u);
+        }	
 };
 
 // the maximum fill factor before we double
