@@ -80,6 +80,9 @@ public:
      * @return true on success
      */
     bool dispatchData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<Vector<Handle<Object>>> toDispatch);
+    bool dispatchBytes(std::pair<std::string, std::string> setAndDatabase, std::string type, char * bytes, size_t numBytes);
+
+
     void waitAllRequestsProcessed() {
                 pthread_mutex_lock(&mutex);
                 while (numRequestsInProcessing > 0) {
@@ -103,6 +106,9 @@ private:
 
     bool sendData(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<NodeDispatcherData> destination,
                   Handle<Vector<Handle<Object>>> toSend);
+
+    bool sendBytes(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<NodeDispatcherData> destination,
+                   char * bytes, size_t numBytes);
 
     Handle<NodeDispatcherData> findNode(NodeID nodeId);
     int numRequestsInProcessing = 0;

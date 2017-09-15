@@ -59,6 +59,9 @@ public:
     template <class DataType>
     bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
 
+    template <class DataType>
+    bool sendBytes(std::pair<std::string, std::string> setAndDatabase, char * bytes, size_t numBytes, std::string& errMsg);
+
 private:
     CatalogClient myHelper;
     int port;

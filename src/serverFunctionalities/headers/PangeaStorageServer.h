@@ -63,7 +63,7 @@ public:
 
 	// takes all of the currently buffered records for the given database/set pair,
 	// creates at most one page of data with them, and then writes that page to storage
-	void writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot = true) ;
+	void writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot = true, bool directPutOrNot = false) ;
 
 	// this allocates a new page at the end of the indicated database/set combo
 	PDBPagePtr getNewPage (pair <std :: string, std :: string> databaseAndSet);

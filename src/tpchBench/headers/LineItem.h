@@ -48,7 +48,7 @@
 // [L_SHIPMODE] [char](10) NOT NULL,
 // [L_COMMENT] [varchar](44) NOT NULL
 // );
-
+using namespace pdb;
 class LineItem: public pdb::Object {
 
 public:
@@ -56,8 +56,8 @@ public:
 	pdb::String name;
 	int orderKey;
 
-	Supplier supplier;
-	Part part;
+	Handle<Supplier> supplier;
+	Handle<Part> part;
 
 	int lineNumber;
 	double quantity;
@@ -87,7 +87,7 @@ public:
 
 	//Constructor with arguments:
 	LineItem(std::string name, int orderKey,
-			 Supplier supplier, Part part,
+			 Handle<Supplier> supplier, Handle<Part> part,
 			 int lineNumber, double quantity, double extendedPrice,
 			 double discount, double tax,
 			 std::string returnFlag, std::string lineStatus,
@@ -177,11 +177,11 @@ public:
 		this->orderKey = orderKey;
 	}
 
-	const Part& getPart() const {
+	const Handle<Part>& getPart() const {
 		return part;
 	}
 
-	void setPart(const Part& part) {
+	void setPart(const Handle<Part>& part) {
 		this->part = part;
 	}
 
@@ -233,11 +233,11 @@ public:
 		this->shipMode = shipMode;
 	}
 
-	const Supplier& getSupplier() const {
+	const Handle<Supplier>& getSupplier() const {
 		return supplier;
 	}
 
-	void setSupplier(const Supplier& supplier) {
+	void setSupplier(const Handle<Supplier>& supplier) {
 		this->supplier = supplier;
 	}
 

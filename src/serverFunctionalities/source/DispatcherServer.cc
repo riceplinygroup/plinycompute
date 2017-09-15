@@ -24,13 +24,14 @@
 #include "PDBDebug.h"
 #include "SimpleRequestHandler.h"
 #include "SimpleRequestResult.h"
+#include "SimpleSendBytesRequest.h"
 #include "DispatcherAddData.h"
 #include "BuiltInObjectTypeIDs.h"
 #include "QuerySchedulerServer.h"
 #include "Statistics.h"
 #include "PartitionPolicyFactory.h"
 #include "DispatcherRegisterPartitionPolicy.h"
-
+#include <snappy.h>
 #define MAX_CONCURRENT_REQUESTS 10
 
 namespace pdb {
@@ -67,15 +68,38 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 PDB_COUT << "DispatcherAddData handler running" << std :: endl;
                 // Receive the data to send
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
-                PDB_COUT << "NumBytes = " << numBytes << std :: endl;
-                const UseTemporaryAllocationBlock tempBlock{numBytes + 2048};
-                Handle<Vector<Handle<Object>>> dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
+                std :: cout << "Dispacher received numBytes = " << numBytes << std :: endl;
+                Handle<Vector<Handle<Object>>> dataToSend;
+#ifdef DEEP_COPY_AT_DISPATCHER
+                const UseTemporaryAllocationBlock tempBlock{numBytes + 65535};
+                dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
+#else
+#ifdef ENABLE_COMPRESSION
+                char * tempPage = new char[numBytes];
+                sendUsingMe->receiveBytes(tempPage, errMsg);
+#else
+                void * readToHere = malloc (numBytes);
+                sendUsingMe->receiveBytes(readToHere, errMsg);
+#endif
+                
+#ifdef ENABLE_COMPRESSION
+                size_t uncompressedSize = 0;
+                snappy::GetUncompressedLength(tempPage, numBytes, &uncompressedSize); 
+                char * readToHere = (char *) malloc (uncompressedSize);
+                snappy::RawUncompress(tempPage, numBytes, (char *)(readToHere));
+                Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *)readToHere;
+                dataToSend = myRecord->getRootObject();
+#endif
+#endif
                 if (dataToSend->size() == 0) {
                     errMsg = "Warning: client attemps to store zero object vector";
                     Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
                     res = sendUsingMe->sendObject(response, errMsg);
                     std::cout << errMsg << std::endl;
                     return make_pair(false, errMsg);
+
+                } else {
+                    std :: cout << "Dispatch to send vector size = " << dataToSend->size() << std :: endl; 
 
                 }
                 // Check that the type of the data being stored matches what is known to the catalog
@@ -88,9 +112,21 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
 
-               
+#ifdef DEEP_COPY_AT_DISPATCHER
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
+#else 
+
+#ifdef ENABLE_COMPRESSION
+                dispatchBytes(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
+                             request->getTypeName(), tempPage, numBytes);
+                free(tempPage);
+#else
+                dispatchBytes(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
+                             request->getTypeName(), readToHere, numBytes);
+#endif
+                free(readToHere);
+#endif
 
                 //update stats
                 pthread_mutex_lock(&mutex);
@@ -169,6 +205,28 @@ bool DispatcherServer :: dispatchData (std::pair<std::string, std::string> setAn
     }
 }
 
+
+bool DispatcherServer :: dispatchBytes (std::pair<std::string, std::string> setAndDatabase, std::string type, char * bytes, size_t numBytes) {
+    // TODO: Implement this
+
+    if (partitionPolicies.find(setAndDatabase) == partitionPolicies.end()) {
+        PDB_COUT << "No partition policy was found for set: " << setAndDatabase.first << ":" << setAndDatabase.second << std::endl;
+        PDB_COUT << "Defaulting to random policy" << std::endl;
+        registerSet(setAndDatabase, PartitionPolicyFactory::buildDefaultPartitionPolicy());
+        return dispatchBytes(setAndDatabase, type, bytes, numBytes);
+    } else {
+        auto mappedPartitions = partitionPolicies[setAndDatabase]->partition(nullptr);
+        PDB_COUT << "mappedPartitions size = " << mappedPartitions->size() << std :: endl;
+        for (auto const &pair : (* mappedPartitions)) {
+            if (!sendBytes(setAndDatabase, type, findNode(pair.first), bytes, numBytes)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
 bool DispatcherServer :: validateTypes (const std::string& databaseName, const std::string& setName,
         const std::string& typeName, std::string& errMsg) {
     PDB_COUT << "running validateTypes with typeName" << typeName << std :: endl;
@@ -212,6 +270,29 @@ bool DispatcherServer :: sendData (std::pair<std::string, std::string> setAndDat
     }
     return 1;
 }
+
+bool DispatcherServer :: sendBytes(std::pair<std::string, std::string> setAndDatabase, std::string type, Handle<NodeDispatcherData> destination,
+                   char * bytes, size_t numBytes) {
+#ifndef ENABLE_COMPRESSION
+       std :: cout << "Now only objects or compressed bytes can be dispatched!!" << std :: endl;
+#endif
+       int port = destination->getPort();
+       std :: string address = destination->getAddress();
+       std :: string databaseName = setAndDatabase.second;
+       std :: string setName = setAndDatabase.first;
+       std :: string errMsg;
+       std :: cout << "store compressed bytes to address=" << address << " and port=" << port << ", with compressed byte size = " << numBytes << " to database=" << databaseName << " and set=" << setName << " and type = IntermediateData" << std :: endl;
+       return simpleSendBytesRequest <StorageAddData, SimpleRequestResult, bool> (logger, port, address, false, 1024,
+                 [&] (Handle <SimpleRequestResult> result) {
+                     if (result != nullptr)
+                         if (!result->getRes ().first) {
+                             logger->error ("Error sending data: " + result->getRes ().second);
+                             errMsg = "Error sending data: " + result->getRes ().second;
+                         }
+                         return true;}, bytes, numBytes, databaseName, setName, "IntermediateData", false, true, true, true);
+
+}
+
 
 Handle<NodeDispatcherData> DispatcherServer :: findNode(NodeID nodeId) {
     for (int i = 0; i < storageNodes->size(); i++) {
