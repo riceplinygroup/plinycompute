@@ -41,7 +41,8 @@ elif  common_env['PLATFORM'] == 'posix':
     #common_env.Append(CXXFLAGS = '-std=c++14 -g -ftree-slp-vectorize -Oz -ldl -fPIC -lstdc++ -Wno-deprecated-declarations')
 
     #for debugging
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -Wno-deprecated-declarations')
+    #Needs to be turned on for KMeans and TPCH
+    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -march=native -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
     if 'lda' in COMMAND_LINE_TARGETS:
@@ -60,11 +61,11 @@ common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DPROFILING')
 common_env.Append(CCFLAGS='-DJOIN_COST_THRESHOLD=15000')
 common_env.Append(CCFLAGS='-DENABLE_COMPRESSION')
-# common_env.Append(CCFLAGS='-DPDB_DEBUG')
-common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.95')
+#common_env.Append(CCFLAGS='-DPDB_DEBUG')
+common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.99')
 #uncomment following for KMeans
-common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
-#common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=10')
+#common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
+#common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=1000')
 #common_env.Append(CCFLAGS='-DCOLLECT_RESULTS_AS_ONE_PARTITION')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
@@ -768,11 +769,11 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCountAggregation.so',
   'libraries/libCountCustomer.so',
   'bin/tpchQuery',
-  'bin/tpchDataGenerator',
+#  'bin/tpchDataGenerator',
   'bin/tpchDataGeneratorNew',
   'bin/tpchGetCustomerCount',
   'bin/tpchRegisterAndCreateSets',
-  'bin/tpchDataGeneratorAll',
+#  'bin/tpchDataGeneratorAll',
   'bin/tpchFlushToDisk'
   
 ])
