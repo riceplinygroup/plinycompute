@@ -217,7 +217,7 @@ PDBPagePtr PangeaStorageServer :: getNewPage (pair <std :: string, std :: string
 }
 
 
-void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot) {
+void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot, bool directPutOrNot) {
 
 	// get all of the records
 	auto &allRecs = allRecords[databaseAndSet];
@@ -239,10 +239,10 @@ void PangeaStorageServer :: writeBackRecords (pair <std :: string, std :: string
         //std :: cout << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
 	// the position in the output vector
 	int pos = 0;
-	
+	 
 	// the number of items in the current record we are processing
 	int numObjectsInRecord;
-
+        
 
 	// now, keep looping until we run out of records to process (in which case, we'll break)
 	while (true) {
@@ -1054,11 +1054,13 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 						// at this point, we have performed the serialization, so remember the record
 				auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
         	                                        (std :: string) request->getSetName ());
-				getFunctionality <PangeaStorageServer> ().bufferRecord 
-							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
+                                if (request->isDirectPut() == false) {
 
+				                getFunctionality <PangeaStorageServer> ().bufferRecord 
+							(databaseAndSet, (Record <Vector <Handle <Object>>> *) readToHere); 
+                     
              
-                                 size_t numBytesToProcess = sizes[databaseAndSet];
+                                                size_t numBytesToProcess = sizes[databaseAndSet];
                                                 size_t rawPageSize = getFunctionality<PangeaStorageServer>().getConf()->getPageSize();
 
                                                 if(numBytesToProcess < rawPageSize) {
@@ -1072,6 +1074,39 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 						      PDB_COUT << "Done with write back.\n";
 						      PDB_COUT << "Are " << sizes[databaseAndSet] << " bytes left.\n";
                                                 }
+
+                                } else {
+                                      Record <Vector <Handle <Object>>> * myRecord = (Record <Vector <Handle <Object>>> *) readToHere;
+                                      if (myRecord->numBytes() <= DEFAULT_NET_PAGE_SIZE) {
+                                         PDBPagePtr myPage = getFunctionality<PangeaStorageServer>().getNewPage (databaseAndSet);
+                                         //pin a page
+                                         // now, get a page to write to
+                                         /*if (myPage == nullptr) {
+                                             std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
+                                             std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
+                                             std :: cout << "setName" << databaseAndSet.second << std :: endl;
+                                             return make_pair (false, "FATAL ERROR: set to store data doesn't exist!");
+                                         }*/
+                                         //memory copy
+                                         memcpy (myPage->getBytes(), readToHere, myRecord->numBytes());
+                                         //unpin the page
+                                         CacheKey key;
+                                         key.dbId = myPage->getDbID();
+                                         key.typeId = myPage->getTypeID();
+                                         key.setId = myPage->getSetID();
+                                         key.pageId = myPage->getPageID();
+                                         getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key);
+                                         if (request->isFlushing() == true) {
+                                             getFunctionality<PangeaStorageServer>().getCache()->flushPageWithoutEviction(key);
+                                         } 
+                                     }
+                                     else {
+                                         errMsg = "Tried to directly put larger data than the page, size=" + std :: to_string( myRecord->numBytes() );
+                                         std :: cout << errMsg << std :: endl;
+                                         everythingOK = false;
+                                     }
+                   
+                               }
                                pthread_mutex_lock(&counterMutex);
                                numWaitingBufferDataRequests--;
                                pthread_mutex_unlock(&counterMutex);
@@ -1081,7 +1116,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
 				everythingOK = false;
 		 }
                  //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
-                 if (request->isFlushing() == true) {
+                 if (request->isFlushing() == true) {//this is a client query
 	             //std :: cout << "Making response object.\n";
                      const UseTemporaryAllocationBlock block{1024};                        
 	             Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (everythingOK, errMsg);

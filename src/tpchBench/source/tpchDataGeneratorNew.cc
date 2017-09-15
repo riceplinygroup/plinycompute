@@ -103,7 +103,9 @@ using namespace std;
 #define MB (1024*KB)
 #define GB (1024*MB)
 
-#define BLOCKSIZE (256*MB)
+//#define BLOCKSIZE (256*MB)
+#define BLOCKSIZE DEFAULT_NET_PAGE_SIZE
+
 
 // A function to parse a Line
 std::vector<std::string> parseLine(std::string line) {
@@ -229,19 +231,19 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 		int partKey = atoi(tokens.at(1).c_str());
 		int supplierKey = atoi(tokens.at(2).c_str());
 
-		Part tPart;
-		Supplier tSupplier;
+		pdb::Handle<Part> tPart;
+		pdb::Handle<Supplier> tSupplier;
 
 		//Find the appropriate "Part"
 		if (partMap.find(partKey) != partMap.end()) {
-			tPart = *partMap[partKey];
+			tPart = partMap[partKey];
 		} else {
 			throw invalid_argument("There is no such Part.");
 		}
 
 		//Find the appropriate "Part"
 		if (supplierMap.find(supplierKey) != supplierMap.end()) {
-			tSupplier = *supplierMap[supplierKey];
+			tSupplier = supplierMap[supplierKey];
 		} else {
 			throw invalid_argument("There is no such Supplier.");
 		}
@@ -330,7 +332,8 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 	// make a new Allocation Block
 	pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
 	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
-
+        map<int, pdb::Handle<Part>> * myPartMap = new map<int, pdb::Handle<Part>> ();
+        map<int, pdb::Handle<Supplier>> * mySupplierMap = new map<int, pdb::Handle<Supplier>> ();
 	// Copy the same data multiple times to make it bigger.
 	for (int i = 0; i < noOfCopies; ++i) {
 
@@ -342,7 +345,6 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			cout << "No data directiry for customer  found, add the data directory " << customerFile << endl;
 		}
 
-		cout << "Storing copy number " << i << endl;
 		pdb::Handle<Customer> objectToAdd = nullptr;
 
 		while (getline(infile, line)) {
@@ -350,22 +352,59 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			int customerKey = atoi(tokens.at(0).c_str());
 
 			try {
-
-				objectToAdd = pdb::makeObject<Customer>(orderMap[customerKey], customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
+                                pdb::Vector<Order> myOrders = orderMap[customerKey];
+                                pdb::Vector<Order> newOrders;
+                                size_t myOrderSize = myOrders.size();
+                                for (size_t orderId = 0; orderId < myOrderSize; orderId++) {
+                                    Order myOrder = myOrders[orderId];
+                                    pdb::Vector<LineItem> myLineItems = myOrder.getLineItems();
+                                    size_t myLineItemSize = myLineItems.size();
+                                    pdb::Vector<LineItem> newLineItems (myLineItemSize);
+                                    for (size_t lineItemId = 0; lineItemId < myLineItemSize; lineItemId++) {
+                                        LineItem myLineItem = myLineItems[lineItemId];
+                                        pdb::Handle<Supplier> mySupplier = myLineItem.getSupplier();
+                                        //now check whether we have this Supplier already
+                                        int mySupplierId = mySupplier->getSupplierKey();
+                                        pdb::Handle<Supplier> newSupplier = nullptr;
+                                        if (mySupplierMap->count(mySupplierId) == 0) {
+                                            newSupplier = deepCopyToCurrentAllocationBlock(mySupplier);
+                                            (*mySupplierMap)[mySupplierId] = newSupplier;
+                                        } else {
+                                            newSupplier = (*mySupplierMap)[mySupplierId];
+                                        }
+                                        pdb::Handle<Part> myPart = myLineItem.getPart();
+                                        //now check whether we have this Part already
+                                        int myPartId = myPart->getPartKey();
+                                        pdb::Handle<Part> newPart = nullptr;
+                                        if (myPartMap->count(myPartId) == 0) {
+                                            newPart = deepCopyToCurrentAllocationBlock(myPart);
+                                            (*myPartMap)[myPartId] = newPart;
+                                        } else {
+                                            newPart = (*myPartMap)[myPartId];
+                                        }
+                                        LineItem newLineItem = myLineItem;
+                                        newLineItem.setSupplier(newSupplier);
+                                        newLineItem.setPart(newPart);
+                                        newLineItems.push_back(newLineItem);
+                                    }
+                                    Order newOrder = myOrder;
+                                    newOrder.setLineItems(newLineItems);
+                                    newOrders.push_back(newOrder);
+                                }
+				objectToAdd = pdb::makeObject<Customer>(newOrders, customerKey, tokens.at(1), tokens.at(2), atoi(tokens.at(3).c_str()), tokens.at(4), atof(tokens.at(5).c_str()), tokens.at(6), tokens.at(7));
 				storeMeCustomerList->push_back(objectToAdd);
 
 			} catch (NotEnoughSpace &e) {
 
-
-
 				// First send the existing data over
 				if (storeMeCustomerList->size() > 0) {
-					if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+                                        Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> * )getRecord(storeMeCustomerList);
+					if (!dispatcherClient.sendBytes<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), (char *)myRecord, myRecord->numBytes(), errMsg)) {
 						std::cout << "Failed to send data to dispatcher server" << std::endl;
 					}
 					sendingObjectSize += storeMeCustomerList->size();
 
-					std::cout << "Copy Number: " << i << "  Sending data! Count: " << sendingObjectSize << std::endl;
+					std::cout << "Sending data! Count: " << sendingObjectSize << std::endl;
 				} else {
 					std::cout << "Vector is zero." << sendingObjectSize << std::endl;
 				}
@@ -373,6 +412,14 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 				storeMeCustomerList->clear();
 				// make a allocation Block and a new vector.
 				pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+                                if (myPartMap != nullptr) {
+                                    delete myPartMap;
+                                }
+                                myPartMap = new map<int, pdb::Handle<Part>> ();
+                                if (mySupplierMap != nullptr) {
+                                    delete mySupplierMap;
+                                }
+                                mySupplierMap = new map<int, pdb::Handle<Supplier>> ();
                                 storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
 				// retry to make the object and add it to the vector
 				try {
@@ -385,25 +432,38 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 				}
 			}
 		}
-
-		// send the rest of data at the end, it can happen that the exception never happens.
-		if (!dispatcherClient.sendData<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), storeMeCustomerList, errMsg)) {
+                infile.close();
+                infile.clear();
+         }
+         // send the rest of data at the end, it can happen that the exception never happens.
+         Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> * )getRecord(storeMeCustomerList);
+	 if (!dispatcherClient.sendBytes<Customer>(std::pair<std::string, std::string>("tpch_bench_set1", "TPCH_db"), (char *)myRecord, myRecord->numBytes(), errMsg)) {
 			std::cout << "Failed to send data to dispatcher server" << std::endl;
-		}
-		sendingObjectSize += storeMeCustomerList->size();
+	 }
+	 sendingObjectSize += storeMeCustomerList->size();
 
-		std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
-		storeMeCustomerList->clear();
+	 std::cout << "Send the rest of the data at the end: " << sendingObjectSize << std::endl;
+	 storeMeCustomerList->clear();
 
-		// make a allocation Block and a new vector.
-		pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
-		storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+	 // make a allocation Block and a new vector.
+	 pdb::makeObjectAllocatorBlock((size_t) BLOCKSIZE, true);
+	 storeMeCustomerList = pdb::makeObject<pdb::Vector<pdb::Handle<Customer>>>();
+         if (myPartMap != nullptr) {
+                delete myPartMap;
+         }
+         myPartMap = new map<int, pdb::Handle<Part>> ();
+         if (mySupplierMap != nullptr) {
+                delete mySupplierMap;
+         }
+         mySupplierMap = new map<int, pdb::Handle<Supplier>> ();
 
-
-		infile.close();
-		infile.clear();
-	}
-        storeMeCustomerList = nullptr;
+         storeMeCustomerList = nullptr;
+         if (myPartMap != nullptr) {
+                delete myPartMap;
+         }
+         if (mySupplierMap != nullptr) {
+                delete mySupplierMap;
+         }
 }
 
 //pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>generateSmallDataset(int maxNoOfCustomers) {

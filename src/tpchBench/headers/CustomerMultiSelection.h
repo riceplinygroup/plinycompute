@@ -59,13 +59,13 @@ public:
 
 						// get the LineItems
 						for (int j = 0; j < lineItems.size(); j++) {
-							Supplier  supplier = lineItems[j].getSupplier();
-							Part part = lineItems[j].getPart();
+							Handle<Supplier>  supplier = lineItems[j].getSupplier();
+							Handle<Part> part = lineItems[j].getPart();
 
 							Vector<int>  partKeyVector;
-							partKeyVector.push_back(part.getPartKey());
+							partKeyVector.push_back(part->getPartKey());
 
-							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier.getName(), partKeyVector);
+							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier->getName(), partKeyVector);
 							customerSupplierPartFlat_vector.push_back(supplierPart);
 						}
 					}
