@@ -178,7 +178,7 @@ void PangeaStorageServer :: cleanup(bool flushOrNot) {
                 while (a.second.size () > 0)
                         writeBackRecords (a.first, flushOrNot);
         }
-        std :: cout << "Now there are " << totalObjects << " objects stored in storage" << std :: endl;
+        std :: cout << "Now there are " << totalObjects << " new objects stored in storage" << std :: endl;
         //getFunctionality <PangeaStorageServer> ().getCache()->unpinAndEvictAllDirtyPages();
         PDB_COUT << "sleep for 1 second to wait for all data gets flushed" << std :: endl;
         sleep(1);
