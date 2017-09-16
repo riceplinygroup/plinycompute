@@ -248,7 +248,7 @@ void dataGenerator(std::string scaleFactor, pdb::DispatcherClient dispatcherClie
 			throw invalid_argument("There is no such Supplier.");
 		}
 
-		pdb::Handle<LineItem> tLineItem = pdb::makeObject<LineItem>(tokens.at(0), orderKey, tSupplier, tPart, atoi(tokens.at(3).c_str()), atof(tokens.at(4).c_str()), atof(tokens.at(5).c_str()),
+		pdb::Handle<LineItem> tLineItem = pdb::makeObject<LineItem>(orderKey, tSupplier, tPart, atoi(tokens.at(3).c_str()), atof(tokens.at(4).c_str()), atof(tokens.at(5).c_str()),
 				atof(tokens.at(6).c_str()), atof(tokens.at(7).c_str()), tokens.at(8), tokens.at(9), tokens.at(10), tokens.at(11), tokens.at(12), tokens.at(13), tokens.at(14), tokens.at(15));
 
 		if (orderKey % 100000 == 0)

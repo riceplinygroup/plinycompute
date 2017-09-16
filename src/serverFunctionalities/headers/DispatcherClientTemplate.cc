@@ -54,7 +54,7 @@ bool DispatcherClient::sendBytes(std::pair<std::string, std::string> setAndDatab
                              logger->error ("Error sending data: " + result->getRes ().second);
                              errMsg = "Error sending data: " + result->getRes ().second;
                          }
-                         return true;}, compressedBytes, compressedSize, setAndDatabase.second, setAndDatabase.first, getTypeName<DataType>());
+                         return true;}, compressedBytes, compressedSize, setAndDatabase.second, setAndDatabase.first, getTypeName<DataType>(), true);
 #else
      return simpleSendBytesRequest <DispatcherAddData, SimpleRequestResult, bool> (logger, port, address, false, 1024,
                  [&] (Handle <SimpleRequestResult> result) {

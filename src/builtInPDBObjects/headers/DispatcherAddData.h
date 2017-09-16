@@ -38,8 +38,8 @@ namespace pdb {
         DispatcherAddData () {}
         ~DispatcherAddData () {}
 
-        DispatcherAddData (std :: string databaseName, std :: string setName, std :: string typeName) : databaseName (databaseName), setName (setName),
-                                                                                                 typeName (typeName) {}
+        DispatcherAddData (std :: string databaseName, std :: string setName, std :: string typeName, bool shallowCopyOrNot = false) : databaseName (databaseName), setName (setName),
+                                                                                                 typeName (typeName) { this->shallowCopyOrNot = shallowCopyOrNot; }
 
         std :: string getDatabaseName () {
             return databaseName;
@@ -53,6 +53,10 @@ namespace pdb {
             return typeName;
         }
 
+        bool isShallowCopy() {
+            return shallowCopyOrNot;
+        }
+
         ENABLE_DEEP_COPY
 
     private:
@@ -60,7 +64,7 @@ namespace pdb {
         String databaseName;
         String setName;
         String typeName;
-
+        bool shallowCopyOrNot;
     };
 
 }
