@@ -120,7 +120,7 @@ int JoinPairArray <ValueType> :: count (const size_t &me) {
 	size_t hashVal = me == JM_UNUSED ? 858931273 : me;
 	
 	// figure out which slot he goes in
-	size_t slot = hashVal & (numSlots - 1);
+	size_t slot = hashVal % (numSlots - 1);
 
 	// in the worst case, we can loop through the entire hash table looking.  :-(
 	for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
@@ -161,7 +161,7 @@ void JoinPairArray <ValueType> :: setUnused (const size_t &me) {
 	size_t hashVal = me == JM_UNUSED ? 858931273 : me;
 
         // figure out which slot he goes in
-        size_t slot = hashVal & (numSlots - 1);
+        size_t slot = hashVal % (numSlots - 1);
 
         // in the worst case, we can loop through the entire hash table looking.  :-(
         for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
@@ -210,7 +210,7 @@ JoinRecordList <ValueType> JoinPairArray <ValueType> :: lookup (const size_t &me
 	size_t hashVal = me == JM_UNUSED ? 858931273 : me;
 
 	// figure out which slot he goes in
-	size_t slot = hashVal & (numSlots - 1);
+	size_t slot = hashVal % (numSlots - 1);
 
 	// in the worst case, we can loop through the entire hash table looking.
 	for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
@@ -248,7 +248,7 @@ ValueType &JoinPairArray <ValueType> :: push (const size_t &me) {
 	size_t hashVal = me == JM_UNUSED ? 858931273 : me;
 	
 	// figure out which slot he goes in
-	size_t slot = hashVal & (numSlots - 1);
+	size_t slot = hashVal % (numSlots - 1);
 
 	// in the worst case, we can loop through the entire hash table looking.  :-(
 	for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
