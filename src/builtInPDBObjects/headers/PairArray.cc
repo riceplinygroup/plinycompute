@@ -239,7 +239,7 @@ int PairArray <KeyType, ValueType> :: count (const KeyType &me) {
 	size_t hashVal = Hasher <KeyType> :: hash (me);
 	
 	// figure out which slot he goes in
-	size_t slot = hashVal & (numSlots - 1);
+	size_t slot = hashVal % (numSlots - 1);
 
 	// in the worst case, we can loop through the entire hash table looking.  :-(
 	for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
@@ -279,7 +279,7 @@ void PairArray <KeyType, ValueType> :: setUnused (const KeyType &me) {
         size_t hashVal = Hasher <KeyType> :: hash (me);
 
         // figure out which slot he goes in
-        size_t slot = hashVal & (numSlots - 1);
+        size_t slot = hashVal % (numSlots - 1);
 
         // in the worst case, we can loop through the entire hash table looking.  :-(
         for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
@@ -333,7 +333,7 @@ ValueType &PairArray <KeyType, ValueType> :: operator [] (const KeyType &me) {
 	size_t hashVal = Hasher <KeyType> :: hash (me);
 	
 	// figure out which slot he goes in
-	size_t slot = hashVal & (numSlots - 1);
+	size_t slot = hashVal % (numSlots - 1);
 
 	// in the worst case, we can loop through the entire hash table looking.  :-(
 	for (size_t slotsChecked = 0; slotsChecked < numSlots; slotsChecked++) {
