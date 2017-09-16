@@ -49,23 +49,20 @@ public:
 
 		return makeLambda (checkMe, [] (Handle<Customer>& checkMe) {
 
-					pdb::Vector<Order>  m_orders= checkMe-> getOrders();
+					pdb::Vector<Order> &  m_orders= checkMe-> getOrders();
 
 					pdb::Vector<pdb::Handle<CustomerSupplierPartFlat>> customerSupplierPartFlat_vector;
 
 					// get the orders
 					for (int i = 0; i < m_orders.size(); i++) {
-						pdb::Vector<LineItem> lineItems = m_orders[i].getLineItems();
+						pdb::Vector<LineItem> & lineItems = m_orders[i].getLineItems();
 
 						// get the LineItems
 						for (int j = 0; j < lineItems.size(); j++) {
 							Handle<Supplier>  supplier = lineItems[j].getSupplier();
 							Handle<Part> part = lineItems[j].getPart();
 
-							Vector<int>  partKeyVector;
-							partKeyVector.push_back(part->getPartKey());
-
-							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier->getName(), partKeyVector);
+							pdb::Handle<CustomerSupplierPartFlat>  supplierPart = pdb::makeObject<CustomerSupplierPartFlat> (checkMe->getName(), supplier->getName(), part->getPartKey());
 							customerSupplierPartFlat_vector.push_back(supplierPart);
 						}
 					}

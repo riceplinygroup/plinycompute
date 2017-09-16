@@ -53,7 +53,6 @@ class LineItem: public pdb::Object {
 
 public:
 
-	pdb::String name;
 	int orderKey;
 
 	Handle<Supplier> supplier;
@@ -86,7 +85,7 @@ public:
 	}
 
 	//Constructor with arguments:
-	LineItem(std::string name, int orderKey,
+	LineItem(int orderKey,
 			 Handle<Supplier> supplier, Handle<Part> part,
 			 int lineNumber, double quantity, double extendedPrice,
 			 double discount, double tax,
@@ -94,7 +93,6 @@ public:
 			 std::string shipDate, std::string commitDate,
 			 std::string receiptDate, std::string shipinStruct,
 			 std::string shipMode, std::string comment) {
-		this->name=name;
 		this->orderKey=orderKey;
 		this->supplier=supplier;
 		this->part=part;
@@ -161,13 +159,6 @@ public:
 		this->lineStatus = lineStatus;
 	}
 
-	pdb::String getName() {
-		return name;
-	}
-
-	void setName(std::string name) {
-		this->name = name;
-	}
 
 	int getOrderKey() const {
 		return orderKey;

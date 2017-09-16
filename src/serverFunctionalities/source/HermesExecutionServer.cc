@@ -331,8 +331,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 #ifdef AUTO_TUNING
                 size_t memSize = request->getTotalMemoryOnThisNode();
                 size_t sharedMemPoolSize = conf->getShmSize();
-                if (hashSetSize > (memSize - sharedMemPoolSize)*0.9) {
-                    hashSetSize = (memSize - sharedMemPoolSize)*0.9;
+                if (hashSetSize > (memSize - sharedMemPoolSize)*0.8) {
+                    hashSetSize = (memSize - sharedMemPoolSize)*0.8;
                     std :: cout << "WARNING: no more memory on heap can be allocated for hash set, we reduce hash set size." << std :: endl;
                 }
 #endif
@@ -489,7 +489,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 #ifdef USE_VALGRIND
               double ratio = 0.05;
 #else
-              double ratio = 0.75;
+              double ratio = 0.8;
 #endif
 
 

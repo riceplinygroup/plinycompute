@@ -60,10 +60,12 @@ public:
 
                     Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
 
-                    Vector<int>  partKeys = aggMe->getPartKeys();
+                    int myPartKey = aggMe->getPartKey();
 
                     // inside the map key is the customerName
-                    (*ret)[aggMe->getCustomerName()]=partKeys;
+                    Vector<int> & myVec = (*ret)[aggMe->getCustomerName()];
+
+                    myVec.push_back(myPartKey);
 
                     return ret;
                     });

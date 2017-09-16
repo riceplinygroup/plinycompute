@@ -70,27 +70,29 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 size_t numBytes = sendUsingMe->getSizeOfNextObject();
                 std :: cout << "Dispacher received numBytes = " << numBytes << std :: endl;
                 Handle<Vector<Handle<Object>>> dataToSend;
-#ifdef DEEP_COPY_AT_DISPATCHER
+                char * tempPage = nullptr;
+                char * readToHere = nullptr;
+    if (request->isShallowCopy() == false) {
                 const UseTemporaryAllocationBlock tempBlock{numBytes + 65535};
                 dataToSend = sendUsingMe->getNextObject<Vector <Handle <Object>>> (res, errMsg);
-#else
+    } else {
 #ifdef ENABLE_COMPRESSION
-                char * tempPage = new char[numBytes];
+                tempPage = new char[numBytes];
                 sendUsingMe->receiveBytes(tempPage, errMsg);
 #else
-                void * readToHere = malloc (numBytes);
+                readToHere = malloc (numBytes);
                 sendUsingMe->receiveBytes(readToHere, errMsg);
 #endif
                 
 #ifdef ENABLE_COMPRESSION
                 size_t uncompressedSize = 0;
                 snappy::GetUncompressedLength(tempPage, numBytes, &uncompressedSize); 
-                char * readToHere = (char *) malloc (uncompressedSize);
+                readToHere = (char *) malloc (uncompressedSize);
                 snappy::RawUncompress(tempPage, numBytes, (char *)(readToHere));
                 Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *)readToHere;
                 dataToSend = myRecord->getRootObject();
 #endif
-#endif
+    }
                 if (dataToSend->size() == 0) {
                     errMsg = "Warning: client attemps to store zero object vector";
                     Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(false, errMsg);
@@ -112,10 +114,10 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                 Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                 res = sendUsingMe->sendObject (response, errMsg);
 
-#ifdef DEEP_COPY_AT_DISPATCHER
+    if (request->isShallowCopy() == false) {
                 dispatchData(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
                              request->getTypeName(), dataToSend);
-#else 
+    } else {
 
 #ifdef ENABLE_COMPRESSION
                 dispatchBytes(std::pair<std::string, std::string>(request->getSetName(), request->getDatabaseName()),
@@ -126,7 +128,7 @@ void DispatcherServer :: registerHandlers (PDBServer &forMe) {
                              request->getTypeName(), readToHere, numBytes);
 #endif
                 free(readToHere);
-#endif
+    }
 
                 //update stats
                 pthread_mutex_lock(&mutex);

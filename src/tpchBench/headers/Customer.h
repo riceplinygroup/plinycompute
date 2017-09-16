@@ -119,11 +119,11 @@ public:
 		this->mktsegment = mktsegment;
 	}
 
-	const pdb::String& getName() const {
+        pdb::String& getName() {
 		return name;
 	}
 
-	void setName(const pdb::String& name) {
+	void setName(pdb::String& name) {
 		this->name = name;
 	}
 
@@ -135,11 +135,11 @@ public:
 		this->nationKey = nationKey;
 	}
 
-	const pdb::Vector<Order>& getOrders() const {
+	pdb::Vector<Order>& getOrders() {
 		return orders;
 	}
 
-	void setOrders(const pdb::Vector<Order>& orders) {
+	void setOrders(pdb::Vector<Order>& orders) {
 		this->orders = orders;
 	}
 

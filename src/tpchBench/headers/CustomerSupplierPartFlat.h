@@ -30,7 +30,7 @@ class CustomerSupplierPartFlat: public pdb::Object {
 public:
 	pdb::String customerName;
 	pdb::String supplierName;
-	pdb::Vector<int> partKeys;
+	int partKey;
 
 	ENABLE_DEEP_COPY
 
@@ -43,13 +43,13 @@ public:
 	}
 
 	//Constructor with arguments:
-	CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, pdb::Vector<int> partKeys) {
+	CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, int partKey) {
 		this->customerName = customerName;
 		this->supplierName = supplierName;
-		this->partKeys=partKeys;
+		this->partKey=partKey;
 	}
 
-	pdb::String getCustomerName() {
+	pdb::String& getCustomerName() {
 		return customerName;
 	}
 
@@ -57,7 +57,7 @@ public:
 		this->customerName = customerName;
 	}
 
-	pdb::String getSupplierName() {
+	pdb::String& getSupplierName() {
 		return supplierName;
 	}
 
@@ -65,12 +65,12 @@ public:
 		this->supplierName = supplierName;
 	}
 
-	const pdb::Vector<int>& getPartKeys() const {
-		return partKeys;
+	int getPartKey() {
+		return partKey;
 	}
 
-	void setPartKeys(const pdb::Vector<int>& partKeys) {
-		this->partKeys = partKeys;
+	void setPartKey(int partKey) {
+		this->partKey = partKey;
 	}
 };
 
