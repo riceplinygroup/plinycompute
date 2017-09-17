@@ -76,28 +76,33 @@ public:
 namespace pdb {
 
 inline Handle<Map<String, Vector<int>>> &operator+ (Handle<Map<String, Vector<int>>> &lhs, Handle<Map<String, Vector<int>>> &rhs) {
-       auto iter = rhs->begin();
-       PDBMapIterator<String, Vector<int>> endIter = rhs->end();
+       Map<String, Vector<int>> & myLhs = *lhs;
+       Map<String, Vector<int>> & myRhs = *rhs;
+       auto iter = myRhs.begin();
+       PDBMapIterator<String, Vector<int>> endIter = myRhs.end();
        while (iter != endIter) {
            String & myKey = (*iter).key;
-           Vector<int> & myVec = (*lhs)[myKey];
-           if (lhs->count(myKey) == 0) {
+           Vector<int> & myVec = myRhs[myKey];
+          
+           if (myLhs.count(myKey) == 0) {
                try {
                    myVec = (*iter).value;
                } catch ( NotEnoughSpace &n ) {
                    //std :: cout << "not enough space when inserting new pair" << std :: endl;
-                   lhs->setUnused (myKey);
+                   myLhs.setUnused (myKey);
                    throw n;
                }
            } else {
                    Vector<int> &otherVec = (*iter).value;
+                   int * myOtherData = otherVec.c_ptr();
                    size_t mySize = myVec.size();
                    size_t otherSize = otherVec.size();
+                   myVec.resize(mySize + otherSize);
                    //std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std :: endl;
                    for (size_t i = mySize; i < mySize + otherSize; i++) {
                        try {
 
-                               myVec.push_back(otherVec[i-mySize]);
+                               myVec.push_back(myOtherData[i-mySize]);
 
                        } catch (NotEnoughSpace &n) {
 
