@@ -93,7 +93,7 @@ public:
 
 	void print_vector(Handle<DoubleVector> v) {
 		 int MAX = 10;
-		 if (ndim < MAX) MAX = ndim;
+		 if (v->size < MAX) MAX = v->size;
 		 for (int i = 0; i < MAX; i++) {
 			 std :: cout << i << ": " << v->getDouble(i) << "; ";
 		 }
@@ -104,13 +104,16 @@ public:
 		//Print mean
 		std::cout << "**Current model**" << std::endl;
 		std::cout << "Weights: ";
-		//print_vector(this->weights);
+		print_vector(this->weights);
 		for (int i = 0; i < k; i++) {
 			std::cout <<"**Component " << i << std::endl;
 			std::cout <<"Mean: ";
 			print_vector((*this->means)[i]);
 			std::cout <<"Covar: ";
+			//(*this->covars)[i]->print();
 			print_vector((*this->covars)[i]);
+			std::cout <<"Inv covars: ";
+			print_vector((*this->inv_covars)[i]);
 
 
 		}
@@ -138,55 +141,140 @@ public:
 	}
 
 
-	void updateMeans(std::vector<std::vector<double>> m){
+	void updateMeans(std::vector<std::vector<double>>& m){
 		for (int i=0; i<k; i++){
 			std::cout << "updated mean for comp " << i << std::endl;
+
+			double* mean = (*this->means)[i]->getRawData();
 			for (int j=0; j<ndim; j++){
-				(*this->means)[i]->setDouble(j,m[i][j]);
+				mean[j] = m[i][j];
 			}
 			print_vector((*this->means)[i]);
 		}
 	}
 
-	void updateCovars(std::vector<std::vector<double>> c){
+	void updateCovars(std::vector<std::vector<double>>& c){
 		for (int i=0; i<k; i++){
 			std::cout << "updated covar for comp " << i << std::endl;
+
+			double* covar = (*this->covars)[i]->getRawData();
+
 			for (int j=0; j<(ndim*ndim); j++){
-				(*this->covars)[i]->setDouble(j,c[i][j]);
+				covar[j] = c[i][j];
 			}
 			print_vector((*this->covars)[i]);
 		}
 
-		calcInvCovars();
+		//calcInvCovars();
 	}
 
+	double my_gsl_linalg_LU_det (gsl_matrix * LU, int signum)
+	{
+	  size_t i, n = LU->size1;
+
+	  double det = (double) signum;
+
+	  for (i = 0; i < n; i++)
+	    {
+	      det *= gsl_matrix_get (LU, i, i);
+
+	    }
+
+	  return det;
+	}
 
 	void calcInvCovars(){
-		std::cout << "Calculating covars" <<std::endl;
 
-		int s;
-		double ax;
+		std::cout <<std::endl;
+		std::cout << "************+Calculating covars" <<std::endl;
 
+		this->print(); //Print model
+
+		std::cout <<std::endl;
 
 		for (int i = 0; i<this->getNumK(); i++){
-			gsl_matrix* cov = gsl_matrix_calloc(ndim,ndim);
+			//gsl_matrix* cov = gsl_matrix_calloc(ndim,ndim);
 
 			gsl_matrix_view covar = gsl_matrix_view_array((*covars)[i]->data->c_ptr(), ndim, ndim);
 			gsl_matrix_view inv_covar = gsl_matrix_view_array((*inv_covars)[i]->data->c_ptr(), ndim, ndim);
-			gsl_matrix_memcpy (cov, &covar.matrix);
 
-			gsl_permutation *p = gsl_permutation_alloc(ndim);
+			gsl_matrix_memcpy (&inv_covar.matrix, &covar.matrix);
 
-			gsl_linalg_LU_decomp(cov, p, &s);
-			gsl_linalg_LU_invert(cov, p, &inv_covar.matrix);
+			//gsl_permutation *p = gsl_permutation_alloc(ndim);
 
-			ax = gsl_linalg_LU_det(&covar.matrix, s);
+
+			gsl_linalg_cholesky_decomp(&inv_covar.matrix);
+
+			//Calculate determinant -> logdet
+			double ax = 0.0;
+			for (int i=0;i<ndim;i++) {
+				ax += log(gsl_matrix_get(&inv_covar.matrix, i, i));
+			}
+
+
+			//Check for
+			gsl_linalg_cholesky_invert(&inv_covar.matrix);
+
+
 			dets->setDouble(i,ax);
-			//std::cout << "ax " << i << " " << ax << std::endl;
+			std::cout << "ax " << i << " " << ax << std::endl;
 
 
-			gsl_permutation_free(p);
-			gsl_matrix_free(cov);
+			//gsl_permutation_free(p);
+			//gsl_matrix_free(cov);
+
+
+			//gsl_linalg_LU_decomp(cov, p, &s);
+			//gsl_linalg_LU_invert(cov, p, &inv_covar.matrix);
+
+
+			/*
+			 * https://github.com/apache/spark/blob/master/mllib-local/src/main/scala/org/apache/spark/ml/stat/distribution/MultivariateGaussian.scala
+			 * To guard against singular covariance matrices, this method computes both the
+			   * pseudo-determinant and the pseudo-inverse (Moore-Penrose).  Singular values are considered
+			   * to be non-zero only if they exceed a tolerance based on machine precision, matrix size, and
+			   * relation to the maximum singular value (same tolerance used by, e.g., Octave).
+			   *
+			   *
+			   * For numerical stability, values are considered to be non-zero only if they exceed tol.
+				This prevents any inverted value from exceeding (eps * n * max(d))^-1
+				   val tol = Utils.EPSILON * max(d) * d.length
+
+
+	    	const double MIN_COVAR = 2.22044604925e-16;
+
+	    	double d;
+	    	double max = gsl_matrix_get(cov,0,0);
+	    	for (int row=1; row<ndim; row++){
+	    		d = gsl_matrix_get(cov,row,row);
+				if (d > max) {
+					max = d;
+				}
+	    	}
+
+			//double tol = MIN_COVAR * gsl_matrix_max(cov) * (ndim*ndim);
+	    	double tol = MIN_COVAR * max * (ndim*ndim);
+
+			std::cout << "tol=" << tol << std::endl;
+
+			double det = 0.0;//(double) s;
+
+			for (int row=0; row<ndim; row++){
+				d = gsl_matrix_get(cov,row,row);
+				if (d > tol) {
+					det += log(d);
+					std::cout << "det " << i << " " << det   << " d " << d << " log(d)" << log(d) << std::endl;
+				}
+			}
+
+			ax = exp(det); */
+
+			//ax = gsl_linalg_LU_det(&covar.matrix, s);
+			//ax = my_gsl_linalg_LU_det(cov, s);
+			//ax = gsl_linalg_LU_det(cov, s);
+
+
+
 
 			//std::cout << "covars " << i << std::endl; (*covars)[i]->print();
 			//std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();;
@@ -199,11 +287,12 @@ public:
 
 	double log_normpdf(int i, Handle<DoubleVector> inputData, bool isLog) {
 
-		/*std::cout << "means " << i << std::endl; (*means)[i]->print();
-		std::cout << "covars " << i << std::endl; (*covars)[i]->print();
-		std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();
-		std::cout << "dets" << i << std::endl; dets->print();*/
+		//std::cout << "means " << i << std::endl; (*means)[i]->print();
+		//std::cout << "covars " << i << std::endl; (*covars)[i]->print();
+		//std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();
+		//std::cout << "dets" << i << std::endl; dets->print();
 
+		//std::cout << "means " << i << std::endl; print_vector(inputData);
 
 
 
@@ -230,6 +319,12 @@ public:
 
 		gsl_blas_dsymv(CblasUpper, 1.0, &inv_covar.matrix, datan, 0.0, ym);
 
+
+	  /*gsl_blas_dsymv(CblasUpper, 1.0, gsl_covariance, gsl_data, 0.0, ym);
+
+	  double ay;
+	  gsl_blas_ddot(gsl_data, ym, &ay);*/
+
 		//std::cout << "covars AFTER" << i << std::endl; (*inv_covars)[i]->print();
 
 		gsl_blas_ddot(datan, ym, &ay);
@@ -242,39 +337,43 @@ public:
 
 		//std::cout << "exp(-0.5*ay) " << exp(-0.5*ay) << std::endl;
 
-		ay = exp(-0.5*ay)/sqrt(pow(((double)2*3.1415926), (double)ndim)*ax);
+		ay = -ax - 0.5*ay;
+
+				//exp(-0.5*ay)/sqrt(pow(((double)2*3.1415926), (double)ndim)*ax);
 
 		//std::cout << "ay " << ay << std::endl;
 
 
+		//std::cout << "data " << i << std::endl; inputData->print();
+		//std::cout << "means " << i << std::endl; (*means)[i]->print();
+		//std::cout << "ay " << ay << std::endl;
+
 		if (!isLog){
-			return (ay);
+			return exp(ay);
 		}
-		return log(ay);//log10(ay);
+		return ay;//log10(ay);
 	}
 
-	double logSumExp(DoubleVector v)
+
+
+	double logSumExp(DoubleVector vector)
 	{
-	   if(v.size > 0 ){
-	      double maxVal = v.getDouble(0);
-	      double sum = 0;
+		double* v = vector.getRawData();
+		size_t size = vector.size;
+		double maxVal = v[0];
+		double sum = 0;
 
-	      for (int i = 1 ; i < v.size ; i++){
-	         if (v.getDouble(i) > maxVal){
-	            maxVal = v.getDouble(i);
-	         }
-	      }
+		for (int i = 1 ; i < size ; i++){
+			if (v[i] > maxVal){
+				maxVal = v[i];
+			}
+		}
 
-	      for (int i = 0; i < v.size ; i++){
-	         sum += exp(v.getDouble(i) - maxVal);
-	      }
-	      double result = log(sum) + maxVal;
-	      return result;
-	   }
-	   else
-	   {
-	      return 0.0;
-	   }
+		for (int i = 0; i < size ; i++){
+			sum += exp(v[i] - maxVal);
+		}
+
+		return log(sum) + maxVal;
 
 	   //e = log(sum(exp(v-maxVal))) + maxVal
 	}
@@ -282,38 +381,69 @@ public:
 
 	void updateModel(GmmNewComp update){
 
-    	const double MIN_COVAR = 1e-3;
+    	//const double MIN_COVAR = 1e-5;
+    	//const double MIN_COVAR = 2.22044604925e-16;
+		const double MIN_COVAR = 1e-6;
 
+		double* sumR = update.getSumR().getRawData();
 		double totalSumR = 0.0;
 		for (int i=0; i<k; i++){
-			totalSumR += update.getR(i);
+			totalSumR += sumR[i];
 		}
 
+
+		//std::cout << "gsumR"; update.getSumR().print();
+
 		//Update weights -> weights = sumR/totalSumR
-		gsl_vector_view gsumR = gsl_vector_view_array(update.getSumR().data->c_ptr(), ndim);
-		gsl_vector_view gweights = gsl_vector_view_array((*weights).data->c_ptr(), ndim);
+		gsl_vector_view gsumR = gsl_vector_view_array(update.getSumR().data->c_ptr(), k);
+		gsl_vector_view gweights = gsl_vector_view_array((*weights).data->c_ptr(), k);
 		gsl_vector_memcpy (&gweights.vector, &gsumR.vector);
 		gsl_vector_scale (&gweights.vector, 1.0/totalSumR);
 
+
+
+		/*
+		 * The thing is that NaNs naturally creep in when you have certain clusters with few points.  This happens readily in high dimensions.
+
+		The "real" solution is that when you find a cluster whose covariance matrix is not positive definite is that you take the cluster with the highest total probability and split it.  That is, if the centroid is Mu with Cov as the covariance matrix, do:
+
+		for i = 1 to numDims
+     	 	 newMu = Mu + Normal (0, Cov[i][i] / 1000)
+
+		Then newCov = Cov, and newProb = prob / 2 (where prob is the probability of the cluster you are splitting).  This is done when you update the model.
+		 *
+		 */
+
 		//Update Mean and Covar for each component
 		for (int i=0; i<k; i++){
+
+			//std::cout << "mean A" << i << std::endl; update.getWeightedX(i).print();
 
 			//Update means -> means = 1/sumR * weightedX
 			gsl_vector_view mean = gsl_vector_view_array((*means)[i]->data->c_ptr(), ndim);
 			gsl_vector_view gweightedX = gsl_vector_view_array(update.getWeightedX(i).data->c_ptr(), ndim);
 			gsl_vector_memcpy (&mean.vector, &gweightedX.vector);
-			gsl_vector_scale (&mean.vector, 1.0/update.getR(i));
+			gsl_vector_scale (&mean.vector, 1.0/sumR[i]);
 
+
+			//std::cout << "mean B" << i << std::endl; (*means)[i]->print();
 
 
 			//Update covars -> weightedX2 / sumR - mean*mean^T + MIN_COVAR
 			//According to PYTHON GMM https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
 
-			/*gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
-			gsl_vector_scale (&gweightedX2v.vector, 1.0/update.getR(i));
+			//std::cout << "gweightedX2 A" << i << std::endl; update.getWeightedX2(i).print();
+
+			gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
+			gsl_vector_scale (&gweightedX2v.vector, 1.0/sumR[i]);
+
+			//std::cout << "gweightedX2 B" << i << std::endl; update.getWeightedX2(i).print();
 
 			gsl_matrix_view gweightedX2m = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
 			gsl_blas_dsyr (CblasUpper, -1.0, &mean.vector, &gweightedX2m.matrix);
+
+			//std::cout << "gweightedX2 C" << i << std::endl; update.getWeightedX2(i).print();
+
 
 			//Add constant to diagonal
 			//Copy lower triangular
@@ -329,40 +459,13 @@ public:
 				}
 			}
 
-			gsl_vector_view covar = gsl_vector_view_array((*covars)[i]->data->c_ptr(), ndim*ndim);
-			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);*/
+			//std::cout << "gweightedx2 D" << i << std::endl; update.getWeightedX2(i).print();
 
-			// According to SCALA GMM MLLIB
-
-			/* val mu = (mean /= weight)
-				BLAS.syr(-weight, Vectors.fromBreeze(mu),
-				Matrices.fromBreeze(sigma).asInstanceOf[DenseMatrix])
-				val newWeight = weight / sumWeights
-				val newGaussian = new MultivariateGaussian(mu, sigma / weight)
-			 */
-
-			gsl_matrix_view gweightedX2 = gsl_matrix_view_array(update.getWeightedX2(i).data->c_ptr(), ndim, ndim);
-
-			//gsl_blas_dsyr (CBLAS_UPLO_t Uplo, double alpha, const gsl_vector * x, gsl_matrix * A) - //A = \alpha x x^T + A
-			//update A = \alpha x x^T + A
-			//gweightedX2 - r * mean mean^T
-			gsl_blas_dsyr (CblasUpper, -update.getR(i), &mean.vector, &gweightedX2.matrix);
-
-			//Copy lower triangular
-			for (int row=0; row<ndim; row++){
-				for (int col=row+1; col<ndim; col++){
-					//matrix[j][i] = matrix[i][j]
-					double d = gsl_matrix_get(&gweightedX2.matrix,row,col);
-					gsl_matrix_set(&gweightedX2.matrix,col,row, d);
-				}
-			}
-
-			gsl_vector_view gweightedX2v = gsl_vector_view_array(update.getWeightedX2(i).data->c_ptr(), ndim*ndim);
 			gsl_vector_view covar = gsl_vector_view_array((*covars)[i]->data->c_ptr(), ndim*ndim);
 			gsl_vector_memcpy (&covar.vector, &gweightedX2v.vector);
 
-			gsl_vector_scale (&covar.vector, 1.0/(*weights).getDouble(i));
-			gsl_vector_add_constant(&covar.vector, MIN_COVAR);
+			//std::cout << "gweightedx2 E" << i << std::endl; (*covars)[i]->print();
+
 		}
 
 		calcInvCovars();
