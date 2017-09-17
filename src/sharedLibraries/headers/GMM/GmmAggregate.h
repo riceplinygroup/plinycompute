@@ -57,6 +57,9 @@ public:
 			std::cout << "WITH K=" << this->model->getNumK() <<
 					"AND NDIM="<< this->model->getNDim() << std::endl;
 
+			this->model->calcInvCovars();
+			this->model->print();
+
         	std::cout << "Exiting GmmAggregate constructor" << std::endl;
 
         }
@@ -90,8 +93,6 @@ public:
 			 * - r * x * x
 			 */
 
-        	const double EPSILON = 2.22044604925e-16;
-
 
 			int k = model->getNumK();
 			int ndim = model->getNDim();
@@ -99,14 +100,48 @@ public:
 			//First - Calculate responsabilities per component and normalize
 			//dividing by the total sum totalR
 			Handle<DoubleVector> r_values = makeObject<DoubleVector>(k); //Sum of r
+
+			double* r_valuesptr = r_values->getRawData();
+
 			double totalR = 0.0;
 			double r;
 
-			for (int i = 0; i < k; i++) {
+			///////////////////////////////////////////////
+			//For testing - R = 1/K
+			/*for (int i = 0; i < k; i++) {
 				r = 1.0/k;
-				r_values->setDouble(i,r);
+				r_valuesptr[i] = r;
+				totalR += r;
+			}*/
+
+
+			///////////////////////////////////////////////
+
+			// R in NON-LOG
+
+
+			/*const double EPSILON = 2.22044604925e-16;
+
+			for (int i = 0; i < k; i++) {
+				r = model->getWeight(i);
+				r *= model->log_normpdf(i, data, false);
+				r += EPSILON; //See Spark implementation
+				r_valuesptr[i] = r;
 				totalR += r;
 			}
+
+
+			//std::cout << "RVALUES before: " << std::endl; r_values->print();
+
+			gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
+			gsl_vector_scale(&gnewSumR.vector, 1.0/totalR);
+			//gsl_vector_add_constant(&gnewSumR.vector, EPSILON);*/
+
+			//std::cout << "RVALUES after: " << std::endl; r_values->print();
+
+
+			///////////////////////////////////////////////
+			// R IN LOG SPACE
 
 			/* https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
 			 * lpr = (self.log_multivariate_normal_density_diag_Nd(x) + np.log(self.Weights))
@@ -114,62 +149,60 @@ public:
 				prob_x = np.exp(lpr-log_likelihood_x)
 			 */
 
-			/*for (int i = 0; i < k; i++) {
-				//r = model->getWeight(i);
-				//r *= model->log10_normpdf(i, data, false);
-				//r += EPSILON; //See Spark implementation
-				////totalR += r;
-
+			for (int i = 0; i < k; i++) {
 				//in log space
 				r = model->log_normpdf(i, data, true);
 				r += log(model->getWeight(i));
-
-				r_values->setDouble(i,r); //Update responsability
+				r_valuesptr[i] = r; //Update responsability
 			}
 
 			//std::cout << "RVALUES before: " << std::endl; r_values->print();
 
 
 			//Now normalize r
-			double loglikelihoodx = model->logSumExp(*r_values);
+			double logLikelihood = model->logSumExp(*r_values);
 			//std::cout << "loglikelihoodx: " << loglikelihoodx << std::endl;
 
 			for (int i = 0; i < k; i++) {
-				r = exp(r_values->getDouble(i) - loglikelihoodx);
-				r = 1.0/k;
-				r_values->setDouble(i,r);
-				totalR += r;
+				r = exp(r_valuesptr[i] - logLikelihood);
+				r_valuesptr[i] = r;
 			}
-			//std::cout << "RVALUES after: " << std::endl; r_values->print();*/
+			//std::cout << "RVALUES after: " << std::endl; r_values->print();
 
-
-			//gsl_vector_view gnewSumR = gsl_vector_view_array(r_values->data->c_ptr(), k);
-			//gsl_vector_scale(&gnewSumR.vector, 1/totalR);
 
 
 
 			//And calculate r * x and r * x * x^T
-			Handle<Vector<size_t>> newcount = makeObject<Vector<size_t>>(); //num data points
+			//Handle<Vector<size_t>> newcount = makeObject<Vector<size_t>>(); //num data points
 			Handle<Vector<DoubleVector>> newweightedX = makeObject<Vector<DoubleVector>>(); //Sum of r*x
 			Handle<Vector<DoubleVector>> newweightedX2  = makeObject<Vector<DoubleVector>>(); //Sum of r*(x**2)
 
 			gsl_vector_view gdata = gsl_vector_view_array(data->data->c_ptr(), ndim);
 
+			Handle<DoubleVector> weightedX;
+			Handle<DoubleVector> weightedX2;
 			for (int i = 0; i < k; i++) {
 
 				//Mean = r * x
-				Handle<DoubleVector> weightedX = makeObject<DoubleVector>(ndim);
+				weightedX = makeObject<DoubleVector>(ndim);
 				gsl_vector_view gweightedX = gsl_vector_view_array(weightedX->data->c_ptr(), ndim);
 				gsl_vector_memcpy (&gweightedX.vector, &gdata.vector);
-				gsl_vector_scale(&gweightedX.vector,r_values->getDouble(i));
+				gsl_vector_scale(&gweightedX.vector, r_valuesptr[i]);
 
 				//Covar = r * x * x^T
-				Handle<DoubleVector> weightedX2 = makeObject<DoubleVector>(ndim*ndim);
+				weightedX2 = makeObject<DoubleVector>(ndim*ndim);
 				gsl_matrix_view gweightedX2 = gsl_matrix_view_array(weightedX2->data->c_ptr(), ndim, ndim);
+
+				//std::cout << "Agg gweightedX2 A" << i << std::endl; weightedX2->print();
+				//std::cout << "Agg rvalues: " << r_valuesptr[i] << std::endl;
+				//std::cout << "Agg data" << i << std::endl; data->print();
+
 
 				//BLAS.syr(p(i), Vectors.fromBreeze(x), Matrices.fromBreeze(sums.sigmas(i)).asInstanceOf[DenseMatrix])
 				//gsl_blas_dsyr (CBLAS_UPLO_t Uplo, double alpha, const gsl_vector * x, gsl_matrix * A) - //A = \alpha x x^T + A
-				gsl_blas_dsyr (CblasUpper, r_values->getDouble(i), &gdata.vector, &gweightedX2.matrix);
+				gsl_blas_dsyr (CblasUpper, r_valuesptr[i], &gdata.vector, &gweightedX2.matrix);
+
+				//std::cout << "Agg gweightedX2 B" << i << std::endl; weightedX2->print();
 
 				//Copy lower triangular
 				for (int row=0; row<ndim; row++){
@@ -180,13 +213,17 @@ public:
 					}
 				}
 
+				//std::cout << "Agg gweightedX2 C" << i << std::endl; weightedX2->print();
+
 				newweightedX->push_back(*weightedX); //r * x
 				newweightedX2->push_back(*weightedX2); //r * x * x^T
 			}
 
+			/*GmmNewComp result = GmmNewComp
+								(*r_values, *newweightedX, *newweightedX2);*/
 
 			Handle<GmmNewComp> result = makeObject<GmmNewComp>
-					(*r_values, *newweightedX, *newweightedX2);
+					(logLikelihood, *r_values, *newweightedX, *newweightedX2);
 
 			return result;
 

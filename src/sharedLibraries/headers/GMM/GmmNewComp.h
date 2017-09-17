@@ -29,6 +29,7 @@ using namespace pdb;
 class GmmNewComp : public Object {
 
 private:
+	double logLikelihood;
     DoubleVector sumR; //Sum of r
     Vector<DoubleVector> weightedX; //Sum of r*x
     Vector<DoubleVector> weightedX2; //Sum of r*(x^2)
@@ -39,14 +40,19 @@ public:
 
     GmmNewComp () {}
 
-    GmmNewComp (DoubleVector sumR,
+    GmmNewComp (double logLikelihood, DoubleVector sumR,
     		Vector<DoubleVector> weightedX, Vector<DoubleVector> weightedX2) {
+    	this->logLikelihood = logLikelihood;
         this->sumR = sumR;
         this->weightedX = weightedX;
         this->weightedX2 = weightedX2;
     }
 
     ~GmmNewComp () {
+    }
+
+    double getLogLikelihood() {
+        return this->logLikelihood;
     }
 
     double getR(int index) {
@@ -68,10 +74,11 @@ public:
 
     GmmNewComp& operator + (GmmNewComp &other) {
 
+    	this->logLikelihood += other.logLikelihood;
 		this->sumR = this->sumR + other.getSumR();
 
 		for (int i = 0; i < sumR.size; i++) {
-			double a = this->weightedX[i].getDouble(0) + other.getWeightedX(i).getDouble(0);
+			/*double a = this->weightedX[i].getDouble(0) + other.getWeightedX(i).getDouble(0);
 
 			if (a != a) {
 				std::cout << "****************************************************" << std::endl;
@@ -79,16 +86,22 @@ public:
 				this->weightedX[i].print();
 				other.getWeightedX(i).print();
 				exit(-1);
-			}
+			}*/
+
+			//std::cout << "operator + ! this.weightedX2 " << i << std::endl; this->weightedX2[i].print();
+			//std::cout << "operator + ! other.weightedX2 " << i << std::endl; other.weightedX2[i].print();
 
 
 			this->weightedX[i] = this->weightedX[i] + other.getWeightedX(i);
 			this->weightedX2[i] = this->weightedX2[i] + other.getWeightedX2(i);
 
+			//std::cout << "operator + ! total.weightedX2 " << i << std::endl; this->weightedX2[i].print();
+
+
 		}
 
 		Handle<GmmNewComp> result = makeObject<GmmNewComp>
-				(this->sumR, this->weightedX, this->weightedX2);
+				(this->logLikelihood, this->sumR, this->weightedX, this->weightedX2);
 
 		return *result;
 

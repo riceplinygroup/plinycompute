@@ -29,23 +29,29 @@
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 
-#include "WriteKMeansSet.h"
+/*#include "WriteKMeansSet.h"
 #include "KMeansAggregate.h"
 #include "KMeansDataCountAggregate.h"
-#include "ScanDoubleVectorSet.h"
+
 #include "KMeansAggregateOutputType.h"
 #include "KMeansCentroid.h"
-#include "KMeansDataCountAggregate.h"
-#include "KMeansSampleSelection.h"
+#include "KMeansDataCountAggregate.h"*/
+
+#include "ScanDoubleVectorSet.h"
 #include "WriteDoubleVectorSet.h"
+
+#include "Sampler.h"
+
 
 #include "GmmModel.h"
 //#include "GMM/GmmModel.h"
 #include "GMM/GmmAggregate.h"
 #include "GMM/GmmAggregateOutputType.h"
 #include "GMM/GmmNewComp.h"
-//#include "GMM/WriteGmmAggregateOutputTypeSet.h"
+#include "GMM/GmmSampleSelection.h"
 
+
+#include "KMeansDoubleVector.h"
 
 #include "DispatcherClient.h"
 #include "Set.h"
@@ -67,6 +73,7 @@
 #include <math.h>
 #include <random>
 #include <thread>
+#include <limits>
 
 
 #define COUT std::cout
@@ -122,14 +129,14 @@ int main (int argc, char * argv[]) {
         COUT << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
     }
 
-    int numOfMb = 64; //by default we add 64MB data
+    int blocksize = 256; //by default we add 64MB data
     if (argc > 3) {
-        numOfMb = atoi(argv[3]);
+    	blocksize = atoi(argv[3]);
     }
     //numOfMb = 10; //Force it to be 64 by now.
 
 
-    COUT << "To add data with size: " << numOfMb << "MB" << std :: endl;
+    COUT << "To add data with size: " << blocksize << "MB" << std :: endl;
 
     std :: string masterIp = "localhost";
     if (argc > 4) {
@@ -137,10 +144,10 @@ int main (int argc, char * argv[]) {
     }
     COUT << "Master IP Address is " << masterIp << std :: endl;
 
-    bool whetherToAddData = true;
+    bool randomData = true;
     if (argc > 5) {
         if (strcmp(argv[5],"N") == 0) {
-            whetherToAddData = false;
+        	randomData = false;
         }
     }
 
@@ -159,7 +166,7 @@ int main (int argc, char * argv[]) {
     int k = 2;
     int dim = 2;
     int numData = 10;
-    double tol = 0.001; //Convergence threshold
+    double convergenceTol = 0.001; //Convergence threshold
 
     if (argc > 6) {
     	iter = std::stoi(argv[6]);
@@ -181,11 +188,13 @@ int main (int argc, char * argv[]) {
     }
     COUT << "The dimension of each data point: " << dim << std :: endl;
 
-    if (argc > 10) {
-        tol = std::stod(argv[10]);
-    }
-    COUT << "Convergence threshold: " << tol << std :: endl;
+    std :: string fileName = "/mnt/gmm_data.txt";
+	if (argc > 10) {
+		fileName = argv[10];
+	}
 
+    COUT << "Input file: " << fileName << std :: endl;
+    COUT << std :: endl;
 
     COUT << std :: endl;
 
@@ -222,36 +231,38 @@ int main (int argc, char * argv[]) {
    	//***********************************************************************************
 
 
-    if (whetherToAddData == true) {
-        //Step 1. Create Database and Set
-        // now, register a type for user data
-        //TODO: once sharedLibrary is supported, add this line back!!!
+    //Step 1. Create Database and Set
+	// now, register a type for user data
+	//TODO: once sharedLibrary is supported, add this line back!!!
 
-        // now, create a new database
-        if (!temp.createDatabase ("gmm_db", errMsg)) {
-            COUT << "Not able to create database: " + errMsg;
-            exit (-1);
-        } else {
-            COUT << "Created database.\n";
-        }
+	// now, create a new database
+	if (!temp.createDatabase ("gmm_db", errMsg)) {
+		COUT << "Not able to create database: " + errMsg;
+		exit (-1);
+	} else {
+		COUT << "Created database.\n";
+	}
 
-        // now, create a new set in that database
-        if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
-            COUT << "Not able to create set: " + errMsg;
-            exit (-1);
-        } else {
-            COUT << "Created set.\n";
-        }
+	// now, create a new set in that database
+	if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
+		COUT << "Not able to create set: " + errMsg;
+		exit (-1);
+	} else {
+		COUT << "Created set.\n";
+	}
 
 
-        //Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
+    //Step 2. Add data
+
+	DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
+
+
+    if (randomData == true) {
 
         int addedData = 0;
-        int blockSize = 64;
         while (addedData < numData) {
 
-        	pdb :: makeObjectAllocatorBlock(blockSize * 1024 * 1024, true);
+        	pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
 			pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
 			try {
 				double bias = 0;
@@ -264,17 +275,12 @@ int main (int argc, char * argv[]) {
 						myData->setDouble(j, i%k*3 + bias);
 					}
 					storeMe->push_back (myData);
+
+					//std::cout << myData->getDouble(0) << " " << myData->getDouble(1) << std::endl;
+
 					addedData += 1;
 				}
 
-				/*for (int i=0; i<storeMe->size();i++) {
-					//(*storeMe)[i]->print();
-					std::cout << "[" << (*storeMe)[i]->getDouble(0) << ", ";
-					for (int j=1;j<dim-1; j++)
-						std::cout << (*storeMe)[i]->getDouble(j) << ", ";
-					std::cout << (*storeMe)[i]->getDouble(dim-1) << "]," << std::endl;
-
-				}*/
 
 				COUT << "Added " << storeMe->size() << std:: endl;
 
@@ -290,15 +296,98 @@ int main (int argc, char * argv[]) {
 					return -1;
 				}
 			}
-			COUT << blockSize << "MB data sent to dispatcher server~~" << std :: endl;
+			COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
 
         } //End while
 
 		//to write back all buffered records
 		temp.flushData( errMsg );
 
-    }
 
+    }
+    else { //Load from file
+
+    	numData = 0;
+
+
+		//std :: ifstream inFile("/home/bluemare/rice/ObjectQueryModel/data/gmm_data.txt");
+    	std ::ifstream inFile(fileName.c_str());
+		std :: string line;
+		bool rollback = false;
+		bool end = false;
+
+		numData = 0;
+		while(!end) {
+			pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
+			pdb::Handle<pdb::Vector<pdb :: Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+			try {
+
+				 while(1){
+					if (!rollback){
+					//      std::istringstream iss(line);
+						if(!std::getline(inFile, line)){
+							end = true;
+							break;
+						}
+						else {
+							pdb :: Handle<DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+							std::stringstream  lineStream(line);
+							double value;
+							int index = 0;
+							while(lineStream >> value)
+							{
+								//(*myData)[index] = value;
+								myData->setDouble(index, value);
+								index++;
+							}
+							storeMe->push_back (myData);
+							//myData->print();
+
+						}
+					}
+					else {
+						rollback = false;
+						pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+						std :: stringstream lineStream(line);
+						double value;
+						int index = 0;
+						while(lineStream >> value)
+						{
+							  //(*myData)[index] = value;
+							myData->setDouble(index, value);
+							index++;
+						}
+						storeMe->push_back (myData);
+					}
+				 }
+
+
+
+				end = true;
+
+				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+				COUT << "Failed to send data to dispatcher server" << std :: endl;
+				return -1;
+				}
+					std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+					numData += storeMe->size();
+
+				temp.flushData( errMsg );
+			} catch (pdb :: NotEnoughSpace &n) {
+				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+				COUT << "Failed to send data to dispatcher server" << std :: endl;
+				return -1;
+				}
+				std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
+				numData += storeMe->size();
+
+				rollback = true;
+			}
+			PDB_COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
+
+		} // while not end
+		inFile.close();
+    }//End load data!!
 
 
 
@@ -312,18 +401,9 @@ int main (int argc, char * argv[]) {
 	catalogClient.registerType ("libraries/libGmmModel.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmNewComp.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmAggregateOutputType.so", errMsg);
-
-
-	//I WILL REUSE SOME OF THEM!
-	catalogClient.registerType ("libraries/libKMeansDataCountAggregate.so", errMsg);
 	catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
-	catalogClient.registerType ("libraries/libWriteSumResultSet.so", errMsg);
-
-	/*catalogClient.registerType ("libraries/libWriteKMeansSet.so", errMsg);
-	catalogClient.registerType ("libraries/libKMeansSampleSelection.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
-	catalogClient.registerType ("libraries/libKMeansAggregateOutputType.so", errMsg);
-	catalogClient.registerType ("libraries/libKMeansCentroid.so", errMsg);*/
+	catalogClient.registerType ("libraries/libGmmSampleSelection.so", errMsg);
 
 
 	//***********************************************************************************
@@ -341,14 +421,14 @@ int main (int argc, char * argv[]) {
 		COUT << "Created set gmm_data_count_set.\n";
 	}*/
 
-	/*
+
 	PDB_COUT << "to create a new set to store the initial model" << std :: endl;
 	if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_initial_model_set", errMsg)) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
 		COUT << "Created set gmm_initial_model_set.\n";
-	}*/
+	}
 
 
 	PDB_COUT << "to create a new set for storing output data" << std :: endl;
@@ -360,24 +440,107 @@ int main (int argc, char * argv[]) {
 	}
 
 
+	//***********************************************************************************
+	//****SELECT INITIALIZATION DATA*****************************************************
+	//***********************************************************************************
+
+	// connect to the query client
+	QueryClient myClient (8108, "localhost", clientLogger, true);
+
+
+	int nSamples = 5 * k;
+
+	// Randomly sample k data points from the input data through Bernoulli sampling
+	// We guarantee the sampled size >= k in 99.99% of the time
+	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
+	srand(time(NULL));
+	double fraction = Sampler::computeFractionForSampleSize (nSamples, numData, false);
+	COUT << "The sample threshold is: " << fraction << std :: endl;
+	int initialCount = numData;
+
+	std::vector <Handle<DoubleVector>> mySamples;
+	while(mySamples.size() < nSamples) {
+		std :: cout << "Needed to sample due to insufficient sample size." << std :: endl;
+		Handle<Computation> mySampleScanSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
+		Handle<Computation> myDataSample = makeObject<GmmSampleSelection>(fraction);
+		myDataSample->setInput(mySampleScanSet);
+		Handle<Computation> myWriteSet = makeObject<WriteDoubleVectorSet>("gmm_db", "gmm_initial_model_set");
+		myWriteSet->setInput(myDataSample);
+
+
+		std :: cout << "Let's execute the Sampling!" << std :: endl;
+
+
+		if (!myClient.executeComputations(errMsg, myWriteSet)) {
+		COUT << "Query failed. Message was: " << errMsg << "\n";
+		return 1;
+		}
+
+		std :: cout << "Sampling done!: " <<  std :: endl;
+		SetIterator <DoubleVector> sampleResult = myClient.getSetIterator <DoubleVector> ("gmm_db", "gmm_initial_model_set");
+
+		for (Handle<DoubleVector> a : sampleResult) {
+			std :: cout << "Scanning result from sampling:" << std :: endl;
+
+			Handle<DoubleVector> myDoubles = makeObject<DoubleVector>(dim);
+
+			double * rawData = a->getRawData();
+			double * myRawData = myDoubles->getRawData();
+
+			for (int i = 0; i < dim; i++) {
+				myRawData[i] = rawData[i];
+			}
+			mySamples.push_back(myDoubles);
+		}
+		std :: cout << "Now we have " << mySamples.size() << " samples" << std :: endl;
+		temp.clearSet("gmm_db", "gmm_initial_model_set", "pdb::DoubleVector", errMsg);
+	}
+
+	//Calculate MEAN & Variance
+
+	//INIT MEAN AND COVARS
+
+
+	/*Sampler::randomizeInPlace(mySamples);
+	//take k samples
+	mySamples.resize(k*nSamples);
+
+	int size= myDistinctSamples.size();
+	std :: cout << "There are " << size << "distinct clusters" << std :: endl;
+
+
+	std :: vector< std :: vector <double> > model(k, vector<double>(dim));
+	for (int i = 0; i < k; i++) {
+		Handle<KMeansDoubleVector> tmp = myDistinctSamples[i];
+		COUT << "The " << i << "-th sample is:" << endl;
+		double * rawData = tmp->getRawData();
+		for (int j = 0; j < dim; j++) {
+				model[i][j] = rawData[j];
+				COUT << model[i][j] << " ";
+		}
+		COUT << std :: endl;
+	 }
+	 COUT << std :: endl;*/
+
 
     //***********************************************************************************
     //****INITIALIZE MODEL***************************************************************
     //***********************************************************************************
 
 
+
+
+
 	//https://github.com/apache/spark/blob/master/mllib/src/main/scala/org/apache/spark/mllib/clustering/GaussianMixture.scala
 
-	//// Determine initial weights and corresponding Gaussians.
+	// Determine initial weights and corresponding Gaussians.
     // If the user supplied an initial GMM, we use those values, otherwise
     // we start with uniform weights, a random mean from the data, and
     // diagonal covariance matrices using component variances
 	// derived from the samples
 
 
-    pdb :: makeObjectAllocatorBlock(64 * 1024 * 1024, true);
-    // connect to the query client
-    QueryClient myClient (8108, "localhost", clientLogger, true);
+    pdb :: makeObjectAllocatorBlock(256 * 1024 * 1024, true);
 
 
     //const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 1024};
@@ -395,10 +558,42 @@ int main (int argc, char * argv[]) {
 	std:: cout << "To for:" << std::endl;
 
 
-	for (int i=0; i<k; i++){
+	int nsamples = 5;
+
+	/*for (int i=0; i<k; i++){
 		for (int j=0; j<dim; j++){
-			means[i][j] = i%k*3 + 1.0;
-			covars[i][j*dim+j] = 0.5;
+			means[i][j] = i%k*3 + 0.00001;
+			covars[i][j*dim+j] = 1.0;
+		}
+	}*/
+
+	//Init mean
+	for (int i=0; i<k; i++) {
+		std::cout << "**********+hola" << std::endl;
+		for (int j=0; j<nsamples; j++) {
+			std::cout << "*index" << (i*nsamples+j) << std::endl;
+
+			mySamples[i*nsamples+j]->print();
+			for (int l=0; l<dim; l++) {
+				means[i][l] += mySamples[i*nsamples+j]->getDouble(l);
+			}
+		}
+		for (int j=0; j<dim; j++){
+			means[i][j] /= nsamples;
+		}
+	}
+
+	//Init covar
+	for (int i=0; i<k; i++) {
+		for (int j=0; j<nsamples; j++) {
+			for (int l=0; l<dim; l++) {
+				double t = (mySamples[i*nsamples+j]->getDouble(l) - means[i][l]);
+				t *= t;
+				covars[i][l*dim+l] += t;
+			}
+		}
+		for (int j=0; j<dim; j++){
+			covars[i][j*dim+j] /= nsamples;
 		}
 	}
 
@@ -453,15 +648,27 @@ int main (int argc, char * argv[]) {
 
     //pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
 
+	bool converged = false;
+	double previousLogLikelihood;
+	double currentLogLikelihood;
+
 	for (int currentIter=0; currentIter < iter; currentIter++){
 
+
+
 		std::cout << "***MY MODEL AT ITERATION " << currentIter << std::endl;
-		model->print();
 
 		const UseTemporaryAllocationBlock tempBlock {256 * 1024 * 1024};
 
+		Handle<GmmModel> currentModel = model;
+
+		currentModel->print();
+
+		//if (currentIter==1) exit(-1);
+
+
 		Handle<Computation> scanInputSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
-		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(model);
+		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(currentModel);
 		gmmIteration->setInput(scanInputSet);
 		gmmIteration->setOutput("gmm_db", "gmm_output_set");
 
@@ -488,15 +695,29 @@ int main (int argc, char * argv[]) {
 		for (Handle<GmmAggregateOutputType> a : result) {
 			std::cout << "Entering loop to process result" << std::endl;
 			GmmNewComp output = (*a).getValue();
-			model->updateModel(output);
-			model->print();
+			currentModel->updateModel(output);
+			currentModel->print();
+
+			previousLogLikelihood = currentLogLikelihood;
+			currentLogLikelihood = output.getLogLikelihood();
 		}
+
+		model = currentModel;
 
 		temp.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputType", errMsg);
 
 		auto end = std::chrono::high_resolution_clock::now();
 		COUT << "Time Duration: " <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+
+		//Check for convergence.
+
+        if (currentIter > 0 and abs(currentLogLikelihood - previousLogLikelihood) < convergenceTol) {
+        	converged = true;
+        	COUT << "***** CONVERGED AT ITERATION " << currentIter << std::endl;
+        	break;
+        }
+
 	}
 
 
