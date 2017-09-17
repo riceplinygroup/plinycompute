@@ -440,7 +440,6 @@ common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc']
 common_env.SharedLibrary('libraries/libScanDoubleArraySet.so', ['build/libraries/ScanDoubleArraySet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
-common_env.SharedLibrary('libraries/libScanKMeansDoubleVectorSet.so', ['build/libraries/ScanKMeansDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
@@ -484,15 +483,13 @@ common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['buil
 
 
 common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/GmmNewComp.cc'] + all)
-#common_env.SharedLibrary('libraries/libGmmModel.so', ['build/libraries/GMM/GmmModel.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
-#common_env.SharedLibrary('libraries/libWriteGmmAggregateOutputTypeSet.so', ['build/libraries/GMM/WriteGmmAggregateOutputTypeSet.cc'] + all)
-#common_env.SharedLibrary('libraries/libWriteGmmCentroid.so', ['build/libraries/GMM/WriteGmmCentroid.cc'] + all)
-#common_env.SharedLibrary('libraries/libScanGmmCentroid.so', ['build/libraries/GMM/ScanGmmCentroid.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmSampleSelection.so', ['build/libraries/GMM/GmmSampleSelection.cc'] + all)
 
 common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
+#common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
@@ -681,38 +678,21 @@ common_env.Depends(pdbTest, [
 
 #GMM
 
-#gmmTest=common_env.Command('gmm', 'scripts/testgmm.py', 'python $SOURCE -o $TARGET')
-#common_env.Depends(gmmTest, [
-#  'bin/CatalogTests',
-#  'bin/pdb-cluster',
-#  'bin/pdb-server',  
-
-#  'bin/TestGmm21',
-
-#  'libraries/libGmmNewComp.so',
-  #'libraries/libGmmModel.so',		
-#  'libraries/libGmmAggregate.so',	
-
-#  'libraries/libScanDoubleVectorSet.so',
-#  'libraries/libGmmAggregateOutputType.so',
-
-  #'libraries/libScanGmmCentroid.so',
-  #'libraries/libWriteGmmCentroid.so'
-#])
-
 cgmm=common_env.Alias('cgmm', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',  
   'bin/TestGmm21',
+  #'bin/TestGmm23',
+  #'bin/TestGmmSerie',
 
   'libraries/libGmmNewComp.so',
-  'libraries/libGmmAggregate.so',	
+  'libraries/libGmmAggregate.so',
+  'libraries/libGmmSampleSelection.so',	
 
   'libraries/libScanDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so',	
-  #'libraries/libWriteGmmAggregateOutputTypeSet.so'
-
+  'libraries/libWriteDoubleVectorSet.so',
+  'libraries/libGmmAggregateOutputType.so'
 ])
 
 lda=common_env.Alias('lda', [
