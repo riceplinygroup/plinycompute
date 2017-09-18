@@ -32,6 +32,9 @@
 #include <gsl/gsl_randist.h>
 #include <random>
 #include <gsl/gsl_vector.h>
+#include <algorithm> 
+#include <iostream>
+#include <math.h>
 
 using namespace pdb;
 
@@ -89,10 +92,40 @@ public:
 					myProb[i] = topicProbs[i] * wordProbs[i]; 
 				}
 
+				unsigned *topics = new unsigned[size]{0};
+
 				// do the random assignment
 				gsl_rng *rng = getRng();
-				unsigned *topics = new unsigned[size];
-				gsl_ran_multinomial (rng, size, doc->getCount(), myProb, topics);
+				//gsl_ran_multinomial (rng, size, doc->getCount(), myProb, topics);
+
+				// another way of sampling topics (avoid gsl)
+         				
+				unsigned counts = doc->getCount();
+				double *random_values = new double[counts];
+
+				// normalize myProb and avoid overflow
+				double sum = 0.0;
+				for (int i = 0; i < size; ++i) {
+                                        sum += myProb[i];
+                                }
+	
+				for (int i = 0; i < counts; ++i) {
+					random_values[i] = gsl_rng_uniform(rng) * sum;
+				}
+
+				std::sort(random_values, random_values + counts);
+
+
+				int j = 0;
+				double accumuProb = 0.0;
+				for (int i = 0; i < size; i++) {
+				     accumuProb += myProb[i];
+				     while ((j < counts) && (random_values[j] < accumuProb)) {
+					  topics[i] ++;
+					  j++;
+				     }
+				}	
+
 
 				// get the container for the return value
 				Handle <LDADocWordTopicAssignment> retVal = makeObject <LDADocWordTopicAssignment> ();
@@ -116,6 +149,7 @@ public:
 				// free the memory we allocated
 				delete [] myProb;
 				delete [] topics;
+				delete [] random_values;
 				
 				// and get outta here
 				return retVal;
