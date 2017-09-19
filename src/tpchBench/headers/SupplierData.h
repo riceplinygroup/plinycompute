@@ -30,7 +30,7 @@ class SupplierData: public pdb::Object {
 
 public:
 	String supplierName;
-	Handle<Map<String, Vector<int>>> soldPartIDs;
+	Map<String, Vector<int>> soldPartIDs;
 
 	ENABLE_DEEP_COPY
 
@@ -41,20 +41,20 @@ public:
 	~SupplierData() {}
 
 	//Constructor with arguments:
-	SupplierData(pdb::String customerName) {
-		this->supplierName = customerName;
-		this->soldPartIDs = pdb::makeObject<pdb::Map<pdb::String, pdb::Vector<int>>>();
+	SupplierData(pdb::String supplierName) {
+		this->supplierName = supplierName;
+		//this->soldPartIDs = pdb::makeObject<pdb::Map<pdb::String, pdb::Vector<int>>>();
 	}
 
 	String &getKey () {
 		return supplierName;
 	}
 
-	Handle<Map<String, Vector<int>>> &getValue () {
+	Map<String, Vector<int>> &getValue () {
 		return soldPartIDs;
 	}
 
-	void addSupplierPart(pdb::String supplierName, int partKey) {
+	/*void addSupplierPart(pdb::String supplierName, int partKey) {
 
 		if(soldPartIDs->count(supplierName)==0) {
 			// not found
@@ -68,24 +68,24 @@ public:
 			existing_partKeyVector.push_back(partKey);
 			(*soldPartIDs)[supplierName] = existing_partKeyVector;
 		}
-	}
+	}*/
 
-	Handle<Map<String,Vector<int>>> getSoldPartIDs() {
+	Map<String,Vector<int>> getSoldPartIDs() {
 		return soldPartIDs;
 	}
 
-	void setSoldPartIDs(Handle<Map<String,Vector<int>>> soldPartIDs) {
+	void setSoldPartIDs(Map<String,Vector<int>> soldPartIDs) {
 		this->soldPartIDs = soldPartIDs;
 	}
 
 	void print() {
 		std::cout<<"SupplierName: " << supplierName << " [ ";
-		auto iter = soldPartIDs->begin();
-		while (iter != soldPartIDs->end()) {
-			pdb::String supplierName = (*iter).key;
-			pdb::Vector<int> partIDs= (*soldPartIDs)[supplierName];
+		auto iter = soldPartIDs.begin();
+		while (iter != soldPartIDs.end()) {
+			pdb::String customerName = (*iter).key;
+			pdb::Vector<int> partIDs= soldPartIDs[customerName];
 
-			std::cout<<"Customer: " << supplierName.c_str() << " (";
+			std::cout<<"Customer: " << customerName.c_str() << " (";
 			for (int i = 0; i < partIDs.size(); ++i) {
 				std::cout<<" " <<partIDs[i] << ",";
 			}
@@ -95,13 +95,13 @@ public:
 		std::cout<<"  ] "<<std::endl;
 	}
 
-	const pdb::String& getCustomerName() const {
+	/*const pdb::String& getCustomerName() const {
 		return supplierName;
 	}
 
 	void setCustomerName(const pdb::String& customerName) {
 		this->supplierName = customerName;
-	}
+	}*/
 
 };
 
