@@ -185,12 +185,6 @@ public:
 
 	void calcInvCovars(){
 
-		std::cout <<std::endl;
-		std::cout << "************+Calculating covars" <<std::endl;
-
-		this->print(); //Print model
-
-		std::cout <<std::endl;
 
 		for (int i = 0; i<this->getNumK(); i++){
 			//gsl_matrix* cov = gsl_matrix_calloc(ndim,ndim);
@@ -217,83 +211,13 @@ public:
 
 
 			dets->setDouble(i,ax);
-			std::cout << "ax " << i << " " << ax << std::endl;
-
-
-			//gsl_permutation_free(p);
-			//gsl_matrix_free(cov);
-
-
-			//gsl_linalg_LU_decomp(cov, p, &s);
-			//gsl_linalg_LU_invert(cov, p, &inv_covar.matrix);
-
-
-			/*
-			 * https://github.com/apache/spark/blob/master/mllib-local/src/main/scala/org/apache/spark/ml/stat/distribution/MultivariateGaussian.scala
-			 * To guard against singular covariance matrices, this method computes both the
-			   * pseudo-determinant and the pseudo-inverse (Moore-Penrose).  Singular values are considered
-			   * to be non-zero only if they exceed a tolerance based on machine precision, matrix size, and
-			   * relation to the maximum singular value (same tolerance used by, e.g., Octave).
-			   *
-			   *
-			   * For numerical stability, values are considered to be non-zero only if they exceed tol.
-				This prevents any inverted value from exceeding (eps * n * max(d))^-1
-				   val tol = Utils.EPSILON * max(d) * d.length
-
-
-	    	const double MIN_COVAR = 2.22044604925e-16;
-
-	    	double d;
-	    	double max = gsl_matrix_get(cov,0,0);
-	    	for (int row=1; row<ndim; row++){
-	    		d = gsl_matrix_get(cov,row,row);
-				if (d > max) {
-					max = d;
-				}
-	    	}
-
-			//double tol = MIN_COVAR * gsl_matrix_max(cov) * (ndim*ndim);
-	    	double tol = MIN_COVAR * max * (ndim*ndim);
-
-			std::cout << "tol=" << tol << std::endl;
-
-			double det = 0.0;//(double) s;
-
-			for (int row=0; row<ndim; row++){
-				d = gsl_matrix_get(cov,row,row);
-				if (d > tol) {
-					det += log(d);
-					std::cout << "det " << i << " " << det   << " d " << d << " log(d)" << log(d) << std::endl;
-				}
-			}
-
-			ax = exp(det); */
-
-			//ax = gsl_linalg_LU_det(&covar.matrix, s);
-			//ax = my_gsl_linalg_LU_det(cov, s);
-			//ax = gsl_linalg_LU_det(cov, s);
-
-
-
-
-			//std::cout << "covars " << i << std::endl; (*covars)[i]->print();
-			//std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();;
 
 		}
 
-		std::cout << "dets calculated" << std::endl; dets->print();
 
 	}
 
 	double log_normpdf(int i, Handle<DoubleVector> inputData, bool isLog) {
-
-		//std::cout << "means " << i << std::endl; (*means)[i]->print();
-		//std::cout << "covars " << i << std::endl; (*covars)[i]->print();
-		//std::cout << "inv_covars" << i << std::endl; (*inv_covars)[i]->print();
-		//std::cout << "dets" << i << std::endl; dets->print();
-
-		//std::cout << "means " << i << std::endl; print_vector(inputData);
-
 
 
 		gsl_vector_view data = gsl_vector_view_array(inputData->data->c_ptr(), ndim);
@@ -320,33 +244,16 @@ public:
 		gsl_blas_dsymv(CblasUpper, 1.0, &inv_covar.matrix, datan, 0.0, ym);
 
 
-	  /*gsl_blas_dsymv(CblasUpper, 1.0, gsl_covariance, gsl_data, 0.0, ym);
-
-	  double ay;
-	  gsl_blas_ddot(gsl_data, ym, &ay);*/
-
-		//std::cout << "covars AFTER" << i << std::endl; (*inv_covars)[i]->print();
-
 		gsl_blas_ddot(datan, ym, &ay);
 
 
 		gsl_vector_free(ym);
 		gsl_vector_free(datan);
 
-		//std::cout << "ax " << ax << std::endl;
 
-		//std::cout << "exp(-0.5*ay) " << exp(-0.5*ay) << std::endl;
 
 		ay = -ax - 0.5*ay;
 
-				//exp(-0.5*ay)/sqrt(pow(((double)2*3.1415926), (double)ndim)*ax);
-
-		//std::cout << "ay " << ay << std::endl;
-
-
-		//std::cout << "data " << i << std::endl; inputData->print();
-		//std::cout << "means " << i << std::endl; (*means)[i]->print();
-		//std::cout << "ay " << ay << std::endl;
 
 		if (!isLog){
 			return exp(ay);
@@ -392,7 +299,6 @@ public:
 		}
 
 
-		//std::cout << "gsumR"; update.getSumR().print();
 
 		//Update weights -> weights = sumR/totalSumR
 		gsl_vector_view gsumR = gsl_vector_view_array(update.getSumR().data->c_ptr(), k);
@@ -400,19 +306,6 @@ public:
 		gsl_vector_memcpy (&gweights.vector, &gsumR.vector);
 		gsl_vector_scale (&gweights.vector, 1.0/totalSumR);
 
-
-
-		/*
-		 * The thing is that NaNs naturally creep in when you have certain clusters with few points.  This happens readily in high dimensions.
-
-		The "real" solution is that when you find a cluster whose covariance matrix is not positive definite is that you take the cluster with the highest total probability and split it.  That is, if the centroid is Mu with Cov as the covariance matrix, do:
-
-		for i = 1 to numDims
-     	 	 newMu = Mu + Normal (0, Cov[i][i] / 1000)
-
-		Then newCov = Cov, and newProb = prob / 2 (where prob is the probability of the cluster you are splitting).  This is done when you update the model.
-		 *
-		 */
 
 		//Update Mean and Covar for each component
 		for (int i=0; i<k; i++){
@@ -472,6 +365,113 @@ public:
 
 	}
 
+
+	Handle<GmmNewComp> createNewComp(Handle<DoubleVector> & data){
+		/* For each component in the model, calculate:
+		 * - responsabilities: r
+		 * - r * x
+		 * - r * x * x
+		 */
+
+		//First - Calculate responsabilities per component and normalize
+		//dividing by the total sum totalR
+		Handle<DoubleVector> r_values = makeObject<DoubleVector>(k); //Sum of r
+
+		double* r_valuesptr = r_values->getRawData();
+
+		double totalR = 0.0;
+		double r;
+
+
+
+		///////////////////////////////////////////////
+		// R IN LOG SPACE
+
+		/* https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
+		 * lpr = (self.log_multivariate_normal_density_diag_Nd(x) + np.log(self.Weights))
+			log_likelihood_x = logsumexp(lpr)
+			prob_x = np.exp(lpr-log_likelihood_x)
+		 */
+
+		for (int i = 0; i < k; i++) {
+			//in log space
+			r = this->log_normpdf(i, data, true);
+			r += log(this->getWeight(i));
+			r_valuesptr[i] = r; //Update responsability
+		}
+
+		//std::cout << "RVALUES before: " << std::endl; r_values->print();
+
+
+		//Now normalize r
+		double logLikelihood = this->logSumExp(*r_values);
+		//std::cout << "loglikelihoodx: " << loglikelihoodx << std::endl;
+
+		for (int i = 0; i < k; i++) {
+			r = exp(r_valuesptr[i] - logLikelihood);
+			r_valuesptr[i] = r;
+		}
+		//std::cout << "RVALUES after: " << std::endl; r_values->print();
+
+
+
+
+		//And calculate r * x and r * x * x^T
+		//Handle<Vector<size_t>> newcount = makeObject<Vector<size_t>>(); //num data points
+		Handle<Vector<DoubleVector>> newweightedX = makeObject<Vector<DoubleVector>>(); //Sum of r*x
+		Handle<Vector<DoubleVector>> newweightedX2  = makeObject<Vector<DoubleVector>>(); //Sum of r*(x**2)
+
+		gsl_vector_view gdata = gsl_vector_view_array(data->data->c_ptr(), ndim);
+
+		Handle<DoubleVector> weightedX;
+		Handle<DoubleVector> weightedX2;
+		for (int i = 0; i < k; i++) {
+
+			//Mean = r * x
+			weightedX = makeObject<DoubleVector>(ndim);
+			gsl_vector_view gweightedX = gsl_vector_view_array(weightedX->data->c_ptr(), ndim);
+			gsl_vector_memcpy (&gweightedX.vector, &gdata.vector);
+			gsl_vector_scale(&gweightedX.vector, r_valuesptr[i]);
+
+			//Covar = r * x * x^T
+			weightedX2 = makeObject<DoubleVector>(ndim*ndim);
+			gsl_matrix_view gweightedX2 = gsl_matrix_view_array(weightedX2->data->c_ptr(), ndim, ndim);
+
+			//std::cout << "Agg gweightedX2 A" << i << std::endl; weightedX2->print();
+			//std::cout << "Agg rvalues: " << r_valuesptr[i] << std::endl;
+			//std::cout << "Agg data" << i << std::endl; data->print();
+
+
+			//BLAS.syr(p(i), Vectors.fromBreeze(x), Matrices.fromBreeze(sums.sigmas(i)).asInstanceOf[DenseMatrix])
+			//gsl_blas_dsyr (CBLAS_UPLO_t Uplo, double alpha, const gsl_vector * x, gsl_matrix * A) - //A = \alpha x x^T + A
+			gsl_blas_dsyr (CblasUpper, r_valuesptr[i], &gdata.vector, &gweightedX2.matrix);
+
+			//std::cout << "Agg gweightedX2 B" << i << std::endl; weightedX2->print();
+
+			//Copy lower triangular
+			for (int row=0; row<ndim; row++){
+				for (int col=row+1; col<ndim; col++){
+					//matrix[j][i] = matrix[i][j]
+					double d = gsl_matrix_get(&gweightedX2.matrix,row,col);
+					gsl_matrix_set(&gweightedX2.matrix,col,row, d);
+				}
+			}
+
+			//std::cout << "Agg gweightedX2 C" << i << std::endl; weightedX2->print();
+
+			newweightedX->push_back(*weightedX); //r * x
+			newweightedX2->push_back(*weightedX2); //r * x * x^T
+		}
+
+		/*GmmNewComp result = GmmNewComp
+							(*r_values, *newweightedX, *newweightedX2);*/
+
+		Handle<GmmNewComp> result = makeObject<GmmNewComp>
+				(logLikelihood, *r_values, *newweightedX, *newweightedX2);
+
+		return result;
+
+	}
 
 
     ~GmmModel () {

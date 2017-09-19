@@ -58,7 +58,7 @@ public:
 					"AND NDIM="<< this->model->getNDim() << std::endl;
 
 			this->model->calcInvCovars();
-			this->model->print();
+			//this->model->print();
 
         	std::cout << "Exiting GmmAggregate constructor" << std::endl;
 
