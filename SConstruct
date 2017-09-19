@@ -56,7 +56,6 @@ common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
 common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DPROFILING')
 common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
-common_env.Append(CCFLAGS='-DDEEP_COPY_AT_DISPATCHER')
 #for nearest neighbor search, below flag should be set to large like 200 for 64MB page size
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DPROFILING')
@@ -418,6 +417,7 @@ common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
 common_env.SharedLibrary('libraries/libSumResultWriteSet.so', ['build/tpchBench/SumResultWriteSet.cc'] + all)
+common_env.SharedLibrary('libraries/libSupplierDataWriteSet.so', ['build/tpchBench/SupplierDataWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
@@ -747,6 +747,7 @@ tpch=common_env.Alias('tpch', [
   'libraries/libCustomerSupplierPartGroupBy.so',
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
+  'libraries/libSupplierDataWriteSet.so',
   'libraries/libCountAggregation.so',
   'libraries/libCountCustomer.so',
   'bin/tpchQuery',
