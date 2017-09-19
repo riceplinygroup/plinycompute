@@ -212,14 +212,7 @@ int main (int argc, char * argv[]) {
 
     string errMsg;
 
-    // Some meta data
-    //pdb :: makeObjectAllocatorBlock(1 * 1024 * 1024, true);
-//    pdb::Handle<pdb::Vector<DoubleVector>> tmpModel = pdb::makeObject<pdb::Vector<DoubleVector>> (k, k);
-    //std :: vector<double> avgData(dim, 0);
-    int dataCount = 0;
-    int myk = 0;
-    int kk = 0;
-    bool ifFirst = true;
+
 //    srand(time(0));
     // For the random number generator
     std::random_device rd;
@@ -447,6 +440,9 @@ int main (int argc, char * argv[]) {
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", clientLogger, true);
 
+    auto iniBegin = std :: chrono :: high_resolution_clock :: now();
+
+
 
 	int nSamples = 5 * k;
 
@@ -498,7 +494,6 @@ int main (int argc, char * argv[]) {
 
 	//Calculate MEAN & Variance
 
-	//INIT MEAN AND COVARS
 
 
 	/*Sampler::randomizeInPlace(mySamples);
@@ -560,20 +555,10 @@ int main (int argc, char * argv[]) {
 
 	int nsamples = 5;
 
-	/*for (int i=0; i<k; i++){
-		for (int j=0; j<dim; j++){
-			means[i][j] = i%k*3 + 0.00001;
-			covars[i][j*dim+j] = 1.0;
-		}
-	}*/
 
 	//Init mean
 	for (int i=0; i<k; i++) {
-		std::cout << "**********+hola" << std::endl;
 		for (int j=0; j<nsamples; j++) {
-			std::cout << "*index" << (i*nsamples+j) << std::endl;
-
-			mySamples[i*nsamples+j]->print();
 			for (int l=0; l<dim; l++) {
 				means[i][l] += mySamples[i*nsamples+j]->getDouble(l);
 			}
@@ -601,6 +586,8 @@ int main (int argc, char * argv[]) {
 	model->updateMeans(means);
 	model->updateCovars(covars);
 
+
+    auto iniEnd = std :: chrono :: high_resolution_clock :: now();
 
 
 
@@ -654,6 +641,7 @@ int main (int argc, char * argv[]) {
 
 	for (int currentIter=0; currentIter < iter; currentIter++){
 
+        auto  iterBegin = std :: chrono :: high_resolution_clock :: now();
 
 
 		std::cout << "***MY MODEL AT ITERATION " << currentIter << std::endl;
@@ -662,7 +650,10 @@ int main (int argc, char * argv[]) {
 
 		Handle<GmmModel> currentModel = model;
 
-		currentModel->print();
+		if (printResult) {
+			currentModel->print();
+		}
+
 
 		//if (currentIter==1) exit(-1);
 
@@ -681,6 +672,7 @@ int main (int argc, char * argv[]) {
 			return 1;
 		}
 
+		auto end = std::chrono::high_resolution_clock::now();
 		std::cout << "Query finished!	" << std::endl;
 
 
@@ -696,7 +688,6 @@ int main (int argc, char * argv[]) {
 			std::cout << "Entering loop to process result" << std::endl;
 			GmmNewComp output = (*a).getValue();
 			currentModel->updateModel(output);
-			currentModel->print();
 
 			previousLogLikelihood = currentLogLikelihood;
 			currentLogLikelihood = output.getLogLikelihood();
@@ -706,12 +697,16 @@ int main (int argc, char * argv[]) {
 
 		temp.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputType", errMsg);
 
-		auto end = std::chrono::high_resolution_clock::now();
-		COUT << "Time Duration: " <<
+		COUT << std :: endl;
+		COUT << std :: endl;
+
+		auto iterEnd = std :: chrono :: high_resolution_clock :: now();
+		COUT << "Server-side Time Duration for Iteration-: " << currentIter << " is:" <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
+		COUT << "Total Time Duration for Iteration-: " << currentIter << " is:" <<
+		std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd-iterBegin).count() << " secs." << std::endl;
 
 		//Check for convergence.
-
         if (currentIter > 0 and abs(currentLogLikelihood - previousLogLikelihood) < convergenceTol) {
         	converged = true;
         	COUT << "***** CONVERGED AT ITERATION " << currentIter << std::endl;
@@ -720,7 +715,20 @@ int main (int argc, char * argv[]) {
 
 	}
 
+    auto allEnd = std :: chrono :: high_resolution_clock :: now();
 
+	//Print result
+	if (printResult) {
+		model->print();
+	}
+
+
+	COUT << std :: endl;
+
+	COUT << "Sampling Time Duration: " <<
+				std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
+	COUT << "Total Processing Time Duration: " <<
+				std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
 
 
 // #################################################################################

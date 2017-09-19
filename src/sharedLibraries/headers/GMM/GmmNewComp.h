@@ -71,6 +71,18 @@ public:
     	return this->weightedX2[index];
     }
 
+    void setSumR(DoubleVector& sumR) {
+    	this->sumR = sumR;
+    }
+
+    void setWeightedX(int index, DoubleVector& weightedx) {
+	    this->weightedX[index] = weightedx;
+    }
+
+    void setWeightedX2(int index, DoubleVector& weightedx2) {
+        this->weightedX2[index] = weightedx2;
+    }
+
 
     GmmNewComp& operator + (GmmNewComp &other) {
 
