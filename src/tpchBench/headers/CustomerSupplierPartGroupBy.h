@@ -32,7 +32,7 @@
 
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
-class CustomerSupplierPartGroupBy : public ClusterAggregateComp <SupplierData, CustomerSupplierPartFlat, String, Handle<Map<String, Vector<int>>>> {
+class CustomerSupplierPartGroupBy : public ClusterAggregateComp <SupplierData, CustomerSupplierPartFlat, String, Map<String, Vector<int>>> {
 
 public:
 
@@ -55,18 +55,18 @@ public:
         }
 
         // the value type must have + defined
-        Lambda <Handle<Map<String, Vector<int>>>> getValueProjection (Handle <CustomerSupplierPartFlat> aggMe) override {
+        Lambda <Map<String, Vector<int>>> getValueProjection (Handle <CustomerSupplierPartFlat> aggMe) override {
                 return makeLambda (aggMe, [] (Handle <CustomerSupplierPartFlat> & aggMe) {
 
-                    Handle<Map<String, Vector<int>>> ret = makeObject<Map<String, Vector<int>>> ();
+                    Map<String, Vector<int>> ret;
 
                     int myPartKey = aggMe->getPartKey();
 
                     // inside the map key is the customerName
-                    Vector<int> & myVec = (*ret)[aggMe->getCustomerName()];
+                    Vector<int> & myVec = ret[aggMe->getCustomerName()];
 
                     myVec.push_back(myPartKey);
-
+                    
                     return ret;
                     });
         }
@@ -75,14 +75,14 @@ public:
 
 namespace pdb {
 
-inline Handle<Map<String, Vector<int>>> &operator+ (Handle<Map<String, Vector<int>>> &lhs, Handle<Map<String, Vector<int>>> &rhs) {
-       Map<String, Vector<int>> & myLhs = *lhs;
-       Map<String, Vector<int>> & myRhs = *rhs;
+inline Map<String, Vector<int>> &operator+ (Map<String, Vector<int>> &lhs, Map<String, Vector<int>> &rhs) {
+       Map<String, Vector<int>> & myLhs = lhs;
+       Map<String, Vector<int>> & myRhs = rhs;
        auto iter = myRhs.begin();
        PDBMapIterator<String, Vector<int>> endIter = myRhs.end();
        while (iter != endIter) {
            String & myKey = (*iter).key;
-           Vector<int> & myVec = myRhs[myKey];
+           Vector<int> & myVec = myLhs[myKey];
           
            if (myLhs.count(myKey) == 0) {
                try {
@@ -97,30 +97,32 @@ inline Handle<Map<String, Vector<int>>> &operator+ (Handle<Map<String, Vector<in
                    int * myOtherData = otherVec.c_ptr();
                    size_t mySize = myVec.size();
                    size_t otherSize = otherVec.size();
-                   myVec.resize(mySize + otherSize);
                    //std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std :: endl;
+                   myVec.resize(mySize + otherSize);
+                   //std :: cout << "mySize after resize is " << myVec.size();
                    for (size_t i = mySize; i < mySize + otherSize; i++) {
                        try {
 
                                myVec.push_back(myOtherData[i-mySize]);
+                               //std :: cout << "mySize after push_back is " << myVec.size() << std :: endl;
 
-                       } catch (NotEnoughSpace &n) {
+                      } catch (NotEnoughSpace &n) {
 
-                               //std :: cout << i << ": not enough space when updating value for pushing back: " << (*lhs)[myKey].size() << std :: endl;
+                               std :: cout << i << ": not enough space when updating value for pushing back: " << lhs[myKey].size() << std :: endl;
                                size_t curSize = myVec.size();
                                for (size_t j = mySize; j < curSize; j++) {
                                     myVec.pop_back();
                                }
-                               //std :: cout << "size restored to " << (*lhs)[myKey].size() << std :: endl;
-                               /*for (size_t j = 0; j < (*lhs)[myKey].size(); j++) {
-                                    std :: cout << j << ": " << (*lhs)[myKey][j]<< ";";
-                               }*/
+                               //std :: cout << "size restored to " << lhs[myKey].size() << std :: endl;
+                               for (size_t j = 0; j < lhs[myKey].size(); j++) {
+                                    //std :: cout << j << ": " << lhs[myKey][j]<< ";";
+                               }
                                throw n;
 
                        }
 
                    }
-                   //std :: cout << "now my size is " << (*lhs)[myKey].size() << std :: endl;
+                   //std :: cout << "now my size is " << lhs[myKey].size() << std :: endl;
            }
            ++iter;
        }
