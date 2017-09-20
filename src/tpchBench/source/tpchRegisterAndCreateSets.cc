@@ -178,6 +178,8 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
 		cout << "Not able to register type  libCountCustomer\n";
 
+        if (!catalogClient.registerType("libraries/libSupplierDataWriteSet.so", errMsg))
+                cout << "Not able to register type libSupplierDataWriteSet\n";
 
 	cout << errMsg << endl;
 

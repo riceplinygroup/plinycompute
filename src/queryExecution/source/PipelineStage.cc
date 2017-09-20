@@ -447,6 +447,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     }
 #endif
     newPlan->nullifyPlanPointer();
+    PDBPagePtr output = nullptr;
     //std :: vector < std :: string> buildTheseTupleSets;
     //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
@@ -456,14 +457,28 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   buildTheseTupleSets,
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
-                  [] () -> std :: pair <void *, size_t> {
-                      //TODO: move this to Pangea
-                      PDB_COUT << "to get a new page for writing" << std :: endl;
-                      void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
-                      if (myPage == nullptr) {
-                          std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                  [&] () -> std :: pair <void *, size_t> {
+
+                      if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)) {
+                            
+                          proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                          if (output == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                          }
+                          return std :: make_pair (output->getBytes(), DEFAULT_NET_PAGE_SIZE);
+
+
+                      } else {
+
+                          //TODO: move this to Pangea
+                          PDB_COUT << "to get a new page for writing" << std :: endl;
+                          void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
+                          if (myPage == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                          }
+                          return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
                       }
-                      return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
+
                   },
 
                   [] (void * page) {
@@ -593,11 +608,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       } else {
                           std :: cout << "to write to user set" << std :: endl;
                           //to handle a vector sink
-                          PDBPagePtr output = nullptr;
-                          proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                          memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                          //PDBPagePtr output = nullptr;
+                          //proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                          //memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                           proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          //free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
                       }
                   },
 

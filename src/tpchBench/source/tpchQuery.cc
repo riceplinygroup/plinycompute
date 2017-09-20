@@ -58,7 +58,8 @@
 #include "SupplierData.h"
 #include "CountAggregation.h"
 #include "SumResult.h"
-
+#include "SupplierDataWriteSet.h"
+#include "SupplierData.h"
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -138,15 +139,19 @@ int main() {
 	myGroupBy->setInput(myFlatten);
         myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	// Get the count by doing a count aggregation on the final results
+        #ifndef CHECK_RESULTS
 	Handle<Computation> countAggregation = makeObject<CountAggregation>();
 	countAggregation->setInput(myGroupBy);
        
 	Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
 	myWriteSet->setInput(countAggregation);
 
+        #else
 
+        Handle<Computation> myWriteSet = makeObject<SupplierDataWriteSet>("TPCH_db", "t_output_set_1");
+        myWriteSet->setInput(myGroupBy);
 
-
+        #endif
 
 	// Query Execution and Time Calculation
 
@@ -171,6 +176,9 @@ int main() {
 
 	// Printing results to double check
 	std::cout << "to print result..." << std::endl;
+
+        #ifndef CHECK_RESULTS
+
 	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
 	std::cout << "Query results: ";
@@ -180,7 +188,33 @@ int main() {
 		std::cout << "Total count is: " << a->total << std::endl;
 	}
 	std::cout << "Output count:" << count << "\n";
+        
+        #else
 
+        SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_set_1");
+        std :: cout << "Query results: ";
+        int count = 0;
+        long sum = 0;
+        int min = 100000000;
+        int max = 0;
+        for (auto a : result) {
+            count ++;
+            std :: cout << "Supplier Name: " << a->getKey() << std :: endl;
+            int curNum = a->print();
+            sum += curNum;
+            if (curNum < min) {
+                min = curNum;
+            }
+            if (curNum > max) {
+                max = curNum;
+            }
+        }
+        std :: cout << "Output count: " << count << "\n";
+        std :: cout << "Average customers count for each supplier: " << sum/count << "\n";
+        std :: cout << "Max customers count for each supplier: " << max << "\n";
+        std :: cout << "Min customers count for each supplier: " << min << "\n";
+
+        #endif
 	// Remove the output set
 	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
 		cout << "Not able to remove the set: " + errMsg;

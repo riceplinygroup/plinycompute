@@ -78,21 +78,24 @@ public:
 		this->soldPartIDs = soldPartIDs;
 	}
 
-	void print() {
+	int print() {
 		std::cout<<"SupplierName: " << supplierName << " [ ";
 		auto iter = soldPartIDs.begin();
+                int count = 0;
 		while (iter != soldPartIDs.end()) {
 			pdb::String customerName = (*iter).key;
 			pdb::Vector<int> partIDs= soldPartIDs[customerName];
-
 			std::cout<<"Customer: " << customerName.c_str() << " (";
 			for (int i = 0; i < partIDs.size(); ++i) {
 				std::cout<<" " <<partIDs[i] << ",";
 			}
 			std::cout<<") ";
 			++iter;
+                        count ++;
 		}
 		std::cout<<"  ] "<<std::endl;
+                std::cout << " the count is " << count << std :: endl;
+                return count;
 	}
 
 	/*const pdb::String& getCustomerName() const {
