@@ -67,6 +67,8 @@ common_env.Append(CCFLAGS='-DEVICT_STOP_THRESHOLD=0.99')
 #common_env.Append(CCFLAGS='-DCLEANUP_INACTIVE_BLOCKS')
 #common_env.Append(CCFLAGS='-DNUM_KMEANS_DIMENSIONS=1000')
 #common_env.Append(CCFLAGS='-DCOLLECT_RESULTS_AS_ONE_PARTITION')
+#uncomment following for TPCH
+#common_env.Append(CCFLAGS='-DTPCH')
 # Make the build multithreaded
 num_cpu = int(multiprocessing.cpu_count())
 SetOption('num_jobs', num_cpu)
