@@ -282,11 +282,18 @@ public:
          return outputSetScanner;
    }
 
+   void setCollectAsMap(bool collectAsMapOrNot) override {
+         this->collectAsMapOrNot = collectAsMapOrNot;
+   }
+
+   bool isCollectAsMap() override {
+         return this->collectAsMapOrNot;
+   }
 
 protected:
 
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
-
+    bool collectAsMapOrNot = false;
 };
 
 }

@@ -588,6 +588,7 @@ int main (int argc, char * argv[]) {
 		Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
 		myQuery->setInput(myScanSet);
                 myQuery->setAllocatorPolicy(noReuseAllocator);
+                myQuery->setCollectAsMap(true);
                 myQuery->setOutput("kmeans_db", "kmeans_output_set");
 		//Handle<Computation> myWriteSet = makeObject<WriteKMeansSet>("kmeans_db", "kmeans_output_set");
 		//myWriteSet->setAllocatorPolicy(noReuseAllocator);

@@ -239,6 +239,12 @@ public:
              return this->myObjectPolicy;
         }
 
+        //to set collectAsMap
+        virtual void setCollectAsMap(bool collectAsMapOrNot) {};
+
+        //to check whether to do collectAsMap
+        virtual bool isCollectAsMap() { return false; }
+
 private:
 
         //JiaNote: added to construct query graph
