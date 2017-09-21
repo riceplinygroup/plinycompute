@@ -204,6 +204,7 @@ public:
 
 				//std::cout << "Agg gweightedX2 B" << i << std::endl; weightedX2->print();
 
+				/* Unnecesary - It is done after model update
 				//Copy lower triangular
 				for (int row=0; row<ndim; row++){
 					for (int col=row+1; col<ndim; col++){
@@ -211,7 +212,7 @@ public:
 						double d = gsl_matrix_get(&gweightedX2.matrix,row,col);
 						gsl_matrix_set(&gweightedX2.matrix,col,row, d);
 					}
-				}
+				}*/
 
 				//std::cout << "Agg gweightedX2 C" << i << std::endl; weightedX2->print();
 

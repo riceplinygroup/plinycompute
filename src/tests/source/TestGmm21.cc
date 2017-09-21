@@ -151,6 +151,13 @@ int main (int argc, char * argv[]) {
         }
     }
 
+    bool whetherToAddData = true;
+	if (argc > 6) {
+		if (strcmp(argv[6],"N") == 0) {
+			whetherToAddData = false;
+		}
+	}
+
 
     COUT << blue << std :: endl;
     COUT << "*****************************************" << std :: endl;
@@ -168,29 +175,29 @@ int main (int argc, char * argv[]) {
     int numData = 10;
     double convergenceTol = 0.001; //Convergence threshold
 
-    if (argc > 6) {
-    	iter = std::stoi(argv[6]);
+    if (argc > 7) {
+    	iter = std::stoi(argv[7]);
     }
     COUT << "The number of iterations: " << iter << std :: endl;
 
-    if (argc > 7) {
-    	k = std::stoi(argv[7]);
+    if (argc > 8) {
+    	k = std::stoi(argv[8]);
     }
     COUT << "The number of clusters: " << k << std :: endl;
 
-    if (argc > 8) {
-    	numData = std::stoi(argv[8]);
+    if (argc > 9) {
+    	numData = std::stoi(argv[9]);
     }
     COUT << "The number of data points: " << numData << std :: endl;
 
-    if (argc > 9) {
-    	dim = std::stoi(argv[9]);
+    if (argc > 10) {
+    	dim = std::stoi(argv[10]);
     }
     COUT << "The dimension of each data point: " << dim << std :: endl;
 
     std :: string fileName = "/mnt/gmm_data.txt";
-	if (argc > 10) {
-		fileName = argv[10];
+	if (argc > 11) {
+		fileName = argv[11];
 	}
 
     COUT << "Input file: " << fileName << std :: endl;
@@ -228,161 +235,164 @@ int main (int argc, char * argv[]) {
 	// now, register a type for user data
 	//TODO: once sharedLibrary is supported, add this line back!!!
 
-	// now, create a new database
-	if (!temp.createDatabase ("gmm_db", errMsg)) {
-		COUT << "Not able to create database: " + errMsg;
-		exit (-1);
-	} else {
-		COUT << "Created database.\n";
-	}
+    if (whetherToAddData == true) {
+		// now, create a new database
+		if (!temp.createDatabase ("gmm_db", errMsg)) {
+			COUT << "Not able to create database: " + errMsg;
+			exit (-1);
+		} else {
+			COUT << "Created database.\n";
+		}
 
-	// now, create a new set in that database
-	if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
-		COUT << "Not able to create set: " + errMsg;
-		exit (-1);
-	} else {
-		COUT << "Created set.\n";
-	}
-
+		// now, create a new set in that database
+		if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
+			COUT << "Not able to create set: " + errMsg;
+			exit (-1);
+		} else {
+			COUT << "Created set.\n";
+		}
+    }
 
     //Step 2. Add data
 
 	DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
 
-    if (randomData == true) {
+	if (whetherToAddData == true) {
+		if (randomData == true) {
 
-        int addedData = 0;
-        while (addedData < numData) {
+			int addedData = 0;
+			while (addedData < numData) {
 
-        	pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
-			pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
-			try {
-				double bias = 0;
-				for (int i = addedData; i < numData; i++) {
-					pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-					for (int j = 0; j < dim; j++){
+				pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
+				pdb::Handle<pdb::Vector<pdb::Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+				try {
+					double bias = 0;
+					for (int i = addedData; i < numData; i++) {
+						pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+						for (int j = 0; j < dim; j++){
 
-						std::uniform_real_distribution<> unif(0, 1);
-						bias = unif(randomGen) * 0.01;
-						myData->setDouble(j, i%k*3 + bias);
+							std::uniform_real_distribution<> unif(0, 1);
+							bias = unif(randomGen) * 0.01;
+							myData->setDouble(j, i%k*3 + bias);
+						}
+						storeMe->push_back (myData);
+
+						//std::cout << myData->getDouble(0) << " " << myData->getDouble(1) << std::endl;
+
+						addedData += 1;
 					}
-					storeMe->push_back (myData);
 
-					//std::cout << myData->getDouble(0) << " " << myData->getDouble(1) << std::endl;
 
-					addedData += 1;
+					COUT << "Added " << storeMe->size() << std:: endl;
+
+					if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+						COUT << "Failed to send data to dispatcher server" << std :: endl;
+						return -1;
+					}
+				} catch (pdb :: NotEnoughSpace &n) {
+					COUT << "Added: " << storeMe->size() << std:: endl;
+
+					if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+						COUT << "Failed to send data to dispatcher server" << std :: endl;
+						return -1;
+					}
 				}
+				COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
+
+			} //End while
+
+			//to write back all buffered records
+			temp.flushData( errMsg );
 
 
-				COUT << "Added " << storeMe->size() << std:: endl;
+		}
+		else { //Load from file
 
-				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-					COUT << "Failed to send data to dispatcher server" << std :: endl;
-					return -1;
-				}
-			} catch (pdb :: NotEnoughSpace &n) {
-				COUT << "Added: " << storeMe->size() << std:: endl;
-
-				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-					COUT << "Failed to send data to dispatcher server" << std :: endl;
-					return -1;
-				}
-			}
-			COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
-
-        } //End while
-
-		//to write back all buffered records
-		temp.flushData( errMsg );
+			numData = 0;
 
 
-    }
-    else { //Load from file
+			//std :: ifstream inFile("/home/bluemare/rice/ObjectQueryModel/data/gmm_data.txt");
+			std ::ifstream inFile(fileName.c_str());
+			std :: string line;
+			bool rollback = false;
+			bool end = false;
 
-    	numData = 0;
+			numData = 0;
+			while(!end) {
+				pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
+				pdb::Handle<pdb::Vector<pdb :: Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
+				try {
 
+					 while(1){
+						if (!rollback){
+						//      std::istringstream iss(line);
+							if(!std::getline(inFile, line)){
+								end = true;
+								break;
+							}
+							else {
+								pdb :: Handle<DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+								std::stringstream  lineStream(line);
+								double value;
+								int index = 0;
+								while(lineStream >> value)
+								{
+									//(*myData)[index] = value;
+									myData->setDouble(index, value);
+									index++;
+								}
+								storeMe->push_back (myData);
+								//myData->print();
 
-		//std :: ifstream inFile("/home/bluemare/rice/ObjectQueryModel/data/gmm_data.txt");
-    	std ::ifstream inFile(fileName.c_str());
-		std :: string line;
-		bool rollback = false;
-		bool end = false;
-
-		numData = 0;
-		while(!end) {
-			pdb :: makeObjectAllocatorBlock(blocksize * 1024 * 1024, true);
-			pdb::Handle<pdb::Vector<pdb :: Handle<DoubleVector>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<DoubleVector>>> ();
-			try {
-
-				 while(1){
-					if (!rollback){
-					//      std::istringstream iss(line);
-						if(!std::getline(inFile, line)){
-							end = true;
-							break;
+							}
 						}
 						else {
-							pdb :: Handle<DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-							std::stringstream  lineStream(line);
+							rollback = false;
+							pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
+							std :: stringstream lineStream(line);
 							double value;
 							int index = 0;
 							while(lineStream >> value)
 							{
-								//(*myData)[index] = value;
+								  //(*myData)[index] = value;
 								myData->setDouble(index, value);
 								index++;
 							}
 							storeMe->push_back (myData);
-							//myData->print();
-
 						}
+					 }
+
+
+
+					end = true;
+
+					if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
 					}
-					else {
-						rollback = false;
-						pdb :: Handle <DoubleVector> myData = pdb::makeObject<DoubleVector>(dim);
-						std :: stringstream lineStream(line);
-						double value;
-						int index = 0;
-						while(lineStream >> value)
-						{
-							  //(*myData)[index] = value;
-							myData->setDouble(index, value);
-							index++;
-						}
-						storeMe->push_back (myData);
+						std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+						numData += storeMe->size();
+
+					temp.flushData( errMsg );
+				} catch (pdb :: NotEnoughSpace &n) {
+					if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
+					COUT << "Failed to send data to dispatcher server" << std :: endl;
+					return -1;
 					}
-				 }
-
-
-
-				end = true;
-
-				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-				COUT << "Failed to send data to dispatcher server" << std :: endl;
-				return -1;
-				}
-					std::cout << "Dispatched " << storeMe->size() << " data in the last patch!" << std::endl;
+					std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
 					numData += storeMe->size();
 
-				temp.flushData( errMsg );
-			} catch (pdb :: NotEnoughSpace &n) {
-				if (!dispatcherClient.sendData<DoubleVector>(std::pair<std::string, std::string>("gmm_input_set", "gmm_db"), storeMe, errMsg)) {
-				COUT << "Failed to send data to dispatcher server" << std :: endl;
-				return -1;
+					rollback = true;
 				}
-				std::cout << "Dispatched " << storeMe->size() << " data when allocated block is full!" << std::endl;
-				numData += storeMe->size();
+				PDB_COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
 
-				rollback = true;
-			}
-			PDB_COUT << blocksize << "MB data sent to dispatcher server~~" << std :: endl;
-
-		} // while not end
-		inFile.close();
-    }//End load data!!
+			} // while not end
+			inFile.close();
+		}//End load data!!
 
 
+	} //End if - whetherToAddData = true
 
     //***********************************************************************************
 	//****REGISTER SO ***************************************************************
@@ -635,11 +645,19 @@ int main (int argc, char * argv[]) {
 
     //pdb :: makeObjectAllocatorBlock(1024 * 1024 * 1024, true);
 
+
+
+    //Recording iteration times
+	std::vector <float> iterTimes(iter);
+
+
 	bool converged = false;
 	double previousLogLikelihood;
 	double currentLogLikelihood;
 
 	for (int currentIter=0; currentIter < iter; currentIter++){
+
+
 
         auto  iterBegin = std :: chrono :: high_resolution_clock :: now();
 
@@ -706,6 +724,8 @@ int main (int argc, char * argv[]) {
 		COUT << "Total Time Duration for Iteration-: " << currentIter << " is:" <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd-iterBegin).count() << " secs." << std::endl;
 
+		iterTimes[currentIter] = std::chrono::duration_cast<std::chrono::duration<float>>(iterEnd-iterBegin).count();
+
 		//Check for convergence.
         if (currentIter > 0 and abs(currentLogLikelihood - previousLogLikelihood) < convergenceTol) {
         	converged = true;
@@ -727,8 +747,17 @@ int main (int argc, char * argv[]) {
 
 	COUT << "Sampling Time Duration: " <<
 				std::chrono::duration_cast<std::chrono::duration<float>>(iniEnd-iniBegin).count() << " secs." << std::endl;
-	COUT << "Total Processing Time Duration: " <<
+	COUT << "Total Processing Time Duration (except iter 0): " <<
 				std::chrono::duration_cast<std::chrono::duration<float>>(allEnd-iniEnd).count() << " secs." << std::endl;
+
+	COUT << "Times per iteration:";
+	for (int i = 0; i<iter; i++) {
+		COUT << " " << iterTimes[i];
+	}
+
+	COUT << std :: endl;
+	COUT << std :: endl;
+
 
 
 // #################################################################################
@@ -744,7 +773,7 @@ int main (int argc, char * argv[]) {
     if (clusterMode == false) {
 	    // and delete the sets
         myClient.deleteSet ("gmm_db", "gmm_output_set");
-        myClient.deleteSet ("gmm_db", "gmm_input_set");
+        myClient.deleteSet ("gmm_db", "gmm_initial_model_set");
 
         //myClient.deleteSet ("gmm_db", "gmm_initial_model_set");
         //myClient.deleteSet ("gmm_db", "gmm_data_count_set");
@@ -753,7 +782,7 @@ int main (int argc, char * argv[]) {
             COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
-        else if (!temp.removeSet ("gmm_db", "gmm_input_set", errMsg)) {
+        else if (!temp.removeSet ("gmm_db", "gmm_initial_model_set", errMsg)) {
 			COUT << "Not able to remove set: " + errMsg;
 			exit (-1);
 		}
