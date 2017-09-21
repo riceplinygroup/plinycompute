@@ -460,8 +460,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   [&] () -> std :: pair <void *, size_t> {
 
                       if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
-                          std :: cout << "Pipeline pins page in outputset: " << std :: endl; 
-                          std :: cout << "DbId=" << outputSet->getDatabaseId() << ", SetId=" << outputSet->getSetId() << std :: endl;                          
+                          //std :: cout << "Pipeline pins page in outputset: " << std :: endl; 
+                          //std :: cout << "DbId=" << outputSet->getDatabaseId() << ", SetId=" << outputSet->getSetId() << std :: endl;                          
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                           if (output == nullptr) {
                               std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
@@ -473,7 +473,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                       } else {
 
                           //TODO: move this to Pangea
-                          PDB_COUT << "to get a new page for writing" << std :: endl;
+                          //PDB_COUT << "to get a new page for writing" << std :: endl;
                           void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
                           if (myPage == nullptr) {
                               std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
@@ -484,7 +484,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   },
 
                   [&] (void * page) {
-                      PDB_COUT << "to discard a page" << std :: endl;
+                      //PDB_COUT << "to discard a page" << std :: endl;
                      
                       if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
                           if (output != nullptr) {

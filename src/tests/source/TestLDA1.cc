@@ -404,6 +404,7 @@ int main (int argc, char * argv[]) {
     // Initialize the topic mixture probabilities for each doc
     Handle<Computation> myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
     Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
+    //myDocID->setCollectAsMap (true);
     myDocID->setInput(myInitialScanSet);
     Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
     myDocTopicProb->setInput(myDocID);
@@ -444,7 +445,7 @@ int main (int argc, char * argv[]) {
 		// aggregate them
 		Handle <Computation> myDocTopicCountAgg = makeObject <LDADocTopicAggregate> ();
 		myDocTopicCountAgg->setInput (myDocWordTopicCount);
-                //myDocTopicCountAgg->setCollectAsMap (true);
+                myDocTopicCountAgg->setCollectAsMap (true);
 		// and get the new set of doc probabilities
 		Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
 		myDocTopicProb->setInput(myDocTopicCountAgg);
@@ -457,14 +458,14 @@ int main (int argc, char * argv[]) {
 		// agg them
 		Handle <Computation> myTopicWordCountAgg = makeObject <LDATopicWordAggregate> ();
 		myTopicWordCountAgg->setInput (myTopicWordCount);
-                //myTopicWordCountAgg->setCollectAsMap (true);
+                myTopicWordCountAgg->setCollectAsMap (true);
 		// use those aggs to get per-topic probabilities
 		Handle <Computation> myTopicWordProb = makeObject <LDATopicWordProbMultiSelection> (*beta, numTopic);
 		myTopicWordProb->setInput (myTopicWordCountAgg);
 
 		// and see what the per-word probabilities are
 		Handle <Computation> myWordTopicProb = makeObject <LDAWordTopicAggregate> ();
-                //myWordTopicProb->setCollectAsMap (true);		
+                myWordTopicProb->setCollectAsMap (true);		
 		myWordTopicProb->setInput(myTopicWordProb);
 
 		// now, we get the writers
@@ -483,6 +484,7 @@ int main (int argc, char * argv[]) {
 		}
 
                 //clear the set that have been read in this iteration by old readers
+                auto clear_begin = std::chrono::high_resolution_clock::now();
                 std :: string myReaderForTopicsPerWordSetName = std :: string ("TopicsPerWord") + std :: to_string (n%2);
                 std :: string myReaderForTopicsPerDocSetName = std :: string ("TopicsPerDoc") + std :: to_string (n%2);
                 if (!temp.clearSet ("LDA_db", myReaderForTopicsPerWordSetName, "pdb::IntDoubleVectorPair", errMsg)) {
@@ -493,12 +495,14 @@ int main (int argc, char * argv[]) {
                         cout << "Not able to create set: " + errMsg;
                         exit (-1);
                 }
-
+                auto clear_end = std::chrono::high_resolution_clock::now();
 		// finally, create the new readers
 		input2 = makeObject <ScanTopicsPerWord> ("LDA_db", myWriterForTopicsPerWordSetName);
 		input1 = makeObject <ScanIntDoubleVectorPairSet> ("LDA_db", myWriterForTopicsPerDocSetName);
 		myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
 		auto iter_end = std::chrono::high_resolution_clock::now();
+                term << "Time Duration for clear-set " << n << ": " <<
+                                std::chrono::duration_cast<std::chrono::duration<float>>(clear_end-clear_begin).count() << " secs." << std::endl;
 		if (n == 0) {
 			term << "Time Duration for iteration " << n << ": " <<
         			std::chrono::duration_cast<std::chrono::duration<float>>(iter_end-total_begin).count() << " secs." << std::endl;
