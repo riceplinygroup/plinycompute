@@ -445,7 +445,7 @@ int main (int argc, char * argv[]) {
 		// aggregate them
 		Handle <Computation> myDocTopicCountAgg = makeObject <LDADocTopicAggregate> ();
 		myDocTopicCountAgg->setInput (myDocWordTopicCount);
-                myDocTopicCountAgg->setCollectAsMap (true);
+                //myDocTopicCountAgg->setCollectAsMap (true);
 		// and get the new set of doc probabilities
 		Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
 		myDocTopicProb->setInput(myDocTopicCountAgg);
