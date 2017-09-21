@@ -235,6 +235,15 @@ namespace pdb {
                 return this->id;
             }
 
+            void setCollectAsMap(bool collectAsMapOrNot) {
+                this->collectAsMapOrNot = collectAsMapOrNot;
+            }
+
+            bool isCollectAsMap() {
+                return this->collectAsMapOrNot;
+            }
+
+
             void print() override {
                 std :: cout << "[JOB ID] jobId=" << jobId << std :: endl;
                 std :: cout << "[STAGE ID] id=" << id << std :: endl;
@@ -447,6 +456,9 @@ namespace pdb {
 
             //Does this stage consume aggregation hash output?
             bool inputAggHashOutOrNot;
+
+            //Does this stage collect results to one partition?
+            bool collectAsMapOrNot;
 
             //hash set names to probe for join
             Handle<Map<String, String>> hashSetsToProbe = nullptr;

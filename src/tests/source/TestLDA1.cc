@@ -444,7 +444,7 @@ int main (int argc, char * argv[]) {
 		// aggregate them
 		Handle <Computation> myDocTopicCountAgg = makeObject <LDADocTopicAggregate> ();
 		myDocTopicCountAgg->setInput (myDocWordTopicCount);
-
+                //myDocTopicCountAgg->setCollectAsMap (true);
 		// and get the new set of doc probabilities
 		Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
 		myDocTopicProb->setInput(myDocTopicCountAgg);
@@ -457,13 +457,14 @@ int main (int argc, char * argv[]) {
 		// agg them
 		Handle <Computation> myTopicWordCountAgg = makeObject <LDATopicWordAggregate> ();
 		myTopicWordCountAgg->setInput (myTopicWordCount);
-
+                //myTopicWordCountAgg->setCollectAsMap (true);
 		// use those aggs to get per-topic probabilities
 		Handle <Computation> myTopicWordProb = makeObject <LDATopicWordProbMultiSelection> (*beta, numTopic);
 		myTopicWordProb->setInput (myTopicWordCountAgg);
 
 		// and see what the per-word probabilities are
-		Handle <Computation> myWordTopicProb = makeObject <LDAWordTopicAggregate> ();		
+		Handle <Computation> myWordTopicProb = makeObject <LDAWordTopicAggregate> ();
+                //myWordTopicProb->setCollectAsMap (true);		
 		myWordTopicProb->setInput(myTopicWordProb);
 
 		// now, we get the writers
