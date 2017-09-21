@@ -394,7 +394,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
     //handle probing
     std :: map < std :: string, ComputeInfoPtr > info;
-    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr)){
+    if ((this->jobStage->isProbing() == true) && (this->jobStage->getHashSets() != nullptr)&&(sourceContext->getSetType() == UserSetType)){
         Handle<Map<String, String>> hashSetsToProbe = this->jobStage->getHashSets();
         for (PDBMapIterator<String, String> mapIter = hashSetsToProbe->begin(); mapIter != hashSetsToProbe->end(); ++mapIter) {
             std :: string key = (*mapIter).key;
@@ -447,6 +447,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
     }
 #endif
     newPlan->nullifyPlanPointer();
+    PDBPagePtr output = nullptr;
     //std :: vector < std :: string> buildTheseTupleSets;
     //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
@@ -456,19 +457,43 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                   buildTheseTupleSets,
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
-                  [] () -> std :: pair <void *, size_t> {
-                      //TODO: move this to Pangea
-                      PDB_COUT << "to get a new page for writing" << std :: endl;
-                      void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
-                      if (myPage == nullptr) {
-                          std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                  [&] () -> std :: pair <void *, size_t> {
+
+                      if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
+                          std :: cout << "Pipeline pins page in outputset: " << std :: endl; 
+                          std :: cout << "DbId=" << outputSet->getDatabaseId() << ", SetId=" << outputSet->getSetId() << std :: endl;                          
+                          proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                          if (output == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                              return std :: make_pair (nullptr, 0);
+                          }
+                          return std :: make_pair (output->getBytes(), DEFAULT_NET_PAGE_SIZE);
+
+
+                      } else {
+
+                          //TODO: move this to Pangea
+                          PDB_COUT << "to get a new page for writing" << std :: endl;
+                          void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
+                          if (myPage == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                          }
+                          return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
                       }
-                      return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
+
                   },
 
-                  [] (void * page) {
+                  [&] (void * page) {
                       PDB_COUT << "to discard a page" << std :: endl;
-                      free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                     
+                      if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
+                          if (output != nullptr) {
+                              proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                          }
+
+                      } else {
+                          free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                      }
                   },
 
                   [&] (void * page) {
@@ -592,12 +617,16 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
                       } else {
                           std :: cout << "to write to user set" << std :: endl;
-                          //to handle a vector sink
-                          PDBPagePtr output = nullptr;
-                          proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                          memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
-                          proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          if (sourceContext->getSetType() == UserSetType) {
+                              proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                          } else {
+                              //to handle a vector sink
+                              //PDBPagePtr output = nullptr;
+                              proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                              memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                              proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                              free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          }
                       }
                   },
 
