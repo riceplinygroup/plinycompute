@@ -972,6 +972,9 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                     curRequest = sendUsingMe->getNextObject <StorageAddObjectInLoop> (requestInLoop, everythingOK, errMsg);
                     std :: cout << "got new StorageAddObjectInLoop" << std :: endl; 
                  }
+                 if (requestInLoop != nullptr) {
+                    free(requestInLoop);
+                 }
                  {
                     //std :: cout << "Making response object early .\n";
                     const UseTemporaryAllocationBlock block{1024};
