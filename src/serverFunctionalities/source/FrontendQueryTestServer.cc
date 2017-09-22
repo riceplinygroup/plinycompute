@@ -79,7 +79,11 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for HashPartitionedJoinBuildHTJobStage" << std :: endl;
                     request->print();
+#ifdef EANBLE_LARGE_GRAPH
+                    makeObjectAllocatorBlock(256*1024*1024, true);
+#else
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#endif
 #ifdef PROFILING
                     std :: string out = getAllocator().printInactiveBlocks();
                     std :: cout << "HashPartitionedJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
@@ -192,7 +196,11 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for BroadcastJoinBuildHTJobStage" << std :: endl;
                     request->print();
+#ifdef ENABLE_LARGE_GRAPH
+                    makeObjectAllocatorBlock(256*1024*1024, true);
+#else
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#endif
 #ifdef PROFILING
                     std :: string out = getAllocator().printInactiveBlocks();
                     std :: cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std :: endl;
@@ -313,7 +321,11 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for AggregationJobStage" << std :: endl;
                     request->print();
+#ifdef ENABLE_LARGE_GRAPH
+                    makeObjectAllocatorBlock(256*1024*1024, true);
+#else 
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#endif
 #ifdef PROFILING
                     std :: string out = getAllocator().printInactiveBlocks();
                     std :: cout << "AggregationJobStage: print inactive blocks:" << std :: endl;
@@ -462,7 +474,11 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     bool success;
                     PDB_COUT << "Frontend got a request for TupleSetJobStage" << std :: endl;
                     request->print();
+#ifdef ENABLE_LARGE_GRAPH
+                    makeObjectAllocatorBlock(256*1024*1024, true);
+#else
                     makeObjectAllocatorBlock(32*1024*1024, true);
+#endif
 #ifdef PROFILING
                     std :: string out = getAllocator().printInactiveBlocks();
                     std :: cout << "TupleSetJobStage: print inactive blocks:" << std :: endl;

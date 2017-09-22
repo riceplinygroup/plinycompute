@@ -243,6 +243,14 @@ namespace pdb {
                 return this->collectAsMapOrNot;
             }
 
+            int  getNumNodesToCollect()  {
+                return this->numNodesToCollect;
+            }
+
+            void setNumNodesToCollect(int numNodesToCollect)  {
+                this->numNodesToCollect = numNodesToCollect;
+            }
+
 
             void print() override {
                 std :: cout << "[JOB ID] jobId=" << jobId << std :: endl;
@@ -459,6 +467,9 @@ namespace pdb {
 
             //Does this stage collect results to one partition?
             bool collectAsMapOrNot;
+
+            //Number of nodes to collect aggregation results
+            int numNodesToCollect = 1;
 
             //hash set names to probe for join
             Handle<Map<String, String>> hashSetsToProbe = nullptr;

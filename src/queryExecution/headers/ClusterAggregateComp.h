@@ -290,10 +290,19 @@ public:
          return this->collectAsMapOrNot;
    }
 
+   int  getNumNodesToCollect() override {
+         return this->numNodesToCollect;
+   }
+
+   void setNumNodesToCollect(int numNodesToCollect) override {
+         this->numNodesToCollect = numNodesToCollect;
+   }
+
 protected:
 
     Handle<ScanUserSet<OutputClass>> outputSetScanner = nullptr;
     bool collectAsMapOrNot = false;
+    int numNodesToCollect = 1;
 };
 
 }
