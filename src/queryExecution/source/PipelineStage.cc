@@ -301,7 +301,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
     //setup an output page to store intermediate results and final output
 #ifdef ENABLE_LARGE_GRAPH
-    const UseTemporaryAllocationBlock tempBlock {128 * 1024 * 1024};
+    const UseTemporaryAllocationBlock tempBlock {256 * 1024 * 1024};
 #else
     const UseTemporaryAllocationBlock tempBlock {32 * 1024 * 1024};
 #endif
@@ -661,7 +661,7 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server) {
 void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector<PageCircularBufferPtr> sinkBuffers, SetSpecifierPtr outputSet) {
     //std :: cout << "Pipeline network is running" << std :: endl;
 #ifdef ENABLE_LARGE_GRAPH
-    UseTemporaryAllocationBlock tempBlock {128*1024*1024};
+    UseTemporaryAllocationBlock tempBlock {256*1024*1024};
 #else
     UseTemporaryAllocationBlock tempBlock {32*1024*1024};
 #endif
@@ -936,7 +936,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
        
                   std :: string address = "";
                   int port = 0;
-                   
+                  int numNodesToCollect = this->jobStage->getNumNodesToCollect(); 
                   if (this->jobStage->isCollectAsMap() == false) {
                   
                        //get the i-th address
@@ -950,17 +950,21 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   } else {
 
                        //get the 1-st address
-                       address = this->jobStage->getIPAddress(0);
+                       address = this->jobStage->getIPAddress(i%numNodesToCollect);
                        PDB_COUT << "address = " << address << std :: endl;
 
                        //get the 1-st port
-                       port = this->jobStage->getPort(0);
+                       port = this->jobStage->getPort(i%numNodesToCollect);
                        PDB_COUT << "port = " << port << std :: endl;
 
                   }
                   //get aggregate computation 
                   PDB_COUT << i << ": to get compute plan" << std :: endl;
+#ifdef ENABLE_LARGE_GRAPH
+                  const UseTemporaryAllocationBlock tempBlock {256 * 1024 * 1024};
+#else
                   const UseTemporaryAllocationBlock tempBlock {32 * 1024 * 1024};
+#endif
                   Handle<ComputePlan> plan = this->jobStage->getComputePlan();
                   plan->nullifyPlanPointer();
                   PDB_COUT << i << ": to deep copy ComputePlan object" << std :: endl;

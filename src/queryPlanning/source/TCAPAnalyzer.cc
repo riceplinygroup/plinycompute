@@ -228,7 +228,7 @@ bool TCAPAnalyzer::analyze(std :: vector<Handle<AbstractJobStage>> & physicalPla
     return true;
 }
 
-Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing, AllocatorPolicy myPolicy, bool isRepartitionJoin, bool isCollectAsMap) {
+Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId, std :: string sourceTupleSetName, std :: string targetTupleSetName, std :: string targetComputationName, std :: vector<std :: string> buildTheseTupleSets, std :: string outputTypeName, Handle<SetIdentifier> sourceContext, Handle<SetIdentifier> combinerContext, Handle<SetIdentifier> sinkContext, bool isBroadcasting, bool isRepartitioning, bool needsRemoveInputSet, bool isProbing, AllocatorPolicy myPolicy, bool isRepartitionJoin, bool isCollectAsMap, int numNodesToCollect) {
     //std :: cout << "to createTupleSetJobStage with probing=" << isProbing ;
     if (isProbing == true) {
        //std :: cout << "(true)" << std :: endl;
@@ -269,6 +269,7 @@ Handle<TupleSetJobStage>  TCAPAnalyzer::createTupleSetJobStage(int & jobStageId,
     jobStage->setRepartition(isRepartitioning);
     jobStage->setJobId(this->jobId);
     jobStage->setCollectAsMap(isCollectAsMap);
+    jobStage->setNumNodesToCollect(numNodesToCollect);
     PDB_COUT << "TCAPAnalyzer generates tupleSetJobStage:" << std :: endl;
     //jobStage->print();
     return jobStage;
@@ -442,7 +443,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 joinSource = "";
             }
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy, false, agg->isCollectAsMap()); 
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage(jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy, false, agg->isCollectAsMap(), agg->getNumNodesToCollect()); 
             //to push back the job stage
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
@@ -493,7 +494,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                 joinSource = "";
             }
             Handle<AbstractAggregateComp> agg = unsafeCast<AbstractAggregateComp, Computation>(myComputation);
-            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy, false, agg->isCollectAsMap());
+            Handle<TupleSetJobStage> jobStage = createTupleSetJobStage (jobStageId, sourceTupleSetName, curNode->getInputName(), mySpecifier, buildTheseTupleSets, "IntermediateData", curInputSetIdentifier, combiner, aggregator, false, true, false, isProbing, myPolicy, false, agg->isCollectAsMap(), agg->getNumNodesToCollect());
             physicalPlanToOutput.push_back(jobStage);
             //to create the consuming job stage for aggregation
             Handle<AggregationJobStage> aggStage;

@@ -222,7 +222,7 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
 #endif
 
 
-                          const UseTemporaryAllocationBlock block(32 * 1024 * 1024);
+                          const UseTemporaryAllocationBlock block(256 * 1024 * 1024);
 
 
                           int port = (*(this->standardResources))[j]->getPort();
@@ -355,7 +355,7 @@ bool QuerySchedulerServer :: scheduleStage(int index, Handle<TupleSetJobStage>& 
         PDB_COUT << "to send the job stage with id=" << stage->getStageId() << " to the "<< index <<"-th remote node" << std :: endl;
 
         if (mode == DeepCopy) {
-             const UseTemporaryAllocationBlock block(32 * 1024 * 1024);              
+             const UseTemporaryAllocationBlock block(256 * 1024 * 1024);              
              Handle<TupleSetJobStage> stageToSend = deepCopyToCurrentAllocationBlock<TupleSetJobStage> (stage);
              stageToSend->setNumNodes(this->shuffleInfo->getNumNodes());
              stageToSend->setNumTotalPartitions(this->shuffleInfo->getNumHashPartitions());
@@ -939,7 +939,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
            bool success;
 
            //parse the query
-           const UseTemporaryAllocationBlock block { 128 * 1024 * 1024 };
+           const UseTemporaryAllocationBlock block { 256 * 1024 * 1024 };
            PDB_COUT << "Got the ExecuteComputation object" << std :: endl;
            Handle <Vector <Handle<Computation>>> computations = sendUsingMe->getNextObject<Vector<Handle<Computation>>> (success, errMsg);
            std :: string tcapString = request->getTCAPString();

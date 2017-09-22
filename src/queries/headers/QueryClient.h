@@ -249,7 +249,7 @@ public:
        bool executeComputations (std :: string &errMsg) {
 
                 // this is the request
-                const UseTemporaryAllocationBlock myBlock {36*1024*1024};
+                const UseTemporaryAllocationBlock myBlock {256*1024*1024};
                 QueryGraphAnalyzer queryAnalyzer (this->queryGraph);
                 std :: string tcapString = queryAnalyzer.parseTCAPString();
                 std :: vector<Handle<Computation>> computations;

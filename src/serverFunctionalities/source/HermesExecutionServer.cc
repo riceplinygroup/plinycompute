@@ -313,9 +313,14 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              //getAllocator().cleanInactiveBlocks((size_t)(67108844));
              //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-             //getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
-             getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+             getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+             getAllocator().cleanInactiveBlocks((size_t)((size_t)256 * (size_t)1024 * (size_t)1024));
+
+#ifdef ENABLE_LARGE_GRAPH
+             const UseTemporaryAllocationBlock block {(size_t)((size_t)256 * (size_t)1024 * (size_t)1024)};
+#else
              const UseTemporaryAllocationBlock block {(size_t)((size_t)32 * (size_t)1024 * (size_t)1024)};
+#endif
              bool success;
              std :: string errMsg;
              PDB_COUT << "Backend got Broadcast JobStage message with Id=" << request->getStageId() << std :: endl;
@@ -469,8 +474,8 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
           [&] (Handle<AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
               //getAllocator().cleanInactiveBlocks((size_t)(67108844));
               //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-              //getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
-              getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)256 * (size_t)1024 * (size_t)1024));
               const UseTemporaryAllocationBlock block{32*1024*1024};
               bool success;
               std :: string errMsg;
@@ -498,7 +503,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               size_t sharedMemPoolSize = conf->getShmSize();
 
 #ifdef ENABLE_LARGE_GRAPH
-              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(128)*(size_t)(1024)*(size_t)(1024))- getFunctionality<HermesExecutionServer>().getHashSetsSize())*(ratio)/(double)(numPartitions);
+              size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-((size_t)(conf->getNumThreads())*(size_t)(256)*(size_t)(1024)*(size_t)(1024))- getFunctionality<HermesExecutionServer>().getHashSetsSize())*(ratio)/(double)(numPartitions);
 #else
               size_t tunedHashPageSize = (double)(memSize*((size_t)(1024))-sharedMemPoolSize-getFunctionality<HermesExecutionServer>().getHashSetsSize())*(ratio)/(double)(numPartitions);
 #endif
@@ -567,16 +572,19 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          PDB_COUT << out << std :: endl;                  
                          //getAllocator().cleanInactiveBlocks((size_t)(67108844));
                          //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-                         //getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
-                         getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+                         getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+                         getAllocator().cleanInactiveBlocks((size_t)((size_t)256 * (size_t)1024 * (size_t)1024));
                          getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
                          pthread_mutex_lock(&connection_mutex);
                          PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
                          anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
                          pthread_mutex_unlock(&connection_mutex);
                          DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
-                     
-                         const UseTemporaryAllocationBlock block{128*1024*1024};
+#ifdef ENABLE_LARGE_GRAPH                     
+                         const UseTemporaryAllocationBlock block{256*1024*1024};
+#else
+                         const UseTemporaryAllocationBlock block{32*1024*1024};
+#endif
                          std :: string errMsg;
 
                          //get aggregate computation 
@@ -913,7 +921,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               //getAllocator().cleanInactiveBlocks((size_t)(67108844));
               //getAllocator().cleanInactiveBlocks((size_t)(12582912));
               //getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
-              getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+              getAllocator().cleanInactiveBlocks((size_t)((size_t)256 * (size_t)1024 * (size_t)1024));
               const UseTemporaryAllocationBlock block{32*1024*1024};
               bool success;
               std :: string errMsg;
@@ -1203,13 +1211,18 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
             [&] (Handle<TupleSetJobStage> request, PDBCommunicatorPtr sendUsingMe) {
                 //getAllocator().cleanInactiveBlocks((size_t)(67108844));
                 //getAllocator().cleanInactiveBlocks((size_t)(12582912));
-                //getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
-                getAllocator().cleanInactiveBlocks((size_t)((size_t)128 * (size_t)1024 * (size_t)1024));
+                getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 * (size_t)1024));
+
+                getAllocator().cleanInactiveBlocks((size_t)((size_t)256 * (size_t)1024 * (size_t)1024));
                 PDB_COUT << "Backend got Tuple JobStage message with Id=" << request->getStageId() << std :: endl;
                 request->print();
                 bool res = true;
                 std :: string errMsg;
-                const UseTemporaryAllocationBlock block1 {128 * 1024 * 1024};
+#ifdef ENABLE_LARGE_GRAPH
+                const UseTemporaryAllocationBlock block1 {256 * 1024 * 1024};
+#else
+                const UseTemporaryAllocationBlock block1 {32 * 1024 * 1024};
+#endif
 #ifdef PROFILING
                 std :: string out = getAllocator().printInactiveBlocks();
                 std :: cout << "TupleSetJobStage-backend: print inactive blocks:" << std :: endl;
