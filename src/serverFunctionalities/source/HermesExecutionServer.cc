@@ -576,7 +576,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          pthread_mutex_unlock(&connection_mutex);
                          DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
                      
-                         const UseTemporaryAllocationBlock block{4*1024*1024};
+                         const UseTemporaryAllocationBlock block{128*1024*1024};
                          std :: string errMsg;
 
                          //get aggregate computation 
