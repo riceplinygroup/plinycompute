@@ -223,7 +223,7 @@ Handle <ObjType> PDBCommunicator :: getNextObject (bool &success, std :: string 
         exit(-1);
     }
     Handle <ObjType> temp = getNextObject <ObjType> (mem, success, errMsg);
-    UseTemporaryAllocationBlock myBlock{msgSize + 1*1024*1024};
+    UseTemporaryAllocationBlock myBlock{msgSize + 80*1024*1024};
     // if we were successful, then copy it to the current allocation block
     if (success) {
         logToMe->trace ("PDBCommunicator: about to do the deep copy.");
