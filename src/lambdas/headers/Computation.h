@@ -245,6 +245,11 @@ public:
         //to check whether to do collectAsMap
         virtual bool isCollectAsMap() { return false; }
 
+        //to get number of nodes to collect aggregation results
+        virtual int  getNumNodesToCollect() { return 0; }
+
+        //to set number of nodes to collect aggregation results
+        virtual void setNumNodesToCollect(int numNodesToCollect) {}
 private:
 
         //JiaNote: added to construct query graph
