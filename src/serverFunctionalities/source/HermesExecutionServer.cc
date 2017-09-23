@@ -433,23 +433,23 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              while (iter->hasNext()) {
                 page = iter->next();
                 if (page != nullptr) {
-                    std :: cout << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                    //std :: cout << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                     //to get the map on the page 
                     RecordIteratorPtr recordIter = make_shared<RecordIterator>(page);
                     while (recordIter->hasNext() == true) {
                         Record<Object> * record = recordIter->next();
                         if (record != nullptr) {
                             Handle<Object> theOtherMap = record->getRootObject();
-                            Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
+                            //Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
                             //to merge the two maps
-                            std :: cout << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
+                            //std :: cout << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
                             merger->writeOut(theOtherMap, myMap);
                          }
                     }
                  
-                    std :: cout << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                    //std :: cout << "####To unpin the page with id = " << page->getPageID() << std :: endl;
                     proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-                    std :: cout << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                    //std :: cout << "####Unpined page with id = " << page->getPageID() << std :: endl;
                    
                } /*else {
                     PDB_COUT << "####Scanner got a null page" << std :: endl;

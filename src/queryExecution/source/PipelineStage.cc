@@ -463,6 +463,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           //std :: cout << "Pipeline pins page in outputset: " << std :: endl; 
                           //std :: cout << "DbId=" << outputSet->getDatabaseId() << ", SetId=" << outputSet->getSetId() << std :: endl;                          
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+
+                          //std :: cout << "Pinned PageID=" << output->getPageID() << std :: endl;
                           if (output == nullptr) {
                               std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
                               return std :: make_pair (nullptr, 0);
@@ -616,9 +618,11 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
 
                       } else {
-                          std :: cout << "to write to user set" << std :: endl;
+                          //std :: cout << "to write to user set" << std :: endl;
                           if (sourceContext->getSetType() == UserSetType) {
                               proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                              //std :: cout << "Unpin page for DbID=" << output->getDbID() << ", TypeID=" << output->getTypeID() << ", SetID=" << output->getSetID() << ", PageID=" << output->getPageID()<< std :: endl;
+
                           } else {
                               //to handle a vector sink
                               //PDBPagePtr output = nullptr;

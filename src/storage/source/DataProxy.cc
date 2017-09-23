@@ -279,11 +279,12 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
                 return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+            /*char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
             int numObjects = *((int *) refCountBytes);
             std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
+            */
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
-            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
+            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
             //cout << "ack->SetID()=" << ack->getSetID() << "\n";
             //cout << "page->SetID()=" << page->getSetID() << "\n";
             //cout << "ack->PageID()=" << ack->getPageID() << "\n";
@@ -321,11 +322,12 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
                 return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
+            /*char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
             int numObjects = *((int *) refCountBytes);
             std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
+            */
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
-            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
+            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
             //cout << "ack->SetID()=" << ack->getSetID() << "\n";
             //cout << "page->SetID()=" << page->getSetID() << "\n";
             //cout << "ack->PageID()=" << ack->getPageID() << "\n";
@@ -405,7 +407,7 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
             char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
             int numObjects = *((int *) refCountBytes);
-            std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
+            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
              page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
             page->setPinned(true);
@@ -442,7 +444,7 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
             char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
             int numObjects = *((int *) refCountBytes);
-            std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
+            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
              page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
             page->setPinned(true);
@@ -477,7 +479,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
            return false;
         }
     }
-    logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
+    //logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
 
     if (needMem == true) {
         //std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
@@ -501,7 +503,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
        
           //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
           //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
-          logger->debug("to send StorageUnpinPage object");
+          //logger->debug("to send StorageUnpinPage object");
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
@@ -509,7 +511,7 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
 	      return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
           }
           //std :: cout << "StorageUnpinPage sent.\n";  
-          logger->debug("StorageUnpinPage sent.");
+          //logger->debug("StorageUnpinPage sent.");
        }
 
        //receive the Ack object

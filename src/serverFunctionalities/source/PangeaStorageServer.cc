@@ -1318,7 +1318,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                        key.pageId = pageId;
 
                        //std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
-                       logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId)+std :: string(", setId=")+std :: to_string(setId)+std :: string(", pageId=")+std :: to_string(pageId));
+                       //logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId)+std :: string(", setId=")+std :: to_string(setId)+std :: string(", pageId=")+std :: to_string(pageId));
 
                        bool res;
                        std :: string errMsg;

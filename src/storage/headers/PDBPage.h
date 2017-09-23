@@ -88,12 +88,13 @@ public:
         if (this->refCount < 0) {
             //there is a problem:
             //reference count should always >= 0
-            PDB_COUT << "Error: page reference count < 0" << std :: endl;
+            //std :: cout << "Error: page reference count < 0" << std :: endl;
             this->setPinned(false);
             this->refCount = 0;
         } else if (this->refCount == 0) {
             this->setPinned(false);
         }
+        //std :: cout << "Now my ref count is " << refCount << ", and DbID=" << this->dbID << ", and TypeID=" << this->typeID << ", and SetID=" << this->setID << ", and PageID=" << this->pageID << std :: endl;
         pthread_mutex_unlock(&this->refCountMutex);
     }
 
@@ -152,7 +153,7 @@ public:
         //this->numObjects++;
         this->incEmbeddedNumObjects();
         int myNumObjects = this->getEmbeddedNumObjects();
-        std :: cout << "Now got " << myNumObjects << "objects" << std :: endl;
+        //std :: cout << "Now got " << myNumObjects << "objects" << std :: endl;
         //this->writeUnlock();
         return retPos;
     }
@@ -256,6 +257,13 @@ public:
     int getRefCount() {
         return this->refCount;
     }
+
+    //To reset the reference count of this page.
+    void resetRefCount() {
+        //std :: cout << "to reset reference count =" << this->refCount << std :: endl;
+        this->refCount = 0;
+    }
+
 
     //Return whether page is pinned.
     //Page is pinned if reference count > 0.
