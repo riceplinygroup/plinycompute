@@ -62,7 +62,7 @@ public:
 	 */
     PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
             UserTypeID dataTypeID, SetID setID, PageID pageID, size_t dataSize, 
-            size_t offset, int internalOffset=0);
+            size_t offset, int internalOffset=0, int numObjects=0);
     ~PDBPage();
     /**
      * Free page data from shared memory.
@@ -107,34 +107,26 @@ public:
     }
 
     //this is to increment the reference count embeded in page bytes
-    inline void incEmbeddedRefCount() {
+    inline int incEmbeddedNumObjects() {
         pthread_mutex_lock(&this->refCountMutex);
         char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
         *((int *) refCountBytes) = *((int*)refCountBytes) + 1;
-        this->pinned = true;
+        //this->pinned = true;
         pthread_mutex_unlock(&this->refCountMutex);
+        return  *((int *) refCountBytes) ;
     }
 
-    inline void decEmbeddedRefCount() {
-        pthread_mutex_lock(&this->refCountMutex);
-        char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-        *((int *) refCountBytes) = *((int*)refCountBytes) - 1;
-        if (*((int *) refCountBytes) < 0) {
-            //there is a problem:
-            //reference count should always >= 0
-            pthread_mutex_unlock(&this->refCountMutex);
-            PDB_COUT << "Error: page reference count < 0" << std :: endl;
-            this->setPinned(false);
-            *((int *) refCountBytes) = 0;
-        } else if (*((int *) refCountBytes) == 0) {
-            this->setPinned(false);
-        }
-        pthread_mutex_unlock(&this->refCountMutex);
-    }
-
-    inline int getEmbeddedRefCount() {
+    inline int getEmbeddedNumObjects() {
         char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
         return *((int *) refCountBytes);
+    }
+
+    inline void setNumObjects (int numObjects) {
+        this->numObjects = numObjects;
+    }
+
+    inline int getNumObjects() {
+        return this->numObjects;
     }
 
     /**
@@ -157,7 +149,10 @@ public:
         void * retPos = cur + sizeof(size_t);
         cur = (char *)retPos + size;
         this->curAppendOffset = cur - this->rawBytes;
-        this->numObjects++;
+        //this->numObjects++;
+        this->incEmbeddedNumObjects();
+        int myNumObjects = this->getEmbeddedNumObjects();
+        std :: cout << "Now got " << myNumObjects << "objects" << std :: endl;
         //this->writeUnlock();
         return retPos;
     }
@@ -401,7 +396,7 @@ private:
     size_t offset; //used in shared memory
     int numHeadMiniPages;
     int numMiniPages;
-    unsigned int numObjects;
+    int numObjects=0;
     size_t miniPageSize;
     size_t headSize;
     NodeID nodeID;

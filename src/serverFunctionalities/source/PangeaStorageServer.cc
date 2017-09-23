@@ -909,22 +909,32 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          numWaitingBufferDataRequests++;
                          pthread_mutex_unlock(&counterMutex);
                       */
+#ifdef ENABLE_COMPRESSION
+                         size_t sizeOfBytesToAdd = 0;
+                         snappy::GetUncompressedLength(readToHere, numBytes, &sizeOfBytesToAdd);
+#else
+                         size_t sizeOfBytesToAdd = numBytes;
+#endif
+
                          auto databaseAndSet = make_pair ((std :: string) request->getDatabase (),
                                                         (std :: string) request->getSetName ());
                          // now, get a page to write to
-                         PDBPagePtr myPage = getNewPage (databaseAndSet);
-                         if (myPage == nullptr) {
+                         SetPtr mySet = getSet (databaseAndSet);
+                         if (mySet == nullptr) {
                              std :: cout << "FATAL ERROR: set to store data doesn't exist!" << std :: endl;
                              std :: cout << "databaseName" << databaseAndSet.first << std :: endl;
                              std :: cout << "setName" << databaseAndSet.second << std :: endl;
                              return make_pair(false, std :: string("FATAL ERROR: set to store data doesn't exist!"));
                          }
-                         size_t pageSize = myPage->getSize();
-                         PDB_COUT << "Got new page with pageId=" << myPage->getPageID() << ", and size=" << pageSize << std :: endl;
+                         std :: cout << "sizeOfBytesToAdd is " << sizeOfBytesToAdd << std :: endl;
+                         char * myBytes = (char *)mySet->getNewBytes(sizeOfBytesToAdd);
+                         if (myBytes == nullptr) {
+                             return make_pair(false, std :: string("FATAL ERROR: can't get bytes from user set " + databaseAndSet.second ));
+                         }
 #ifdef ENABLE_COMPRESSION
-                         snappy::RawUncompress(readToHere, numBytes, (char *)(myPage->getBytes()));
+                         snappy::RawUncompress(readToHere, numBytes, myBytes);
 #else
-                         memcpy (myPage->getBytes(), readToHere, numBytes);
+                         memcpy (myBytes, readToHere, numBytes);
                          /*Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps = ((Record <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (myPage->getBytes()))->getRootObject();
                          std :: cout << "myMaps->size()=" << myMaps->size() << std :: endl;
                          for (int i = 0; i < myMaps->size(); i++) {
@@ -942,12 +952,14 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                          fwrite(myPage->getBytes(), 1, DEFAULT_NET_PAGE_SIZE, myFile1);
                          fclose(myFile1);
 #endif 
-                         CacheKey key;
+
+                         /*CacheKey key;
                          key.dbId = myPage->getDbID();
                          key.typeId = myPage->getTypeID();
                          key.setId = myPage->getSetID();
                          key.pageId = myPage->getPageID();
                          this->getCache()->decPageRefCount(key);
+                         */
                       /*
                          pthread_mutex_lock(&counterMutex);
                          numWaitingBufferDataRequests--;

@@ -99,7 +99,9 @@ public:
     /**
      * Unpin buffer page.
      */
-    void unpinBufferPage();    
+    void unpinBufferPage() {
+         this->inputBufferPage->decRefCount();
+    }   
 
 
     /**
@@ -130,25 +132,25 @@ public:
     if (size == 0) {
         return nullptr;
     }
-
+    pthread_mutex_lock(&this->addBytesMutex);
     if (this->inputBufferPage == nullptr) {
+          
         this->inputBufferPage = this->addPage();
     }
-
     void * buffer = this->inputBufferPage->addVariableBytes(size);
     if (buffer == nullptr) {
         //current inputBufferPage is full
 
         //we unpin the inputBufferPage
         this->inputBufferPage->decRefCount();
-        if(this->getDurabilityType() == CacheThrough) {
-            CacheKey key;
-            key.dbId = this->getDbID();
-            key.typeId = this->getTypeID();
-            key.setId = this->getSetID();
-            key.pageId = this->inputBufferPage->getPageID();
-            this->pageCache->flushPageWithoutEviction(key);
-        }
+        /*if(this->getDurabilityType() == CacheThrough) {
+           CacheKey key;
+           key.dbId = this->getDbID();
+           key.typeId = this->getTypeID();
+           key.setId = this->getSetID();
+           key.pageId = this->inputBufferPage->getPageID();
+           this->pageCache->flushPageWithoutEviction(key);
+        }*/
         if(evictWhenUnpin == true) {
             this->pageCache->evictPage(this->inputBufferPage);
         }
@@ -156,10 +158,11 @@ public:
       
         //we add a new page as inputBufferPage
         this->inputBufferPage = this->addPage();
-
+        pthread_mutex_unlock(&this->addBytesMutex);
         //get new bytes in the new page
         return this->inputBufferPage->addVariableBytes(size);
     }
+    pthread_mutex_unlock(&this->addBytesMutex);
     return buffer;
 }
 
@@ -331,6 +334,7 @@ protected:
         pthread_mutex_t dirtyPageSetMutex;        
         bool isPinned;
         int numPages;        
+        pthread_mutex_t addBytesMutex;
 };
 
 

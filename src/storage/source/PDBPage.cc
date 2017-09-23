@@ -31,8 +31,8 @@
 
 PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
         UserTypeID dataTypeID, SetID dataSetID, PageID dataPageID, size_t dataSize,
-        size_t shmOffset, int internalOffset) {
-    //cout << "Page Data Offset = " << shmOffset << "\n";
+        size_t shmOffset, int internalOffset, int numObjectsIn) {
+    cout << "numObjectsIn = " << numObjectsIn << "\n";
     rawBytes = dataIn;
     nodeID = dataNodeID;
     dbID = dataDbID;
@@ -41,8 +41,8 @@ PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
     pageID = dataPageID;
     size = dataSize;
     offset = shmOffset;
-    numObjects = 0;
-    this->curAppendOffset = 0;
+    this->numObjects = numObjectsIn;
+    this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
     this->refCount = 0;
     this->pinned = true;
     this->dirty = false;
@@ -53,7 +53,7 @@ PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
     pthread_rwlock_init(&(this->flushLock), nullptr);
     this->internalOffset = internalOffset;
     char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-    *((int *) refCountBytes) = 0;
+    *((int *) refCountBytes) = numObjectsIn;
 }
 
 PDBPage::~PDBPage() {
