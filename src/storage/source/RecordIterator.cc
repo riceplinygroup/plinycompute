@@ -28,7 +28,7 @@ RecordIterator::RecordIterator (PDBPagePtr page) {
     this->page = page;
     this->numObjectsIterated = 0;
     this->numObjectsInCurPage = page->getEmbeddedNumObjects();
-    std :: cout << "there are " << numObjectsInCurPage << " objects" << std :: endl;
+    //std :: cout << "there are " << numObjectsInCurPage << " objects" << std :: endl;
     this->curPosInPage = (char *)page->getBytes();
 }
 

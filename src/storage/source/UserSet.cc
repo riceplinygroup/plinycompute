@@ -135,13 +135,13 @@ PDBPagePtr UserSet::addPage() {
     key.setId = this->setId;
     key.pageId = pageId;
     PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this);
-    std :: cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
+    //std :: cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
     //this->logger->writeLn("UserSet: pageId set =");
     //this->logger->writeInt(pageId);
     if(page == nullptr ) {
         return nullptr;
     }
-    std :: cout << "Got page from buffer pool!\n";
+    //std :: cout << "Got page from buffer pool!\n";
     page->preparePage();
     //cout << "Page header prepared!\n";
     this->addPageToDirtyPageSet(page->getPageID());
@@ -243,7 +243,7 @@ void UserSet::evictPages() {
                key.typeId = this->getTypeID();
                key.setId = this->getSetID();
                key.pageId = curPage->getPageID();
-               curPage->decRefCount();
+               curPage->resetRefCount();
                this->pageCache->evictPage(key, false);
            }
        }

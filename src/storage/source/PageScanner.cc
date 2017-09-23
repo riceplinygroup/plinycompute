@@ -165,10 +165,10 @@ bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPa
             char * rawData = (char *) this->shm->getPointer(offset);
             char * refCountBytes = rawData + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
             int numObjects = *((int *) refCountBytes);
-            std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
+            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
             page = make_shared<PDBPage>(rawData, dataNodeId, dataDbId,
                      dataTypeId, dataSetId, dataPageId, pageSize, offset, 0, numObjects);
-            std :: cout << "BackEndServer: add page with " << page->getEmbeddedNumObjects()  << "to circular buffer...\n";
+            //std :: cout << "BackEndServer: add page with " << page->getEmbeddedNumObjects()  << "to circular buffer...\n";
             logger->debug(string( "BackEndServer: add page scanner page to circular buffer...\n"));
             if (this->buffer != nullptr) {
                 this->buffer->addPageToTail(page);

@@ -32,7 +32,7 @@
 PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
         UserTypeID dataTypeID, SetID dataSetID, PageID dataPageID, size_t dataSize,
         size_t shmOffset, int internalOffset, int numObjectsIn) {
-    cout << "numObjectsIn = " << numObjectsIn << "\n";
+    //cout << "numObjectsIn = " << numObjectsIn << "\n";
     rawBytes = dataIn;
     nodeID = dataNodeID;
     dbID = dataDbID;
