@@ -572,7 +572,7 @@ inline void MultiPolicyAllocator<FirstPolicy, OtherPolicies...> :: emptyOutBlock
 			c.clear ();
 		}
 
-		LAST_USED = HEADER_SIZE;	
+		//LAST_USED = HEADER_SIZE;	
 		ALLOCATOR_REF_COUNT = 0;
 
 		PDB_COUT << "Killed the current block.\n";

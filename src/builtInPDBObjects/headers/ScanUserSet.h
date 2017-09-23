@@ -82,6 +82,7 @@ public:
                          SetID setId = (SetID) (*((SetID *)(curBytes)));
                          curBytes = curBytes + sizeof(SetID);
                          PageID pageId = (PageID) (*((PageID *)(curBytes)));
+                         curBytes = curBytes + sizeof(PageID);
                          PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
                          try {
                             this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);

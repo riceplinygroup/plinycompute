@@ -190,19 +190,19 @@ PDBPagePtr PageCache::buildPageFromSharedMemoryData(PDBFilePtr file,
 			+ sizeof(UserTypeID) + sizeof(SetID);
 	PageID pageId = (PageID)(*(PageID *) cur);
         //cout << "buildPageFromSharedMemoryData: pageId="<<pageId<<"\n";
-	//cur = cur + sizeof(PageID);
-	//unsigned int numObjects = (unsigned int) (*(unsigned int *) cur);
+	cur = cur + sizeof(PageID);
+	int numObjects = (int) (*(int *) cur);
         //cout << "internalOffset=" << internalOffset<<"\n";
 	//create a new PDBPagePtr
 	PDBPagePtr page = make_shared<PDBPage>(pageData, file->getNodeId(),
 			file->getDbId(), file->getTypeId(), file->getSetId(), pageId,
-			this->conf->getPageSize(), shm->computeOffset(pageData), internalOffset);
+			this->conf->getPageSize(), shm->computeOffset(pageData), internalOffset, numObjects);
 	if (page == nullptr) {
 		this->logger->error("Fatal Error: PageCache: out of memory in heap.");
                 std :: cout << "FATAL ERROR: PageCache out of memory" << std :: endl;
 		exit(-1);
 	}
-	//page->setNumObjects(numObjects);
+	page->setNumObjects(numObjects);
 	//page->setMiniPageSize(this->conf->getMiniPageSize());
 	page->setPartitionId(partitionId);
 	page->setPageSeqInPartition(pageSeqInPartition);

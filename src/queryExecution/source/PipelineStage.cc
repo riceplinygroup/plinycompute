@@ -234,7 +234,7 @@ void PipelineStage :: feedSharedBuffers (HermesExecutionServer * server, std :: 
                          if (page != nullptr) {
                              std :: cout << "Scanner got a non-null page" << std :: endl;
                              for (int j = 0; j < numPartitions; j++) {
-                                 page->incEmbeddedRefCount();
+                                 page->incRefCount();
                              }
                              for (int j = 0; j < numPartitions; j++) {
                                 std :: cout << "add page to the " << j << "-th buffer" << std :: endl;
@@ -518,19 +518,19 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      pageToBroadcast->incRefCount();
                                   }
                                   for ( k = 0; k < numNodes; k++ ) {
-                                     if (k != myNodeId) {
+                                     //if (k != myNodeId) {
                                         PageCircularBufferPtr buffer = sinkBuffers[k];
                                         buffer->addPageToTail(pageToBroadcast);
-                                     }
+                                     //}
                                   }
-                                  PDBPagePtr output;
+                                  /*PDBPagePtr output;
                                   proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
                                   memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
                                   proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
                                   pageToBroadcast->decRefCount();
                                   if (pageToBroadcast->getRefCount() == 0) {
                                      pageToBroadcast->freeContent();
-                                  }
+                                  }*/
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
                               }
@@ -1145,10 +1145,10 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  if (i == myNodeId) {
+                  /*if (i == myNodeId) {
                        callerBuzzer->buzz(PDBAlarm :: WorkAllDone, shuffleCounter);
                        return;
-                  }
+                  }*/
                   UseTemporaryAllocationBlock tempBlock {2*1024*1024};
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);
@@ -1180,7 +1180,8 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
                           //to load input page
                           numPages++;
                           //send out the page
-                          sendData(communicator, page->getBytes(), DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          Record<Object> * myRecord = (Record<Object> *)(page->getBytes());
+                          sendData(communicator, myRecord, myRecord->numBytes(), jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                           //unpin the input page
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
@@ -1276,9 +1277,9 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
 
                   //create the data proxy
                   DataProxyPtr proxy = nullptr;
-                  if (i == myNodeId) {
+                  /*if (i == myNodeId) {
                        proxy = createProxy(i, connection_mutex, errMsg);
-                  }
+                  }*/
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
                   PDB_COUT << "address = " << address << std :: endl;
@@ -1353,24 +1354,27 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                           std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl;
                                       }*/
                                       getRecord(myMaps);
-                                      if (i != myNodeId) {
+                                      //if (i != myNodeId) {
                                           std :: cout << getAllocator().printCurrentBlock() << std :: endl;
-                                          char * sendBuffer = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                                          Record<Object> * myRecord = (Record<Object> *)output;
+                                          size_t numBytes = myRecord->numBytes();
+                                          char * sendBuffer = (char *) malloc (numBytes);
                                           if (sendBuffer == nullptr) {
                                                std :: cout << "Out of memory on heap" << std :: endl;
                                                exit(-1);
                                           }
-                                          memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                                          memcpy(sendBuffer, output, numBytes);
                                           makeObjectAllocatorBlock (128 * 1024, true);
-                                          sendData (communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                                          
+                                          sendData (communicator, sendBuffer, numBytes,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                                           free (sendBuffer);
-                                      } else {
+                                      /*} else {
                                           PDBPagePtr outputPage;
                                           makeObjectAllocatorBlock (128 * 1024, true);
                                           proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
                                           memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
                                           proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
-                                      }
+                                      }*/
                                       numPages ++;
                                       //free the output page and reload a new output page
                                       myMaps = nullptr;
@@ -1418,24 +1422,26 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       out = getAllocator().printInactiveBlocks();
                       std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
                       std :: cout << out << std :: endl;
-                      if (i != myNodeId) {
+                      //if (i != myNodeId) {
                           std :: cout << getAllocator().printCurrentBlock() << std :: endl;
-                          char * sendBuffer = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+                          Record<Object> * myRecord = (Record<Object>*) output;
+                          size_t numBytes = myRecord->numBytes();
+                          char * sendBuffer = (char *) malloc (numBytes);
                           if (sendBuffer == nullptr) {
                                std :: cout << "Out of memory on heap" << std :: endl;
                                exit(-1);
                           }
-                          memcpy(sendBuffer, output, DEFAULT_NET_PAGE_SIZE);
+                          memcpy(sendBuffer, output, numBytes);
                           makeObjectAllocatorBlock (128 * 1024, true);
-                          sendData(communicator, sendBuffer, DEFAULT_NET_PAGE_SIZE, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
+                          sendData(communicator, sendBuffer, numBytes, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
                           free(sendBuffer);
-                      } else {
+                      /*} else {
                           PDBPagePtr outputPage;
                           makeObjectAllocatorBlock (128 * 1024, true);
                           proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
                           memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
                           proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
-                      }
+                      }*/
                       numPages ++;
                       myMaps = nullptr;
                   }

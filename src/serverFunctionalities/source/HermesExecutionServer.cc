@@ -52,6 +52,7 @@
 #include "PartitionedHashSet.h"
 #include "SharedHashSet.h"
 #include "JoinMap.h"
+#include "RecordIterator.h"
 #include <vector>
 
 
@@ -432,18 +433,24 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              while (iter->hasNext()) {
                 page = iter->next();
                 if (page != nullptr) {
-                    //PDB_COUT << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
+                    std :: cout << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
                     //to get the map on the page 
-                    void * bytes = page->getBytes();
-                    Handle<Object> theOtherMap = ((Record <Handle<Object>> *) bytes)->getRootObject();
-                    Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
-                    //to merge the two maps
-                    //PDB_COUT << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
-                    merger->writeOut(theOtherMap, myMap);
-                    //PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                    RecordIteratorPtr recordIter = make_shared<RecordIterator>(page);
+                    while (recordIter->hasNext() == true) {
+                        Record<Object> * record = recordIter->next();
+                        if (record != nullptr) {
+                            Handle<Object> theOtherMap = record->getRootObject();
+                            Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>, Object>(theOtherMap);
+                            //to merge the two maps
+                            std :: cout << "####To merge the map with size = " << theCastedMap->size() << std :: endl;
+                            merger->writeOut(theOtherMap, myMap);
+                         }
+                    }
+                 
+                    std :: cout << "####To unpin the page with id = " << page->getPageID() << std :: endl;
                     proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-                    //PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
-
+                    std :: cout << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                   
                } /*else {
                     PDB_COUT << "####Scanner got a null page" << std :: endl;
                }*/
@@ -1043,10 +1050,15 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              page = myIter->next();
                              if (page != nullptr) {
                                   //std :: cout << i << "####Scanner got a non-null page with Id = " << page->getPageID() << "for merging with Map" << std :: endl;
-                                  //to get the map on the page 
-                                  void * bytes = page->getBytes();
-                                  Handle<Object> mapsToMerge = ((Record<Handle<Object>> *)bytes)->getRootObject();
-                                  merger->writeVectorOut(mapsToMerge, myMap);
+                                  //to get the map on the page
+                                  RecordIteratorPtr recordIter = make_shared<RecordIterator>(page);
+                                  while (recordIter->hasNext() == true) {
+                                       Record<Object> * record = recordIter->next();
+                                       if (record != nullptr) { 
+                                             Handle<Object>  mapsToMerge = record->getRootObject();
+                                             merger->writeVectorOut(mapsToMerge, myMap);
+                                      }
+                                  }
                                   //unpin the input page 
                                   PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
                                   page->decRefCount();
@@ -1058,7 +1070,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                   }
 
 
-                            } else {
+                             } else {
                                    PDB_COUT << "####Scanner got a null page" << std :: endl;
                             }
                        }

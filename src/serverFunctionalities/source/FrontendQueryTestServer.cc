@@ -124,6 +124,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         }
                         return std :: make_pair (true, std :: string("execution complete"));
                     } else {
+                        inputSet->unpinBufferPage();
                         getFunctionality <PangeaStorageServer> ().cleanup();
                     }
                     sourceContext->setDatabaseId(inputSet->getDbID());
@@ -242,6 +243,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         return std :: make_pair (true, std :: string("execution complete"));
 
                     } else {
+                        inputSet->unpinBufferPage();
                         getFunctionality <PangeaStorageServer> ().cleanup();
                     }
                     sourceContext->setDatabaseId(inputSet->getDbID());
