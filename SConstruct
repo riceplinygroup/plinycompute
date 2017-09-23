@@ -418,6 +418,9 @@ common_env.SharedLibrary('libraries/libSupplier.so', ['build/tpchBench/Supplier.
 common_env.SharedLibrary('libraries/libLineItem.so', ['build/tpchBench/LineItem.cc'] + all)
 common_env.SharedLibrary('libraries/libOrder.so', ['build/tpchBench/Order.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomer.so', ['build/tpchBench/Customer.cc'] + all)
+common_env.SharedLibrary('libraries/libTopJaccard.so', ['build/tpchBench/TopJaccard.cc'] + all)
+common_env.SharedLibrary('libraries/libAllParts.so', ['build/tpchBench/AllParts.cc'] + all)
+common_env.SharedLibrary('libraries/libJaccardResultWriter.so', ['build/tpchBench/JaccardResultWriter.cc'] + all)
 common_env.SharedLibrary('libraries/libSumResultWriteSet.so', ['build/tpchBench/SumResultWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libSupplierDataWriteSet.so', ['build/tpchBench/SupplierDataWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
@@ -432,6 +435,7 @@ common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/Coun
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
 common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
+common_env.Program('bin/tpchJaccard', ['build/tpchBench/JaccardMain.cc'] + all)
 common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
 common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
 common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
@@ -959,6 +963,9 @@ libLATest=common_env.Alias('libLATest', [
   'libraries/libMatrixData.so',
   'libraries/libMatrixMeta.so',
 ])
+
+jaccard=common_env.Alias('jaccard', [
+  'libraries/libCustomer.so', 'libraries/libLineItem.so', 'libraries/libOrder.so', 'libraries/libPart.so', 'libraries/libSupplier.so', 'libraries/libScanCustomerSet.so', 'libraries/libTopJaccard.so', 'libraries/libAllParts.so', 'libraries/libJaccardResultWriter.so', 'bin/tpchJaccard'])
 
 lda2=common_env.Alias('lda2', [
   'bin/CatalogTests',
