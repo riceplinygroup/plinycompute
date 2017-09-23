@@ -50,6 +50,7 @@ UserSet::UserSet( pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
         this->lastFlushedPageId = (unsigned int) (-1);
         this->dirtyPagesInPageCache = new unordered_map<PageID, FileSearchKey>();
         pthread_mutex_init(&this->dirtyPageSetMutex, nullptr);
+        pthread_mutex_init(&this->addBytesMutex, nullptr);
         this->isPinned = false;
         this->numPages = 0;
 }
@@ -86,6 +87,7 @@ UserSet::UserSet(size_t pageSize,
         this->inputBufferPage = nullptr;
         this->dirtyPagesInPageCache = new unordered_map<PageID, FileSearchKey>();
         pthread_mutex_init(&this->dirtyPageSetMutex, nullptr);
+        pthread_mutex_init(&this->addBytesMutex, nullptr);
         this->isPinned = false;
         this->numPages = this->file->getNumFlushedPages();
         cout << "Number of existing pages = "<<this->numPages<<endl;
@@ -98,6 +100,8 @@ UserSet::UserSet(size_t pageSize,
 UserSet::~UserSet() {
 //    this->file->closeAll();
     delete this->dirtyPagesInPageCache;
+    pthread_mutex_destroy(&this->dirtyPageSetMutex);
+    pthread_mutex_destroy(&this->addBytesMutex);
 }
 
 
@@ -120,24 +124,24 @@ PDBPagePtr UserSet::getPage(FilePartitionID partitionId,
 
 PDBPagePtr UserSet::addPage() {
     //cout << "To add page...\n";
-    this->logger->writeLn("UserSet: to add page...");
+    //this->logger->writeLn("UserSet: to add page...");
     PageID pageId = seqId.getNextSequenceID();
-    PDB_COUT << "PDBPagePtr: pageId=" << pageId << "\n";
-    this->logger->writeLn("UserSet: pageId generated =");
-    this->logger->writeInt(pageId);
+    //PDB_COUT << "PDBPagePtr: pageId=" << pageId << "\n";
+    //this->logger->writeLn("UserSet: pageId generated =");
+    //this->logger->writeInt(pageId);
     CacheKey key;
     key.dbId = this->dbId;
     key.typeId = this->typeId;
     key.setId = this->setId;
     key.pageId = pageId;
     PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this);
-    PDB_COUT << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
-    this->logger->writeLn("UserSet: pageId set =");
-    this->logger->writeInt(pageId);
+    std :: cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
+    //this->logger->writeLn("UserSet: pageId set =");
+    //this->logger->writeInt(pageId);
     if(page == nullptr ) {
         return nullptr;
     }
-    //cout << "Got page from buffer pool!\n";
+    std :: cout << "Got page from buffer pool!\n";
     page->preparePage();
     //cout << "Page header prepared!\n";
     this->addPageToDirtyPageSet(page->getPageID());
