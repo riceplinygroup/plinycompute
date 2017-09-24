@@ -24,7 +24,6 @@
 #include "SinkShuffler.h"
 #include "JoinTupleBase.h"
 #include "PDBPage.h"
-#include "RecordIterator.h"
 
 namespace pdb {
 
@@ -537,9 +536,6 @@ private:
         size_t myListSize = 0;
         size_t myHash = 0;
 
-
-        RecordIteratorPtr myIter = nullptr;
-
 public:
 
         // the first param is a callback function that the iterator will call in order to obtain the page holding the next vector to iterate
@@ -558,14 +554,8 @@ public:
                 // extract the vector from the input page
                 myPage = getAnotherVector();
                 if (myPage != nullptr) {
-                    myIter = make_shared<RecordIterator>(myPage);
-                    if (myIter->hasNext() == true) {
-                        myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myIter->next());
-                    } else {
-                        myRec = nullptr;
-                    }
+                    myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myPage->getBytes());
                 } else {
-                    myIter = nullptr;
                     myRec = nullptr;
                 }
                 if (myRec != nullptr) {
@@ -724,24 +714,13 @@ public:
                         // this means that we got to the end of the vector
                         //std :: cout <<"finished a vector" << std :: endl;
                         lastRec = myRec;
-                        if (myIter->hasNext() == true) {
-                            myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) myIter->next();
+                        lastPage = myPage;
+                        // try to get another vector
+                        myPage = getAnotherVector();
+                        if (myPage != nullptr) {
+                             myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myPage->getBytes());
                         } else {
-                            lastPage = myPage;
-                            // try to get another vector
-                            myPage = getAnotherVector();
-                            if (myPage != nullptr) {
-                                 myIter = std :: make_shared<RecordIterator>(myPage);
-                                 if (myIter->hasNext() == true) {
-                                    myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) (myIter->next());
-                                 } else {
-                                    myRec = nullptr;
-                                    myIter=nullptr;
-                                 }
-                            } else {
-                                 myRec = nullptr;
-                                 myIter = nullptr;
-                            }
+                             myRec = nullptr;
                         }
                         // if we could not, then we are outta here
                         if (myRec == nullptr) {

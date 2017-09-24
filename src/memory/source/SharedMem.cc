@@ -151,12 +151,10 @@ int SharedMem::getMem() {
 }
 
 long long SharedMem::computeOffset(void* shmAddress) {
-    //std :: cout << "shmAddress=" << shmAddress << ", memPool="<< memPool << std::endl;
     return (long long) ((char*) shmAddress - (char*) this->memPool);
 }
 
 void * SharedMem::getPointer(size_t offset) {
-    //std :: cout << "offset=" << offset << ", memPool="<< memPool << std::endl;
     return (void *) ((size_t)this->memPool + (size_t) offset);
 }
 
