@@ -520,19 +520,16 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      pageToBroadcast->incRefCount();
                                   }
                                   for ( k = 0; k < numNodes; k++ ) {
-                                     //if (k != myNodeId) {
+                                     if (k != myNodeId) {
                                         PageCircularBufferPtr buffer = sinkBuffers[k];
                                         buffer->addPageToTail(pageToBroadcast);
-                                     //}
+                                     }
                                   }
-                                  /*PDBPagePtr output;
-                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                                  memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
-                                  proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
+                                  proxy->pinBytes(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), record->numBytes(), record);
                                   pageToBroadcast->decRefCount();
                                   if (pageToBroadcast->getRefCount() == 0) {
                                      pageToBroadcast->freeContent();
-                                  }*/
+                                  }
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
                               }
@@ -1149,10 +1146,10 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  /*if (i == myNodeId) {
+                  if (i == myNodeId) {
                        callerBuzzer->buzz(PDBAlarm :: WorkAllDone, shuffleCounter);
                        return;
-                  }*/
+                  }
                   UseTemporaryAllocationBlock tempBlock {2*1024*1024};
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);

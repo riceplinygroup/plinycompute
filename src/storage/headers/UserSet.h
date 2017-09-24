@@ -100,7 +100,9 @@ public:
      * Unpin buffer page.
      */
     void unpinBufferPage() {
-         this->inputBufferPage->decRefCount();
+         if (this->inputBufferPage != nullptr) {
+             this->inputBufferPage->decRefCount();
+         }
     }   
 
 
