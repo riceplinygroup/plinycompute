@@ -33,8 +33,10 @@
 #include "StorageGetDataResponse.h"
 #include "StorageGetSetPages.h"
 #include "StoragePinPage.h"
+#include "StoragePinBytes.h"
 #include "StorageUnpinPage.h"
 #include "StoragePagePinned.h"
+#include "StorageBytesPinned.h"
 #include "StorageNoMorePage.h"
 #include "StorageTestSetScan.h"
 #include "BackendTestSetScan.h"
@@ -1297,6 +1299,66 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         return make_pair(res, errMsg);
                 }
         ));
+
+        // this handler accepts a request to pin bytes in a set
+        forMe.registerHandler (StoragePinBytes_TYPEID, make_shared <SimpleRequestHandler <StoragePinBytes>> (
+                [&] (Handle <StoragePinBytes> request, PDBCommunicatorPtr sendUsingMe) {
+                        PDBLoggerPtr logger = make_shared<PDBLogger>("storagePinPage.log");
+                        //NodeID nodeId = request->getNodeID();
+                        DatabaseID dbId = request->getDatabaseID();
+                        UserTypeID typeId = request->getUserTypeID();
+                        SetID setId = request->getSetID();
+                        size_t sizeOfBytes = request->getSizeOfBytes();
+
+                        //PDB_COUT << "to pin bytes in set with setId=" << setId << std :: endl;
+                        bool res;
+                        string errMsg;
+
+                        PDBPagePtr page = nullptr;
+                        SetPtr set = nullptr;
+
+                        if((dbId == 0) && (typeId == 0)) {
+                                //temp set
+                                set = getFunctionality<PangeaStorageServer>().getTempSet(setId);
+                        } else {
+                                //user set
+                                set = getFunctionality<PangeaStorageServer>().getSet(dbId, typeId, setId);
+                        }
+
+                        void * myBytes = nullptr;
+                        if (set != nullptr) {
+                                myBytes = set->getNewBytes(sizeOfBytes);
+                        }
+
+                        if(myBytes != nullptr) {
+                                //std :: cout << "Handling StoragePinBytes: bytes is not null, we build the StorageBytesPinned message" << std :: endl;
+                                //logger->debug(std :: string("Handling StoragePinBytes: page is not null, we build the StorageBytesPinned message"));
+                                const UseTemporaryAllocationBlock myBlock{2048};
+                                Handle <StorageBytesPinned> ack = makeObject<StorageBytesPinned>();
+                                ack->setSizeOfBytes(sizeOfBytes);
+                                size_t offset = this->shm->computeOffset(myBytes);
+                                //std :: cout << "My bytes offset is " << offset << std :: endl;
+                                ack->setSharedMemOffset(offset);
+                                //std :: cout << "Handling StoragePinPage: to send StorageBytesPinned message" << std :: endl;
+                                //logger->debug(std :: string("Handling StoragePinBytes: to send StorageBytesPinned message"));
+                                res = sendUsingMe->sendObject<StorageBytesPinned>(ack, errMsg);
+                                //std :: cout << "Handling StoragePinPage: sent StorageBytesPinned message" << std :: endl;
+                                //logger->debug(std :: string("Handling StoragePinBytes: sent StorageBytesPinned message"));
+                        }
+                        else {
+                                res = false;
+                                errMsg = "Can't get bytes for set:";
+                                std :: cout << "dbId = " << dbId << ", typeId = " << typeId << ", setId = " << setId << std :: endl;
+                                std :: cout << errMsg << std :: endl;
+                                logger->error(errMsg);
+                                //exit(-1);
+                        }
+                        return make_pair(res, errMsg);
+                }
+        ));
+
+
+
 
         // this handler accepts a request to unpin a page
         forMe.registerHandler (StorageUnpinPage_TYPEID, make_shared <SimpleRequestHandler <StorageUnpinPage>> (

@@ -135,9 +135,11 @@ public:
      */
     inline void * addVariableBytes(size_t size) {
         //this->writeLock();
+        //std :: cout << "addVariableBytes with size=" << size << std :: endl;
         size_t remainSize = this->size - this->curAppendOffset;
         if (remainSize < size + sizeof(size_t)) {
             //no room in the current page
+            //std :: cout << "INFO: insufficient room in the current page" << std :: endl;
             //this->writeUnlock();
             return nullptr;
         }
