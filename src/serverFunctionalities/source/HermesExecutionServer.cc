@@ -595,9 +595,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          std :: string errMsg;
 
                          //get aggregate computation 
-                         //std :: cout << i << ": to get aggregation computation" << std :: endl;
+                         std :: cout << i << ": to get aggregation computation" << std :: endl;
                          Handle<AbstractAggregateComp> aggComputation = request->getAggComputation();
-                         //std :: cout << i << ": to deep copy aggregation computation object" << std :: endl;
+                         std :: cout << i << ": to deep copy aggregation computation object" << std :: endl;
                          Handle<AbstractAggregateComp> newAgg = deepCopyToCurrentAllocationBlock<AbstractAggregateComp>(aggComputation);
 
                          //get aggregate processor
@@ -611,7 +611,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                              while(myIter->hasNext()) {
                                  PDBPagePtr page = myIter->next();
                                  if (page != nullptr) {
-                                     //std :: cout << "aggregation without materialization: got one non-null page" << std :: endl;
+                                     std :: cout << "aggregation without materialization: got one non-null page" << std :: endl;
                                      Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *) page->getBytes();
                                      Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
                                      int inputSize = 0;
@@ -626,9 +626,9 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                          }
                                          if (outBytes == nullptr) {
                                              //create a new partition
-                                             //std :: cout << "aggregation without materialization: add output page" << std :: endl; 
+                                             std :: cout << "aggregation without materialization: add output page" << std :: endl; 
                                              outBytes = aggregationSet->addPage();                                          
-                                             //std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
+                                             std :: cout << "add a new page to hash set for partition-" << i << std :: endl;
                                              if(outBytes == nullptr) {
                                                  std :: cout << "insufficient memory in heap" << std :: endl;
                                                  exit(-1);
@@ -863,13 +863,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                      while (iter->hasNext()) {
                          page = iter->next();
                          if (page != nullptr) {
-                             //std :: cout << "Scanner got a non-null page" << std :: endl;
+                             std :: cout << "Scanner got a non-null page" << std :: endl;
                              int k;
                              for (k = 0; k < numPartitions; k++) {
                                  page->incRefCount();
                              }
                              for (k = 0; k < numPartitions; k++) {
-                                //std :: cout << "add page to the " << k << "-th buffer" << std :: endl;
+                                std :: cout << "add page to the " << k << "-th buffer" << std :: endl;
                                 hashBuffers[k]->addPageToTail(page);
                              }
                        
@@ -1060,13 +1060,13 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                                       }
                                   }
                                   //unpin the input page 
-                                  //PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
+                                  PDB_COUT << "####To unpin the page with id = " << page->getPageID() << std :: endl;
                                   page->decRefCount();
                                   //std :: cout << i << ": processed an input page with pageId = " << page->getPageID() << ", reference count=" << page->getRefCount() << std :: endl;
                                   if (page->getRefCount() == 0) {
-                                         //std :: cout << i << ": to unpin the input page: with dbId="<< page->getDbID() << ", setId=" << page->getSetID() << ", pageId=" << page->getPageID() << std :: endl;
+                                         std :: cout << i << ": to unpin the input page: with dbId="<< page->getDbID() << ", setId=" << page->getSetID() << ", pageId=" << page->getPageID() << std :: endl;
                                          proxy->unpinUserPage(nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-                                         //PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
+                                         PDB_COUT << "####Unpined page with id = " << page->getPageID() << std :: endl;
                                   }
 
 

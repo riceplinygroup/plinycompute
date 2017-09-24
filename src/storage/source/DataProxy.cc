@@ -34,11 +34,9 @@
 #include "StorageAddTempSet.h"
 #include "StorageAddTempSetResult.h"
 #include "StoragePinPage.h"
-#include "StoragePinBytes.h"
 #include "StorageUnpinPage.h"
 #include "SimpleRequestResult.h"
 #include "StoragePagePinned.h"
-#include "StorageBytesPinned.h"
 #include "StorageRemoveTempSet.h"
 #include "CloseConnection.h"
 #include "Configuration.h"
@@ -233,7 +231,7 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
         return false;
     }
     if (numTries > 0) {
-        logger->error(std::string("DataProxy: addUserPage with numTries=")+std::to_string(numTries));
+        logger->error(std::string("DataProxy: addTempPage with numTries=")+std::to_string(numTries));
     }
     string errMsg;
     if (this->communicator->isSocketClosed() == true) {
@@ -342,102 +340,6 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
    }
 }
 
-bool DataProxy::pinBytes(DatabaseID dbId, UserTypeID typeId, SetID setId, size_t sizeOfBytes, void * bytes, bool needMem, int numTries) {
-    //std :: cout << "Num bytes to pin: " << sizeOfBytes << std :: endl;
-    if (numTries == MAX_RETRIES) {
-        return false;
-    }
-    if (numTries > 0) {
-        logger->error(std::string("DataProxy: pinBytes with numTries=")+std::to_string(numTries));
-    }
-    string errMsg;
-    if (this->communicator->isSocketClosed() == true) {
-        std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
-        logger->error("DataProxy: connection is closed, to reconnect");
-        if (communicator->reconnect(errMsg)) {
-           std :: cout << errMsg << std :: endl;
-           logger->error(std::string("DataProxy: reconnect failed with errMsg")+errMsg);
-           return false;
-        }
-    }
-    if (needMem == true) {
-        //create a PinPage object
-        {
-            const pdb :: UseTemporaryAllocationBlock myBlock{2048};
-            pdb::Handle<pdb :: StoragePinBytes> msg = pdb::makeObject<pdb :: StoragePinBytes>();
-            msg->setNodeID(this->nodeId);
-            msg->setDatabaseID(dbId);
-            msg->setUserTypeID(typeId);
-            msg->setSetID(setId);
-            msg->setSizeOfBytes(sizeOfBytes);
-            //send the message out
-            if (!this->communicator->sendObject<pdb :: StoragePinBytes>(msg, errMsg)) {
-                cout << "DataProxy.AddUserPage(): Sending object failure: " << errMsg <<"\n";
-                sleep (numTries+1);
-                return pinBytes(dbId, typeId, setId, sizeOfBytes, bytes, needMem, numTries+1);
-            }
-        }
-
-        //receive the PagePinned object
-        {
-            size_t objectSize = this->communicator->getSizeOfNextObject();
-            if (objectSize == 0) {
-                std :: cout << "Receive ack failure" << std :: endl;
-                sleep (numTries+1);
-                return pinBytes(dbId, typeId, setId, sizeOfBytes, bytes, needMem, numTries+1);
-            }
-            PDB_COUT << "DataProxy: to allocate memory block for BytesPinned object" << std :: endl;
-            const pdb :: UseTemporaryAllocationBlock myBlock{objectSize};
-            PDB_COUT << "DataProxy: memory block allocated" << std :: endl;
-            bool success;
-            pdb :: Handle <pdb :: StorageBytesPinned> ack =
-                this->communicator->getNextObject<pdb :: StorageBytesPinned>(success, errMsg);
-            if (ack == nullptr) {
-                cout << "Receiving ack failure:" << errMsg << "\n";
-                sleep (numTries+1);
-                return pinBytes(dbId, typeId, setId, sizeOfBytes, bytes, needMem, numTries+1);
-            }
-            void * dest = this->shm->getPointer(ack->getSharedMemOffset());
-            memcpy(dest, bytes, sizeOfBytes);
-            //std :: cout << "shared memory offset is " << ack->getSharedMemOffset() << std :: endl;
-            return success;
-        }
-    }
-    else {
-
-        //create a PinBytes object
-        {
-            pdb::Handle<pdb :: StoragePinBytes> msg = pdb::makeObject<pdb :: StoragePinBytes>();
-            msg->setNodeID(this->nodeId);
-            msg->setDatabaseID(dbId);
-            msg->setUserTypeID(typeId);
-            msg->setSetID(setId);
-            msg->setSizeOfBytes(sizeOfBytes);
-            //send the message out
-            if (!this->communicator->sendObject<pdb :: StoragePinBytes>(msg, errMsg)) {
-                cout << "Sending object failure: " << errMsg <<"\n";
-                sleep (numTries+1);
-                return pinBytes(dbId, typeId, setId, sizeOfBytes, bytes, needMem, numTries+1);
-            }
-        }
-        //receive the PageBytes object
-        {
-            bool success;
-            pdb :: Handle <pdb :: StorageBytesPinned> ack =
-                this->communicator->getNextObject<pdb :: StorageBytesPinned>(success, errMsg);
-            if (ack == nullptr) {
-                cout << "Receiving ack failure:" << errMsg << "\n";
-                sleep (numTries+1);
-                return pinBytes(dbId, typeId, setId, sizeOfBytes, bytes, needMem, numTries+1);
-            }
-            void * dest = this->shm->getPointer(ack->getSharedMemOffset());
-            memcpy(dest, bytes, sizeOfBytes);
-            return success;
-        }
-     }
-
-
-}
     
 bool DataProxy::pinTempPage(SetID setId, PageID pageId, PDBPagePtr &page, bool needMem, int numTries) {
     return pinUserPage(this->nodeId, 0, 0, setId, pageId, page, needMem, numTries);

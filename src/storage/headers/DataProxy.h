@@ -97,13 +97,6 @@ public:
     bool pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
         PageID pageId, PDBPagePtr &page, bool needMem = true, int numTries=0);
 
-   /**
-    * Copy bytes to a page in localset, it returns true if successful.
-    */
-    bool pinBytes(DatabaseID dbId, UserTypeID typeId, SetID setId, 
-        size_t sizeOfBytes, void * bytes, bool needMem = true, int numTries =0);
-
-
     /**
      * UnPin a page in the user set specified by the given DatabaseID, UserTypeID, SetID and PageID from memory,
      * so that it can be flushed to disk if it is in input buffer, or can be evicted if it is in cache.

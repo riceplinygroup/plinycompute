@@ -538,7 +538,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             std :: string hashSetName = "";
             if (joinNode->isTraversed() == false) {
                 //std :: cout << "this node hasn't been traversed before" << std :: endl;
-                if ((isProbing == true)&&(this->costOfCurSource<=JOIN_COST_THRESHOLD)) {
+                if (isProbing == true) {
                          //std :: cout << "We are probing join with a broadcast sink" << std :: endl;
                          //this is too bad that we we've already probed join tables and join results could be huge.
                          //so we do nothing just clear the pipeline stages and return;
@@ -552,8 +552,8 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                                  break;
                              }
                          }
-                         if ((penalizedSourceSets.size() == 0) || (j == penalizedSourceSets.size())) {
-                             std :: cout << "WARNING: met a join sink with probing, to return and put "
+                         if ((penalizedSourceSets.size() == 0) && (j == penalizedSourceSets.size())) {
+                             std :: cout << "WARNING: met a Broadcasting join on probed results, to return and put "
                                     << this->curSourceSetName << " to penalized list" << std :: endl;
                              penalizedSourceSets.push_back(this->curSourceSetName);
                          }

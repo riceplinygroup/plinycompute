@@ -520,16 +520,19 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      pageToBroadcast->incRefCount();
                                   }
                                   for ( k = 0; k < numNodes; k++ ) {
-                                     if (k != myNodeId) {
+                                     //if (k != myNodeId) {
                                         PageCircularBufferPtr buffer = sinkBuffers[k];
                                         buffer->addPageToTail(pageToBroadcast);
-                                     }
+                                     //}
                                   }
-                                  proxy->pinBytes(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), record->numBytes(), record);
+                                  /*PDBPagePtr output;
+                                  proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
+                                  memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                                  proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
                                   pageToBroadcast->decRefCount();
                                   if (pageToBroadcast->getRefCount() == 0) {
                                      pageToBroadcast->freeContent();
-                                  }
+                                  }*/
                               } else {
                                   free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
                               }
@@ -1146,10 +1149,10 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
         // start threads
         PDBWorkPtr myWork = make_shared<GenericWork> (
              [&, i] (PDBBuzzerPtr callerBuzzer) {
-                  if (i == myNodeId) {
+                  /*if (i == myNodeId) {
                        callerBuzzer->buzz(PDBAlarm :: WorkAllDone, shuffleCounter);
                        return;
-                  }
+                  }*/
                   UseTemporaryAllocationBlock tempBlock {2*1024*1024};
                   std :: string out = getAllocator().printInactiveBlocks();
                   logger->warn(out);
@@ -1278,9 +1281,9 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
 
                   //create the data proxy
                   DataProxyPtr proxy = nullptr;
-                  if (i == myNodeId) {
+                  /*if (i == myNodeId) {
                        proxy = createProxy(i, connection_mutex, errMsg);
-                  }
+                  }*/
                   //get the i-th address
                   std :: string address = this->jobStage->getIPAddress(i);
                   PDB_COUT << "address = " << address << std :: endl;
@@ -1349,34 +1352,37 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                   bool success = shuffler->writeOut(theOtherMaps[j], myMaps);
                                   if (success == false) {
                                       //output page is full, send it out
-                                      //Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
+                                      Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
                                       /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
                                       for (int j = 0; j < maps->size(); j++) {
                                           std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std :: endl;
                                       }*/
                                       getRecord(myMaps);
-                                      Record<Object> * myRecord = (Record<Object> *)output;
-                                      size_t numBytes = myRecord->numBytes();
-                                      char * sendBuffer = (char *) malloc (numBytes);
-                                      if (sendBuffer == nullptr) {
+                                      //if (i != myNodeId) {
+                                          std :: cout << getAllocator().printCurrentBlock() << std :: endl;
+                                          Record<Object> * myRecord = (Record<Object> *)output;
+                                          size_t numBytes = myRecord->numBytes();
+                                          char * sendBuffer = (char *) malloc (numBytes);
+                                          if (sendBuffer == nullptr) {
                                                std :: cout << "Out of memory on heap" << std :: endl;
                                                exit(-1);
-                                      }
-                                      memcpy(sendBuffer, output, numBytes);
-                                      if (i != myNodeId) {
-                                          std :: cout << getAllocator().printCurrentBlock() << std :: endl;
+                                          }
+                                          memcpy(sendBuffer, output, numBytes);
                                           makeObjectAllocatorBlock (128 * 1024, true);
                                           
                                           sendData (communicator, sendBuffer, numBytes,  jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
-                                      } else {
+                                          free (sendBuffer);
+                                      /*} else {
+                                          PDBPagePtr outputPage;
                                           makeObjectAllocatorBlock (128 * 1024, true);
-                                          proxy->pinBytes(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), numBytes, sendBuffer, false);
-                                      }
-                                      free (sendBuffer);
+                                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
+                                          memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
+                                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
+                                      }*/
                                       numPages ++;
                                       //free the output page and reload a new output page
                                       myMaps = nullptr;
-                                      //maps = nullptr;
+                                      maps = nullptr;
                                       buffer = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
                                       //blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (buffer, DEFAULT_NET_PAGE_SIZE);
                                       makeObjectAllocatorBlock(buffer, DEFAULT_NET_PAGE_SIZE, true);
@@ -1406,14 +1412,6 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                   std :: cout << out << std :: endl;
                   if (myMaps != nullptr) {
                       getRecord(myMaps);
-                      Record<Object> * myRecord = (Record<Object>*) output;
-                      size_t numBytes = myRecord->numBytes();
-                      char * sendBuffer = (char *) malloc (numBytes);
-                      if (sendBuffer == nullptr) {
-                               std :: cout << "Out of memory on heap" << std :: endl;
-                               exit(-1);
-                      }
-                      memcpy(sendBuffer, output, numBytes);
                       //Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps = unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
                       /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
                       for (int j = 0; j < maps->size(); j++) {
@@ -1428,15 +1426,26 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       out = getAllocator().printInactiveBlocks();
                       std :: cout << "inactive blocks before sending data in this worker:" << std :: endl;
                       std :: cout << out << std :: endl;
-                      if (i != myNodeId) {
+                      //if (i != myNodeId) {
                           std :: cout << getAllocator().printCurrentBlock() << std :: endl;
+                          Record<Object> * myRecord = (Record<Object>*) output;
+                          size_t numBytes = myRecord->numBytes();
+                          char * sendBuffer = (char *) malloc (numBytes);
+                          if (sendBuffer == nullptr) {
+                               std :: cout << "Out of memory on heap" << std :: endl;
+                               exit(-1);
+                          }
+                          memcpy(sendBuffer, output, numBytes);
                           makeObjectAllocatorBlock (128 * 1024, true);
                           sendData(communicator, sendBuffer, numBytes, jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), errMsg);
-                      } else {
+                          free(sendBuffer);
+                      /*} else {
+                          PDBPagePtr outputPage;
                           makeObjectAllocatorBlock (128 * 1024, true);
-                          proxy->pinBytes(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), numBytes, sendBuffer, false);
-                      }
-                      free(sendBuffer);
+                          proxy->addUserPage(jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), outputPage, false);
+                          memcpy(outputPage->getBytes(), output, DEFAULT_NET_PAGE_SIZE);
+                          proxy->unpinUserPage(nodeId, outputPage->getDbID(), outputPage->getTypeID(), outputPage->getSetID(), outputPage, false);
+                      }*/
                       numPages ++;
                       myMaps = nullptr;
                   }
