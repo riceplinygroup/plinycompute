@@ -15,38 +15,51 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef SILLY_JOIN_H
-#define SILLY_JOIN_H
+/*
+ * StorageBytesPinned.h
+ *
+ *  Created on: Feb 29, 2016
+ *      Author: Jia
+ */
 
-//by Jia, Mar 2017
+#ifndef SRC_BUILTINPDBOBJECTS_HEADERS_BYTESPINNED_H_
+#define SRC_BUILTINPDBOBJECTS_HEADERS_BYTESPINNED_H_
 
-#include "JoinComp.h"
-#include "PDBString.h"
-#include "StringIntPair.h"
-#include "LambdaCreationFunctions.h"
+#include <cstddef>
 
+#include "Object.h"
+#include "DataTypes.h"
 
-using namespace pdb;
+//  PRELOAD %StorageBytesPinned%
 
-class SillyJoin : public JoinComp <String, int, StringIntPair, String> {
+namespace pdb {
+// this object type is sent from the server to backend to tell it a page is pinned for it.
+class StorageBytesPinned : public pdb :: Object {
+
 
 public:
 
+	StorageBytesPinned () {}
+	~StorageBytesPinned () {}
+
+
+	//get/set sizeOfBytes
+	size_t getSizeOfBytes() {return this->sizeOfBytes;}
+	void setSizeOfBytes(size_t sizeOfBytes) {this->sizeOfBytes = sizeOfBytes;}
+
+
+	//get/set page offset in shared memory pool
+	size_t getSharedMemOffset() {return this->sharedMemOffset;}
+	void setSharedMemOffset(size_t offset) {this->sharedMemOffset = offset;}
+
         ENABLE_DEEP_COPY
 
-        SillyJoin () {}
-
-        Lambda <bool> getSelection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
-                //std :: cout << "SillyJoin selection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
-                return (makeLambdaFromSelf (in1) == makeLambdaFromMember (in2, myInt)) && (makeLambdaFromMember (in2, myString) == makeLambdaFromSelf (in3));
-        }
-
-        Lambda <Handle <String>> getProjection (Handle <int> in1, Handle <StringIntPair> in2, Handle <String> in3) override {
-                 //std :: cout << "SillyJoin projection: type code is " << in1.getExactTypeInfoValue() << ", " << in2.getExactTypeInfoValue() << ", " << in3.getExactTypeInfoValue() << std :: endl;
-                return makeLambdaFromMember (in2, myString);
-        }
+private:
+	size_t sizeOfBytes;
+	size_t sharedMemOffset;
 
 };
 
+}
 
-#endif
+#endif /* SRC_BUILTINPDBOBJECTS_HEADERS_BYTESPINNED_H_ */
