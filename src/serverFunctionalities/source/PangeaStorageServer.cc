@@ -1347,7 +1347,7 @@ void PangeaStorageServer :: registerHandlers (PDBServer &forMe) {
                         }
                         else {
                                 res = false;
-                                errMsg = "Can't get bytes for set:";
+                                errMsg = "Can't get " + std::to_string( sizeOfBytes ) +  " bytes for set:";
                                 std :: cout << "dbId = " << dbId << ", typeId = " << typeId << ", setId = " << setId << std :: endl;
                                 std :: cout << errMsg << std :: endl;
                                 logger->error(errMsg);
