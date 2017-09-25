@@ -160,9 +160,10 @@ public:
       
         //we add a new page as inputBufferPage
         this->inputBufferPage = this->addPage();
+        buffer = this->inputBufferPage->addVariableBytes(size);
         pthread_mutex_unlock(&this->addBytesMutex);
         //get new bytes in the new page
-        return this->inputBufferPage->addVariableBytes(size);
+        return buffer;
     }
     pthread_mutex_unlock(&this->addBytesMutex);
     return buffer;
