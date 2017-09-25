@@ -519,6 +519,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                              return std :: make_pair (true, std :: string("execution complete"));
 
                          } else {
+                             inputSet->unpinBufferPage();
                              getFunctionality<PangeaStorageServer>().cleanup(false);
                          }
                          std :: cout << "number of pages in set " << inSetName << " is " << inputSet->getNumPages() << std :: endl;
