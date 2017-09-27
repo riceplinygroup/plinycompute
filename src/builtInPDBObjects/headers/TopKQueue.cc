@@ -146,7 +146,7 @@ void TopKQueue <Score, ValueType> :: swap (int i, int j) {
 
 template <class Score, class ValueType>
 void TopKQueue <Score, ValueType> :: insert (Score &score, ValueType &value) {
-
+        //std :: cout << "incoming score=" << score << std :: endl;
 	// for an empty heap, just insert
 	if (empty) {
 		tempScore = score;
@@ -165,16 +165,20 @@ void TopKQueue <Score, ValueType> :: insert (Score &score, ValueType &value) {
 		return;
 
 	// insert the new guy at the bottom level of the heap
+         
 	allScores->push_back (score);
 	allValues->push_back (value);
-
+      
 	// now, swap until we have a heap
 	Score *scores = allScores->c_ptr ();
 	ValueType *values = allValues->c_ptr ();
-
+        //std :: cout << "score=" << score << " inserted" << std :: endl;
 	int current = allScores->size () - 1;
 	while (current > 0 && scores[current] < scores[(current - 1) / 2]) {
-		swap (current, current / 2);
+                //JiaNote: below is the original code
+		//swap (current, current / 2);
+                //JiaNote: below is the fixed code
+                swap(current, (current-1)/2);
 		current = (current - 1) / 2;
 	}
 
@@ -184,6 +188,10 @@ void TopKQueue <Score, ValueType> :: insert (Score &score, ValueType &value) {
 
 	// we cannot fit everyone, so we need to remove the worst one
 	// put the last one at the first position
+        /*for (int i = 0; i < allScores->size(); i++) {
+                std :: cout << "score[" << i << "]=" << scores[i] << std :: endl;
+        }*/
+        //std :: cout << "score=" << scores [0] << " removed" << std :: endl;
 	scores[0] = scores [allScores->size () - 1];
 	values[0] = values [allScores->size () - 1];
 	allScores->pop_back ();
@@ -257,7 +265,13 @@ TopKQueue <Score, ValueType> &TopKQueue <Score, ValueType> ::operator + (TopKQue
 	Score *scores = addMeIn.allScores->c_ptr ();
 	ValueType *values = addMeIn.allValues->c_ptr ();
 	for (int i = 0; i < len; i++) {
+            try {
 		insert (scores[i], values[i]);
+            }
+            catch (NotEnoughSpace &n) {
+                std :: cout << "Not enough space when trying to insert the " << i << "-th score" << std :: endl;
+                throw n;
+            }
 	}
 
 	return *this;
