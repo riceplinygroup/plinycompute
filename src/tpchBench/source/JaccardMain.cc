@@ -135,15 +135,27 @@ int main (int argc, char * argv[]) {
     // now iterate through the result
     SetIterator <TopKQueue <double, Handle <AllParts>>> result =
            myClient.getSetIterator <TopKQueue <double, Handle <AllParts>>> ("TPCH_db", "result");
+    std :: map <int, int> resultMap;
+
     for (auto &a : result) {
             std :: cout << "Got back " << a->size () << " items from the top-k query.\n";
             std :: cout << "These items are:\n";
+            
             for (int i = 0; i < a->size (); i++) {
                     std :: cout << "score: " << (*a)[i].getScore () << "\n";
                     std :: cout << "data: ";
                     (*a)[i].getValue ()->print ();
+                    if (resultMap.count((*a)[i].getValue()->custKey) == 0) {
+                        resultMap[(*a)[i].getValue()->custKey] = 1;
+                    } else {
+                        resultMap[(*a)[i].getValue()->custKey] = resultMap[(*a)[i].getValue()->custKey] + 1;
+                    }
                     std :: cout << "\n\n";
             }
+    }
+
+    for (auto &a : resultMap) {
+           std :: cout << a.first << "  => " << a.second << '\n';
     }
 
 }
