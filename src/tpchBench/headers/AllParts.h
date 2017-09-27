@@ -31,6 +31,8 @@ namespace pdb {
 // customer is store in the vector parts.
 class AllParts : public Object {
 
+public:
+
         // the customer in question
         int custKey;
 
