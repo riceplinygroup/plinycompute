@@ -76,22 +76,11 @@ public:
                     while (iter != endIter) {
                         String & myKey = (*iter).key;
                         Vector<int> & myVec = myLhs[myKey];
-
-                        if (myLhs.count(myKey) == 0) {
-                            try {
-                                myVec = (*iter).value;
-                            } catch ( NotEnoughSpace &n ) {
-                                myLhs.setUnused (myKey);
-                                throw n;
-                            }
-                        } else {
-                            Vector<int> &otherVec = (*iter).value;
-                            int * myOtherData = otherVec.c_ptr();
-                            size_t mySize = myVec.size();
-                            size_t myOtherSize = otherVec.size();
-                            myVec.resize(mySize + myOtherSize);
-                            
-                            for ( size_t i = mySize; i < mySize + myOtherSize; i++) {
+                        Vector<int> &otherVec = (*iter).value;
+                        int * myOtherData = otherVec.c_ptr();
+                        size_t mySize = myVec.size();
+                        size_t myOtherSize = otherVec.size();
+                        for ( size_t i = mySize; i < mySize + myOtherSize; i++) {
                                 try {
                                      myVec.push_back(myOtherData[i-mySize]);
 
@@ -104,7 +93,6 @@ public:
                                      throw n;
 
                                 }
-                            }
                         }
                         ++iter;
                     } 
