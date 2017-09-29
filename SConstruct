@@ -422,7 +422,7 @@ common_env.SharedLibrary('libraries/libTopJaccard.so', ['build/tpchBench/TopJacc
 common_env.SharedLibrary('libraries/libAllParts.so', ['build/tpchBench/AllParts.cc'] + all)
 common_env.SharedLibrary('libraries/libJaccardResultWriter.so', ['build/tpchBench/JaccardResultWriter.cc'] + all)
 common_env.SharedLibrary('libraries/libSumResultWriteSet.so', ['build/tpchBench/SumResultWriteSet.cc'] + all)
-common_env.SharedLibrary('libraries/libSupplierDataWriteSet.so', ['build/tpchBench/SupplierDataWriteSet.cc'] + all)
+common_env.SharedLibrary('libraries/libSupplierInfoWriteSet.so', ['build/tpchBench/SupplierInfoWriteSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanCustomerSet.so', ['build/tpchBench/ScanCustomerSet.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerSupplierPartFlat.so', ['build/tpchBench/CustomerSupplierPartFlat.cc'] + all)
 common_env.SharedLibrary('libraries/libCustomerWriteSet.so', ['build/tpchBench/CustomerWriteSet.cc'] + all)
@@ -431,6 +431,8 @@ common_env.SharedLibrary('libraries/libCustomerMultiSelection.so', ['build/tpchB
 common_env.SharedLibrary('libraries/libCustomerSupplierPartGroupBy.so', ['build/tpchBench/CustomerSupplierPartGroupBy.cc'] + all)
 common_env.SharedLibrary('libraries/libCountAggregation.so', ['build/tpchBench/CountAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/CountCustomer.cc'] + all)
+common_env.SharedLibrary('libraries/libSupplierInfo.so', ['build/tpchBench/SupplierInfo.cc'] + all)
+
 
 common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
 common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
@@ -750,10 +752,11 @@ tpch=common_env.Alias('tpch', [
   'libraries/libScanCustomerSet.so',
   'libraries/libCustomerSupplierPartFlat.so',
   'libraries/libSupplierData.so',
+  'libraries/libSupplierInfo.so',
   'libraries/libCustomerSupplierPartGroupBy.so',
   'libraries/libCustomerMultiSelection.so',
   'libraries/libCustomerWriteSet.so',
-  'libraries/libSupplierDataWriteSet.so',
+  'libraries/libSupplierInfoWriteSet.so',
   'libraries/libCountAggregation.so',
   'libraries/libCountCustomer.so',
   'bin/tpchQuery',
