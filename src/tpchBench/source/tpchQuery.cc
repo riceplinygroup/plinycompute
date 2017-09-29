@@ -140,11 +140,11 @@ int main() {
         //myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	// Get the count by doing a count aggregation on the final results
         #ifndef CHECK_RESULTS
-	Handle<Computation> countAggregation = makeObject<CountAggregation>();
-	countAggregation->setInput(myGroupBy);
+	Handle<Computation> myWriteSet = makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
+	myWriteSet->setInput(myGroupBy);
        
-	Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
-	myWriteSet->setInput(countAggregation);
+	//Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
+	//myWriteSet->setInput(countAggregation);
 
         #else
 

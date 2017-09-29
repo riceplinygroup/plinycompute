@@ -106,10 +106,13 @@ public:
                 //loop over to set the rows
                 outColumn.resize(numFlattenedRows);
                 int overallCounter = 0;
-                for (int i = 0; i < inputVecData.size(); i++) {
+                size_t mySize = inputVecData.size();
+                for (int i = 0; i < mySize; i++) {
                     Vector<Handle<Object>> & myVec = inputVecData[i];
-                    for (int j = 0; j < myVec.size(); j++) {
-                        outColumn[overallCounter] = myVec[j];
+                    Handle<Object> * myRawData = myVec.c_ptr();
+                    size_t myVecSize = myVec.size();
+                    for (int j = 0; j < myVecSize; j++) {
+                        outColumn[overallCounter] = myRawData[j];
                         //std :: cout << "flattened " << j << "-th object in the " << i << "-th vector" << std :: endl;
                         overallCounter ++;
                     }

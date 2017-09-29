@@ -35,6 +35,7 @@ inline unsigned int newHash (unsigned int x) {
 // computes a hash over an input character array
 inline size_t hashMe (char *me, size_t len) {
 	size_t code = 0;
+#ifndef HASH_FOR_TPCH
 	for (int i = 0; i < len; i += 8) {
 
 		int low = 0;
@@ -64,6 +65,12 @@ inline size_t hashMe (char *me, size_t len) {
 		returnVal += newHash (low) & 0xFFFFFFFF;
 		code = code ^ returnVal;
 	}
+#else
+        for (int i = 0; i < len; i++) {
+                code = 31 * code + me[i];
+        } 
+
+#endif
 	return code;
 }
 
