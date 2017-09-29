@@ -21,14 +21,14 @@
 #include "ClusterAggregateComp.h"
 #include "LambdaCreationFunctions.h"
 
-#include "SupplierData.h"
+#include "SupplierInfo.h"
 #include "SumResult.h"
 
 using namespace pdb;
 
 // template <class OutputClass, class InputClass, class KeyClass, class ValueClass>
 
-class CountAggregation : public ClusterAggregateComp <SumResult, SupplierData, int, int> {
+class CountAggregation : public ClusterAggregateComp <SumResult, SupplierInfo, int, int> {
 
 public:
 
@@ -44,15 +44,15 @@ public:
 
 
         // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <SupplierData> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<SupplierData> & aggMe) {
+        Lambda <int> getKeyProjection (Handle <SupplierInfo> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<SupplierInfo> & aggMe) {
                             return 0;
                        });
         }
 
         // the value type must have + defined
-        Lambda <int> getValueProjection (Handle <SupplierData> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<SupplierData> & aggMe) {
+        Lambda <int> getValueProjection (Handle <SupplierInfo> aggMe) override {
+                return makeLambda (aggMe, [] (Handle<SupplierInfo> & aggMe) {
                             return 1;
                        });
         }

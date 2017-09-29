@@ -166,8 +166,8 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
 		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
-	if (!catalogClient.registerType("libraries/libSupplierData.so", errMsg))
-		cout << "Not able to register type  libSupplierData\n";
+	if (!catalogClient.registerType("libraries/libSupplierInfo.so", errMsg))
+		cout << "Not able to register type  libSupplierInfo\n";
 
 	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
 		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
@@ -178,8 +178,8 @@ int main(int argc, char * argv[]) {
 	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
 		cout << "Not able to register type  libCountCustomer\n";
 
-        if (!catalogClient.registerType("libraries/libSupplierDataWriteSet.so", errMsg))
-                cout << "Not able to register type libSupplierDataWriteSet\n";
+        if (!catalogClient.registerType("libraries/libSupplierInfoWriteSet.so", errMsg))
+                cout << "Not able to register type libSupplierInfoWriteSet\n";
 
 	cout << errMsg << endl;
 

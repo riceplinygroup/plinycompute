@@ -58,7 +58,7 @@
 #include "SupplierData.h"
 #include "CountAggregation.h"
 #include "SumResult.h"
-#include "SupplierDataWriteSet.h"
+#include "SupplierInfoWriteSet.h"
 #include "SupplierData.h"
 #include "Handle.h"
 #include "Lambda.h"
@@ -134,10 +134,10 @@ int main() {
 
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-        myFlatten->setAllocatorPolicy(noReuseAllocator);
+        //myFlatten->setAllocatorPolicy(noReuseAllocator);
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 	myGroupBy->setInput(myFlatten);
-        myGroupBy->setAllocatorPolicy(noReuseAllocator);
+        //myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	// Get the count by doing a count aggregation on the final results
         #ifndef CHECK_RESULTS
 	Handle<Computation> countAggregation = makeObject<CountAggregation>();
@@ -148,7 +148,7 @@ int main() {
 
         #else
 
-        Handle<Computation> myWriteSet = makeObject<SupplierDataWriteSet>("TPCH_db", "t_output_set_1");
+        Handle<Computation> myWriteSet = makeObject<SupplierInfoWriteSet>("TPCH_db", "t_output_set_1");
         myWriteSet->setInput(myGroupBy);
 
         #endif
@@ -191,7 +191,7 @@ int main() {
         
         #else
 
-        SetIterator<SupplierData> result = queryClient.getSetIterator<SupplierData>("TPCH_db", "t_output_set_1");
+        SetIterator<SupplierInfo> result = queryClient.getSetIterator<SupplierInfo>("TPCH_db", "t_output_set_1");
         std :: cout << "Query results: ";
         int count = 0;
         long sum = 0;
