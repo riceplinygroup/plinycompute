@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-#ifndef TEST_603_CC
-#define TEST_603_CC
+#ifndef WORKER_MAIN_CC
+#define WORKER_MAIN_CC
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
