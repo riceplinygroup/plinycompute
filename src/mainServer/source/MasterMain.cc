@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_404_CC
-#define TEST_404_CC
+#ifndef MASTER_MAIN_CC
+#define MASTER_MAIN_CC
 
 #include "PDBServer.h"
 #include "CatalogServer.h"
