@@ -26,8 +26,11 @@
 #define	SHAREDMEM_H
 #include <pthread.h>
 #include "PDBLogger.h"
-//#include "ScopedAllocator.h"
 #include "SlabAllocator.h"
+
+#ifndef USE_MEMCACHED_SLAB_ALLOCATOR
+    #include "tlsf.h"
+#endif
 
 #include <memory>
 using namespace std;
@@ -62,7 +65,12 @@ protected:
 private:
     pthread_mutex_t * memLock;
     pdb :: PDBLoggerPtr logger;
+#ifdef USE_MEMCACHED_SLAB_ALLOCATOR
     SlabAllocatorPtr allocator;
+#else
+    tlsfAllocator allocator;
+    void * my_tlsf;
+#endif
     void * memPool;
     size_t shmMemSize;
 };
