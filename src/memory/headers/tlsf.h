@@ -40,14 +40,15 @@
 
 #include <stddef.h>
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 /* tlsf_t: a TLSF structure. Can contain 1 to N pools. */
-/* pool_t: a block of memory that TLSF can manage. */
 typedef void* tlsf_t;
+
+/* pool_t: a block of memory that TLSF can manage. */
 typedef void* pool_t;
+
+class tlsfAllocator{
+
+public:
 
 /* Create/destroy a memory pool. */
 tlsf_t tlsf_create(void* mem);
@@ -83,8 +84,7 @@ void tlsf_walk_pool(pool_t pool, tlsf_walker walker, void* user);
 int tlsf_check(tlsf_t tlsf);
 int tlsf_check_pool(pool_t pool);
 
-#if defined(__cplusplus)
+
 };
-#endif
 
 #endif
