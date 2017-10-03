@@ -159,6 +159,7 @@ void * SharedMem::getPointer(size_t offset) {
 int SharedMem::initMutex() {
     this->memLock = (pthread_mutex_t *)this->_malloc_unsafe(sizeof (pthread_mutex_t));
     if (this->memLock == 0) {
+        std :: cout << "FATAL ERROR: can't allocate for memLock from buffer pool" << std :: endl;
         return -1;
     }
     if (pthread_mutex_init(this->memLock, nullptr) != 0) {
