@@ -47,24 +47,13 @@
 #if defined (__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) \
 	&& defined (__GNUC_PATCHLEVEL__)
 
-#if defined (__SNC__)
-/* SNC for Playstation 3. */
 
-tlsf_decl int tlsf_ffs(unsigned int word)
-{
-	const unsigned int reverse = word & (~word + 1);
-	const int bit = 32 - __builtin_clz(reverse);
-	return bit - 1;
-}
-
-#else
 
 tlsf_decl int tlsf_ffs(unsigned int word)
 {
 	return __builtin_ffs(word) - 1;
 }
 
-#endif
 
 tlsf_decl int tlsf_fls(unsigned int word)
 {
@@ -72,77 +61,13 @@ tlsf_decl int tlsf_fls(unsigned int word)
 	return bit - 1;
 }
 
-#elif defined (_MSC_VER) && (_MSC_VER >= 1400) && (defined (_M_IX86) || defined (_M_X64))
-/* Microsoft Visual C++ support on x86/X64 architectures. */
-
-#include <intrin.h>
-
-#pragma intrinsic(_BitScanReverse)
-#pragma intrinsic(_BitScanForward)
-
-tlsf_decl int tlsf_fls(unsigned int word)
+#if defined (TLSF_64BIT)
+tlsf_decl int tlsf_fls_sizet(size_t size) 
 {
-	unsigned long index;
-	return _BitScanReverse(&index, word) ? index : -1;
+        const int bit = size ? 64 - __builtin_clzl(size) : 0;
+        return bit - 1;
 }
-
-tlsf_decl int tlsf_ffs(unsigned int word)
-{
-	unsigned long index;
-	return _BitScanForward(&index, word) ? index : -1;
-}
-
-#elif defined (_MSC_VER) && defined (_M_PPC)
-/* Microsoft Visual C++ support on PowerPC architectures. */
-
-#include <ppcintrinsics.h>
-
-tlsf_decl int tlsf_fls(unsigned int word)
-{
-	const int bit = 32 - _CountLeadingZeros(word);
-	return bit - 1;
-}
-
-tlsf_decl int tlsf_ffs(unsigned int word)
-{
-	const unsigned int reverse = word & (~word + 1);
-	const int bit = 32 - _CountLeadingZeros(reverse);
-	return bit - 1;
-}
-
-#elif defined (__ARMCC_VERSION)
-/* RealView Compilation Tools for ARM */
-
-tlsf_decl int tlsf_ffs(unsigned int word)
-{
-	const unsigned int reverse = word & (~word + 1);
-	const int bit = 32 - __clz(reverse);
-	return bit - 1;
-}
-
-tlsf_decl int tlsf_fls(unsigned int word)
-{
-	const int bit = word ? 32 - __clz(word) : 0;
-	return bit - 1;
-}
-
-#elif defined (__ghs__)
-/* Green Hills support for PowerPC */
-
-#include <ppc_ghs.h>
-
-tlsf_decl int tlsf_ffs(unsigned int word)
-{
-	const unsigned int reverse = word & (~word + 1);
-	const int bit = 32 - __CLZ32(reverse);
-	return bit - 1;
-}
-
-tlsf_decl int tlsf_fls(unsigned int word)
-{
-	const int bit = word ? 32 - __CLZ32(word) : 0;
-	return bit - 1;
-}
+#endif
 
 #else
 /* Fall back to generic implementation. */
@@ -172,8 +97,6 @@ tlsf_decl int tlsf_fls(unsigned int word)
 	return tlsf_fls_generic(word) - 1;
 }
 
-#endif
-
 /* Possibly 64-bit version of tlsf_fls. */
 #if defined (TLSF_64BIT)
 tlsf_decl int tlsf_fls_sizet(size_t size)
@@ -191,7 +114,10 @@ tlsf_decl int tlsf_fls_sizet(size_t size)
 	}
 	return bits;
 }
-#else
+#endif
+#endif
+
+#if !defined (TLSF_64BIT)
 #define tlsf_fls_sizet tlsf_fls
 #endif
 
@@ -239,7 +165,7 @@ enum tlsf_private
 	** TODO: We can increase this to support larger sizes, at the expense
 	** of more overhead in the TLSF structure.
 	*/
-	FL_INDEX_MAX = 32,
+	FL_INDEX_MAX = 39,
 #else
 	FL_INDEX_MAX = 30,
 #endif
@@ -341,11 +267,20 @@ static const size_t block_size_min =
 static const size_t block_size_max = tlsf_cast(size_t, 1) << FL_INDEX_MAX;
 
 
+#define TLSF_INCREASE_REAL_USED(control, increment) do {control->real_used += (increment) ; control->max_used = tlsf_max(control->real_used, control->max_used);}while(0)
+#define TLSF_INCREASE_FRAGMENTS(control) do {control->fragments++ ; control->max_fragments = tlsf_max(control->fragments, control->max_fragments);}while(0)
+
 /* The TLSF control structure. */
 typedef struct control_t
 {
 	/* Empty lists point at this block to indicate they are free. */
 	block_header_t block_null;
+        size_t total_size;
+	size_t allocated;
+	size_t real_used;
+	size_t max_used;
+	size_t fragments;
+	size_t max_fragments;
 
 	/* Bitmaps for free lists. */
 	unsigned int fl_bitmap;
@@ -429,7 +364,7 @@ static block_header_t* offset_to_block(const void* ptr, size_t size)
 /* Return location of previous block. */
 static block_header_t* block_prev(const block_header_t* block)
 {
-	tlsf_assert(block_is_prev_free(block) && "previous block must be free");
+	//tlsf_assert(block_is_prev_free(block) && "previous block must be free");
 	return block->prev_phys_block;
 }
 
@@ -615,6 +550,7 @@ static void insert_free_block(control_t* control, block_header_t* block, int fl,
 	control->blocks[fl][sl] = block;
 	control->fl_bitmap |= (1 << fl);
 	control->sl_bitmap[fl] |= (1 << sl);
+        TLSF_INCREASE_FRAGMENTS(control);
 }
 
 /* Remove a given block from the free list. */
@@ -770,10 +706,13 @@ static void* block_prepare_used(control_t* control, block_header_t* block, size_
 	void* p = 0;
 	if (block)
 	{
-		tlsf_assert(size && "size must be non-zero");
 		block_trim_free(control, block, size);
 		block_mark_as_used(block);
 		p = block_to_ptr(block);
+		TLSF_INCREASE_REAL_USED(control, block_size(block) + ((char *)p - (char *)block
+				/* prev_phys_block is melted in the previous block when the current block is used */
+				+ sizeof(block->prev_phys_block)));
+		control->allocated += block_size(block);
 	}
 	return p;
 }
@@ -1001,7 +940,7 @@ pool_t tlsfAllocator::tlsf_add_pool(tlsf_t tlsf, void* mem, size_t bytes)
 	block_set_free(block);
 	block_set_prev_used(block);
 	block_insert(tlsf_cast(control_t*, tlsf), block);
-
+        tlsf_cast(control_t*, tlsf)->total_size += block_size(block);
 	/* Split the block to create a zero-size sentinel block. */
 	next = block_link_next(block);
 	block_set_size(next, 0);
@@ -1024,6 +963,7 @@ void tlsfAllocator::tlsf_remove_pool(tlsf_t tlsf, pool_t pool)
 
 	mapping_insert(block_size(block), &fl, &sl);
 	remove_free_block(control, block, fl, sl);
+        tlsf_cast(control_t*, tlsf)->total_size -= block_size(block);
 }
 
 /*
@@ -1075,7 +1015,12 @@ tlsf_t tlsfAllocator::tlsf_create(void* mem)
 	}
 
 	control_construct(tlsf_cast(control_t*, mem));
-
+	tlsf_cast(control_t*, mem)->real_used = tlsf_size();
+	tlsf_cast(control_t*, mem)->max_used = tlsf_size();
+	tlsf_cast(control_t*, mem)->allocated = 0;
+	tlsf_cast(control_t*, mem)->total_size = tlsf_size();
+	tlsf_cast(control_t*, mem)->fragments = 0;
+	tlsf_cast(control_t*, mem)->max_fragments = 0;
 	return tlsf_cast(tlsf_t, mem);
 }
 
@@ -1100,67 +1045,21 @@ pool_t tlsfAllocator::tlsf_get_pool(tlsf_t tlsf)
 void* tlsfAllocator::tlsf_malloc(tlsf_t tlsf, size_t size)
 {
 	control_t* control = tlsf_cast(control_t*, tlsf);
-	const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
+	const size_t adjust = adjust_request_size(size?size:4, ALIGN_SIZE);
 	block_header_t* block = block_locate_free(control, adjust);
 	return block_prepare_used(control, block, adjust);
 }
 
-void* tlsfAllocator::tlsf_memalign(tlsf_t tlsf, size_t align, size_t size)
+void* tlsfAllocator::tlsf_mallocxz(tlsf_t tlsf, size_t size)
 {
-	control_t* control = tlsf_cast(control_t*, tlsf);
-	const size_t adjust = adjust_request_size(size, ALIGN_SIZE);
+	void *p;
+	p = tlsf_malloc(tlsf, size);
+	if(p) memset(p, 0, size);
 
-	/*
-	** We must allocate an additional minimum block size bytes so that if
-	** our free block will leave an alignment gap which is smaller, we can
-	** trim a leading free block and release it back to the pool. We must
-	** do this because the previous physical block is in use, therefore
-	** the prev_phys_block field is not valid, and we can't simply adjust
-	** the size of that block.
-	*/
-	const size_t gap_minimum = sizeof(block_header_t);
-	const size_t size_with_gap = adjust_request_size(adjust + align + gap_minimum, align);
+	return p;
 
-	/*
-	** If alignment is less than or equals base alignment, we're done.
-	** If we requested 0 bytes, return null, as tlsf_malloc(0) does.
-	*/
-	const size_t aligned_size = (adjust && align > ALIGN_SIZE) ? size_with_gap : adjust;
-
-	block_header_t* block = block_locate_free(control, aligned_size);
-
-	/* This can't be a static assert. */
-	tlsf_assert(sizeof(block_header_t) == block_size_min + block_header_overhead);
-
-	if (block)
-	{
-		void* ptr = block_to_ptr(block);
-		void* aligned = align_ptr(ptr, align);
-		size_t gap = tlsf_cast(size_t,
-			tlsf_cast(tlsfptr_t, aligned) - tlsf_cast(tlsfptr_t, ptr));
-
-		/* If gap size is too small, offset to next aligned boundary. */
-		if (gap && gap < gap_minimum)
-		{
-			const size_t gap_remain = gap_minimum - gap;
-			const size_t offset = tlsf_max(gap_remain, align);
-			const void* next_aligned = tlsf_cast(void*,
-				tlsf_cast(tlsfptr_t, aligned) + offset);
-
-			aligned = align_ptr(next_aligned, align);
-			gap = tlsf_cast(size_t,
-				tlsf_cast(tlsfptr_t, aligned) - tlsf_cast(tlsfptr_t, ptr));
-		}
-
-		if (gap)
-		{
-			tlsf_assert(gap >= gap_minimum && "gap size too small");
-			block = block_trim_free_leading(control, block, gap);
-		}
-	}
-
-	return block_prepare_used(control, block, adjust);
 }
+
 
 void tlsfAllocator::tlsf_free(tlsf_t tlsf, void* ptr)
 {
@@ -1169,7 +1068,10 @@ void tlsfAllocator::tlsf_free(tlsf_t tlsf, void* ptr)
 	{
 		control_t* control = tlsf_cast(control_t*, tlsf);
 		block_header_t* block = block_from_ptr(ptr);
-		tlsf_assert(!block_is_free(block) && "block already marked as free");
+		control->allocated -= block_size(block);
+		control->real_used -= (block_size(block) + ((char *)ptr - (char *)block
+				/* prev_phys_block is melted in the previous block when the current block is used */
+				+ sizeof(block->prev_phys_block)));
 		block_mark_as_free(block);
 		block = block_merge_prev(control, block);
 		block = block_merge_next(control, block);
@@ -1232,6 +1134,8 @@ void* tlsfAllocator::tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size)
 		}
 		else
 		{
+			control->allocated -= block_size(block);
+			control->real_used -= block_size(block);
 			/* Do we need to expand to the next block? */
 			if (adjust > cursize)
 			{
@@ -1242,8 +1146,20 @@ void* tlsfAllocator::tlsf_realloc(tlsf_t tlsf, void* ptr, size_t size)
 			/* Trim the resulting block and return the original pointer. */
 			block_trim_used(control, block, adjust);
 			p = ptr;
+			control->allocated +=block_size(block);
+			TLSF_INCREASE_REAL_USED(control, block_size(block));
 		}
 	}
 
 	return p;
+}
+
+
+void* tlsfAllocator::tlsf_reallocxf(tlsf_t tlsf, void* ptr, size_t size) {
+        void * r;
+        r = tlsf_realloc(tlsf, ptr, size);
+        if (!r && ptr) {
+            tlsf_free(tlsf, ptr);
+        }
+        return r;
 }
