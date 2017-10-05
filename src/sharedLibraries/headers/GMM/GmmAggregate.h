@@ -58,6 +58,7 @@ public:
 					"AND NDIM="<< this->model->getNDim() << std::endl;
 
 			this->model->calcInvCovars();
+
 			//this->model->print();
 
         	std::cout << "Exiting GmmAggregate constructor" << std::endl;
@@ -80,6 +81,7 @@ public:
 
         	return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {
         		//int k = (this->model).getNDim();
+
             	return *(this->createNewComp(aggMe));
             });
         }

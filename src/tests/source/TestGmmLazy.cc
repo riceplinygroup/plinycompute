@@ -15,8 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_GMM21
-#define TEST_GMM21
+#ifndef TEST_GMM_LAZY
+#define TEST_GMM_LAZY
 
 
 // By Tania, August 2017
@@ -44,11 +44,14 @@
 
 
 #include "GmmModel.h"
-#include "GMM/GmmAggregate.h"
-#include "GMM/GmmAggregateOutputType.h"
+//#include "GMM/GmmAggregate.h"
+//#include "GMM/GmmAggregateOutputType.h"
 #include "GMM/GmmNewComp.h"
 #include "GMM/GmmSampleSelection.h"
 #include "GMM/GmmDataCountAggregate.h"
+
+#include "GMM2/GmmAggregateLazy.h"
+#include "GMM2/GmmAggregateOutputLazy.h"
 
 
 #include "DispatcherClient.h"
@@ -416,10 +419,10 @@ int main (int argc, char * argv[]) {
 
 
 	// register this query class
-	catalogClient.registerType ("libraries/libGmmAggregate.so", errMsg);
+	catalogClient.registerType ("libraries/libGmmAggregateLazy.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmModel.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmNewComp.so", errMsg);
-	catalogClient.registerType ("libraries/libGmmAggregateOutputType.so", errMsg);
+	catalogClient.registerType ("libraries/libGmmAggregateOutputLazy.so", errMsg);
 	catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmSampleSelection.so", errMsg);
@@ -457,12 +460,13 @@ int main (int argc, char * argv[]) {
 
 
 	PDB_COUT << "to create a new set for storing output data" << std :: endl;
-	if (!temp.createSet<GmmAggregateOutputType> ("gmm_db", "gmm_output_set", errMsg)) {
+	if (!temp.createSet<GmmAggregateOutputLazy> ("gmm_db", "gmm_output_set", errMsg)) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
 		COUT << "Created set gmm_output_set.\n";
 	}
+
 
 
 	//***********************************************************************************
@@ -471,6 +475,7 @@ int main (int argc, char * argv[]) {
 
 	// connect to the query client
 	QueryClient myClient (8108, "localhost", clientLogger, true);
+
 
 
     auto iniBegin = std :: chrono :: high_resolution_clock :: now();
@@ -485,7 +490,6 @@ int main (int argc, char * argv[]) {
 	//const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
 	srand(time(NULL));
-	//srand(1506261969);
 	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
 	double fraction = Sampler::computeFractionForSampleSize (nSamples, numData, false);
@@ -534,7 +538,6 @@ int main (int argc, char * argv[]) {
 	//***********************************************************************************
 	//**** COUNT Number of datapoints **************************************************
 	//***********************************************************************************
-
 
 
 	/*COUT << "Let's count the number of datapoints..." << std::endl;
@@ -707,7 +710,7 @@ int main (int argc, char * argv[]) {
 
 
 		Handle<Computation> scanInputSet = makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
-		Handle<Computation> gmmIteration = makeObject<GmmAggregate>(currentModel);
+		Handle<Computation> gmmIteration = makeObject<GmmAggregateLazy>(currentModel);
 		gmmIteration->setInput(scanInputSet);
 		gmmIteration->setOutput("gmm_db", "gmm_output_set");
 
@@ -725,16 +728,16 @@ int main (int argc, char * argv[]) {
 
 
 		//Read output and update Means, Weights and Covars in Model
-		SetIterator <GmmAggregateOutputType> result = myClient.getSetIterator <GmmAggregateOutputType> ("gmm_db", "gmm_output_set");
+		SetIterator <GmmAggregateOutputLazy> result = myClient.getSetIterator <GmmAggregateOutputLazy> ("gmm_db", "gmm_output_set");
 
 		std::cout << "ITERATION OUTPUT " << currentIter
 						<< " , FROM " << iter << " ITERATIONS" << std :: endl;
 
 
 
-		for (Handle<GmmAggregateOutputType> a : result) {
+		for (Handle<GmmAggregateOutputLazy> a : result) {
 			std::cout << "Entering loop to process result" << std::endl;
-			GmmNewComp output = (*a).getValue();
+			GmmNewComp output = (*a).getNewComp();
 			currentModel->updateModel(output);
 
 			std::cout << " previousLogLikelihood: " << previousLogLikelihood << " currentLogLikelihood  " << output.getLogLikelihood() << std::endl;
@@ -750,7 +753,6 @@ int main (int argc, char * argv[]) {
 		COUT << std :: endl;
 
 		auto iterEnd = std :: chrono :: high_resolution_clock :: now();
-
 		COUT << "Server-side Time Duration for Iteration-: " << currentIter << " is:" <<
 		std::chrono::duration_cast<std::chrono::duration<float>>(end-begin).count() << " secs." << std::endl;
 		COUT << "Total Time Duration for Iteration-: " << currentIter << " is:" <<

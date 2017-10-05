@@ -114,9 +114,24 @@ public:
 			print_vector((*this->covars)[i]);
 			std::cout <<"Inv covars: ";
 			print_vector((*this->inv_covars)[i]);
-
-
 		}
+		/*std::cout << "**Sizes!!**" << std::endl;
+		std::cout << std::endl;
+		std::cout << "Means size " << (*means).size() << std::endl;
+		std::cout << "Covars size " << (*covars).size() << std::endl;
+		std::cout << "InvCovars size " << (*inv_covars).size() << std::endl;
+
+		for (int i = 0; i < k; i++) {
+			std::cout <<"**	Component " << i << std::endl;
+			std::cout << "	Mean size " << (*this->means)[i]->size << std::endl;
+			std::cout << "	Covar size " << (*this->covars)[i]->size << std::endl;
+			std::cout << "	InvCovar size " << (*this->inv_covars)[i]->size << std::endl;
+		}*/
+
+
+
+
+
 	}
 
 	int getNumK(){
@@ -448,14 +463,6 @@ public:
 
 			//std::cout << "Agg gweightedX2 B" << i << std::endl; weightedX2->print();
 
-			//Copy lower triangular
-			for (int row=0; row<ndim; row++){
-				for (int col=row+1; col<ndim; col++){
-					//matrix[j][i] = matrix[i][j]
-					double d = gsl_matrix_get(&gweightedX2.matrix,row,col);
-					gsl_matrix_set(&gweightedX2.matrix,col,row, d);
-				}
-			}
 
 			//std::cout << "Agg gweightedX2 C" << i << std::endl; weightedX2->print();
 

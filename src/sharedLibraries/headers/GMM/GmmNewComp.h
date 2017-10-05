@@ -55,6 +55,10 @@ public:
         return this->logLikelihood;
     }
 
+    void setLogLikelihood(double logLikelihood) {
+         this->logLikelihood = logLikelihood;
+    }
+
     double getR(int index) {
         return this->sumR.getDouble(index);
     }
