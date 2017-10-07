@@ -94,24 +94,31 @@ public:
 		this->sumR = this->sumR + other.getSumR();
 
 		for (int i = 0; i < sumR.size; i++) {
-			/*double a = this->weightedX[i].getDouble(0) + other.getWeightedX(i).getDouble(0);
-
-			if (a != a) {
-				std::cout << "****************************************************" << std::endl;
-				std::cout << "**********NAN!!! " << std::endl;
-				this->weightedX[i].print();
-				other.getWeightedX(i).print();
-				exit(-1);
-			}*/
-
-			//std::cout << "operator + ! this.weightedX2 " << i << std::endl; this->weightedX2[i].print();
-			//std::cout << "operator + ! other.weightedX2 " << i << std::endl; other.weightedX2[i].print();
+			//std::cout << "operator + " << i << " this.weightedX " << this->weightedX[i].size <<
+			//		" other.weightedX " << other.getWeightedX(i).size;
 
 
 			this->weightedX[i] = this->weightedX[i] + other.getWeightedX(i);
-			this->weightedX2[i] = this->weightedX2[i] + other.getWeightedX2(i);
 
-			//std::cout << "operator + ! total.weightedX2 " << i << std::endl; this->weightedX2[i].print();
+			//std::cout << " total: " << this->weightedX[i].size << std::endl;
+
+
+			//std::cout << "operator + " << i << " this.weightedX2 " << this->weightedX2[i].size <<
+			//								" other.weightedX2 " << other.getWeightedX2(i).size;
+
+
+			//We only need to copy the upper triangular of the matrix
+			//this->weightedX2[i] = this->weightedX2[i] + other.getWeightedX2(i);
+
+			double * weightedX2 = this->weightedX2[i].getRawData();
+			double * otherWeightedX2 = other.getWeightedX2(i).getRawData();
+			int dim = this->weightedX[i].size;
+
+			for (int j=0; j<dim; j++) {
+				for (int k=j; k<dim; k++) {
+					weightedX2[j*dim+k] += otherWeightedX2[j*dim+k];
+				}
+			}
 
 
 		}
