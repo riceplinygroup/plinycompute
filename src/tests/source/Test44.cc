@@ -92,6 +92,7 @@ int main (int argc, char * argv[]) {
 	// register this query class
 	string errMsg;
 	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
+        ConfigurationPtr conf = make_shared <Configuration> ();
 	StorageClient temp (8108, "localhost", myLogger);
         
 	temp.registerType ("libraries/libChrisSelection.so", errMsg);
@@ -127,7 +128,7 @@ int main (int argc, char * argv[]) {
         // to initialize a QuerySchedulerServer instance and schedule the query for execution
         // in distributed PDB, this is contained in the Master node, and is transparent to client
         // see Test49 for selection query against a distributed PDB 
-        QuerySchedulerServer server (logger);
+        QuerySchedulerServer server (logger, conf);
         server.recordServer(fakeServerForScheduler);//to enable worker queue for Scheduler
         server.parseOptimizedQuery(queryGraph);
         server.printCurrentPlan();

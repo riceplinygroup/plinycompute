@@ -52,16 +52,15 @@ namespace pdb {
     }
 
     bool DistributedStorageManagerClient::createSet(const std::string& databaseName, const std::string& setName,
-                                                    const std::string& typeName, std::string& errMsg) {
+                                                    const std::string& typeName, std::string& errMsg, size_t pageSize) {
         return simpleRequest <DistributedStorageAddSet, SimpleRequestResult, bool> (logger, port, address, false, 1024,
-                                                                                    generateResponseHandler("Could not add set to distributed storage manager:", errMsg), databaseName, setName, typeName);
+                                                                                    generateResponseHandler("Could not add set to distributed storage manager:", errMsg), databaseName, setName, typeName, pageSize);
     }
 
-    bool DistributedStorageManagerClient::createTempSet(const std::string& databaseName, const std::string& setName,
-                                                    const std::string& typeName, std::string& errMsg) {
+    bool DistributedStorageManagerClient::createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string& errMsg, size_t pageSize) {
         return simpleRequest <DistributedStorageAddTempSet, SimpleRequestResult, bool> (logger, port, address, false, 1024,
 
-    generateResponseHandler("Could not add temp set to distributed storage manager:", errMsg), databaseName, setName, typeName);
+    generateResponseHandler("Could not add temp set to distributed storage manager:", errMsg), databaseName, setName, typeName, pageSize);
     }
 
     bool DistributedStorageManagerClient::removeDatabase(const std::string& databaseName, std::string & errMsg) {

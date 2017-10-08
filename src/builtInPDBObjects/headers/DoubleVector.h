@@ -184,15 +184,23 @@ public:
          //std :: cout << "other:" << other.getSize() << std :: endl;
          //other.print();
          size_t mySize = this->getSize();
-         size_t otherSize = other.getSize();
+         /*size_t otherSize = other.getSize();
          if (mySize != otherSize) {
               std :: cout << "Error in DoubleVector: dot size doesn't match" << std :: endl;
               exit(-1);
-         } 
+         }*/ 
          double * rawData = data->c_ptr();
          double * otherRawData = other.getRawData();
-         for (int i = 0; i < mySize; i++) {
-              rawData[i] += otherRawData[i];
+         int blockSize=1024;
+         int numBlocks=mySize/blockSize;
+         int remainder = mySize%blockSize;
+         for (int i = 0; i < numBlocks; i++) {
+             for (int j = 0; j < blockSize; j++) {
+                rawData[i*blockSize+j] += otherRawData[i*blockSize+j];
+             }
+         }
+         for (int i = 0; i < remainder; i++) {
+             rawData[numBlocks*blockSize+i] += otherRawData[numBlocks*blockSize+i];
          }
          return *this;
          

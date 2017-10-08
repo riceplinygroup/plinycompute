@@ -161,18 +161,18 @@ public:
     /**
      * Add a new and empty set
      */
-    bool addSet (std :: string dbName, std :: string typeName, std :: string setName, SetID setId);
+    bool addSet (std :: string dbName, std :: string typeName, std :: string setName, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
     /**
      * Add a new and empty set using only name
      */
-    bool addSet (std :: string dbName, std :: string typeName, std :: string setName);
+    bool addSet (std :: string dbName, std :: string typeName, std :: string setName, size_t pageSize = DEFAULT_PAGE_SIZE);
 
     /**
      * Add a set using only database name and set name
      */
-    bool addSet (std :: string dbName, std :: string setName);
+    bool addSet (std :: string dbName, std :: string setName, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
 
@@ -198,7 +198,7 @@ public:
     /**
      * Add a new and empty temporary set
      */
-    bool addTempSet(std :: string setName, SetID &setId);
+    bool addTempSet(std :: string setName, SetID &setId, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
     /**

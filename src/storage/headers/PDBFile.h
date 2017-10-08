@@ -123,9 +123,13 @@ public:
      */
     virtual PageID getLatestPageID() = 0;
 
+    /**
+     * To return page size of the file
+     */
+    virtual size_t getPageSize() = 0;
 
     /**
-     * To return page size of the file.
+     * To return page size of the file by looking into the meta data.
      */
     virtual size_t getPageSizeInMeta() = 0;
 

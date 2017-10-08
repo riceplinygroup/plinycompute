@@ -139,7 +139,7 @@ bool StorageClient :: retrieveData (std :: string databaseName, std :: string se
                                       close (filedesc);
                                       return false;
                                  }
-                                 Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) (recvBuffer + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int));
+                                 Record<Vector<Handle<Object>>> * temp = (Record<Vector<Handle<Object>>> *) (recvBuffer + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
                                  Handle<Vector<Handle<Object>>> objects = temp->getRootObject();
                                  for (int j = 0; j < objects->size(); j++) {
                                          if(j%10000 == 0) {

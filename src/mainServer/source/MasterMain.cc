@@ -86,7 +86,7 @@ int main (int argc, char * argv[]) {
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
     
-    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, pseudoClusterMode, partitionToCoreRatio);
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, conf, pseudoClusterMode, partitionToCoreRatio);
     frontEnd.startServer(nullptr);
 
 }

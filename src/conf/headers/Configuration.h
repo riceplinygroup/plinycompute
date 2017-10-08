@@ -42,9 +42,22 @@ using namespace std;
 #define DEFAULT_PAGE_SIZE ((size_t)(256)*(size_t)(1024)*(size_t)(1024))
 #endif
 
-#ifndef DEFAULT_NET_PAGE_SIZE
-#define DEFAULT_NET_PAGE_SIZE DEFAULT_PAGE_SIZE-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int))
+#ifndef DEFAULT_MAX_PAGE_SIZE
+#define DEFAULT_MAX_PAGE_SIZE DEFAULT_PAGE_SIZE
 #endif
+
+#ifndef DEFAULT_NET_PAGE_SIZE
+#define DEFAULT_NET_PAGE_SIZE DEFAULT_PAGE_SIZE-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t))
+#endif
+
+#ifndef DEFAULT_SHUFFLE_PAGE_SIZE
+#define DEFAULT_SHUFFLE_PAGE_SIZE ((size_t)(64)*(size_t)(1024)*(size_t)(1024))
+#endif
+
+#ifndef DEFAULT_BROADCAST_PAGE_SIZE
+#define DEFAULT_BROADCAST_PAGE_SIZE DEFAULT_PAGE_SIZE
+#endif
+
 
 #ifndef DEFAULT_MAX_CONNECTIONS
 #define DEFAULT_MAX_CONNECTIONS 200
@@ -92,6 +105,9 @@ private:
 	string ipcFile;
 	string logFile;
 	size_t pageSize;
+        size_t shufflePageSize;
+        size_t broadcastPageSize;
+        size_t maxPageSize;
 	bool useUnixDomainSock;
 	size_t shmSize;
 	bool logEnabled;
@@ -123,6 +139,9 @@ public:
 	    maxConnections = DEFAULT_MAX_CONNECTIONS;
 	    logFile = "serverLog";
 	    pageSize = DEFAULT_PAGE_SIZE;
+            maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+            shufflePageSize = DEFAULT_SHUFFLE_PAGE_SIZE;
+            broadcastPageSize = DEFAULT_BROADCAST_PAGE_SIZE;
 	    useUnixDomainSock = false;
 	    shmSize = DEFAULT_SHAREDMEM_SIZE;
 	    logEnabled = false;
@@ -175,6 +194,32 @@ public:
 	size_t getPageSize() const {
 		return pageSize;
 	}
+
+        size_t getNetPageSize() const {
+                return pageSize - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
+        }
+
+
+        size_t getMaxPageSize() const {
+                return maxPageSize;
+        }
+
+        size_t getShufflePageSize() const {
+                return shufflePageSize;
+        }
+
+        size_t getNetShufflePageSize() const {
+                return shufflePageSize - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
+        }
+
+        size_t getBroadcastPageSize() const {
+                return broadcastPageSize;
+        }
+
+        size_t getNetBroadcastPageSize() const {
+                return broadcastPageSize - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
+        }
+
 
         size_t getHashPageSize() const {
                 return hashPageSize;
@@ -244,9 +289,22 @@ public:
 		this->pageSize = pageSize;
 	}
 
+        void setMaxPageSize(size_t maxPageSize) {
+                this->maxPageSize = maxPageSize;
+        }
+
+        void setShufflePageSize (size_t shufflePageSize) {
+                this->shufflePageSize = shufflePageSize;
+        }
+
         void setHashPageSize (size_t hashPageSize) {
                 this->hashPageSize = hashPageSize;
         }
+
+        void setBroadcastPageSize (size_t broadcastPageSize) {
+                this->broadcastPageSize = broadcastPageSize;
+        }
+
 
 	void setPort(int port) {
 		this->port = port;
@@ -292,7 +350,6 @@ public:
 		struct stat st = { 0 };
 		if (stat(path.c_str(), &st) == -1) {
 			mkdir(path.c_str(), 0777);
-			//cout << "Created dir:" << path <<"\n";
 		}
 	}
 
@@ -379,7 +436,10 @@ public:
 		cout<< "ipcFile: "  << ipcFile<<endl;
 		cout<< "logFile: "  << logFile<<endl;
 		cout<< "pageSize: "  << pageSize<<endl;
-                cout << "hashPageSize: " << hashPageSize << endl;
+                cout<< "maxPageSize: " << maxPageSize<<endl;
+                cout<< "shufflePageSize: " << shufflePageSize<<endl;
+                cout<< "broadcastPageSize: " << broadcastPageSize<<endl;
+                cout<< "hashPageSize: " << hashPageSize << endl;
 		cout<< "useUnixDomainSock: "  << useUnixDomainSock<<endl;
 		cout<< "shmSize: "  << shmSize<<endl;
 		cout<< "dataDirs: "  << dataDirs<<endl;

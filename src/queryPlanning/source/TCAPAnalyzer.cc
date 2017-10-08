@@ -32,11 +32,12 @@
 #endif
 namespace pdb {
 
-TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, bool isDynamicPlanning) {
+TCAPAnalyzer::TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, ConfigurationPtr conf, bool isDynamicPlanning) {
     this->jobId = jobId;
     this->computations = myComputations;
     this->tcapString = myTCAPString;
     this->logger = logger;
+    this->conf = conf;
     try {
         this->computePlan = makeObject<ComputePlan>(String(myTCAPString), *myComputations);
         this->logicalPlan = this->computePlan->getPlan();
@@ -419,12 +420,6 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         myPolicy = AllocatorPolicy :: noReuseAllocator;
     } 
 
-    //std::cout << "Current node's output name=" << outputName << std :: endl;
-    //std::cout << "Current node's computation type=" << myComputation->getComputationType() << std :: endl;
-    //std::cout << "Current node's computation name=" << mySpecifier << std :: endl;
-    //std::cout << "Current node's atomic computation type=" << curNode->getAtomicComputationType() << std :: endl;
-    //std::cout << "numConsumersForCurNode=" << numConsumersForCurNode << std :: endl;        
-    
     if (numConsumersForCurNode == 0) {
         //to get my output set 
         std :: string dbName = myComputation->getDatabaseName();
@@ -433,6 +428,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         if (myComputation->getComputationType() == "ClusterAggregationComp") {
             //to create the producing job stage for aggregation
             Handle<SetIdentifier>aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
+            aggregator->setPageSize(conf->getShufflePageSize()); 
             Handle<SetIdentifier>combiner = nullptr;
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
@@ -484,6 +480,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         //we currently do not support join
         if (curNode->getAtomicComputationType() == "Aggregate") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
+            aggregator->setPageSize(conf->getShufflePageSize());
             Handle<SetIdentifier>combiner = nullptr;
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");
@@ -572,7 +569,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //We first need to create a TupleSetJobStage with a repartition sink
                     
                     sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
-                     
+                    sink->setPageSize(conf->getShufflePageSize()); 
                     //isBroadcasting = false
                     //isRepartitioning = true
                     //collect probing information
@@ -602,7 +599,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //We first need to create a TupleSetJobStage with a broadcasting sink
                     
                     sink = makeObject<SetIdentifier>(this->jobId, outputName+"_broadcastData");
-
+                    sink->setPageSize(conf->getBroadcastPageSize());
                 
                     //isBroadcasting = true
                     //isRepartitioning = false
@@ -643,6 +640,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                      //we probe the partitioned hash table
                      //we first create a pipeline breaker to partition RHS
                      sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
+                     sink->setPageSize (conf->getShufflePageSize());
                      //isBroadcasting = false
                      //isRepartitioning = true
                      //collect probing information
@@ -703,6 +701,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
         if(myComputation->needsMaterializeOutput() == false) {
             myComputation->setOutput(this->jobId, outputName);
             sink = makeObject<SetIdentifier>(this->jobId, outputName);
+            sink->setPageSize(conf->getPageSize());
             interGlobalSets.push_back(sink);
         } else {
             //to get my output set 
@@ -722,6 +721,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
             physicalPlanToOutput.push_back(jobStage);
         } else if (myComputation->getComputationType() == "ClusterAggregationComp") {
             Handle<SetIdentifier> aggregator = makeObject<SetIdentifier>(this->jobId, outputName+"_aggregationData");
+            aggregator->setPageSize(conf->getShufflePageSize());
             Handle<SetIdentifier>combiner = nullptr;
             if (myComputation->isUsingCombiner() == true) {
                 combiner = makeObject<SetIdentifier>(this->jobId, outputName+"_combinerData");

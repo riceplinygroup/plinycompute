@@ -130,6 +130,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setDatabaseId(inputSet->getDbID());
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
+                    sourceContext->setPageSize(inputSet->getPageSize());
                     newRequest->setSourceContext(sourceContext);
                     std :: cout << "HashPartitioned data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
                     newRequest->setNumPages(inputSet->getNumPages());
@@ -171,7 +172,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                    //now, we send back the result
                    Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
                    result->setNumPages (inputSet->getNumPages());
-                   result->setPageSize (getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                   result->setPageSize (inputSet->getPageSize());
                    if (success == true) {
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
@@ -249,6 +250,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setDatabaseId(inputSet->getDbID());
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
+                    sourceContext->setPageSize(inputSet->getPageSize());
                     newRequest->setSourceContext(sourceContext);
                     std :: cout << "Broadcasted data set size: " << inputSet->getNumPages() << " pages" << std :: endl;
                     newRequest->setNumPages(inputSet->getNumPages());
@@ -294,7 +296,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                    //now, we send back the result
                    Handle <SetIdentifier> result = makeObject <SetIdentifier> (inDatabaseName, inSetName);
                    result->setNumPages (inputSet->getNumPages());
-                   result->setPageSize (getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                   result->setPageSize (inputSet->getPageSize());
                    if (success == true) {
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
@@ -333,7 +335,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     std :: cout << "AggregationJobStage: print inactive blocks:" << std :: endl;
                     std :: cout << out << std :: endl;
 #endif
-                    //getAllocator().cleanInactiveBlocks((size_t)(1048576));
                     PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
                     if (communicatorToBackend->connectToLocalServer(getFunctionality<PangeaStorageServer>().getLogger(), getFunctionality<PangeaStorageServer>().getPathToBackEndServer(), errMsg)) {
                         std :: cout << errMsg << std :: endl;
@@ -374,6 +375,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                     sourceContext->setDatabaseId(inputSet->getDbID());
                     sourceContext->setTypeId(inputSet->getTypeID());
                     sourceContext->setSetId(inputSet->getSetID());
+                    sourceContext->setPageSize(inputSet->getPageSize());
                     newRequest->setSourceContext(sourceContext);
                     newRequest->setNeedsRemoveInputSet (request->getNeedsRemoveInputSet());
                     newRequest->setNeedsRemoveInputSet (false); //the scheduler will remove this set
@@ -403,12 +405,13 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                             sinkContext->setDatabaseId(outputSet->getDbID());
                             sinkContext->setTypeId(outputSet->getTypeID());
                             sinkContext->setSetId(outputSet->getSetID());
+                            sinkContext->setPageSize(outputSet->getPageSize());
                         }
                         newRequest->setSinkContext(sinkContext);
                     } else {
                         Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
                         result->setNumPages(0);
-                        result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                        result->setPageSize(0);
                         PDB_COUT << "Query failed: not able to create output set. " << std :: endl;
                         // return the results
                         if (!sendUsingMe->sendObject (result, errMsg)) {
@@ -447,9 +450,16 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
 
                     //forward result
                    // now, we send back the result
+                   
                    Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
-                   result->setNumPages(inputSet->getNumPages());
-                   result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                   if (outSetType != PartitionedHashSetType) {
+                       result->setNumPages(outputSet->getNumPages());
+                       result->setPageSize(outputSet->getPageSize());
+                   } else {
+                       //if output is not materialized to user set, we roughly estimate the output using the input.
+                       result->setNumPages(inputSet->getNumPages());
+                       result->setPageSize(inputSet->getPageSize());
+                   }
                    if (success == true) {
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
@@ -526,6 +536,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                          sourceContext->setDatabaseId(inputSet->getDbID());
                          sourceContext->setTypeId(inputSet->getTypeID());
                          sourceContext->setSetId(inputSet->getSetID());
+                         sourceContext->setPageSize(inputSet->getPageSize());
                          newRequest->setSourceContext(sourceContext);
                          PDB_COUT << "Input is set with setName="<< inSetName << ", setId=" << inputSet->getSetID()  << std :: endl;
                     } else {
@@ -551,6 +562,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                         sinkContext->setDatabaseId(outputSet->getDbID());
                         sinkContext->setTypeId(outputSet->getTypeID());
                         sinkContext->setSetId(outputSet->getSetID());
+                        sinkContext->setPageSize(outputSet->getPageSize());
                         newRequest->setSinkContext(sinkContext);
                         newRequest->setOutputTypeName (request->getOutputTypeName());
 
@@ -595,6 +607,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                             combinerContext->setDatabaseId(combinerSet->getDbID());
                             combinerContext->setTypeId(combinerSet->getTypeID());
                             combinerContext->setSetId(combinerSet->getSetID());
+                            combinerContext->setPageSize(combinerSet->getPageSize());
                             newRequest->setCombinerContext(combinerContext);
                         } else {
                             newRequest->setCombinerContext(nullptr);
@@ -633,7 +646,7 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                    // now, we send back the result
                    Handle <SetIdentifier> result = makeObject <SetIdentifier> (outDatabaseName, outSetName);
                    result->setNumPages(outputSet->getNumPages());
-                   result->setPageSize(getFunctionality<PangeaStorageServer>().getConf()->getPageSize());
+                   result->setPageSize(outputSet->getPageSize());
                    if (success == true) {
                        PDB_COUT << "Stage is done. " << std :: endl;
                        errMsg = std :: string("execution complete");
@@ -970,17 +983,6 @@ void FrontendQueryTestServer :: registerHandlers (PDBServer &forMe) {
                                                 snappy::RawCompress((char *)(myRec), myRec->numBytes(), compressedBytes, &compressedSize);
                                                 std :: cout << "Frontend=>Client: size before compression is " << myRec->numBytes() << " and size after compression is " << compressedSize << std :: endl;
                                                 sendUsingMe->sendBytes(compressedBytes, compressedSize, errMsg);
-                                                /*
-                                                //to verify data compression correctness
-                                                Record<Vector<Handle<Object>>> * page = (Record <Vector <Handle <Object>>> *) malloc (DEFAULT_PAGE_SIZE);
-                                                snappy::RawUncompress(compressedBytes, compressedSize, (char *)(page));
-                                                // gets the vector that we are going to iterate over
-                                                Handle<Vector<Handle<Object>>> data = page->getRootObject ();
-                                                std :: cout << "to obtain size of vector" << std :: endl;
-                                                size_t size = data->size ();
-                                                std :: cout << "got a page with size="<< size  << std :: endl;  
-                                                free(page);
-                                                */
 
                                                 delete [] compressedBytes;
                                                 free(newRecord);

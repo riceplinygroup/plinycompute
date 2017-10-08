@@ -42,6 +42,7 @@
 #include "Statistics.h"
 #include "StorageAddDatabase.h"
 #include "StorageAddSet.h"
+#include "StorageAddTempSet.h"
 #include "StorageRemoveDatabase.h"
 #include "StorageRemoveUserSet.h"
 #include "StorageExportSet.h"
@@ -222,7 +223,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 const UseTemporaryAllocationBlock tempBlock{8 * 1024 * 1024};
                 auto begin = std :: chrono :: high_resolution_clock :: now();
 
-                PDB_COUT << "received DistributedStorageAddSet message" << std ::endl;
+                PDB_COUT << "received DistributedStorageAddTempSet message" << std ::endl;
                 std::string errMsg;
                 mutex lock;
 
@@ -230,26 +231,21 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                 auto failureNodes = std::vector<std::string>();
                 auto nodesToBroadcast = std::vector<std::string>();
 
-                std::string database = request->getDatabase();
                 std::string set = request->getSetName();
-                std::string fullSetName = database + "." + set;
-                PDB_COUT << "set to create is " << fullSetName << std::endl;
                 std::string value;
 
-               std::vector<std::string> allNodes;
-               const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
-               for (int i = 0; i < nodes->size(); i++) {
+                std::vector<std::string> allNodes;
+                const auto nodes = getFunctionality<ResourceManagerServer>().getAllNodes();
+                for (int i = 0; i < nodes->size(); i++) {
                    std::string address = static_cast<std::string>((*nodes)[i]->getAddress());
                    std::string port = std::to_string((*nodes)[i]->getPort());
                    allNodes.push_back(address + ":" + port);
-               }
-               nodesToBroadcast = allNodes;
+                }
+                nodesToBroadcast = allNodes;
 
-               Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
-                                                                             request->getSetName(), request->getTypeName());
+                Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabaseName(), request->getSetName(), request->getTypeName(), request->getPageSize());
 
-
-               getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
+                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
                                                                       generateAckHandler(successfulNodes, failureNodes, lock));
 
                auto storageAddSetEnd = std :: chrono :: high_resolution_clock :: now();
@@ -270,8 +266,8 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                    getFunctionality<QuerySchedulerServer>().collectStats();
                    stats = getFunctionality<QuerySchedulerServer>().getStats();
                }
-               stats->setNumPages(request->getDatabase(), request->getSetName(), 0);
-               stats->setNumBytes(request->getDatabase(), request->getSetName(), 0);
+               stats->setNumPages("temp", request->getSetName(), 0);
+               stats->setNumBytes("temp", request->getSetName(), 0);
                 
                Handle <SimpleRequestResult> response = makeObject <SimpleRequestResult> (res, errMsg);
                res = sendUsingMe->sendObject (response, errMsg);
@@ -345,7 +341,7 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                auto catalogGetNodesEnd = std :: chrono :: high_resolution_clock :: now();
 
                Handle<StorageAddSet> storageCmd = makeObject<StorageAddSet>(request->getDatabase(),
-                                                                             request->getSetName(), request->getTypeName());
+                                                                             request->getSetName(), request->getTypeName(), request->getPageSize());
 
 
                getFunctionality<DistributedStorageManagerServer>().broadcast<StorageAddSet, Object, SimpleRequestResult>(storageCmd, nullptr, nodesToBroadcast,
@@ -866,22 +862,6 @@ void DistributedStorageManagerServer::registerHandlers (PDBServer &forMe) {
                      communicator = nullptr;
                      break;
                  }
-                 /*
-                 //to verify data compression correctness
-                 Record<Vector<Handle<Object>>> * page = (Record <Vector <Handle <Object>>> *) malloc (DEFAULT_PAGE_SIZE);
-                 snappy::RawUncompress(curPage, objSize, (char *)(page));
-                 // gets the vector that we are going to iterate over
-                 Handle<Vector<Handle<Object>>> data = page->getRootObject ();
-                 std :: cout << "to obtain size of vector" << std :: endl;
-                 size_t size = data->size ();
-                 std :: cout << "got a page with size="<< size  << std :: endl;
-                 free(page);
-                 */  
-                 /*Handle<Vector<Handle<Object>>> vector = curPage->getRootObject();
-                 PDB_COUT << "got vector size =" << vector->size() << std :: endl;
-                 PDB_COUT << "got data from this slave!" << std :: endl;
-
-                 PDB_COUT << "got Record size =" << curPage->numBytes() << std :: endl;*/
                  if (!sendUsingMe->sendBytes(curPage, objSize, errMsg)) {
                      std :: cout << "Problem forwarding data to client: " << errMsg << std :: endl;
                      communicator = nullptr;

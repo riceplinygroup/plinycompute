@@ -440,18 +440,11 @@ public:
 			} 
 		}
 
-		/*for (auto &aa : typeList) {
-			std :: cout << "Got type " << aa << "\n";
-		}*/
 
 		// now we get the correct join tuple, that will allow us to pack tuples from the join in a hash table
 		std :: vector <int> whereEveryoneGoes;
 		JoinTuplePtr correctJoinTuple = findCorrectJoinTuple <In1, In2, Rest...> (typeList, whereEveryoneGoes);
 		
-		/*for (auto &aa : whereEveryoneGoes) {
-			std :: cout << aa << " ";
-		}
-		std :: cout << "\n";*/
                 return correctJoinTuple->getPartitionedSource (this->myPartitionId, 
 
                     [&] () -> PDBPagePtr {
@@ -463,7 +456,6 @@ public:
 
                             PDBPagePtr page = this->iterator->next();
                             if(page != nullptr) {
-                                //std :: cout << "return a page for partitioned join source" << std :: endl;
                                 return page;
                             }
                          }

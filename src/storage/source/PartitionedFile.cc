@@ -87,7 +87,7 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
  */
 PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 		UserTypeID typeId, SetID setId, string metaPartitionPath,
-		pdb :: PDBLoggerPtr logger, size_t pageSize) {
+		pdb :: PDBLoggerPtr logger) {
 
 	this->nodeId = nodeId;
 	this->dbId = dbId;
@@ -95,7 +95,9 @@ PartitionedFile::PartitionedFile(NodeID nodeId, DatabaseID dbId,
 	this->setId = setId;
 	this->metaPartitionPath = metaPartitionPath;
 	this->logger = logger;
-	this->pageSize = pageSize;
+	//this->pageSize = getPageSizeInMeta();
+
+
 	//Initialize meta FILE instances;
 	this->metaFile = nullptr;
         this->usingDirect = false;
@@ -276,20 +278,11 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
              return appendPageDirect(partitionId, page);
         }
 	FILE * curPartition = nullptr;
-	//cout <<"partition to append page:"<<partitionId<<"\n";
 	if(((curPartition = this->dataFiles.at(partitionId)) == nullptr)||(page == nullptr)) {
 		return -1;
 	}
         
 	PageID pageId = page->getPageID();
-	//cout <<"appendPage: typeId="<<typeId<<",setId="<<setId<<",pageId="<<pageId<<"\n";
-        /*
-        size_t retSize = fwrite(&pageId, sizeof(PageID), 1, curPartition);
-	if(retSize != 1) {
-                //cout << "Error: can't write pageId!\n";
-		return -1;
-	}
-        */
 
         pthread_mutex_lock (&this->fileMutex);
         if (this->cleared == true) {
@@ -297,11 +290,9 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
             return -1;
         } 
         if(this->writeData(curPartition, page->getRawBytes(), page->getRawSize()) < 0) {
-                //cout << "Error: can't write page!\n";
                 pthread_mutex_unlock(&this->fileMutex);
 		return -1;
 	}
-        //fflush(curPartition);
 	//update metadata;
 	this->metaData->incNumFlushedPages();
         
@@ -310,11 +301,9 @@ int PartitionedFile::appendPage(FilePartitionID partitionId, PDBPagePtr page)  {
         }
         
 	//update partition metadata
-        //cout << "appendPage: before appending this page, numFlushedPages="<<this->metaData->getPartition(partitionId)->getNumPages()<<"\n";
         int ret = (int) (this->metaData->getPartition(partitionId)->getNumPages());
         this->metaData->addPageIndex(pageId, partitionId, ret);
 	this->metaData->getPartition(partitionId)->incNumPages();
-	//this->writeMeta();
         pthread_mutex_unlock(&this->fileMutex);
 	return ret;
 }
@@ -329,7 +318,6 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        }
 
        PageID pageId = page->getPageID();
-       //cout <<"appendPage: typeId="<<typeId<<",setId="<<setId<<",pageId="<<pageId<<"\n";
        pthread_mutex_lock(&this->fileMutex);
        if (this->cleared == true) {
               pthread_mutex_unlock(&this->fileMutex);
@@ -344,7 +332,6 @@ int PartitionedFile::appendPageDirect(FilePartitionID partitionId, PDBPagePtr pa
        if((pageId > this->metaData->getLatestPageId())||(this->metaData->getLatestPageId() == (unsigned int) (-1))) {
             this->metaData->setLatestPageId(pageId);
         }
-       //cout << "appendPage: before appending this page, numFlushedPages="<<this->metaData->getPartition(partitionId)->getNumPages()<<"\n";
        int ret = (int) (this->metaData->getPartition(partitionId)->getNumPages());
        this->metaData->addPageIndex(pageId, partitionId, ret);
        this->metaData->getPartition(partitionId)->incNumPages();
@@ -390,7 +377,6 @@ int PartitionedFile::writeMeta() {
     //compute meta size
     size_t metaSize = sizeof(FileType)+ sizeof(unsigned short) + sizeof(size_t) + sizeof(unsigned int) + sizeof(unsigned int) + sizeof(unsigned int);
     unsigned int numPartitions = this->dataPartitionPaths.size();
-    //cout<<"write partition number:"<<numPartitions<<"\n";
     unsigned int i = 0;
     for (i = 0; i < numPartitions; i++) {
     	metaSize += sizeof(FilePartitionID) + sizeof(unsigned int) + sizeof(size_t) + this->dataPartitionPaths.at(i).length() + 1;
@@ -399,7 +385,6 @@ int PartitionedFile::writeMeta() {
     for (i = 0; i < numPages; i++) {
         metaSize += sizeof(PageID) + sizeof(FilePartitionID) + sizeof(unsigned int);
     }
-    //cout <<"metaSize:"<<metaSize<<"\n";
     //write meta size to meta partition
     fseek(this->metaFile, 0, SEEK_SET);
     fwrite((size_t *)(&metaSize), sizeof(size_t), 1, this->metaFile);
@@ -416,14 +401,11 @@ int PartitionedFile::writeMeta() {
     cur = cur + sizeof(unsigned short);
     //initialize PageSize
     * ((size_t *) cur) = this->metaData->getPageSize();
-    //cout <<"pageSize written to meta partition:"<<this->metaData->getPageSize()<<"\n";
     cur = cur + sizeof(size_t);
     //initialize TotalPageNumber
     * ((unsigned int *) cur) = this->metaData->getNumFlushedPages();
-    //cout << "write to meta file about numFlushedPages:"<<this->metaData->getNumFlushedPages()<<"\n";
     cur = cur + sizeof(unsigned int);
     * ((unsigned int *) cur) = this->metaData->getLatestPageId();
-    //cout << "write to meta file about latestPageId:"<<this->metaData->getLatestPageId()<<"\n";
     cur = cur + sizeof(unsigned int);
     //initialize Partitions
     *((unsigned int *) cur) = numPartitions;
@@ -443,17 +425,11 @@ int PartitionedFile::writeMeta() {
     for (auto iter = this->getMetaData()->getPageIndexes()->begin(); iter != this->getMetaData()->getPageIndexes()->end(); iter++) {
         PageID pageId = iter->first;
         PageIndex pageIndex = iter->second;
-        //cout << "writeMeta: offset=" << cur-buffer <<"\n";
         *((PageID *) cur) = pageId;
-        //cout << "writeMeta: pageId=" << pageId << "\n";
         cur = cur + sizeof(PageID);
-        //cout << "writeMeta: offset=" << cur-buffer << "\n";
         *((FilePartitionID *) cur) = pageIndex.partitionId;
-        //cout << "writeMeta: partitionId=" << pageIndex.partitionId << "\n";
         cur = cur + sizeof(FilePartitionID);
-        //cout << "writeMeta: offset=" << cur-buffer << "\n";
         *((unsigned int *) cur) = pageIndex.pageSeqInPartition;
-        //cout << "writeMeta: pageSeqInPartition=" << pageIndex.pageSeqInPartition << "\n";
         cur = cur + sizeof(unsigned int);
     }
 
@@ -509,7 +485,6 @@ int PartitionedFile::updateMeta() {
  */
 size_t PartitionedFile::loadPage(FilePartitionID partitionId, unsigned int pageSeqInPartition,
 		char * pageInCache, size_t length) {
-        //cout << "to load page with partitionId="<<partitionId<<", pageSeqInPartition="<<pageSeqInPartition<<"\n";
         if(usingDirect == true) {
             return loadPageDirect(partitionId, pageSeqInPartition, pageInCache, length);
         }
@@ -529,7 +504,6 @@ size_t PartitionedFile::loadPage(FilePartitionID partitionId, unsigned int pageS
  * To load page using direct I/O.
  */
 size_t PartitionedFile::loadPageDirect(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length) {
-        //auto begin = std::chrono::high_resolution_clock::now();
         int handle = this->dataHandles.at(partitionId);
         size_t ret;
         if(handle < 0) {
@@ -541,8 +515,6 @@ size_t PartitionedFile::loadPageDirect(FilePartitionID partitionId, unsigned int
         } else {
             return (size_t)(-1);
         }
-        //auto end = std::chrono::high_resolution_clock::now();
-        //std::cout << "load latency:"<<std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
         return ret;
 }
 
@@ -552,29 +524,7 @@ size_t PartitionedFile::loadPageDirect(FilePartitionID partitionId, unsigned int
  */
 PageID PartitionedFile::loadPageId(FilePartitionID partitionId, unsigned int pageSeqInPartition) {
        PageID ret =this->getMetaData()->getPageId(partitionId, pageSeqInPartition);
-       //cout << "Load page with PageId=" << ret << "\n";
        return ret;      
-       /*
- 	FILE * curFile = this->dataFiles.at(partitionId);
-	if(curFile == nullptr) {
-		return 0;
-	}
-        int numPages = this->getMetaData()->getPartition(partitionId)->getNumPages();
-	if(pageSeqInPartition < numPages) {
-		seekPageId(curFile, pageSeqInPartition);
-		PageID pageId;
-		if(fread(&pageId, sizeof(PageID), 1, curFile) == 1) {
-                    //cout << "PartitionedFile: typeId="<<typeId<<",setId="<<setId<<",loaded pageId="<<pageId<<",pageSeqInPartition="<<pageSeqInPartition<<"\n";
-		    return pageId;
-                } else {
-                    //cout << "PartitionedFile: loadPageId fread error.\n";
-                    return pageId;
-                }
-	} else {
-                //cout << "pageSeqInPartition="<<pageSeqInPartition<<", numPages="<<numPages<<"\n";
-		return (PageID)-1;
-	}
-        */
 }
 
 /**
@@ -766,43 +716,33 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	//parse file type
 	char* cur = buf;
 	//FileType fileType = (*(FileType *) cur);
-	//cout <<"fileType:"<<fileType<<"\n";
 	cur = cur + sizeof(FileType);
 
 	//parse and set version;
 	unsigned short version = (unsigned short)(*(unsigned short *) cur);
-	//cout <<"version:"<<version<<"\n";
 	this->metaData->setVersion(version);
 	cur = cur + sizeof(unsigned short);
 
 	//parse and set pageSize;
 	size_t pageSize = (size_t)(* (size_t *) cur);
-	//cout <<"pageSize on meta partition:"<<pageSize<<"\n";
-	//cout <<"pageSize on configuration:"<<this->pageSize<<"\n";
-	if(pageSize != this->pageSize) {
-		this->logger->error("Fatal Error: PartitionedFile: Error: inconsistent page size, exiting...");
-		exit(-1);
-	}
-	//cout <<"pageSize:"<<pageSize<<"\n";
-	this->metaData->setPageSize(this->pageSize);
+	this->metaData->setPageSize(pageSize);
+        this->pageSize = pageSize;
+        std :: cout << "Detected file with page size=" << pageSize << std :: endl;
 	cur = cur + sizeof(size_t);
-
+       
 	//parse and set numFlushed pages;
 	unsigned int numFlushedPages = (unsigned int)(*(unsigned int *) cur);
-        //cout <<"numFlushedPages:"<<numFlushedPages<<"\n";
 	this->metaData->setNumFlushedPages(numFlushedPages);
 	cur = cur + sizeof(unsigned int);
 
         //parse and set latestPageId;
         unsigned int latestPageId = (unsigned int)(*(unsigned int *) cur);
-        //cout <<"latestPageId:"<<latestPageId<<"\n";
         this->metaData->setLatestPageId(latestPageId);
         cur = cur + sizeof(unsigned int);
 
 
 	//parse numPartitions;
 	unsigned int numPartitions = (unsigned int)(*(unsigned int *) cur);
-	//cout <<"numPartitions:"<<numPartitions<<"\n";
 	cur = cur + sizeof(unsigned int);
 	PartitionMetaDataPtr curPartitionMeta;
 	FilePartitionID partitionId;
@@ -812,28 +752,23 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 	//parse and set partition meta data
 	unsigned int i;
 	for (i = 0; i < numPartitions; i++) {
-		//cout<<"parse and set meta data for partition:"<<i<<"\n";
 		curPartitionMeta = make_shared<PartitionMetaData>();
 		//parse and set partitionId
 		partitionId = (FilePartitionID)(*(FilePartitionID *) cur);
-                //cout << "partitionId=" << partitionId << "\n";
 		curPartitionMeta->setPartitionId(partitionId);
 		cur = cur + sizeof(FilePartitionID);
 
 		//parse and set numFlushedPages
 		numFlushedPagesInPartition = (unsigned int)(*(unsigned int *) cur);
-                //cout << "numFlushedPagesInPartition=" << numFlushedPagesInPartition<<"\n";
 		curPartitionMeta->setNumPages(numFlushedPagesInPartition);
 		cur = cur + sizeof(unsigned int);
 
 		//parse len
 		pathLen = (size_t)(*(size_t *) cur);
 		cur = cur + sizeof(size_t);
-                //cout << "pathLen=" << pathLen << "\n";
 		//parse string
 		string partitionPath(cur);
 		this->dataPartitionPaths.push_back(partitionPath);
-                //cout << "path=" << partitionPath << "\n";
 		curPartitionMeta->setPath(partitionPath);
 		this->metaData->addPartition(curPartitionMeta);
 		cur = cur + pathLen;
@@ -845,23 +780,28 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
         //parse and set page index data
         for (i = 0; i < numFlushedPages; i ++) {
                 pageId = (PageID)(*(PageID *) cur);
-                //cout << "offset="<<cur-buf<<"\n";
                 cur = cur + sizeof(PageID);
-                //cout << "offset="<<cur-buf<<"\n";
                 partitionId = (FilePartitionID)(*(FilePartitionID *) cur);
                 cur = cur + sizeof(FilePartitionID);
-                //cout << "offset="<<cur-buf<<"\n";
                 pageSeqInPartition = (unsigned int)(*(unsigned int *) cur);
                 cur = cur + sizeof(unsigned int);
-                //cout << "pageId="<<pageId<<"\n";
-                //cout << "partitionId="<<partitionId<<"\n";
-                //cout << "pageSeqInPartition="<<pageSeqInPartition<<"\n";
                 this->metaData->addPageIndex(pageId, partitionId, pageSeqInPartition);
         } 
 
 	free(buf);
 
 }
+
+/**
+ * Return page size of this file
+ */
+size_t PartitionedFile::getPageSize() {
+    if (pageSize == 0) {
+        pageSize = getPageSizeInMeta();
+    }
+    return pageSize;
+}
+
 
 /**
  * Read meta partition to return the pageSize of this file
@@ -930,7 +870,6 @@ int PartitionedFile::writeDataDirect(int handle, void * data, size_t length) {
         cout << "PartitionedFile: Error: invalid handle or data is nullptr.\n";
         return -1; 
     }
-    //cout << "write data to handle=" << handle <<"\n";
     size_t retSize = write(handle, data, length);
     if (retSize != length) {
         cout << "written bytes:"<<retSize<<"\n";
@@ -941,21 +880,6 @@ int PartitionedFile::writeDataDirect(int handle, void * data, size_t length) {
     
 }
 
-//Deprecated!
-
-/**
- * Seek to the beginning of the pageId field for a page specified in the file.
- */
-int PartitionedFile::seekPageId(FILE * partition, unsigned int pageSeqInPartition) {
-    /*
-    if(partition == nullptr){
-        return -1;
-    }
-    //cout << "seekPageId: pageSeqInPartition="<<pageSeqInPartition<<"\n";
-    return fseek(partition, (pageSeqInPartition)*(this->metaData->getPageSize()+sizeof(PageID)), SEEK_SET);
-    */
-    return -1;
-}
 
 /**
  * Seek to the beginning of the page data for a page specified in the file.

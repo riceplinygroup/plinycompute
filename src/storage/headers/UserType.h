@@ -77,7 +77,7 @@ public:
     void flush();
 
     //add new set
-    int addSet(string setName, SetID setId);
+    int addSet(string setName, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE);
 
     //Remove an existing set, including all the disk files associated with the set.
     //If successful, return 0.

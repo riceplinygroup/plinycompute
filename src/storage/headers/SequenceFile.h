@@ -78,6 +78,7 @@ public:
 	unsigned int getNumFlushedPages() override;
 	PageID getLastFlushedPageID() override;
         PageID getLatestPageID() override;
+        size_t getPageSize() override;
 	size_t getPageSizeInMeta() override;
 
     /**
@@ -146,7 +147,7 @@ private:
 	string filePath;
 	PageID lastFlushedId;
 	unsigned int numFlushedPages;
-	size_t pageSize;
+	size_t pageSize = 0;
 	size_t metaSize;
 	pdb::PDBLoggerPtr logger;
 };

@@ -36,11 +36,11 @@ namespace pdb {
         DistributedStorageAddTempSet () {}
         ~DistributedStorageAddTempSet () {}
 
-        DistributedStorageAddTempSet (std :: string dataBase, std :: string setName, std :: string typeName)
-                : dataBase (dataBase), setName (setName), typeName (typeName){}
+        DistributedStorageAddTempSet (std :: string databaseName, std :: string setName, std :: string typeName, size_t pageSize)
+                : databaseName (databaseName), setName (setName), typeName (typeName), pageSize (pageSize) {}
 
-        std :: string getDatabase () {
-            return dataBase;
+        std :: string getDatabaseName () {
+            return databaseName;
         }
 
         std :: string getSetName () {
@@ -51,14 +51,17 @@ namespace pdb {
             return typeName;
         }
 
+        size_t getPageSize() {
+            return pageSize;
+        }
+
         ENABLE_DEEP_COPY
 
     private:
-
-        String dataBase;
+        String databaseName;
         String setName;
         String typeName;
-
+        size_t pageSize;
     };
 
 }

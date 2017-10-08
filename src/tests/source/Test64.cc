@@ -71,7 +71,8 @@ int main (int argc, char * argv[]) {
             computationsToSend->push_back(computations[i]);
         }
         PDBLoggerPtr logger = make_shared<PDBLogger>("testSelectionAnalysis.log");
-        TCAPAnalyzer tcapAnalyzer("TestSelectionJob", computationsToSend, tcapString, logger);
+        ConfigurationPtr conf = make_shared<Configuration>();
+        TCAPAnalyzer tcapAnalyzer("TestSelectionJob", computationsToSend, tcapString, logger, conf);
 
         std :: vector<Handle<AbstractJobStage>> queryPlan;
         std :: vector<Handle<SetIdentifier>> interGlobalSets;

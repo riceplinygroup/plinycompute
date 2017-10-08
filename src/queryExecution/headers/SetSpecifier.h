@@ -23,6 +23,7 @@
 
 #include <string>
 #include "DataTypes.h"
+#include "Configuration.h"
 #include <memory>
 class SetSpecifier;
 typedef std :: shared_ptr<SetSpecifier> SetSpecifierPtr;
@@ -37,7 +38,7 @@ public:
 	SetSpecifier () {}
 	~SetSpecifier () {}
 
-	SetSpecifier (std :: string dataBase, std :: string setName, DatabaseID dbId, UserTypeID typeId, SetID setId) : dataBase (dataBase), setName (setName), dbId(dbId), typeId(typeId), setId(setId) {}
+	SetSpecifier (std :: string dataBase, std :: string setName, DatabaseID dbId, UserTypeID typeId, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE) : dataBase (dataBase), setName (setName), dbId(dbId), typeId(typeId), setId(setId), pageSize(pageSize) {}
 
 	std :: string getDatabase () {
 		return dataBase;
@@ -59,6 +60,10 @@ public:
                 this->setId = setId;
         }
 
+        void setPageSize (size_t pageSize) {
+                this->pageSize = pageSize;
+        }
+
         DatabaseID getDatabaseId() {
                 return dbId;
         }
@@ -71,6 +76,10 @@ public:
                 return setId;
         }
 
+        size_t getPageSize() {
+                return pageSize;
+        }
+
 
 private:
 
@@ -79,7 +88,7 @@ private:
         DatabaseID dbId;
         UserTypeID typeId;
         SetID setId;
-
+        size_t pageSize;
 };
 
 

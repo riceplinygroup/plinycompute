@@ -162,16 +162,16 @@ public:
     PDBPagePtr getPage(PartitionedFilePtr file, FilePartitionID partitionId, unsigned int pageSeqInPartition, PageID pageId, bool sequential, LocalitySet * set=nullptr);
 
 
-     //Get a page directly from cache, if it is not in cache return nullptr
-     PDBPagePtr getPage(CacheKey key, LocalitySet * set=nullptr);
+    //Get a page directly from cache, if it is not in cache return nullptr
+    PDBPagePtr getPage(CacheKey key, LocalitySet * set=nullptr);
 
 
 
     //To allocate a new page, blocking until get a page, set it as pinned&dirty, add it to cache, and increment reference count 
-    PDBPagePtr getNewPage(NodeID nodeId, CacheKey key, LocalitySet * set=nullptr);
+    PDBPagePtr getNewPage(NodeID nodeId, CacheKey key, LocalitySet * set=nullptr, size_t pageSize=DEFAULT_PAGE_SIZE);
 
     //Try to allocate a new page, set it as pinned&dirty, add it to cache, and increment reference count 
-    PDBPagePtr getNewPageNonBlocking(NodeID nodeId, CacheKey key, LocalitySet * set=nullptr);
+    PDBPagePtr getNewPageNonBlocking(NodeID nodeId, CacheKey key, LocalitySet * set=nullptr, size_t pageSize=DEFAULT_PAGE_SIZE);
 
     //Decrement reference count for a page.
     //In the LRUPageCache class, only below method will cause page reference count --
@@ -242,7 +242,7 @@ public:
 
     //Build a PDBPage instance from page data loaded from file into shared memory.
     PDBPagePtr buildPageFromSharedMemoryData(PDBFilePtr file, char* pageData,
-    		FilePartitionID partitionId, unsigned int pageSeqInPartition, int internalOffset);
+    		FilePartitionID partitionId, unsigned int pageSeqInPartition, int internalOffset, size_t pageSize=DEFAULT_PAGE_SIZE);
 
 
 
@@ -271,9 +271,9 @@ private:
     pdb :: PDBLoggerPtr logger;
     ConfigurationPtr conf;
     unsigned int size;
-    unsigned int maxSize;
-    unsigned int warnSize; //the threshold to evict
-    unsigned int evictStopSize; //the threshold to stop eviction
+    size_t maxSize;
+    size_t warnSize; //the threshold to evict
+    size_t evictStopSize; //the threshold to stop eviction
     pthread_rwlock_t evictionAndFlushLock;
     pthread_mutex_t cacheMutex;
     pthread_mutex_t evictionMutex;

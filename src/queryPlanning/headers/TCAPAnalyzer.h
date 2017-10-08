@@ -30,6 +30,7 @@
 #include "BroadcastJoinBuildHTJobStage.h"
 #include "HashPartitionedJoinBuildHTJobStage.h"
 #include "Statistics.h"
+#include "Configuration.h"
 
 namespace pdb {
 
@@ -44,7 +45,7 @@ class TCAPAnalyzer {
 public:    
 
 //constructor
-TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, bool isDynamicPlanning = false);
+TCAPAnalyzer (std :: string jobId, Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString, PDBLoggerPtr logger, ConfigurationPtr conf, bool isDynamicPlanning = false);
 
 //destructor
 ~TCAPAnalyzer ();
@@ -142,6 +143,9 @@ std :: vector<AtomicComputationPtr> sources;
 
 //the logger
 PDBLoggerPtr logger;
+
+//the config
+ConfigurationPtr conf;
 
 //the jobId for this query
 std :: string jobId;

@@ -28,11 +28,10 @@
 #include <stdlib.h>
 #include <iostream>
 
-
+//create an empty page
 PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
         UserTypeID dataTypeID, SetID dataSetID, PageID dataPageID, size_t dataSize,
         size_t shmOffset, int internalOffset, int numObjectsIn) {
-    //cout << "numObjectsIn = " << numObjectsIn << "\n";
     rawBytes = dataIn;
     nodeID = dataNodeID;
     dbID = dataDbID;
@@ -42,7 +41,7 @@ PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
     size = dataSize;
     offset = shmOffset;
     this->numObjects = numObjectsIn;
-    this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
+    this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t);
     this->refCount = 0;
     this->pinned = true;
     this->dirty = false;
@@ -54,15 +53,49 @@ PDBPage::PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
     this->internalOffset = internalOffset;
     char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
     *((int *) refCountBytes) = numObjectsIn;
+    char * pageSizeBytes = refCountBytes + sizeof(int);
+    *((size_t *) pageSizeBytes) = dataSize;
+
 }
 
+
+//create a PDBPage instance from a non-empty page.
+PDBPage::PDBPage(char * dataIn, size_t offset, int internalOffset) {
+    this->rawBytes = dataIn;
+    this->offset = offset;
+    this->internalOffset = internalOffset;
+    this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t);
+    char * cur = this->rawBytes;
+    this->nodeID = *((NodeID *) cur);
+    cur = cur + sizeof(NodeID);
+    this->dbID = *((DatabaseID *) cur);
+    cur = cur + sizeof(DatabaseID);
+    this->typeID = *((UserTypeID *) cur);
+    cur = cur + sizeof(UserTypeID);
+    this->setID = *((SetID *) cur);
+    cur = cur + sizeof(SetID);
+    this->pageID = *((PageID *) cur);
+    cur = cur + sizeof(PageID);
+    this->numObjects = *((int *) cur);
+    cur = cur + sizeof(int);
+    this->size = *((size_t *) cur);
+    this->refCount = 0;
+    this->pinned = true;
+    this->dirty = false;
+    this->inFlush = false;
+    this->partitionId = (FilePartitionID)(-1);
+    this->pageSeqInPartition = (unsigned int)(-1);
+    pthread_mutex_init(&(this->refCountMutex), nullptr);
+    pthread_rwlock_init(&(this->flushLock), nullptr);
+
+}
+
+
+
 PDBPage::~PDBPage() {
-    //cout<<"PDBPage: freeing page...";
     freePage();
-    //cout<<"PDBPage: cleaning locks...";
     pthread_mutex_destroy(&(this->refCountMutex));
     pthread_rwlock_destroy(&(this->flushLock));
-    //cout<<"PDBPage: locks cleaned.";
 }
 
 /**
@@ -82,7 +115,9 @@ void PDBPage::preparePage() {
    * ((PageID *) cur) = pageID;
    cur = cur + sizeof (PageID);
    *((int *) cur) = 0;
-   this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
+   cur = cur + sizeof (int);
+   *((size_t *) cur) = this->size;
+   this->curAppendOffset = sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t);
    return;     
 }
 
@@ -105,13 +140,13 @@ void PDBPage::writeUnlock() {
 
 void * PDBPage::getBytes() {
 
-        return this->rawBytes + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int);
+        return this->rawBytes + sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t);
 
 }
 
 size_t PDBPage::getSize() {
 
-        return this->size - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int));
+        return this->size - (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
 
 }
 
@@ -123,15 +158,11 @@ void  PDBPage::unpin() {
 
 
 void PDBPage::freePage() {
-    //this->writeLock();
-    //cout<<"PDBPage: got lock for freeing page data...";
     if (rawBytes != nullptr) {
         //we always free page data by SharedMem class when page is flushed or evicted, and we do not free page data here
         //If it comes to here, there must be a problem. Shared memory should already be freed, there could be memory leaks
         rawBytes = nullptr;
     }
-    //cout<<"PDBPage: page data freed...";
-    //this->writeUnlock();
     nodeID = -1;
     dbID = -1;
     typeID = -1;
@@ -141,7 +172,6 @@ void PDBPage::freePage() {
     size = 0;
     numObjects = 0;
     internalOffset = 0;
-    //cout<<"PDBPage: page data reset...";
 }
 
 #endif

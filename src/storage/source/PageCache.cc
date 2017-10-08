@@ -50,14 +50,22 @@ PageCache::PageCache(ConfigurationPtr conf, pdb :: PDBWorkerQueuePtr workers, Pa
 	pthread_rwlock_init(&this->evictionAndFlushLock, nullptr);
 	this->accessCount = 0;
 	this->inEviction = false;
-	this->maxSize = conf->getShmSize() / conf->getPageSize();
+	this->maxSize = conf->getShmSize();
 	this->size = 0;
 	this->warnSize = (this->maxSize) * WARN_THRESHOLD;
+
+        std :: cout << "maxSize=" << maxSize << std :: endl;
+
 	this->evictStopSize = (this->maxSize) * EVICT_STOP_THRESHOLD;
-        while (this->evictStopSize >= (shm->getShmSize()/conf->getPageSize()-4)) {
-           this->evictStopSize --;
-           if((this->evictStopSize <= 1) || (this->evictStopSize == (shm->getShmSize()/conf->getPageSize()-6))) {
-               break;
+
+        std :: cout << "evictStopSize=" << evictStopSize << std :: endl;
+        
+        if (this->evictStopSize >= (shm->getShmSize()-6*conf->getMaxPageSize())) {
+           this->evictStopSize = shm->getShmSize()-6*conf->getMaxPageSize();
+           std :: cout << "evictStopSize=" << evictStopSize << std :: endl;
+           if(this->evictStopSize <= conf->getMaxPageSize()) {
+               this->evictStopSize = conf->getMaxPageSize();
+               std :: cout << "evictStopSize=" << evictStopSize << std :: endl;
            }
         }
         std :: cout << "PageCache: EVICT_STOP_SIZE is automatically tuned to be " << this->evictStopSize << std :: endl;
@@ -99,7 +107,7 @@ void PageCache::cachePage(PDBPagePtr page, LocalitySet* set) {
 	if (this->cache->find(key) == this->cache->end()) {
 		pair<CacheKey, PDBPagePtr> pair = make_pair(key, page);
 		this->cache->insert(pair);
-		this->size++;
+		this->size += page->getRawSize()+512;
 	} else {
 		logger->writeLn("LRUPageCache: page was there already.");
 	}
@@ -119,11 +127,12 @@ char * PageCache::allocateBufferFromSharedMemoryBlocking(size_t size, int & alig
 	while (data == nullptr) {
 		this->logger->info(
 				"LRUPageCache: out of memory in off-heap pool, start eviction.");
+#ifdef PROFILING_CACHE
+                std :: cout << "Out of memory in shared memory pool, trying to allocate " << size << " data" << std :: endl;
+#endif
 		if (this->inEviction == false) {
 			this->evict();
-                        //cout << "eviction done!\n";
 		} else {
-			//cout << "waiting for eviction work to evict at least one page.";
 			this->logger->info(
 					"waiting for eviction work to evict at least one page.");
 			sched_yield();
@@ -148,13 +157,11 @@ char * PageCache::tryAllocateBufferFromSharedMemory(size_t size, int & alignOffs
 
 //Lock for eviction.
 void PageCache::evictionLock() {
-        //cout << "get eviction lock\n";
         pthread_rwlock_wrlock(&this->evictionAndFlushLock);
 }
 
 //Unlock for eviction.
 void PageCache::evictionUnlock() {
-        //cout << "release eviction lock\n";
         pthread_rwlock_unlock(&this->evictionAndFlushLock);
 }
 
@@ -170,40 +177,37 @@ void PageCache::flushUnlock() {
 
 PDBPagePtr PageCache::buildAndCachePageFromFileHandle(int handle, size_t size, NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId, PageID pageId) {
      int offset;
-     char * buffer = allocateBufferFromSharedMemoryBlocking(this->conf->getPageSize(), offset);
+     char * buffer = allocateBufferFromSharedMemoryBlocking(size, offset);
      ssize_t readSize = read(handle, buffer, size);
      if (readSize <= 0) {
          std :: cout << "PageCache: Read failed" << std :: endl;
          return nullptr;
      }
-     PDBPagePtr page = make_shared<PDBPage>(buffer, nodeId, dbId, typeId, setId, pageId, this->conf->getPageSize(), shm->computeOffset(buffer), offset);
+     PDBPagePtr page = make_shared<PDBPage>(buffer, nodeId, dbId, typeId, setId, pageId, size, shm->computeOffset(buffer), offset);
      return page;
 }
 
 //Build a PDBPage instance based on the info of file and info parsed from loaded page data.
 PDBPagePtr PageCache::buildPageFromSharedMemoryData(PDBFilePtr file,
-		char* pageData, FilePartitionID partitionId, unsigned int pageSeqInPartition, int internalOffset) {
+		char* pageData, FilePartitionID partitionId, unsigned int pageSeqInPartition, int internalOffset, size_t pageSize) {
 	if(pageData == nullptr) {
 		return nullptr;
 	}
 	char * cur = pageData + sizeof(NodeID) + sizeof(DatabaseID)
 			+ sizeof(UserTypeID) + sizeof(SetID);
 	PageID pageId = (PageID)(*(PageID *) cur);
-        //cout << "buildPageFromSharedMemoryData: pageId="<<pageId<<"\n";
 	cur = cur + sizeof(PageID);
 	int numObjects = (int) (*(int *) cur);
-        //cout << "internalOffset=" << internalOffset<<"\n";
 	//create a new PDBPagePtr
 	PDBPagePtr page = make_shared<PDBPage>(pageData, file->getNodeId(),
 			file->getDbId(), file->getTypeId(), file->getSetId(), pageId,
-			this->conf->getPageSize(), shm->computeOffset(pageData), internalOffset, numObjects);
+			pageSize, shm->computeOffset(pageData), internalOffset, numObjects);
 	if (page == nullptr) {
 		this->logger->error("Fatal Error: PageCache: out of memory in heap.");
                 std :: cout << "FATAL ERROR: PageCache out of memory" << std :: endl;
 		exit(-1);
 	}
 	page->setNumObjects(numObjects);
-	//page->setMiniPageSize(this->conf->getMiniPageSize());
 	page->setPartitionId(partitionId);
 	page->setPageSeqInPartition(pageSeqInPartition);
 	return page;
@@ -229,19 +233,20 @@ PDBPagePtr PageCache::loadPage(PDBFilePtr file, FilePartitionID partitionId,
 			return nullptr;
 		}
                 int internalOffset = 0;
+                size_t pageSize = file->getPageSize();
 		//allocate memory for the page from shared memory pool, if there is no free page,  it will blocking and evicting, until there is new room.
 		char * pageData = this->allocateBufferFromSharedMemoryBlocking(
-				this->conf->getPageSize(), internalOffset);
+				pageSize, internalOffset);
 		//seek to page
 		if(sequential == true) {
 			curFile->loadPageFromCurPos(partitionId, pageSeqInPartition, pageData,
-				this->conf->getPageSize());
+				pageSize);
 		} else {
 			curFile->loadPage(partitionId, pageSeqInPartition, pageData,
-				this->conf->getPageSize());
+				pageSize);
 		}
 		//build page from loaded data
-		return this->buildPageFromSharedMemoryData(file, pageData, partitionId, pageSeqInPartition, internalOffset);
+		return this->buildPageFromSharedMemoryData(file, pageData, partitionId, pageSeqInPartition, internalOffset, pageSize);
 
 	}
 	return nullptr;
@@ -256,12 +261,13 @@ PDBPagePtr PageCache::loadPage(SequenceFilePtr file, PageID pageId) {
 	}
         int internalOffset = 0;
 	//allocate a page from shared memory pool, if there is no free page, it will blocking and evicting, until there is new room.
+        size_t pageSize = file->getPageSize();
 	char* pageData = this->allocateBufferFromSharedMemoryBlocking(
-			this->conf->getPageSize(), internalOffset);
+			pageSize, internalOffset);
 	//seek to the pageId
-	file->loadPage(pageId, pageData, this->conf->getPageSize());
+	file->loadPage(pageId, pageData, pageSize);
 	//build page from loaded data
-	return this->buildPageFromSharedMemoryData(file, pageData, 0, pageId, internalOffset);
+	return this->buildPageFromSharedMemoryData(file, pageData, 0, pageId, internalOffset, pageSize);
 
 }
 
@@ -274,8 +280,9 @@ bool PageCache::removePage(CacheKey key) {
         pthread_mutex_unlock(&this->cacheMutex);
         return false;
     }
+    size_t pageSizeAllocated = this->cache->at(key)->getRawSize() + 512;
     this->cache->erase(key);
-    this->size --;
+    this->size -= pageSizeAllocated;
     pthread_mutex_unlock(&this->cacheMutex);
     return true;
 }
@@ -294,11 +301,11 @@ bool PageCache::freePage(PDBPagePtr curPage) {
         pthread_mutex_unlock(&this->cacheMutex);
         return false;
     }
-
+    size_t pageSizeAllocated = this->cache->at(key)->getRawSize() + 512;
     cache->erase(key);
-    this->size --;
+    this->size -= pageSizeAllocated;
     pthread_mutex_unlock(&this->cacheMutex);
-    this->shm->free(curPage->getRawBytes()-curPage->getInternalOffset(), curPage->getSize()+512);
+    this->shm->free(curPage->getRawBytes()-curPage->getInternalOffset(), curPage->getRawSize()+512);
     curPage->setOffset(0);
     curPage->setRawBytes(nullptr);
     return true;
@@ -316,7 +323,6 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
 	key.setId = file->getSetId();
 	key.pageId = pageId;
 	PDBPagePtr page;
-        //cout << "to get page in cache with dbId="<<key.dbId<<",typeId="<<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<endl;
         
         if((partitionId == (unsigned int)(-1)) || (pageSeqInPartition == (unsigned int)(-1)))      {
                 PageIndex pageIndex = file->getMetaData()->getPageIndex(pageId);
@@ -325,23 +331,14 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
         }
         //Assumption: At one time, for a page, only one thread will try to load it.
         //Above assumption is guaranteed by the front-end scan model.
-        //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: to get lock for evictionMutex...");
         pthread_mutex_lock(&this->evictionMutex);
-        //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionMutex...");
-        //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: to get lock for evictionLock()...");
         this->evictionLock();
-        //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionLock()...");
         pthread_mutex_lock(&this->cacheMutex);
 	if (this->containsPage(key) != true) {
                 pthread_mutex_unlock(&this->cacheMutex);
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: miss page in cache, so we need to load it and can unlock...");
                 this->evictionUnlock();
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionLock()...");
                 pthread_mutex_unlock(&this->evictionMutex);
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionMutex...");
-		//cout<<"miss in cache for page with pageID="<<pageId<<"\n";
 		page = this->loadPage(file, partitionId, pageSeqInPartition, sequential);
-		//cout<<"loaded page with pageID="<<page->getPageID()<<"\n";
 		if (page == nullptr) {
 			return nullptr;
 		}
@@ -350,17 +347,13 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                 this->accessCount++;
                 pthread_mutex_unlock(&this->countLock);
                 
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: to get lock for evictionMutex...");
                 pthread_mutex_lock(&this->evictionMutex);
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: got lock for evictionMutex...");
 		this->cachePage(page, set);
                 page->setPinned(true);
                 page->setDirty(false);
                 page->incRefCount();
                 pthread_mutex_unlock(&this->evictionMutex);
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionMutex...");
 	} else {
-                //cout<<"getPage()\n";     
 		page = this->cache->at(key); 
                 pthread_mutex_unlock(&this->cacheMutex);
                 if (page == nullptr) {
@@ -370,14 +363,10 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                    pthread_mutex_unlock(&this->evictionMutex);
                    return nullptr;
                 }
-		//cout<<"hit in cache for page with pageID="<<page->getPageID()<<"\n";
                 page->setPinned(true);
-                //page->setDirty(false);
                 page->incRefCount();
                 this->evictionUnlock();
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionLock()...");
                 pthread_mutex_unlock(&this->evictionMutex);
-                //this->logger->writeLn("PageCache::getPage(PDBFilePtr...: unlocked for evictionMutex...");
                 pthread_mutex_lock(&this->countLock);
                 page->setAccessSequenceId(this->accessCount);
                 this->accessCount++;
@@ -387,18 +376,6 @@ PDBPagePtr PageCache::getPage(PartitionedFilePtr file, FilePartitionID partition
                 }
 	}
 
-	//cout << "Storage server: retrieved page for pageID: " << pageId
-		//	<< " from cache.\n";
-/*
-	if (this->size >= this->warnSize) {
-		logger->writeLn("LRUPageCache: cache size:");
-		logger->writeInt(this->size);
-                //cout << "start cache eviction for achieving warn size.\n";
-                if(this->inEviction == false) {
-		    this->runEviction();
-                }
-	}
-*/
 	return page;
 }
 
@@ -421,7 +398,6 @@ PDBPagePtr PageCache::getPage(CacheKey key, LocalitySet* set) {
        } else {
            PDBPagePtr page = this->cache->at(key);
            pthread_mutex_unlock(&this->cacheMutex);
-           //cout<<"hit in cache!\n";
            if (page == nullptr) {
                std :: cout << "WARNING: SetCachePageIterator get nullptr in cache.\n" << std :: endl;
                logger->warn("SetCachePageIterator get nullptr in cache.");
@@ -439,38 +415,30 @@ PDBPagePtr PageCache::getPage(CacheKey key, LocalitySet* set) {
        } 
 }
 
-PDBPagePtr PageCache::getNewPageNonBlocking(NodeID nodeId, CacheKey key, LocalitySet * set) {
+PDBPagePtr PageCache::getNewPageNonBlocking(NodeID nodeId, CacheKey key, LocalitySet * set, size_t pageSize) {
        if(this->containsPage(key) == true) {
-           //cout << "PageCache: getNewPage: Page exists for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
            return nullptr;
        }
        int internalOffset = 0;
        char * pageData;
-       pageData = tryAllocateBufferFromSharedMemory(conf->getPageSize(), internalOffset);
+       pageData = tryAllocateBufferFromSharedMemory(pageSize, internalOffset);
        if(pageData != nullptr) {
-            //cout << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
        } else {
-            //cout << "failed!!!\n";
             return nullptr;
        }
        PDBPagePtr page = make_shared<PDBPage>(pageData, nodeId, key.dbId,
-        key.typeId, key.setId, key.pageId, conf->getPageSize(), shm->computeOffset(pageData), internalOffset);
+        key.typeId, key.setId, key.pageId, pageSize, shm->computeOffset(pageData), internalOffset);
 
-       //this->logger->writeLn("got a new page with pageId=");
-       //this->logger->writeInt(key.pageId);
        pthread_mutex_lock(&this->countLock);
        page->setAccessSequenceId(this->accessCount);
        this->accessCount++;
        pthread_mutex_unlock(&this->countLock);
        page->setPinned(true);
        page->setDirty(true);
-       //this->logger->writeLn("PageCache::getNewPage: to get lock for evictionMutex...");
        pthread_mutex_lock(&evictionMutex);
-       //this->logger->writeLn("PageCache::getNewPage: got lock for evictionMutex...");
        this->cachePage(page, set);
        page->incRefCount();
        pthread_mutex_unlock(&evictionMutex);
-       //this->logger->writeLn("PageCache::getNewPage: unlocked for evictionMutex...");
        return page;
 
 }
@@ -478,26 +446,16 @@ PDBPagePtr PageCache::getNewPageNonBlocking(NodeID nodeId, CacheKey key, Localit
 
 //Assumption: for a new pageId, at one time, only one thread will try to allocate a new page for it
 //To allocate a new page, set it as pinned&dirty, add it to cache, and increment reference count
-PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) {
+PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set, size_t pageSize) {
        pthread_mutex_lock(&evictionMutex);
        if(this->containsPage(key) == true) {
-           //cout << "PageCache: getNewPage: Page exists for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
            pthread_mutex_unlock(&evictionMutex);
            return nullptr;
        }
        pthread_mutex_unlock(&evictionMutex);
        int internalOffset = 0;
        char * pageData;
-       PDB_COUT << "to get a page" << std :: endl;
-       pageData = allocateBufferFromSharedMemoryBlocking(conf->getPageSize(), internalOffset);
-       /*
-       if(set != nullptr) {
-           pageData = tryAllocateBufferFromSharedMemory(conf->getPageSize(), internalOffset);
-       } else {
-           pageData = allocateBufferFromSharedMemoryBlocking(conf->getPageSize(), internalOffset);
-       }
-       */
-       //cout << "getNewPage: internalOffset=" << internalOffset <<"\n";
+       pageData = allocateBufferFromSharedMemoryBlocking(pageSize, internalOffset);
        if(pageData != nullptr) {
             PDB_COUT << "PageCache: getNewPage: Page created for typeId=" <<key.typeId<<",setId="<<key.setId<<",pageId="<<key.pageId<<"\n";
        } else {
@@ -505,23 +463,18 @@ PDBPagePtr PageCache::getNewPage(NodeID nodeId, CacheKey key, LocalitySet* set) 
             return nullptr;
        } 
        PDBPagePtr page = make_shared<PDBPage>(pageData, nodeId, key.dbId,
-        key.typeId, key.setId, key.pageId, conf->getPageSize(), shm->computeOffset(pageData), internalOffset);
+        key.typeId, key.setId, key.pageId, pageSize, shm->computeOffset(pageData), internalOffset);
       
-       //this->logger->writeLn("got a new page with pageId=");
-       //this->logger->writeInt(key.pageId);
        pthread_mutex_lock(&this->countLock);
        page->setAccessSequenceId(this->accessCount);
        this->accessCount++;
        pthread_mutex_unlock(&this->countLock);
        page->setPinned(true);
        page->setDirty(true);
-       //this->logger->writeLn("PageCache::getNewPage: to get lock for evictionMutex...");
        pthread_mutex_lock(&evictionMutex);
-       //this->logger->writeLn("PageCache::getNewPage: got lock for evictionMutex...");
        this->cachePage(page, set);
        page->incRefCount();
        pthread_mutex_unlock(&evictionMutex);
-       //this->logger->writeLn("PageCache::getNewPage: unlocked for evictionMutex...");
        return page;
 }
 
@@ -533,7 +486,6 @@ bool PageCache::decPageRefCount(CacheKey key) {
 	} else {
 		PDBPagePtr page = this->cache->at(key);
 		page->decRefCount();
-                //cout << "PageCache::decPageRefCount()=" << page->getRefCount() << "\n";
 		return true;
 	}
 }
@@ -562,7 +514,6 @@ int PageCache::unpinAndEvictAllDirtyPages() {
     for (cacheIter = this->cache->begin(); cacheIter != this->cache->end(); cacheIter++) {
         page = cacheIter->second;
         if(page == nullptr) {
-             //cout << "PageCache::evictAllDirtyPages(): error in finding a null page.\n";
              this->inEviction = false;
              pthread_mutex_unlock(&this->evictionMutex);
              return 0;
@@ -571,11 +522,8 @@ int PageCache::unpinAndEvictAllDirtyPages() {
             while(page->getRefCount() > 0) {
                 page->decRefCount();
             }
-            //cout<<"find a dirty page with pageId="<<page->getPageID()<<"\n";
             evictableDirtyPages->push_back(page);
-            //}
         } else {
-            //cout << "PageCache::evictAllDirtyPages(): clean page or dirty page already in flush buffer.\n";
             //do nothing
         }
     }
@@ -589,7 +537,6 @@ int PageCache::unpinAndEvictAllDirtyPages() {
     }
 
     this->inEviction = false;
-    //cout << "numEvicted:"<<numEvicted<<"\n";
     pthread_mutex_unlock(&this->evictionMutex);
     delete evictableDirtyPages;
     return numEvicted;
@@ -616,17 +563,13 @@ int PageCache::evictAllDirtyPages() {
     for (cacheIter = this->cache->begin(); cacheIter != this->cache->end(); cacheIter++) {
         page = cacheIter->second;
         if(page == nullptr) {
-             //cout << "PageCache::evictAllDirtyPages(): error in finding a null page.\n";
              this->inEviction = false;
              pthread_mutex_unlock(&this->evictionMutex);
              return 0;
         } else if 
         ((page->isDirty() == true)&&(page->getRefCount()==0)&&(page->isInFlush()==false)) {
-            //cout<<"find a dirty page with pageId="<<page->getPageID()<<"\n";
             evictableDirtyPages->push_back(page);
-            //}
         } else {
-            //cout << "PageCache::evictAllDirtyPages(): clean page or dirty page already in flush buffer.\n";
             //do nothing
         }
     }
@@ -640,7 +583,6 @@ int PageCache::evictAllDirtyPages() {
     }
 
     this->inEviction = false;
-    //cout << "numEvicted:"<<numEvicted<<"\n";
     pthread_mutex_unlock(&this->evictionMutex);
     delete evictableDirtyPages;
     return numEvicted;
@@ -659,16 +601,13 @@ bool PageCache::flushPageWithoutEviction(CacheKey key) {
             }
             else {
                 //can't flush
-                //cout << "can't flush\n";
                 return false;
             }
         }
         else {
             //can't find page
-            //cout << "can't find page\n";
             return false;
         }
-        //cout << "page is flushed\n";
         return true;
 }
 
@@ -677,9 +616,7 @@ bool PageCache::flushPageWithoutEviction(CacheKey key) {
 
 bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
 	if (this->containsPage(key) == true) {
-                //cout << "find the key!\n";
 		PDBPagePtr page = this->cache->at(key);
-                //cout << "got the page!\n";
 #ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
 		if (page->getRefCount() > 0) {
                         cout << "can't be unpinned due to non-zero reference count " << page->getRefCount()  << "with DatabaseID=" << page->getDbID() << ", TypeID=" << page->getTypeID() << ", SetID=" << page->getSetID() << ", PageID=" << page->getPageID() << "\n";
@@ -700,9 +637,6 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                             //page->updateCounterInRawBytes(); 
                             page->setInFlush(true);
                             page->setInEviction(true);
-                            //cout << "to add page to flush buffer with pageId=" << page->getPageID()<<"\n";
-                            //this->logger->writeLn("to add page to flush buffer with pageId=");
-                            //this->logger->writeInt(page->getPageID());                           
                             //flush the page
                             //first we release the lock so that the flushing thread can run.
                             this->flushBuffer->addPageToTail(page);
@@ -717,7 +651,7 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                             //One scenario is: PDB load old data from disk to memory through iterators while application pins new pages that requires to evict data, then an old page in checking for loading may get evicted before it is pinned.
                             //Add flush lock is to guard for similar scenarios.
                             this->flushLock();
-			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
+			    this->shm->free(page->getRawBytes()-page->getInternalOffset(), page->getRawSize()+512);
                             
 			    page->setOffset(0);
 			    page->setRawBytes(nullptr);
@@ -745,7 +679,6 @@ bool PageCache::evictPage(PDBPagePtr page, LocalitySetPtr set) {
 	key.typeId = page->getTypeID();
 	key.setId = page->getSetID();
 	key.pageId = page->getPageID();
-        //cout << "to evict page with pageId=" << key.pageId << ", setId=" << key.setId<<"\n";
 	bool ret= evictPage(key);
         if(ret == true) {
             if(set != nullptr) {
@@ -763,24 +696,20 @@ void PageCache::runEviction() {
 	PDBEvictWorkPtr evictWork = make_shared<PDBEvictWork>(this);
 	PDBBuzzerPtr buzzer = evictWork->getLinkedBuzzer();
 	worker->execute(evictWork, buzzer);
-	//buzzer->wait(); //We do not wait for evictWork to finish to avoid deadlock
 }
 
 void PageCache::evict() {
 	if (this->inEviction == true) {
 		return;
 	}
-#ifdef PROFILING
-        std :: cout << "Storage server: starting cache eviction to get more room!\n";
+#ifdef PROFILING_CACHE
+        std :: cout << "Storage server: starting cache eviction to get more room with used size= " << this->size << "!\n";
+        //std :: cout << "current size is " << this->size << std :: endl;
 #endif
-	//this->logger->writeLn("PageCache::evict(): to get lock for evictionMutex...");
         pthread_mutex_lock(&this->evictionMutex);
-        //this->logger->writeLn("PageCache::evict(): got the lock for evictionMutex...");
 	this->inEviction = true;
-        //this->logger->writeLn("PageCache::evict(): to get lock for evictionLock()...");
         if(this->strategy == UnifiedIntelligent) {
             this->evictionLock();
-            //PDBPagePtr pageToEvict = nullptr;
             vector<PDBPagePtr> * pagesToEvict = nullptr;
             int i, j;
             int numEvicted = 0;
@@ -789,17 +718,7 @@ void PageCache::evict() {
                 curList = this->priorityList->at(i);
                 for(list<LocalitySetPtr>::reverse_iterator it = curList->rbegin(); it != curList->rend(); ++it) {
                     LocalitySetPtr set = (*it);
-                    //pageToEvict = set->selectPageForReplacement();
                     pagesToEvict = set->selectPagesForReplacement();
-                    /*if(pageToEvict != nullptr) {
-                        this->evictionUnlock();
-                        //cout << "page selected with setId="<< pageToEvict->getSetID()<<",pageId="<<pageToEvict->getPageID()<<"\n";
-                        if(this->evictPage(pageToEvict, set) == true){
-                            //cout << "page evicted with setId=" << pageToEvict->getSetID()<<",pageId="<<pageToEvict->getPageID()<<"\n";
-                            numEvicted ++;
-                        }
-                        this->evictionLock();
-                    }*/
                     if(pagesToEvict != nullptr) {
                         this->evictionUnlock();
                         for (j = 0; j < pagesToEvict->size(); j ++) {
@@ -813,16 +732,10 @@ void PageCache::evict() {
                     }
                 }
                 if(numEvicted > 0) {
-                    //cout << "evicted "<<numEvicted<<" pages\n";
                     break;
                 }
             }
             this->evictionUnlock();
-            /*
-            if(numEvicted == 0) {
-                cout << "evicted 0 pages\n";
-            }
-            */
             
         } else {
             this->evictionLock();
@@ -840,9 +753,7 @@ void PageCache::evict() {
                       delete cachedPages;
                       this->inEviction = false;
                       this->evictionUnlock();
-                      //this->logger->writeLn("PageCache::evict(): unlocked for evictionLock()...");
                       pthread_mutex_unlock(&this->evictionMutex);
-                      //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
                       return;
                 }
                 this->logger->debug( "PageCache::evict(): got a page, check whether it can be evicted...");
@@ -852,14 +763,11 @@ void PageCache::evict() {
                     std :: cout << "Add to eviction queue: curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush)=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
 #endif
                 } else {
-                    //std :: cout << "curPage->getRefCount()=" << curPage->getRefCount() << ", curPage->isDirty()=" << curPage->isDirty() << ", curPage->isInFlush()=" << curPage->isInFlush() << ", curPage->dbId=" << curPage->getDbID() << ", curPage->setId="<< curPage->getSetID() << std :: endl; 
+                    //do nothing
                 }
 	    }
             this->evictionUnlock();
 	    PDBPagePtr page;
-            //std :: cout << "this->size=" << this->size << std :: endl;
-            //std :: cout << "this->evictStopSize=" << this->evictStopSize << std :: endl;
-            //std :: cout << "cachedPages->size()=" << cachedPages->size() << std :: endl;
 	    while ((this->size > this->evictStopSize)&&(cachedPages->size() > 0)) {
 		page = cachedPages->top();
                 if(page == nullptr) {
@@ -872,7 +780,6 @@ void PageCache::evict() {
 			std :: cout << "Storage server: evicted page from cache passively for dbId:" << page->getDbID() << ", typeID:"<<page->getTypeID()<<", setID="<<page->getSetID()<<", pageID: " << page->getPageID() << ".\n";
 #endif
 		        this->logger->debug(std :: string("Storage server: evicting page from cache for pageID:")+std :: to_string(page->getPageID()));
-		//	this->logger->writeInt(page->getPageID());
 			cachedPages->pop();
 		} else {
                         cachedPages->pop();
@@ -882,7 +789,6 @@ void PageCache::evict() {
         }
 	this->inEviction = false;
         pthread_mutex_unlock(&this->evictionMutex);
-        //this->logger->writeLn("PageCache::evict(): unlocked for evictionMutex...");
 #ifdef PROFILING
         std :: cout << "Storage server: finished cache eviction!\n";
 #endif
