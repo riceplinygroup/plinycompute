@@ -245,7 +245,7 @@ int main (int argc, char * argv[]) {
 		}
 
 		// now, create a new set in that database
-		if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
+		if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg, size_t(16)*size_t(1024)*size_t(1024))) {
 			COUT << "Not able to create set: " + errMsg;
 			exit (-1);
 		} else {
@@ -457,7 +457,7 @@ int main (int argc, char * argv[]) {
 
 
 	PDB_COUT << "to create a new set for storing output data" << std :: endl;
-	if (!temp.createSet<GmmAggregateOutputType> ("gmm_db", "gmm_output_set", errMsg)) {
+	if (!temp.createSet<GmmAggregateOutputType> ("gmm_db", "gmm_output_set", errMsg, size_t(64)*size_t(1024)*size_t(1024))) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
