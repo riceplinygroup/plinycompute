@@ -46,12 +46,12 @@
 #include "GmmModel.h"
 //#include "GMM/GmmAggregate.h"
 //#include "GMM/GmmAggregateOutputType.h"
-#include "GMM/GmmNewComp.h"
 #include "GMM/GmmSampleSelection.h"
 #include "GMM/GmmDataCountAggregate.h"
 
 #include "GMM2/GmmAggregateLazy.h"
 #include "GMM2/GmmAggregateOutputLazy.h"
+#include "GMM2/GmmAggregateNewComp.h"
 
 
 #include "DispatcherClient.h"
@@ -421,8 +421,10 @@ int main (int argc, char * argv[]) {
 	// register this query class
 	catalogClient.registerType ("libraries/libGmmAggregateLazy.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmModel.so", errMsg);
-	catalogClient.registerType ("libraries/libGmmNewComp.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmAggregateOutputLazy.so", errMsg);
+	catalogClient.registerType ("libraries/libGmmAggregateDatapoint.so", errMsg);
+	catalogClient.registerType ("libraries/libGmmAggregateNewComp.so", errMsg);
+
 	catalogClient.registerType ("libraries/libScanDoubleVectorSet.so", errMsg);
 	catalogClient.registerType ("libraries/libWriteDoubleVectorSet.so", errMsg);
 	catalogClient.registerType ("libraries/libGmmSampleSelection.so", errMsg);
@@ -736,18 +738,17 @@ int main (int argc, char * argv[]) {
 
 
 		for (Handle<GmmAggregateOutputLazy> a : result) {
-			std::cout << "Entering loop to process result" << std::endl;
-			GmmNewComp output = (*a).getNewComp();
-			currentModel->updateModel(output);
 
-			std::cout << " previousLogLikelihood: " << previousLogLikelihood << " currentLogLikelihood  " << output.getLogLikelihood() << std::endl;
+			std::cout << "Entering loop to process result" << std::endl;
 			previousLogLikelihood = currentLogLikelihood;
-			currentLogLikelihood = output.getLogLikelihood();
+			currentLogLikelihood = currentModel->updateModel((*a).getNewComp());
+
+			std::cout << " previousLogLikelihood: " << previousLogLikelihood << " currentLogLikelihood  " << currentLogLikelihood << std::endl;
 		}
 
 		model = currentModel;
 
-		temp.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputType", errMsg);
+		temp.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputLazy", errMsg);
 
 		COUT << std :: endl;
 		COUT << std :: endl;

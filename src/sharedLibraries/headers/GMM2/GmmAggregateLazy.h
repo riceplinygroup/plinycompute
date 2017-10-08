@@ -15,10 +15,10 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_AGGREGATE_H
-#define GMM_AGGREGATE_H
+#ifndef GMM_AGGREGATE_LAZY_H
+#define GMM_AGGREGATE_LAZY_H
 
-//by Tania, August 2017
+//by Tania, October 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -26,11 +26,6 @@
 #include "DoubleVector.h"
 
 #include "GmmAggregateOutputLazy.h"
-
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_linalg.h>
 
 #include "GmmModel.h"
 
@@ -61,13 +56,9 @@ public:
 					"AND NDIM="<< this->model->getNDim() << std::endl;
 
 			this->model->calcInvCovars();
-
         	std::cout << "Exiting GmmAggregate constructor" << std::endl;
 
-
-
         }
-
 
         // the key type must have == and size_t hash () defined
         Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
@@ -83,10 +74,32 @@ public:
         Lambda <GmmAggregateOutputLazy> getValueProjection (Handle <DoubleVector> aggMe) override {
 
         	return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {
-        		Handle<GmmAggregateOutputLazy> result = makeObject<GmmAggregateOutputLazy>(model,aggMe);
+
+        		int k = model->getNumK();
+
+				//Calculate responsabilities per component and normalize
+				//dividing by the total sum totalR
+				Vector<double> r_values(k,k);
+				double* r_valuesptr = r_values.c_ptr();
+
+
+				for (int i = 0; i < k; i++) {
+					r_valuesptr[i] = model->log_normpdf(i, aggMe, true) + log(model->getWeight(i));
+				}
+
+				//Now normalize r
+				double logLikelihood = model->logSumExp(r_values);
+
+				for (int i = 0; i < k; i++) {
+					r_valuesptr[i] = exp(r_valuesptr[i] - logLikelihood);
+				}
+        		Handle<GmmAggregateDatapoint> aggDatapoint = makeObject<GmmAggregateDatapoint>(*aggMe, r_values, logLikelihood);
+        		Handle<GmmAggregateOutputLazy> result = makeObject<GmmAggregateOutputLazy>(aggDatapoint);
         		return *(result);
             });
         }
+
+
 };
 
 

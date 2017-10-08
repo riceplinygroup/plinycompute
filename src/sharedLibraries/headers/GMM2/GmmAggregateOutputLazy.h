@@ -20,12 +20,13 @@
 
 #include "Object.h"
 #include "Handle.h"
-#include "GMM/GmmNewComp.h"
-#include "GmmModel.h"
-#include "DoubleVector.h"
+#include "PDBVector.h"
+#include "GmmAggregateDatapoint.h"
+#include "GmmAggregateNewComp.h"
 
 
-// By Tania, August 2017
+
+// By Tania, October 2017
 
 using namespace pdb;
 
@@ -34,9 +35,8 @@ class GmmAggregateOutputLazy : public Object {
 private:
     int key = 1;
 
-    Handle<GmmModel> model;				//GMM model with means, covars and weights
-    Handle<DoubleVector> datapoint;		//Datapoint to be processed
-    Handle<GmmNewComp> newComp;			//newComp contains the partial results of
+    Handle<GmmAggregateDatapoint> aggDatapoint;		//Datapoint to be processed and responsabilities
+    Handle<GmmAggregateNewComp> newComp;			//newComp contains the partial results of
     									//processing datapoint for current model
 public:
 
@@ -45,16 +45,9 @@ public:
     GmmAggregateOutputLazy () {
     }
 
-    GmmAggregateOutputLazy (Handle<GmmModel> model, Handle<DoubleVector> datapoint) {
-    	this->model = model;
-    	this->datapoint = datapoint;
+    GmmAggregateOutputLazy (Handle<GmmAggregateDatapoint>& aggDatapoint) {
+    	this->aggDatapoint = aggDatapoint;
     	this->newComp = nullptr;
-    }
-
-    GmmAggregateOutputLazy(const GmmAggregateOutputLazy & other) {
-    	this->model = other.model;
-    	this->datapoint = other.datapoint;
-    	this->newComp = other.newComp;
     }
 
 	int &getKey(){
@@ -70,96 +63,68 @@ public:
 
 	GmmAggregateOutputLazy& operator + (GmmAggregateOutputLazy &other) {
 
-		//std::cout << "Entering GmmAggregateOutputType operator+" << std::endl;
+		int dim = this->aggDatapoint->getDatapoint().size;
+		int k = this->aggDatapoint->getRvalues().size();
 
+
+		//if LHS == NULL, process LHS -> Calculate sumMean and sumCovar
 		if (this->newComp == nullptr) {
-			//std::cout << "		Creating left GmmNewComp (NULL)" << std::endl;
-			this->newComp = model->createNewComp(this->datapoint);
-		}
-		/*else {
-			std::cout << "		*************************** left Already created!!" << std::endl;
-		}*/
 
+			this->newComp = makeObject<GmmAggregateNewComp>(k,dim);
+
+			gsl_vector_view gdata = gsl_vector_view_array(this->aggDatapoint->getDatapoint().getRawData(), dim);
+			double * r_valuesptr = this->aggDatapoint->getRvalues().c_ptr();
+
+			for (int i=0; i<k; i++) {
+
+				//Covar = r * x * x^T
+				gsl_matrix_view gsumCovar = gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
+				gsl_blas_dsyr (CblasUpper, r_valuesptr[i], &gdata.vector, &gsumCovar.matrix);
+
+				//Mean = r * x
+				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+				gsl_blas_daxpy (r_valuesptr[i], &gdata.vector, &gsumMean.vector);
+
+				//std::cout << "rvalues " << i << " " << r_valuesptr[i] << std::endl;
+				//std::cout << "data " << i << " "; this->aggDatapoint->getDatapoint().print();
+				//std::cout << "mean " << i << " "; this->newComp->getSumMean(i).print();
+
+				this->newComp->setSumWeights(i, r_valuesptr[i]);
+			}
+			this->newComp->setLogLikelihood(this->aggDatapoint->getLogLikelihood());
+		}
+
+
+		//if RHS == NULL, process RHS and add it to LHS
 		if (other.newComp == nullptr) {
-			addNewCompToThis(other.datapoint);
-		}
-		else {
-			addNewCompToThis(other.newComp);
+			gsl_vector_view gotherdata = gsl_vector_view_array(other.aggDatapoint->getDatapoint().getRawData(), dim);
+
+			for (int i=0; i<k; i++) {
+
+				//Covar = r * x * x^T
+				gsl_matrix_view gsumCovar = gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
+				gsl_blas_dsyr (CblasUpper, other.aggDatapoint->getRvalues()[i], &gotherdata.vector, &gsumCovar.matrix);
+
+
+				//Mean = r * x
+				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+				gsl_blas_daxpy (other.aggDatapoint->getRvalues()[i], &gotherdata.vector, &gsumMean.vector);
+
+				//Sum r
+				this->newComp->setSumWeights(i, this->newComp->getSumWeights(i) + other.aggDatapoint->getRvalues()[i]);
+			}
+			//Set loglikelihood
+			this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + other.aggDatapoint->getLogLikelihood());
 		}
 
-		//Return left object (this) with the resulting sum
+		//Return LHS (this) with the resulting sum
 
 		return (*this);
 	}
 
-	void addNewCompToThis(Handle<GmmNewComp> other) {
-		//std::cout << "	Entering addNewCompToThis" << std::endl;
-
-		newComp->setLogLikelihood(newComp->getLogLikelihood() + other->getLogLikelihood());
-
-		newComp->setSumR(newComp->getSumR() + other->getSumR());
-
-		for (int i = 0; i < model->getNumK(); i++) {
-			newComp->setWeightedX(i, newComp->getWeightedX(i) + other->getWeightedX(i));
-			newComp->setWeightedX2(i, newComp->getWeightedX2(i) + other->getWeightedX2(i));
-		}
-		//std::cout << "	Exiting addNewCompToThis" << std::endl;
-
-	}
 
 
-
-	void addNewCompToThis(Handle<DoubleVector> data){
-
-		int k = model->getNumK();
-		int ndim = model->getNDim();
-
-		//Process other datapoint
-		DoubleVector r_values = DoubleVector(k); //Sum of r
-		double* r_valuesptr = r_values.getRawData();
-
-		double r;
-
-		for (int i = 0; i < k; i++) {
-			//in log space
-			r = model->log_normpdf(i, data, true);
-			r += log(model->getWeight(i));
-			r_valuesptr[i] = r; //Update responsability
-		}
-
-
-		//Now normalize r
-		double logLikelihood = model->logSumExp(r_values);
-
-		this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + logLikelihood);
-
-		double* this_rvaluesptr = this->newComp->getSumR().getRawData();
-
-		for (int i = 0; i < k; i++) {
-			r_valuesptr[i] = exp(r_valuesptr[i] - logLikelihood);
-			this_rvaluesptr[i] += r_valuesptr[i];
-		}
-
-		gsl_vector_view gdata = gsl_vector_view_array(data->data->c_ptr(), ndim);
-		double* dataptr = data->getRawData();
-
-		for (int i = 0; i < k; i++) {
-
-			//Mean = r * x
-			double* weightedX = this->newComp->getWeightedX(i).getRawData();
-			for (int j=0; j<ndim; j++) {
-				weightedX[j] += dataptr[j] * r_valuesptr[i];
-			}
-
-			//Covar = r * x * x^T
-			gsl_matrix_view gweightedX2 = gsl_matrix_view_array(this->newComp->getWeightedX2(i).getRawData(), ndim, ndim);
-			gsl_blas_dsyr (CblasUpper, r_valuesptr[i], &gdata.vector, &gweightedX2.matrix);
-
-		}
-
-	}
-
-	GmmNewComp getNewComp(){
+	GmmAggregateNewComp getNewComp(){
 		return *(this->newComp);
 	}
 
