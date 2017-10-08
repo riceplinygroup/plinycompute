@@ -159,6 +159,13 @@ int SequenceFile::seekPageSizeInMeta() {
     return fseek(this->file, sizeof (FileType), SEEK_SET);
 }
 
+size_t SequenceFile::getPageSize() {
+    if(pageSize == 0) {
+       pageSize = getPageSizeInMeta();
+    }
+    return pageSize;
+}
+
 size_t SequenceFile::getPageSizeInMeta() {
     if(this->file == nullptr){
         return -1;

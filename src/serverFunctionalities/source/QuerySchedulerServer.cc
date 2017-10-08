@@ -74,9 +74,10 @@ QuerySchedulerServer :: ~QuerySchedulerServer () {
     pthread_mutex_destroy(&connection_mutex);
 }
 
-QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClusterMode, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
+QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, ConfigurationPtr conf, bool pseudoClusterMode, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
     this->port =8108;
     this->logger = logger;
+    this->conf = conf;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
     this->jobStageId = 0;
@@ -88,9 +89,10 @@ QuerySchedulerServer :: QuerySchedulerServer(PDBLoggerPtr logger, bool pseudoClu
 }
 
 
-QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, bool pseudoClusterMode, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
+QuerySchedulerServer :: QuerySchedulerServer(int port, PDBLoggerPtr logger, ConfigurationPtr conf, bool pseudoClusterMode, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
     this->port =port;
     this->logger = logger;
+    this->conf = conf;
     this->pseudoClusterMode = pseudoClusterMode;
     pthread_mutex_init(&connection_mutex, nullptr);
     this->jobStageId = 0;
@@ -124,10 +126,11 @@ void QuerySchedulerServer ::cleanup() {
     this->jobStageId = 0;
 }
 
-QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, bool usePipelineNetwork, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
+QuerySchedulerServer :: QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, ConfigurationPtr conf, bool usePipelineNetwork, double partitionToCoreRatio, bool isDynamicPlanning, bool removeIntermediateDataEarly) {
 
      this->resourceManagerIp = resourceManagerIp;
      this->port = port;
+     this->conf = conf;
      this->standardResources = nullptr;
      this->logger = logger;
      this->usePipelineNetwork = usePipelineNetwork;
@@ -230,7 +233,6 @@ void QuerySchedulerServer :: scheduleStages (std :: vector <Handle<AbstractJobSt
                           std :: string ip = (*(this->standardResources))[j]->getAddress();
                           PDB_COUT << "ip:" << ip  << std :: endl;
                           size_t memory = (*(this->standardResources))[j]->getMemSize();
-                          //std :: cout << "Memory size for node-" << j << " :" << memory << std :: endl;
                           //create PDBCommunicator
                           pthread_mutex_lock(&connection_mutex);
                           PDB_COUT << "to connect to the remote node" << std :: endl;
@@ -594,7 +596,7 @@ bool QuerySchedulerServer :: schedule(Handle<JobStage>& stage, PDBCommunicatorPt
 
 
 bool QuerySchedulerServer :: parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString) {
-    TCAPAnalyzer tcapAnalyzer(this->jobId, myComputations, myTCAPString, this->logger, false);
+    TCAPAnalyzer tcapAnalyzer(this->jobId, myComputations, myTCAPString, this->logger, this->conf, false);
     return tcapAnalyzer.analyze(this->queryPlan, this->interGlobalSets);
 }
 
@@ -964,7 +966,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                           for ( int i = 0; i < this->interGlobalSets.size(); i++ ) {
                               std :: string errMsg;
                               Handle<SetIdentifier> aggregationSet = this->interGlobalSets[i];
-                              bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "IntermediateSet", errMsg);
+                              bool res = dsmClient.createTempSet(aggregationSet->getDatabase(), aggregationSet->getSetName(), "IntermediateSet", errMsg, aggregationSet->getPageSize());
                               if (res != true) {
                                   std :: cout << "can't create temp set: " <<errMsg << std :: endl;
                               } else {
@@ -1008,7 +1010,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                 
                 //dyanmic planning
                 //initialize tcapAnalyzer
-                this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer> (jobId, computations, tcapString, this->logger, true);
+                this->tcapAnalyzerPtr = make_shared<TCAPAnalyzer> (jobId, computations, tcapString, this->logger, this->conf, true);
                 int jobStageId = 0;
                 while (this->tcapAnalyzerPtr->getNumSources() > 0) {
                     std :: vector<Handle<AbstractJobStage>> jobStages;
@@ -1052,7 +1054,7 @@ void QuerySchedulerServer :: registerHandlers (PDBServer &forMe) {
                     for ( int i = 0; i < intermediateSets.size(); i++ ) {
                         std :: string errMsg;
                         Handle<SetIdentifier> intermediateSet = intermediateSets[i];
-                        bool res = dsmClient.createTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg);
+                        bool res = dsmClient.createTempSet(intermediateSet->getDatabase(), intermediateSet->getSetName(), "IntermediateData", errMsg, intermediateSet->getPageSize());
                         if (res != true) {
                             std :: cout << "can't create temp set: " <<errMsg << std :: endl;
                         } else {

@@ -22,6 +22,7 @@
 #include "Object.h"
 #include "Handle.h"
 #include "PDBString.h"
+#include "Configuration.h"
 
 // PRELOAD %StorageAddSet%
 
@@ -35,8 +36,8 @@ public:
 	StorageAddSet () {}
 	~StorageAddSet () {}
 
-	StorageAddSet (std :: string dataBase, std :: string setName, std :: string typeName) : dataBase (dataBase), setName (setName),
-		typeName (typeName) {}
+	StorageAddSet (std :: string dataBase, std :: string setName, std :: string typeName, size_t pageSize=DEFAULT_PAGE_SIZE) : dataBase (dataBase), setName (setName),
+		typeName (typeName), pageSize (pageSize) {}
 
 	std :: string getDatabase () {
 		return dataBase;
@@ -50,6 +51,11 @@ public:
 		return typeName;
 	}
 
+        size_t getPageSize() {
+                return pageSize;
+        }
+
+
 	ENABLE_DEEP_COPY
 
 private:
@@ -57,6 +63,7 @@ private:
 	String dataBase;
 	String setName;
 	String typeName;
+        size_t pageSize;
 
 };
 

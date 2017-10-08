@@ -50,7 +50,6 @@ public:
         }
 
         ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
-             //std :: cout << "ScanUserSet: getComputeSource: BATCHSIZE =" << this->batchSize << std :: endl;
              return std :: make_shared <VectorTupleSetIterator> (
 
                  [&] () -> void * {
@@ -71,19 +70,13 @@ public:
 
                  [&] (void * freeMe) -> void {
                      if (this->proxy != nullptr) {
-                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int));
-                         char * curBytes = pageRawBytes;
-                         NodeID nodeId = (NodeID) (*((NodeID *)(curBytes)));
-                         curBytes = curBytes + sizeof(NodeID);
-                         DatabaseID dbId = (DatabaseID) (*((DatabaseID *)(curBytes)));
-                         curBytes = curBytes + sizeof(DatabaseID);
-                         UserTypeID typeId = (UserTypeID) (*((UserTypeID *)(curBytes)));
-                         curBytes = curBytes + sizeof(UserTypeID);
-                         SetID setId = (SetID) (*((SetID *)(curBytes)));
-                         curBytes = curBytes + sizeof(SetID);
-                         PageID pageId = (PageID) (*((PageID *)(curBytes)));
-                         curBytes = curBytes + sizeof(PageID);
-                         PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, nodeId, dbId, typeId, setId, pageId, DEFAULT_PAGE_SIZE, 0, 0);
+                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
+                         
+                         PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, 0, 0);
+                         NodeID nodeId = page->getNodeID();
+                         DatabaseID dbId = page->getDbID();
+                         UserTypeID typeId = page->getTypeID();
+                         SetID setId = page->getSetID();
                          try {
                             this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);
                          }

@@ -87,7 +87,7 @@ public:
 	 */
 	PartitionedFile(NodeID nodeId, DatabaseID dbId,
 			UserTypeID typeId, SetID setId, string metaPartitionPath,
-			pdb :: PDBLoggerPtr logger, size_t pageSize);
+			pdb :: PDBLoggerPtr logger);
 
 	/**
 	 * Destructor, it will NOT delete on-disk files.
@@ -232,6 +232,11 @@ public:
     SetID getSetId() override;
 
     /**
+     * Return page size of this file
+     */
+    size_t getPageSize() override;
+
+    /**
      * Read meta partition to get and set pageSize of this file
      */
     size_t getPageSizeInMeta() override;
@@ -276,11 +281,6 @@ protected:
          * Write data specified to the current file position using direct I/O.
          */
         int writeDataDirect(int handle, void * data, size_t length);
-
-	/**
-	 * Seek to the beginning of the pageId field of a page specified in the file.
-	 */
-	int seekPageId(FILE * partition, unsigned int pageSeqInPartition);
 
 	/**
 	 * Seek to the beginning of the page data of a page specified in the file.
@@ -372,7 +372,7 @@ private:
     /**
      * Configured page size.
      */
-    size_t pageSize;
+    size_t pageSize = 0;
 
     /**
      * Using direct I/O or not
@@ -383,6 +383,7 @@ private:
      * whether the file is cleared
      */
     bool cleared;
+
 
 };
 

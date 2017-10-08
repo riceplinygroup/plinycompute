@@ -34,8 +34,8 @@ namespace pdb {
         DistributedStorageAddSet () {}
         ~DistributedStorageAddSet () {}
 
-        DistributedStorageAddSet (std :: string dataBase, std :: string setName, std :: string typeName)
-                : dataBase (dataBase), setName (setName), typeName (typeName){}
+        DistributedStorageAddSet (std :: string dataBase, std :: string setName, std :: string typeName, size_t pageSize)
+                : dataBase (dataBase), setName (setName), typeName (typeName), pageSize (pageSize) {}
 
         std :: string getDatabase () {
             return dataBase;
@@ -49,6 +49,10 @@ namespace pdb {
             return typeName;
         }
 
+        size_t getPageSize () {
+            return pageSize;
+        }
+
         ENABLE_DEEP_COPY
 
     private:
@@ -56,7 +60,7 @@ namespace pdb {
         String dataBase;
         String setName;
         String typeName;
-
+        size_t pageSize;
     };
 
 }

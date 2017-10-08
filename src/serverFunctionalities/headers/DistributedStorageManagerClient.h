@@ -37,16 +37,15 @@ namespace pdb {
         // TODO: Allow the user to specify what partitioning policy they want to use for this step in the future
         bool createDatabase(const std::string& databaseName, std::string& errMsg);
 
-        bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
-                       std::string& errMsg);
+        bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, 
+                       std::string& errMsg, size_t pageSize=DEFAULT_PAGE_SIZE);
 
         // createTempSet added by Jia (only go through storage)
-        bool createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
-                       std::string& errMsg);
+        bool createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string& errMsg, size_t pageSize=DEFAULT_PAGE_SIZE);
 
         // templated createSet added by Jia
         template <class DataType>
-        bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg);
+        bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg, size_t pageSize = DEFAULT_PAGE_SIZE);
 
         // storage cleanup added by Jia
         bool flushData ( std :: string &errMsg );

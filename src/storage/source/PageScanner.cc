@@ -103,7 +103,6 @@ bool PageScanner::sendPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bo
 
 vector<PageCircularBufferIteratorPtr> PageScanner::getSetIterators(NodeID nodeId,
         DatabaseID dbId, UserTypeID typeId, SetID setId) {
-        //std :: cout << "BackEndServer: send GetSetPagesMsg to frontEnd.\n";
 	//create an GetSetPages object
 	string errMsg;
         const pdb :: UseTemporaryAllocationBlock myBlock{1024};
@@ -163,11 +162,7 @@ bool PageScanner::recvPagesLoop(pdb :: Handle<pdb :: StoragePagePinned> pinnedPa
         //we wrap the page object, add it to buffer, and send back ack.
         else {
             char * rawData = (char *) this->shm->getPointer(offset);
-            char * refCountBytes = rawData + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-            int numObjects = *((int *) refCountBytes);
-            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
-            page = make_shared<PDBPage>(rawData, dataNodeId, dataDbId,
-                     dataTypeId, dataSetId, dataPageId, pageSize, offset, 0, numObjects);
+            page = make_shared<PDBPage>(rawData, offset, 0);
             //std :: cout << "BackEndServer: add page with " << page->getEmbeddedNumObjects()  << "to circular buffer...\n";
             logger->debug(string( "BackEndServer: add page scanner page to circular buffer...\n"));
             if (this->buffer != nullptr) {

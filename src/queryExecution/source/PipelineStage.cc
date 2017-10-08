@@ -442,51 +442,57 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
     char * mem = nullptr;
-    if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (isJoinSink == false)) {
-        mem = (char *) malloc (DEFAULT_NET_PAGE_SIZE);
+    if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join == nullptr)) {
+        mem = (char *) malloc (conf->getNetShufflePageSize());
     }
 #endif
     newPlan->nullifyPlanPointer();
     PDBPagePtr output = nullptr;
-    //std :: vector < std :: string> buildTheseTupleSets;
-    //jobStage->getTupleSetsToBuildPipeline (buildTheseTupleSets);
     PipelinePtr curPipeline = newPlan->buildPipeline (
-                  //this->jobStage->getSourceTupleSetSpecifier(),
-                  //this->jobStage->getTargetTupleSetSpecifier(),
-                  //this->jobStage->getTargetComputationSpecifier(),
                   buildTheseTupleSets,
                   this->jobStage->getSourceTupleSetSpecifier(),
                   this->jobStage->getTargetComputationSpecifier(),
                   [&] () -> std :: pair <void *, size_t> {
-
+                      size_t headerSize = (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
                       if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
-                          //std :: cout << "Pipeline pins page in outputset: " << std :: endl; 
-                          //std :: cout << "DbId=" << outputSet->getDatabaseId() << ", SetId=" << outputSet->getSetId() << std :: endl;                          
                           proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
 
-                          //std :: cout << "Pinned PageID=" << output->getPageID() << std :: endl;
                           if (output == nullptr) {
                               std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
                               return std :: make_pair (nullptr, 0);
                           }
-                          return std :: make_pair (output->getBytes(), DEFAULT_NET_PAGE_SIZE);
+                          return std :: make_pair (output->getBytes(), output->getSize());
 
 
-                      } else {
+                      } else if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() != UserSetType)){
 
                           //TODO: move this to Pangea
-                          //PDB_COUT << "to get a new page for writing" << std :: endl;
-                          void * myPage = calloc (DEFAULT_PAGE_SIZE, 1);
+                          void * myPage = calloc (outputSet->getPageSize(), 1);
                           if (myPage == nullptr) {
                               std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
                           }
-                          return std :: make_pair((char *)myPage+(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int)), DEFAULT_NET_PAGE_SIZE);
+                          return std :: make_pair((char *)myPage + headerSize, outputSet->getPageSize() - headerSize );
+                      } else if ((this->jobStage->isBroadcasting() == true) || ((this->jobStage->isRepartition() == true) && (this->jobStage->isCombining() == false) && (join != nullptr))) {
+                          //TODO: move this to Pangea
+                          // join case
+                          void * myPage = calloc (conf->getBroadcastPageSize(), 1);
+                          if (myPage == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                          }
+                          return std :: make_pair((char *)myPage + headerSize, conf->getNetBroadcastPageSize() );
+                      } else {
+                          //TODO: move this to Pangea
+                          // aggregation case
+                          void * myPage = calloc (conf->getShufflePageSize(), 1);
+                          if (myPage == nullptr) {
+                              std :: cout << "Pipeline Error: insufficient memory in heap" << std :: endl;
+                          }
+                          return std :: make_pair((char *)myPage + headerSize, conf->getNetShufflePageSize());
                       }
-
+                         
                   },
 
                   [&] (void * page) {
-                      //PDB_COUT << "to discard a page" << std :: endl;
                      
                       if ((this->jobStage->isBroadcasting() == false)&&(this->jobStage->isRepartition() == false)&&(sourceContext->getSetType() == UserSetType)) {
                           if (output != nullptr) {
@@ -494,13 +500,12 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           }
 
                       } else {
-                          free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t)));
                       }
                   },
 
                   [&] (void * page) {
-                      
-                      //std :: cout << "to write back a page" << std :: endl;
+                      size_t headerSize = (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int) + sizeof(size_t));
                       if (this->jobStage->isBroadcasting() == true) {
                           PDB_COUT << "to broadcast a page" << std :: endl;
                           //to handle a broadcast join
@@ -509,10 +514,8 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           //broadcast the objects
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
-                              //Handle<JoinMap<Object>> map = unsafeCast<JoinMap<Object>, Object>(objectToSend);
-                              //PDB_COUT << "Map size: " << map->size() << std :: endl;
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   NodeID myNodeId = jobStage->getNodeId();
@@ -531,10 +534,10 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      pageToBroadcast->freeContent();
                                   }
                               } else {
-                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int)));
+                                  free ((char *)page-headerSize);
                               }
                           } else {
-                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                               free ((char *)page-headerSize);
                           }
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join != nullptr)) {
                           PDB_COUT << "to hash partition a page" << std :: endl;
@@ -545,7 +548,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToSend = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int))), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
+                                  PDBPagePtr pageToSend = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   for ( k = 0; k < numNodes; k++ ) {
@@ -556,18 +559,15 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                                      buffer->addPageToTail(pageToSend);
                                   }
                               } else {
-                                  free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                                  free ((char *)page-headerSize);
                               }
                           } else {
-                               free ((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                               free ((char *)page-headerSize);
                           }
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
-                          //std :: cout << "to combine a page" << std :: endl;
                           //to handle an aggregation
-                          PDBPagePtr output = make_shared<PDBPage>((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)), 0, 0, 0, 0, 0, DEFAULT_PAGE_SIZE, 0, 0);
-                          //proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                          //memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                          PDBPagePtr output = make_shared<PDBPage>((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t)), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
                           int numNodes = jobStage->getNumNodes();
                           int k;
                           for ( k = 0; k < numNodes; k ++ ) {
@@ -577,7 +577,6 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                              PageCircularBufferPtr buffer = sinkBuffers[k];
                              buffer->addPageToTail(output);
                           }
-                          //free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == false) && (join == nullptr)) {
                           //to handle aggregation without combining
@@ -591,7 +590,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                               for ( k = 0; k < numNodes; k++) {
                                   Handle<Vector<Handle<Object>>> objectToShuffle = (*objectsToShuffle)[k];
 #ifdef REUSE_CONNECTION_FOR_AGG_NO_COMBINER
-                                  Record<Vector<Handle<Object>>> * myRecord = getRecord(objectToShuffle, mem, DEFAULT_NET_PAGE_SIZE);
+                                  Record<Vector<Handle<Object>>> * myRecord = getRecord(objectToShuffle, mem, conf->getNetShufflePageSize());
                                   std :: cout << "send " << myRecord->numBytes() << " bytes to node-" << k << std :: endl;
                                   if (objectToShuffle != nullptr) {
                                       //to shuffle data
@@ -612,21 +611,19 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 #endif
                               }
                           }
-                          free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                          free((char *)page-headerSize);
 
                       } else {
-                          //std :: cout << "to write to user set" << std :: endl;
                           if (sourceContext->getSetType() == UserSetType) {
                               proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
-                              //std :: cout << "Unpin page for DbID=" << output->getDbID() << ", TypeID=" << output->getTypeID() << ", SetID=" << output->getSetID() << ", PageID=" << output->getPageID()<< std :: endl;
 
                           } else {
                               //to handle a vector sink
                               //PDBPagePtr output = nullptr;
                               proxy->addUserPage(outputSet->getDatabaseId(), outputSet->getTypeId(), outputSet->getSetId(), output);
-                              memcpy(output->getBytes(), page, DEFAULT_NET_PAGE_SIZE);
+                              memcpy(output->getBytes(), page, output->getSize());
                               proxy->unpinUserPage(nodeId, output->getDbID(), output->getTypeID(), output->getSetID(), output);
-                              free((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int)));
+                              free((char *)page-headerSize);
                           }
                       }
                   },
@@ -652,7 +649,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 void PipelineStage :: runPipeline (HermesExecutionServer * server) {
 
     std :: vector<PageCircularBufferPtr> sinkBuffers;
-    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId());
+    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), jobStage->getSinkContext()->getPageSize());
     runPipeline (server, sinkBuffers, outputSet);
 
 }
@@ -720,7 +717,6 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
          }
     } else {
         std :: string hashSetName = sourceContext->getDatabase() + ":" + sourceContext->getSetName();
-        //std :: cout << "hashSetName of this source is " << hashSetName << std :: endl;
         AbstractHashSetPtr abstractHashSet = server->getHashSet(hashSetName);
         hashSet = std :: dynamic_pointer_cast<PartitionedHashSet>(abstractHashSet);
         numThreads = hashSet->getNumPages();
@@ -733,7 +729,6 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>(
          [&] (PDBAlarm myAlarm, int & counter) {
              counter ++;
-             //std :: cout << "counter = " << counter << std :: endl;
          });
 
     int numSourceThreads = numThreads;
@@ -772,9 +767,9 @@ void PipelineStage :: runPipeline (HermesExecutionServer * server, std :: vector
                   std :: cout << "print inactive blocks after running pipeline in this worker:" << std :: endl;
                   std :: cout << out << std :: endl;
 #endif
-                  getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
-                  getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
-                  getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);            
+                  //getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
+                  //getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
+                  //getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);            
                   callerBuzzer->buzz(PDBAlarm :: WorkAllDone, counter);
 
              }
@@ -986,8 +981,8 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   SimpleSingleTableQueryProcessorPtr combinerProcessor = 
                       aggregate->getCombinerProcessor(stdPartitions);
                   size_t myCombinerPageSize = combinerPageSize;
-                  if (myCombinerPageSize > conf->getPageSize()-64) {
-                          myCombinerPageSize = conf->getPageSize()-64;
+                  if (myCombinerPageSize > conf->getShufflePageSize()-64) {
+                          myCombinerPageSize = conf->getShufflePageSize()-64;
                   }
                   void * combinerPage = (void *) calloc (myCombinerPageSize, sizeof(char));
                   if (combinerPage == nullptr) {
@@ -1040,7 +1035,6 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                           //combinerProcessor->clearInputPage();
                           page->decRefCount();
                           if (page->getRefCount() == 0) {
-                               //proxy->unpinUserPage (nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
                                page->freeContent();
                           }        
                       }
@@ -1050,13 +1044,6 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
                   //send the output page
                   PDB_COUT << "processed " << numPages << " pages" << std :: endl;
                   Record<Vector<Handle<Object>>> * record = (Record<Vector<Handle<Object>>> *)combinerPage;
-                  /*Record<Vector<Handle<Map<Object, Object>>>> * record1 = (Record<Vector<Handle<Map<Object, Object>>>> *)combinerPage;
-                  Handle<Vector<Handle<Map<Object, Object>>>> mapVec = record1->getRootObject();
-                  for (int l = 0; l < mapVec->size(); l++) {
-                      PDB_COUT << l << "-th map size is " <<((* mapVec)[l])->size() << std :: endl;
-                      PDB_COUT << l << "-th map partition id is " << ((* mapVec)[l])->getHashPartitionId() << std :: endl;
-                  }
-                  */
 #ifndef ENABLE_COMPRESSION
                               this->storeShuffleData(record->getRootObject(), this->jobStage->getSinkContext()->getDatabase(), this->jobStage->getSinkContext()->getSetName(), address, port, errMsg);
 #else
@@ -1087,7 +1074,7 @@ void PipelineStage :: runPipelineWithShuffleSink (HermesExecutionServer * server
          );
          worker->execute(myWork, combinerBuzzer);
     }
-    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getCombinerContext()->getDatabase(), jobStage->getCombinerContext()->getSetName(), jobStage->getCombinerContext()->getDatabaseId(), jobStage->getCombinerContext()->getTypeId(), jobStage->getCombinerContext()->getSetId());
+    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getCombinerContext()->getDatabase(), jobStage->getCombinerContext()->getSetName(), jobStage->getCombinerContext()->getDatabaseId(), jobStage->getCombinerContext()->getTypeId(), jobStage->getCombinerContext()->getSetId(), jobStage->getCombinerContext()->getPageSize());
     runPipeline(server, combinerBuffers, outputSet);
 
    
@@ -1206,7 +1193,7 @@ void PipelineStage :: runPipelineWithBroadcastSink (HermesExecutionServer * serv
          );
          worker->execute(myWork, shuffleBuzzer);
     }
-    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId());
+    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), jobStage->getSinkContext()->getPageSize());
     runPipeline(server, shuffleBuffers, outputSet);
 
 
@@ -1321,9 +1308,8 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                       if (page != nullptr) {
                           //to load output page
                           if (output == nullptr) {
-                              output = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
-                              //blockPtr = std::make_shared<UseTemporaryAllocationBlock>(output, DEFAULT_NET_PAGE_SIZE);
-                              makeObjectAllocatorBlock(output, DEFAULT_NET_PAGE_SIZE, true);
+                              output = (char *) calloc (conf->getNetPageSize(), 1);
+                              makeObjectAllocatorBlock(output, conf->getNetPageSize(), true);
                               std :: cout << getAllocator().printCurrentBlock() << std :: endl;
                               myMaps = shuffler->createNewOutputContainer();
                           }
@@ -1377,9 +1363,9 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
                                       //free the output page and reload a new output page
                                       myMaps = nullptr;
                                       //maps = nullptr;
-                                      buffer = (char *) calloc (DEFAULT_NET_PAGE_SIZE, 1);
+                                      buffer = (char *) calloc (conf->getNetPageSize(), 1);
                                       //blockPtr= std :: make_shared<UseTemporaryAllocationBlock> (buffer, DEFAULT_NET_PAGE_SIZE);
-                                      makeObjectAllocatorBlock(buffer, DEFAULT_NET_PAGE_SIZE, true);
+                                      makeObjectAllocatorBlock(buffer, conf->getNetPageSize(), true);
                                       //redo for current map;
                                       myMaps = shuffler->createNewOutputContainer();
                                       shuffler->writeOut(theOtherMaps[j], myMaps);
@@ -1467,7 +1453,7 @@ void PipelineStage :: runPipelineWithHashPartitionSink (HermesExecutionServer * 
          );
          worker->execute(myWork, shuffleBuzzer);
     }
-    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId());
+    SetSpecifierPtr outputSet = make_shared<SetSpecifier>(jobStage->getSinkContext()->getDatabase(), jobStage->getSinkContext()->getSetName(), jobStage->getSinkContext()->getDatabaseId(), jobStage->getSinkContext()->getTypeId(), jobStage->getSinkContext()->getSetId(), jobStage->getSinkContext()->getPageSize());
     runPipeline(server, shuffleBuffers, outputSet);
     int k;
     for ( k = 0; k < numNodes; k ++) {

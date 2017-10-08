@@ -281,16 +281,8 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
                 return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            /*char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-            int numObjects = *((int *) refCountBytes);
-            std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
-            */
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-            //cout << "ack->SetID()=" << ack->getSetID() << "\n";
-            //cout << "page->SetID()=" << page->getSetID() << "\n";
-            //cout << "ack->PageID()=" << ack->getPageID() << "\n";
-            //cout << "page->PageID()=" << page->getPageID() << "\n";
             page->setPinned(true);
             page->setDirty(true);
             return success;
@@ -324,16 +316,8 @@ bool DataProxy::addUserPage(DatabaseID dbId, UserTypeID typeId, SetID setId, PDB
                 return addUserPage(dbId, typeId, setId, page, needMem, numTries+1);
             }
             char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            /*char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-            int numObjects = *((int *) refCountBytes);
-            std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
-            */
             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
             ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset());
-            //cout << "ack->SetID()=" << ack->getSetID() << "\n";
-            //cout << "page->SetID()=" << page->getSetID() << "\n";
-            //cout << "ack->PageID()=" << ack->getPageID() << "\n";
-            //cout << "page->PageID()=" << page->getPageID() << "\n";
             page->setPinned(true);
             page->setDirty(true);
             return success;
@@ -503,14 +487,10 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
                 return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
              }
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-            int numObjects = *((int *) refCountBytes);
-            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
-             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
-            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
-            page->setPinned(true);
-            page->setDirty(false);
-            return success;
+             page = make_shared<PDBPage>(dataIn, ack->getSharedMemOffset(), 0);
+             page->setPinned(true);
+             page->setDirty(false);
+             return success;
         }
     } else {
         //create a PinPage object
@@ -540,14 +520,10 @@ bool DataProxy::pinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, S
                 return pinUserPage(nodeId, dbId, typeId, setId, pageId, page, needMem, numTries+1);
              }
              char * dataIn = (char *) this->shm->getPointer(ack->getSharedMemOffset());
-            char * refCountBytes = dataIn + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
-            int numObjects = *((int *) refCountBytes);
-            //std :: cout << "There are " << numObjects << " objects in the page" << std :: endl;
-             page = make_shared<PDBPage>(dataIn, ack->getNodeID(), ack->getDatabaseID(), ack->getUserTypeID(), ack->getSetID(),
-            ack->getPageID(), ack->getPageSize(), ack->getSharedMemOffset(), 0, numObjects);
-            page->setPinned(true);
-            page->setDirty(false);
-            return success;
+             page = make_shared<PDBPage>(dataIn, ack->getSharedMemOffset(), 0);
+             page->setPinned(true);
+             page->setDirty(false);
+             return success;
         }
 
     }
@@ -566,7 +542,6 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
     if (numTries > 0) {
         logger->error(std::string("DataProxy: unpinUserPage with numTries=")+std::to_string(numTries));
     }
-    //std :: cout << "To unpin page with nodeId =" << nodeId << ", dbId=" << dbId << ", typeId=" << typeId << ", setId=" << setId << std :: endl;
     std :: string errMsg;
     if (this->communicator->isSocketClosed() == true) {
         std :: cout << "ERROR in DataProxy: connection is closed" << std :: endl;
@@ -577,10 +552,8 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
            return false;
         }
     }
-    //logger->debug(std :: string("Frontend to unpin page with dbId=")+std :: to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId) + std :: string(", setId=") + std :: to_string(setId) + std :: string(", pageId=") + std :: to_string(page->getPageID()));
 
     if (needMem == true) {
-        //std :: cout << "we are going to use temporary allocation block to allocate unpin object" << std :: endl;
         //create a UnpinPage object
         {
            pdb :: UseTemporaryAllocationBlock myBlock{2048};
@@ -599,22 +572,16 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
              msg->setWasDirty(false);
           }
        
-          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
-          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
-          //logger->debug("to send StorageUnpinPage object");
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
               logger->error(std :: string("Sending StorageUnpinPage object failure:")+errMsg);
 	      return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
           }
-          //std :: cout << "StorageUnpinPage sent.\n";  
-          //logger->debug("StorageUnpinPage sent.");
        }
 
        //receive the Ack object
        {
-           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;   
            size_t objectSize = this->communicator->getSizeOfNextObject();
            if (objectSize == 0) {
                std::cout << "receive ack failure" << std::endl;
@@ -628,7 +595,6 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
                 cout << "Receiving ack failure:" << errMsg << "\n";
                 return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
            }
-           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
     } else {
@@ -648,20 +614,15 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
              msg->setWasDirty(false);
           }
 
-          //std :: cout << "To send StorageUnpinPage object with NodeID ="<< nodeId << ", DatabaseID=" <<
-          //dbId << ", UserTypeID=" << typeId << ", SetID=" << setId << ", PageID=" << page->getPageID() << std :: endl;
-
           //send the message out
           if (!this->communicator->sendObject<pdb :: StorageUnpinPage> (msg, errMsg)) {
               std :: cout << "Sending StorageUnpinPage object failure: " << errMsg <<"\n";
               return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
           }
-          //std :: cout << "StorageUnpinPage sent.\n";
        }
 
        //receive the Ack object
        {
-           //std :: cout << "DataProxy received Unpin Ack with size=" << this->communicator->getSizeOfNextObject () << std :: endl;
            bool success;
            pdb :: Handle <pdb :: SimpleRequestResult> ack =
                 this->communicator->getNextObject<pdb :: SimpleRequestResult>(success, errMsg);
@@ -669,7 +630,6 @@ bool DataProxy::unpinUserPage(NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
                 cout << "Receiving ack failure:" << errMsg << "\n";
                return unpinUserPage(nodeId, dbId, typeId, setId, page, needMem, numTries+1);
            }
-           //std :: cout << "SimpleRequestResult for Unpin received." << std :: endl;
            return success&&(ack->getRes().first);
        }
 

@@ -134,10 +134,8 @@ public:
            PageID pageId;
            if(this->pageIds->find(pageIndex) == this->pageIds->end()) {
                pageId = (unsigned int)(-1);
-               //cout << "Can not find pageIndex with partitionId="<<partitionId<<" and pageSeq=" << pageSeqInPartition <<"\n";
            } else {
                pageId = this->pageIds->at(pageIndex);
-               //cout << "Find pageId="<<pageId<<"\n";
            }
            return pageId;
        }

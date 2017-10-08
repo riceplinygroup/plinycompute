@@ -57,12 +57,18 @@ typedef shared_ptr <PDBPage> PDBPagePtr;
 class PDBPage {
 
 public:
-	/**
-	 * Create a PDBPage instance.
-	 */
+    /**
+     * Create a PDBPage instance from an empty page.
+     */
     PDBPage(char * dataIn, NodeID dataNodeID, DatabaseID dataDbID,
             UserTypeID dataTypeID, SetID setID, PageID pageID, size_t dataSize, 
             size_t offset, int internalOffset=0, int numObjects=0);
+
+    /**
+     * Create a PDBPage instance from a non-empty page.
+     */
+    PDBPage(char * dataIn, size_t offset, int internalOffset=0);
+
     ~PDBPage();
     /**
      * Free page data from shared memory.
@@ -88,13 +94,11 @@ public:
         if (this->refCount < 0) {
             //there is a problem:
             //reference count should always >= 0
-            //std :: cout << "Error: page reference count < 0" << std :: endl;
             this->setPinned(false);
             this->refCount = 0;
         } else if (this->refCount == 0) {
             this->setPinned(false);
         }
-        //std :: cout << "Now my ref count is " << refCount << ", and DbID=" << this->dbID << ", and TypeID=" << this->typeID << ", and SetID=" << this->setID << ", and PageID=" << this->pageID << std :: endl;
         pthread_mutex_unlock(&this->refCountMutex);
     }
 
@@ -112,7 +116,6 @@ public:
         pthread_mutex_lock(&this->refCountMutex);
         char * refCountBytes = this->rawBytes + (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID));
         *((int *) refCountBytes) = *((int*)refCountBytes) + 1;
-        //this->pinned = true;
         pthread_mutex_unlock(&this->refCountMutex);
         return  *((int *) refCountBytes) ;
     }
@@ -134,13 +137,9 @@ public:
      * Allocate an empty memory area with variable size from the current offset as a special object, that can be used to implement variable-size small pages.
      */
     inline void * addVariableBytes(size_t size) {
-        //this->writeLock();
-        //std :: cout << "addVariableBytes with size=" << size << std :: endl;
         size_t remainSize = this->size - this->curAppendOffset;
         if (remainSize < size + sizeof(size_t)) {
             //no room in the current page
-            //std :: cout << "INFO: insufficient room in the current page" << std :: endl;
-            //this->writeUnlock();
             return nullptr;
         }
 
@@ -152,11 +151,8 @@ public:
         void * retPos = cur + sizeof(size_t);
         cur = (char *)retPos + size;
         this->curAppendOffset = cur - this->rawBytes;
-        //this->numObjects++;
         this->incEmbeddedNumObjects();
         int myNumObjects = this->getEmbeddedNumObjects();
-        //std :: cout << "Now got " << myNumObjects << "objects" << std :: endl;
-        //this->writeUnlock();
         return retPos;
     }
 
@@ -262,7 +258,6 @@ public:
 
     //To reset the reference count of this page.
     void resetRefCount() {
-        //std :: cout << "to reset reference count =" << this->refCount << std :: endl;
         this->refCount = 0;
     }
 

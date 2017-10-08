@@ -36,8 +36,8 @@
  */
 UserSet::UserSet( pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
 		DatabaseID dbId, UserTypeID typeId, SetID setId, string setName,
-		PageCachePtr pageCache, LocalityType localityType, LocalitySetReplacementPolicy policy, OperationType operation, DurabilityType durability, PersistenceType persistence):LocalitySet(localityType, policy, operation, durability, persistence) {
-	//cout<<"creating set...\n";
+		PageCachePtr pageCache, LocalityType localityType, LocalitySetReplacementPolicy policy, OperationType operation, DurabilityType durability, PersistenceType persistence, size_t pageSize):LocalitySet(localityType, policy, operation, durability, persistence) {
+        this->pageSize = pageSize;
 	this->logger = logger;
 	this->shm = shm;
 	this->nodeId = nodeId;
@@ -64,7 +64,7 @@ UserSet::UserSet(size_t pageSize,
 		NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
 		string setName, PartitionedFilePtr file,
 		PageCachePtr pageCache, LocalityType localityType, LocalitySetReplacementPolicy policy, OperationType operation, DurabilityType durability, PersistenceType persistence):LocalitySet(localityType, policy, operation, durability, persistence) {
-	//cout<<"creating set...\n";
+        this->pageSize = pageSize;
 	this->logger = logger;
 	this->shm = shm;
 	this->nodeId = nodeId;
@@ -79,10 +79,7 @@ UserSet::UserSet(size_t pageSize,
             this->lastFlushedPageId = file->getLastFlushedPageID();
             this->seqId.initialize(this->lastFlushedPageId + 1);
         }
-        //cout << "LastFlushedPageId =" << this->lastFlushedPageId<<"\n";
 	this->pageCache = pageCache;
-	//open files for read and write
-	//cout<<"opening files in the partitioned file...\n";
 	this->file->openAll();
         this->inputBufferPage = nullptr;
         this->dirtyPagesInPageCache = new unordered_map<PageID, FileSearchKey>();
@@ -98,7 +95,6 @@ UserSet::UserSet(size_t pageSize,
  * Destructor.
  */
 UserSet::~UserSet() {
-//    this->file->closeAll();
     delete this->dirtyPagesInPageCache;
     pthread_mutex_destroy(&this->dirtyPageSetMutex);
     pthread_mutex_destroy(&this->addBytesMutex);
@@ -123,27 +119,17 @@ PDBPagePtr UserSet::getPage(FilePartitionID partitionId,
 }
 
 PDBPagePtr UserSet::addPage() {
-    //cout << "To add page...\n";
-    //this->logger->writeLn("UserSet: to add page...");
     PageID pageId = seqId.getNextSequenceID();
-    //PDB_COUT << "PDBPagePtr: pageId=" << pageId << "\n";
-    //this->logger->writeLn("UserSet: pageId generated =");
-    //this->logger->writeInt(pageId);
     CacheKey key;
     key.dbId = this->dbId;
     key.typeId = this->typeId;
     key.setId = this->setId;
     key.pageId = pageId;
-    PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this);
-    //std :: cout << "PDBPagePtr: page->getPageID()=" << page->getPageID() << "\n";
-    //this->logger->writeLn("UserSet: pageId set =");
-    //this->logger->writeInt(pageId);
+    PDBPagePtr page = this->pageCache->getNewPage(this->nodeId, key, this, this->pageSize);
     if(page == nullptr ) {
         return nullptr;
     }
-    //std :: cout << "Got page from buffer pool!\n";
     page->preparePage();
-    //cout << "Page header prepared!\n";
     this->addPageToDirtyPageSet(page->getPageID());
     numPages ++;
     return page;
@@ -169,7 +155,6 @@ int UserSet::getNumPages () {
 vector<PageIteratorPtr> * UserSet::getIterators() {
 
         this->cleanDirtyPageSet();
-        //std :: cout << "lockDirtyPageSet() for set with id=" << this->getSetID() << std :: endl;
         this->lockDirtyPageSet(); 
 	vector<PageIteratorPtr> * retVec = new vector<PageIteratorPtr>();
 	PageIteratorPtr iterator = nullptr;
@@ -201,7 +186,6 @@ vector<PageIteratorPtr> * UserSet::getIterators() {
 		}
 	}
         this->unlockDirtyPageSet();
-        //std :: cout << "unlockDirtyPageSet() for set with id=" << this->getSetID() << std :: endl;
 	return retVec;
 }
 
@@ -217,7 +201,6 @@ void UserSet::dump (char * buffer) {
        while(curIter->hasNext()) {
            PDBPagePtr curPage = curIter->next();
            if(curPage != nullptr) {
-               //cout << "dump page for pageId=" << curPage->getPageID() << "\n";
                memcpy(cur, curPage->getRawBytes(), curPage->getRawSize());
                cur = cur + curPage->getRawSize(); 
                curPage->decRefCount();
@@ -269,7 +252,6 @@ void UserSet::cleanDirtyPageSet() {
 
 
 void UserSet::flushDirtyPages() {
-    //this->lockDirtyPageSet();
     auto iter = this->getDirtyPageSet()->begin();
     while (iter != this->getDirtyPageSet()->end()) {
         if(iter->second.inCache == true) {
@@ -279,13 +261,10 @@ void UserSet::flushDirtyPages() {
             key.setId = this->getSetID();
             key.pageId = iter->first;
             this->pageCache->flushPageWithoutEviction(key);
-            //cout << "page flushed and to erase it \n";
-            //iter = this->getDirtyPageSet()->erase(iter);                        
         } else {
             iter ++;
         }
     }
-    //this->unlockDirtyPageSet();
 }
 
 

@@ -63,7 +63,7 @@ public:
 	 */
 	UserSet(pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
             DatabaseID dbId, UserTypeID typeId, SetID setId, string setName,
-            PageCachePtr pageCache, LocalityType localityType=JobData, LocalitySetReplacementPolicy policy=MRU, OperationType operation=Read, DurabilityType durability=TryCache, PersistenceType persistence=Persistent);
+            PageCachePtr pageCache, LocalityType localityType=JobData, LocalitySetReplacementPolicy policy=MRU, OperationType operation=Read, DurabilityType durability=TryCache, PersistenceType persistence=Persistent, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 	/**
 	 * Create a UserSet instance, file needs to be set here
@@ -319,6 +319,14 @@ public:
    //MUST be used after set->setPinned(true) is invoked
    void flushDirtyPages();
 
+   size_t getPageSize() {
+      return this->pageSize;
+   }
+
+   void setPageSize (size_t pageSize) {
+      this->pageSize = pageSize;
+   }
+
 protected:
 	PartitionedFilePtr file;
 	PageCachePtr pageCache;
@@ -338,6 +346,7 @@ protected:
         bool isPinned;
         int numPages;        
         pthread_mutex_t addBytesMutex;
+        size_t pageSize;
 };
 
 

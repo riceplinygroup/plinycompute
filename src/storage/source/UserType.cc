@@ -104,28 +104,26 @@ string UserType::encodePath(string typePath, SetID setId, string setName) {
 
 //add new set
 //Not thread-safe
-int UserType::addSet(string setName, SetID setId) {
+int UserType::addSet(string setName, SetID setId, size_t pageSize) {
 	if (this->sets->find(setId) != this->sets->end()) {
 		this->logger->writeLn("UserType: set exists.");
 		return -1;
 	}
 	string typePath;
 	PartitionedFilePtr file;
-		//cout<<"creating partitioned file...\n";
-		string metaFilePath = this->encodePath(this->metaPath, setId, setName);
-		//cout<<"metaFilePath for the set: "<<metaFilePath<<"\n";
-		vector<string> dataFilePaths;
-		unsigned int i;
-		for(i= 0; i< this->dataPaths->size(); i++) {
-			dataFilePaths.push_back(this->encodePath(this->dataPaths->at(i), setId, setName));
-		}
-		file = make_shared<PartitionedFile>(this->nodeId, this->dbId, this->id, setId,
+        string metaFilePath = this->encodePath(this->metaPath, setId, setName);
+	vector<string> dataFilePaths;
+	unsigned int i;
+	for(i= 0; i< this->dataPaths->size(); i++) {
+		dataFilePaths.push_back(this->encodePath(this->dataPaths->at(i), setId, setName));
+	}
+	file = make_shared<PartitionedFile>(this->nodeId, this->dbId, this->id, setId,
             metaFilePath, dataFilePaths, this->logger,
-			this->conf->getPageSize());
+			pageSize);
 
 	//cout<<"creating set...\n";
 	SetPtr set = make_shared<UserSet>(
-			this->conf->getPageSize(), logger,
+			pageSize, logger,
 			shm, nodeId, dbId, id, setId, setName,
 			file, this->cache);
 	if (set == 0) {
@@ -207,24 +205,16 @@ bool UserType::initializeFromMetaTypeDir(path metaTypeDir) {
 						this->logger->writeLn("UserType: set exists.");
 						return false;
 					}
-					//cout << "UserType: detect set at path: " << path << "\n";
-					//cout << "Set name: " << name << "\n";
-					//cout << "Set ID:" << setId << "\n";
 
 					//create PartitionedFile instance
-					PartitionedFilePtr partitionedFile = make_shared<PartitionedFile>(this->nodeId,
-							this->dbId, this->id, setId, path, this->logger, this->conf->getPageSize());
+					PartitionedFilePtr partitionedFile = make_shared<PartitionedFile>(this->nodeId, this->dbId, this->id, setId, path, this->logger);
 
-					//cout <<"buildMetaDataFromMetaPartition()"<<"\n";
 					partitionedFile->buildMetaDataFromMetaPartition(nullptr);
-					//cout <<"initializeDataFiles()"<<"\n";
 					partitionedFile->initializeDataFiles();
-					//cout <<"openData()"<<"\n";
 					partitionedFile->openData();
-					//cout <<"create set instance"<<"\n";
 					//create a Set instance from file
 					SetPtr set = make_shared<UserSet>(
-							this->conf->getPageSize(),
+							partitionedFile->getPageSize(),
 							logger, this->shm,
 							nodeId, dbId, id, setId, name,
 							partitionedFile, this->cache);
