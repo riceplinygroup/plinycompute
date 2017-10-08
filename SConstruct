@@ -42,7 +42,7 @@ elif  common_env['PLATFORM'] == 'posix':
 
     #for debugging
     #Needs to be turned on for KMeans and TPCH
-    common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -march=native -Wno-deprecated-declarations')
+    common_env.Append(CXXFLAGS = '-D_GLIBCXX_DEBUG -std=c++14 -g -O0 -march=native -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
     if 'lda' in COMMAND_LINE_TARGETS:
@@ -52,11 +52,11 @@ elif  common_env['PLATFORM'] == 'posix':
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
 common_env.Append(CCFLAGS='-DUSE_MEMCACHED_SLAB_ALLOCATOR')
 common_env.Append(CCFLAGS='-DENABLE_SHALLOW_COPY')
-common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=100')
+common_env.Append(CCFLAGS='-DDEFAULT_BATCH_SIZE=1')
 common_env.Append(CCFLAGS='-DREMOVE_SET_WITH_EVICTION')
-common_env.Append(CCFLAGS='-DAUTO_TUNING')
+#common_env.Append(CCFLAGS='-DAUTO_TUNING')
 common_env.Append(CCFLAGS='-DPROFILING')
-common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
+#common_env.Append(CCFLAGS='-DENABLE_LARGE_GRAPH')
 #for nearest neighbor search, below flag should be set to large like 200 for 64MB page size
 common_env.Append(CCFLAGS='-DJOIN_HASH_TABLE_SIZE_RATIO=1.5')
 common_env.Append(CCFLAGS='-DPROFILING')
@@ -495,8 +495,16 @@ common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/Gmm
 common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmSampleSelection.so', ['build/libraries/GMM/GmmSampleSelection.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmDataCountAggregate.so', ['build/libraries/GMM/GmmDataCountAggregate.cc'] + all)
+
+common_env.SharedLibrary('libraries/libGmmAggregateLazy.so', ['build/libraries/GMM2/GmmAggregateLazy.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateOutputLazy.so', ['build/libraries/GMM2/GmmAggregateOutputLazy.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateDatapoint.so', ['build/libraries/GMM2/GmmAggregateDatapoint.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateNewComp.so', ['build/libraries/GMM2/GmmAggregateNewComp.cc'] + all)
 
 common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
+common_env.Program('bin/TestGmmLoadData', ['build/tests/TestGmmLoadData.cc'] + all)
+common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all)
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
 #common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
@@ -691,8 +699,9 @@ cgmm=common_env.Alias('cgmm', [
   'bin/pdb-cluster',
   'bin/pdb-server',  
   'bin/TestGmm21',
+  'bin/TestGmmLoadData',
   #'bin/TestGmm23',
-  #'bin/TestGmmSerie',
+  'bin/TestGmmLazy',
 
   'libraries/libGmmNewComp.so',
   'libraries/libGmmAggregate.so',
@@ -700,7 +709,13 @@ cgmm=common_env.Alias('cgmm', [
 
   'libraries/libScanDoubleVectorSet.so',
   'libraries/libWriteDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so'
+  'libraries/libGmmAggregateOutputType.so',
+  'libraries/libGmmDataCountAggregate.so',
+
+  'libraries/libGmmAggregateLazy.so',
+  'libraries/libGmmAggregateOutputLazy.so',
+  'libraries/libGmmAggregateNewComp.so',
+  'libraries/libGmmAggregateDatapoint.so'
 ])
 
 lda=common_env.Alias('lda', [

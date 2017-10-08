@@ -24,6 +24,8 @@
 #include "LambdaCreationFunctions.h"
 #include "DoubleVector.h"
 #include "GMM/GmmNewComp.h"
+#include "GMM2/GmmAggregateNewComp.h"
+
 
 #include <vector>
 #include <math.h>
@@ -32,6 +34,11 @@
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
+
+
+
+//#include <eigen3/Eigen/Dense>
+
 
 // PRELOAD %GmmModel%
 
@@ -232,6 +239,7 @@ public:
 
 	}
 
+
 	double log_normpdf(int i, Handle<DoubleVector> inputData, bool isLog) {
 
 
@@ -256,7 +264,23 @@ public:
 
 		//std::cout << "inv_covars BEFORE" << i << std::endl; (*inv_covars)[i]->print();
 
+
+		//Function: int gsl_blas_dsymv (CBLAS_UPLO_t Uplo, double alpha, const gsl_matrix * A, const gsl_vector * x, double beta, gsl_vector * y)
+
+	    //These functions compute the matrix-vector product and sum y = \alpha A x + \beta y for the symmetric matrix A
 		gsl_blas_dsymv(CblasUpper, 1.0, &inv_covar.matrix, datan, 0.0, ym);
+
+
+		//Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> p_OUTPUT(p);
+
+
+		/*Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor> > my_inv ((*covars)[i]->data->c_ptr(),ndim,ndim);
+		Eigen::Map<Eigen::VectorXd> my_datan(datan->data, ndim);
+		Eigen::Map<Eigen::VectorXd> my_ym(ym->data, ndim);
+
+
+		my_ym = my_inv * my_datan;*/
+
 
 
 		gsl_blas_ddot(datan, ym, &ay);
@@ -264,7 +288,6 @@ public:
 
 		gsl_vector_free(ym);
 		gsl_vector_free(datan);
-
 
 
 		ay = -ax - 0.5*ay;
@@ -276,12 +299,56 @@ public:
 		return ay;//log10(ay);
 	}
 
+	/*double log_normpdf(int i, Handle<DoubleVector> inputData, bool isLog) {
 
 
-	double logSumExp(DoubleVector vector)
-	{
-		double* v = vector.getRawData();
-		size_t size = vector.size;
+		gsl_vector_view data = gsl_vector_view_array(inputData->data->c_ptr(), ndim);
+		gsl_vector_view mean = gsl_vector_view_array((*means)[i]->data->c_ptr(), ndim);
+		gsl_matrix_view covar = gsl_matrix_view_array((*covars)[i]->data->c_ptr(), ndim, ndim);
+		gsl_matrix_view inv_covar = gsl_matrix_view_array((*inv_covars)[i]->data->c_ptr(), ndim, ndim);
+
+
+		double ax, ay;
+		int s;
+		gsl_vector *ym;
+		gsl_vector *datan = gsl_vector_alloc(ndim);
+
+		ax = dets->getDouble(i);
+
+		//ax = 1.00498e-15;
+		gsl_vector_memcpy(datan, &data.vector);
+		gsl_vector_sub(datan, &mean.vector);
+
+		ym = gsl_vector_alloc(ndim);
+
+		//std::cout << "inv_covars BEFORE" << i << std::endl; (*inv_covars)[i]->print();
+
+
+		//Function: int gsl_blas_dsymv (CBLAS_UPLO_t Uplo, double alpha, const gsl_matrix * A, const gsl_vector * x, double beta, gsl_vector * y)
+
+	    //These functions compute the matrix-vector product and sum y = \alpha A x + \beta y for the symmetric matrix A
+		gsl_blas_dsymv(CblasUpper, 1.0, &inv_covar.matrix, datan, 0.0, ym);
+
+
+		gsl_blas_ddot(datan, ym, &ay);
+
+
+		gsl_vector_free(ym);
+		gsl_vector_free(datan);
+
+
+		ay = -ax - 0.5*ay;
+
+
+		if (!isLog){
+			return exp(ay);
+		}
+		return ay;//log10(ay);
+	}*/
+
+
+	double logSumExp(double* v, size_t size) {
+
 		double maxVal = v[0];
 		double sum = 0;
 
@@ -297,8 +364,16 @@ public:
 
 		return log(sum) + maxVal;
 
-	   //e = log(sum(exp(v-maxVal))) + maxVal
 	}
+
+	double logSumExp(DoubleVector& vector){
+		return logSumExp(vector.getRawData(), vector.size);
+	}
+
+	double logSumExp(Vector<double>& vector){
+		return logSumExp(vector.c_ptr(), vector.size());
+	}
+
 
 
 	void updateModel(GmmNewComp update){
@@ -379,6 +454,87 @@ public:
 		calcInvCovars();
 
 	}
+
+
+	double updateModel(GmmAggregateNewComp update){
+
+
+		const double MIN_COVAR = 1e-6;
+
+		double* sumWeights = update.getSumWeights().c_ptr();
+		double totalSumR = 0.0;
+
+
+		for (int i=0; i<k; i++){
+			totalSumR += sumWeights[i];
+		}
+
+
+		std::cout << std::endl;
+
+		//Update weights -> weights = sumR/totalSumR
+		gsl_vector_view gSumWeights = gsl_vector_view_array(sumWeights, k);
+		gsl_vector_view gweights = gsl_vector_view_array((*weights).data->c_ptr(), k);
+		gsl_vector_memcpy (&gweights.vector, &gSumWeights.vector);
+		gsl_vector_scale (&gweights.vector, 1.0/totalSumR);
+
+
+		//Update Mean and Covar for each component
+		for (int i=0; i<k; i++){
+
+			//Update means -> means = 1/sumR * weightedX
+			gsl_vector_view mean = gsl_vector_view_array((*means)[i]->data->c_ptr(), ndim);
+			gsl_vector_view gsumMean = gsl_vector_view_array(update.getSumMean(i).c_ptr(), ndim);
+			gsl_vector_memcpy (&mean.vector, &gsumMean.vector);
+			gsl_vector_scale (&mean.vector, 1.0/sumWeights[i]);
+
+
+			//Update covars -> weightedX2 / sumR - mean*mean^T + MIN_COVAR
+			//According to PYTHON GMM https://github.com/FlytxtRnD/GMM/blob/master/GMMclustering.py
+
+			//std::cout << "gweightedX2 A" << i << std::endl; update.getWeightedX2(i).print();
+
+			gsl_vector_view gsumCovarv = gsl_vector_view_array(update.getSumCovar(i).c_ptr(), ndim*ndim);
+			gsl_vector_scale (&gsumCovarv.vector, 1.0/sumWeights[i]);
+
+			//std::cout << "gweightedX2 B" << i << std::endl; update.getWeightedX2(i).print();
+
+			gsl_matrix_view gsumCovarm = gsl_matrix_view_array(update.getSumCovar(i).c_ptr(), ndim, ndim);
+			gsl_blas_dsyr (CblasUpper, -1.0, &mean.vector, &gsumCovarm.matrix);
+
+			//std::cout << "gweightedX2 C" << i << std::endl; update.getWeightedX2(i).print();
+
+
+			//Add constant to diagonal
+			//Copy lower triangular
+			double d;
+			for (int row=0; row<ndim; row++){
+				d = gsl_matrix_get(&gsumCovarm.matrix,row,row);
+				gsl_matrix_set(&gsumCovarm.matrix,row,row, d + MIN_COVAR);
+
+				for (int col=row+1; col<ndim; col++){
+					//matrix[j][i] = matrix[i][j]
+					d = gsl_matrix_get(&gsumCovarm.matrix,row,col);
+					gsl_matrix_set(&gsumCovarm.matrix,col,row, d);
+				}
+			}
+
+			//std::cout << "gweightedx2 D" << i << std::endl; update.getWeightedX2(i).print();
+
+			gsl_vector_view covar = gsl_vector_view_array((*covars)[i]->data->c_ptr(), ndim*ndim);
+			gsl_vector_memcpy (&covar.vector, &gsumCovarv.vector);
+
+			//std::cout << "gweightedx2 E" << i << std::endl; (*covars)[i]->print();
+
+		}
+
+		calcInvCovars();
+
+		return update.getLogLikelihood();
+
+	}
+
+
 
 
 	Handle<GmmNewComp> createNewComp(Handle<DoubleVector> & data){
