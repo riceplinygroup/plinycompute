@@ -51,7 +51,7 @@ using namespace std;
 #endif
 
 #ifndef DEFAULT_SHUFFLE_PAGE_SIZE
-#define DEFAULT_SHUFFLE_PAGE_SIZE ((size_t)(64)*(size_t)(1024)*(size_t)(1024))
+#define DEFAULT_SHUFFLE_PAGE_SIZE ((size_t)(256)*(size_t)(1024)*(size_t)(1024))
 #endif
 
 #ifndef DEFAULT_BROADCAST_PAGE_SIZE
