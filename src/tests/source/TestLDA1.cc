@@ -182,7 +182,7 @@ int main (int argc, char * argv[]) {
 
         // now, create a new set in that database
         temp.removeSet ("LDA_db", "LDA_input_set", errMsg);
-        if (!temp.createSet <LDADocument> ("LDA_db", "LDA_input_set", errMsg)) {
+        if (!temp.createSet <LDADocument> ("LDA_db", "LDA_input_set", errMsg, (size_t)(64)*(size_t)(1024)*(size_t)(1024))) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -190,7 +190,7 @@ int main (int argc, char * argv[]) {
         }
 	
         temp.removeSet ("LDA_db", "LDA_meta_data_set", errMsg);
-        if (!temp.createSet<int> ("LDA_db", "LDA_meta_data_set", errMsg)) {
+        if (!temp.createSet<int> ("LDA_db", "LDA_meta_data_set", errMsg, (size_t)(16)*(size_t)(1024)*(size_t)(1024))) {
             cout << "Not able to create set: " + errMsg;
             exit (-1);
         } else {
@@ -355,7 +355,8 @@ int main (int argc, char * argv[]) {
     std :: string myNextWriterForTopicsPerDocSetName = std :: string ("TopicsPerDoc") + std :: to_string (1);
 
     temp.removeSet ("LDA_db", myNextReaderForTopicsPerDocSetName, errMsg);
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextReaderForTopicsPerDocSetName, errMsg)) {
+    std :: cout << "Removed set " << myNextReaderForTopicsPerDocSetName  << ".\n";
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextReaderForTopicsPerDocSetName, errMsg,  (size_t)(64)*(size_t)(1024)*(size_t)(1024))) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -363,7 +364,8 @@ int main (int argc, char * argv[]) {
     }
 
     temp.removeSet ("LDA_db", myNextReaderForTopicsPerWordSetName, errMsg);
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextReaderForTopicsPerWordSetName, errMsg)) {
+    std :: cout << "Removed set " << myNextReaderForTopicsPerWordSetName  << ".\n";
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextReaderForTopicsPerWordSetName, errMsg,  (size_t)(32)*(size_t)(1024)*(size_t)(1024))) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -371,7 +373,8 @@ int main (int argc, char * argv[]) {
     }
 
     temp.removeSet ("LDA_db", myNextWriterForTopicsPerDocSetName, errMsg);
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextWriterForTopicsPerDocSetName, errMsg)) {
+    std :: cout << "Removed set " << myNextWriterForTopicsPerDocSetName  << ".\n";
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextWriterForTopicsPerDocSetName, errMsg,  (size_t)(64)*(size_t)(1024)*(size_t)(1024))) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -379,7 +382,8 @@ int main (int argc, char * argv[]) {
     }
 
     temp.removeSet  ("LDA_db", myNextWriterForTopicsPerWordSetName, errMsg);
-    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextWriterForTopicsPerWordSetName, errMsg)) {
+    std :: cout << "Removed set " << myNextWriterForTopicsPerWordSetName  << ".\n";
+    if (!temp.createSet<IntDoubleVectorPair> ("LDA_db", myNextWriterForTopicsPerWordSetName, errMsg,  (size_t)(32)*(size_t)(1024)*(size_t)(1024))) {
         cout << "Not able to create set: " + errMsg;
         exit (-1);
     } else {
@@ -404,8 +408,6 @@ int main (int argc, char * argv[]) {
     // Initialize the topic mixture probabilities for each doc
     Handle<Computation> myInitialScanSet = makeObject<ScanLDADocumentSet>("LDA_db", "LDA_input_set");
     Handle<Computation> myDocID = makeObject<LDADocIDAggregate>();
-    //myDocID->setCollectAsMap (true);
-    //myDocID->setNumNodesToCollect(2);
     myDocID->setInput(myInitialScanSet);
     Handle<Computation> myDocTopicProb = makeObject<LDAInitialTopicProbSelection>(*alpha);
     myDocTopicProb->setInput(myDocID);
@@ -446,8 +448,6 @@ int main (int argc, char * argv[]) {
 		// aggregate them
 		Handle <Computation> myDocTopicCountAgg = makeObject <LDADocTopicAggregate> ();
 		myDocTopicCountAgg->setInput (myDocWordTopicCount);
-                //myDocTopicCountAgg->setCollectAsMap (true);
-                //myDocTopicCountAgg->setNumNodesToCollect (2);
 		// and get the new set of doc probabilities
 		Handle<Computation> myDocTopicProb = makeObject<LDADocTopicProbSelection>(*alpha);
 		myDocTopicProb->setInput(myDocTopicCountAgg);
@@ -460,14 +460,12 @@ int main (int argc, char * argv[]) {
 		// agg them
 		Handle <Computation> myTopicWordCountAgg = makeObject <LDATopicWordAggregate> ();
 		myTopicWordCountAgg->setInput (myTopicWordCount);
-                //myTopicWordCountAgg->setCollectAsMap (true);
 		// use those aggs to get per-topic probabilities
 		Handle <Computation> myTopicWordProb = makeObject <LDATopicWordProbMultiSelection> (*beta, numTopic);
 		myTopicWordProb->setInput (myTopicWordCountAgg);
 
 		// and see what the per-word probabilities are
 		Handle <Computation> myWordTopicProb = makeObject <LDAWordTopicAggregate> ();
-                //myWordTopicProb->setCollectAsMap (true);		
 		myWordTopicProb->setInput(myTopicWordProb);
 
 		// now, we get the writers
