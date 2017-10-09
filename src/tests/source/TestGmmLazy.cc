@@ -248,7 +248,9 @@ int main (int argc, char * argv[]) {
 		}
 
 		// now, create a new set in that database
-		if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
+		//if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg)) {
+
+		if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_input_set", errMsg, size_t(16)*size_t(1024)*size_t(1024)) ) {
 			COUT << "Not able to create set: " + errMsg;
 			exit (-1);
 		} else {
@@ -443,17 +445,20 @@ int main (int argc, char * argv[]) {
 
 	// now, create a new set in that database to store output date
 
-    PDB_COUT << "to create a new set to store the data count" << std :: endl;
+    /*PDB_COUT << "to create a new set to store the data count" << std :: endl;
 	if (!temp.createSet<SumResult> ("gmm_db", "gmm_data_count_set", errMsg)) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
 		COUT << "Created set gmm_data_count_set.\n";
-	}
+	}*/
 
 
 	PDB_COUT << "to create a new set to store the initial model" << std :: endl;
-	if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_initial_model_set", errMsg)) {
+
+
+	if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_initial_model_set", errMsg, size_t(16)*size_t(1024)*size_t(1024)) ) {
+	//if (!temp.createSet<DoubleVector> ("gmm_db", "gmm_initial_model_set", errMsg)) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
@@ -462,7 +467,10 @@ int main (int argc, char * argv[]) {
 
 
 	PDB_COUT << "to create a new set for storing output data" << std :: endl;
-	if (!temp.createSet<GmmAggregateOutputLazy> ("gmm_db", "gmm_output_set", errMsg)) {
+
+	if (!temp.createSet<GmmAggregateOutputLazy> ("gmm_db", "gmm_output_set", errMsg, size_t(64)*size_t(1024)*size_t(1024)) ) {
+
+	//if (!temp.createSet<GmmAggregateOutputLazy> ("gmm_db", "gmm_output_set", errMsg)) {
 		COUT << "Not able to create set: " + errMsg;
 		exit (-1);
 	} else {
@@ -853,7 +861,7 @@ int main (int argc, char * argv[]) {
             COUT << "Not able to remove set: " + errMsg;
             exit (-1);
         }
-        else if (!temp.removeSet ("gmm_db", "gmm_initial_model_set", errMsg)) {
+        if (!temp.removeSet ("gmm_db", "gmm_initial_model_set", errMsg)) {
 			COUT << "Not able to remove set: " + errMsg;
 			exit (-1);
 		}
