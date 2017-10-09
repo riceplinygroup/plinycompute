@@ -63,12 +63,13 @@ public:
 
 	GmmAggregateOutputLazy& operator + (GmmAggregateOutputLazy &other) {
 
-		int dim = this->aggDatapoint->getDatapoint().size;
-		int k = this->aggDatapoint->getRvalues().size();
-
 
 		//if LHS == NULL, process LHS -> Calculate sumMean and sumCovar
-		if (this->newComp == nullptr) {
+		if (this->aggDatapoint != nullptr && this->newComp == nullptr) {
+
+
+			int dim = this->aggDatapoint->getDatapoint().size;
+			int k = this->aggDatapoint->getRvalues().size();
 
 			this->newComp = makeObject<GmmAggregateNewComp>(k,dim);
 
@@ -85,18 +86,22 @@ public:
 				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
 				gsl_blas_daxpy (r_valuesptr[i], &gdata.vector, &gsumMean.vector);
 
-				//std::cout << "rvalues " << i << " " << r_valuesptr[i] << std::endl;
-				//std::cout << "data " << i << " "; this->aggDatapoint->getDatapoint().print();
-				//std::cout << "mean " << i << " "; this->newComp->getSumMean(i).print();
-
 				this->newComp->setSumWeights(i, r_valuesptr[i]);
 			}
 			this->newComp->setLogLikelihood(this->aggDatapoint->getLogLikelihood());
+
+			//Now mark as processed
+			//delete(*aggDatapoint);
+			this->aggDatapoint = nullptr;
 		}
 
 
 		//if RHS == NULL, process RHS and add it to LHS
-		if (other.newComp == nullptr) {
+		if (other.aggDatapoint != nullptr && other.newComp == nullptr) {
+
+			int dim = other.aggDatapoint->getDatapoint().size;
+			int k = other.aggDatapoint->getRvalues().size();
+
 			gsl_vector_view gotherdata = gsl_vector_view_array(other.aggDatapoint->getDatapoint().getRawData(), dim);
 
 			for (int i=0; i<k; i++) {
@@ -115,6 +120,34 @@ public:
 			}
 			//Set loglikelihood
 			this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + other.aggDatapoint->getLogLikelihood());
+		}
+		//Just sum LHS and RHS
+		else { //this->aggDatapoint == nullptr and/or other->aggDatapoint == nullptr
+
+			//std::cout << "*******  Entering BOTH NULL" << std::endl;
+			int dim = this->newComp->getSumMean(0).size();
+			int k = this->newComp->getSumWeights().size();
+
+			//std::cout << "dim " << dim << " k " << k << std::endl;
+
+			for (int i=0; i<k; i++) {
+				//Covar = r * x * x^T
+				gsl_vector_view gsumCovar = gsl_vector_view_array(this->newComp->getSumCovar(i).c_ptr(), dim*dim);
+				gsl_vector_view gOtherSumCovar = gsl_vector_view_array(other.newComp->getSumCovar(i).c_ptr(), dim*dim);
+				gsl_blas_daxpy (1.0, &gOtherSumCovar.vector, &gsumCovar.vector);
+
+				//Mean = r * x
+				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+				gsl_vector_view gOtherSumMean = gsl_vector_view_array(other.newComp->getSumMean(i).c_ptr(), dim);
+
+				gsl_blas_daxpy (1.0, &gOtherSumMean.vector, &gsumMean.vector);
+
+				//Sum r
+				this->newComp->setSumWeights(i, this->newComp->getSumWeights(i) + other.newComp->getSumWeights(i));
+			}
+			//Set loglikelihood
+			this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + other.newComp->getLogLikelihood());
+
 		}
 
 		//Return LHS (this) with the resulting sum
