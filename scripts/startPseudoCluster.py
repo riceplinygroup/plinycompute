@@ -50,7 +50,9 @@ try:
     serverProcess = subprocess.Popen(['bin/pdb-cluster', 'localhost', '8108', 'Y'])
     print bcolors.OKBLUE + "waiting for 9 seconds for server to be fully started..." + bcolors.ENDC
     time.sleep(9)
-#    subprocess.check_call(['bin/CatalogTests',  '--port', '8108', '--serverAddress', 'localhost', '--command', 'register-node', '--node-ip', 'localhost', '--node-port',  '8108', '--node-name', 'master', '--node-type', 'master'])
+    #strip shared libraries
+    print bcolors.OKBLUE + "strip shared libraries" + bcolors.ENDC
+    subprocess.call(['bash', 'strip libraries/*.so'])
 
     #run bin/pdb-server for worker
     num = 0;
