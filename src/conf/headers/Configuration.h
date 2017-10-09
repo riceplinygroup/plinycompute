@@ -25,6 +25,7 @@
 #ifndef CONFIGURATION_H
 #define	CONFIGURATION_H
 
+#include <assert.h>
 #include <memory>
 #include <string>
 #include <sys/types.h>
@@ -138,10 +139,13 @@ public:
 	    port = 8108;
 	    maxConnections = DEFAULT_MAX_CONNECTIONS;
 	    logFile = "serverLog";
-	    pageSize = DEFAULT_PAGE_SIZE;
             maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+	    pageSize = DEFAULT_PAGE_SIZE;
+            assert(pageSize <= maxPageSize);
             shufflePageSize = DEFAULT_SHUFFLE_PAGE_SIZE;
+            assert(shufflePageSize <= maxPageSize);
             broadcastPageSize = DEFAULT_BROADCAST_PAGE_SIZE;
+            assert(broadcastPageSize <= maxPageSize);
 	    useUnixDomainSock = false;
 	    shmSize = DEFAULT_SHAREDMEM_SIZE;
 	    logEnabled = false;
@@ -152,6 +156,7 @@ public:
             isMaster = false;
             hashPageSize = DEFAULT_HASH_PAGE_SIZE;
             initDirs();
+            
 	}
 
         void initDirs() {
@@ -286,14 +291,19 @@ public:
 	}
 
 	void setPageSize(size_t pageSize) {
+                assert(pageSize <= maxPageSize);
 		this->pageSize = pageSize;
 	}
 
         void setMaxPageSize(size_t maxPageSize) {
+                assert(pageSize <= maxPageSize);
+                assert(shufflePageSize <= maxPageSize);
+                assert(broadcastPageSize <= maxPageSize);
                 this->maxPageSize = maxPageSize;
         }
 
         void setShufflePageSize (size_t shufflePageSize) {
+                assert(shufflePageSize < maxPageSize);
                 this->shufflePageSize = shufflePageSize;
         }
 
@@ -302,6 +312,7 @@ public:
         }
 
         void setBroadcastPageSize (size_t broadcastPageSize) {
+                assert(broadcastPageSize <= maxPageSize);
                 this->broadcastPageSize = broadcastPageSize;
         }
 
