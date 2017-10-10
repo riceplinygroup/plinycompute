@@ -15,6 +15,17 @@ OS: Ubuntu-16, MacOS
 
 Run: scons 
 
+## Run PDB on local
+
+python scripts/startPseudoCluster.py #numThreads #sharedMemPoolSize (MB)
+
+
+## Cleanup PDB Data and Catalog on local
+
+scripts/cleanupNode.sh
+
+
+
 ## Run PDB on a Cluster 
 
 
