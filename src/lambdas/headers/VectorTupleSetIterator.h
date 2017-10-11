@@ -106,6 +106,9 @@ public:
 		}
 
                 size_t mySize = iterateOverMe->size();
+                if (mySize == 0) {
+                   return nullptr;
+                }
 		// see if there are no more items in the vector to iterate over
 		if (pos == mySize) {
 
@@ -121,6 +124,11 @@ public:
 
 			// and reset everything
 			iterateOverMe = myRec->getRootObject ();
+                        // JiaNote: we also need to reset mySize
+                        mySize = iterateOverMe->size();
+                        if (mySize == 0) {
+                            return nullptr;
+                        }
 			pos = 0;
 		}
 
@@ -135,7 +143,6 @@ public:
 		// resize the output vector as appropriate
 		std :: vector <Handle <Object>> &inputColumn = output->getColumn <Handle <Object>> (0);
 		inputColumn.resize (numSlotsToIterate);
-
 		// fill it up
 		for (int i = 0; i < numSlotsToIterate; i++) {
 			inputColumn[i] = myVec[pos];	
