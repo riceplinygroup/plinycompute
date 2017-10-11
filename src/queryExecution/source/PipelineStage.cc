@@ -515,7 +515,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
+                                  PDBPagePtr pageToBroadcast = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getBroadcastPageSize(), 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   NodeID myNodeId = jobStage->getNodeId();
@@ -548,7 +548,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
                           if (record != nullptr) {
                               Handle<Object> objectToSend = record->getRootObject();
                               if (objectToSend != nullptr) {
-                                  PDBPagePtr pageToSend = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
+                                  PDBPagePtr pageToSend = std :: make_shared<PDBPage>(((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID)+ sizeof(int) + sizeof(size_t))), 0, 0, 0, 0, 0, conf->getBroadcastPageSize(), 0, 0);
                                   int numNodes = jobStage->getNumNodes();
                                   int k;
                                   for ( k = 0; k < numNodes; k++ ) {
@@ -567,7 +567,7 @@ void PipelineStage :: executePipelineWork (int i, SetSpecifierPtr outputSet, std
 
                       } else if ((this->jobStage->isRepartition() == true) && ( this->jobStage->isCombining() == true)) {
                           //to handle an aggregation
-                          PDBPagePtr output = make_shared<PDBPage>((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t)), 0, 0, 0, 0, 0, conf->getPageSize(), 0, 0);
+                          PDBPagePtr output = make_shared<PDBPage>((char *)page-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t)), 0, 0, 0, 0, 0, conf->getShufflePageSize(), 0, 0);
                           int numNodes = jobStage->getNumNodes();
                           int k;
                           for ( k = 0; k < numNodes; k ++ ) {
