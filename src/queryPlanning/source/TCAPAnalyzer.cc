@@ -569,7 +569,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                     //We first need to create a TupleSetJobStage with a repartition sink
                     
                     sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
-                    sink->setPageSize(conf->getShufflePageSize()); 
+                    sink->setPageSize(conf->getBroadcastPageSize()); 
                     //isBroadcasting = false
                     //isRepartitioning = true
                     //collect probing information
@@ -640,7 +640,7 @@ bool TCAPAnalyzer::analyze (std :: vector<Handle<AbstractJobStage>> & physicalPl
                      //we probe the partitioned hash table
                      //we first create a pipeline breaker to partition RHS
                      sink = makeObject<SetIdentifier> (this->jobId, outputName+"_repartitionData");
-                     sink->setPageSize (conf->getShufflePageSize());
+                     sink->setPageSize (conf->getBroadcastPageSize());
                      //isBroadcasting = false
                      //isRepartitioning = true
                      //collect probing information
