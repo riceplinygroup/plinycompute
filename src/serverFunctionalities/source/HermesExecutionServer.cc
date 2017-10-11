@@ -328,12 +328,11 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              request->print();
 
              //create a SharedHashSet instance 
-             //std :: cout << "pageSize = " << conf->getPageSize() << ", numPages = " << request->getNumPages() << std :: endl;
-             size_t hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*JOIN_HASH_TABLE_SIZE_RATIO;
+             size_t hashSetSize = conf->getBroadcastPageSize()*(size_t)(request->getNumPages())*JOIN_HASH_TABLE_SIZE_RATIO;
              std :: cout << "BroadcastJoinBuildHTJobStage: hashSetSize=" << hashSetSize << std :: endl;
              SharedHashSetPtr sharedHashSet = make_shared<SharedHashSet>(request->getHashSetName(), hashSetSize);
              if (sharedHashSet->isValid() == false) {
-                hashSetSize = conf->getPageSize()*(size_t)(request->getNumPages())*1.5;
+                hashSetSize = conf->getBroadcastPageSize()*(size_t)(request->getNumPages())*1.5;
 #ifdef AUTO_TUNING
                 size_t memSize = request->getTotalMemoryOnThisNode();
                 size_t sharedMemPoolSize = conf->getShmSize();
@@ -953,7 +952,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               if (sizeRatio > numPartitions) {
                   sizeRatio = numPartitions;
               }
-              size_t hashSetSize = (double) (conf->getPageSize()) * (double) (numPages) * sizeRatio / (double) (numPartitions);
+              size_t hashSetSize = (double) (conf->getShufflePageSize()) * (double) (numPages) * sizeRatio / (double) (numPartitions);
               //create hash set
               std :: string hashSetName = request->getHashSetName();
               PartitionedHashSetPtr partitionedSet = make_shared<PartitionedHashSet> (hashSetName, hashSetSize);
