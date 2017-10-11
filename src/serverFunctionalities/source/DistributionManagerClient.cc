@@ -33,7 +33,6 @@
 #include "NodeInfo.h"
 #include "InterfaceFunctions.h"
 
-#include "ExecuteQueryOnSingleHost.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "GetListOfNodes.h"
 
