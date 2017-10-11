@@ -30,33 +30,21 @@ namespace pdb {
 
 template <typename T>
 void copyFrom (T &out, Handle <T> &in) {
-//        std :: cout << "copy T from Handle" << std :: endl;
         out = *in;
-//        std :: cout << "[IN]" << std :: endl; 
-//        in->printMeta();
-//        std :: cout << "\n[OUT]" << std :: endl;
-//        out.printMeta();
 }
 
 template <typename T>
 void copyFrom (T &out, T &in) {
-//        std :: cout << "copy T from T" << std :: endl;
         out = in;
-//        std :: cout << "[IN]" << std :: endl;
-//        in.printMeta();
-//        std :: cout << "\n[OUT]" << std :: endl;
-//        out.printMeta();
 }
 
 template <typename T>
 void copyFrom (Handle <T> &out, Handle <T> &in) {
-        //std :: cout << "copy Handle from Handle" << std :: endl;
         out = in;
 }
 
 template <typename T>
 void copyFrom (Handle<T> &out, T &in) {
-        //std :: cout << "copy Handle from T" << std :: endl;
         *out = in;
 }
 
@@ -65,19 +53,11 @@ void copyTo (T &out, Handle <T> &in) {
 	char *location = (char *) &out;
 	location -= REF_COUNT_PREAMBLE_SIZE;
 	in = (RefCountedObject <T> *) location;
-//        std :: cout << "[IN]" << std :: endl;
-//        in->printMeta();
-//        std :: cout << "[OUT]" << std :: endl;
-//        out.printMeta();
 }
 
 template <typename T>
 void copyTo (Handle <T> &out, Handle <T> &in) {
         in = out;
-//        std :: cout << "[IN]" << std :: endl;
-//        in->printMeta();
-//        std :: cout << "[OUT]" << std :: endl;
-//        out.printMeta();
 }
 
 // this checks to see if the class is abstract
@@ -114,7 +94,6 @@ public:
         MeTo myOtherData;
 
 	static void *allocate (TupleSet &processMe, int where) {
-		//std :: cout << "Creating column for type " << getTypeName <Handle <HoldMe>> () << " at position " << where << "\n";
 		std :: vector <Handle <HoldMe>> *me = new std :: vector <Handle <HoldMe>>;
 		processMe.addColumn (where, me, true);
 		return me;	
@@ -122,17 +101,14 @@ public:
 
         //JiaNote: add the below two functions to facilitate JoinMap merging for broadcast join
         void copyDataFrom (Handle<HoldMe> me) {
-                //std :: cout << "copyDataFrom Handle<HoldMe>" << std :: endl;
                 pdb :: copyFrom (myData, me);
         }
 
         void copyDataFrom (HoldMe me) {
-                //std :: cout << "copyDataFrom HoldMe" << std :: endl;
                 pdb :: copyFrom (myData, me);
         }
 
 	void copyFrom (void *input, int whichPos) {
-		//std :: cout << "Packing column for type " << getTypeName <decltype (IsAbstract <HoldMe> :: val)> () << " at position " << whichPos << "\n";
 		std :: vector <Handle <HoldMe>> &me = *((std :: vector <Handle <HoldMe>> *) input);
 		pdb :: copyFrom (myData, me[whichPos]);	
 	}
@@ -312,13 +288,8 @@ public:
 		TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput, bool needToSwapLHSAndRhs) :
                 myMachine (inputSchema, attsToIncludeInOutput) {
 
-                //std :: cout << "inputSchema=" << inputSchema << std :: endl;
-                //std :: cout << "attsToOperateOn=" << attsToOperateOn << std :: endl;
-                //std :: cout << "attsToIncludeInOutput=" << attsToIncludeInOutput << std :: endl;
-
 		// extract the hash table we've been given
 		Record <JoinMap <RHSType>> *input = (Record <JoinMap <RHSType>> *) hashTable;
-		//std :: cout << "In join probe\n";
 		inputTable = input->getRootObject ();
 
 		// set up the output tuple
@@ -327,7 +298,6 @@ public:
 		if (needToSwapLHSAndRhs) {
 			offset = positions.size ();
 			createCols <RHSType> (columns, *output, 0, 0, positions);
-			//std :: cout << "We do need to add the pipelined data to the back end of the output tuples.\n";
 		} else {
 			offset = 0;
 			createCols <RHSType> (columns, *output, attsToIncludeInOutput.getAtts ().size (), 0, positions);
@@ -336,7 +306,6 @@ public:
 		// this is the input attribute that we will hash in order to try to find matches
 		std :: vector <int> matches = myMachine.match (attsToOperateOn);
 		whichAtt = matches[0];
-                //std :: cout << "whichAtt is " << whichAtt << std :: endl;
 
 	}
 
@@ -347,7 +316,6 @@ public:
 	TupleSetPtr process (TupleSetPtr input) override {
                 
 		std :: vector <size_t> inputHash = input->getColumn <size_t> (whichAtt);
-                //std :: cout << "JoinProbe: inputHash.size()=" << inputHash.size() << std :: endl;
 		JoinMap <RHSType> &inputTableRef = *inputTable;
 
 		// redo the vector of hash counts if it's not the correct size
@@ -410,22 +378,18 @@ public:
                 // get the map we are adding to
                 Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
                 JoinMap <RHSType> &myMap = *mergedMap;
-                //std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
                 Handle <JoinMap <RHSType>> mapToMerge = unsafeCast <JoinMap <RHSType>> (mergeMe);
                 JoinMap <RHSType> &theOtherMap = *mapToMerge;
-                //std :: cout << "The map to merge size: " << theOtherMap.size() << std :: endl;
                 
                 for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
                     JoinRecordList<RHSType> * myList = *iter;
                     size_t mySize = myList->size();
                     size_t myHash = myList->getHash();
-                    //std :: cout << "myHash is " << myHash << " and mySize is " << mySize << std :: endl;
                     if (mySize > 0) {
                         for (size_t i = 0; i < mySize; i++) {
                             try {        
                                 RHSType * temp = &(myMap.push(myHash));
                                 packData (*temp, ((*myList)[i]));
-                                //std :: cout << "merged one with myHash=" << myHash << " i=" << i << " and my size=" << mySize << std :: endl;
                             } catch (NotEnoughSpace &n) {
                                 std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
                                 delete (myList);
@@ -442,26 +406,19 @@ public:
                 // get the map we are adding to
                 Handle <JoinMap <RHSType>> mergedMap = unsafeCast <JoinMap <RHSType>> (mergeToMe);
                 JoinMap <RHSType> &myMap = *mergedMap;
-                //std :: cout << "Merged map current size: " << myMap.size() << std :: endl;
                 Handle <Vector<Handle<JoinMap <RHSType>>>> mapsToMerge = unsafeCast <Vector<Handle<JoinMap <RHSType>>>> (mergeMe);
                 Vector<Handle<JoinMap <RHSType>>> &theOtherMaps = *mapsToMerge;
-                /*std :: cout << "The number of maps to merge: " << theOtherMaps.size() << std :: endl;
-                for (int i = 0; i < theOtherMaps.size(); i++) {
-                    std :: cout << "maps[" << i << "].size()=" << theOtherMaps[i]->size() << std :: endl;
-                }*/
                 for (int i = 0; i < theOtherMaps.size(); i++) {
                     JoinMap<RHSType> & theOtherMap = *(theOtherMaps[i]);
                     for (JoinMapIterator<RHSType> iter = theOtherMap.begin(); iter != theOtherMap.end(); ++iter) {
                         JoinRecordList<RHSType> * myList = *iter;
                         size_t mySize = myList->size();
                         size_t myHash = myList->getHash();
-                        //std :: cout << "myHash is " << myHash << " and mySize is " << mySize << std :: endl;
                         if (mySize > 0) {
                             for (size_t j = 0; j < mySize; j++) {
                                 try {
                                     RHSType * temp = &(myMap.push(myHash));
                                     packData (*temp, ((*myList)[j]));
-                                    //std :: cout << "merged one with myHash=" << myHash << " j=" << j << " and my size=" << mySize << std :: endl;
                                 } catch (NotEnoughSpace &n) {
                                     std :: cout << "ERROR: join data is too large to be built in one map, results are truncated!" << std :: endl;
                                      delete (myList);
@@ -571,12 +528,6 @@ public:
                 if (myRec != nullptr) {
 
                     iterateOverMe = myRec->getRootObject ();
-                    //Vector<Handle<JoinMap <RHSType>>> & myVec = *iterateOverMe;
-                    ////std :: cout << "myVec.size()=" << myVec.size() << std :: endl;
-                    //for (int i = 0; i < myVec.size(); i++) {
-                      //  Handle<JoinMap<RHSType>> myMap = myVec[i];
-                      //  std :: cout << "myVec[" << i << "].size()=" << myMap->size() << std :: endl;
-                   // }
                     PDB_COUT << "Got iterateOverMe" << std :: endl;
                     // create the output vector for objects and put it into the tuple set
                     columns = new void * [positions.size()];
@@ -587,7 +538,6 @@ public:
                     isDone = false;  
                 
                 } else {
-                    //std :: cout << "PartitionedSource: No Record in the page" << std :: endl;
                     iterateOverMe = nullptr;
                     output = nullptr;
                     isDone = true;
@@ -611,10 +561,6 @@ public:
 
                 //JiaNote: below two lines are necessary to fix a bug that iterateOverMe may be nullptr when first time get to here
                 if ((iterateOverMe == nullptr) || (isDone == true)) {
-                     /*if((lastPage == nullptr) && (lastRec == nullptr) && (myPage != nullptr)) {
-                         lastPage = myPage;
-                         lastRec = myRec;
-                     }*/
                      return nullptr;
                 }
 
@@ -643,15 +589,12 @@ public:
                    }
 
                    while (curJoinMap == nullptr) {
-                      //std :: cout << "current JoinMap is nullptr, try pos=" << pos << std :: endl;
                       curJoinMap = (*iterateOverMe)[pos];
                       pos ++;
                       if (curJoinMap != nullptr) {
                           if ((curJoinMap->getPartitionId() % curJoinMap->getNumPartitions())!= myPartitionId) {
-                              //std :: cout << "PartitionedSource: Not my partition" << std :: endl;
                               curJoinMap = nullptr;
                           } else {
-                              //std :: cout << "I've found a map for me with partitionId=" << myPartitionId << std :: endl;
                               curJoinMapIter = curJoinMap->begin();
                               joinMapEndIter = curJoinMap->end();
                               posInRecordList = 0;
@@ -690,15 +633,12 @@ public:
                                   myHash = myHashToRecover;
                                   throw n;
                               }
-                              //std :: cout << "unpacked one tuple with myHash=" << myHash << " and overallCounter=" << overallCounter << std :: endl;
                               hashColumn->push_back(myHash);
                               posInRecordList++;
                               overallCounter++;
                               if (overallCounter == this->chunkSize) {
                                   hashColumn->resize (overallCounter);
                                   eraseEnd <RHSType> (overallCounter, 0, columns);
-                                  //std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
-                                  //std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
                                   return output;
                               }
                           }
@@ -716,13 +656,11 @@ public:
                               }
                           }
                       }
-                      //std :: cout << "finished JoinMap at pos=" << pos << std :: endl;
                       curJoinMap = nullptr;
                       
                    } 
                    if ((curJoinMap == nullptr) && (pos == iterateOverMe->size())) {
                         // this means that we got to the end of the vector
-                        //std :: cout <<"finished a vector" << std :: endl;
                         lastRec = myRec;
                         if (myIter->hasNext() == true) {
                             myRec = (Record <Vector <Handle <JoinMap<RHSType>>>> *) myIter->next();
@@ -751,8 +689,6 @@ public:
 
                                     hashColumn->resize (overallCounter);
                                     eraseEnd <RHSType> (overallCounter, 0, columns);
-                                    //std :: cout << " output tuple set with size=" << overallCounter << std :: endl;
-                                    //std :: cout << " hashColumn->size()=" << hashColumn->size() << std :: endl;
                                     return output;
                                     
                                 } else {
@@ -831,9 +767,6 @@ public:
                 Vector<Handle<JoinMap <RHSType>>> &myMaps = *shuffledMaps; 
                 Handle<JoinMap<RHSType>> thisMap;
                 try {
-                    //std :: cout << "mapToShuffle.size()=" << mapToShuffle.size() << std :: endl;
-                    //std :: cout << "mapToShuffle.getPartitionId()=" << mapToShuffle.getPartitionId() << std :: endl;
-                    //std :: cout << "mapToShuffle.getNumPartitions()=" << mapToShuffle.getNumPartitions() << std :: endl;
                     thisMap = makeObject<JoinMap<RHSType>> (mapToShuffle.size(), mapToShuffle.getPartitionId(), mapToShuffle.getNumPartitions());
                 }
                 catch (NotEnoughSpace &n) {
@@ -847,7 +780,6 @@ public:
                     JoinRecordList<RHSType> * myList = *iter;
                     size_t mySize = myList->size();
                     size_t myHash = myList->getHash();
-                    //std :: cout << "\n" << counter << ": Shuffler: mySize=" << mySize << ", myHash=" << myHash << std :: endl;
                     
                     counter ++;
                     if (mySize > 0) {
@@ -857,7 +789,6 @@ public:
                                     RHSType * temp = &(myMap.push(myHash));
                                     packData (*temp, ((*myList)[i]));
                                     numPacked++;
-                                    //std :: cout << counter << ": Shuffler: myMap.size()=" << myMap.size() << std :: endl;
                                 } catch (NotEnoughSpace &n) {
                                     myMap.setUnused (myHash);
                                     std :: cout << "Run out of space in shuffling, to allocate a new page" << std :: endl;
@@ -887,12 +818,7 @@ public:
                     delete (myList);
                 }
                 //We push back only when the whole map has been copied. If it throws exception earlier than this point, the whole map will be discarded and will not add to the vector of maps.
-                //std :: cout << "Shuffler: we push back the map with " << thisMap->size() << " elements" << std :: endl;
                 myMaps.push_back(thisMap);
-                //for (int i = 0; i < myMaps.size(); i++) {
-                    //std :: cout << "Shuffler: myMaps[" << i << "].size()=" << myMaps[i]->size() << std :: endl;
-                //}
-                //std :: cout << "Shuffler: counter=" << counter << ", and numPacked=" << numPacked << std :: endl;
                 return true;
          }
 
@@ -949,7 +875,6 @@ public:
         }
 
         Handle <Object> createNewOutputContainer () override {
-                //std :: cout << "PartitionedJoinSink: to create a Vector of JoinMap instance" << std :: endl;
                 // we create a vector of maps to store the output
                 Handle <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> returnVal = makeObject <Vector<Handle<Vector<Handle<JoinMap <RHSType>>>>>> (numNodes);
                 for (int i = 0; i < numNodes; i++) {
@@ -992,10 +917,8 @@ public:
                         size_t nodeIndex = index / this->numPartitionsPerNode;
                         size_t partitionIndex = index % this->numPartitionsPerNode;
                         JoinMap <RHSType> &myMap = *((*((*writeMe)[nodeIndex]))[partitionIndex]);
-                        //std :: cout << "to write value with hash=" << keyColumn[i] << " to JoinMap with nodeIndex=" << nodeIndex << " and partitionIndex=" << partitionIndex << " and size=" << myMap.size() << std ::endl;
                         // try to add the key... this will cause an allocation for a new key/val pair
                         if (myMap.count (keyColumn[i]) == 0) {
-                                //std :: cout << "key doesn't exist" << std :: endl;
                                 try {
                                         RHSType &temp = myMap.push (keyColumn[i]);
                                         pack (temp, i, 0, columns);
@@ -1013,7 +936,6 @@ public:
 
                         // the key is there
                         } else {
-                                //std :: cout << "key exists" << std :: endl;
                                 // and add the value
                                 RHSType *temp;
                                 try {
@@ -1044,13 +966,6 @@ public:
                                 }
                         }
                 }
-                /*for (int i = 0; i < writeMe->size(); i++) {
-                     Handle<Vector<Handle<JoinMap<RHSType>>>> myVec = (*writeMe)[i];
-                     for (int j = 0; j < myVec->size(); j++) {
-                         Handle<JoinMap<RHSType>> myMap = (*myVec)[j];
-                         std :: cout << "myMapSize[" << i << "][" << j << "]=" << myMap->size() << std :: endl;
-                     }
-                }*/
         }
 };
 
@@ -1134,7 +1049,6 @@ public:
 	
 				// if we get an exception, then we could not fit a new key/value pair
 				} catch (NotEnoughSpace &n) {
-                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;	
 					// if we got here, then we ran out of space, and so we need to delete the already-processed
 					// data so that we can try again...
 					myMap.setUnused (keyColumn[i]);
@@ -1155,7 +1069,6 @@ public:
 				// an exception means that we couldn't complete the addition
 				} catch (NotEnoughSpace &n) { 
 
-                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
 					throw n;
@@ -1168,7 +1081,6 @@ public:
 
 				// if the copy didn't work, pop the value off
 				} catch (NotEnoughSpace &n) {
-                                        //std :: cout << "we are running out of space in writing join sink" << std :: endl;
 					myMap.setUnused (keyColumn[i]);
 					truncate <RHSType> (i, 0, columns);
 					keyColumn.erase (keyColumn.begin (), keyColumn.begin () + i);
@@ -1228,7 +1140,6 @@ public:
 
         // JiaNote: create a partitioned source for this particular type
         ComputeSourcePtr getPartitionedSource (size_t myPartitionId, std :: function <PDBPagePtr ()> getAnotherVector, std :: function <void (PDBPagePtr)> doneWithVector, size_t chunkSize, std :: vector<int> & whereEveryoneGoes) override {
-                //std :: cout << "to get compute source for PartitionedJoin for partitionId=" << myPartitionId << std :: endl;
                 return std :: make_shared <PartitionedJoinMapTupleSetIterator<HoldMe>> (myPartitionId, getAnotherVector, doneWithVector, chunkSize, whereEveryoneGoes);
         }
 
@@ -1248,9 +1159,7 @@ public:
 typedef std::shared_ptr <JoinTupleSingleton> JoinTuplePtr;
 
 inline int findType (std :: string &findMe, std :: vector <std :: string> &typeList) {
-        //std :: cout << "findMe is " << findMe << std :: endl;
 	for (int i = 0; i < typeList.size (); i++) {
-                //std :: cout << "typeList[" << i << "]=" << typeList[i] << std :: endl;
 		if (typeList[i] == findMe) {
 			typeList[i] = std :: string ("");
 			return i;
@@ -1282,7 +1191,6 @@ typename std :: enable_if<!std :: is_base_of <JoinTupleBase, In1> :: value, Join
 	// we must always have one type...
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        //std :: cout << "in1Name=" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -1307,7 +1215,6 @@ typename std :: enable_if<sizeof ...(Rest) != 0 && !std :: is_base_of <JoinTuple
 
 	JoinTuplePtr returnVal;
 	std :: string in1Name = getTypeName <Handle <In1>> ();
-        //std :: cout << "in1Name =" << in1Name << std :: endl;
 	int in1Pos = findType (in1Name, typeList);
 
 	if (in1Pos != -1) {
@@ -1327,7 +1234,6 @@ typename std :: enable_if<std :: is_base_of <JoinTupleBase, In1> :: value, JoinT
 
 	JoinTuplePtr returnVal;
 	std :: string in2Name = getTypeName <Handle <In2>> ();
-        //std :: cout << "in2Name =" << in2Name << std :: endl;
 	int in2Pos = findType (in2Name, typeList);
 	if (in2Pos != -1) {
 		returnVal = findCorrectJoinTuple <JoinTuple <In2, In1>, Rest...> (typeList, whereEveryoneGoes);
