@@ -134,10 +134,10 @@ int main() {
 
 	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
 	myFlatten->setInput(myScanSet);
-        //myFlatten->setAllocatorPolicy(noReuseAllocator);
+        myFlatten->setAllocatorPolicy(noReuseAllocator);
 	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
 	myGroupBy->setInput(myFlatten);
-        //myGroupBy->setAllocatorPolicy(noReuseAllocator);
+        myGroupBy->setAllocatorPolicy(noReuseAllocator);
 	// Get the count by doing a count aggregation on the final results
         #ifndef CHECK_RESULTS
 	Handle<Computation> myWriteSet = makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
