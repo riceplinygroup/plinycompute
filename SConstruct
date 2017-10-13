@@ -389,7 +389,6 @@ common_env.SharedLibrary('libraries/libScanStringSet.so', ['build/libraries/Scan
 common_env.SharedLibrary('libraries/libScanSupervisorSet.so', ['build/libraries/ScanSupervisorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libScanOptimizedSupervisorSet.so', ['build/libraries/ScanOptimizedSupervisorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libSharedEmployee.so', ['build/libraries/SharedEmployee.cc'] + all)
-common_env.SharedLibrary('libraries/libSharedEmployeeTopK.so', ['build/libraries/SharedEmployeeTopK.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyAggregation.so', ['build/libraries/SillyAggregation.cc'] + all)
 common_env.SharedLibrary('libraries/libSillyJoin.so', ['build/libraries/SillyJoin.cc'] + all)
 common_env.SharedLibrary('libraries/libSillySelection.so', ['build/libraries/SillySelection.cc'] + all)
@@ -866,7 +865,6 @@ mainTests=common_env.Alias('mainTests', [
   'libraries/libScanSupervisorSet.so',
   'libraries/libScanOptimizedSupervisorSet.so',
   'libraries/libSharedEmployee.so',
-  'libraries/libSharedEmployeeTopK.so',
   'libraries/libSillyAggregation.so',
   'libraries/libSillyJoin.so',
   'libraries/libSillySelection.so',

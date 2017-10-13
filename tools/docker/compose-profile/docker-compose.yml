@@ -1,0 +1,32 @@
+version: '3'
+services:
+  master:
+    build: ../cluster-image
+    ports:
+      - "8108:8108"
+      - "1234:1234"
+    entrypoint: "/hpc/bin/hpcrun -o /profile-info /pdb/pdb-cluster master 8108 Y"
+    hostname: "master"
+    security_opt:
+      - seccomp:unconfined
+    links:
+      - worker_1
+      - worker_2
+  worker_1:
+    build: ../cluster-image
+    ports:
+      - "8109:8109"
+      - "1235:1235"
+    entrypoint: "/hpc/bin/hpcrun -o /profile-info /pdb/pdb-server 1 2048 master:8108 worker_1:8109"
+    hostname: "worker_1"
+    security_opt:
+      - seccomp:unconfined
+  worker_2:
+     build: ../cluster-image
+     ports:
+       - "8110:8110"
+       - "1236:1236"
+     entrypoint: "/hpc/bin/hpcrun -o /profile-info /pdb/pdb-server 1 2048 master:8108 worker_2:8110"
+     hostname: "worker_2"
+     security_opt:
+       - seccomp:unconfined
