@@ -385,7 +385,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
              //get scanner and iterators
              PDBLoggerPtr scanLogger = make_shared<PDBLogger>("agg-scanner.log");
              PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
-             communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+             communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
              PageScannerPtr scanner = make_shared<PageScanner>(communicatorToFrontend, shm, scanLogger, numThreads, backendCircularBufferSize, nodeId);
              if (getFunctionality<HermesExecutionServer>().setCurPageScanner(scanner) == false) {
                  success = false;
@@ -406,7 +406,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
              //get data proxy
              PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-             anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+             anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
              DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 
              //make allocator block and allocate the JoinMap
@@ -533,7 +533,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               //create data proxy
               pthread_mutex_lock(&connection_mutex);
               PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
-              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
               pthread_mutex_unlock(&connection_mutex);
 
 
@@ -583,7 +583,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
                          getAllocator().setPolicy(AllocatorPolicy :: noReuseAllocator);
                          pthread_mutex_lock(&connection_mutex);
                          PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
                          pthread_mutex_unlock(&connection_mutex);
                          DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 #ifdef ENABLE_LARGE_GRAPH                     
@@ -976,7 +976,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
               //create data proxy
               pthread_mutex_lock(&connection_mutex);
               PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
-              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+              communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
               pthread_mutex_unlock(&connection_mutex);
 
 
@@ -1017,7 +1017,7 @@ void HermesExecutionServer :: registerHandlers (PDBServer &forMe){
 
                          pthread_mutex_lock(&connection_mutex);
                          PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+                         anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
                          pthread_mutex_unlock(&connection_mutex);
                          DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
 

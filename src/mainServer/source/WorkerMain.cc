@@ -39,7 +39,7 @@ int main (int argc, char * argv[] ) {
        size_t sharedMemSize = (size_t)12*(size_t)1024*(size_t)1024*(size_t)1024;
        bool standalone = true;
        std :: string masterIp;
-       std :: string localIp="localhost";
+       std :: string localIp=conf->getServerAddress();
        int masterPort = conf->getPort();
        int localPort = conf->getPort();
        if (argc == 2) {

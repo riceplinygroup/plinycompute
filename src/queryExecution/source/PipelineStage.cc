@@ -183,7 +183,7 @@ std :: vector <PageCircularBufferIteratorPtr> PipelineStage :: getUserSetIterato
 
     //initialize the data proxy, scanner and set iterators
     PDBCommunicatorPtr communicatorToFrontend = make_shared<PDBCommunicator>();
-    communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+    communicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
 
     PDBLoggerPtr scannerLogger = make_shared<PDBLogger>("scanner.log");
     //getScanner
@@ -259,7 +259,7 @@ DataProxyPtr PipelineStage :: createProxy (int i, pthread_mutex_t connection_mut
     PDBLoggerPtr logger = make_shared<PDBLogger>(loggerName);
     pthread_mutex_lock(&connection_mutex);
     PDBCommunicatorPtr anotherCommunicatorToFrontend = make_shared<PDBCommunicator>();
-    anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), "localhost", errMsg);
+    anotherCommunicatorToFrontend->connectToInternetServer(logger, conf->getPort(), conf->getServerAddress(), errMsg);
     pthread_mutex_unlock(&connection_mutex);
     DataProxyPtr proxy = make_shared<DataProxy>(nodeId, anotherCommunicatorToFrontend, shm, logger);
     return proxy;
