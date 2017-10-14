@@ -40,28 +40,26 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_ARCH_PPC BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__powerpc) || defined(__powerpc__) || \
-    defined(__POWERPC__) || defined(__ppc__) || \
-    defined(_M_PPC) || defined(_ARCH_PPC) || \
-    defined(__PPCGECKO__) || defined(__PPCBROADWAY__) || \
+#if defined(__powerpc) || defined(__powerpc__) || defined(__POWERPC__) || defined(__ppc__) ||     \
+    defined(_M_PPC) || defined(_ARCH_PPC) || defined(__PPCGECKO__) || defined(__PPCBROADWAY__) || \
     defined(_XENON)
-#   undef BOOST_ARCH_PPC
-#   if !defined (BOOST_ARCH_PPC) && (defined(__ppc601__) || defined(_ARCH_601))
-#       define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6,1,0)
-#   endif
-#   if !defined (BOOST_ARCH_PPC) && (defined(__ppc603__) || defined(_ARCH_603))
-#       define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6,3,0)
-#   endif
-#   if !defined (BOOST_ARCH_PPC) && (defined(__ppc604__) || defined(__ppc604__))
-#       define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6,4,0)
-#   endif
-#   if !defined (BOOST_ARCH_PPC)
-#       define BOOST_ARCH_PPC BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#undef BOOST_ARCH_PPC
+#if !defined(BOOST_ARCH_PPC) && (defined(__ppc601__) || defined(_ARCH_601))
+#define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6, 1, 0)
+#endif
+#if !defined(BOOST_ARCH_PPC) && (defined(__ppc603__) || defined(_ARCH_603))
+#define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6, 3, 0)
+#endif
+#if !defined(BOOST_ARCH_PPC) && (defined(__ppc604__) || defined(__ppc604__))
+#define BOOST_ARCH_PPC BOOST_VERSION_NUMBER(6, 4, 0)
+#endif
+#if !defined(BOOST_ARCH_PPC)
+#define BOOST_ARCH_PPC BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_ARCH_PPC
-#   define BOOST_ARCH_PPC_AVAILABLE
+#define BOOST_ARCH_PPC_AVAILABLE
 #endif
 
 #define BOOST_ARCH_PPC_NAME "PowerPC"
@@ -69,4 +67,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_PPC,BOOST_ARCH_PPC_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_PPC, BOOST_ARCH_PPC_NAME)

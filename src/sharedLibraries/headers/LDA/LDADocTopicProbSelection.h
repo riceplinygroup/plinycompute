@@ -32,77 +32,74 @@
 #include <gsl/gsl_vector.h>
 
 using namespace pdb;
-class LDADocTopicProbSelection : public SelectionComp <IntDoubleVectorPair, DocAssignment> {
+class LDADocTopicProbSelection : public SelectionComp<IntDoubleVectorPair, DocAssignment> {
 
-private: 
-	Vector<double> prior;
-	Handle <Vector <char>> myMem;
-	int topicNum;
+private:
+    Vector<double> prior;
+    Handle<Vector<char>> myMem;
+    int topicNum;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDADocTopicProbSelection() {}
 
-	LDADocTopicProbSelection () {}
+    LDADocTopicProbSelection(Vector<double>& fromPrior) {
 
-	LDADocTopicProbSelection (Vector<double>& fromPrior) { 
+        this->prior = fromPrior;
+        this->topicNum = fromPrior.size();
 
-		this->prior = fromPrior;
-		this->topicNum = fromPrior.size();		
-					
-                // start by setting up the gsl_rng *src...
-                gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
-                std::random_device rd;
-                std::mt19937 gen(rd());
-		gsl_rng_set(src, gen());
+        // start by setting up the gsl_rng *src...
+        gsl_rng* src = gsl_rng_alloc(gsl_rng_mt19937);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        gsl_rng_set(src, gen());
 
-                // now allocate space needed for myRand
-                int spaceNeeded = sizeof (gsl_rng) + src->type->size;
-                myMem = makeObject <Vector <char>> (spaceNeeded, spaceNeeded);
+        // now allocate space needed for myRand
+        int spaceNeeded = sizeof(gsl_rng) + src->type->size;
+        myMem = makeObject<Vector<char>>(spaceNeeded, spaceNeeded);
 
-                // copy src over
-                memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
-                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+        // copy src over
+        memcpy(myMem->c_ptr(), src, sizeof(gsl_rng));
+        memcpy(myMem->c_ptr() + sizeof(gsl_rng), src->state, src->type->size);
 
-                // lastly, free src
-                gsl_rng_free (src);
-		
-		
-	}
+        // lastly, free src
+        gsl_rng_free(src);
+    }
 
-	Lambda <bool> getSelection (Handle <DocAssignment> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<DocAssignment> & checkMe) {return true;});
-	}
+    Lambda<bool> getSelection(Handle<DocAssignment> checkMe) override {
+        return makeLambda(checkMe, [](Handle<DocAssignment>& checkMe) { return true; });
+    }
 
-	Lambda <Handle <IntDoubleVectorPair>> getProjection (Handle <DocAssignment> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<DocAssignment> & checkMe) {
+    Lambda<Handle<IntDoubleVectorPair>> getProjection(Handle<DocAssignment> checkMe) override {
+        return makeLambda(checkMe, [&](Handle<DocAssignment>& checkMe) {
 
-			gsl_rng *rng = getRng();		
-			Vector<unsigned> &topicCount = checkMe->getVector();
-			Handle <Vector <double>> mySamples= makeObject<Vector<double>>(topicNum, topicNum);	
-			double *totalProb = new double[topicNum];
-			for (int i = 0; i < topicNum; i++) {
-				totalProb[i] = (this->prior)[i] + topicCount[i];
-			}
+            gsl_rng* rng = getRng();
+            Vector<unsigned>& topicCount = checkMe->getVector();
+            Handle<Vector<double>> mySamples = makeObject<Vector<double>>(topicNum, topicNum);
+            double* totalProb = new double[topicNum];
+            for (int i = 0; i < topicNum; i++) {
+                totalProb[i] = (this->prior)[i] + topicCount[i];
+            }
 
-			gsl_ran_dirichlet(rng, topicNum, totalProb, mySamples->c_ptr());
-			Handle<IntDoubleVectorPair> result = makeObject<IntDoubleVectorPair>(checkMe->getKey (), mySamples);
+            gsl_ran_dirichlet(rng, topicNum, totalProb, mySamples->c_ptr());
+            Handle<IntDoubleVectorPair> result =
+                makeObject<IntDoubleVectorPair>(checkMe->getKey(), mySamples);
 
-			delete [] totalProb;
-				
-			return result;
-		});
-	}
-	
-	// gets the GSL RNG from myMem
-	
-        gsl_rng *getRng () {
-                gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
-                dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
-		dst->type = gsl_rng_mt19937;
-                return dst;
-        }
-	
+            delete[] totalProb;
+
+            return result;
+        });
+    }
+
+    // gets the GSL RNG from myMem
+
+    gsl_rng* getRng() {
+        gsl_rng* dst = (gsl_rng*)myMem->c_ptr();
+        dst->state = (void*)(myMem->c_ptr() + sizeof(gsl_rng));
+        dst->type = gsl_rng_mt19937;
+        return dst;
+    }
 };
 
 

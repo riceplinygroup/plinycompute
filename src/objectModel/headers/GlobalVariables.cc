@@ -34,19 +34,19 @@ bool inSharedLibrary = false;
 Allocator mainAllocator;
 
 // since we want to be able to change the allocator, we use a pointer to it
-Allocator *mainAllocatorPtr = &mainAllocator;
+Allocator* mainAllocatorPtr = &mainAllocator;
 
 // these tell us where the call stack for all of the threads in the PDBWorkerQueue
 // is located
-void *stackBase = nullptr;
-void *stackEnd = nullptr;
+void* stackBase = nullptr;
+void* stackEnd = nullptr;
 // there is one VTableMap, used throughout the process.  This is it
 VTableMap globalVTable;
 
 // all accesses to the VTableMap go through this pointer.  This is key because
 // if we set this pointer within a shared library, the shared library will use
 // the process' VTAbleMap
-VTableMap *theVTable = &globalVTable;
+VTableMap* theVTable = &globalVTable;
 
 // the exception thrown when we run out of data
 NotEnoughSpace myException;

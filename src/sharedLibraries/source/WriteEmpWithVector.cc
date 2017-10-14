@@ -22,6 +22,6 @@
 #include "GetVTable.h"
 #include "WriteEmpWithVector.h"
 
-GET_V_TABLE (WriteEmpWithVector)
+GET_V_TABLE(WriteEmpWithVector)
 
 #endif

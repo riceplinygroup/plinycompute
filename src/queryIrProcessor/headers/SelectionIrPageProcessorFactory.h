@@ -29,35 +29,40 @@
 //#include "PDBVector.h"
 //#include "Record.h"
 //
-//using std::make_shared;
-//using std::shared_ptr;
+// using std::make_shared;
+// using std::shared_ptr;
 //
 //
-//using pdb::Handle;
-//using pdb::Record;
-//using pdb::Vector;
+// using pdb::Handle;
+// using pdb::Record;
+// using pdb::Vector;
 //
-//namespace pdb_detail
+// namespace pdb_detail
 //{
 //    class SelectionIrPageProcessorFactory
 //    {
 //
 //    public:
 //
-//        SelectionIrPageProcessorFactory(shared_ptr<SelectionIr> selection) : _condition(selection->getCondition())
+//        SelectionIrPageProcessorFactory(shared_ptr<SelectionIr> selection) :
+//        _condition(selection->getCondition())
 //        {
 //        }
 //
 //        template <typename Input, typename Output>
 //        shared_ptr<SelectionIrPageProcessor<Input,Output>> makeProcessorForPage(void* inputPage,
-//                                                                                void* initialOutputPage,
-//                                                                                size_t numBytesInOutputPage)
+//                                                                                void*
+//                                                                                initialOutputPage,
+//                                                                                size_t
+//                                                                                numBytesInOutputPage)
 //        {
-//            Record <Vector <Handle <Input>>>* myRec = (Record <Vector <Handle <Input>>>*)inputPage;
+//            Record <Vector <Handle <Input>>>* myRec = (Record <Vector <Handle
+//            <Input>>>*)inputPage;
 //            Handle<Vector <Handle <Input>>> inputRecords = myRec->getRootObject();
 //
 //            SelectionIrPageProcessor<Input,Output>* proc =
-//                new SelectionIrPageProcessor<Input, Output>(inputRecords, initialOutputPage, numBytesInOutputPage,
+//                new SelectionIrPageProcessor<Input, Output>(inputRecords, initialOutputPage,
+//                numBytesInOutputPage,
 //                                                            _condition);
 //
 //            return shared_ptr<SelectionIrPageProcessor<Input,Output>>(proc);

@@ -32,55 +32,58 @@ namespace pdb {
 class BackendExecuteSelection : public Object {
 
 public:
-
-	BackendExecuteSelection (DatabaseID dbIdIn, UserTypeID typeIdIn, SetID setIdIn, DatabaseID dbIdOut, UserTypeID typeIdOut, SetID setIdOut) {
-		srcDatabaseID = dbIdIn;
-		srcUserTypeID = typeIdIn;
-		srcSetID = setIdIn;	
+    BackendExecuteSelection(DatabaseID dbIdIn,
+                            UserTypeID typeIdIn,
+                            SetID setIdIn,
+                            DatabaseID dbIdOut,
+                            UserTypeID typeIdOut,
+                            SetID setIdOut) {
+        srcDatabaseID = dbIdIn;
+        srcUserTypeID = typeIdIn;
+        srcSetID = setIdIn;
         destDatabaseID = dbIdOut;
         destUserTypeID = typeIdOut;
         destSetID = setIdOut;
-	}
+    }
 
-	BackendExecuteSelection () {}
-	~BackendExecuteSelection () {}
+    BackendExecuteSelection() {}
+    ~BackendExecuteSelection() {}
 
-	DatabaseID getDatabaseIn () {
-		return srcDatabaseID;
-	}
+    DatabaseID getDatabaseIn() {
+        return srcDatabaseID;
+    }
 
-    UserTypeID getTypeIdIn () {
+    UserTypeID getTypeIdIn() {
         return srcUserTypeID;
     }
 
-	SetID getSetIdIn () {
-		return srcSetID;
-	}
-
-    DatabaseID getDatabaseOut () {
-            return destDatabaseID;
+    SetID getSetIdIn() {
+        return srcSetID;
     }
 
-    UserTypeID getTypeIdOut () {
-            return destUserTypeID;
+    DatabaseID getDatabaseOut() {
+        return destDatabaseID;
     }
 
-    SetID getSetIdOut () {
-            return destSetID;
+    UserTypeID getTypeIdOut() {
+        return destUserTypeID;
     }
-	
-	ENABLE_DEEP_COPY
+
+    SetID getSetIdOut() {
+        return destSetID;
+    }
+
+    ENABLE_DEEP_COPY
 
 private:
-
-	// this is the database ID of the source set
-	DatabaseID srcDatabaseID;
+    // this is the database ID of the source set
+    DatabaseID srcDatabaseID;
 
     // this is the type ID of the source set
-    UserTypeID srcUserTypeID; 
+    UserTypeID srcUserTypeID;
 
-	// this is the ID of the source set
-	SetID srcSetID;
+    // this is the ID of the source set
+    SetID srcSetID;
 
     // this is the database ID of the destination set
     DatabaseID destDatabaseID;

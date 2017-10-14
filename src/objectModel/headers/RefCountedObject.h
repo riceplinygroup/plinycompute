@@ -41,32 +41,29 @@ class PDBTemplateBase;
 
 template <class ObjType>
 class RefCountedObject {
-	
+
 public:
+    // set the number of references to this object to a specific value
+    void setRefCount(unsigned toMe);
 
-	// set the number of references to this object to a specific value
-	void setRefCount (unsigned toMe);
+    // increment the reference count for the object by one
+    void incRefCount();
 
-	// increment the reference count for the object by one
-	void incRefCount ();
+    // return the ref count
+    unsigned getRefCount();
 
-	// return the ref count
-	unsigned getRefCount ();
+    // decrement the ref count for the object by one.  If the value of the
+    // reference count goes down to zero, the object is deleted using the
+    // PDBTemplateBased object
+    void decRefCount(PDBTemplateBase& typeInfo);
 
-	// decrement the ref count for the object by one.  If the value of the
-	// reference count goes down to zero, the object is deleted using the
-	// PDBTemplateBased object
-	void decRefCount (PDBTemplateBase &typeInfo);
-
-	// get a pointer to the object itself
-	ObjType *getObject () const;
+    // get a pointer to the object itself
+    ObjType* getObject() const;
 
 private:
-
-	// so that no one can create one
-	RefCountedObject () {}
+    // so that no one can create one
+    RefCountedObject() {}
 };
-
 }
 
 #include "RefCountedObject.cc"

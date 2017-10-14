@@ -25,14 +25,12 @@
 
 namespace pdb {
 
-    class PartitionPolicyFactory {
+class PartitionPolicyFactory {
 
-    public:
-        static PartitionPolicyPtr buildPartitionPolicy(PartitionPolicy::Policy policy);
+public:
+    static PartitionPolicyPtr buildPartitionPolicy(PartitionPolicy::Policy policy);
 
-        static PartitionPolicyPtr buildDefaultPartitionPolicy();
-    };
-
+    static PartitionPolicyPtr buildDefaultPartitionPolicy();
+};
 }
-#endif //OBJECTQUERYMODEL_PARTITIONPOLICYFACTORY_H
-
+#endif  // OBJECTQUERYMODEL_PARTITIONPOLICYFACTORY_H

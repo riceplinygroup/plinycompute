@@ -29,23 +29,21 @@
 
 
 using namespace pdb;
-class SimpleMovieSelection : public SelectionComp <MovieStar, MovieStar> {
+class SimpleMovieSelection : public SelectionComp<MovieStar, MovieStar> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    SimpleMovieSelection() {}
 
-	SimpleMovieSelection () {}
+    Lambda<bool> getSelection(Handle<MovieStar> checkMe) override {
+        return makeLambdaFromMember(checkMe, birthYear) ==
+            makeLambdaFromMember(checkMe, checkBirthYear);
+    }
 
-	Lambda <bool> getSelection (Handle <MovieStar> checkMe) override {
-		return makeLambdaFromMember (checkMe, birthYear) == makeLambdaFromMember (checkMe, checkBirthYear);
-	}
-
-	Lambda <Handle <MovieStar>> getProjection (Handle <MovieStar> checkMe) override {
-        return makeLambda (checkMe, [](Handle<MovieStar> & checkMe) {
-              return checkMe;
-        });
-	}
+    Lambda<Handle<MovieStar>> getProjection(Handle<MovieStar> checkMe) override {
+        return makeLambda(checkMe, [](Handle<MovieStar>& checkMe) { return checkMe; });
+    }
 };
 
 

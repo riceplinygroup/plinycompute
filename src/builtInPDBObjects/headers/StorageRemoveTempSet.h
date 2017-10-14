@@ -29,28 +29,24 @@
 namespace pdb {
 
 // encapsulates a request to remove a temp set from storage
-class StorageRemoveTempSet  : public Object {
+class StorageRemoveTempSet : public Object {
 
 public:
+    StorageRemoveTempSet() {}
+    ~StorageRemoveTempSet() {}
 
-	StorageRemoveTempSet () {}
-	~StorageRemoveTempSet () {}
+    StorageRemoveTempSet(SetID setId) : setId(setId) {}
 
-	StorageRemoveTempSet (SetID setId) : setId (setId) {}
-
-	SetID getSetID () {
-		return setId;
-	}
+    SetID getSetID() {
+        return setId;
+    }
 
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	SetID setId;
-
+    SetID setId;
 };
-
 }
 
 #endif

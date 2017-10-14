@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDATopicWordAggregate.h"
 
-GET_V_TABLE (LDATopicWordAggregate)
+GET_V_TABLE(LDATopicWordAggregate)
 
 #endif

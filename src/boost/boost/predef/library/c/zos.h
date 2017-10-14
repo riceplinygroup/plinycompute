@@ -32,20 +32,20 @@ Version number available as major, minor, and patch.
 #define BOOST_LIB_C_ZOS BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__LIBREL__)
-#   undef BOOST_LIB_C_ZOS
-#   if !defined(BOOST_LIB_C_ZOS) && defined(__LIBREL__)
-#       define BOOST_LIB_C_ZOS BOOST_PREDEF_MAKE_0X_VRRPPPP(__LIBREL__)
-#   endif
-#   if !defined(BOOST_LIB_C_ZOS) && defined(__TARGET_LIB__)
-#       define BOOST_LIB_C_ZOS BOOST_PREDEF_MAKE_0X_VRRPPPP(__TARGET_LIB__)
-#   endif
-#   if !defined(BOOST_LIB_C_ZOS)
-#       define BOOST_LIB_C_ZOS BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#undef BOOST_LIB_C_ZOS
+#if !defined(BOOST_LIB_C_ZOS) && defined(__LIBREL__)
+#define BOOST_LIB_C_ZOS BOOST_PREDEF_MAKE_0X_VRRPPPP(__LIBREL__)
+#endif
+#if !defined(BOOST_LIB_C_ZOS) && defined(__TARGET_LIB__)
+#define BOOST_LIB_C_ZOS BOOST_PREDEF_MAKE_0X_VRRPPPP(__TARGET_LIB__)
+#endif
+#if !defined(BOOST_LIB_C_ZOS)
+#define BOOST_LIB_C_ZOS BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_LIB_C_ZOS
-#   define BOOST_LIB_C_ZOS_AVAILABLE
+#define BOOST_LIB_C_ZOS_AVAILABLE
 #endif
 
 #define BOOST_LIB_C_ZOS_NAME "z/OS"
@@ -53,4 +53,4 @@ Version number available as major, minor, and patch.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_C_ZOS,BOOST_LIB_C_ZOS_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_C_ZOS, BOOST_LIB_C_ZOS_NAME)

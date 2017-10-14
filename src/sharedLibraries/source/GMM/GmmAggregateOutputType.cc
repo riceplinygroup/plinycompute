@@ -21,6 +21,6 @@
 #include "GMM/GmmAggregateOutputType.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmAggregateOutputType)
+GET_V_TABLE(GmmAggregateOutputType)
 
 #endif

@@ -31,16 +31,15 @@
 //  PRELOAD %DistributedStorageCleanup%
 
 namespace pdb {
-// this object type is sent to the server to tell it there is no more page to load, scan finished at frontend
-class DistributedStorageCleanup : public pdb :: Object {
+// this object type is sent to the server to tell it there is no more page to load, scan finished at
+// frontend
+class DistributedStorageCleanup : public pdb::Object {
 
 public:
+    DistributedStorageCleanup() {}
+    ~DistributedStorageCleanup() {}
 
-	DistributedStorageCleanup () {}
-	~DistributedStorageCleanup () {}
-       
-        ENABLE_DEEP_COPY
-
+    ENABLE_DEEP_COPY
 };
 }
 

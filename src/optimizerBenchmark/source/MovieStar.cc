@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "MovieStar.h"
 
-GET_V_TABLE (MovieStar)
+GET_V_TABLE(MovieStar)
 
 #endif

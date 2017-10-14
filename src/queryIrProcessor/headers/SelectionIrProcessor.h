@@ -28,105 +28,96 @@ using pdb::Handle;
 using pdb::Vector;
 using pdb::Employee;
 
-namespace pdb_detail
-{
-    class SelectionIrProcessor
-    {
-    public:
+namespace pdb_detail {
+class SelectionIrProcessor {
+public:
+    SelectionIrProcessor(Handle<SelectionIr> selection,
+                         size_t numBytesInPage,
+                         function<void*()> inputPageProvider,
+                         function<void*()> outputPageProvider)
+        : _condition(selection->getCondition()),
+          _numBytesInPage(numBytesInPage),
+          _inputPageProvider(inputPageProvider),
+          _outputPageProvider(outputPageProvider) {}
 
-        SelectionIrProcessor(Handle<SelectionIr> selection, size_t numBytesInPage, function<void*()> inputPageProvider,
-                             function<void*()> outputPageProvider)
-                : _condition(selection->getCondition()), _numBytesInPage(numBytesInPage),
-                  _inputPageProvider(inputPageProvider), _outputPageProvider(outputPageProvider)
-        {
-        }
-
-        SelectionIrProcessor(SelectionIr& selection, size_t numBytesInPage, function<void*()> inputPageProvider,
-                             function<void*()> outputPageProvider)
-                : _condition(selection.getCondition()), _numBytesInPage(numBytesInPage),
-                  _inputPageProvider(inputPageProvider), _outputPageProvider(outputPageProvider)
-        {
-        }
+    SelectionIrProcessor(SelectionIr& selection,
+                         size_t numBytesInPage,
+                         function<void*()> inputPageProvider,
+                         function<void*()> outputPageProvider)
+        : _condition(selection.getCondition()),
+          _numBytesInPage(numBytesInPage),
+          _inputPageProvider(inputPageProvider),
+          _outputPageProvider(outputPageProvider) {}
 
 
-        void process()
-        {
-            void* inputPageAddress = _inputPageProvider();
+    void process() {
+        void* inputPageAddress = _inputPageProvider();
 
-            loadNewOutputPage();
+        loadNewOutputPage();
 
-            Handle<Object> inputObject;
-            function<bool()> condition = _condition->toLambda(inputObject).getFunc();
+        Handle<Object> inputObject;
+        function<bool()> condition = _condition->toLambda(inputObject).getFunc();
 
-            while(inputPageAddress != nullptr)
-            {
-                Record <Vector <Handle <Object>>> *myRec = (Record <Vector <Handle <Object>>> *) inputPageAddress;
-                Handle <Vector <Handle <Object>>> inputVec = myRec->getRootObject ();
-                Vector <Handle <Object>> &myInVec = *(inputVec);
+        while (inputPageAddress != nullptr) {
+            Record<Vector<Handle<Object>>>* myRec =
+                (Record<Vector<Handle<Object>>>*)inputPageAddress;
+            Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject();
+            Vector<Handle<Object>>& myInVec = *(inputVec);
 
-                int vecSize = myInVec.size ();
-                for (uint32_t i = 0; i < vecSize; i++)
-                {
-                    inputObject = myInVec[i];
+            int vecSize = myInVec.size();
+            for (uint32_t i = 0; i < vecSize; i++) {
+                inputObject = myInVec[i];
 
-                    if (!condition())
-                        continue;
+                if (!condition())
+                    continue;
 
-                    bool appendToOutputSuccess = false;
-                    while(!appendToOutputSuccess)
-                    {
-                        try
-                        {
-                            _outputVec->push_back(inputObject);
-                            appendToOutputSuccess = true;
-                        }
-                        catch (NotEnoughSpace &n)
-                        {
+                bool appendToOutputSuccess = false;
+                while (!appendToOutputSuccess) {
+                    try {
+                        _outputVec->push_back(inputObject);
+                        appendToOutputSuccess = true;
+                    } catch (NotEnoughSpace& n) {
 
-                            getRecord(_outputVec);
-                            loadNewOutputPage();
-
-                        }
+                        getRecord(_outputVec);
+                        loadNewOutputPage();
                     }
-
                 }
-
-                inputPageAddress = _inputPageProvider();
             }
-            getRecord (_outputVec);
+
+            inputPageAddress = _inputPageProvider();
         }
+        getRecord(_outputVec);
+    }
 
-    private:
+private:
+    void loadNewOutputPage() {
+        void* outputPageAddress = _outputPageProvider();
 
-        void loadNewOutputPage()
-        {
-            void* outputPageAddress = _outputPageProvider();
+        // kill the old allocation block
+        _blockPtr = nullptr;
 
-            // kill the old allocation block
-            _blockPtr = nullptr;
-
-            // create the new one
-            _blockPtr = std :: make_shared <UseTemporaryAllocationBlock> (outputPageAddress, _numBytesInPage);
-            _outputVec = makeObject <Vector <Handle <Object>>> (10);
-         //   _myOutVec = *(_outputVec);
-        }
+        // create the new one
+        _blockPtr =
+            std::make_shared<UseTemporaryAllocationBlock>(outputPageAddress, _numBytesInPage);
+        _outputVec = makeObject<Vector<Handle<Object>>>(10);
+        //   _myOutVec = *(_outputVec);
+    }
 
 
-        UseTemporaryAllocationBlockPtr _blockPtr;
+    UseTemporaryAllocationBlockPtr _blockPtr;
 
-       // Vector <Handle <Output>> &_myOutVec;
+    // Vector <Handle <Output>> &_myOutVec;
 
-        Handle <Vector <Handle <Object>>> _outputVec;
+    Handle<Vector<Handle<Object>>> _outputVec;
 
-        function<void*()> _inputPageProvider;
+    function<void*()> _inputPageProvider;
 
-        function<void*()> _outputPageProvider;
+    function<void*()> _outputPageProvider;
 
-        Handle<RecordPredicateIr> _condition;
+    Handle<RecordPredicateIr> _condition;
 
-        size_t _numBytesInPage;
-
-    };
+    size_t _numBytesInPage;
+};
 }
 
-#endif //PDB_QUERYIRPROCESSOR_SELECTIONIRPROCESSOR_H
+#endif  // PDB_QUERYIRPROCESSOR_SELECTIONIRPROCESSOR_H

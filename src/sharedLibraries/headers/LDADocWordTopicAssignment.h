@@ -32,38 +32,36 @@ using namespace pdb;
 class LDADocWordTopicAssignment : public Object {
 
 private:
+    Handle<Vector<Handle<DocAssignment>>> myDocsAssigns;
+    Handle<Vector<Handle<TopicAssignment>>> myTopicAssigns;
 
-	Handle <Vector <Handle <DocAssignment>>> myDocsAssigns;
-	Handle <Vector <Handle <TopicAssignment>>> myTopicAssigns;
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDADocWordTopicAssignment() {}
 
-        LDADocWordTopicAssignment () {}
+    void setup() {
+        myDocsAssigns = makeObject<Vector<Handle<DocAssignment>>>();
+        myTopicAssigns = makeObject<Vector<Handle<TopicAssignment>>>();
+    }
 
-	void setup () {
-		myDocsAssigns = makeObject <Vector <Handle <DocAssignment>>> ();
-		myTopicAssigns = makeObject <Vector <Handle <TopicAssignment>>> ();
-	}		
-	
-	Vector <Handle <DocAssignment>> &getDocAssigns () {
-		return *myDocsAssigns;
-	}
+    Vector<Handle<DocAssignment>>& getDocAssigns() {
+        return *myDocsAssigns;
+    }
 
-	Vector <Handle <TopicAssignment>> &getTopicAssigns () {
-		return *myTopicAssigns;
-	}
+    Vector<Handle<TopicAssignment>>& getTopicAssigns() {
+        return *myTopicAssigns;
+    }
 
-	void push_back (Handle <DocAssignment> &me) {
-		myDocsAssigns->push_back (me);
-	}
+    void push_back(Handle<DocAssignment>& me) {
+        myDocsAssigns->push_back(me);
+    }
 
-	void push_back (Handle <TopicAssignment> &me) {
-		myTopicAssigns->push_back (me);
-	}
-	
-        ~LDADocWordTopicAssignment () {}
+    void push_back(Handle<TopicAssignment>& me) {
+        myTopicAssigns->push_back(me);
+    }
 
+    ~LDADocWordTopicAssignment() {}
 };
 
 

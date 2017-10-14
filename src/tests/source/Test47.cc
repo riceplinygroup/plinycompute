@@ -36,189 +36,197 @@
 #include "ComputePlan.h"
 
 // to run the aggregate, the system first passes each through the hash operation...
-// then the system 
+// then the system
 using namespace pdb;
 
-class SillyWrite : public SetWriter <double> {
+class SillyWrite : public SetWriter<double> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
-
-	// eventually, this method should be moved into a class that works with the system to 
-	// iterate through pages that are pulled from disk/RAM by the system... a programmer
-	// should not provide this particular method
-	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <VectorSink <double>> (consumeMe, projection);
-	}
+    // eventually, this method should be moved into a class that works with the system to
+    // iterate through pages that are pulled from disk/RAM by the system... a programmer
+    // should not provide this particular method
+    ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
+                                  TupleSpec& projection,
+                                  ComputePlan& plan) override {
+        return std::make_shared<VectorSink<double>>(consumeMe, projection);
+    }
 };
 
-class FinalQuery : public SelectionComp <double, DepartmentTotal> {
+class FinalQuery : public SelectionComp<double, DepartmentTotal> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    Lambda<bool> getSelection(Handle<DepartmentTotal> checkMe) override {
+        return makeLambdaFromMethod(checkMe, checkSales);
+    }
 
-	Lambda <bool> getSelection (Handle <DepartmentTotal> checkMe) override {
-		return makeLambdaFromMethod (checkMe, checkSales);
-	}
-
-	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getTotSales);
-	}
+    Lambda<Handle<double>> getProjection(Handle<DepartmentTotal> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getTotSales);
+    }
 };
 
 // this points to the location of the hash table that stores the result of the aggregation
-void *whereHashTableSits;
+void* whereHashTableSits;
 
 // aggregate relies on having two methods in the output type: getKey () and getValue ()
-class SillyAgg : public AggregateComp <DepartmentTotal, Employee, String, double> {
+class SillyAgg : public AggregateComp<DepartmentTotal, Employee, String, double> {
 
 public:
-	
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	// the key type must have == and size_t hash () defined
-	Lambda <String> getKeyProjection (Handle <Employee> aggMe) override {
-		return makeLambdaFromMember (aggMe, department);	
-	}
+    // the key type must have == and size_t hash () defined
+    Lambda<String> getKeyProjection(Handle<Employee> aggMe) override {
+        return makeLambdaFromMember(aggMe, department);
+    }
 
-	// the value type must have + defined
-	Lambda <double> getValueProjection (Handle <Employee> aggMe) override {
-		return makeLambdaFromMethod (aggMe, getSalary);	
-	}
+    // the value type must have + defined
+    Lambda<double> getValueProjection(Handle<Employee> aggMe) override {
+        return makeLambdaFromMethod(aggMe, getSalary);
+    }
 
-	// eventually, this method should be moved into a class that works with the system to
-	// obtain the memory necessary to create the hash table... a programmer should not
-	// be asked to provide this method
-	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <HashSink <String, double>> (consumeMe, projection);	
-	}
+    // eventually, this method should be moved into a class that works with the system to
+    // obtain the memory necessary to create the hash table... a programmer should not
+    // be asked to provide this method
+    ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
+                                  TupleSpec& projection,
+                                  ComputePlan& plan) override {
+        return std::make_shared<HashSink<String, double>>(consumeMe, projection);
+    }
 
-	// same thing... this method is here only for demonstration purposes!!
-	ComputeSourcePtr getComputeSource (TupleSpec &outputSchema, ComputePlan &plan) override {
-		Handle <Object> myHashTable = ((Record <Object> *) whereHashTableSits)->getRootObject ();
-		return std :: make_shared <MapTupleSetIterator <String, double, DepartmentTotal>> (myHashTable, 24);
-	}
+    // same thing... this method is here only for demonstration purposes!!
+    ComputeSourcePtr getComputeSource(TupleSpec& outputSchema, ComputePlan& plan) override {
+        Handle<Object> myHashTable = ((Record<Object>*)whereHashTableSits)->getRootObject();
+        return std::make_shared<MapTupleSetIterator<String, double, DepartmentTotal>>(myHashTable,
+                                                                                      24);
+    }
 };
 
-class SillyQuery : public SelectionComp <Employee, Supervisor> {
+class SillyQuery : public SelectionComp<Employee, Supervisor> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    Lambda<bool> getSelection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getSteve) == makeLambdaFromMember(checkMe, me);
+    }
 
-	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
+    Lambda<Handle<Employee>> getProjection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getMe);
+    }
 };
 
-class SillyRead : public ScanUserSet <Supervisor> {
+class SillyRead : public ScanUserSet<Supervisor> {
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	// eventually, this method should be moved into a class that works with the system to 
-	// iterate through pages that are pulled from disk/RAM by the system... a programmer
-	// should not provide this particular method
-	ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
+    // eventually, this method should be moved into a class that works with the system to
+    // iterate through pages that are pulled from disk/RAM by the system... a programmer
+    // should not provide this particular method
+    ComputeSourcePtr getComputeSource(TupleSpec& schema, ComputePlan& plan) override {
 
-		return std :: make_shared <VectorTupleSetIterator> (
+        return std::make_shared<VectorTupleSetIterator>(
 
-			// constructs a list of data objects to iterate through
-			[] () -> void * {
-				
-				// this implementation only serves six pages
-				static int numPages = 0;
-				if (numPages == 6)
-					return nullptr;
+            // constructs a list of data objects to iterate through
+            []() -> void* {
 
-				// create a page, loading it with random data
-				void *myPage = malloc (1024 * 1024);
-				{
-	 			      	const UseTemporaryAllocationBlock tempBlock {myPage, 1024 * 1024};
-	
-					// write a bunch of supervisors to it
-				       	Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> ();
-	
-					// this will build up the department
-					char first = 'A', second = 'B';
-					char myString[3];
-					myString[2] = 0;	
-	
-   				    	try {
-       		    			    	for (int i = 0; true; i++) {
-			
-							myString[0] = first;
-							myString[1] = second;
-	
-							// this will allow us to cycle through "AA", "AB", "AC", "BA", ...
-							first++;
-							if (first == 'D') {
-								first = 'A';
-								second++;
-								if (second == 'D') 
-									second = 'A';
-							}
-	
-	       	       			         	Handle <Supervisor> super = makeObject <Supervisor> ("Steve Stevens", 20 + (i % 29), std :: string (myString), i * 34.4);
-       		          			      	supers->push_back (super);
-       		          			      	for (int j = 0; j < 10; j++) {
-		
-       		              			          	Handle <Employee> temp;
-								if (i % 2 == 0)
-									temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-								else
-									temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29), std :: string (myString), j * 3.54);
-       		               			         	(*supers)[i]->addEmp (temp);
-       		               			 	}
-						}
-					} catch (NotEnoughSpace &e) {}
-						getRecord (supers);
-				}
-				numPages++;
-				return myPage;
-			}, 
+                // this implementation only serves six pages
+                static int numPages = 0;
+                if (numPages == 6)
+                    return nullptr;
 
-			// frees the list of data objects that have been iterated
-			[] (void *freeMe) -> void {
-				free (freeMe);
-			},
+                // create a page, loading it with random data
+                void* myPage = malloc(1024 * 1024);
+                {
+                    const UseTemporaryAllocationBlock tempBlock{myPage, 1024 * 1024};
 
-			// and this is the chunk size, or number of items to put into each tuple set
-			24);
-	}
+                    // write a bunch of supervisors to it
+                    Handle<Vector<Handle<Supervisor>>> supers =
+                        makeObject<Vector<Handle<Supervisor>>>();
+
+                    // this will build up the department
+                    char first = 'A', second = 'B';
+                    char myString[3];
+                    myString[2] = 0;
+
+                    try {
+                        for (int i = 0; true; i++) {
+
+                            myString[0] = first;
+                            myString[1] = second;
+
+                            // this will allow us to cycle through "AA", "AB", "AC", "BA", ...
+                            first++;
+                            if (first == 'D') {
+                                first = 'A';
+                                second++;
+                                if (second == 'D')
+                                    second = 'A';
+                            }
+
+                            Handle<Supervisor> super = makeObject<Supervisor>(
+                                "Steve Stevens", 20 + (i % 29), std::string(myString), i * 34.4);
+                            supers->push_back(super);
+                            for (int j = 0; j < 10; j++) {
+
+                                Handle<Employee> temp;
+                                if (i % 2 == 0)
+                                    temp = makeObject<Employee>("Steve Stevens",
+                                                                20 + ((i + j) % 29),
+                                                                std::string(myString),
+                                                                j * 3.54);
+                                else
+                                    temp = makeObject<Employee>("Albert Albertson",
+                                                                20 + ((i + j) % 29),
+                                                                std::string(myString),
+                                                                j * 3.54);
+                                (*supers)[i]->addEmp(temp);
+                            }
+                        }
+                    } catch (NotEnoughSpace& e) {
+                    }
+                    getRecord(supers);
+                }
+                numPages++;
+                return myPage;
+            },
+
+            // frees the list of data objects that have been iterated
+            [](void* freeMe) -> void { free(freeMe); },
+
+            // and this is the chunk size, or number of items to put into each tuple set
+            24);
+    }
 };
 
 
-int main () {
-	
-	// this is the object allocation block where all of this stuff will reside
-       	makeObjectAllocatorBlock (1024 * 1024, true);
+int main() {
 
-	// here is the list of computations
-	Vector <Handle <Computation>> myComputations;
-	
-	// create all of the computation objects
-	Handle <Computation> myScanSet = makeObject <SillyRead> ();
-	Handle <Computation> myFilter = makeObject <SillyQuery> ();
-	Handle <Computation> myAgg = makeObject <SillyAgg> ();
-	Handle <Computation> myFinalFilter = makeObject <FinalQuery> ();
-	Handle <Computation> myWrite = makeObject <SillyWrite> ();
-	
-	// put them in the list of computations
-	myComputations.push_back (myScanSet);
-	myComputations.push_back (myFilter);
-	myComputations.push_back (myAgg);
-	myComputations.push_back (myFinalFilter);
-	myComputations.push_back (myWrite);
+    // this is the object allocation block where all of this stuff will reside
+    makeObjectAllocatorBlock(1024 * 1024, true);
 
-	// now we create the TCAP string
-        String myTCAPString =
-	       "inputData (in) <= SCAN ('mySet', 'myData', 'ScanUserSet_0') \n\
+    // here is the list of computations
+    Vector<Handle<Computation>> myComputations;
+
+    // create all of the computation objects
+    Handle<Computation> myScanSet = makeObject<SillyRead>();
+    Handle<Computation> myFilter = makeObject<SillyQuery>();
+    Handle<Computation> myAgg = makeObject<SillyAgg>();
+    Handle<Computation> myFinalFilter = makeObject<FinalQuery>();
+    Handle<Computation> myWrite = makeObject<SillyWrite>();
+
+    // put them in the list of computations
+    myComputations.push_back(myScanSet);
+    myComputations.push_back(myFilter);
+    myComputations.push_back(myAgg);
+    myComputations.push_back(myFinalFilter);
+    myComputations.push_back(myWrite);
+
+    // now we create the TCAP string
+    String myTCAPString =
+        "inputData (in) <= SCAN ('mySet', 'myData', 'ScanUserSet_0') \n\
 		inputWithAtt (in, att) <= APPLY (inputData (in), inputData (in), 'SelectionComp_1', 'methodCall_0') \n\
 		inputWithAttAndMethod (in, att, method) <= APPLY (inputWithAtt (in), inputWithAtt (in, att), 'SelectionComp_1', 'attAccess_1') \n\
 		inputWithBool (in, bool) <= APPLY (inputWithAttAndMethod (att, method), inputWithAttAndMethod (in), 'SelectionComp_1', '==_2') \n\
@@ -234,87 +242,83 @@ int main () {
 		final (result) <= APPLY (justSales (aggOut), justSales (), 'SelectionComp_3', 'methodCall_1') \n\
 	        nothing () <= OUTPUT (final (result), 'outSet', 'myDB', 'SetWriter_4')";
 
-	// and create a query object that contains all of this stuff
-	Handle <ComputePlan> myPlan = makeObject <ComputePlan> (myTCAPString, myComputations);
-        LogicalPlanPtr logicalPlan = myPlan->getPlan();
-        AtomicComputationList computationList = logicalPlan->getComputations();
-        std :: cout << "to print logical plan:" << std :: endl;
-        std :: cout << computationList << std :: endl;
-	// now, let's pretend that myPlan has been sent over the network, and we want to execute it... first we build 
-	// a pipeline into the aggregation operation
-	PipelinePtr myPipeline = myPlan->buildPipeline (
-		std :: string ("inputData"), /* this is the TupleSet the pipeline starts with */
-		std :: string ("aggWithValue"),     /* this is the TupleSet the pipeline ends with */
-		std :: string ("AggregationComp_2"), /* and since multiple Computation objects can consume the */
-						     /* same tuple set, we apply the Computation as well */
+    // and create a query object that contains all of this stuff
+    Handle<ComputePlan> myPlan = makeObject<ComputePlan>(myTCAPString, myComputations);
+    LogicalPlanPtr logicalPlan = myPlan->getPlan();
+    AtomicComputationList computationList = logicalPlan->getComputations();
+    std::cout << "to print logical plan:" << std::endl;
+    std::cout << computationList << std::endl;
+    // now, let's pretend that myPlan has been sent over the network, and we want to execute it...
+    // first we build
+    // a pipeline into the aggregation operation
+    PipelinePtr myPipeline = myPlan->buildPipeline(
+        std::string("inputData"),    /* this is the TupleSet the pipeline starts with */
+        std::string("aggWithValue"), /* this is the TupleSet the pipeline ends with */
+        std::string(
+            "AggregationComp_2"), /* and since multiple Computation objects can consume the */
+                                  /* same tuple set, we apply the Computation as well */
 
-		// this lambda supplies new temporary pages to the pipeline
-		[] () -> std :: pair <void *, size_t> {
-			void *myPage = malloc (64 * 1024);
-			return std :: make_pair (myPage, 64 * 1024);
-		},
+        // this lambda supplies new temporary pages to the pipeline
+        []() -> std::pair<void*, size_t> {
+            void* myPage = malloc(64 * 1024);
+            return std::make_pair(myPage, 64 * 1024);
+        },
 
-		// this lambda frees temporary pages that do not contain any important data
-		[] (void *page) {
-			free (page);
-		},
+        // this lambda frees temporary pages that do not contain any important data
+        [](void* page) { free(page); },
 
-		// and this lambda remembers the page that *does* contain important data...
-		// in this simple aggregation, that one page will contain the hash table with
-		// all of the aggregated data.
-		[] (void *page) {
-			whereHashTableSits = page;
-		}	
-	);
-	
-	// and now, simply run the pipeline and then destroy it!!!
-	std :: cout << "\nRUNNING PIPELINE\n";
-	myPipeline->run ();
-	myPipeline = nullptr; 
+        // and this lambda remembers the page that *does* contain important data...
+        // in this simple aggregation, that one page will contain the hash table with
+        // all of the aggregated data.
+        [](void* page) { whereHashTableSits = page; });
 
-	// after the destruction of the pointer, the current allocation block is messed up!
+    // and now, simply run the pipeline and then destroy it!!!
+    std::cout << "\nRUNNING PIPELINE\n";
+    myPipeline->run();
+    myPipeline = nullptr;
 
-	// at this point, the hash table should be filled up...	so now we can build a second pipeline that covers
-	// the second half of the aggregation
-	myPipeline = myPlan->buildPipeline (
-		std :: string ("agg"), /* this is the TupleSet the pipeline starts with */
-		std :: string ("final"), /* this is the TupleSet the pipeline ends with */
-		std :: string ("SetWriter_4"), /* and the Computation object that the pipeline ends with */
+    // after the destruction of the pointer, the current allocation block is messed up!
 
-		// this lambda supplies new temporary pages to the pipeline
-		[] () -> std :: pair <void *, size_t> {
-			void *myPage = malloc (64 * 1024);
-			return std :: make_pair (myPage, 64 * 1024);
-		},
+    // at this point, the hash table should be filled up...	so now we can build a second pipeline
+    // that covers
+    // the second half of the aggregation
+    myPipeline = myPlan->buildPipeline(
+        std::string("agg"),         /* this is the TupleSet the pipeline starts with */
+        std::string("final"),       /* this is the TupleSet the pipeline ends with */
+        std::string("SetWriter_4"), /* and the Computation object that the pipeline ends with */
 
-		// this lambda frees temporary pages that do not contain any important data
-		[] (void *page) {
-			free (page);
-		},
+        // this lambda supplies new temporary pages to the pipeline
+        []() -> std::pair<void*, size_t> {
+            void* myPage = malloc(64 * 1024);
+            return std::make_pair(myPage, 64 * 1024);
+        },
 
-		// and this lambda writes out the contents of a page that is one of the final outputs...
-		// in this simple aggregation, that one page will contain the hash table with
-		// all of the aggregated data.
-		[] (void *page) {
-			std :: cout << "\nAsked to save page at address " << (size_t) page << "!!!\n";
-			std :: cout << "This should have a bunch of doubles on it... let's see.\n";
-			Handle <Vector <Handle <double>>> myHashTable = ((Record <Vector <Handle <double>>> *) page)->getRootObject ();
-			for (int i = 0; i < myHashTable->size (); i++) {
-				std :: cout << "Got double " << *((*myHashTable)[i]) << "\n";
-			}
-			free (page);
-		}	
+        // this lambda frees temporary pages that do not contain any important data
+        [](void* page) { free(page); },
 
-	);
+        // and this lambda writes out the contents of a page that is one of the final outputs...
+        // in this simple aggregation, that one page will contain the hash table with
+        // all of the aggregated data.
+        [](void* page) {
+            std::cout << "\nAsked to save page at address " << (size_t)page << "!!!\n";
+            std::cout << "This should have a bunch of doubles on it... let's see.\n";
+            Handle<Vector<Handle<double>>> myHashTable =
+                ((Record<Vector<Handle<double>>>*)page)->getRootObject();
+            for (int i = 0; i < myHashTable->size(); i++) {
+                std::cout << "Got double " << *((*myHashTable)[i]) << "\n";
+            }
+            free(page);
+        }
 
-	// run and then kill the pipeline
-	std :: cout << "\nRUNNING PIPELINE\n";
-	myPipeline->run ();
-	myPipeline = nullptr;
+        );
 
-	// and be sure to delete the contents of the ComputePlan object... this always needs to be done
-	// before the object is written to disk or sent accross the network, so that we don't end up 
-	// moving around a C++ smart pointer, which would be bad
-	myPlan->nullifyPlanPointer ();
+    // run and then kill the pipeline
+    std::cout << "\nRUNNING PIPELINE\n";
+    myPipeline->run();
+    myPipeline = nullptr;
 
+    // and be sure to delete the contents of the ComputePlan object... this always needs to be done
+    // before the object is written to disk or sent accross the network, so that we don't end up
+    // moving around a C++ smart pointer, which would be bad
+    myPlan->nullifyPlanPointer();
 }

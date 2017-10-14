@@ -22,29 +22,28 @@
 
 namespace pdb {
 
-    PartitionPolicyPtr PartitionPolicyFactory::buildPartitionPolicy(PartitionPolicy::Policy policy) {
-        switch(policy) {
-            case PartitionPolicy::Policy::RANDOM:
-                return std::make_shared<RandomPolicy>();
-            case PartitionPolicy::Policy::ROUNDROBIN:
-                return std::make_shared<RoundRobinPolicy>();
-            case PartitionPolicy::Policy::FAIR:
-                // TODO: Implement this class
-                return nullptr;
-            case PartitionPolicy::Policy::DEFAULT:
-                // Random policy is the default policy
-                return buildDefaultPartitionPolicy();
-        }
+PartitionPolicyPtr PartitionPolicyFactory::buildPartitionPolicy(PartitionPolicy::Policy policy) {
+    switch (policy) {
+        case PartitionPolicy::Policy::RANDOM:
+            return std::make_shared<RandomPolicy>();
+        case PartitionPolicy::Policy::ROUNDROBIN:
+            return std::make_shared<RoundRobinPolicy>();
+        case PartitionPolicy::Policy::FAIR:
+            // TODO: Implement this class
+            return nullptr;
+        case PartitionPolicy::Policy::DEFAULT:
+            // Random policy is the default policy
+            return buildDefaultPartitionPolicy();
     }
+}
 
-    PartitionPolicyPtr PartitionPolicyFactory::buildDefaultPartitionPolicy() {
+PartitionPolicyPtr PartitionPolicyFactory::buildDefaultPartitionPolicy() {
 #ifdef RANDOM_DISPATCHER
-        return std::make_shared<RandomPolicy>();
+    return std::make_shared<RandomPolicy>();
 #else
-        return std::make_shared<RoundRobinPolicy>();
+    return std::make_shared<RoundRobinPolicy>();
 #endif
-    }
-
+}
 }
 
 #endif

@@ -17,16 +17,11 @@
  *****************************************************************************/
 #include "UnarySetOperator.h"
 
-namespace pdb_detail
-{
+namespace pdb_detail {
 
-    UnarySetOperator::UnarySetOperator(Handle<SetExpressionIr>  operand) : _operand(operand)
-    {
-    }
+UnarySetOperator::UnarySetOperator(Handle<SetExpressionIr> operand) : _operand(operand) {}
 
-    Handle<SetExpressionIr> UnarySetOperator::getOperand()
-    {
-        return _operand;
-    }
-
+Handle<SetExpressionIr> UnarySetOperator::getOperand() {
+    return _operand;
+}
 }

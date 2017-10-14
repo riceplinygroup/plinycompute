@@ -31,29 +31,26 @@ namespace pdb {
 class CatDeleteSetRequest : public Object {
 
 public:
+    ~CatDeleteSetRequest() {}
+    CatDeleteSetRequest() {}
+    CatDeleteSetRequest(std::string dbName, std::string setName)
+        : dbName(dbName), setName(setName) {}
 
-	~CatDeleteSetRequest () {}
-	CatDeleteSetRequest () {}
-	CatDeleteSetRequest (std :: string dbName, std :: string setName) :
-		dbName (dbName), setName (setName) {}
-
-	CatDeleteSetRequest(const Handle<CatDeleteSetRequest>& requestToCopy) {
-	    setName = requestToCopy->setName;
+    CatDeleteSetRequest(const Handle<CatDeleteSetRequest>& requestToCopy) {
+        setName = requestToCopy->setName;
         dbName = requestToCopy->dbName;
     }
 
-	std :: pair <std :: string, std :: string> whichSet () {
-		return std :: make_pair <std :: string, std :: string> (dbName, setName);
-	}
+    std::pair<std::string, std::string> whichSet() {
+        return std::make_pair<std::string, std::string>(dbName, setName);
+    }
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dbName;
-	String setName;
+    String dbName;
+    String setName;
 };
-
 }
 
 #endif

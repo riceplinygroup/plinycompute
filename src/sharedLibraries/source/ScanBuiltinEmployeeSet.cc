@@ -22,6 +22,6 @@
 #include "ScanBuiltinEmployeeSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanBuiltinEmployeeSet)
+GET_V_TABLE(ScanBuiltinEmployeeSet)
 
 #endif

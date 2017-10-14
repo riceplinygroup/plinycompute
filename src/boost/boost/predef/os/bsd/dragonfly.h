@@ -24,22 +24,20 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_BSD_DRAGONFLY BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && ( \
-    defined(__DragonFly__) \
-    )
-#   ifndef BOOST_OS_BSD_AVAILABLE
-#       define BOOST_OS_BSD BOOST_VERSION_NUMBER_AVAILABLE
-#       define BOOST_OS_BSD_AVAILABLE
-#   endif
-#   undef BOOST_OS_BSD_DRAGONFLY
-#   if defined(__DragonFly__)
-#       define BOOST_OS_DRAGONFLY_BSD BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && (defined(__DragonFly__))
+#ifndef BOOST_OS_BSD_AVAILABLE
+#define BOOST_OS_BSD BOOST_VERSION_NUMBER_AVAILABLE
+#define BOOST_OS_BSD_AVAILABLE
+#endif
+#undef BOOST_OS_BSD_DRAGONFLY
+#if defined(__DragonFly__)
+#define BOOST_OS_DRAGONFLY_BSD BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_OS_BSD_DRAGONFLY
-#   define BOOST_OS_BSD_DRAGONFLY_AVAILABLE
-#   include <boost/predef/detail/os_detected.h>
+#define BOOST_OS_BSD_DRAGONFLY_AVAILABLE
+#include <boost/predef/detail/os_detected.h>
 #endif
 
 #define BOOST_OS_BSD_DRAGONFLY_NAME "DragonFly BSD"
@@ -47,4 +45,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_BSD_DRAGONFLY,BOOST_OS_BSD_DRAGONFLY_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_BSD_DRAGONFLY, BOOST_OS_BSD_DRAGONFLY_NAME)

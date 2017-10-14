@@ -22,6 +22,6 @@
 #include "LASillyRowMaxAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyRowMaxAggregate)
+GET_V_TABLE(LASillyRowMaxAggregate)
 
 #endif

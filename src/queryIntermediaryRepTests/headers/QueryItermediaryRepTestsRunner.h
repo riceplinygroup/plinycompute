@@ -22,9 +22,8 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void runQueryIrTests(UnitTest &qunit);
+namespace pdb_tests {
+void runQueryIrTests(UnitTest& qunit);
 }
 
-#endif //PDB_QUERYINTERMEDIARYREPTESTS_QUERYINTERMEDIARYREPTESTSRUNNER_H
+#endif  // PDB_QUERYINTERMEDIARYREPTESTS_QUERYINTERMEDIARYREPTESTSRUNNER_H

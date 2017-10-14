@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "Order.h"
 
-GET_V_TABLE (Order)
+GET_V_TABLE(Order)
 
 #endif

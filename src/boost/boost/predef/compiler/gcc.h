@@ -34,25 +34,24 @@ Version number available as major, minor, and patch (if available).
 #define BOOST_COMP_GNUC BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__GNUC__)
-#   if !defined(BOOST_COMP_GNUC_DETECTION) && defined(__GNUC_PATCHLEVEL__)
-#       define BOOST_COMP_GNUC_DETECTION \
-            BOOST_VERSION_NUMBER(__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__)
-#   endif
-#   if !defined(BOOST_COMP_GNUC_DETECTION)
-#       define BOOST_COMP_GNUC_DETECTION \
-            BOOST_VERSION_NUMBER(__GNUC__,__GNUC_MINOR__,0)
-#   endif
+#if !defined(BOOST_COMP_GNUC_DETECTION) && defined(__GNUC_PATCHLEVEL__)
+#define BOOST_COMP_GNUC_DETECTION \
+    BOOST_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#endif
+#if !defined(BOOST_COMP_GNUC_DETECTION)
+#define BOOST_COMP_GNUC_DETECTION BOOST_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, 0)
+#endif
 #endif
 
 #ifdef BOOST_COMP_GNUC_DETECTION
-#   if defined(BOOST_PREDEF_DETAIL_COMP_DETECTED)
-#       define BOOST_COMP_GNUC_EMULATED BOOST_COMP_GNUC_DETECTION
-#   else
-#       undef BOOST_COMP_GNUC
-#       define BOOST_COMP_GNUC BOOST_COMP_GNUC_DETECTION
-#   endif
-#   define BOOST_COMP_GNUC_AVAILABLE
-#   include <boost/predef/detail/comp_detected.h>
+#if defined(BOOST_PREDEF_DETAIL_COMP_DETECTED)
+#define BOOST_COMP_GNUC_EMULATED BOOST_COMP_GNUC_DETECTION
+#else
+#undef BOOST_COMP_GNUC
+#define BOOST_COMP_GNUC BOOST_COMP_GNUC_DETECTION
+#endif
+#define BOOST_COMP_GNUC_AVAILABLE
+#include <boost/predef/detail/comp_detected.h>
 #endif
 
 #define BOOST_COMP_GNUC_NAME "Gnu GCC C/C++"
@@ -60,9 +59,9 @@ Version number available as major, minor, and patch (if available).
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_GNUC,BOOST_COMP_GNUC_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_GNUC, BOOST_COMP_GNUC_NAME)
 
 #ifdef BOOST_COMP_GNUC_EMULATED
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_GNUC_EMULATED,BOOST_COMP_GNUC_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_GNUC_EMULATED, BOOST_COMP_GNUC_NAME)
 #endif

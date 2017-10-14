@@ -18,7 +18,7 @@
 #ifndef LDA_DOC_ID_AGGREGATE_H
 #define LDA_DOC_ID_AGGREGATE_H
 
-//by Shangyu, May 2017
+// by Shangyu, May 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -28,30 +28,26 @@
 #include "LDADocument.h"
 
 
-
 using namespace pdb;
 
 
-class LDADocIDAggregate : public ClusterAggregateComp <SumResult, LDADocument, int, int> {
+class LDADocIDAggregate : public ClusterAggregateComp<SumResult, LDADocument, int, int> {
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-        LDADocIDAggregate () {}
-
-
-        // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <LDADocument> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<LDADocument> & aggMe) {return (int) aggMe->getDoc();});
-        }
-
-        // the value type must have + defined
-        Lambda <int> getValueProjection (Handle <LDADocument> aggMe) override {
-            	return makeLambda (aggMe, [] (Handle<LDADocument> & aggMe) { return 1;});
-        }
+    LDADocIDAggregate() {}
 
 
+    // the key type must have == and size_t hash () defined
+    Lambda<int> getKeyProjection(Handle<LDADocument> aggMe) override {
+        return makeLambda(aggMe, [](Handle<LDADocument>& aggMe) { return (int)aggMe->getDoc(); });
+    }
+
+    // the value type must have + defined
+    Lambda<int> getValueProjection(Handle<LDADocument> aggMe) override {
+        return makeLambda(aggMe, [](Handle<LDADocument>& aggMe) { return 1; });
+    }
 };
 
 

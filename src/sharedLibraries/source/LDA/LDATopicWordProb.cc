@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDATopicWordProb.h"
 
-GET_V_TABLE (LDATopicWordProb)
+GET_V_TABLE(LDATopicWordProb)
 
 #endif

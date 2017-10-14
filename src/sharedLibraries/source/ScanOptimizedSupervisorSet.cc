@@ -22,7 +22,7 @@
 #include "ScanOptimizedSupervisorSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanOptimizedSupervisorSet)
+GET_V_TABLE(ScanOptimizedSupervisorSet)
 
 
 #endif

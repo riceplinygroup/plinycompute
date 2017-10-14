@@ -22,6 +22,6 @@
 #include "ScanStringSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanStringSet)
+GET_V_TABLE(ScanStringSet)
 
 #endif

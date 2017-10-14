@@ -25,31 +25,32 @@
 
 // By Binhang, May 2017
 
-//This class is first designed for finding the minimal element by aggregation, but it can be also applied for any other purpose;
+// This class is first designed for finding the minimal element by aggregation, but it can be also
+// applied for any other purpose;
 using namespace pdb;
 class LAMinElementOutputType : public Object {
-	private:	
-		int key = 1; //Any constant should work here!
-		LAMinElementValueType myValue;
+private:
+    int key = 1;  // Any constant should work here!
+    LAMinElementValueType myValue;
 
-	public:
+public:
+    ENABLE_DEEP_COPY
 
-		ENABLE_DEEP_COPY
+    ~LAMinElementOutputType() {}
+    LAMinElementOutputType() {}
 
-		~LAMinElementOutputType(){}
-		LAMinElementOutputType(){}
+    int& getKey() {
+        return key;
+    }
 
-		int &getKey(){
-			return key;
-		}
+    LAMinElementValueType& getValue() {
+        return myValue;
+    }
 
-		LAMinElementValueType &getValue(){
-			return myValue;
-		}
-
-		void print(){
-			std::cout<<"LAMinElementOutputType: value: " << myValue.getValue() << " index:(" << myValue.getRowIndex() << "," << myValue.getColIndex() <<")."<< std::endl; 
-		}
+    void print() {
+        std::cout << "LAMinElementOutputType: value: " << myValue.getValue() << " index:("
+                  << myValue.getRowIndex() << "," << myValue.getColIndex() << ")." << std::endl;
+    }
 };
 
 #endif

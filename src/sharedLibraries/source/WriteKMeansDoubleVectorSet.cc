@@ -22,6 +22,6 @@
 #include "WriteKMeansDoubleVectorSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteKMeansDoubleVectorSet)
+GET_V_TABLE(WriteKMeansDoubleVectorSet)
 
 #endif

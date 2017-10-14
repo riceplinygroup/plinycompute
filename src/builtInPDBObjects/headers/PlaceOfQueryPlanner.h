@@ -37,18 +37,15 @@
  */
 namespace pdb {
 
-class PlaceOfQueryPlanner : public pdb :: Object {
+class PlaceOfQueryPlanner : public pdb::Object {
 
 public:
+    PlaceOfQueryPlanner() {}
+    ~PlaceOfQueryPlanner() {}
 
-	PlaceOfQueryPlanner(){}
-	~PlaceOfQueryPlanner(){}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 private:
-
 };
-
 }
 
 #endif

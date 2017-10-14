@@ -28,31 +28,31 @@ namespace pdb {
 class FrontendQueryTestServer : public ServerFunctionality {
 
 public:
+    FrontendQueryTestServer();
 
-	FrontendQueryTestServer ();
+    FrontendQueryTestServer(bool isStandalone, bool createOutputSet);
 
-        FrontendQueryTestServer (bool isStandalone, bool createOutputSet);
+    void registerHandlers(PDBServer& forMe) override;
 
-	void registerHandlers (PDBServer &forMe) override;
-
-	// destructor
-	~FrontendQueryTestServer ();
+    // destructor
+    ~FrontendQueryTestServer();
 
 private:
-	void computeQuery (std :: string setOutputName, std :: string setPrefix, int &whichNode, Handle <QueryBase> &computeMe, 
-		std :: vector <std :: string> &tempSetsCreated);
+    void computeQuery(std::string setOutputName,
+                      std::string setPrefix,
+                      int& whichNode,
+                      Handle<QueryBase>& computeMe,
+                      std::vector<std::string>& tempSetsCreated);
 
-	// this actually computes a selection query
-	void doSelection (std :: string setOutputName, Handle <QueryBase> &computeMe);
+    // this actually computes a selection query
+    void doSelection(std::string setOutputName, Handle<QueryBase>& computeMe);
 
-	int tempSetName;
+    int tempSetName;
 
-        bool isStandalone;
+    bool isStandalone;
 
-        bool createOutputSet;
-
+    bool createOutputSet;
 };
-
 }
 
 #endif

@@ -18,7 +18,7 @@
 #ifndef HASH_SET_MANAGER
 #define HASH_SET_MANAGER
 
-//by Jia, May 2017
+// by Jia, May 2017
 
 #include "AbstractHashSet.h"
 
@@ -31,25 +31,25 @@ namespace pdb {
 
 class HashSetManager {
 
-private: 
+private:
     // all hash tables allocated
-    std :: map < std :: string, AbstractHashSetPtr> hashSets;
+    std::map<std::string, AbstractHashSetPtr> hashSets;
     size_t totalSize = 0;
-public:
 
+public:
     // to get a hash set
-    AbstractHashSetPtr getHashSet ( std :: string name) {
+    AbstractHashSetPtr getHashSet(std::string name) {
         if (hashSets.count(name) == 0) {
             return nullptr;
         } else {
             return hashSets[name];
         }
-    } 
+    }
 
     // to add a hash set
-    bool addHashSet (std :: string name, AbstractHashSetPtr hashSet) {
+    bool addHashSet(std::string name, AbstractHashSetPtr hashSet) {
         if (hashSets.count(name) != 0) {
-            std :: cout << "Error: hash set exists: " << name << std :: endl;
+            std::cout << "Error: hash set exists: " << name << std::endl;
             return false;
         } else {
             hashSets[name] = hashSet;
@@ -61,10 +61,10 @@ public:
     }
 
     // to remove a hash set
-    bool removeHashSet (std :: string name) {
+    bool removeHashSet(std::string name) {
         if (hashSets.count(name) == 0) {
-           std :: cout << "Error: hash set doesn't exist: " << name << std :: endl;
-           return false;
+            std::cout << "Error: hash set doesn't exist: " << name << std::endl;
+            return false;
         } else {
             totalSize -= hashSets[name]->getSize();
             hashSets.erase(name);
@@ -82,13 +82,7 @@ public:
         }
         return totalSize;
     }
-
-
 };
-
-
-
-
 }
 
 

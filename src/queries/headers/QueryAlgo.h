@@ -25,20 +25,17 @@
 
 #include "Object.h"
 
-namespace pdb
-{
-    class QueryBase;
+namespace pdb {
+class QueryBase;
 
-    class QueryAlgo : public Object
-    {
-    public:
+class QueryAlgo : public Object {
+public:
+    virtual void forSelection(QueryBase& selection) = 0;
 
-        virtual void forSelection(QueryBase &selection) = 0;
+    virtual void forSet(QueryBase& set) = 0;
 
-        virtual void forSet(QueryBase &set) = 0;
-
-        virtual void forQueryOutput(QueryBase &output) = 0;
-    };
+    virtual void forQueryOutput(QueryBase& output) = 0;
+};
 }
 
-#endif //QUERYALGO_H
+#endif  // QUERYALGO_H

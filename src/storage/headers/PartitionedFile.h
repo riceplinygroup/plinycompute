@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PartitionedFile.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PARTITIONEDFILE_H
-#define	PARTITIONEDFILE_H
+#define PARTITIONEDFILE_H
 
 #include "PDBFile.h"
 #include "PartitionedFileMetaData.h"
@@ -75,23 +75,31 @@ typedef shared_ptr<PartitionedFile> PartitionedFilePtr;
  */
 class PartitionedFile : public PDBFileInterface {
 public:
-	/**
-	 * Create a new PartitionedFile instance.
-	 */
-	PartitionedFile(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId,
-            string metaPartitionPath, vector<string> dataPartitionPaths, pdb :: PDBLoggerPtr logger,
-			size_t pageSize);
+    /**
+     * Create a new PartitionedFile instance.
+     */
+    PartitionedFile(NodeID nodeId,
+                    DatabaseID dbId,
+                    UserTypeID typeId,
+                    SetID setId,
+                    string metaPartitionPath,
+                    vector<string> dataPartitionPaths,
+                    pdb::PDBLoggerPtr logger,
+                    size_t pageSize);
 
-	/**
-	 * Initialize a partitionedFile instance from existing meta data.
-	 */
-	PartitionedFile(NodeID nodeId, DatabaseID dbId,
-			UserTypeID typeId, SetID setId, string metaPartitionPath,
-			pdb :: PDBLoggerPtr logger);
+    /**
+     * Initialize a partitionedFile instance from existing meta data.
+     */
+    PartitionedFile(NodeID nodeId,
+                    DatabaseID dbId,
+                    UserTypeID typeId,
+                    SetID setId,
+                    string metaPartitionPath,
+                    pdb::PDBLoggerPtr logger);
 
-	/**
-	 * Destructor, it will NOT delete on-disk files.
-	 */
+    /**
+     * Destructor, it will NOT delete on-disk files.
+     */
     ~PartitionedFile();
 
     /**
@@ -160,13 +168,18 @@ public:
      * Otherwise, if length > pageSize, some space will be wasted, and
      * if length < pageSize, some data on the page may not get loaded.
      */
-    size_t loadPage(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length) override;
+    size_t loadPage(FilePartitionID partitionId,
+                    unsigned int pageSeqInPartition,
+                    char* pageInCache,
+                    size_t length) override;
 
     /**
      * To load page using direct I/O.
      */
-    size_t loadPageDirect(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length);
-
+    size_t loadPageDirect(FilePartitionID partitionId,
+                          unsigned int pageSeqInPartition,
+                          char* pageInCache,
+                          size_t length);
 
 
     /**
@@ -174,7 +187,10 @@ public:
      * The difference is this method will not seek, it just load sequentially,
      * so the caller needs to make sure current position is correct.
      */
-    size_t loadPageFromCurPos(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length) ;
+    size_t loadPageFromCurPos(FilePartitionID partitionId,
+                              unsigned int pageSeqInPartition,
+                              char* pageInCache,
+                              size_t length);
 
     /**
      * To load the pageId for a specified page.
@@ -187,12 +203,16 @@ public:
       * The difference is this method will not seek, it just load sequentially,
       * so the caller needs to make sure current position is correct.
       */
-    PageID loadPageIdFromCurPos(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length);
+    PageID loadPageIdFromCurPos(FilePartitionID partitionId,
+                                unsigned int pageSeqInPartition,
+                                char* pageInCache,
+                                size_t length);
 
 
     /**
      * Read from the meta partition about lastFlushedPageId, set the lastFlushedPageId variable.
-     * Also set the numFlushedPages variable as lastFlushedPageId + 1. (This is true for the time being!)
+     * Also set the numFlushedPages variable as lastFlushedPageId + 1. (This is true for the time
+     * being!)
      */
     unsigned int getAndSetNumFlushedPages() override;
 
@@ -254,17 +274,17 @@ public:
     /**
      * initialize data files;
      */
-	void initializeDataFiles();
+    void initializeDataFiles();
 
-	/**
-	 * Set dataPartitionPaths;
-	 */
-	void setDataPartitionPaths(const vector<string>& dataPartitionPaths);
+    /**
+     * Set dataPartitionPaths;
+     */
+    void setDataPartitionPaths(const vector<string>& dataPartitionPaths);
 
-	/**
-	 * Set up meta data by parsing meta partition
-	 */
-	void buildMetaDataFromMetaPartition(SharedMemPtr shm);
+    /**
+     * Set up meta data by parsing meta partition
+     */
+    void buildMetaDataFromMetaPartition(SharedMemPtr shm);
 
     /**
      * To return the number of data partitions in the file
@@ -272,45 +292,43 @@ public:
     unsigned int getNumPartitions();
 
 protected:
-	/**
-	 * Write data specified to the current file position.
-	 */
-	int writeData(FILE * file, void * data, size_t length);
+    /**
+     * Write data specified to the current file position.
+     */
+    int writeData(FILE* file, void* data, size_t length);
 
-        /**
-         * Write data specified to the current file position using direct I/O.
-         */
-        int writeDataDirect(int handle, void * data, size_t length);
+    /**
+     * Write data specified to the current file position using direct I/O.
+     */
+    int writeDataDirect(int handle, void* data, size_t length);
 
-	/**
-	 * Seek to the beginning of the page data of a page specified in the file.
-	 */
-	int seekPage(FILE * file, unsigned int pageSeqInPartition);
+    /**
+     * Seek to the beginning of the page data of a page specified in the file.
+     */
+    int seekPage(FILE* file, unsigned int pageSeqInPartition);
 
-        /**
-         * Seek to the beginning of the page data of the page specified in the file.
-         */
-        int seekPageDirect(int handle, unsigned int pageSeqInPartition);
+    /**
+     * Seek to the beginning of the page data of the page specified in the file.
+     */
+    int seekPageDirect(int handle, unsigned int pageSeqInPartition);
 
-	/**
-	 * Seek to the page size field in meta data.
-	 */
-	int seekPageSizeInMeta();
+    /**
+     * Seek to the page size field in meta data.
+     */
+    int seekPageSizeInMeta();
 
-	/**
-	 * Seek to the numFlushedPages field in meta data.
-	 */
-	int seekNumFlushedPagesInMeta();
+    /**
+     * Seek to the numFlushedPages field in meta data.
+     */
+    int seekNumFlushedPagesInMeta();
 
-	/**
-	 * Seek to the numFlushedPages field in partition meta data.
-	 */
-	int seekNumFlushedPagesInPartitionMeta(FilePartitionID partitionId);
-
+    /**
+     * Seek to the numFlushedPages field in partition meta data.
+     */
+    int seekNumFlushedPagesInPartitionMeta(FilePartitionID partitionId);
 
 
 private:
-
     /**
      * Lock to synchronize delete and append operations
      */
@@ -320,13 +338,13 @@ private:
     /**
      * Meta file
      */
-    FILE * metaFile;
-    //int metaHandle;
+    FILE* metaFile;
+    // int metaHandle;
 
     /**
      * Data files
      */
-    vector<FILE *> dataFiles;
+    vector<FILE*> dataFiles;
     vector<int> dataHandles;
 
     /**
@@ -342,7 +360,7 @@ private:
     /**
      * Logger instance
      */
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger;
 
     /**
      * Meta data instance
@@ -383,13 +401,7 @@ private:
      * whether the file is cleared
      */
     bool cleared;
-
-
 };
 
 
-
-
-
-#endif	/* PARTITIONEDFILE_H */
-
+#endif /* PARTITIONEDFILE_H */

@@ -31,13 +31,11 @@ namespace pdb {
 class CatRegisterType : public Object {
 
 public:
+    CatRegisterType() {}
+    ~CatRegisterType() {}
 
-	CatRegisterType () {}
-	~CatRegisterType () {}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 };
-
 }
 
 #endif

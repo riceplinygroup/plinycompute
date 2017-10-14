@@ -26,33 +26,32 @@
 #include "Employee.h"
 #include "SharedEmployee.h"
 
-//By Binhang, May 2017
+// By Binhang, May 2017
 
 using namespace pdb;
-class EmployeeBuiltInIdentitySelection : public SelectionComp <Employee, SharedEmployee> {
+class EmployeeBuiltInIdentitySelection : public SelectionComp<Employee, SharedEmployee> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    EmployeeBuiltInIdentitySelection() {}
 
-	EmployeeBuiltInIdentitySelection () {}
+    Lambda<bool> getSelection(Handle<SharedEmployee> checkMe) override {
+        return makeLambda(checkMe, [](Handle<SharedEmployee>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <SharedEmployee> checkMe) override {
-                return makeLambda (checkMe, [] (Handle<SharedEmployee>& checkMe) {return true;});
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <SharedEmployee> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<SharedEmployee>& checkMe) {
+    Lambda<Handle<Employee>> getProjection(Handle<SharedEmployee> checkMe) override {
+        return makeLambda(checkMe, [](Handle<SharedEmployee>& checkMe) {
             checkMe->print();
-            
-            Handle <Employee> newEmployee = 
-            makeObject <Employee>(*(checkMe->getName()),100); // cannot get age!
+
+            Handle<Employee> newEmployee =
+                makeObject<Employee>(*(checkMe->getName()), 100);  // cannot get age!
             newEmployee->print();
             return newEmployee;
-            
-            //return checkMe;
+
+            // return checkMe;
         });
-	}
+    }
 };
 
 

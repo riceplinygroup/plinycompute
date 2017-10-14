@@ -38,40 +38,41 @@ using namespace std;
 
 // Cluster Heart Beat Test.
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 
-	std::cout << "start the cluster then \n";
-	std::cout << "start:  ./bin/getListOfNodesTest port MasterNodeHostName frontEndDM.log    \n";
+    std::cout << "start the cluster then \n";
+    std::cout << "start:  ./bin/getListOfNodesTest port MasterNodeHostName frontEndDM.log    \n";
 
-	CommandLineStringArgs cmdlineStringArgs(&argv[0], &argv[0 + argc]);
+    CommandLineStringArgs cmdlineStringArgs(&argv[0], &argv[0 + argc]);
 
-	if (argc == 4) {
-		int portNumber = atoi(argv[1]);
-		std::string logfile = cmdlineStringArgs[3];
+    if (argc == 4) {
+        int portNumber = atoi(argv[1]);
+        std::string logfile = cmdlineStringArgs[3];
 
-		pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>(logfile);
+        pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>(logfile);
 
-			bool wasError;
-			std::string errMsg;
-			std::string hostname(cmdlineStringArgs[2]);
+        bool wasError;
+        std::string errMsg;
+        std::string hostname(cmdlineStringArgs[2]);
 
-			DistributionManagerClientPtr myDMCLient = make_shared<DistributionManagerClient>( myLogger);
+        DistributionManagerClientPtr myDMCLient = make_shared<DistributionManagerClient>(myLogger);
 
-			Handle<ListOfNodes>  listOfNodes = myDMCLient->getCurrentNodes(hostname,  portNumber, wasError, errMsg);
+        Handle<ListOfNodes> listOfNodes =
+            myDMCLient->getCurrentNodes(hostname, portNumber, wasError, errMsg);
 
-			Handle <Vector <String>> myVectorOfNodes = listOfNodes->getHostNames();
+        Handle<Vector<String>> myVectorOfNodes = listOfNodes->getHostNames();
 
-			cout<< "List of Nodes are:\n";
-			// Now Iterate over the vector and get the current list of nodes
-			for (int var = 0; var < myVectorOfNodes->size(); ++var) {
-				cout<< string(myVectorOfNodes->c_ptr()[var].c_str()) <<endl;
-			}
+        cout << "List of Nodes are:\n";
+        // Now Iterate over the vector and get the current list of nodes
+        for (int var = 0; var < myVectorOfNodes->size(); ++var) {
+            cout << string(myVectorOfNodes->c_ptr()[var].c_str()) << endl;
+        }
 
-			std::cout << errMsg << std::endl;
-	} else {
-		cout << "Provide: portNumber, masterNodeHostName, masterNodePort" << "\n";
-	}
+        std::cout << errMsg << std::endl;
+    } else {
+        cout << "Provide: portNumber, masterNodeHostName, masterNodePort"
+             << "\n";
+    }
 }
 
 #endif
-

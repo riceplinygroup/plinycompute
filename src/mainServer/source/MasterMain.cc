@@ -29,10 +29,10 @@
 #include "StorageAddDatabase.h"
 #include "SharedEmployee.h"
 
-int main (int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
     int port = 8108;
-    std :: string masterIp;
-    std :: string pemFile = "conf/pdb.key";
+    std::string masterIp;
+    std::string pemFile = "conf/pdb.key";
     bool pseudoClusterMode = false;
     double partitionToCoreRatio = 0.75;
     if (argc == 3) {
@@ -41,54 +41,64 @@ int main (int argc, char * argv[]) {
     } else if ((argc == 4) || (argc == 5) || (argc == 6)) {
         masterIp = argv[1];
         port = atoi(argv[2]);
-        std :: string isPseudoStr(argv[3]);
-        if(isPseudoStr.compare(std :: string("Y"))==0) {
+        std::string isPseudoStr(argv[3]);
+        if (isPseudoStr.compare(std::string("Y")) == 0) {
             pseudoClusterMode = true;
-            std :: cout << "Running in pseudo cluster mode" << std :: endl;
+            std::cout << "Running in pseudo cluster mode" << std::endl;
         }
-        if ((argc == 5)||(argc == 6)) {
+        if ((argc == 5) || (argc == 6)) {
             pemFile = argv[4];
         }
         if (argc == 6) {
             partitionToCoreRatio = stod(argv[5]);
         }
-        
+
     } else {
-        std :: cout << "[Usage] #masterIp #port #runPseudoClusterOnOneNode (Y for running a pseudo-cluster on one node, N for running a real-cluster distributedly, and default is N) #pemFile (by default is conf/pdb.key) #partitionToCoreRatio (by default is 0.75)" << std :: endl;
-        exit (-1);
+        std::cout << "[Usage] #masterIp #port #runPseudoClusterOnOneNode (Y for running a "
+                     "pseudo-cluster on one node, N for running a real-cluster distributedly, and "
+                     "default is N) #pemFile (by default is conf/pdb.key) #partitionToCoreRatio "
+                     "(by default is 0.75)"
+                  << std::endl;
+        exit(-1);
     }
-  
+
     std::cout << "Starting up a distributed storage manager server\n";
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 100, myLogger);
-    
-    ConfigurationPtr conf = make_shared < Configuration > ();
-    
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, masterIp, port);
-    frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
-    
-    //to register node metadata
-    std :: string errMsg = " ";
-    pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(String("localhost:"+std::to_string(port)), String("localhost"), port, String("master"), String("master"), 1);
-    if (!frontEnd.getFunctionality<pdb :: CatalogServer>().addNodeMetadata( nodeData, errMsg )) {
 
-        std :: cout << "Node metadata was not added because "+errMsg << std :: endl;
+    ConfigurationPtr conf = make_shared<Configuration>();
+
+    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, masterIp, port);
+    frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
+
+    // to register node metadata
+    std::string errMsg = " ";
+    pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
+        pdb::makeObject<pdb::CatalogNodeMetadata>(String("localhost:" + std::to_string(port)),
+                                                  String("localhost"),
+                                                  port,
+                                                  String("master"),
+                                                  String("master"),
+                                                  1);
+    if (!frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
+
+        std::cout << "Node metadata was not added because " + errMsg << std::endl;
 
     } else {
 
-        std :: cout << "Node metadata successfully added." << std :: endl;
-
+        std::cout << "Node metadata successfully added." << std::endl;
     }
 
-    frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port, pseudoClusterMode, pemFile);
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>(
+        "conf/serverlist", port, pseudoClusterMode, pemFile);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);
     auto allNodes = frontEnd.getFunctionality<pdb::ResourceManagerServer>().getAllNodes();
     frontEnd.addFunctionality<pdb::DispatcherServer>(myLogger);
     frontEnd.getFunctionality<pdb::DispatcherServer>().registerStorageNodes(allNodes);
-    
-    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(port, myLogger, conf, pseudoClusterMode, partitionToCoreRatio);
-    frontEnd.startServer(nullptr);
 
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>(
+        port, myLogger, conf, pseudoClusterMode, partitionToCoreRatio);
+    frontEnd.startServer(nullptr);
 }
 
 #endif

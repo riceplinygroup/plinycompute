@@ -26,30 +26,26 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_BSD_FREE BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && ( \
-    defined(__FreeBSD__) \
-    )
-#   ifndef BOOST_OS_BSD_AVAILABLE
-#       define BOOST_OS_BSD BOOST_VERSION_NUMBER_AVAILABLE
-#       define BOOST_OS_BSD_AVAILABLE
-#   endif
-#   undef BOOST_OS_BSD_FREE
-#   if defined(__FreeBSD_version)
-#       if __FreeBSD_version < 500000
-#           define BOOST_OS_BSD_FREE \
-                BOOST_PREDEF_MAKE_10_VRP000(__FreeBSD_version)
-#       else
-#           define BOOST_OS_BSD_FREE \
-                BOOST_PREDEF_MAKE_10_VRR000(__FreeBSD_version)
-#       endif
-#   else
-#       define BOOST_OS_BSD_FREE BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && (defined(__FreeBSD__))
+#ifndef BOOST_OS_BSD_AVAILABLE
+#define BOOST_OS_BSD BOOST_VERSION_NUMBER_AVAILABLE
+#define BOOST_OS_BSD_AVAILABLE
+#endif
+#undef BOOST_OS_BSD_FREE
+#if defined(__FreeBSD_version)
+#if __FreeBSD_version < 500000
+#define BOOST_OS_BSD_FREE BOOST_PREDEF_MAKE_10_VRP000(__FreeBSD_version)
+#else
+#define BOOST_OS_BSD_FREE BOOST_PREDEF_MAKE_10_VRR000(__FreeBSD_version)
+#endif
+#else
+#define BOOST_OS_BSD_FREE BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_OS_BSD_FREE
-#   define BOOST_OS_BSD_FREE_AVAILABLE
-#   include <boost/predef/detail/os_detected.h>
+#define BOOST_OS_BSD_FREE_AVAILABLE
+#include <boost/predef/detail/os_detected.h>
 #endif
 
 #define BOOST_OS_BSD_FREE_NAME "Free BSD"
@@ -57,4 +53,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_BSD_FREE,BOOST_OS_BSD_FREE_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_BSD_FREE, BOOST_OS_BSD_FREE_NAME)

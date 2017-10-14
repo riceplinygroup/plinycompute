@@ -41,89 +41,92 @@ typedef shared_ptr<LocalitySet> LocalitySetPtr;
 
 class LocalitySet {
 public:
+    /*
+     * Constructor
+     */
+    LocalitySet(LocalityType localityType,
+                LocalitySetReplacementPolicy replacementPolicy,
+                OperationType operationType,
+                DurabilityType durabilityType,
+                PersistenceType persistenceType);
 
-  /*
-   * Constructor
-   */
-   LocalitySet(LocalityType localityType, LocalitySetReplacementPolicy replacementPolicy, OperationType operationType, DurabilityType durabilityType, PersistenceType persistenceType);
+    /*
+     * Destructor
+     */
+    ~LocalitySet();
 
-  /*
-   * Destructor
-   */  
-   ~LocalitySet();
+    /*
+     * To add a newly cached page to the locality set
+     */
+    void addCachedPage(PDBPagePtr page);
 
-   /*
-    * To add a newly cached page to the locality set
-    */
-   void addCachedPage (PDBPagePtr page);
+    /*
+     * To update a cached page with new access sequenceId
+     */
+    void updateCachedPage(PDBPagePtr page);
 
-   /*
-    * To update a cached page with new access sequenceId
-    */
-   void updateCachedPage (PDBPagePtr page);
+    /*
+     * To remove a cached page
+     */
+    void removeCachedPage(PDBPagePtr page);
 
-   /*
-    * To remove a cached page 
-    */
-   void removeCachedPage (PDBPagePtr page);
+    /*
+     * To select a page from the locality set for replacement based on the replacement policy, and
+     * also remove the page from the list.
+     */
+    PDBPagePtr selectPageForReplacement();
 
-   /*
-    * To select a page from the locality set for replacement based on the replacement policy, and also remove the page from the list. 
-    */
-   PDBPagePtr selectPageForReplacement ();
+    vector<PDBPagePtr>* selectPagesForReplacement();
 
-   vector<PDBPagePtr> * selectPagesForReplacement ();
+    void pin(LocalitySetReplacementPolicy policy, OperationType operationType);
 
-   void pin(LocalitySetReplacementPolicy policy, OperationType operationType);
-
-   void unpin();
-
-
-   /*
-    * Getters/Setters
-    */
-
-   LocalityType getLocalityType();
-
-   void setLocalityType (LocalityType type);
-
-   LocalitySetReplacementPolicy getReplacementPolicy();
-
-   void setReplacementPolicy (LocalitySetReplacementPolicy policy);
-
-   OperationType getOperationType();
-
-   void setOperationType (OperationType type);
-
-   DurabilityType getDurabilityType ();
-
-   void setDurabilityType (DurabilityType type);
-
-   PersistenceType getPersistenceType();
-
-   void setPersistenceType (PersistenceType type);
-
-   bool isLifetimeEnded ();
-
-   void setLifetimeEnd (bool lifetimeEnded);
-
-protected:
- 
-   /**
-    * Cached pages in the set, ordered by access sequenceId;
-    * So pop_front for LRU, pop_back for MRU
-    */
-   list<PDBPagePtr> * cachedPages;
+    void unpin();
 
 
     /*
-     * Types of the data in the set: 
+     * Getters/Setters
+     */
+
+    LocalityType getLocalityType();
+
+    void setLocalityType(LocalityType type);
+
+    LocalitySetReplacementPolicy getReplacementPolicy();
+
+    void setReplacementPolicy(LocalitySetReplacementPolicy policy);
+
+    OperationType getOperationType();
+
+    void setOperationType(OperationType type);
+
+    DurabilityType getDurabilityType();
+
+    void setDurabilityType(DurabilityType type);
+
+    PersistenceType getPersistenceType();
+
+    void setPersistenceType(PersistenceType type);
+
+    bool isLifetimeEnded();
+
+    void setLifetimeEnd(bool lifetimeEnded);
+
+protected:
+    /**
+     * Cached pages in the set, ordered by access sequenceId;
+     * So pop_front for LRU, pop_back for MRU
+     */
+    list<PDBPagePtr>* cachedPages;
+
+
+    /*
+     * Types of the data in the set:
      * 1. JobData: job input/output
      * 2. ShuffleData: shuffle data
      * 3. HashPartitionData: hash partition data
      * 4. PartialAggregationData: spilled key-value pairs from a hash partition
      *
-     * This property should be set at construction time. 
+     * This property should be set at construction time.
      */
     LocalityType localityType;
 
@@ -151,7 +154,7 @@ protected:
      * Durability type of the set:
      * 1. TryCache: flush to disk only when evicting dirty data
      * 2. CacheThrough: flush disk after each page writing
-     * 
+     *
      * This property should be set at construction time.
      */
     DurabilityType durabilityType;
@@ -164,16 +167,14 @@ protected:
      * This property should be set at construction time.
      */
     PersistenceType persistenceType;
-    
+
     /**
      * If lifetime ends, the data becomes garbage data which has the lowest priority.
-     * This property will be set as false by default at construction time, and will be set as true at unpin time.
+     * This property will be set as false by default at construction time, and will be set as true
+     * at unpin time.
      */
     bool lifetimeEnded;
-
 };
-
-
 
 
 #endif

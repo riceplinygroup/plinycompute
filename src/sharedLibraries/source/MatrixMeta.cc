@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "MatrixMeta.h"
 
-GET_V_TABLE (MatrixMeta)
+GET_V_TABLE(MatrixMeta)
 
 #endif

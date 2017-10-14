@@ -22,6 +22,6 @@
 #include "GetVTable.h"
 #include "SharedEmployee.h"
 
-GET_V_TABLE (SharedEmployee)
+GET_V_TABLE(SharedEmployee)
 
 #endif

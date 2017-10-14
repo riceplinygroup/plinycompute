@@ -27,41 +27,39 @@
 using std::shared_ptr;
 using std::string;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * Models a LoadOperation in the TCAP grammar.  For example:
+ *
+ *    load "(databaseName, inputSetName)"
+ *
+ * In this example:
+ *
+ *     source would be (databaseName, inputSetName)
+ */
+class LoadOperation : public TableExpression {
+public:
     /**
-     * Models a LoadOperation in the TCAP grammar.  For example:
-     *
-     *    load "(databaseName, inputSetName)"
-     *
-     * In this example:
-     *
-     *     source would be (databaseName, inputSetName)
+     * The source of the load.
      */
-    class LoadOperation : public TableExpression
-    {
-    public:
+    const string source;
 
-        /**
-         * The source of the load.
-         */
-        const string source;
+    /**
+     * Creates a new LoadOperation.
+     * @param source The source of the load.
+     * @return the new LoadOperation
+     */
+    LoadOperation(const string& source);
 
-        /**
-         * Creates a new LoadOperation.
-         * @param source The source of the load.
-         * @return the new LoadOperation
-         */
-        LoadOperation(const string &source);
+    // contract from super
+    void match(function<void(LoadOperation&)> forLoad,
+               function<void(ApplyOperation&)>,
+               function<void(FilterOperation&)>,
+               function<void(HoistOperation&)>,
+               function<void(BinaryOperation&)>) override;
+};
 
-        // contract from super
-        void match(function<void(LoadOperation &)> forLoad, function<void(ApplyOperation &)>,
-                   function<void(FilterOperation &)>, function<void(HoistOperation &)>,
-                   function<void(BinaryOperation &)>) override;
-
-    };
-
-    typedef shared_ptr<LoadOperation> LoadOperationPtr;
+typedef shared_ptr<LoadOperation> LoadOperationPtr;
 }
 
-#endif //PDB_TCAPPARSER_LOADOPERATION_H
+#endif  // PDB_TCAPPARSER_LOADOPERATION_H

@@ -33,7 +33,7 @@ namespace pdb {
 
 // returns the de-mangled name of the type T, as a string
 template <class T>
-std :: string getTypeName();
+std::string getTypeName();
 }
 
 #include "TypeName.cc"

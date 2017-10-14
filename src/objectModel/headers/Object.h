@@ -31,7 +31,7 @@
 
 namespace pdb {
 
-        enum ObjectPolicy { defaultObject, noReferenceCountObject };
+enum ObjectPolicy { defaultObject, noReferenceCountObject };
 
 
 // This is the basic PDB Object type.  Everything that is stored in PDB should
@@ -42,21 +42,19 @@ namespace pdb {
 class Object {
 
 public:
+    // these all just error out since they should never be called
+    static void* operator new(size_t sz, const std::nothrow_t& tag);
+    static void* operator new(size_t sz);
+    static void operator delete(void* me);
+    static void* operator new(std::size_t count, void* ptr);
+    void setVTablePtr(void* setToMe);
+    void* getVTablePtr();
 
-	// these all just error out since they should never be called
-	static void * operator new (size_t sz, const std::nothrow_t& tag);
-	static void * operator new (size_t sz);
-	static void operator delete (void *me);
-	static void * operator new (std::size_t count, void *ptr);
-	void setVTablePtr (void *setToMe);
-	void *getVTablePtr ();
-
-	// these are properly defined via the ENABLE_DEEP_COPY macro
-	virtual void setUpAndCopyFrom (void *target, void *source) const;
-	virtual void deleteObject (void *deleteMe);
-	virtual size_t getSize (void *ofMe);
+    // these are properly defined via the ENABLE_DEEP_COPY macro
+    virtual void setUpAndCopyFrom(void* target, void* source) const;
+    virtual void deleteObject(void* deleteMe);
+    virtual size_t getSize(void* ofMe);
 };
-
 }
 
 #include "Object.cc"

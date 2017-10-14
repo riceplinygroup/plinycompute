@@ -23,5 +23,4 @@
 namespace pdb {
 
 class JoinTupleBase {};
-
 }

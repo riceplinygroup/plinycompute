@@ -18,7 +18,7 @@
 #ifndef COMBINER_PROCESSOR_H
 #define COMBINER_PROCESSOR_H
 
-//by Jia, Mar 14, 2017
+// by Jia, Mar 14, 2017
 
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
@@ -36,39 +36,40 @@ template <class KeyType, class ValueType>
 class CombinerProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
-
-    ~CombinerProcessor () { blockPtr = nullptr; begin = nullptr; end = nullptr; };
-    CombinerProcessor (std :: vector<HashPartitionID>& partitions);
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
-    void addNodePartition (HashPartitionID partitionId);
+    ~CombinerProcessor() {
+        blockPtr = nullptr;
+        begin = nullptr;
+        end = nullptr;
+    };
+    CombinerProcessor(std::vector<HashPartitionID>& partitions);
+    void initialize() override;
+    void loadInputPage(void* pageToProcess) override;
+    void loadOutputPage(void* pageToWriteTo, size_t numBytesInPage) override;
+    bool fillNextOutputPage() override;
+    void finalize() override;
+    void clearOutputPage() override;
+    void clearInputPage() override;
+    void addNodePartition(HashPartitionID partitionId);
 
 private:
-
     UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle <Map <KeyType, ValueType>>>> inputData;
-    Handle <Vector<Handle <AggregationMap <KeyType, ValueType>>>> outputData;
+    Handle<Vector<Handle<Map<KeyType, ValueType>>>> inputData;
+    Handle<Vector<Handle<AggregationMap<KeyType, ValueType>>>> outputData;
     bool finalized;
     int numNodePartitions;
     HashPartitionID curPartId;
     int curPartPos;
     Handle<Map<KeyType, ValueType>> curMap;
     Handle<AggregationMap<KeyType, ValueType>> curOutputMap;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
 
-    //partitions on this node
-    std :: vector <HashPartitionID> nodePartitionIds;
+    // the iterators for current map partition
+    PDBMapIterator<KeyType, ValueType>* begin;
+    PDBMapIterator<KeyType, ValueType>* end;
+
+    // partitions on this node
+    std::vector<HashPartitionID> nodePartitionIds;
     int count;
 };
-
 }
 
 

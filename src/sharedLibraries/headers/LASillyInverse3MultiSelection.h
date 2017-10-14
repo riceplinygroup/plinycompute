@@ -18,7 +18,7 @@
 #ifndef SILLY_LA_INVERSE3_MULTISELECT_H
 #define SILLY_LA_INVERSE3_MULTISELECT_H
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -28,54 +28,55 @@
 #include "LADimension.h"
 
 
-class LASillyInverse3MultiSelection: public MultiSelectionComp <MatrixBlock, SingleMatrix> {
+class LASillyInverse3MultiSelection : public MultiSelectionComp<MatrixBlock, SingleMatrix> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LASillyInverse3MultiSelection() {}
 
-	LASillyInverse3MultiSelection() {}
+    LASillyInverse3MultiSelection(LADimension dim) : targetDim(dim) {}
 
-	LASillyInverse3MultiSelection(LADimension dim): targetDim(dim) {}
+    Lambda<bool> getSelection(Handle<SingleMatrix> checkMe) override {
+        return makeLambda(checkMe, [](Handle<SingleMatrix>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <SingleMatrix> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<SingleMatrix> & checkMe) {return true;});
-	}
-
-	Lambda <Vector<Handle <MatrixBlock>>> getProjection (Handle <SingleMatrix> checkMe) override {
-       	return makeLambda (checkMe, [&] (Handle<SingleMatrix> & checkMe) {
-       		return this->split(checkMe);
-       	});
-	}
+    Lambda<Vector<Handle<MatrixBlock>>> getProjection(Handle<SingleMatrix> checkMe) override {
+        return makeLambda(checkMe,
+                          [&](Handle<SingleMatrix>& checkMe) { return this->split(checkMe); });
+    }
 
 private:
-	LADimension targetDim;
+    LADimension targetDim;
 
-	Vector<Handle <MatrixBlock>> split(Handle<SingleMatrix> checkMe){
-		MatrixBlock largeM = checkMe->getValue();
-		//std::cout<<"Split Function" <<std::endl;
-		//largeM.print();
-		int totalRows = targetDim.blockRowSize * targetDim.blockRowNum;
+    Vector<Handle<MatrixBlock>> split(Handle<SingleMatrix> checkMe) {
+        MatrixBlock largeM = checkMe->getValue();
+        // std::cout<<"Split Function" <<std::endl;
+        // largeM.print();
+        int totalRows = targetDim.blockRowSize * targetDim.blockRowNum;
         int totalCols = targetDim.blockColSize * targetDim.blockColNum;
-        //std::cout<<totalRows<<", "<<totalCols<<std::endl;
-		Vector<Handle <MatrixBlock>> result;
-		for(int i=0; i<targetDim.blockRowNum; i++){
-			for(int j=0; j<targetDim.blockColNum; j++){
-				Handle <MatrixBlock> currentBlock = makeObject<MatrixBlock>(i,j,targetDim.blockRowSize,targetDim.blockColSize,totalRows,totalCols);
-				for(int ii=0; ii<targetDim.blockRowSize; ii++){
-					for(int jj=0; jj<targetDim.blockColSize; jj++){
-						int finalRowIndex = i * targetDim.blockRowSize + ii;
-                    	int finalColIndex = j * targetDim.blockColSize + jj;
-                    	//std::cout<<"("<<finalRowIndex<<","<<finalColIndex<<")"<<endl;
-                    	(*(currentBlock->getRawDataHandle()))[ii * targetDim.blockColSize + jj] = (*(largeM.getRawDataHandle()))[finalRowIndex*totalCols+finalColIndex]; 
-					}
-				}
-				//currentBlock->print();
-				result.push_back(currentBlock);
-			}
-		}
-		return result;
-	}
+        // std::cout<<totalRows<<", "<<totalCols<<std::endl;
+        Vector<Handle<MatrixBlock>> result;
+        for (int i = 0; i < targetDim.blockRowNum; i++) {
+            for (int j = 0; j < targetDim.blockColNum; j++) {
+                Handle<MatrixBlock> currentBlock = makeObject<MatrixBlock>(
+                    i, j, targetDim.blockRowSize, targetDim.blockColSize, totalRows, totalCols);
+                for (int ii = 0; ii < targetDim.blockRowSize; ii++) {
+                    for (int jj = 0; jj < targetDim.blockColSize; jj++) {
+                        int finalRowIndex = i * targetDim.blockRowSize + ii;
+                        int finalColIndex = j * targetDim.blockColSize + jj;
+                        // std::cout<<"("<<finalRowIndex<<","<<finalColIndex<<")"<<endl;
+                        (*(currentBlock->getRawDataHandle()))[ii * targetDim.blockColSize + jj] =
+                            (*(largeM
+                                   .getRawDataHandle()))[finalRowIndex * totalCols + finalColIndex];
+                    }
+                }
+                // currentBlock->print();
+                result.push_back(currentBlock);
+            }
+        }
+        return result;
+    }
 };
 
 #endif

@@ -32,8 +32,6 @@ PDBCommunicatorPtr PDBCommWork::getCommunicator() {
 void PDBCommWork::setGuts(PDBCommunicatorPtr toMe) {
     myCommunicator = toMe;
 }
-
-
 }
 
 #endif

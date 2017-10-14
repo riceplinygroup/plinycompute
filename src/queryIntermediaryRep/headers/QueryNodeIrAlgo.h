@@ -20,7 +20,7 @@
 //
 //#include "SetExpressionIrAlgo.h"
 //
-//namespace pdb_detail
+// namespace pdb_detail
 //{
 //    class RecordPredicateIr;
 //

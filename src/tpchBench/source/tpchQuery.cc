@@ -100,138 +100,138 @@ using namespace std;
 // Just unzip the file and put the folder in main directory of PDB
 
 #define KB 1024
-#define MB (1024*KB)
-#define GB (1024*MB)
+#define MB (1024 * KB)
+#define GB (1024 * MB)
 
 int main() {
 
-	int noOfCopies = 2;
-	string errMsg;
+    int noOfCopies = 2;
+    string errMsg;
 
-	// Connection info
-	string masterHostname = "localhost";
-	int masterPort = 8108;
+    // Connection info
+    string masterHostname = "localhost";
+    int masterPort = 8108;
 
-	// register the shared employee class
-	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+    // register the shared employee class
+    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
-	pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
+    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
+        masterPort, masterHostname, clientLogger);
+    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
 
-	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<SumResult>("TPCH_db", "t_output_set_1", errMsg)) {
-		cout << "Not able to create set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created set.\n";
-	}
+    // now, create the sets for storing Customer Data
+    if (!distributedStorageManagerClient.createSet<SumResult>(
+            "TPCH_db", "t_output_set_1", errMsg)) {
+        cout << "Not able to create set: " + errMsg;
+        exit(-1);
+    } else {
+        cout << "Created set.\n";
+    }
 
-	// for allocations
-	const UseTemporaryAllocationBlock tempBlock { 1024 * 1024 * 128 };
+    // for allocations
+    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
-	// make the query graph
-	Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
+    // make the query graph
+    Handle<Computation> myScanSet = makeObject<ScanCustomerSet>("TPCH_db", "tpch_bench_set1");
 
-	Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
-	myFlatten->setInput(myScanSet);
-        myFlatten->setAllocatorPolicy(noReuseAllocator);
-	Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
-	myGroupBy->setInput(myFlatten);
-        myGroupBy->setAllocatorPolicy(noReuseAllocator);
-	// Get the count by doing a count aggregation on the final results
-        #ifndef CHECK_RESULTS
-	Handle<Computation> myWriteSet = makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
-	myWriteSet->setInput(myGroupBy);
-       
-	//Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
-	//myWriteSet->setInput(countAggregation);
+    Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
+    myFlatten->setInput(myScanSet);
+    myFlatten->setAllocatorPolicy(noReuseAllocator);
+    Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+    myGroupBy->setInput(myFlatten);
+    myGroupBy->setAllocatorPolicy(noReuseAllocator);
+// Get the count by doing a count aggregation on the final results
+#ifndef CHECK_RESULTS
+    Handle<Computation> myWriteSet = makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
+    myWriteSet->setInput(myGroupBy);
 
-        #else
+// Handle<Computation> myWriteSet = makeObject<SumResultWriteSet>("TPCH_db", "t_output_set_1");
+// myWriteSet->setInput(countAggregation);
 
-        Handle<Computation> myWriteSet = makeObject<SupplierInfoWriteSet>("TPCH_db", "t_output_set_1");
-        myWriteSet->setInput(myGroupBy);
+#else
 
-        #endif
+    Handle<Computation> myWriteSet = makeObject<SupplierInfoWriteSet>("TPCH_db", "t_output_set_1");
+    myWriteSet->setInput(myGroupBy);
 
-	// Query Execution and Time Calculation
+#endif
 
-	auto begin = std::chrono::high_resolution_clock::now();
+    // Query Execution and Time Calculation
 
-	if (!queryClient.executeComputations(errMsg, myWriteSet)) {
-		std::cout << "Query failed. Message was: " << errMsg << "\n";
-		return 1;
-	}
+    auto begin = std::chrono::high_resolution_clock::now();
 
-	std::cout << std::endl;
-	auto end = std::chrono::high_resolution_clock::now();
+    if (!queryClient.executeComputations(errMsg, myWriteSet)) {
+        std::cout << "Query failed. Message was: " << errMsg << "\n";
+        return 1;
+    }
 
-	float timeDifference = (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) / (float) 1000000000;
+    std::cout << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
 
-	std::cout << "#TimeDuration: " << timeDifference << " Second " << std::endl;
+    float timeDifference =
+        (float(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count())) /
+        (float)1000000000;
 
-
-
-
+    std::cout << "#TimeDuration: " << timeDifference << " Second " << std::endl;
 
 
-	// Printing results to double check
-	std::cout << "to print result..." << std::endl;
+    // Printing results to double check
+    std::cout << "to print result..." << std::endl;
 
-        #ifndef CHECK_RESULTS
+#ifndef CHECK_RESULTS
 
-	SetIterator<SumResult> result = queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
+    SetIterator<SumResult> result =
+        queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
-	std::cout << "Query results: ";
-	int count = 0;
-	for (auto a : result) {
-		count++;
-		std::cout << "Total count is: " << a->total << std::endl;
-	}
-	std::cout << "Output count:" << count << "\n";
-        
-        #else
+    std::cout << "Query results: ";
+    int count = 0;
+    for (auto a : result) {
+        count++;
+        std::cout << "Total count is: " << a->total << std::endl;
+    }
+    std::cout << "Output count:" << count << "\n";
 
-        SetIterator<SupplierInfo> result = queryClient.getSetIterator<SupplierInfo>("TPCH_db", "t_output_set_1");
-        std :: cout << "Query results: ";
-        int count = 0;
-        long sum = 0;
-        int min = 100000000;
-        int max = 0;
-        for (auto a : result) {
-            count ++;
-            std :: cout << "Supplier Name: " << a->getKey() << std :: endl;
-            int curNum = a->print();
-            sum += curNum;
-            if (curNum < min) {
-                min = curNum;
-            }
-            if (curNum > max) {
-                max = curNum;
-            }
+#else
+
+    SetIterator<SupplierInfo> result =
+        queryClient.getSetIterator<SupplierInfo>("TPCH_db", "t_output_set_1");
+    std::cout << "Query results: ";
+    int count = 0;
+    long sum = 0;
+    int min = 100000000;
+    int max = 0;
+    for (auto a : result) {
+        count++;
+        std::cout << "Supplier Name: " << a->getKey() << std::endl;
+        int curNum = a->print();
+        sum += curNum;
+        if (curNum < min) {
+            min = curNum;
         }
-        std :: cout << "Output count: " << count << "\n";
-        std :: cout << "Average customers count for each supplier: " << sum/count << "\n";
-        std :: cout << "Max customers count for each supplier: " << max << "\n";
-        std :: cout << "Min customers count for each supplier: " << min << "\n";
+        if (curNum > max) {
+            max = curNum;
+        }
+    }
+    std::cout << "Output count: " << count << "\n";
+    std::cout << "Average customers count for each supplier: " << sum / count << "\n";
+    std::cout << "Max customers count for each supplier: " << max << "\n";
+    std::cout << "Min customers count for each supplier: " << min << "\n";
 
-        #endif
-	// Remove the output set
-	if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
-		cout << "Not able to remove the set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Set removed. \n";
-	}
+#endif
+    // Remove the output set
+    if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
+        cout << "Not able to remove the set: " + errMsg;
+        exit(-1);
+    } else {
+        cout << "Set removed. \n";
+    }
 
-	// Clean up the SO files.
-	int code = system("scripts/cleanupSoFiles.sh");
-	if (code < 0) {
+    // Clean up the SO files.
+    int code = system("scripts/cleanupSoFiles.sh");
+    if (code < 0) {
 
-		std::cout << "Can't cleanup so files" << std::endl;
+        std::cout << "Can't cleanup so files" << std::endl;
+    }
 
-	}
-
-	const UseTemporaryAllocationBlock tempBlock2 { 1024 * 1024 * 128 };
-
+    const UseTemporaryAllocationBlock tempBlock2{1024 * 1024 * 128};
 }
 #endif

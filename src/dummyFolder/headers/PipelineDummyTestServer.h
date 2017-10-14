@@ -32,15 +32,12 @@ namespace pdb {
 class PipelineDummyTestServer : public ServerFunctionality {
 
 public:
+    PipelineDummyTestServer();
 
-	PipelineDummyTestServer ();
+    void registerHandlers(PDBServer& forMe) override;
 
-	void registerHandlers (PDBServer &forMe) override;
-
-	~PipelineDummyTestServer ();
-
+    ~PipelineDummyTestServer();
 };
-
 }
 
 #endif

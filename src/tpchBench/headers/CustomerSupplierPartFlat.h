@@ -23,56 +23,54 @@
 #include "PDBString.h"
 #include "Handle.h"
 
-// This class represents a triple that holds a triple of (customerName, SupplierName, vector<PartID>)
+// This class represents a triple that holds a triple of (customerName, SupplierName,
+// vector<PartID>)
 
-class CustomerSupplierPartFlat: public pdb::Object {
+class CustomerSupplierPartFlat : public pdb::Object {
 
 public:
-	pdb::String customerName;
-	pdb::String supplierName;
-	int partKey;
+    pdb::String customerName;
+    pdb::String supplierName;
+    int partKey;
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	//Default constructor:
-	CustomerSupplierPartFlat() {
-	}
+    // Default constructor:
+    CustomerSupplierPartFlat() {}
 
-	//Default destructor:
-	~CustomerSupplierPartFlat() {
-	}
+    // Default destructor:
+    ~CustomerSupplierPartFlat() {}
 
-	//Constructor with arguments:
-	CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, int partKey) {
-		this->customerName = customerName;
-		this->supplierName = supplierName;
-		this->partKey=partKey;
-	}
+    // Constructor with arguments:
+    CustomerSupplierPartFlat(pdb::String customerName, pdb::String supplierName, int partKey) {
+        this->customerName = customerName;
+        this->supplierName = supplierName;
+        this->partKey = partKey;
+    }
 
-	pdb::String& getCustomerName() {
-		return customerName;
-	}
+    pdb::String& getCustomerName() {
+        return customerName;
+    }
 
-	void setCustomerName(pdb::String customerName) {
-		this->customerName = customerName;
-	}
+    void setCustomerName(pdb::String customerName) {
+        this->customerName = customerName;
+    }
 
-	pdb::String& getSupplierName() {
-		return supplierName;
-	}
+    pdb::String& getSupplierName() {
+        return supplierName;
+    }
 
-	void setSupplierName(pdb::String supplierName) {
-		this->supplierName = supplierName;
-	}
+    void setSupplierName(pdb::String supplierName) {
+        this->supplierName = supplierName;
+    }
 
-	int getPartKey() {
-		return partKey;
-	}
+    int getPartKey() {
+        return partKey;
+    }
 
-	void setPartKey(int partKey) {
-		this->partKey = partKey;
-	}
+    void setPartKey(int partKey) {
+        this->partKey = partKey;
+    }
 };
 
 #endif
-

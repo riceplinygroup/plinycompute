@@ -35,15 +35,24 @@ namespace pdb {
 
 
 template <class DataType>
-bool DistributedStorageManagerClient :: createSet (const std :: string & databaseName, const std :: string & setName, std :: string &errMsg, size_t pageSize) {
-        std :: string typeName = getTypeName <DataType>();
-        int16_t typeId = getTypeID <DataType>();
-        PDB_COUT << "typeName for set to create ="<<typeName << ", typeId="<< typeId << std :: endl;
-        return simpleRequest <DistributedStorageAddSet, SimpleRequestResult, bool> (logger, port, address, false, 1024,
-    generateResponseHandler("Could not add set to distributed storage manager:", errMsg), databaseName, setName, typeName, pageSize);
+bool DistributedStorageManagerClient::createSet(const std::string& databaseName,
+                                                const std::string& setName,
+                                                std::string& errMsg,
+                                                size_t pageSize) {
+    std::string typeName = getTypeName<DataType>();
+    int16_t typeId = getTypeID<DataType>();
+    PDB_COUT << "typeName for set to create =" << typeName << ", typeId=" << typeId << std::endl;
+    return simpleRequest<DistributedStorageAddSet, SimpleRequestResult, bool>(
+        logger,
+        port,
+        address,
+        false,
+        1024,
+        generateResponseHandler("Could not add set to distributed storage manager:", errMsg),
+        databaseName,
+        setName,
+        typeName,
+        pageSize);
 }
-
-
-
 }
 #endif

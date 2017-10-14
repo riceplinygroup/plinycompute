@@ -32,55 +32,86 @@
 
 namespace pdb {
 // this object type is sent to the server to tell it to pin a page
-class StoragePinPage : public pdb :: Object {
+class StoragePinPage : public pdb::Object {
 
 
 public:
+    StoragePinPage() {}
 
-	StoragePinPage () {}
+    ~StoragePinPage() {}
 
-	~StoragePinPage () {}
+    StoragePinPage(bool wasNewPage,
+                   NodeID nodeId,
+                   DatabaseID dbId,
+                   UserTypeID userTypeId,
+                   SetID setId,
+                   PageID pageId)
+        : wasNewPage(wasNewPage),
+          nodeId(nodeId),
+          dbId(dbId),
+          userTypeId(userTypeId),
+          setId(setId),
+          pageId(pageId) {}
 
-        StoragePinPage (bool wasNewPage, NodeID nodeId, DatabaseID dbId, UserTypeID userTypeId, SetID setId, PageID pageId) : wasNewPage(wasNewPage), nodeId(nodeId), dbId(dbId), userTypeId(userTypeId), setId(setId), pageId(pageId) {}
+    //
+    bool getWasNewPage() {
+        return this->wasNewPage;
+    }
 
-	//
-	bool getWasNewPage() {return this->wasNewPage;}
+    void setWasNewPage(bool wasNewPage) {
+        this->wasNewPage = wasNewPage;
+    }
 
-	void setWasNewPage(bool wasNewPage) {this->wasNewPage = wasNewPage;}
+    NodeID getNodeID() {
+        return this->nodeId;
+    }
 
-	NodeID getNodeID() {return this->nodeId;}
+    void setNodeID(NodeID nodeId) {
+        this->nodeId = nodeId;
+    }
 
-	void setNodeID (NodeID nodeId) {this->nodeId = nodeId;}
+    DatabaseID getDatabaseID() {
+        return this->dbId;
+    }
 
-	DatabaseID getDatabaseID() {return this->dbId;}
+    void setDatabaseID(DatabaseID dbId) {
+        this->dbId = dbId;
+    }
 
-	void setDatabaseID(DatabaseID dbId) {this->dbId = dbId;}
+    UserTypeID getUserTypeID() {
+        return this->userTypeId;
+    }
 
-	UserTypeID getUserTypeID() {return this->userTypeId;}
+    void setUserTypeID(UserTypeID typeId) {
+        this->userTypeId = typeId;
+    }
 
-	void setUserTypeID(UserTypeID typeId) {this->userTypeId = typeId;}
+    SetID getSetID() {
+        return this->setId;
+    }
 
-	SetID getSetID() {return this->setId;}
+    void setSetID(SetID setId) {
+        this->setId = setId;
+    }
 
-	void setSetID(SetID setId) {this->setId = setId; }
+    PageID getPageID() {
+        return this->pageId;
+    }
 
-	PageID getPageID() {return this->pageId; }
+    void setPageID(PageID pageId) {
+        this->pageId = pageId;
+    }
 
-	void setPageID(PageID pageId) {this->pageId = pageId;}
-
-        ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-	bool wasNewPage;
-	NodeID nodeId;
-	DatabaseID dbId;
-	UserTypeID userTypeId;
-	SetID setId;
-	PageID pageId;
-
-
+    bool wasNewPage;
+    NodeID nodeId;
+    DatabaseID dbId;
+    UserTypeID userTypeId;
+    SetID setId;
+    PageID pageId;
 };
-
 }
 
 #endif /* SRC_BUILTINPDBOBJECTS_HEADERS_PINPAGE_H_ */

@@ -28,35 +28,34 @@
 namespace pdb {
 
 // encapsulates a request to remove a set from storage
-class StorageRemoveUserSet  : public Object {
+class StorageRemoveUserSet : public Object {
 
 public:
+    StorageRemoveUserSet() {}
+    ~StorageRemoveUserSet() {}
 
-	StorageRemoveUserSet () {}
-	~StorageRemoveUserSet () {}
+    StorageRemoveUserSet(std::string dataBase, std::string setName, std::string typeName)
+        : dataBase(dataBase), setName(setName), typeName(typeName) {}
 
-	StorageRemoveUserSet (std :: string dataBase, std :: string setName, std :: string typeName) : dataBase (dataBase), setName (setName), typeName(typeName) {}
+    std::string getDatabase() {
+        return dataBase;
+    }
 
-        std :: string getDatabase () {
-                return dataBase;
-        }
+    std::string getSetName() {
+        return setName;
+    }
 
-	std :: string getSetName () {
-		return setName;
-	}
+    std::string getTypeName() {
+        return typeName;
+    }
 
-        std :: string getTypeName () {
-                return typeName;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-        String dataBase;
-	String setName;
-        String typeName;
+    String dataBase;
+    String setName;
+    String typeName;
 };
-
 }
 
 #endif

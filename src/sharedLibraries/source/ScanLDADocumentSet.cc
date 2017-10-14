@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "ScanLDADocumentSet.h"
 
-GET_V_TABLE (ScanLDADocumentSet)
+GET_V_TABLE(ScanLDADocumentSet)
 
 #endif

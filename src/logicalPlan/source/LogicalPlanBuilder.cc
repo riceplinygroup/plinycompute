@@ -56,14 +56,13 @@ using pdb_detail::TableColumns;
 using pdb_detail::TranslationUnit;
 
 /**
- * @return an attribute list composed of each of the given column's id, in the same order as provided.
+ * @return an attribute list composed of each of the given column's id, in the same order as
+ * provided.
  */
-AttList makeAttributeList(const vector<TableColumn> &columns)
-{
+AttList makeAttributeList(const vector<TableColumn>& columns) {
     AttList list;
 
-    for(const TableColumn& column : columns)
-    {
+    for (const TableColumn& column : columns) {
         list.appendAttribute(column.columnId);
     }
 
@@ -71,14 +70,13 @@ AttList makeAttributeList(const vector<TableColumn> &columns)
 }
 
 /**
- * @return an attribute list composed of each of the given column's id, in the same order as provided.
+ * @return an attribute list composed of each of the given column's id, in the same order as
+ * provided.
  */
-AttList makeAttributeList(const TableColumns &columns)
-{
+AttList makeAttributeList(const TableColumns& columns) {
     AttList list;
 
-    for(const string& column : *columns.columnIds.get())
-    {
+    for (const string& column : *columns.columnIds.get()) {
         list.appendAttribute(column);
     }
 
@@ -103,14 +101,14 @@ AttList makeAttributeList(const TableColumns &columns)
  * @param apply the ApplyBase to translate
  * @return an ApplyLambda that corresponds to apply.
  */
-shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
-{
+shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase& apply) {
     /*
      * Create an "input" TupleSpec that corresponds to ApplyBase.inputColumns;
      *
      * For example, if the original TCAP assignment was:
      *
-     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student, teacher
+     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student,
+     * teacher
      *
      * input would be:
      *
@@ -129,7 +127,8 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
      *
      * For example, if the original TCAP assignment was:
      *
-     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student, teacher
+     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student,
+     * teacher
      *
      * output would be:
      *
@@ -144,12 +143,14 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
     }
 
     /*
-     * Create a "projection" TupleSpec that describes which columns are to be copied from the input to the output.
+     * Create a "projection" TupleSpec that describes which columns are to be copied from the input
+     * to the output.
      * (these will be a subset of the output TupleSpec created above)
      *
      * For example, if the original TCAP assignment was:
      *
-     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student, teacher
+     *     B(student, teacher, fooResult) = apply func "foo" to A[student,class] retain student,
+     * teacher
      *
      * output would be:
      *
@@ -179,15 +180,16 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromApplyBase(const ApplyBase &apply)
  *     dbName:  "db"
  *     setName: "set"
  *
- * To form "dbName" and "setName", the entire string literal is tokenized by whitespace and the first token
- * is used for "dbName" and the second for "setName".  If the tokenization of load.source results in anything
+ * To form "dbName" and "setName", the entire string literal is tokenized by whitespace and the
+ * first token
+ * is used for "dbName" and the second for "setName".  If the tokenization of load.source results in
+ * anything
  * but exactly two tokens, a string exception is thrown.
  *
  * @param load the Load to translate into an Input.
  * @return An Input corresponding to load.
  */
-Input makeInputFromLoad(const Load &load)
-{
+Input makeInputFromLoad(const Load& load) {
     TupleSpec outputTable;
     {
         AttList attList;
@@ -195,17 +197,17 @@ Input makeInputFromLoad(const Load &load)
         outputTable = TupleSpec(load.outputColumn.tableId, attList);
     }
 
-    vector<string> sourceTokens; // tokenize load.source by whitespace
+    vector<string> sourceTokens;  // tokenize load.source by whitespace
     {
         istringstream iss(load.source);
-        copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(sourceTokens));
+        copy(
+            istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(sourceTokens));
 
-        if(sourceTokens.size() != 2)
+        if (sourceTokens.size() != 2)
             throw "unrecognized source string " + load.source;
     }
 
     return Input(outputTable, sourceTokens[0], sourceTokens[1]);
-
 }
 
 /**
@@ -224,8 +226,7 @@ Input makeInputFromLoad(const Load &load)
  * @param filter the Filter to translate into an ApplyFilter
  * @return an ApplyFilter corresponding to filter
  */
-shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
-{
+shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter& filter) {
     /*
      * Create an "input" TupleSpec that corresponds to hoist.inputColumn;
      *
@@ -264,7 +265,8 @@ shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
     }
 
     /*
-     * Create a "projection" TupleSpec that describes which columns are to be copied from the input to the output.
+     * Create a "projection" TupleSpec that describes which columns are to be copied from the input
+     * to the output.
      * (these will be a subset of the output TupleSpec created above)
      *
      * For example, if the original TCAP assignment was:
@@ -292,7 +294,8 @@ shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
  * For example, if the given Hoist modeled the following TCAP statement:
  *
  *    @exec "executor2"
- *    C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain student, examAverage
+ *    C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain student,
+ * examAverage
  *
  * the created ApplyLambda would have the following form:
  *
@@ -304,14 +307,14 @@ shared_ptr<ApplyFilter> makeApplyFilterFromFilter(const Filter &filter)
  * @param hoist the Hoist to translate into an ApplyLambda
  * @return an ApplyLambda translation of host
  */
-shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
-{
+shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist& hoist) {
     /*
      * Create an "input" TupleSpec that corresponds to hoist.inputColumn;
      *
      * For example, if the original TCAP assignment was:
      *
-     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain student, examAverage
+     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain
+     * student, examAverage
      *
      * input would be:
      *
@@ -330,7 +333,8 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
      *
      * For example, if the original TCAP assignment was:
      *
-     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain student, examAverage
+     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain
+     * student, examAverage
      *
      * output would be:
      *
@@ -345,12 +349,14 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
     }
 
     /*
-     * Create a "projection" TupleSpec that describes which columns are to be copied from the input to the output.
+     * Create a "projection" TupleSpec that describes which columns are to be copied from the input
+     * to the output.
      * (these will be a subset of the output TupleSpec created above)
      *
      * For example, if the original TCAP assignment was:
      *
-     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain student, examAverage
+     *     C(student, examAverage, hwAverage) = hoist "homeworkAverage" from B[student] retain
+     * student, examAverage
      *
      * output would be:
      *
@@ -382,22 +388,26 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromHoist(const Hoist &hoist)
  * projection: ("C", ["student"])
  * lambdaName: "executor3"
  *
- * The order of the columns in input is guranteed to be first the left hand side column followed by the right.
- * ApplyLambda only supports the left hand column and right hand column coming from the same set, so if the
- * table ids for the left hand side and right hand side don't match this method willl throw a string exception.
+ * The order of the columns in input is guranteed to be first the left hand side column followed by
+ * the right.
+ * ApplyLambda only supports the left hand column and right hand column coming from the same set, so
+ * if the
+ * table ids for the left hand side and right hand side don't match this method willl throw a string
+ * exception.
  *
  * @param gt the GreaterThan to translate into an ApplyLambda
  * @return and ApplyLambda representatino of gt
  */
-shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
-{
-    if(gt.leftHandSide.tableId != gt.rightHandSide.tableId)
-        throw "cross table comparison not supported by ApplyLambda"; // TupleSpec allows only one setNameIn in constructor
+shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan& gt) {
+    if (gt.leftHandSide.tableId != gt.rightHandSide.tableId)
+        throw "cross table comparison not supported by ApplyLambda";  // TupleSpec allows only one
+                                                                      // setNameIn in constructor
 
     string inputTableId = gt.leftHandSide.tableId;
 
     /*
-     * Create an "input" TupleSpec that corresponds the left and right hand sides of gt while preserving order.
+     * Create an "input" TupleSpec that corresponds the left and right hand sides of gt while
+     * preserving order.
      *
      * For example, if the original TCAP assignment was:
      *
@@ -436,7 +446,8 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
     }
 
     /*
-     * Create a "projection" TupleSpec that describes which columns are to be copied from the input to the output.
+     * Create a "projection" TupleSpec that describes which columns are to be copied from the input
+     * to the output.
      * (these will be a subset of the output TupleSpec created above)
      *
      * For example, if the original TCAP assignment was:
@@ -455,8 +466,7 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
         projection = TupleSpec(inputTableId, attributes);
     }
 
-   return make_shared<ApplyLambda>(input, output, projection, gt.executorId);
-
+    return make_shared<ApplyLambda>(input, output, projection, gt.executorId);
 }
 
 /**
@@ -472,21 +482,24 @@ shared_ptr<ApplyLambda> makeApplyLambdaFromGreaterThan(const GreaterThan &gt)
  *     dbName:  "db"
  *     setName: "set"
  *
- * To form "dbName" and "setName", the entire string literal is tokenized by whitespace and the first token
- * is used for "dbName" and the second for "setName".  If the tokenization of store.destination results in anything
+ * To form "dbName" and "setName", the entire string literal is tokenized by whitespace and the
+ * first token
+ * is used for "dbName" and the second for "setName".  If the tokenization of store.destination
+ * results in anything
  * but exactly two tokens, a string exception is thrown.
  *
  * @param store the Store to translate into an Ouput
  * @return an Ouput corresponding to store
  */
-Output makeOutputFromStore(const Store &store)
-{
-    vector<string> destinationTokens; // tokenize store.destination by whitespace
+Output makeOutputFromStore(const Store& store) {
+    vector<string> destinationTokens;  // tokenize store.destination by whitespace
     {
         istringstream iss(store.destination);
-        copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(destinationTokens));
+        copy(istream_iterator<string>(iss),
+             istream_iterator<string>(),
+             back_inserter(destinationTokens));
 
-        if(destinationTokens.size() != 2)
+        if (destinationTokens.size() != 2)
             throw "unrecognized source string " + store.destination;
     }
 
@@ -499,10 +512,11 @@ Output makeOutputFromStore(const Store &store)
 }
 
 // contract from .h
-shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(shared_ptr<vector<InstructionPtr>> instructions)
-{
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(
+    shared_ptr<vector<InstructionPtr>> instructions) {
     /*
-     * Translate every IR instruction in instructions into a corresponding Logical Plan representation.
+     * Translate every IR instruction in instructions into a corresponding Logical Plan
+     * representation.
      *
      * Load turns into Input
      * Store turns into Output
@@ -514,93 +528,74 @@ shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(shared_ptr<vector<Instructi
     InputList inputsAccum;
     ComputationList compListAccum;
 
-    for(shared_ptr<Instruction> instruction : *instructions.get())
-    {
+    for (shared_ptr<Instruction> instruction : *instructions.get()) {
         bool exceptionGeneratedInsideMatch = false;
         string exceptionMessage;
 
         instruction->match(
-                [&](Load &load)
-                {
-                    try
-                    {
-                        Input input = makeInputFromLoad(load);
-                        inputsAccum.addInput(input);
-                    }
-                    catch(string &errorMsg)
-                    {
-                        exceptionGeneratedInsideMatch = true;
-                        exceptionMessage = errorMsg;
-                    }
-                },
-                [&](ApplyFunction &applyFunction)
-                {
-                    shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromApplyBase(applyFunction);
+            [&](Load& load) {
+                try {
+                    Input input = makeInputFromLoad(load);
+                    inputsAccum.addInput(input);
+                } catch (string& errorMsg) {
+                    exceptionGeneratedInsideMatch = true;
+                    exceptionMessage = errorMsg;
+                }
+            },
+            [&](ApplyFunction& applyFunction) {
+                shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromApplyBase(applyFunction);
+                compListAccum.addComputation(applyLambda);
+            },
+            [&](ApplyMethod& applyMethod) {
+                shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromApplyBase(applyMethod);
+                compListAccum.addComputation(applyLambda);
+            },
+            [&](Filter& filter) {
+                shared_ptr<ApplyFilter> applyFilter = makeApplyFilterFromFilter(filter);
+                compListAccum.addComputation(applyFilter);
+            },
+            [&](Hoist& hoist) {
+                shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromHoist(hoist);
+                compListAccum.addComputation(applyLambda);
+            },
+            [&](GreaterThan& gt) {
+                try {
+                    shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromGreaterThan(gt);
                     compListAccum.addComputation(applyLambda);
-                },
-                [&](ApplyMethod &applyMethod)
-                {
-                    shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromApplyBase(applyMethod);
-                    compListAccum.addComputation(applyLambda);
-                },
-                [&](Filter &filter)
-                {
-                    shared_ptr<ApplyFilter> applyFilter = makeApplyFilterFromFilter(filter);
-                    compListAccum.addComputation(applyFilter);
-                },
-                [&](Hoist &hoist)
-                {
-                    shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromHoist(hoist);
-                    compListAccum.addComputation(applyLambda);
-                },
-                [&](GreaterThan &gt)
-                {
-                    try
-                    {
-                        shared_ptr<ApplyLambda> applyLambda = makeApplyLambdaFromGreaterThan(gt);
-                        compListAccum.addComputation(applyLambda);
-                    }
-                    catch(string &errorMsg)
-                    {
-                        exceptionGeneratedInsideMatch = true;
-                        exceptionMessage = errorMsg;
-                    }
-                },
-                [&](Store &store)
-                {
-                    Output out = makeOutputFromStore(store);
-                    outputsAccum.addOutput(out);
-                });
+                } catch (string& errorMsg) {
+                    exceptionGeneratedInsideMatch = true;
+                    exceptionMessage = errorMsg;
+                }
+            },
+            [&](Store& store) {
+                Output out = makeOutputFromStore(store);
+                outputsAccum.addOutput(out);
+            });
 
-        if(exceptionGeneratedInsideMatch)
+        if (exceptionGeneratedInsideMatch)
             return make_shared<SafeResultFailure<LogicalPlan>>(exceptionMessage);
     }
 
-    return make_shared<SafeResultSuccess<LogicalPlan>>(LogicalPlan(outputsAccum, inputsAccum, compListAccum));
+    return make_shared<SafeResultSuccess<LogicalPlan>>(
+        LogicalPlan(outputsAccum, inputsAccum, compListAccum));
 }
 
 // contract from .h
-shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(string tcapProgram)
-{
+shared_ptr<SafeResult<LogicalPlan>> buildLogicalPlan(string tcapProgram) {
     shared_ptr<SafeResult<LogicalPlan>> logicalPlan;
     {
         shared_ptr<SafeResult<TranslationUnit>> transUnit = parseTcap(tcapProgram);
 
         transUnit->apply(
-                [&](TranslationUnit transUnit)
-                {
-                    shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
-                    logicalPlan = buildLogicalPlan(instructions);
-                },
-                [&](string errorMsg)
-                {
-                    logicalPlan = make_shared<SafeResultFailure<LogicalPlan>>(errorMsg);
-                }
-        );
-
+            [&](TranslationUnit transUnit) {
+                shared_ptr<vector<shared_ptr<Instruction>>> instructions = buildTcapIr(transUnit);
+                logicalPlan = buildLogicalPlan(instructions);
+            },
+            [&](string errorMsg) {
+                logicalPlan = make_shared<SafeResultFailure<LogicalPlan>>(errorMsg);
+            });
     }
 
     return logicalPlan;
-
 }
 #endif

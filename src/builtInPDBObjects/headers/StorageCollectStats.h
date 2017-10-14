@@ -28,19 +28,15 @@
 namespace pdb {
 
 // encapsulates a request to return all user set information
-class StorageCollectStats  : public Object {
+class StorageCollectStats : public Object {
 
 public:
-
-	StorageCollectStats () {}
-	~StorageCollectStats () {}
-
-
-	ENABLE_DEEP_COPY
+    StorageCollectStats() {}
+    ~StorageCollectStats() {}
 
 
+    ENABLE_DEEP_COPY
 };
-
 }
 
 #endif

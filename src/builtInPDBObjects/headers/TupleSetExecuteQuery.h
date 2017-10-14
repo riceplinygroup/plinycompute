@@ -29,22 +29,23 @@ namespace pdb {
 class TupleSetExecuteQuery : public Object {
 
 public:
+    TupleSetExecuteQuery() {
+        isAggregation = false;
+    }
+    ~TupleSetExecuteQuery() {}
 
-	TupleSetExecuteQuery () { isAggregation = false;}
-	~TupleSetExecuteQuery () {}
+    TupleSetExecuteQuery(bool isAggregation) {
+        this->isAggregation = isAggregation;
+    }
+    bool getIsAggregation() {
+        return isAggregation;
+    }
 
-        TupleSetExecuteQuery (bool isAggregation) { this->isAggregation = isAggregation; }
-        bool getIsAggregation () { return isAggregation; }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-        bool isAggregation;
-
-
+    bool isAggregation;
 };
-
 }
 
 #endif

@@ -22,6 +22,6 @@
 #include "LASillyRowMinAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyRowMinAggregate)
+GET_V_TABLE(LASillyRowMinAggregate)
 
 #endif

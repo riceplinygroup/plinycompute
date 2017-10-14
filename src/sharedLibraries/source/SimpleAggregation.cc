@@ -21,6 +21,6 @@
 #include "SimpleAggregation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SimpleAggregation)
+GET_V_TABLE(SimpleAggregation)
 
 #endif

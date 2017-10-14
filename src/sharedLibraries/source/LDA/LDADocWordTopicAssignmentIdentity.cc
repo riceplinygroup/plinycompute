@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDADocWordTopicAssignmentIdentity.h"
 
-GET_V_TABLE (LDADocWordTopicAssignmentIdentity)
+GET_V_TABLE(LDADocWordTopicAssignmentIdentity)
 
 #endif

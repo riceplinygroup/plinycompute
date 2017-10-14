@@ -28,67 +28,70 @@
 #include <unistd.h>
 #include <stdio.h>
 
-int main (int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
 
-        int numPagesToWrite;
-        if (argc == 1) {
-            numPagesToWrite = 6;
-            std :: cout << "to generate 6 pages by default..." << std :: endl;
-        } else {
-            numPagesToWrite = atoi(argv[1]);
-            std :: cout << "to generate "<< numPagesToWrite << " by default..." << std :: endl;
+    int numPagesToWrite;
+    if (argc == 1) {
+        numPagesToWrite = 6;
+        std::cout << "to generate 6 pages by default..." << std::endl;
+    } else {
+        numPagesToWrite = atoi(argv[1]);
+        std::cout << "to generate " << numPagesToWrite << " by default..." << std::endl;
+    }
+
+    ConfigurationPtr conf = make_shared<Configuration>();
+    pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>(conf->getLogFile());
+    SharedMemPtr shm = make_shared<SharedMem>(conf->getShmSize(), logger);
+    pdb::PDBWorkerQueuePtr workers =
+        make_shared<pdb::PDBWorkerQueue>(logger, conf->getMaxConnections());
+    pdb::PangeaStorageServerPtr storage =
+        make_shared<pdb::PangeaStorageServer>(shm, workers, logger, conf);
+    storage->startFlushConsumerThreads();
+
+    // add database
+    storage->addDatabase("testDatabase");
+    storage->addSet("testDatabase", "testSet");
+    SetPtr set = storage->getSet(std::pair<std::string, std::string>("testDatabase", "testSet"));
+    storage->getCache()->pin(set, MRU, Write);
+
+    // writing data to the set
+    int pagesWritten = 0;
+
+    while (pagesWritten < numPagesToWrite) {
+        PDBPagePtr page =
+            storage->getNewPage(std::pair<std::string, std::string>("testDatabase", "testSet"));
+        if (page == nullptr) {
+            std::cout << "can't get page, exit..." << std::endl;
+            exit(EXIT_FAILURE);
         }
 
-        ConfigurationPtr conf = make_shared < Configuration > ();
-        pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
-        SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
-        pdb :: PDBWorkerQueuePtr workers = make_shared < pdb :: PDBWorkerQueue > (logger, conf->getMaxConnections()); 
-        pdb :: PangeaStorageServerPtr storage = make_shared<pdb :: PangeaStorageServer> (shm, workers, logger, conf);	
-        storage->startFlushConsumerThreads();
-        
-        //add database
-        storage->addDatabase ("testDatabase");
-        storage->addSet("testDatabase", "testSet");
-        SetPtr set = storage->getSet(std :: pair <std :: string, std :: string> ("testDatabase", "testSet"));
-        storage->getCache()->pin(set, MRU, Write);
+        const pdb::UseTemporaryAllocationBlock block{page->getBytes(), page->getSize()};
+        pdb::Handle<pdb::Vector<pdb::Handle<pdb::Employee>>> storeMe =
+            pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Employee>>>();
 
-        //writing data to the set        
-        int pagesWritten = 0;
-
-        while (pagesWritten < numPagesToWrite) {
-            PDBPagePtr page = storage->getNewPage(std :: pair <std :: string, std :: string>("testDatabase", "testSet"));
-            if (page == nullptr) {
-                std :: cout << "can't get page, exit..." << std :: endl;
-                exit (EXIT_FAILURE);
+        try {
+            for (int i = 0; true; i++) {
+                pdb::Handle<pdb::Employee> myData =
+                    pdb::makeObject<pdb::Employee>("Joe Johnson" + to_string(i), i + 45);
+                storeMe->push_back(myData);
             }
-            
-            const pdb :: UseTemporaryAllocationBlock block{page->getBytes(), page->getSize()};
-            pdb :: Handle <pdb :: Vector <pdb :: Handle <pdb :: Employee>>> storeMe = pdb :: makeObject <pdb :: Vector <pdb :: Handle<pdb :: Employee>>> ();
-            
-            try {
-                 for (int i = 0; true; i++) {
-                     pdb :: Handle <pdb :: Employee> myData = pdb :: makeObject <pdb :: Employee> ("Joe Johnson" + to_string (i), i + 45);
-                     storeMe->push_back (myData);
-                 }
 
-            } catch ( pdb :: NotEnoughSpace &n ) {
-                 //now we can unpin this page
-                 cout << "we have finished one page!" << std :: endl;
-                 getRecord (storeMe);                 
-                 page->unpin();
-                 pagesWritten ++;
-            }            
+        } catch (pdb::NotEnoughSpace& n) {
+            // now we can unpin this page
+            cout << "we have finished one page!" << std::endl;
+            getRecord(storeMe);
+            page->unpin();
+            pagesWritten++;
         }
+    }
 
-        //let's flush
-        int num = storage->getCache()->unpinAndEvictAllDirtyPages();
-        std :: cout << num << " pages are added to flush buffer!" << std :: endl;
-        std :: cout << "sleep 5 seconds to wait for flushing threads to be scheduled..." << std :: endl;
-        sleep (5);
-        std :: cout << "finish!" << std :: endl;
-        storage->stopFlushConsumerThreads();
-
+    // let's flush
+    int num = storage->getCache()->unpinAndEvictAllDirtyPages();
+    std::cout << num << " pages are added to flush buffer!" << std::endl;
+    std::cout << "sleep 5 seconds to wait for flushing threads to be scheduled..." << std::endl;
+    sleep(5);
+    std::cout << "finish!" << std::endl;
+    storage->stopFlushConsumerThreads();
 }
 
 #endif
-

@@ -21,6 +21,6 @@
 #include "GMM/GmmSampleSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmSampleSelection)
+GET_V_TABLE(GmmSampleSelection)
 
 #endif

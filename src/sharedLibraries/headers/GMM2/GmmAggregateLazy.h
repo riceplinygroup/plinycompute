@@ -18,7 +18,7 @@
 #ifndef GMM_AGGREGATE_LAZY_H
 #define GMM_AGGREGATE_LAZY_H
 
-//by Tania, October 2017
+// by Tania, October 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -30,76 +30,73 @@
 #include "GmmModel.h"
 
 
-
 using namespace pdb;
 
 
-class GmmAggregateLazy : public ClusterAggregateComp <GmmAggregateOutputLazy,
-						DoubleVector, int, GmmAggregateOutputLazy> {
+class GmmAggregateLazy : public ClusterAggregateComp<GmmAggregateOutputLazy,
+                                                     DoubleVector,
+                                                     int,
+                                                     GmmAggregateOutputLazy> {
 
 
 private:
-		Handle<GmmModel> model;
+    Handle<GmmModel> model;
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
+    GmmAggregateLazy() {}
 
-        GmmAggregateLazy () {}
+    GmmAggregateLazy(Handle<GmmModel> inputModel) {
+        std::cout << "Entering GmmAggregate constructor" << std::endl;
 
-        GmmAggregateLazy (Handle<GmmModel> inputModel) {
-        	std::cout << "Entering GmmAggregate constructor" << std::endl;
+        this->model = inputModel;
+        std::cout << "UPDATED MODEL" << std::endl;
+        std::cout << "WITH K=" << this->model->getNumK() << "AND NDIM=" << this->model->getNDim()
+                  << std::endl;
 
-			this->model = inputModel;
-			std::cout << "UPDATED MODEL" << std::endl;
-			std::cout << "WITH K=" << this->model->getNumK() <<
-					"AND NDIM="<< this->model->getNDim() << std::endl;
+        this->model->calcInvCovars();
+        std::cout << "Exiting GmmAggregate constructor" << std::endl;
+    }
 
-			this->model->calcInvCovars();
-        	std::cout << "Exiting GmmAggregate constructor" << std::endl;
+    // the key type must have == and size_t hash () defined
+    Lambda<int> getKeyProjection(Handle<DoubleVector> aggMe) override {
+        // Same key for all intermediate objects. The output is a single
+        // GmmNewComp object with the info related to all components
 
-        }
+        return makeLambda(aggMe, [](Handle<DoubleVector>& aggMe) { return (1); });
+    }
 
-        // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-			// Same key for all intermediate objects. The output is a single
-			// GmmNewComp object with the info related to all components
+    // the value type must have + defined
+    Lambda<GmmAggregateOutputLazy> getValueProjection(Handle<DoubleVector> aggMe) override {
 
-			return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {
-				return (1);
-			});
-        }
+        return makeLambda(aggMe, [&](Handle<DoubleVector>& aggMe) {
 
-        // the value type must have + defined
-        Lambda <GmmAggregateOutputLazy> getValueProjection (Handle <DoubleVector> aggMe) override {
+            int k = model->getNumK();
 
-        	return makeLambda (aggMe, [&] (Handle<DoubleVector> & aggMe) {
-
-        		int k = model->getNumK();
-
-				//Calculate responsabilities per component and normalize
-				//dividing by the total sum totalR
-				Vector<double> r_values(k,k);
-				double* r_valuesptr = r_values.c_ptr();
+            // Calculate responsabilities per component and normalize
+            // dividing by the total sum totalR
+            Vector<double> r_values(k, k);
+            double* r_valuesptr = r_values.c_ptr();
 
 
-				for (int i = 0; i < k; i++) {
-					r_valuesptr[i] = model->log_normpdf(i, aggMe, true) + log(model->getWeight(i));
-				}
+            for (int i = 0; i < k; i++) {
+                r_valuesptr[i] = model->log_normpdf(i, aggMe, true) + log(model->getWeight(i));
+            }
 
-				//Now normalize r
-				double logLikelihood = model->logSumExp(r_values);
+            // Now normalize r
+            double logLikelihood = model->logSumExp(r_values);
 
-				for (int i = 0; i < k; i++) {
-					r_valuesptr[i] = exp(r_valuesptr[i] - logLikelihood);
-				}
-        		Handle<GmmAggregateDatapoint> aggDatapoint = makeObject<GmmAggregateDatapoint>(*aggMe, r_values, logLikelihood);
-        		Handle<GmmAggregateOutputLazy> result = makeObject<GmmAggregateOutputLazy>(aggDatapoint);
-        		return *(result);
-            });
-        }
-
-
+            for (int i = 0; i < k; i++) {
+                r_valuesptr[i] = exp(r_valuesptr[i] - logLikelihood);
+            }
+            Handle<GmmAggregateDatapoint> aggDatapoint =
+                makeObject<GmmAggregateDatapoint>(*aggMe, r_values, logLikelihood);
+            Handle<GmmAggregateOutputLazy> result =
+                makeObject<GmmAggregateOutputLazy>(aggDatapoint);
+            return *(result);
+        });
+    }
 };
 
 

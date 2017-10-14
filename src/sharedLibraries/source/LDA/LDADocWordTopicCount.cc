@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDADocWordTopicCount.h"
 
-GET_V_TABLE (LDADocWordTopicCount)
+GET_V_TABLE(LDADocWordTopicCount)
 
 #endif

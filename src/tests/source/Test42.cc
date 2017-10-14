@@ -21,89 +21,89 @@
 
 using namespace pdb;
 
-int main () {
-	
-	MyDB_BufferManager myManager (1024 * 1024, 128, "tmpFile");
-	MyDB_TablePtr dataTable = std :: make_shared <MyDB_Table> ("tmpTable", "tmpDataFile");
-	MyDB_TablePtr resultTable = std :: make_shared <MyDB_Table> ("resultTable", "resultDataFile");
+int main() {
 
-	// create some pages, loading them with random data
-	for (int iter = 0; iter < 10; iter++) {	
+    MyDB_BufferManager myManager(1024 * 1024, 128, "tmpFile");
+    MyDB_TablePtr dataTable = std::make_shared<MyDB_Table>("tmpTable", "tmpDataFile");
+    MyDB_TablePtr resultTable = std::make_shared<MyDB_Table>("resultTable", "resultDataFile");
 
-		// get a page
-		MyDB_PageHandle myPage = myManager.getPage (dataTable, iter);
-        	makeObjectAllocatorBlock (myPage->getBytes (), 1024 * 1024, true);
+    // create some pages, loading them with random data
+    for (int iter = 0; iter < 10; iter++) {
 
-		// write a bunch of supervisors to it
-        	Handle <Vector <Handle <Supervisor>>> supers = makeObject <Vector <Handle <Supervisor>>> ();
-        	try {
-                	for (int i = 0; true; i++) {
+        // get a page
+        MyDB_PageHandle myPage = myManager.getPage(dataTable, iter);
+        makeObjectAllocatorBlock(myPage->getBytes(), 1024 * 1024, true);
 
-                        	Handle <Supervisor> super = makeObject <Supervisor> ("Joe Johnson", 20 + (i % 29));
-                        	supers->push_back (super);
-                        	for (int j = 0; j < 10; j++) {
-                                	Handle <Employee> temp;
-					if (j % 2 == 0)
-						temp = makeObject <Employee> ("Steve Stevens", 20 + ((i + j) % 29));
-					else
-						temp = makeObject <Employee> ("Albert Albertson", 20 + ((i + j) % 29));
-                                	(*supers)[i]->addEmp (temp);
-                        	}
-                	}
+        // write a bunch of supervisors to it
+        Handle<Vector<Handle<Supervisor>>> supers = makeObject<Vector<Handle<Supervisor>>>();
+        try {
+            for (int i = 0; true; i++) {
 
-		// an exception means that we filled the page with data
-       		} catch (NotEnoughSpace &e) {
-			getRecord (supers);
-			myPage->wroteBytes ();
-		}
+                Handle<Supervisor> super = makeObject<Supervisor>("Joe Johnson", 20 + (i % 29));
+                supers->push_back(super);
+                for (int j = 0; j < 10; j++) {
+                    Handle<Employee> temp;
+                    if (j % 2 == 0)
+                        temp = makeObject<Employee>("Steve Stevens", 20 + ((i + j) % 29));
+                    else
+                        temp = makeObject<Employee>("Albert Albertson", 20 + ((i + j) % 29));
+                    (*supers)[i]->addEmp(temp);
+                }
+            }
+
+            // an exception means that we filled the page with data
+        } catch (NotEnoughSpace& e) {
+            getRecord(supers);
+            myPage->wroteBytes();
+        }
+    }
+
+    // now, we process those pages of data, to answer a query
+    makeObjectAllocatorBlock(1024 * 1024, true);
+    Handle<CheckEmployee> myQuery = makeObject<CheckEmployee>(std::string("Steve Stevens"));
+
+    // get a query processor and intitialize it
+    auto queryProc = myQuery->getProjectionProcessor();
+    queryProc->initialize();
+    int posInOutTable = 0;
+
+    // get the first output page and load it into the query processor
+    MyDB_PageHandle myOutPage = myManager.getPage(resultTable, posInOutTable);
+    queryProc->loadOutputPage(myOutPage->getBytes(), 1024 * 1024);
+
+    // loop through the input pages
+    for (int iter = 0; iter <= 10; iter++) {
+
+        // get the first input page and load it into the query processor
+        if (iter < 10) {
+            MyDB_PageHandle myInPage = myManager.getPage(dataTable, iter);
+            queryProc->loadInputPage(myInPage->getBytes());
+        } else {
+            queryProc->finalize();
         }
 
-	// now, we process those pages of data, to answer a query
-	makeObjectAllocatorBlock (1024 * 1024, true);
-	Handle <CheckEmployee> myQuery = makeObject <CheckEmployee> (std :: string ("Steve Stevens"));	
+        // while we keep producing results, write the output pages
+        while (queryProc->fillNextOutputPage()) {
 
-	// get a query processor and intitialize it
-	auto queryProc = myQuery->getProjectionProcessor ();
-	queryProc->initialize ();
-	int posInOutTable = 0;
+            // tell the buffer manager that we wrote the current output page
+            myOutPage->wroteBytes();
 
-	// get the first output page and load it into the query processor
-	MyDB_PageHandle myOutPage = myManager.getPage (resultTable, posInOutTable);
-	queryProc->loadOutputPage (myOutPage->getBytes (), 1024 * 1024);
+            // and get the next output page
+            myOutPage = myManager.getPage(resultTable, ++posInOutTable);
+            queryProc->loadOutputPage(myOutPage->getBytes(), 1024 * 1024);
+        }
+    }
 
-	// loop through the input pages
-	for (int iter = 0; iter <= 10; iter++) {	
-
-		// get the first input page and load it into the query processor
-		if (iter < 10) {
-			MyDB_PageHandle myInPage = myManager.getPage (dataTable, iter);
-			queryProc->loadInputPage (myInPage->getBytes ());
-		} else {
-			queryProc->finalize ();	
-		}
-
-		// while we keep producing results, write the output pages
-		while (queryProc->fillNextOutputPage ()) {
-
-			// tell the buffer manager that we wrote the current output page
-			myOutPage->wroteBytes ();
-
-			// and get the next output page
-			myOutPage = myManager.getPage (resultTable, ++posInOutTable);
-			queryProc->loadOutputPage (myOutPage->getBytes (), 1024 * 1024);
-		}
-	}
-
-	// finally, print out all of the results
-	for (int pageNo = 0; pageNo < posInOutTable; pageNo++) {
-		MyDB_PageHandle writtenPage = myManager.getPage (resultTable, pageNo);
-		auto *temp = (Record <Vector <Handle <Vector <Handle <Employee>>>>> *) writtenPage->getBytes ();
-		auto myGuys = temp->getRootObject ();
-		for (int i = 0; i < myGuys->size (); i++) {
-			for (int j = 0; j < (*myGuys)[i]->size (); j++) {
-				(*((*myGuys)[i]))[j]->print ();
-				std :: cout << "\n";
-			}
-		}	
-	}
+    // finally, print out all of the results
+    for (int pageNo = 0; pageNo < posInOutTable; pageNo++) {
+        MyDB_PageHandle writtenPage = myManager.getPage(resultTable, pageNo);
+        auto* temp = (Record<Vector<Handle<Vector<Handle<Employee>>>>>*)writtenPage->getBytes();
+        auto myGuys = temp->getRootObject();
+        for (int i = 0; i < myGuys->size(); i++) {
+            for (int j = 0; j < (*myGuys)[i]->size(); j++) {
+                (*((*myGuys)[i]))[j]->print();
+                std::cout << "\n";
+            }
+        }
+    }
 }

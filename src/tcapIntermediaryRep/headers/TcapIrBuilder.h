@@ -33,15 +33,14 @@
 using std::shared_ptr;
 using std::vector;
 
-namespace pdb_detail
-{
-    /**
-     * Creates a list of instructions from the given parsed TCAP program.
-     *
-     * @param unit a parsed TCAP program
-     * @return A correpsonding instruction representation.
-     */
-     shared_ptr<vector<InstructionPtr>> buildTcapIr(TranslationUnit unit);
+namespace pdb_detail {
+/**
+ * Creates a list of instructions from the given parsed TCAP program.
+ *
+ * @param unit a parsed TCAP program
+ * @return A correpsonding instruction representation.
+ */
+shared_ptr<vector<InstructionPtr>> buildTcapIr(TranslationUnit unit);
 }
 
-#endif //PDB_TCAPINTERMEDIARYREP_TCAPIRBUILDER_H
+#endif  // PDB_TCAPINTERMEDIARYREP_TCAPIRBUILDER_H

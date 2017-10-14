@@ -22,6 +22,6 @@
 #include "AllSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (AllSelection)
+GET_V_TABLE(AllSelection)
 
 #endif

@@ -18,7 +18,7 @@
 #ifndef EXECUTION_OPERATOR_H
 #define EXECUTION_OPERATOR_H
 
-//by Jia, Sept 2016
+// by Jia, Sept 2016
 #include "BlockQueryProcessor.h"
 #include "Object.h"
 #include "QueryBase.h"
@@ -36,14 +36,11 @@ namespace pdb {
 
 class ExecutionOperator : public Object {
 
-    public:
-
-
-       virtual string getName() = 0;
-       virtual BlockQueryProcessorPtr getProcessor() = 0;
-       virtual Handle<QueryBase>& getSelection() = 0;
+public:
+    virtual string getName() = 0;
+    virtual BlockQueryProcessorPtr getProcessor() = 0;
+    virtual Handle<QueryBase>& getSelection() = 0;
 };
-
 }
 
 #endif

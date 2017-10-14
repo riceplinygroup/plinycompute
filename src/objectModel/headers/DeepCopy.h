@@ -34,32 +34,32 @@
 //
 //
 template <class ObjType>
-void setUpAndCopyFromTemplate (void *target, void *source, const ObjType *dummy) {
-        new (target) ObjType ();
-        *((ObjType *) target) = *((ObjType *) source);
+void setUpAndCopyFromTemplate(void* target, void* source, const ObjType* dummy) {
+    new (target) ObjType();
+    *((ObjType*)target) = *((ObjType*)source);
 }
 
 template <class ObjType>
-size_t computeSize (ObjType *dummy) {
-	return sizeof (ObjType);
+size_t computeSize(ObjType* dummy) {
+    return sizeof(ObjType);
 }
 
 template <class ObjType>
-void deleter (void *deleteMe, ObjType *dummy) {
-        ((ObjType *) deleteMe)->~ObjType ();
+void deleter(void* deleteMe, ObjType* dummy) {
+    ((ObjType*)deleteMe)->~ObjType();
 }
 
-#define ENABLE_DEEP_COPY                                   		      	\
-void setUpAndCopyFrom (void *target, void *source) const override { 	 	\
-        setUpAndCopyFromTemplate (target, source, this);         		\
-}                                                                		\
-                                                                 		\
-void deleteObject (void *deleteMe) override {                         		\
-        deleter (deleteMe, this);                                		\
-}                                                                		\
-                                                                 		\
-size_t getSize (void *ofMe) override {                                 		\
-	return computeSize (this);                               		\
-}
+#define ENABLE_DEEP_COPY                                               \
+    void setUpAndCopyFrom(void* target, void* source) const override { \
+        setUpAndCopyFromTemplate(target, source, this);                \
+    }                                                                  \
+                                                                       \
+    void deleteObject(void* deleteMe) override {                       \
+        deleter(deleteMe, this);                                       \
+    }                                                                  \
+                                                                       \
+    size_t getSize(void* ofMe) override {                              \
+        return computeSize(this);                                      \
+    }
 
 #endif

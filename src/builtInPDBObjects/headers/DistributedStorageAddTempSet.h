@@ -18,7 +18,7 @@
 #ifndef DISTRIBUTEDSTORAGEADDTEMPSET_H
 #define DISTRIBUTEDSTORAGEADDTEMPSET_H
 
-//by Jia, Mar 2017
+// by Jia, Mar 2017
 
 #include "Object.h"
 #include "Handle.h"
@@ -29,42 +29,43 @@
 namespace pdb {
 
 // encapsulates a request to add a set in storage
-    class DistributedStorageAddTempSet  : public Object {
+class DistributedStorageAddTempSet : public Object {
 
-    public:
+public:
+    DistributedStorageAddTempSet() {}
+    ~DistributedStorageAddTempSet() {}
 
-        DistributedStorageAddTempSet () {}
-        ~DistributedStorageAddTempSet () {}
+    DistributedStorageAddTempSet(std::string databaseName,
+                                 std::string setName,
+                                 std::string typeName,
+                                 size_t pageSize)
+        : databaseName(databaseName), setName(setName), typeName(typeName), pageSize(pageSize) {}
 
-        DistributedStorageAddTempSet (std :: string databaseName, std :: string setName, std :: string typeName, size_t pageSize)
-                : databaseName (databaseName), setName (setName), typeName (typeName), pageSize (pageSize) {}
+    std::string getDatabaseName() {
+        return databaseName;
+    }
 
-        std :: string getDatabaseName () {
-            return databaseName;
-        }
+    std::string getSetName() {
+        return setName;
+    }
 
-        std :: string getSetName () {
-            return setName;
-        }
+    std::string getTypeName() {
+        return typeName;
+    }
 
-        std :: string getTypeName () {
-            return typeName;
-        }
+    size_t getPageSize() {
+        return pageSize;
+    }
 
-        size_t getPageSize() {
-            return pageSize;
-        }
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-    private:
-        String databaseName;
-        String setName;
-        String typeName;
-        size_t pageSize;
-    };
-
+private:
+    String databaseName;
+    String setName;
+    String typeName;
+    size_t pageSize;
+};
 }
 
 
-#endif //DISTRIBUTEDSTORAGEADDTEMPSET_H
+#endif  // DISTRIBUTEDSTORAGEADDTEMPSET_H

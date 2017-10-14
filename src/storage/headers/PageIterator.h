@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PageIterator.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PAGEITERATOR_H
-#define	PAGEITERATOR_H
+#define PAGEITERATOR_H
 
 #include "PDBPage.h"
 
@@ -41,27 +41,21 @@ typedef shared_ptr<PageIteratorInterface> PageIteratorPtr;
 class PageIteratorInterface {
 
 public:
-	/*
-	 * To support polymorphism.
-	 */
-	virtual ~PageIteratorInterface() {};
+    /*
+     * To support polymorphism.
+     */
+    virtual ~PageIteratorInterface(){};
 
-	/**
-	 * To return the next page. If there is no more page, return nullptr.
-	 */
+    /**
+     * To return the next page. If there is no more page, return nullptr.
+     */
     virtual PDBPagePtr next() = 0;
 
     /**
      * If there is more page, return true, otherwise return false.
      */
     virtual bool hasNext() = 0;
-
-   
-
-
 };
 
 
-
-#endif	/* PAGEITERATOR_H */
-
+#endif /* PAGEITERATOR_H */

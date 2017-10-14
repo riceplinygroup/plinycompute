@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBMsgType.h
  * Author: Chris
  *
@@ -24,11 +24,11 @@
  */
 
 #ifndef PDBMSGTYPE_H
-#define	PDBMSGTYPE_H
+#define PDBMSGTYPE_H
 
 
-
-// this lists all of the identifiers for the different messages that can be received by a PDBCommunicator
+// this lists all of the identifiers for the different messages that can be received by a
+// PDBCommunicator
 // object.  See PDBCommunicator.h for more info.
 
 /*
@@ -63,24 +63,24 @@ enum PDBMsgType_v1 {
  */
 
 enum PDBMsgType {
-    //Connection operations
-    CloseConnection, //0
-    ErrMsg, //1
-    NoMsg, //2
-    InfoMsg, //3
-    InfoReceivedMsg, //4
-    //Server operations
-    AbortMsg, //5
-    ShutDownMsg, //6
-    ShutDownDoneMsg, //7
-    //Database operations
+    // Connection operations
+    CloseConnection,  // 0
+    ErrMsg,           // 1
+    NoMsg,            // 2
+    InfoMsg,          // 3
+    InfoReceivedMsg,  // 4
+    // Server operations
+    AbortMsg,         // 5
+    ShutDownMsg,      // 6
+    ShutDownDoneMsg,  // 7
+    // Database operations
     /*
      * Needs to integrate with Master/Catalog for adding meta-data
      */
-    /* 
+    /*
      * MsgType: 4 bytes
      */
-    ListDatabasesMsg, //8
+    ListDatabasesMsg,  // 8
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -88,56 +88,56 @@ enum PDBMsgType {
      * name length: 4 bytes
      * name: varying length
      */
-    AddDatabaseMsg, //9
+    AddDatabaseMsg,  // 9
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    AddDatabaseSuccessMsg, //10
+    AddDatabaseSuccessMsg,  // 10
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
      */
-    RemoveDatabaseMsg, //11
+    RemoveDatabaseMsg,  // 11
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    RemoveDatabaseSuccessMsg, //12
+    RemoveDatabaseSuccessMsg,  // 12
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
      */
-    OpenDatabaseMsg, //13
+    OpenDatabaseMsg,  // 13
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    OpenDatabaseSuccessMsg, //14
+    OpenDatabaseSuccessMsg,  // 14
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
      */
-    CloseDatabaseMsg, //15
+    CloseDatabaseMsg,  // 15
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    CloseDatabaseSuccessMsg, //16
+    CloseDatabaseSuccessMsg,  // 16
 
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
      */
-    ListTypesMsg, //17
+    ListTypesMsg,  // 17
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -146,26 +146,26 @@ enum PDBMsgType {
      * type name length: 4 bytes
      * type name: varying length
      */
-    AddTypeMsg, //18
+    AddTypeMsg,  // 18
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    AddTypeSuccessMsg, //19
+    AddTypeSuccessMsg,  // 19
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
      * UserTypeID: 4 bytes
      */
-    RemoveTypeMsg, //20
+    RemoveTypeMsg,  // 20
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    RemoveTypeSuccessMsg, //21
+    RemoveTypeSuccessMsg,  // 21
 
     /*
      * Data Manipulations
@@ -173,14 +173,14 @@ enum PDBMsgType {
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
-     * UserTypeID: 4 bytes 
+     * UserTypeID: 4 bytes
      */
-    ListObjectsMsg, //22
+    ListObjectsMsg,  // 22
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * DatabaseID: 4 bytes
-     * TypeID: 4 bytes 
+     * TypeID: 4 bytes
      * NumObjects: 4 bytes
      * 1st Object length: 4 bytes
      * 1st Object data: varying length
@@ -188,13 +188,13 @@ enum PDBMsgType {
      * 2nd Object data: varying length
      * ...
      */
-    LoadDataMsg, //23
+    LoadDataMsg,  // 23
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    LoadDataDoneMsg, //24
+    LoadDataDoneMsg,  // 24
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -202,15 +202,15 @@ enum PDBMsgType {
      * TypeID: 4 bytes
      * SetID: 4 bytes
      * DataLength: 4 bytes
-     * Data: varying length 
+     * Data: varying length
      */
-    AddObjectMsg, //25
+    AddObjectMsg,  // 25
 
     /* MsgType: 4 bytes
      * PageID: 4 bytes
      * MiniPageID: 4 bytes
      */
-    AddObjectSuccessMsg, //26
+    AddObjectSuccessMsg,  // 26
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -221,14 +221,14 @@ enum PDBMsgType {
      * PageID: 4 bytes
      * MiniPageID: 4 bytes
      */
-    GetObjectMsg, //27
+    GetObjectMsg,  // 27
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * Object Length: 4 bytes
      * Object Data: varying length
      */
-    SendObjectMsg, //28
+    SendObjectMsg,  // 28
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -237,16 +237,15 @@ enum PDBMsgType {
      * TypeID: 4 bytes
      * PageID: 4 bytes
      */
-    GetPageMsg, //29
-
+    GetPageMsg,  // 29
 
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * PageSize: 4 bytes
-     * Data Offset: 4 bytes 
+     * Data Offset: 4 bytes
      */
-    GetPageSuccessMsg, //30
+    GetPageSuccessMsg,  // 30
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -255,7 +254,7 @@ enum PDBMsgType {
      * TypeID: 4 bytes
      * SetID: 4 bytes
      */
-    GetSetPagesMsg, //31
+    GetSetPagesMsg,  // 31
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -264,9 +263,9 @@ enum PDBMsgType {
      * 2nd PageID: 4 bytes
      * ...
      */
-    PageLoadedMsg, //32
-    AckPageLoadedMsg, //33
-    PageLoadedDoneMsg, //34
+    PageLoadedMsg,      // 32
+    AckPageLoadedMsg,   // 33
+    PageLoadedDoneMsg,  // 34
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -275,15 +274,15 @@ enum PDBMsgType {
      * 2nd PageID: 4 bytes
      * ...
      */
-    PageFinishedBatchMsg, //35
-    AckPageFinishedBatchMsg, //36
-    PageFinishedDoneMsg, //37
+    PageFinishedBatchMsg,     // 35
+    AckPageFinishedBatchMsg,  // 36
+    PageFinishedDoneMsg,      // 37
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    NoMorePageMsg, //38
+    NoMorePageMsg,  // 38
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -291,7 +290,7 @@ enum PDBMsgType {
      * DatabaseID: 4 bytes
      * TypeID: 4 bytes
      */
-    GetTypePagesMsg, //39
+    GetTypePagesMsg,  // 39
 
 
     /* MsgType: 4 bytes
@@ -302,13 +301,13 @@ enum PDBMsgType {
      * set name length: 4 bytes
      * set name: varying length
      */
-    AddSetMsg, //40
+    AddSetMsg,  // 40
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    AddSetSuccessMsg, //41
+    AddSetSuccessMsg,  // 41
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -316,13 +315,13 @@ enum PDBMsgType {
      * UserTypeID: 4 bytes
      * SetID: 4 bytes
      */
-    RemoveSetMsg, //42
+    RemoveSetMsg,  // 42
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    RemoveSetSuccessMsg, //43
+    RemoveSetSuccessMsg,  // 43
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -330,13 +329,13 @@ enum PDBMsgType {
      * UserTypeID: 4 bytes
      * SetID: 4 bytes
      */
-    GetPageNumMsg, //44
+    GetPageNumMsg,  // 44
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * PageNum: 4 bytes
      */
-    GetPageNumSuccessMsg, //45
+    GetPageNumSuccessMsg,  // 45
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -344,27 +343,27 @@ enum PDBMsgType {
      * UserTypeID: 4 bytes
      * SetID: 4 bytes
      */
-    TestSetIteratorsMsg, //46
+    TestSetIteratorsMsg,  // 46
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * info: varying length
      */
-    TestSetIteratorsDoneMsg, //47
-    
-    /* MsgType: 4 bytes
-     * Total length: 4 bytes
-     * SetID: 4 bytes
-     */
-    AddTempSetSuccessMsg, //48
+    TestSetIteratorsDoneMsg,  // 47
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
      * SetID: 4 bytes
-     */    
-    AddTempPageMsg, //49
-    
-    //Catalog-related messages
+     */
+    AddTempSetSuccessMsg,  // 48
+
+    /* MsgType: 4 bytes
+     * Total length: 4 bytes
+     * SetID: 4 bytes
+     */
+    AddTempPageMsg,  // 49
+
+    // Catalog-related messages
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -372,12 +371,12 @@ enum PDBMsgType {
      * name length: 4 bytes
      * binaryCode: varying length
      */
-    CatalogAddDatabaseMsg, //50
+    CatalogAddDatabaseMsg,  // 50
 
     /* MsgType: 4 bytes
      * text: 4 bytes
      */
-    CatalogAddDatabaseSuccessMsg, //51
+    CatalogAddDatabaseSuccessMsg,  // 51
 
     /* MsgType: 4 bytes
      * Total length: 4 bytes
@@ -385,16 +384,15 @@ enum PDBMsgType {
      * name length: 4 bytes
      * content: varying length
      */
-    CatalogRegisterPDBTypeMsg, //52
+    CatalogRegisterPDBTypeMsg,  // 52
 
     /* MsgType: 4 bytes
      * text: 4 bytes
      */
-    CatalogRegisterPDBTypeSuccessMsg, //53
+    CatalogRegisterPDBTypeSuccessMsg,  // 53
 
 
 };
 
 
-
-#endif	/* PDBMSGTYPE_H */
+#endif /* PDBMSGTYPE_H */

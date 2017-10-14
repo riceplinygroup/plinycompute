@@ -30,39 +30,33 @@ namespace pdb {
 class MyEmployee : public Object {
 
 private:
-
     int age;
     int salary;
 
 public:
-
     ENABLE_DEEP_COPY
 
-    ~MyEmployee () {}
+    ~MyEmployee() {}
 
-    MyEmployee () {}
+    MyEmployee() {}
 
-    MyEmployee (int ageIn, int salaryIn) {
-             age = ageIn;
-             salary = salaryIn;
+    MyEmployee(int ageIn, int salaryIn) {
+        age = ageIn;
+        salary = salaryIn;
     }
 
-    int getAge () {
-             return age;
+    int getAge() {
+        return age;
     }
 
-    int getSalary () {
-             return salary;
+    int getSalary() {
+        return salary;
     }
 
-    void print () {
-             std :: cout << "age: " << age << "; salary: " << salary << std::endl;
+    void print() {
+        std::cout << "age: " << age << "; salary: " << salary << std::endl;
     }
-
 };
-
-
-
 }
 
 #endif

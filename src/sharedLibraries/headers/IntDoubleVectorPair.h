@@ -30,82 +30,78 @@ using namespace pdb;
 class IntDoubleVectorPair : public Object {
 
 private:
-
-
 public:
-        int myInt;
-	Vector<double> myVector;
+    int myInt;
+    Vector<double> myVector;
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ~IntDoubleVectorPair () {}
-        IntDoubleVectorPair () {}
+    ~IntDoubleVectorPair() {}
+    IntDoubleVectorPair() {}
 
-	IntDoubleVectorPair (int fromInt, Handle<Vector<double>>& fromVector) {
-		this->myInt = fromInt;
-		this->myVector = *fromVector;
-		/*
-		int size = fromVector->size();
-		this->myVector = makeObject<Vector<double>>(size, size);
-		for (int i = 0; i < size; i++) {
-			(*(this->myVector))[i] = (*fromVector)[i];
-		}
-		*/
-	}
-	
-	void setInt(int fromInt) {
-		this->myInt = fromInt;
-	}
+    IntDoubleVectorPair(int fromInt, Handle<Vector<double>>& fromVector) {
+        this->myInt = fromInt;
+        this->myVector = *fromVector;
+        /*
+        int size = fromVector->size();
+        this->myVector = makeObject<Vector<double>>(size, size);
+        for (int i = 0; i < size; i++) {
+            (*(this->myVector))[i] = (*fromVector)[i];
+        }
+        */
+    }
 
-	void setVector(Handle<Vector<double>>& fromVector) {
-		int size = fromVector->size();
-                for (int i = 0; i < size; i++) {
-                    myVector.push_back((*fromVector)[i]);
-                }
-		//this->myVector = *fromVector;
-		/*
-		if (this->myVector->c_ptr() == nullptr || this->myVector->size() < size)
-                	this->myVector = makeObject<Vector<double>>(size, size);
+    void setInt(int fromInt) {
+        this->myInt = fromInt;
+    }
+
+    void setVector(Handle<Vector<double>>& fromVector) {
+        int size = fromVector->size();
+        for (int i = 0; i < size; i++) {
+            myVector.push_back((*fromVector)[i]);
+        }
+        // this->myVector = *fromVector;
+        /*
+        if (this->myVector->c_ptr() == nullptr || this->myVector->size() < size)
+                    this->myVector = makeObject<Vector<double>>(size, size);
                 for (int i = 0; i < size; i++) {
                         (*(this->myVector))[i] = (*fromVector)[i];
                 }
-		*/
-	}
+        */
+    }
 
-	int getInt() {
-		return this->myInt;
-	}
+    int getInt() {
+        return this->myInt;
+    }
 
-	unsigned getUnsigned () {
-		return this->myInt;
-	}
+    unsigned getUnsigned() {
+        return this->myInt;
+    }
 
-	Vector<double>& getVector() {
-		return this->myVector;
-	}
-	
-	int &getKey() {
-                return this->myInt;
-        }
+    Vector<double>& getVector() {
+        return this->myVector;
+    }
 
-        Vector<double> &getValue() {
-                 return this->myVector;
-        }
+    int& getKey() {
+        return this->myInt;
+    }
 
+    Vector<double>& getValue() {
+        return this->myVector;
+    }
 };
-namespace pdb{
-inline Vector<double> &operator+ (Vector<double> &lhs, Vector<double> &rhs) {
-        int size = lhs.size();
-        if (size != rhs.size()) {
-                std :: cout << "You cannot add two vectors in different sizes!" << std :: endl;
-                return lhs;
-        }
-        for (int i = 0; i < size; ++i) {
-		if (rhs[i] != 0)
-                	lhs[i] = lhs[i] + rhs[i];
-        }
+namespace pdb {
+inline Vector<double>& operator+(Vector<double>& lhs, Vector<double>& rhs) {
+    int size = lhs.size();
+    if (size != rhs.size()) {
+        std::cout << "You cannot add two vectors in different sizes!" << std::endl;
         return lhs;
-
+    }
+    for (int i = 0; i < size; ++i) {
+        if (rhs[i] != 0)
+            lhs[i] = lhs[i] + rhs[i];
+    }
+    return lhs;
 }
 }
 

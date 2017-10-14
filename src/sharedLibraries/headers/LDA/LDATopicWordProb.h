@@ -27,48 +27,47 @@
 
 using namespace pdb;
 
-class LDATopicWordProb  : public Object {
+class LDATopicWordProb : public Object {
 
 private:
+    // the word for which we have all of the topic probabilities
+    unsigned whichWord;
 
-	// the word for which we have all of the topic probabilities
-	unsigned whichWord;
-
-	// the list of probabilities
-	NumericalVector <double> probabilities;
+    // the list of probabilities
+    NumericalVector<double> probabilities;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDATopicWordProb() {}
 
-        LDATopicWordProb () {}
+    LDATopicWordProb(unsigned numTopics,
+                     unsigned fromWord,
+                     unsigned fromTopic,
+                     double fromProbability)
+        : whichWord(fromWord), probabilities(numTopics, fromTopic, fromProbability) {}
 
-        LDATopicWordProb (unsigned numTopics, unsigned fromWord, unsigned fromTopic, double fromProbability) : 
-		whichWord (fromWord), 
-		probabilities (numTopics, fromTopic, fromProbability) {}
+    LDATopicWordProb(unsigned whichWord, Handle<Vector<double>> probabilities)
+        : whichWord(whichWord), probabilities(probabilities) {}
 
-	LDATopicWordProb (unsigned whichWord, Handle <Vector <double>> probabilities) : whichWord (whichWord), 
-		probabilities (probabilities) {}
+    unsigned& getKey() {
+        return whichWord;
+    }
 
-	unsigned &getKey () {
-		return whichWord;
-	}	
+    LDATopicWordProb& operator+(LDATopicWordProb& me) {
+        probabilities += me.probabilities;
+        return *this;
+    }
 
-	LDATopicWordProb &operator + (LDATopicWordProb &me) {
-		probabilities += me.probabilities;
-		return *this;
-	}
+    LDATopicWordProb& getValue() {
+        return *this;
+    }
 
-	LDATopicWordProb &getValue () {
-		return *this;
-	}
+    Vector<double>& getVector() {
+        return probabilities.getVector();
+    }
 
-        Vector <double> &getVector () {
-                return probabilities.getVector ();
-        }
-
-        ~LDATopicWordProb () {}
-
+    ~LDATopicWordProb() {}
 };
 
 

@@ -28,10 +28,8 @@ namespace pdb {
 class CloseConnection : public Object {
 
 public:
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 };
-
 }
 
 #endif

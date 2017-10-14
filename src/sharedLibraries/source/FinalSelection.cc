@@ -21,6 +21,6 @@
 #include "FinalSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (FinalSelection)
+GET_V_TABLE(FinalSelection)
 
 #endif

@@ -22,24 +22,22 @@
 #include "ScanUserSet.h"
 
 #ifndef NUM_KMEANS_DIMENSIONS
-    #define NUM_KMEANS_DIMENSIONS 100
+#define NUM_KMEANS_DIMENSIONS 100
 #endif
 
 
 using namespace pdb;
-class ScanDoubleArraySet : public ScanUserSet <double[NUM_KMEANS_DIMENSIONS]> {
+class ScanDoubleArraySet : public ScanUserSet<double[NUM_KMEANS_DIMENSIONS]> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanDoubleArraySet () {
-        }
+    ScanDoubleArraySet() {}
 
-        ScanDoubleArraySet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanDoubleArraySet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

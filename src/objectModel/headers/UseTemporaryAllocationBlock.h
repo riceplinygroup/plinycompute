@@ -26,33 +26,29 @@
 namespace pdb {
 
 class UseTemporaryAllocationBlock;
-typedef std :: shared_ptr <UseTemporaryAllocationBlock> UseTemporaryAllocationBlockPtr;
+typedef std::shared_ptr<UseTemporaryAllocationBlock> UseTemporaryAllocationBlockPtr;
 
 class UseTemporaryAllocationBlock {
 
-	AllocatorState oldInfo;
+    AllocatorState oldInfo;
 
 public:
+    explicit UseTemporaryAllocationBlock(void* memory, size_t size) {
+        oldInfo = getAllocator().temporarilyUseBlockForAllocations(memory, size);
+    }
 
-	explicit UseTemporaryAllocationBlock (void *memory, size_t size) {
-		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (memory, size);			
-	}
+    explicit UseTemporaryAllocationBlock(size_t size) {
+        oldInfo = getAllocator().temporarilyUseBlockForAllocations(size);
+    }
 
-	explicit UseTemporaryAllocationBlock (size_t size) {
-		oldInfo = getAllocator ().temporarilyUseBlockForAllocations (size);	
-	}
+    ~UseTemporaryAllocationBlock() {
+        getAllocator().restoreAllocationBlock(oldInfo);
+    }
 
-	~UseTemporaryAllocationBlock () {
-		getAllocator ().restoreAllocationBlock (oldInfo);
-	}
-
-	// forbidden, to avoid double frees
-	UseTemporaryAllocationBlock (const UseTemporaryAllocationBlock &) = delete;
-	UseTemporaryAllocationBlock & operator = (const UseTemporaryAllocationBlock &) = delete;
-
+    // forbidden, to avoid double frees
+    UseTemporaryAllocationBlock(const UseTemporaryAllocationBlock&) = delete;
+    UseTemporaryAllocationBlock& operator=(const UseTemporaryAllocationBlock&) = delete;
 };
-
 }
 
 #endif
-

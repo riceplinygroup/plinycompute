@@ -21,6 +21,6 @@
 #include "DoubleVectorAggregation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (DoubleVectorAggregation)
+GET_V_TABLE(DoubleVectorAggregation)
 
 #endif

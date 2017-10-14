@@ -28,14 +28,13 @@ Blackfin Processors from Analog Devices.
 
 #define BOOST_ARCH_BLACKFIN BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__bfin__) || defined(__BFIN__) || \
-    defined(bfin) || defined(BFIN)
-#   undef BOOST_ARCH_BLACKFIN
-#   define BOOST_ARCH_BLACKFIN BOOST_VERSION_NUMBER_AVAILABLE
+#if defined(__bfin__) || defined(__BFIN__) || defined(bfin) || defined(BFIN)
+#undef BOOST_ARCH_BLACKFIN
+#define BOOST_ARCH_BLACKFIN BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_ARCH_BLACKFIN
-#   define BOOST_ARCH_BLACKFIN_AVAILABLE
+#define BOOST_ARCH_BLACKFIN_AVAILABLE
 #endif
 
 #define BOOST_ARCH_BLACKFIN_NAME "Blackfin"
@@ -43,4 +42,4 @@ Blackfin Processors from Analog Devices.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_BLACKFIN,BOOST_ARCH_BLACKFIN_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_BLACKFIN, BOOST_ARCH_BLACKFIN_NAME)

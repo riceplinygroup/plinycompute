@@ -31,19 +31,28 @@
 #include <ctime>
 #include <string>
 
-int main () {
+int main() {
 
-	// for timing
-	auto begin = std::chrono::high_resolution_clock::now();
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
 
-        for (int i = 0; i < 10000; i++) {
-            std::string * str = new std::string("This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing  soon. It has a total of 512 bytes to test. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing..");
-	    delete str;
-        }
+    for (int i = 0; i < 10000; i++) {
+        std::string* str = new std::string(
+            "This is an object big enough to force flushing soon. This is an object big enough to "
+            "force flushing soon. This is an object big enough to force flushing soon. This is an "
+            "object big enough to force flushing soon. This is an object big enough to force "
+            "flushing soon. This is an object big enough to force flushing soon. This is an object "
+            "big enough to force flushing soon. This is an object big enough to force flushing "
+            "soon. This is an object big enough to force flushing  soon. It has a total of 512 "
+            "bytes to test. This is an object big enough to force flushing soon. This is an object "
+            "big enough to force flushing soon. This is an object big enough to force flushing "
+            "soon. This is an object big enough to force flushing soon. This is an object big "
+            "enough to force flushing..");
+        delete str;
+    }
 
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Duration to create all of the std::string objects: " <<
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to create all of the std::string objects: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
 };
-	

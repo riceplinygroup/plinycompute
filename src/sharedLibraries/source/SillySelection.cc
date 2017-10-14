@@ -21,6 +21,6 @@
 #include "SillySelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SillySelection)
+GET_V_TABLE(SillySelection)
 
 #endif

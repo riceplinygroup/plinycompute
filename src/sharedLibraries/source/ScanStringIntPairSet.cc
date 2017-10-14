@@ -22,6 +22,6 @@
 #include "ScanStringIntPairSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanStringIntPairSet)
+GET_V_TABLE(ScanStringIntPairSet)
 
 #endif

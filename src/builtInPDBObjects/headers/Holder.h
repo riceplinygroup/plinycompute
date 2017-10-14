@@ -34,19 +34,16 @@
 namespace pdb {
 
 
-template <class TargetType>           
+template <class TargetType>
 class Holder : public Object {
 
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
-
-        Handle<TargetType> child;
+    Handle<TargetType> child;
 };
-
 }
 
 
 #endif
-

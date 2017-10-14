@@ -18,41 +18,38 @@
 #ifndef DOUBLE_VECTOR_RESULT_H
 #define DOUBLE_VECTOR_RESULT_H
 
-//by Jia, May 2017
+// by Jia, May 2017
 
 #include "Object.h"
 #include "DoubleVector.h"
-//PRELOAD %DoubleVectorResult%
+// PRELOAD %DoubleVectorResult%
 
 namespace pdb {
 
-class DoubleVectorResult: public Object {
+class DoubleVectorResult : public Object {
 
 public:
-     DoubleVectorResult () {}
+    DoubleVectorResult() {}
 
 
-     DoubleVector doubleVector;
-     int identifier;
+    DoubleVector doubleVector;
+    int identifier;
 
-     ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-     void print() {
+    void print() {
         this->doubleVector.print();
-     }
+    }
 
-     int &getKey() {
-         return identifier;
-     }
+    int& getKey() {
+        return identifier;
+    }
 
-     DoubleVector &getValue() {
-         return doubleVector;
-     }
-
+    DoubleVector& getValue() {
+        return doubleVector;
+    }
 };
-
 }
-
 
 
 #endif

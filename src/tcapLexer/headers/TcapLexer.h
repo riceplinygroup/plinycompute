@@ -20,17 +20,16 @@
 
 #include "TcapTokenStream.h"
 
-namespace pdb_detail
-{
-    /**
-     * Tokenize a string into a token stream.
-     *
-     * Unrecognized tokens will be reported as TokenType::UNKNOWN_TYPE
-     *
-     * @param source the input string
-     * @return the tokenization of source
-     */
-    TcapTokenStream lexTcap(const string &source);
+namespace pdb_detail {
+/**
+ * Tokenize a string into a token stream.
+ *
+ * Unrecognized tokens will be reported as TokenType::UNKNOWN_TYPE
+ *
+ * @param source the input string
+ * @return the tokenization of source
+ */
+TcapTokenStream lexTcap(const string& source);
 }
 
-#endif //PDB_TCAPLEXER_TCAPLEXER_H
+#endif  // PDB_TCAPLEXER_TCAPLEXER_H

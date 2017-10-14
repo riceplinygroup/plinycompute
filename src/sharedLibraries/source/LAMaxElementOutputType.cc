@@ -22,6 +22,6 @@
 #include "LAMaxElementOutputType.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAMaxElementOutputType)
+GET_V_TABLE(LAMaxElementOutputType)
 
 #endif

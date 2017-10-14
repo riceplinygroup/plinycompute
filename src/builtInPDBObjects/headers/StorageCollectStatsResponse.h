@@ -30,31 +30,26 @@
 namespace pdb {
 
 // encapsulates a request to return all user set information
-class StorageCollectStatsResponse  : public Object {
+class StorageCollectStatsResponse : public Object {
 
 public:
+    StorageCollectStatsResponse() {}
+    ~StorageCollectStatsResponse() {}
 
-	StorageCollectStatsResponse () {}
-	~StorageCollectStatsResponse () {}
+    Handle<Vector<Handle<SetIdentifier>>>& getStats() {
+        return stats;
+    }
 
-        Handle<Vector<Handle<SetIdentifier>>> & getStats() {
-            return stats;
-        }
-        
-        void setStats(Handle<Vector<Handle<SetIdentifier>>> stats) {
-            this->stats = makeObject<Vector<Handle<SetIdentifier>>>();
-            this->stats = stats;
-        }
+    void setStats(Handle<Vector<Handle<SetIdentifier>>> stats) {
+        this->stats = makeObject<Vector<Handle<SetIdentifier>>>();
+        this->stats = stats;
+    }
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-        Handle<Vector<Handle<SetIdentifier>>> stats;
-
-
+    Handle<Vector<Handle<SetIdentifier>>> stats;
 };
-
 }
 
 #endif

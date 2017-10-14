@@ -40,21 +40,19 @@ namespace pdb {
 // It also provides methods for maintaining their associated metadata.
 // Clients of this class will access this information using a handler to the catalog.
 
-    class CatalogPermissionsMetadata : public Object {
-    public:
+class CatalogPermissionsMetadata : public Object {
+public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
+    // TODO: methods for adding, revoking permissions, etc.
+    CatalogPermissionsMetadata() {
+        // TODO Auto-generated constructor stub
+    }
 
-        //TODO: methods for adding, revoking permissions, etc.
-        CatalogPermissionsMetadata() {
-            // TODO Auto-generated constructor stub
-
-        }
-
-        ~CatalogPermissionsMetadata() {
-            // TODO Auto-generated destructor stub
-        }
-    };
+    ~CatalogPermissionsMetadata() {
+        // TODO Auto-generated destructor stub
+    }
+};
 
 } /* namespace pdb */
 

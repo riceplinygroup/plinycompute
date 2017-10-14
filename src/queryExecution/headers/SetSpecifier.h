@@ -19,78 +19,85 @@
 #ifndef SET_SPECIFIER_H
 #define SET_SPECIFIER_H
 
-//by Jia, Oct 2016
+// by Jia, Oct 2016
 
 #include <string>
 #include "DataTypes.h"
 #include "Configuration.h"
 #include <memory>
 class SetSpecifier;
-typedef std :: shared_ptr<SetSpecifier> SetSpecifierPtr;
+typedef std::shared_ptr<SetSpecifier> SetSpecifierPtr;
 
 
 // encapsulates a request to add a set in storage
-class SetSpecifier  {
+class SetSpecifier {
 
 public:
+    SetSpecifier() {}
+    ~SetSpecifier() {}
 
+    SetSpecifier(std::string dataBase,
+                 std::string setName,
+                 DatabaseID dbId,
+                 UserTypeID typeId,
+                 SetID setId,
+                 size_t pageSize = DEFAULT_PAGE_SIZE)
+        : dataBase(dataBase),
+          setName(setName),
+          dbId(dbId),
+          typeId(typeId),
+          setId(setId),
+          pageSize(pageSize) {}
 
-	SetSpecifier () {}
-	~SetSpecifier () {}
+    std::string getDatabase() {
+        return dataBase;
+    }
 
-	SetSpecifier (std :: string dataBase, std :: string setName, DatabaseID dbId, UserTypeID typeId, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE) : dataBase (dataBase), setName (setName), dbId(dbId), typeId(typeId), setId(setId), pageSize(pageSize) {}
+    std::string getSetName() {
+        return setName;
+    }
 
-	std :: string getDatabase () {
-		return dataBase;
-	}
+    void setDatabaseId(DatabaseID dbId) {
+        this->dbId = dbId;
+    }
 
-	std :: string getSetName () {
-		return setName;
-	}
+    void setTypeId(UserTypeID typeId) {
+        this->typeId = typeId;
+    }
 
-        void setDatabaseId(DatabaseID dbId) {
-                this->dbId = dbId;
-        }
+    void setSetId(SetID setId) {
+        this->setId = setId;
+    }
 
-        void setTypeId (UserTypeID typeId) {
-                this->typeId = typeId;
-        }
+    void setPageSize(size_t pageSize) {
+        this->pageSize = pageSize;
+    }
 
-        void setSetId (SetID setId) {
-                this->setId = setId;
-        }
+    DatabaseID getDatabaseId() {
+        return dbId;
+    }
 
-        void setPageSize (size_t pageSize) {
-                this->pageSize = pageSize;
-        }
+    UserTypeID getTypeId() {
+        return typeId;
+    }
 
-        DatabaseID getDatabaseId() {
-                return dbId;
-        }
-       
-        UserTypeID getTypeId() {
-                return typeId;
-        }
+    SetID getSetId() {
+        return setId;
+    }
 
-        SetID getSetId() {
-                return setId;
-        }
-
-        size_t getPageSize() {
-                return pageSize;
-        }
+    size_t getPageSize() {
+        return pageSize;
+    }
 
 
 private:
-
-	std :: string dataBase;
-	std :: string setName;
-        DatabaseID dbId;
-        UserTypeID typeId;
-        SetID setId;
-        size_t pageSize;
+    std::string dataBase;
+    std::string setName;
+    DatabaseID dbId;
+    UserTypeID typeId;
+    SetID setId;
+    size_t pageSize;
 };
-
 
 
 #endif

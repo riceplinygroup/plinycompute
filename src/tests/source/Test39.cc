@@ -33,46 +33,46 @@
 
 using namespace pdb;
 
-int main (int argc, char * argv[]) {
-        if (argc != 3) {
-              std :: cout << "[Usage] bin/test39 ip_address_of_remote_node print_results_or_not[y/n]" << std :: endl;
-        }
-        string address = argv[1];
-        string outputMode = argv[2];
-        bool printOrNot = false; 
-        if(outputMode.compare("y") == 0) {
-            printOrNot = true;
-        }
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        std::cout << "[Usage] bin/test39 ip_address_of_remote_node print_results_or_not[y/n]"
+                  << std::endl;
+    }
+    string address = argv[1];
+    string outputMode = argv[2];
+    bool printOrNot = false;
+    if (outputMode.compare("y") == 0) {
+        printOrNot = true;
+    }
 
-	// for allocations
-	const UseTemporaryAllocationBlock tempBlock {1024 * 128};
+    // for allocations
+    const UseTemporaryAllocationBlock tempBlock{1024 * 128};
 
-        string errMsg;
-        PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
+    string errMsg;
+    PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("clientLog");
 
 
-	// connect to the query client
-	QueryClient myClient (8108, address, myLogger, true);
+    // connect to the query client
+    QueryClient myClient(8108, address, myLogger, true);
 
-        if (printOrNot == true) {
-	    // print the resuts
-	    SetIterator <String> result = myClient.getSetIterator <String> ("chris_db", "output_set1");
-	    std :: cout << "First set of query results: ";
-	    for (auto a : result) 
-		std :: cout << (*a) << "; ";
-	    std :: cout << "\n\nSecond set of query results: ";
-	    result = myClient.getSetIterator <String> ("chris_db", "output_set2");
-	    for (auto a : result) 
-		std :: cout << (*a) << "; ";
-	    std :: cout << "\n";
-        }
+    if (printOrNot == true) {
+        // print the resuts
+        SetIterator<String> result = myClient.getSetIterator<String>("chris_db", "output_set1");
+        std::cout << "First set of query results: ";
+        for (auto a : result)
+            std::cout << (*a) << "; ";
+        std::cout << "\n\nSecond set of query results: ";
+        result = myClient.getSetIterator<String>("chris_db", "output_set2");
+        for (auto a : result)
+            std::cout << (*a) << "; ";
+        std::cout << "\n";
+    }
 
-        std :: cout << "to delete results and so files" << std :: endl;	
-	// and delete the sets
-	myClient.deleteSet ("chris_db", "output_set1");
-	myClient.deleteSet ("chris_db", "output_set2");
-        system ("scripts/cleanupSoFiles.sh");
-        
+    std::cout << "to delete results and so files" << std::endl;
+    // and delete the sets
+    myClient.deleteSet("chris_db", "output_set1");
+    myClient.deleteSet("chris_db", "output_set2");
+    system("scripts/cleanupSoFiles.sh");
 }
 
 #endif

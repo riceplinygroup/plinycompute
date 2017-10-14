@@ -19,10 +19,10 @@
 #ifndef KMEANS_QUERY_H
 #define KMEANS_QUERY_H
 
-//by Jia, Jan 2nd, 2017
+// by Jia, Jan 2nd, 2017
 
 #ifndef MAX_THREADS
-   #define MAX_THREADS 8
+#define MAX_THREADS 8
 #endif
 
 #ifndef NUM_DIMENSIONS
@@ -42,116 +42,110 @@
 #include <time.h>
 
 using namespace pdb;
-class KMeansQuery : public Selection <PartialResult, double [NUM_DIMENSIONS]> {
+class KMeansQuery : public Selection<PartialResult, double[NUM_DIMENSIONS]> {
 
 public:
+    ENABLE_DEEP_COPY
 
-       ENABLE_DEEP_COPY
+    KMeansQuery() {
+        srand((unsigned int)(time(NULL)));
+        int i = 0;
 
-       KMeansQuery () { 
-            srand((unsigned int)(time(NULL)));
-            int i = 0;
-
-            for (i = 0; i < NUM_CLUSTERS; i ++) {
-                currentCentroids[i].initRandom();
-            }      
-
-            counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
-            partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);            
-
-       }
-
-       KMeansQuery (Centroid * currentCentroids) {
-           int i = 0;
-           for ( i = 0; i < NUM_CLUSTERS; i ++) {
-               this->currentCentroids[i] = currentCentroids[i];
-           }
-           counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
-           partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);
-       }
-
-       int findClosestCluster (double* point) {
-       
-           int i;
-           double minDistance = DBL_MAX;
-           int bestClusterIndex = -1;
-           
-           double curDistance;
-           for ( i = 0; i < NUM_CLUSTERS; i ++ ) {
-               if ((curDistance = currentCentroids[i].computeDistance(point)) < minDistance) {
-                   bestClusterIndex = i;
-                   minDistance = curDistance;
-               }   
-           }   
-           
-           return bestClusterIndex;
-           
-       }
-
-
-
-
-	SimpleLambda <bool> getSelection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
-		return makeSimpleLambda (checkMe, [&] () {
-                    return false; //getSelection will not be applied in pipeline, so simply return false
-		});
-	}
-
-
-        SimpleLambda <bool> getProjectionSelection (Handle<PartialResult> &checkMe) override {
-                return makeSimpleLambda (checkMe, [&] () {
-                        if (checkMe == nullptr) {
-                            return false;
-                        } else {
-                            return true;
-                        }
-                });
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            currentCentroids[i].initRandom();
         }
 
+        counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
+        partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);
+    }
+
+    KMeansQuery(Centroid* currentCentroids) {
+        int i = 0;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            this->currentCentroids[i] = currentCentroids[i];
+        }
+        counters = makeObject<Map<pthread_t, int>>(MAX_THREADS);
+        partialResults = makeObject<Map<pthread_t, Handle<PartialResult>>>(MAX_THREADS);
+    }
+
+    int findClosestCluster(double* point) {
+
+        int i;
+        double minDistance = DBL_MAX;
+        int bestClusterIndex = -1;
+
+        double curDistance;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            if ((curDistance = currentCentroids[i].computeDistance(point)) < minDistance) {
+                bestClusterIndex = i;
+                minDistance = curDistance;
+            }
+        }
+
+        return bestClusterIndex;
+    }
 
 
-	SimpleLambda <Handle <PartialResult>> getProjection (Handle <double [NUM_DIMENSIONS]> &checkMe) override {
-                 
-		return makeSimpleLambda (checkMe, [&] {
-                        pthread_t threadId = pthread_self();
-                        if (counters->count(threadId) == 0) {
-                            (*counters)[threadId] = 0;
-                            Handle<PartialResult> partialResult = makeObject<PartialResult> ();
-                            partialResult->initialize();
-                            (*partialResults)[threadId] = partialResult;
-                        }
+    SimpleLambda<bool> getSelection(Handle<double[NUM_DIMENSIONS]>& checkMe) override {
+        return makeSimpleLambda(checkMe, [&]() {
+            return false;  // getSelection will not be applied in pipeline, so simply return false
+        });
+    }
 
-                        if ((*counters)[threadId] == 10000) {
-                            (*partialResults)[threadId]->initialize(); //to clear partial results for last emission
-                            (*counters)[threadId] = 0; // to clear counter for last emission
-                        }
-                        int clusterIndex = findClosestCluster(*checkMe);
-                        (*partialResults)[threadId]->updateCentroid(clusterIndex, *checkMe);
-                        (*counters)[threadId] ++;
-                        Handle<PartialResult> ret;
-                        if ((*counters)[threadId] == 10000) {
-                            ret = makeObject<PartialResult>();
-			    *ret = *((*partialResults)[threadId]);
-                        } else {
-                            ret = nullptr;
-                        }
-                        return ret;
-		});
-	}
+
+    SimpleLambda<bool> getProjectionSelection(Handle<PartialResult>& checkMe) override {
+        return makeSimpleLambda(checkMe, [&]() {
+            if (checkMe == nullptr) {
+                return false;
+            } else {
+                return true;
+            }
+        });
+    }
+
+
+    SimpleLambda<Handle<PartialResult>> getProjection(
+        Handle<double[NUM_DIMENSIONS]>& checkMe) override {
+
+        return makeSimpleLambda(checkMe, [&] {
+            pthread_t threadId = pthread_self();
+            if (counters->count(threadId) == 0) {
+                (*counters)[threadId] = 0;
+                Handle<PartialResult> partialResult = makeObject<PartialResult>();
+                partialResult->initialize();
+                (*partialResults)[threadId] = partialResult;
+            }
+
+            if ((*counters)[threadId] == 10000) {
+                (*partialResults)[threadId]
+                    ->initialize();         // to clear partial results for last emission
+                (*counters)[threadId] = 0;  // to clear counter for last emission
+            }
+            int clusterIndex = findClosestCluster(*checkMe);
+            (*partialResults)[threadId]->updateCentroid(clusterIndex, *checkMe);
+            (*counters)[threadId]++;
+            Handle<PartialResult> ret;
+            if ((*counters)[threadId] == 10000) {
+                ret = makeObject<PartialResult>();
+                *ret = *((*partialResults)[threadId]);
+            } else {
+                ret = nullptr;
+            }
+            return ret;
+        });
+    }
 
 
 private:
+    // counters to record the number of points processed
+    Handle<Map<pthread_t, int>> counters;
 
-        //counters to record the number of points processed
-        Handle<Map<pthread_t, int>> counters;
+    // current centroid
+    Centroid currentCentroids[NUM_CLUSTERS];
 
-        //current centroid
-        Centroid currentCentroids[NUM_CLUSTERS];
-
-        //current aggregated centroids
-        //each worker has a PartialResult instance
-        Handle<Map<pthread_t, Handle<PartialResult>>> partialResults;
-
+    // current aggregated centroids
+    // each worker has a PartialResult instance
+    Handle<Map<pthread_t, Handle<PartialResult>>> partialResults;
 };
 
 

@@ -31,27 +31,25 @@ namespace pdb {
 class CatSetObjectTypeRequest : public Object {
 
 public:
+    CatSetObjectTypeRequest(){};
+    CatSetObjectTypeRequest(std::string dbNameIn, std::string setNameIn)
+        : databaseName(dbNameIn), setName(setNameIn) {}
+    ~CatSetObjectTypeRequest(){};
 
-	CatSetObjectTypeRequest () {};
-	CatSetObjectTypeRequest (std :: string dbNameIn, std :: string setNameIn) : databaseName (dbNameIn), setName (setNameIn) {}
-	~CatSetObjectTypeRequest () {};
+    std::string getDatabaseName() {
+        return databaseName;
+    }
 
-	std :: string getDatabaseName () {
-		return databaseName;
-	}
+    std::string getSetName() {
+        return setName;
+    }
 
-	std :: string getSetName () {
-		return setName;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String databaseName;
-	String setName;
+    String databaseName;
+    String setName;
 };
-
 }
 
 #endif

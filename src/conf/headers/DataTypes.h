@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   DataTypes.h
  * Author: Jia
  *
@@ -42,8 +42,8 @@ typedef unsigned long long ticks_t;
 typedef unsigned int OperatorID;
 typedef unsigned int JobStageID;
 
-//Priority level for keeping in memory
-//from low to high
+// Priority level for keeping in memory
+// from low to high
 typedef enum {
     TransientLifetimeEnded,
     PersistentLifetimeEnded,
@@ -53,69 +53,37 @@ typedef enum {
     TransientLifetimeNotEndedHashData
 } PriorityLevel;
 
-typedef enum {
-    JobData,
-    ShuffleData,
-    HashPartitionData,
-    PartialAggregationData
-} LocalityType;
+typedef enum { JobData, ShuffleData, HashPartitionData, PartialAggregationData } LocalityType;
 
-typedef enum {
-	LRU,
-	MRU,
-        Random
-} LocalitySetReplacementPolicy;
+typedef enum { LRU, MRU, Random } LocalitySetReplacementPolicy;
 
-typedef enum {
-        UnifiedLRU,
-        UnifiedMRU,
-        UnifiedIntelligent
-} CacheStrategy;
+typedef enum { UnifiedLRU, UnifiedMRU, UnifiedIntelligent } CacheStrategy;
 
 
-typedef enum {
-    Read,
-    RepeatedRead,
-    Write
-} OperationType;
+typedef enum { Read, RepeatedRead, Write } OperationType;
+
+typedef enum { TryCache, CacheThrough } DurabilityType;
 
 typedef enum {
-    TryCache,
-    CacheThrough    
-}DurabilityType;
-
-typedef enum {
-	StraightSequential,
-	LoopingSequential,
-	SmallSequential
+    StraightSequential,
+    LoopingSequential,
+    SmallSequential
 
 } AccessPattern;
 
-typedef enum {
-	Transient,
-	Persistent
-}PersistenceType;
+typedef enum { Transient, Persistent } PersistenceType;
 
-typedef enum {
-        Direct,
-        Recreation,
-        DeepCopy
-}ObjectCreationMode;
+typedef enum { Direct, Recreation, DeepCopy } ObjectCreationMode;
 
-typedef enum {
-    SequenceFileType,
-    PartitionedFileType
-} FileType;
+typedef enum { SequenceFileType, PartitionedFileType } FileType;
 
-typedef enum {
-    PeriodicTimer,
-    OneshotTimer
-} TimerType;
+typedef enum { PeriodicTimer, OneshotTimer } TimerType;
 
 typedef enum {
     UserSetType,
-    SharedHashSetType, //the input for first phase scan join, or the input for second phase probing of shuffle join
-    PartitionedHashSetType, //the input for second phase of shuffle join and aggregation
+    SharedHashSetType,  // the input for first phase scan join, or the input for second phase
+                        // probing of shuffle join
+    PartitionedHashSetType,  // the input for second phase of shuffle join and aggregation
 } SetType;
 
 
@@ -141,10 +109,6 @@ typedef struct {
     DatabaseID dbId;
     UserTypeID typeId;
     SetID setId;
-}SetKey;
+} SetKey;
 
 #endif
-
-
-
-

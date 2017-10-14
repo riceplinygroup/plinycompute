@@ -27,19 +27,20 @@
 #include "LDADocWordTopicAssignment.h"
 
 using namespace pdb;
-class LDATopicAssignmentMultiSelection  : public MultiSelectionComp <TopicAssignment, LDADocWordTopicAssignment> {
+class LDATopicAssignmentMultiSelection
+    : public MultiSelectionComp<TopicAssignment, LDADocWordTopicAssignment> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    Lambda<bool> getSelection(Handle<LDADocWordTopicAssignment> checkMe) override {
+        return makeLambda(checkMe, [](Handle<LDADocWordTopicAssignment>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<LDADocWordTopicAssignment> & checkMe) {return true;});
-	}
-
-	Lambda <Vector <Handle <TopicAssignment>>> getProjection (Handle <LDADocWordTopicAssignment> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getTopicAssigns);
-	}
+    Lambda<Vector<Handle<TopicAssignment>>> getProjection(
+        Handle<LDADocWordTopicAssignment> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getTopicAssigns);
+    }
 };
 
 

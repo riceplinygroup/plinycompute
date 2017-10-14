@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   ServerWork.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef SERVERWORK_H
-#define	SERVERWORK_H
+#define SERVERWORK_H
 
 
 #include "PDBBuzzer.h"
@@ -32,17 +32,16 @@
 
 namespace pdb {
 
-#include<memory>
+#include <memory>
 class ServerWork;
 typedef shared_ptr<ServerWork> ServerWorkPtr;
 
-// does all of the work associated with one connection to the server 
+// does all of the work associated with one connection to the server
 
 class ServerWork : public PDBCommWork {
 public:
-
     // specify the server we are working on
-    ServerWork(PDBServer &workOnMe);
+    ServerWork(PDBServer& workOnMe);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
@@ -57,15 +56,12 @@ public:
     PDBBuzzerPtr getLinkedBuzzer() override;
 
 private:
-
     // calling handleError sets this to true
     bool wasEnError;
 
     // the server we are doing the work for
-    PDBServer &workOnMe;
+    PDBServer& workOnMe;
 };
-
 }
 
-#endif	/* SERVERWORK_H */
-
+#endif /* SERVERWORK_H */

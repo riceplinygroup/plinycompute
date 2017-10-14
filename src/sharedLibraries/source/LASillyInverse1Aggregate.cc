@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "LASillyInverse1Aggregate.h"
 
-GET_V_TABLE (LASillyInverse1Aggregate)
+GET_V_TABLE(LASillyInverse1Aggregate)
 
 #endif

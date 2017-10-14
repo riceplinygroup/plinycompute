@@ -25,22 +25,17 @@ using pdb::Handle;
 
 using pdb_detail::SetExpressionIr;
 
-namespace pdb_detail
-{
-    class UnarySetOperator
-    {
+namespace pdb_detail {
+class UnarySetOperator {
 
-    public:
+public:
+    UnarySetOperator(Handle<SetExpressionIr> operand);
 
-        UnarySetOperator(Handle<SetExpressionIr>  operand);
+    Handle<SetExpressionIr> getOperand();
 
-        Handle<SetExpressionIr> getOperand();
-
-    private:
-
-        Handle<SetExpressionIr> _operand;
-
-    };
+private:
+    Handle<SetExpressionIr> _operand;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_UNARYSETOPERATOR_H
+#endif  // PDB_QUERYINTERMEDIARYREP_UNARYSETOPERATOR_H

@@ -19,11 +19,9 @@
 #ifndef SCAN_USER_SET_H
 #define SCAN_USER_SET_H
 
-//PRELOAD %ScanUserSet <Nothing>%
+// PRELOAD %ScanUserSet <Nothing>%
 
-//by Jia, Mar 2017
-
-
+// by Jia, Mar 2017
 
 
 #include "TypeName.h"
@@ -41,162 +39,177 @@ template <class OutputClass>
 class ScanUserSet : public Computation {
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
+    ~ScanUserSet() {
+        this->iterator = nullptr;
+        this->proxy = nullptr;
+    }
 
-        ~ScanUserSet () {
-            this->iterator = nullptr;
-            this->proxy = nullptr;
-        }
+    ComputeSourcePtr getComputeSource(TupleSpec& schema, ComputePlan& plan) override {
+        return std::make_shared<VectorTupleSetIterator>(
 
-        ComputeSourcePtr getComputeSource (TupleSpec &schema, ComputePlan &plan) override {
-             return std :: make_shared <VectorTupleSetIterator> (
+            [&]() -> void* {
+                if (this->iterator == nullptr) {
+                    return nullptr;
+                }
+                while (this->iterator->hasNext() == true) {
 
-                 [&] () -> void * {
-                     if (this->iterator == nullptr) {
-                         return nullptr;
-                     }
-                     while (this->iterator->hasNext() == true) {
+                    PDBPagePtr page = this->iterator->next();
+                    if (page != nullptr) {
+                        return page->getBytes();
+                    }
+                }
 
-                        PDBPagePtr page = this->iterator->next();
-                        if(page != nullptr) {
-                            return page->getBytes();
-                        }
-                     }
-                     
-                     return nullptr;
+                return nullptr;
 
-                 },
+            },
 
-                 [&] (void * freeMe) -> void {
-                     if (this->proxy != nullptr) {
-                         char * pageRawBytes = (char *)freeMe-(sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) + sizeof(PageID) + sizeof(int) + sizeof(size_t));
-                         
-                         PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, 0, 0);
-                         NodeID nodeId = page->getNodeID();
-                         DatabaseID dbId = page->getDbID();
-                         UserTypeID typeId = page->getTypeID();
-                         SetID setId = page->getSetID();
-                         try {
-                            this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);
-                         }
-                         catch (NotEnoughSpace &n) {
-                             makeObjectAllocatorBlock(4096, true);
-                             this->proxy->unpinUserPage (nodeId, dbId, typeId, setId, page, false);
-                             throw n;
-                         }
-                     }
-                 },
+            [&](void* freeMe) -> void {
+                if (this->proxy != nullptr) {
+                    char* pageRawBytes = (char*)freeMe -
+                        (sizeof(NodeID) + sizeof(DatabaseID) + sizeof(UserTypeID) + sizeof(SetID) +
+                         sizeof(PageID) + sizeof(int) + sizeof(size_t));
 
-                 this->batchSize
+                    PDBPagePtr page = make_shared<PDBPage>(pageRawBytes, 0, 0);
+                    NodeID nodeId = page->getNodeID();
+                    DatabaseID dbId = page->getDbID();
+                    UserTypeID typeId = page->getTypeID();
+                    SetID setId = page->getSetID();
+                    try {
+                        this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
+                    } catch (NotEnoughSpace& n) {
+                        makeObjectAllocatorBlock(4096, true);
+                        this->proxy->unpinUserPage(nodeId, dbId, typeId, setId, page, false);
+                        throw n;
+                    }
+                }
+            },
+
+            this->batchSize
 
             );
-        }
-         
-        //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
-        void setIterator(PageCircularBufferIteratorPtr iterator) {
-                this->iterator = iterator;
-        }
-
-        void setProxy(DataProxyPtr proxy) {
-                this->proxy = proxy;
-        }
-
-
-        void setBatchSize(int batchSize) override {
-                this->batchSize = batchSize;
-
-        }
-
-        int getBatchSize () {
-                return this->batchSize;
-        }
-
-        void setOutput (std :: string dbName, std :: string setName) override {
-                this->dbName = dbName;
-                this->setName = setName;
-        }
-
-        void setDatabaseName (std :: string dbName) {
-                this->dbName = dbName;
-        }
-
-        void setSetName (std :: string setName) {
-                this->setName = setName;
-        }
-
-        std :: string getDatabaseName () override {
-                return dbName;
-        }
-
-        std :: string getSetName () override {
-                return setName;
-        }
-
-
-	std :: string getComputationType () override {
-		return std :: string ("ScanUserSet");
-	}
-
-
-        // below function implements the interface for parsing computation into a TCAP string
-        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> & inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
-
-    InputTupleSetSpecifier inputTupleSet;
-    if (inputTupleSets.size() > 0) {
-        inputTupleSet = inputTupleSets[0];
     }
-    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
- }
+
+    // JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb
+    // object
+    void setIterator(PageCircularBufferIteratorPtr iterator) {
+        this->iterator = iterator;
+    }
+
+    void setProxy(DataProxyPtr proxy) {
+        this->proxy = proxy;
+    }
 
 
-        // below function returns a TCAP string for this Computation
-        std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string>& inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
+    void setBatchSize(int batchSize) override {
+        this->batchSize = batchSize;
+    }
 
-                outputTupleSetName = "inputDataFor"+getComputationType()+std :: string("_")+std :: to_string(computationLabel);
-                addedOutputColumnName = "in" + std :: to_string(computationLabel);
-                outputColumnNames.push_back(addedOutputColumnName);
-                std :: string ret = outputTupleSetName + std :: string("(" + addedOutputColumnName + ") <= SCAN ('") + std :: string(setName) + "', '" + std :: string(dbName) + std :: string("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel) + std :: string("')\n");
-                this->setTraversed (true);
-                this->setOutputTupleSetName (outputTupleSetName);
-                this->setOutputColumnToApply (addedOutputColumnName);
-                return ret;
-       }
+    int getBatchSize() {
+        return this->batchSize;
+    }
 
-        int getNumInputs() override {
-               return 0;
+    void setOutput(std::string dbName, std::string setName) override {
+        this->dbName = dbName;
+        this->setName = setName;
+    }
+
+    void setDatabaseName(std::string dbName) {
+        this->dbName = dbName;
+    }
+
+    void setSetName(std::string setName) {
+        this->setName = setName;
+    }
+
+    std::string getDatabaseName() override {
+        return dbName;
+    }
+
+    std::string getSetName() override {
+        return setName;
+    }
+
+
+    std::string getComputationType() override {
+        return std::string("ScanUserSet");
+    }
+
+
+    // below function implements the interface for parsing computation into a TCAP string
+    std::string toTCAPString(std::vector<InputTupleSetSpecifier>& inputTupleSets,
+                             int computationLabel,
+                             std::string& outputTupleSetName,
+                             std::vector<std::string>& outputColumnNames,
+                             std::string& addedOutputColumnName) override {
+
+        InputTupleSetSpecifier inputTupleSet;
+        if (inputTupleSets.size() > 0) {
+            inputTupleSet = inputTupleSets[0];
         }
+        return toTCAPString(inputTupleSet.getTupleSetName(),
+                            inputTupleSet.getColumnNamesToKeep(),
+                            inputTupleSet.getColumnNamesToApply(),
+                            computationLabel,
+                            outputTupleSetName,
+                            outputColumnNames,
+                            addedOutputColumnName);
+    }
 
-        std :: string getIthInputType (int i) override{
-               return "";
-        }
 
-        std :: string getOutputType () override {
-               return getTypeName <OutputClass> ();
-        }
+    // below function returns a TCAP string for this Computation
+    std::string toTCAPString(std::string inputTupleSetName,
+                             std::vector<std::string>& inputColumnNames,
+                             std::vector<std::string>& inputColumnsToApply,
+                             int computationLabel,
+                             std::string& outputTupleSetName,
+                             std::vector<std::string>& outputColumnNames,
+                             std::string& addedOutputColumnName) {
 
-        bool needsMaterializeOutput () override {
-               return false;
-        }
+        outputTupleSetName = "inputDataFor" + getComputationType() + std::string("_") +
+            std::to_string(computationLabel);
+        addedOutputColumnName = "in" + std::to_string(computationLabel);
+        outputColumnNames.push_back(addedOutputColumnName);
+        std::string ret = outputTupleSetName +
+            std::string("(" + addedOutputColumnName + ") <= SCAN ('") + std::string(setName) +
+            "', '" + std::string(dbName) + std::string("', '") + getComputationType() +
+            std::string("_") + std::to_string(computationLabel) + std::string("')\n");
+        this->setTraversed(true);
+        this->setOutputTupleSetName(outputTupleSetName);
+        this->setOutputColumnToApply(addedOutputColumnName);
+        return ret;
+    }
+
+    int getNumInputs() override {
+        return 0;
+    }
+
+    std::string getIthInputType(int i) override {
+        return "";
+    }
+
+    std::string getOutputType() override {
+        return getTypeName<OutputClass>();
+    }
+
+    bool needsMaterializeOutput() override {
+        return false;
+    }
 
 protected:
+    // JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb
+    // object.
+    PageCircularBufferIteratorPtr iterator = nullptr;
 
-       //JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
-       PageCircularBufferIteratorPtr iterator=nullptr;
+    DataProxyPtr proxy = nullptr;
 
-       DataProxyPtr proxy=nullptr;
+    String dbName;
 
-       String dbName;
- 
-       String setName;
+    String setName;
 
-       int batchSize;
-
+    int batchSize;
 };
-
-
-
-
 }
 
 #endif

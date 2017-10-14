@@ -22,6 +22,6 @@
 #include "LAWriteMatrixBlockSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAWriteMatrixBlockSet)
+GET_V_TABLE(LAWriteMatrixBlockSet)
 
 #endif

@@ -21,7 +21,7 @@
 #include "LambdaCreationFunctions.h"
 
 namespace pdb {
-	void *someRandomPointer;
+void* someRandomPointer;
 }
 
 #endif

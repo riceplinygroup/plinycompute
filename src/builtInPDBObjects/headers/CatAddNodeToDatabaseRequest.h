@@ -31,30 +31,26 @@ namespace pdb {
 class CatAddNodeToDatabaseRequest : public Object {
 
 public:
+    ~CatAddNodeToDatabaseRequest() {}
+    CatAddNodeToDatabaseRequest() {}
+    CatAddNodeToDatabaseRequest(std::string dbName, std::string nodeIP)
+        : dbName(dbName), nodeIP(nodeIP) {}
 
-	~CatAddNodeToDatabaseRequest () {}
-	CatAddNodeToDatabaseRequest () {}
-	CatAddNodeToDatabaseRequest (std :: string dbName, std :: string nodeIP) :
-	    dbName (dbName), nodeIP (nodeIP) {}
+    std::string nodeToAdd() {
+        return nodeIP;
+    }
 
-	std :: string nodeToAdd () {
-		return nodeIP;
-	}
-
-    std :: string whichDB () {
+    std::string whichDB() {
         return dbName;
     }
 
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dbName;
+    String dbName;
     String nodeIP;
-
 };
-
 }
 
 #endif

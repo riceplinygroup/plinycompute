@@ -40,183 +40,197 @@
 #include <chrono>
 #include <fcntl.h>
 
-/* This test uses data and selection of builtInType to demonstrate a distributed query with distributed storage */
+/* This test uses data and selection of builtInType to demonstrate a distributed query with
+ * distributed storage */
 
 
 using namespace pdb;
-int main (int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
 
 
-       bool printResult = true;
-       bool clusterMode = false;
-       std :: cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]" << std :: endl;        
-       if (argc > 1) {
-           if (strcmp(argv[1],"N") == 0) {
-               printResult = false;
-               std :: cout << "You successfully disabled printing result." << std::endl;
-           } else {
-               printResult = true;
-               std :: cout << "Will print result." << std :: endl;
-           }
+    bool printResult = true;
+    bool clusterMode = false;
+    std::cout << "Usage: #printResult[Y/N] #clusterMode[Y/N] #dataSize[MB] #masterIp #addData[Y/N]"
+              << std::endl;
+    if (argc > 1) {
+        if (strcmp(argv[1], "N") == 0) {
+            printResult = false;
+            std::cout << "You successfully disabled printing result." << std::endl;
+        } else {
+            printResult = true;
+            std::cout << "Will print result." << std::endl;
+        }
 
-       } else {
-           std :: cout << "Will print result. If you don't want to print result, you can add N as the first parameter to disable result printing." << std :: endl;
-       }
+    } else {
+        std::cout << "Will print result. If you don't want to print result, you can add N as the "
+                     "first parameter to disable result printing."
+                  << std::endl;
+    }
 
-       if (argc > 2) {
-           if (strcmp(argv[2],"Y") == 0) {
-               clusterMode = true;
-               std :: cout << "You successfully set the test to run on cluster." << std :: endl;
-           } else {
-               clusterMode = false;
-           }
-       } else {
-           std :: cout << "Will run on local node. If you want to run on cluster, you can add any character as the second parameter to run on the cluster configured by $PDB_HOME/conf/serverlist." << std :: endl;
-       }
+    if (argc > 2) {
+        if (strcmp(argv[2], "Y") == 0) {
+            clusterMode = true;
+            std::cout << "You successfully set the test to run on cluster." << std::endl;
+        } else {
+            clusterMode = false;
+        }
+    } else {
+        std::cout << "Will run on local node. If you want to run on cluster, you can add any "
+                     "character as the second parameter to run on the cluster configured by "
+                     "$PDB_HOME/conf/serverlist."
+                  << std::endl;
+    }
 
-       int numOfMb = 1024; //by default we add 1024MB data
-       if (argc > 3) {
-           numOfMb = atoi(argv[3]);
-       }
-       std :: cout << "To add data with size: " << numOfMb << "MB" << std :: endl;
+    int numOfMb = 1024;  // by default we add 1024MB data
+    if (argc > 3) {
+        numOfMb = atoi(argv[3]);
+    }
+    std::cout << "To add data with size: " << numOfMb << "MB" << std::endl;
 
-       std :: string masterIp = "localhost";
-       if (argc > 4) {
-           masterIp = argv[4];
-       }
-       std :: cout << "Master IP Address is " << masterIp << std :: endl;
+    std::string masterIp = "localhost";
+    if (argc > 4) {
+        masterIp = argv[4];
+    }
+    std::cout << "Master IP Address is " << masterIp << std::endl;
 
-       bool whetherToAddData = true;
-       if (argc > 5) {
-           if (strcmp(argv[5],"N") == 0) {
-              whetherToAddData = false;
-           }
-       }
+    bool whetherToAddData = true;
+    if (argc > 5) {
+        if (strcmp(argv[5], "N") == 0) {
+            whetherToAddData = false;
+        }
+    }
 
-       pdb :: PDBLoggerPtr clientLogger = make_shared<pdb :: PDBLogger>("clientLog");
+    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-       //Step 1. Create Database and Set
-       pdb :: DistributedStorageManagerClient temp (8108, masterIp, clientLogger);
+    // Step 1. Create Database and Set
+    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
 
-       string errMsg;
+    string errMsg;
 
-       if (whetherToAddData == true) {
-           // now, create a new database
-           if (!temp.createDatabase ("chris_db", errMsg)) {
-                cout << "Not able to create database: " + errMsg;
-                exit (-1);
-           } else {
-                cout << "Created database.\n";
-           }
-
-           // now, create a new set in that database
-           if (!temp.createSet ("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
-                cout << "Not able to create set: " + errMsg;
-                exit (-1);
-           } else {
-                cout << "Created set.\n";
-           }
-
-
-           //Step 2. Add data
-           DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
-           int numIterations = numOfMb;
-           int total = 0;       
-           for (int num = 0; num < numIterations; num++) {
-               pdb :: makeObjectAllocatorBlock(1024 * 1024, true);
-               pdb::Handle<pdb::Vector<pdb::Handle<pdb::Supervisor>>> storeMe =
-                    pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Supervisor>>> ();
-               try {
-                   for (int i = 0; true ; i++) {
-                       pdb :: Handle <Supervisor> myData =
-                            pdb::makeObject <pdb::Supervisor> ("Joe Johnson" + to_string (i), i + 45);
-                       for (int j = 0; j < 10; j++) {
-                            pdb :: Handle <Employee> myEmp =
-                                 pdb :: makeObject<Employee> ("Joe Johnson" + to_string(j), j + 45);
-                            myData->addEmp(myEmp);
-                       }
-                       storeMe->push_back (myData);
-                       total++;
-                   }
-               } catch (pdb :: NotEnoughSpace &n) {
-                   if (!dispatcherClient.sendData<Supervisor>(std::pair<std::string, std::string>("chris_set", "chris_db"), storeMe, errMsg)) {
-                       std :: cout << "Failed to send data to dispatcher server" << std :: endl;
-                       return -1;
-                   }
-               }
-               std :: cout << "1MB data sent to dispatcher server~~" << std :: endl;
-           }
-           std :: cout << "total=" << total << std :: endl;
-
-           //to write back all buffered records        
-           temp.flushData( errMsg );
+    if (whetherToAddData == true) {
+        // now, create a new database
+        if (!temp.createDatabase("chris_db", errMsg)) {
+            cout << "Not able to create database: " + errMsg;
+            exit(-1);
+        } else {
+            cout << "Created database.\n";
         }
 
         // now, create a new set in that database
-        std :: cout << "to create a new set for storing output data" << std :: endl;
-        if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>> ("chris_db", "output_set1", errMsg)) {
-                cout << "Not able to create set: " + errMsg;
-                exit (-1);
+        if (!temp.createSet("chris_db", "chris_set", "pdb::Supervisor", errMsg)) {
+            cout << "Not able to create set: " + errMsg;
+            exit(-1);
         } else {
-                cout << "Created set.\n";
+            cout << "Created set.\n";
         }
 
-        //Step 3. To execute a Query
-	// for allocations
-	const UseTemporaryAllocationBlock tempBlock {1024 * 1024 * 128};
 
-	// register this query class
-	// connect to the query client
-	QueryClient myClient (8108, "localhost", clientLogger, true);
+        // Step 2. Add data
+        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
-	// make the query graph
-	Handle <Set <pdb::Supervisor>> myInputSet = myClient.getSet <pdb::Supervisor> ("chris_db", "chris_set");
-	Handle <pdb::CheckEmployee> myQuery = makeObject <pdb::CheckEmployee> (std :: string ("Steve Stevens"));
-	myQuery->setInput (myInputSet);
-	Handle <QueryOutput <Vector<Handle<pdb::Employee>>>> outputOne = makeObject <QueryOutput <Vector<Handle<pdb::Employee>>>> ("chris_db", "output_set1", myQuery);
-
-        
-        auto begin = std :: chrono :: high_resolution_clock :: now();
-
-        if (!myClient.execute(errMsg, outputOne)) {
-            std :: cout << "Query failed. Message was: " << errMsg << "\n";
-            return 0;
-        }
-        std :: cout << std :: endl;
-
-        auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Time Duration: " <<
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-
-	std::cout << std::endl;
-	// print the resuts
-        std :: cout << "to print result..." << std :: endl;
-        if (printResult == true) {
-	    SetIterator <Vector<Handle<Employee>>> result = myClient.getSetIterator <Vector<Handle<Employee>>> ("chris_db", "output_set1");
-	    std :: cout << "First set of query results: ";
-            int count = 0;
-	    for (auto a : result) 
-            {
-                     count ++;
-		     //std :: cout << (*a) << "; ";
+        int numIterations = numOfMb;
+        int total = 0;
+        for (int num = 0; num < numIterations; num++) {
+            pdb::makeObjectAllocatorBlock(1024 * 1024, true);
+            pdb::Handle<pdb::Vector<pdb::Handle<pdb::Supervisor>>> storeMe =
+                pdb::makeObject<pdb::Vector<pdb::Handle<pdb::Supervisor>>>();
+            try {
+                for (int i = 0; true; i++) {
+                    pdb::Handle<Supervisor> myData =
+                        pdb::makeObject<pdb::Supervisor>("Joe Johnson" + to_string(i), i + 45);
+                    for (int j = 0; j < 10; j++) {
+                        pdb::Handle<Employee> myEmp =
+                            pdb::makeObject<Employee>("Joe Johnson" + to_string(j), j + 45);
+                        myData->addEmp(myEmp);
+                    }
+                    storeMe->push_back(myData);
+                    total++;
+                }
+            } catch (pdb::NotEnoughSpace& n) {
+                if (!dispatcherClient.sendData<Supervisor>(
+                        std::pair<std::string, std::string>("chris_set", "chris_db"),
+                        storeMe,
+                        errMsg)) {
+                    std::cout << "Failed to send data to dispatcher server" << std::endl;
+                    return -1;
+                }
             }
-	    std :: cout << "count:" << count << "\n";
-	}
+            std::cout << "1MB data sent to dispatcher server~~" << std::endl;
+        }
+        std::cout << "total=" << total << std::endl;
 
-        if (clusterMode == false) {
-	    // and delete the sets
-	    myClient.deleteSet ("chris_db", "output_set1");
+        // to write back all buffered records
+        temp.flushData(errMsg);
+    }
+
+    // now, create a new set in that database
+    std::cout << "to create a new set for storing output data" << std::endl;
+    if (!temp.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>>(
+            "chris_db", "output_set1", errMsg)) {
+        cout << "Not able to create set: " + errMsg;
+        exit(-1);
+    } else {
+        cout << "Created set.\n";
+    }
+
+    // Step 3. To execute a Query
+    // for allocations
+    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+
+    // register this query class
+    // connect to the query client
+    QueryClient myClient(8108, "localhost", clientLogger, true);
+
+    // make the query graph
+    Handle<Set<pdb::Supervisor>> myInputSet =
+        myClient.getSet<pdb::Supervisor>("chris_db", "chris_set");
+    Handle<pdb::CheckEmployee> myQuery =
+        makeObject<pdb::CheckEmployee>(std::string("Steve Stevens"));
+    myQuery->setInput(myInputSet);
+    Handle<QueryOutput<Vector<Handle<pdb::Employee>>>> outputOne =
+        makeObject<QueryOutput<Vector<Handle<pdb::Employee>>>>("chris_db", "output_set1", myQuery);
+
+
+    auto begin = std::chrono::high_resolution_clock::now();
+
+    if (!myClient.execute(errMsg, outputOne)) {
+        std::cout << "Query failed. Message was: " << errMsg << "\n";
+        return 0;
+    }
+    std::cout << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Time Duration: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
+
+    std::cout << std::endl;
+    // print the resuts
+    std::cout << "to print result..." << std::endl;
+    if (printResult == true) {
+        SetIterator<Vector<Handle<Employee>>> result =
+            myClient.getSetIterator<Vector<Handle<Employee>>>("chris_db", "output_set1");
+        std::cout << "First set of query results: ";
+        int count = 0;
+        for (auto a : result) {
+            count++;
+            // std :: cout << (*a) << "; ";
+        }
+        std::cout << "count:" << count << "\n";
+    }
+
+    if (clusterMode == false) {
+        // and delete the sets
+        myClient.deleteSet("chris_db", "output_set1");
+    } else {
+        if (!temp.removeSet("chris_db", "output_set1", errMsg)) {
+            cout << "Not able to remove set: " + errMsg;
+            exit(-1);
         } else {
-            if (!temp.removeSet ("chris_db", "output_set1", errMsg)) {
-                cout << "Not able to remove set: " + errMsg;
-                exit (-1);
-            } else {
-                cout << "Removed set.\n";
-            }
+            cout << "Removed set.\n";
         }
-        system ("scripts/cleanupSoFiles.sh");
-        
+    }
+    system("scripts/cleanupSoFiles.sh");
 }
 
 #endif

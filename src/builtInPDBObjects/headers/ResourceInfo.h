@@ -37,86 +37,79 @@ namespace pdb {
 /**
  * This class abstracts each node into a resource
  */
-class ResourceInfo: public Object {
+class ResourceInfo : public Object {
 
 public:
+    ResourceInfo() {}
 
-	ResourceInfo() {
-	}
+    ~ResourceInfo() {}
 
-	~ResourceInfo() {
-	}
+    ResourceInfo(int numCores, int memSize, std::string address, int port, int nodeId)
+        : numCores(numCores), memSize(memSize), address(address), port(port), nodeId(nodeId) {}
 
-        ResourceInfo (int numCores, int memSize, std :: string address, int port, int nodeId) : numCores(numCores), memSize(memSize), address(address), port(port), nodeId(nodeId) {}
+    // To get number of CPUs in this resource
+    int getNumCores() {
+        return this->numCores;
+    }
 
-	// To get number of CPUs in this resource
-	int getNumCores() {
-		return this->numCores;
-	}
+    void setNumCores(int numCores) {
+        this->numCores = numCores;
+    }
 
-	void setNumCores(int numCores) {
-		this->numCores = numCores;
-	}
+    // To get size of memory in this resource
+    int getMemSize() {
+        return this->memSize;
+    }
 
-        // To get size of memory in this resource
-        int getMemSize() {
-                return this->memSize;
-        }
-
-        void setMemSize(int memSize) {
-                this->memSize = memSize;
-        }
+    void setMemSize(int memSize) {
+        this->memSize = memSize;
+    }
 
 
-	String& getAddress() {
-		return address;
-	}
+    String& getAddress() {
+        return address;
+    }
 
-	void setAddress(pdb::String & address) {
-		this->address = address;
-	}
+    void setAddress(pdb::String& address) {
+        this->address = address;
+    }
 
-        NodeID getNodeId() {
-                return this->nodeId;
-        }      
-  
-        void setNodeId (NodeID nodeId) {
-                this->nodeId = nodeId;
-        }
+    NodeID getNodeId() {
+        return this->nodeId;
+    }
 
-        int getPort() {
+    void setNodeId(NodeID nodeId) {
+        this->nodeId = nodeId;
+    }
 
-                return port;
-        }
+    int getPort() {
 
-        void setPort (int port) {
+        return port;
+    }
 
-                this->port = port;    
+    void setPort(int port) {
 
-        }
+        this->port = port;
+    }
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
+    // number of CPU cores
+    int numCores;
 
-        // number of CPU cores
-        int numCores;
+    // size of memory in MB
+    int memSize;
 
-        // size of memory in MB
-        int memSize;
+    // hostname or IP address of the PDB server
+    String address;
 
-	// hostname or IP address of the PDB server
-	String address;
- 
-        // port of the PDB server
-        int port;
+    // port of the PDB server
+    int port;
 
-        //NodeID of the PDB server
-        NodeID nodeId;
-         
-
+    // NodeID of the PDB server
+    NodeID nodeId;
 };
-
 }
 
 #endif

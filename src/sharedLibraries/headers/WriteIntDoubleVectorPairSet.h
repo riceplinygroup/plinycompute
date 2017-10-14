@@ -19,25 +19,24 @@
 #ifndef WRITE_INT_DOUBLE_VECTOR_PAIR_SET_H
 #define WRITE_INT_DOUBLE_VECTOR_PAIR_SET_H
 
-//by Shangyu, Mar 2017
+// by Shangyu, Mar 2017
 
 #include "WriteUserSet.h"
 #include "IntDoubleVectorPair.h"
 
 using namespace pdb;
-class WriteIntDoubleVectorPairSet : public WriteUserSet <IntDoubleVectorPair> {
+class WriteIntDoubleVectorPairSet : public WriteUserSet<IntDoubleVectorPair> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    WriteIntDoubleVectorPairSet() {}
 
-        WriteIntDoubleVectorPairSet () {}
-
-        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-        WriteIntDoubleVectorPairSet (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
-
+    // below constructor is not required, but if we do not call setOutput() here, we must call
+    // setOutput() later to set the output set
+    WriteIntDoubleVectorPairSet(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

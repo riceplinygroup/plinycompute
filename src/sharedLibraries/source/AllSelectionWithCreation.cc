@@ -22,6 +22,6 @@
 #include "AllSelectionWithCreation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (AllSelectionWithCreation)
+GET_V_TABLE(AllSelectionWithCreation)
 
 #endif

@@ -53,38 +53,61 @@ typedef shared_ptr<UserSet> SetPtr;
  * - A point to the global buffer pool (or called PageCache)
  * - A PDBFile instance to manage persisted data
  *
- * Different with BufferSet, a UserSet does not have input buffer to buffer writes. For writing, user can directly pin a new page in buffer pool, so that multi-threaded writing can be more efficient than BufferSet that has single buffer.
+ * Different with BufferSet, a UserSet does not have input buffer to buffer writes. For writing,
+ * user can directly pin a new page in buffer pool, so that multi-threaded writing can be more
+ * efficient than BufferSet that has single buffer.
  */
 
-class UserSet : public LocalitySet{
+class UserSet : public LocalitySet {
 public:
-	/**
-	 * Create a UserSet instance, need to set file, page cache, and open file later
-	 */
-	UserSet(pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
-            DatabaseID dbId, UserTypeID typeId, SetID setId, string setName,
-            PageCachePtr pageCache, LocalityType localityType=JobData, LocalitySetReplacementPolicy policy=MRU, OperationType operation=Read, DurabilityType durability=TryCache, PersistenceType persistence=Persistent, size_t pageSize = DEFAULT_PAGE_SIZE);
+    /**
+     * Create a UserSet instance, need to set file, page cache, and open file later
+     */
+    UserSet(pdb::PDBLoggerPtr logger,
+            SharedMemPtr shm,
+            NodeID nodeId,
+            DatabaseID dbId,
+            UserTypeID typeId,
+            SetID setId,
+            string setName,
+            PageCachePtr pageCache,
+            LocalityType localityType = JobData,
+            LocalitySetReplacementPolicy policy = MRU,
+            OperationType operation = Read,
+            DurabilityType durability = TryCache,
+            PersistenceType persistence = Persistent,
+            size_t pageSize = DEFAULT_PAGE_SIZE);
 
-	/**
-	 * Create a UserSet instance, file needs to be set here
-	 */
-	UserSet (
-            size_t pageSize, 
-            pdb :: PDBLoggerPtr logger, SharedMemPtr shm, NodeID nodeId,
-            DatabaseID dbId, UserTypeID typeId, SetID setId, string setName,
-            PartitionedFilePtr file, PageCachePtr pageCache, LocalityType localityType=JobData, LocalitySetReplacementPolicy policy=MRU, OperationType operation=Read, DurabilityType durability=TryCache, PersistenceType persistence=Persistent);
+    /**
+     * Create a UserSet instance, file needs to be set here
+     */
+    UserSet(size_t pageSize,
+            pdb::PDBLoggerPtr logger,
+            SharedMemPtr shm,
+            NodeID nodeId,
+            DatabaseID dbId,
+            UserTypeID typeId,
+            SetID setId,
+            string setName,
+            PartitionedFilePtr file,
+            PageCachePtr pageCache,
+            LocalityType localityType = JobData,
+            LocalitySetReplacementPolicy policy = MRU,
+            OperationType operation = Read,
+            DurabilityType durability = TryCache,
+            PersistenceType persistence = Persistent);
 
-	/**
-	 * Destructor.
-	 */
-	~UserSet ();
+    /**
+     * Destructor.
+     */
+    ~UserSet();
 
     /**
      * Add object to a page in the set.
      */
     bool addObject(PDBObjectPtr object, PDBPagePtr page);
 
-    
+
     /**
      * Add object to the inputBufferPage in the set.
      */
@@ -100,15 +123,16 @@ public:
      * Unpin buffer page.
      */
     void unpinBufferPage() {
-         if (this->inputBufferPage != nullptr) {
-             this->inputBufferPage->decRefCount();
-         }
-    }   
+        if (this->inputBufferPage != nullptr) {
+            this->inputBufferPage->decRefCount();
+        }
+    }
 
 
     /**
      * Load a page from the set's associate file to cache.
-     * If the set's associated file is of SequenceFile type, the parameter partitionId will be ignored.
+     * If the set's associated file is of SequenceFile type, the parameter partitionId will be
+     * ignored.
      * If the page exists in the partition, load it to cache, pin it, and return the page.
      * If the page doesn't exist in the partition, we return nullptr.
      */
@@ -130,45 +154,44 @@ public:
      * To get next a few bytes with size specified by the parameter.
      * Returns the pointer pointing to the starting position of the bytes.
      */
-    inline void * getNewBytes (size_t size, bool evictWhenUnpin=false) {
-    if (size == 0) {
-        return nullptr;
-    }
-    pthread_mutex_lock(&this->addBytesMutex);
-    if (this->inputBufferPage == nullptr) {
-          
-        this->inputBufferPage = this->addPage();
-    }
-    void * buffer = this->inputBufferPage->addVariableBytes(size);
-    if (buffer == nullptr) {
-        //current inputBufferPage is full
-
-        //we unpin the inputBufferPage
-        this->inputBufferPage->decRefCount();
-        /*if(this->getDurabilityType() == CacheThrough) {
-           CacheKey key;
-           key.dbId = this->getDbID();
-           key.typeId = this->getTypeID();
-           key.setId = this->getSetID();
-           key.pageId = this->inputBufferPage->getPageID();
-           this->pageCache->flushPageWithoutEviction(key);
-        }*/
-        if(evictWhenUnpin == true) {
-            this->pageCache->evictPage(this->inputBufferPage);
+    inline void* getNewBytes(size_t size, bool evictWhenUnpin = false) {
+        if (size == 0) {
+            return nullptr;
         }
+        pthread_mutex_lock(&this->addBytesMutex);
+        if (this->inputBufferPage == nullptr) {
 
-      
-        //we add a new page as inputBufferPage
-        this->inputBufferPage = this->addPage();
-        buffer = this->inputBufferPage->addVariableBytes(size);
+            this->inputBufferPage = this->addPage();
+        }
+        void* buffer = this->inputBufferPage->addVariableBytes(size);
+        if (buffer == nullptr) {
+            // current inputBufferPage is full
+
+            // we unpin the inputBufferPage
+            this->inputBufferPage->decRefCount();
+            /*if(this->getDurabilityType() == CacheThrough) {
+               CacheKey key;
+               key.dbId = this->getDbID();
+               key.typeId = this->getTypeID();
+               key.setId = this->getSetID();
+               key.pageId = this->inputBufferPage->getPageID();
+               this->pageCache->flushPageWithoutEviction(key);
+            }*/
+            if (evictWhenUnpin == true) {
+                this->pageCache->evictPage(this->inputBufferPage);
+            }
+
+
+            // we add a new page as inputBufferPage
+            this->inputBufferPage = this->addPage();
+            buffer = this->inputBufferPage->addVariableBytes(size);
+            pthread_mutex_unlock(&this->addBytesMutex);
+            // get new bytes in the new page
+            return buffer;
+        }
         pthread_mutex_unlock(&this->addBytesMutex);
-        //get new bytes in the new page
         return buffer;
     }
-    pthread_mutex_unlock(&this->addBytesMutex);
-    return buffer;
-}
-
 
 
     /**
@@ -178,179 +201,200 @@ public:
      * -- K iterators to scan data in file partitions, assuming there are K partitions.
      * IMPORTANT: user needs to delete the returned vector!!!
      */
-    virtual vector<PageIteratorPtr> * getIterators();
+    virtual vector<PageIteratorPtr>* getIterators();
 
     /**
      * Get page from set.
      * Step 1. check whether the page is already in cache using cache key, if so return it.
-     * Step 2. check whether the page is flushed to disk file, if so, load it to cache, and return it.
+     * Step 2. check whether the page is flushed to disk file, if so, load it to cache, and return
+     * it.
      */
     PDBPagePtr getPage(FilePartitionID partitionId, unsigned int pageSeqInPartition, PageID pageId);
 
     /**
      * Get number of pages.
      */
-    int getNumPages ();
+    int getNumPages();
 
 
     /**
      * Return DatabaseID of the set instance.
      */
-    DatabaseID getDbID() { return this->dbId; }
+    DatabaseID getDbID() {
+        return this->dbId;
+    }
 
 
     /**
      * Return UserTypeID of the set instance
      */
-    UserTypeID getTypeID() { return this->typeId; }
+    UserTypeID getTypeID() {
+        return this->typeId;
+    }
 
 
     /**
      * Return SetID of the set instance.
      */
-    SetID getSetID() {  return this->setId; }
+    SetID getSetID() {
+        return this->setId;
+    }
 
     /**
      * Return the name of the set instance.
      */
-    string getSetName() { return this->setName; }
+    string getSetName() {
+        return this->setName;
+    }
 
     /**
      * Returns file instance;
      */
-    PartitionedFilePtr getFile() { return this->file; }
+    PartitionedFilePtr getFile() {
+        return this->file;
+    }
 
     /**
      * Set file instance;
      */
-    void setFile(PartitionedFilePtr file) { this->file = file; }
+    void setFile(PartitionedFilePtr file) {
+        this->file = file;
+    }
 
     /**
      * Returns last flushed pageId;
      */
-    PageID getLastFlushedPageId() { return this->lastFlushedPageId; }
+    PageID getLastFlushedPageId() {
+        return this->lastFlushedPageId;
+    }
 
-  
+
     /**
      * Set last flushed pageId;
      */
-    void setLastFlushedPageId(PageID pageId) { this->lastFlushedPageId = pageId;} 
+    void setLastFlushedPageId(PageID pageId) {
+        this->lastFlushedPageId = pageId;
+    }
 
     /**
      * Add dirty page to the Set's hash map for dirty pages
      */
     void addPageToDirtyPageSet(PageID pageId) {
-      lockDirtyPageSet();
-      auto search = dirtyPagesInPageCache->find(pageId);
-      if(search != dirtyPagesInPageCache->end()) {
-          cout << "UserSet: Error in addPageToDirtyPageSet, key exists.\n";
-      }
-      else {
-          FileSearchKey key;
-          key.inCache = true;
-          key.partitionId = (unsigned int)(-1);
-          key.pageSeqInPartition = (unsigned int)(-1);
-          dirtyPagesInPageCache->insert({pageId, key});
-      }
-      unlockDirtyPageSet();
+        lockDirtyPageSet();
+        auto search = dirtyPagesInPageCache->find(pageId);
+        if (search != dirtyPagesInPageCache->end()) {
+            cout << "UserSet: Error in addPageToDirtyPageSet, key exists.\n";
+        } else {
+            FileSearchKey key;
+            key.inCache = true;
+            key.partitionId = (unsigned int)(-1);
+            key.pageSeqInPartition = (unsigned int)(-1);
+            dirtyPagesInPageCache->insert({pageId, key});
+        }
+        unlockDirtyPageSet();
     }
- 
+
     /**
      * Not really remove dirty page from the Set's hash map for dirty pages;
      * Just label it as flushed, and set other fields of FileSearchKey.
-     * It is not thread-safe. It is only used in PDBFlushConsumerWork class, where it is guarded by lock.
+     * It is not thread-safe. It is only used in PDBFlushConsumerWork class, where it is guarded by
+     * lock.
      */
-    void removePageFromDirtyPageSet(PageID pageId, FilePartitionID partitionId, unsigned int pageSeqInPartition) {
-       if(isPinned == false) {
-           PDB_COUT << "the set is not pinned" << std :: endl;
-           dirtyPagesInPageCache->erase(pageId);
-           return;
-       }
-       PDB_COUT << "the set is pinned" << std :: endl;
-       auto search = dirtyPagesInPageCache->find(pageId);
-       if(search != dirtyPagesInPageCache->end()) {
-           search->second.inCache = false;
-           search->second.partitionId = partitionId;
-           search->second.pageSeqInPartition = pageSeqInPartition;
-       }
-       return;
-   }
+    void removePageFromDirtyPageSet(PageID pageId,
+                                    FilePartitionID partitionId,
+                                    unsigned int pageSeqInPartition) {
+        if (isPinned == false) {
+            PDB_COUT << "the set is not pinned" << std::endl;
+            dirtyPagesInPageCache->erase(pageId);
+            return;
+        }
+        PDB_COUT << "the set is pinned" << std::endl;
+        auto search = dirtyPagesInPageCache->find(pageId);
+        if (search != dirtyPagesInPageCache->end()) {
+            search->second.inCache = false;
+            search->second.partitionId = partitionId;
+            search->second.pageSeqInPartition = pageSeqInPartition;
+        }
+        return;
+    }
 
-   /**
-    * Get the dirty page map
-    */
-   unordered_map<PageID, FileSearchKey> *  getDirtyPageSet() {
-       return dirtyPagesInPageCache;
-   }
+    /**
+     * Get the dirty page map
+     */
+    unordered_map<PageID, FileSearchKey>* getDirtyPageSet() {
+        return dirtyPagesInPageCache;
+    }
 
-   void lockDirtyPageSet() {
-	pthread_mutex_lock(&this->dirtyPageSetMutex);
+    void lockDirtyPageSet() {
+        pthread_mutex_lock(&this->dirtyPageSetMutex);
+    }
 
-   }
-
-   void unlockDirtyPageSet() {
+    void unlockDirtyPageSet() {
         pthread_mutex_unlock(&this->dirtyPageSetMutex);
-   }
+    }
 
 
-/**
- * To dump set data to a buffer.
- * NOTE: User MUST guarantee that the size of buffer is large enough for dumping all data in the set.
- */
-   void dump (char * buffer);
+    /**
+     * To dump set data to a buffer.
+     * NOTE: User MUST guarantee that the size of buffer is large enough for dumping all data in the
+     * set.
+     */
+    void dump(char* buffer);
 
-   void evictPages();
+    void evictPages();
 
-   bool getPinned() { return this->isPinned; }
+    bool getPinned() {
+        return this->isPinned;
+    }
 
-/*
- * TODO: change the name because current name is easy to be confused with pin()/unpin() defined in LocalitySet class (which is the base class). 
- */
-   void setPinned(bool isPinned) { 
-      lockDirtyPageSet();
-      this->isPinned = isPinned;
-      unlockDirtyPageSet(); 
-   } 
+    /*
+     * TODO: change the name because current name is easy to be confused with pin()/unpin() defined
+     * in LocalitySet class (which is the base class).
+     */
+    void setPinned(bool isPinned) {
+        lockDirtyPageSet();
+        this->isPinned = isPinned;
+        unlockDirtyPageSet();
+    }
 
-   pdb :: PDBLoggerPtr getLogger() { return this->logger; }
+    pdb::PDBLoggerPtr getLogger() {
+        return this->logger;
+    }
 
-   void cleanDirtyPageSet();
+    void cleanDirtyPageSet();
 
-   //MUST be used after set->setPinned(true) is invoked
-   void flushDirtyPages();
+    // MUST be used after set->setPinned(true) is invoked
+    void flushDirtyPages();
 
-   size_t getPageSize() {
-      return this->pageSize;
-   }
+    size_t getPageSize() {
+        return this->pageSize;
+    }
 
-   void setPageSize (size_t pageSize) {
-      this->pageSize = pageSize;
-   }
+    void setPageSize(size_t pageSize) {
+        this->pageSize = pageSize;
+    }
 
 protected:
-	PartitionedFilePtr file;
-	PageCachePtr pageCache;
-	SharedMemPtr shm;
-	pdb :: PDBLoggerPtr logger;
-	NodeID nodeId;
-	DatabaseID dbId;
-	UserTypeID typeId;
-	SetID setId;
-	string setName;
-        PageID lastFlushedPageId;
-        PageID latestPageId;
-        PDBPagePtr inputBufferPage;
-        SequenceID seqId;
-        unordered_map<PageID, FileSearchKey> * dirtyPagesInPageCache;
-        pthread_mutex_t dirtyPageSetMutex;        
-        bool isPinned;
-        int numPages;        
-        pthread_mutex_t addBytesMutex;
-        size_t pageSize;
+    PartitionedFilePtr file;
+    PageCachePtr pageCache;
+    SharedMemPtr shm;
+    pdb::PDBLoggerPtr logger;
+    NodeID nodeId;
+    DatabaseID dbId;
+    UserTypeID typeId;
+    SetID setId;
+    string setName;
+    PageID lastFlushedPageId;
+    PageID latestPageId;
+    PDBPagePtr inputBufferPage;
+    SequenceID seqId;
+    unordered_map<PageID, FileSearchKey>* dirtyPagesInPageCache;
+    pthread_mutex_t dirtyPageSetMutex;
+    bool isPinned;
+    int numPages;
+    pthread_mutex_t addBytesMutex;
+    size_t pageSize;
 };
-
-
-
 
 
 #endif /* SRC_CPP_MAIN_DATABASE_HEADERS_PDBSET_H_ */

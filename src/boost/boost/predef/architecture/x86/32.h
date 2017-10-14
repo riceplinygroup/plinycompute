@@ -43,38 +43,35 @@ If available versions \[3-6\] are specifically detected.
 
 #define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(i386) || defined(__i386__) || \
-    defined(__i486__) || defined(__i586__) || \
-    defined(__i686__) || defined(__i386) || \
-    defined(_M_IX86) || defined(_X86_) || \
-    defined(__THW_INTEL__) || defined(__I86__) || \
-    defined(__INTEL__)
-#   undef BOOST_ARCH_X86_32
-#   if !defined(BOOST_ARCH_X86_32) && defined(__I86__)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(__I86__,0,0)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32) && defined(_M_IX86)
-#       define BOOST_ARCH_X86_32 BOOST_PREDEF_MAKE_10_VV00(_M_IX86)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32) && defined(__i686__)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(6,0,0)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32) && defined(__i586__)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(5,0,0)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32) && defined(__i486__)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(4,0,0)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32) && defined(__i386__)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(3,0,0)
-#   endif
-#   if !defined(BOOST_ARCH_X86_32)
-#       define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#if defined(i386) || defined(__i386__) || defined(__i486__) || defined(__i586__) || \
+    defined(__i686__) || defined(__i386) || defined(_M_IX86) || defined(_X86_) ||   \
+    defined(__THW_INTEL__) || defined(__I86__) || defined(__INTEL__)
+#undef BOOST_ARCH_X86_32
+#if !defined(BOOST_ARCH_X86_32) && defined(__I86__)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(__I86__, 0, 0)
+#endif
+#if !defined(BOOST_ARCH_X86_32) && defined(_M_IX86)
+#define BOOST_ARCH_X86_32 BOOST_PREDEF_MAKE_10_VV00(_M_IX86)
+#endif
+#if !defined(BOOST_ARCH_X86_32) && defined(__i686__)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(6, 0, 0)
+#endif
+#if !defined(BOOST_ARCH_X86_32) && defined(__i586__)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(5, 0, 0)
+#endif
+#if !defined(BOOST_ARCH_X86_32) && defined(__i486__)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(4, 0, 0)
+#endif
+#if !defined(BOOST_ARCH_X86_32) && defined(__i386__)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER(3, 0, 0)
+#endif
+#if !defined(BOOST_ARCH_X86_32)
+#define BOOST_ARCH_X86_32 BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_ARCH_X86_32
-#   define BOOST_ARCH_X86_32_AVAILABLE
+#define BOOST_ARCH_X86_32_AVAILABLE
 #endif
 
 #define BOOST_ARCH_X86_32_NAME "Intel x86-32"
@@ -84,4 +81,4 @@ If available versions \[3-6\] are specifically detected.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_X86_32,BOOST_ARCH_X86_32_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_X86_32, BOOST_ARCH_X86_32_NAME)

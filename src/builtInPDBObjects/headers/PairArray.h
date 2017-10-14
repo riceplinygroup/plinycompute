@@ -32,27 +32,30 @@
 
 namespace pdb {
 
-template <class KeyType, class ValueType> class PairArray;
-template <class KeyType, class ValueType> struct MapRecordClass;
+template <class KeyType, class ValueType>
+class PairArray;
+template <class KeyType, class ValueType>
+struct MapRecordClass;
 
 // this little class is used to support iteration over pdb :: Maps
 template <class KeyType, class ValueType>
 class PDBMapIterator {
 
 public:
-        PDBMapIterator() { done = true; iterateMe = nullptr;};
-	bool operator != (const PDBMapIterator &me) const;
-	MapRecordClass <KeyType, ValueType> &operator * ();
-	void operator ++ ();
-	PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn, bool);
-	PDBMapIterator (Handle <PairArray <KeyType, ValueType>> iterateMeIn);
+    PDBMapIterator() {
+        done = true;
+        iterateMe = nullptr;
+    };
+    bool operator!=(const PDBMapIterator& me) const;
+    MapRecordClass<KeyType, ValueType>& operator*();
+    void operator++();
+    PDBMapIterator(Handle<PairArray<KeyType, ValueType>> iterateMeIn, bool);
+    PDBMapIterator(Handle<PairArray<KeyType, ValueType>> iterateMeIn);
 
 private:
-
-	uint32_t slot;
-	Handle<PairArray <KeyType, ValueType>> iterateMe;
-	bool done;
-	
+    uint32_t slot;
+    Handle<PairArray<KeyType, ValueType>> iterateMe;
+    bool done;
 };
 
 // The Array type is the one type that we allow to be variable length.  This is accomplished
@@ -63,85 +66,81 @@ private:
 // Since the array class can be variable length, it is used as the key building block for
 // both the Vector and String classes.
 
-template <class KeyType, class ValueType = Nothing> 
+template <class KeyType, class ValueType = Nothing>
 class PairArray : public Object {
 
 public:
+    // constructor/sdestructor
+    PairArray();
+    PairArray(uint32_t numSlots);
+    PairArray(const PairArray& copyFromMe);
+    ~PairArray();
 
-	// constructor/sdestructor
-	PairArray ();
-	PairArray (uint32_t numSlots);
-	PairArray (const PairArray &copyFromMe);
-	~PairArray ();
-
-	// normally these would be defined by the ENABLE_DEEP_COPY macro, but because
-	// PairArray is quite special, we need to manually override these methods
-	void setUpAndCopyFrom (void *target, void *source) const;
-	void deleteObject (void *deleteMe);
-	size_t getSize (void *forMe);
+    // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
+    // PairArray is quite special, we need to manually override these methods
+    void setUpAndCopyFrom(void* target, void* source) const;
+    void deleteObject(void* deleteMe);
+    size_t getSize(void* forMe);
 
 private:
+    // and this gives us our info about TypeContained
+    PDBTemplateBase keyTypeInfo;
+    PDBTemplateBase valueTypeInfo;
 
-	// and this gives us our info about TypeContained
-	PDBTemplateBase keyTypeInfo;
-	PDBTemplateBase valueTypeInfo;
+    // the size of the records we need to store
+    uint32_t objSize;
 
-	// the size of the records we need to store
-	uint32_t objSize;
+    // the offset to where the value is in the records that we store
+    uint32_t valueOffset;
 
-	// the offset to where the value is in the records that we store
-	uint32_t valueOffset;
+    // the number of slots actually used
+    uint32_t usedSlots;
 
-	// the number of slots actually used
-	uint32_t usedSlots;
+    // the number of slots
+    uint32_t numSlots;
 
-	// the number of slots
-	uint32_t numSlots;
+    // the max number of slots before doubling
+    uint32_t maxSlots;
 
-	// the max number of slots before doubling
-	uint32_t maxSlots;
-
-	// the array of data
-	Nothing data[0];
+    // the array of data
+    Nothing data[0];
 
 
-        // delete flag to avoid to run destructor if the flag is set to true
-        bool disableDestructor;
+    // delete flag to avoid to run destructor if the flag is set to true
+    bool disableDestructor;
 
 public:
+    // create a new PairArray via doubling
+    Handle<PairArray<KeyType, ValueType>> doubleArray();
 
-	// create a new PairArray via doubling
-	Handle <PairArray <KeyType, ValueType>> doubleArray ();
+    // access the value at which; if this is undefined, define it and return a reference
+    // to a newly-creaated value
+    ValueType& operator[](const KeyType& which);
 
-	// access the value at which; if this is undefined, define it and return a reference
-	// to a newly-creaated value
-	ValueType &operator [] (const KeyType &which);
+    // returns true if this has hit its max fill factor
+    bool isOverFull();
 
-	// returns true if this has hit its max fill factor
-	bool isOverFull ();
+    // returns the number of items in this PairArray
+    uint32_t numUsedSlots();
 
-	// returns the number of items in this PairArray
-	uint32_t numUsedSlots ();
+    // returns 0 if this entry is undefined; 1 if it is defined
+    int count(const KeyType& which);
 
-	// returns 0 if this entry is undefined; 1 if it is defined
-	int count (const KeyType &which);
+    // so this guy can look inside
+    template <class KeyTwo, class ValueTwo>
+    friend class PDBMapIterator;
 
-	// so this guy can look inside
-	template <class KeyTwo, class ValueTwo> friend class PDBMapIterator;
+    // clear an item
+    void setUnused(const KeyType& clearMe);
 
-        // clear an item
-         void setUnused (const KeyType &clearMe);
+    // set disable destructor
+    void setDisableDestructor(bool disableOrNot);
 
-        //set disable destructor
-        void setDisableDestructor (bool disableOrNot);
-
-        //get disable destructor
-        bool isDestructorDisabled (); 
+    // get disable destructor
+    bool isDestructorDisabled();
 };
-
 }
 
 #include "PairArray.cc"
 
 #endif
-

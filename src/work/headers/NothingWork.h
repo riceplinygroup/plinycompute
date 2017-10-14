@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   NothingWork.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef NOTHINGWORK_H
-#define	NOTHINGWORK_H
+#define NOTHINGWORK_H
 
 #include "PDBBuzzer.h"
 #include "PDBCommWork.h"
@@ -34,18 +34,13 @@ namespace pdb {
 
 class NothingWork : public PDBWork {
 public:
-
-    NothingWork() {
-    }
+    NothingWork() {}
 
     void execute(PDBBuzzerPtr callerBuzzer) override {
         callerBuzzer = nullptr;
         /* so we don't get a compiler error */
     }
-
 };
-
 }
 
-#endif	/* NOTHINGWORK_H */
-
+#endif /* NOTHINGWORK_H */

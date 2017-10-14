@@ -22,7 +22,7 @@
 #include "ScanCustomerSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanCustomerSet)
+GET_V_TABLE(ScanCustomerSet)
 
 
 #endif

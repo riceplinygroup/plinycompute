@@ -26,9 +26,8 @@ using std::string;
 
 using pdb::QueryBaseHdl;
 
-namespace pdb_detail
-{
-    string buildTcap(QueryBaseHdl base);
+namespace pdb_detail {
+string buildTcap(QueryBaseHdl base);
 }
 
-#endif //PDB_TCAPBUILDER_TCAPBUILDER_H
+#endif  // PDB_TCAPBUILDER_TCAPBUILDER_H

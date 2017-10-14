@@ -23,42 +23,43 @@
 namespace pdb {
 
 template <class KeyType, class ValueType>
-AggregationMap <KeyType, ValueType> :: AggregationMap (uint32_t initSize) {
+AggregationMap<KeyType, ValueType>::AggregationMap(uint32_t initSize) {
 
-	if (initSize < 2) {
-		std :: cout << "Fatal Error: Map initialization:" << initSize << " too small; must be at least one.\n";
-         
-		initSize = 2;
-	}
-        
-	// this way, we'll allocate extra bytes on the end of the array
-	MapRecordClass <KeyType, ValueType> temp;
-	size_t size = temp.getObjSize ();	
-	this->myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size * initSize, initSize);
+    if (initSize < 2) {
+        std::cout << "Fatal Error: Map initialization:" << initSize
+                  << " too small; must be at least one.\n";
+
+        initSize = 2;
+    }
+
+    // this way, we'll allocate extra bytes on the end of the array
+    MapRecordClass<KeyType, ValueType> temp;
+    size_t size = temp.getObjSize();
+    this->myArray =
+        makeObjectWithExtraStorage<PairArray<KeyType, ValueType>>(size * initSize, initSize);
 }
 
 template <class KeyType, class ValueType>
-AggregationMap <KeyType, ValueType> :: AggregationMap () {
+AggregationMap<KeyType, ValueType>::AggregationMap() {
 
-	MapRecordClass <KeyType, ValueType> temp;
-	size_t size = temp.getObjSize ();	
-	this->myArray = makeObjectWithExtraStorage <PairArray <KeyType, ValueType>> (size*2, 2);
+    MapRecordClass<KeyType, ValueType> temp;
+    size_t size = temp.getObjSize();
+    this->myArray = makeObjectWithExtraStorage<PairArray<KeyType, ValueType>>(size * 2, 2);
 }
 
 template <class KeyType, class ValueType>
-AggregationMap <KeyType, ValueType> :: ~AggregationMap () {}
+AggregationMap<KeyType, ValueType>::~AggregationMap() {}
 
 
 template <class KeyType, class ValueType>
-unsigned int AggregationMap <KeyType, ValueType> :: getHashPartitionId () {
+unsigned int AggregationMap<KeyType, ValueType>::getHashPartitionId() {
     return this->hashPartitionId;
 }
 
 template <class KeyType, class ValueType>
-void AggregationMap <KeyType, ValueType> :: setHashPartitionId (unsigned int partitionId) {
+void AggregationMap<KeyType, ValueType>::setHashPartitionId(unsigned int partitionId) {
     this->hashPartitionId = partitionId;
 }
-
 }
 
 #endif

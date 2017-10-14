@@ -23,19 +23,17 @@
 #include "PDBString.h"
 
 using namespace pdb;
-class ScanStringSet : public ScanUserSet <String> {
+class ScanStringSet : public ScanUserSet<String> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanStringSet () {
-        }
+    ScanStringSet() {}
 
-        ScanStringSet (std :: string dbName, std :: string setName) {
-            setDatabaseName (dbName);
-            setSetName (setName);
-        }
-
+    ScanStringSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

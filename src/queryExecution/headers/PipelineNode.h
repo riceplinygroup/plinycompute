@@ -19,7 +19,7 @@
 #define PIPELINE_NODE_H
 
 
-//by Jia, Sept 2016
+// by Jia, Sept 2016
 
 #include "BlockQueryProcessor.h"
 #include "DataTypes.h"
@@ -37,17 +37,15 @@
 namespace pdb {
 
 class PipelineNode;
-typedef std :: shared_ptr<PipelineNode> PipelineNodePtr;
+typedef std::shared_ptr<PipelineNode> PipelineNodePtr;
 
-//this class encapsulates a pipeline node in the pipeline network
+// this class encapsulates a pipeline node in the pipeline network
 
 class PipelineNode {
 
 private:
-
-
     // the children nodes of this node
-    std :: vector<PipelineNodePtr> * children;
+    std::vector<PipelineNodePtr>* children;
 
     // the processor of this node
     Handle<ExecutionOperator> executionOperator;
@@ -59,24 +57,27 @@ private:
     bool amISink;
 
     // operator Id
-    OperatorID id;    
+    OperatorID id;
 
     // node id
     NodeID nodeId;
-   
-public:
 
+public:
     // destructor
-    ~PipelineNode ();
+    ~PipelineNode();
 
     // constructor
-    PipelineNode (NodeID nodeId, Handle<ExecutionOperator> executionOperator, bool amISource, bool amISink, OperatorID operatorId);
+    PipelineNode(NodeID nodeId,
+                 Handle<ExecutionOperator> executionOperator,
+                 bool amISource,
+                 bool amISink,
+                 OperatorID operatorId);
 
     // get nodeId
     NodeID getNodeId();
 
     // return all children
-    std :: vector<PipelineNodePtr> * getChildren();
+    std::vector<PipelineNodePtr>* getChildren();
 
     // return whether I am the source node
     bool isSource();
@@ -91,19 +92,17 @@ public:
     void addChild(PipelineNodePtr node);
 
     // running the pipeline
-    bool run (PipelineContextPtr context, Handle<GenericBlock> inputBatch, size_t batchSize, PDBLoggerPtr logger);
+    bool run(PipelineContextPtr context,
+             Handle<GenericBlock> inputBatch,
+             size_t batchSize,
+             PDBLoggerPtr logger);
 
     // unbundle a block to output vector
     bool unbundle(PipelineContextPtr context, Handle<GenericBlock> inputBatch, PDBLoggerPtr logger);
 
     // get a processor
     BlockQueryProcessorPtr getProcessor(PipelineContextPtr context);
-
-    
-      
 };
-
-
 }
 
 

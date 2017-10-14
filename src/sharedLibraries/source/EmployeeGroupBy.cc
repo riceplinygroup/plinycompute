@@ -21,6 +21,6 @@
 #include "EmployeeGroupBy.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (EmployeeGroupBy)
+GET_V_TABLE(EmployeeGroupBy)
 
 #endif

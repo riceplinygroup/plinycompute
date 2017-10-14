@@ -27,16 +27,12 @@ using pdb::Handle;
 using pdb::Lambda;
 using pdb::Object;
 
-namespace pdb_detail
-{
-    class RecordProjectionIr
-    {
+namespace pdb_detail {
+class RecordProjectionIr {
 
-    public:
-
-        virtual Lambda<Handle<Object>> toLambda(Handle<Object> &inputRecordPlaceholder) = 0;
-
-    };
+public:
+    virtual Lambda<Handle<Object>> toLambda(Handle<Object>& inputRecordPlaceholder) = 0;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_RECORDPROJECTIONIR_H
+#endif  // PDB_QUERYINTERMEDIARYREP_RECORDPROJECTIONIR_H

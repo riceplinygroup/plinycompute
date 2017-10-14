@@ -26,10 +26,9 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void runBuildTcapIrTests(UnitTest &qunit);
+namespace pdb_tests {
+void runBuildTcapIrTests(UnitTest& qunit);
 }
 
 
-#endif //PDB_TCAPIRTESTSRUNNER_H
+#endif  // PDB_TCAPIRTESTSRUNNER_H

@@ -21,6 +21,6 @@
 #include "LASillyInverse3MultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyInverse3MultiSelection)
+GET_V_TABLE(LASillyInverse3MultiSelection)
 
 #endif

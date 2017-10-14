@@ -19,25 +19,24 @@
 #ifndef WRITE_K_MEANS_SET_H
 #define WRITE_K_MEANS_SET_H
 
-//by Shangyu, June 2017
+// by Shangyu, June 2017
 
 #include "WriteUserSet.h"
 #include "KMeansAggregateOutputType.h"
 
 using namespace pdb;
-class WriteKMeansSet : public WriteUserSet <KMeansAggregateOutputType> {
+class WriteKMeansSet : public WriteUserSet<KMeansAggregateOutputType> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    WriteKMeansSet() {}
 
-        WriteKMeansSet () {}
-
-        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-        WriteKMeansSet (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
-
+    // below constructor is not required, but if we do not call setOutput() here, we must call
+    // setOutput() later to set the output set
+    WriteKMeansSet(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

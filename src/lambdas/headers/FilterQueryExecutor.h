@@ -30,46 +30,45 @@ namespace pdb {
 class FilterQueryExecutor : public QueryExecutor {
 
 private:
+    // this is the output TupleSet that we return
+    TupleSetPtr output;
 
-	// this is the output TupleSet that we return
-	TupleSetPtr output;
+    // the attribute to operate on
+    int whichAtt;
 
-	// the attribute to operate on
-	int whichAtt;
-
-	// to setup the output tuple set
-	TupleSetSetupMachine <bool> myMachine;
+    // to setup the output tuple set
+    TupleSetSetupMachine<bool> myMachine;
 
 public:
+    FilterQueryExecutor(TupleSpec& inputSchema,
+                        TupleSpec& attsToOperateOn,
+                        TupleSpec& attsToIncludeInOutput)
+        : myMachine(inputSchema, attsToIncludeInOutput) {
 
-	FilterQueryExecutor (TupleSpec &inputSchema, TupleSpec &attsToOperateOn, TupleSpec &attsToIncludeInOutput) : 
-		myMachine (inputSchema, attsToIncludeInOutput) {
+        output = std::make_shared<TupleSet>();
 
-		output = std :: make_shared <TupleSet> ();
-	
-		// this is the input attribute that we will process
-		std :: vector <int> matches = myMachine.match (attsToOperateOn);
-		whichAtt = matches[0];
-	}
+        // this is the input attribute that we will process
+        std::vector<int> matches = myMachine.match(attsToOperateOn);
+        whichAtt = matches[0];
+    }
 
-	TupleSetPtr process (TupleSetPtr input) override {
+    TupleSetPtr process(TupleSetPtr input) override {
 
-		// set up the output tuple set
-		myMachine.setup (input, output);
+        // set up the output tuple set
+        myMachine.setup(input, output);
 
-		// get the input column to use as a filter
-		std :: vector <bool> &inputColumn = input->getColumn <bool> (whichAtt);
+        // get the input column to use as a filter
+        std::vector<bool>& inputColumn = input->getColumn<bool>(whichAtt);
 
-		// loop over the columns and filter
-		int numColumns = output->getNumColumns ();
-		for (int i = 0; i < numColumns; i++) {
-			output->filterColumn (i, inputColumn);
-		}
+        // loop over the columns and filter
+        int numColumns = output->getNumColumns();
+        for (int i = 0; i < numColumns; i++) {
+            output->filterColumn(i, inputColumn);
+        }
 
-		return output;
-	}
+        return output;
+    }
 };
-
 }
 
 #endif

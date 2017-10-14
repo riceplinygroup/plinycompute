@@ -31,7 +31,7 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <sys/socket.h>
-#include <sys/types.h> 
+#include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <signal.h>
@@ -55,14 +55,14 @@ PDBServer::PDBServer(int portNumberIn, int numConnectionsIn, PDBLoggerPtr myLogg
     isInternet = true;
     allDone = false;
     struct sigaction sa;
-    memset (&sa, '\0', sizeof(sa));
+    memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &sa, 0);
     // create the workers
-    myWorkers = make_shared <PDBWorkerQueue> (myLogger, numConnections);
+    myWorkers = make_shared<PDBWorkerQueue>(myLogger, numConnections);
 }
 
-PDBServer::PDBServer (string unixFileIn, int numConnectionsIn, PDBLoggerPtr myLoggerIn) {
+PDBServer::PDBServer(string unixFileIn, int numConnectionsIn, PDBLoggerPtr myLoggerIn) {
 
     // remember the communication data
     unixFile = unixFileIn;
@@ -71,21 +71,21 @@ PDBServer::PDBServer (string unixFileIn, int numConnectionsIn, PDBLoggerPtr myLo
     isInternet = false;
     allDone = false;
     struct sigaction sa;
-    memset (&sa, '\0', sizeof(sa));
+    memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &sa, 0);
     // create the workers
-    myWorkers = make_shared <PDBWorkerQueue> (myLogger, numConnections);
+    myWorkers = make_shared<PDBWorkerQueue>(myLogger, numConnections);
 }
 
 void PDBServer::registerHandler(int16_t requestID, PDBCommWorkPtr handledBy) {
     handlers[requestID] = handledBy;
 }
 
-// this is the entry point for the listener to the port 
+// this is the entry point for the listener to the port
 
-void *callListen(void *serverInstance) {
-    PDBServer *temp = static_cast<PDBServer *> (serverInstance);
+void* callListen(void* serverInstance) {
+    PDBServer* temp = static_cast<PDBServer*>(serverInstance);
     temp->listen();
     return nullptr;
 }
@@ -105,7 +105,7 @@ void PDBServer::listen() {
         if (setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
             myLogger->error("PDBServer: couldn't setsockopt");
             myLogger->error(strerror(errno));
-            std :: cout << "PDBServer: couldn't setsockopt:" << strerror(errno) << std :: endl;
+            std::cout << "PDBServer: couldn't setsockopt:" << strerror(errno) << std::endl;
             close(sockFD);
             exit(0);
         }
@@ -120,11 +120,11 @@ void PDBServer::listen() {
 
         // bind the socket FD
         struct sockaddr_in serv_addr;
-        bzero((char *) &serv_addr, sizeof (serv_addr));
+        bzero((char*)&serv_addr, sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_addr.s_addr = INADDR_ANY;
         serv_addr.sin_port = htons(portNumber);
-        int retVal = ::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (serv_addr));
+        int retVal = ::bind(sockFD, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
         if (retVal < 0) {
             myLogger->error("PDBServer: could not bind to internet socket");
             myLogger->error(strerror(errno));
@@ -146,14 +146,16 @@ void PDBServer::listen() {
 
         // wait for someone to try to connect
         while (!allDone) {
-            PDBCommunicatorPtr myCommunicator = make_shared <PDBCommunicator> ();
+            PDBCommunicatorPtr myCommunicator = make_shared<PDBCommunicator>();
             if (myCommunicator->pointToInternet(myLogger, sockFD, errMsg)) {
                 myLogger->error("PDBServer: could not point to an internet socket: " + errMsg);
                 continue;
             }
-            myLogger->info(std::string("accepted the connection with sockFD=")+std::to_string(myCommunicator->getSocketFD()));
-            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std :: endl;
-            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
+            myLogger->info(std::string("accepted the connection with sockFD=") +
+                           std::to_string(myCommunicator->getSocketFD()));
+            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std::endl;
+            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD()
+                     << std::endl;
             handleRequest(myCommunicator);
         }
 
@@ -171,24 +173,25 @@ void PDBServer::listen() {
 
         // bind the socket FD
         struct sockaddr_un serv_addr;
-        bzero((char *) &serv_addr, sizeof (serv_addr));
+        bzero((char*)&serv_addr, sizeof(serv_addr));
         serv_addr.sun_family = AF_UNIX;
-        snprintf(serv_addr.sun_path, sizeof (serv_addr.sun_path), "%s", unixFile.c_str());
-        
-        if (::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (struct sockaddr_un))) {
+        snprintf(serv_addr.sun_path, sizeof(serv_addr.sun_path), "%s", unixFile.c_str());
+
+        if (::bind(sockFD, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_un))) {
             myLogger->error("PDBServer: could not bind to local socket");
             myLogger->error(strerror(errno));
-            //if pathToBackEndServer exists, delete it.
-            if( unlink(unixFile.c_str()) == 0) {
-                PDB_COUT << "Removed outdated "<<unixFile.c_str()<<".\n";
-            } 
-            if (::bind(sockFD, (struct sockaddr *) &serv_addr, sizeof (struct sockaddr_un))) {
-                myLogger->error("PDBServer: still could not bind to local socket after removing unixFile");
+            // if pathToBackEndServer exists, delete it.
+            if (unlink(unixFile.c_str()) == 0) {
+                PDB_COUT << "Removed outdated " << unixFile.c_str() << ".\n";
+            }
+            if (::bind(sockFD, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_un))) {
+                myLogger->error(
+                    "PDBServer: still could not bind to local socket after removing unixFile");
                 myLogger->error(strerror(errno));
                 exit(0);
             }
         }
-        
+
         myLogger->debug("PDBServer: socket has name");
         myLogger->debug(serv_addr.sun_path);
 
@@ -206,13 +209,14 @@ void PDBServer::listen() {
         // wait for someone to try to connect
         while (!allDone) {
             PDBCommunicatorPtr myCommunicator;
-	    myCommunicator = make_shared <PDBCommunicator> ();
+            myCommunicator = make_shared<PDBCommunicator>();
             if (myCommunicator->pointToFile(myLogger, sockFD, errMsg)) {
                 myLogger->error("PDBServer: could not point to an local UNIX socket: " + errMsg);
                 continue;
             }
-            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std :: endl;
-            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD() << std :: endl;
+            PDB_COUT << "||||||||||||||||||||||||||||||||||" << std::endl;
+            PDB_COUT << "accepted the connection with sockFD=" << myCommunicator->getSocketFD()
+                     << std::endl;
             handleRequest(myCommunicator);
         }
     }
@@ -220,19 +224,19 @@ void PDBServer::listen() {
     allDone = true;
 }
 
-//gets access to worker queue
+// gets access to worker queue
 PDBWorkerQueuePtr PDBServer::getWorkerQueue() {
-        return this->myWorkers;
+    return this->myWorkers;
 }
 
-//gets access to logger
+// gets access to logger
 PDBLoggerPtr PDBServer::getLogger() {
-        return this->myLogger;
+    return this->myLogger;
 }
 
 void PDBServer::handleRequest(PDBCommunicatorPtr myCommunicator) {
 
-    ServerWorkPtr tempWork{make_shared <ServerWork> (*this)};
+    ServerWorkPtr tempWork{make_shared<ServerWork>(*this)};
     tempWork->setGuts(myCommunicator);
     PDBWorkerPtr tempWorker = myWorkers->getWorker();
     tempWorker->execute(tempWork, tempWork->getLinkedBuzzer());
@@ -242,14 +246,15 @@ void PDBServer::handleRequest(PDBCommunicatorPtr myCommunicator) {
 bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr myCommunicator) {
 
     // figure out what type of message the client is sending us
-    int16_t requestID = myCommunicator->getObjectTypeID ();
+    int16_t requestID = myCommunicator->getObjectTypeID();
     string info;
     bool success;
 
     // if there was a request to close the connection, just get outta here
     if (requestID == CloseConnection_TYPEID) {
-	UseTemporaryAllocationBlock tempBlock {2048};
-        Handle <CloseConnection> closeMsg = myCommunicator->getNextObject <CloseConnection> (success, info);
+        UseTemporaryAllocationBlock tempBlock{2048};
+        Handle<CloseConnection> closeMsg =
+            myCommunicator->getNextObject<CloseConnection>(success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
         } else {
@@ -266,43 +271,45 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
 
     // if we are asked to shut down...
     if (requestID == ShutDown_TYPEID) {
-	UseTemporaryAllocationBlock tempBlock {2048};
-        Handle <ShutDown> closeMsg = myCommunicator->getNextObject <ShutDown> (success, info);
+        UseTemporaryAllocationBlock tempBlock{2048};
+        Handle<ShutDown> closeMsg = myCommunicator->getNextObject<ShutDown>(success, info);
         if (!success) {
             myLogger->error("PDBServer: close connection request, but was an error: " + info);
         } else {
             myLogger->trace("PDBServer: close connection request");
         }
-        PDB_COUT << "Cleanup server functionalities" << std :: endl;
+        PDB_COUT << "Cleanup server functionalities" << std::endl;
         // for each functionality, invoke its clean() method
         for (int i = 0; i < allFunctionalities.size(); i++) {
             allFunctionalities.at(i)->cleanup();
         }
 
 
-	// ack the result
-	std :: string errMsg;
-	Handle <SimpleRequestResult> result = makeObject <SimpleRequestResult> (true, "successful shutdown of server");
-	if (!myCommunicator->sendObject (result, errMsg)) {
-            myLogger->error("PDBServer: close connection request, but count not send response: " + errMsg);
-	}
+        // ack the result
+        std::string errMsg;
+        Handle<SimpleRequestResult> result =
+            makeObject<SimpleRequestResult>(true, "successful shutdown of server");
+        if (!myCommunicator->sendObject(result, errMsg)) {
+            myLogger->error("PDBServer: close connection request, but count not send response: " +
+                            errMsg);
+        }
 
         // kill the FD and let everyone know we are done
         allDone = true;
-        //close(sockFD); //we can't simply close socket like this, because there are still incoming messages in accepted connections
-                         //use reuse address option instead 
+        // close(sockFD); //we can't simply close socket like this, because there are still incoming
+        // messages in accepted connections
+        // use reuse address option instead
         return false;
-
-    } 
+    }
 
     // and get a worker plus the appropriate work to service it
     if (handlers.count(requestID) == 0) {
 
         // there is not one, so send back an appropriate message
         myLogger->error("PDBServer: could not find an appropriate handler");
-	return false;
+        return false;
 
-    // in this case, got a handler
+        // in this case, got a handler
     } else {
 
         /*// get the handler
@@ -312,16 +319,16 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
         //should comment out following lines to recover Chris' old code;
         PDBCommWorkPtr tempWork = handlers[requestID]->clone();
         myLogger->writeLn("PDBServer: setting guts");
-	tempWork->setGuts (myCommunicator);
+    tempWork->setGuts (myCommunicator);
         tempWork->execute(callerBuzzer);*/
 
-        //End code replacement for testing
+        // End code replacement for testing
 
-        //Chris' old code: (Observed problem: sometimes, buzzer never get buzzed.)
+        // Chris' old code: (Observed problem: sometimes, buzzer never get buzzed.)
         // get a worker to run the handler (this blocks if no workers available)
         PDBWorkerPtr tempWorker = myWorkers->getWorker();
         myLogger->trace("PDBServer: got a worker, start to do something...");
-        myLogger->trace("PDBServer: requestID "+ std :: to_string (requestID));
+        myLogger->trace("PDBServer: requestID " + std::to_string(requestID));
 
         PDBCommWorkPtr tempWork = handlers[requestID]->clone();
 
@@ -330,10 +337,8 @@ bool PDBServer::handleOneRequest(PDBBuzzerPtr callerBuzzer, PDBCommunicatorPtr m
         tempWorker->execute(tempWork, callerBuzzer);
         callerBuzzer->wait();
         myLogger->trace("PDBServer: handler has completed its work");
-	return true;
-
+        return true;
     }
-
 }
 
 void PDBServer::signal(PDBAlarm signalWithMe) {
@@ -356,26 +361,24 @@ void PDBServer::startServer(PDBWorkPtr runMeAtStart) {
     // listen to the socket
     int return_code = pthread_create(&listenerThread, nullptr, callListen, this);
     if (return_code) {
-    	myLogger->error("ERROR; return code from pthread_create () is " + to_string(return_code) );
+        myLogger->error("ERROR; return code from pthread_create () is " + to_string(return_code));
         exit(-1);
     }
 
-    // and now just sleep 
+    // and now just sleep
     while (!allDone) {
         sleep(1);
     }
 }
 
-void PDBServer :: registerHandlersFromLastFunctionality () {
-	allFunctionalities[allFunctionalities.size () - 1]->recordServer (*this);
-        allFunctionalities[allFunctionalities.size () - 1]->registerHandlers (*this);
+void PDBServer::registerHandlersFromLastFunctionality() {
+    allFunctionalities[allFunctionalities.size() - 1]->recordServer(*this);
+    allFunctionalities[allFunctionalities.size() - 1]->registerHandlers(*this);
 }
 
 void PDBServer::stop() {
     allDone = true;
 }
-
 }
 
 #endif
-

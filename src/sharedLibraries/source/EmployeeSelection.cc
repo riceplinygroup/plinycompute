@@ -22,6 +22,6 @@
 #include "EmployeeSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (EmployeeSelection)
+GET_V_TABLE(EmployeeSelection)
 
 #endif

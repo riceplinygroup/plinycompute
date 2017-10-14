@@ -18,7 +18,7 @@
 #ifndef STORAGE_EXPORT_SET
 #define STORAGE_EXPORT_SET
 
-//by Jia, Apr 2017
+// by Jia, Apr 2017
 
 #include "Object.h"
 #include "PDBString.h"
@@ -26,13 +26,15 @@
 namespace pdb {
 
 // PRELOAD %StorageExportSet%
-class StorageExportSet : public Object{
+class StorageExportSet : public Object {
 
 public:
+    StorageExportSet() {}
 
-    StorageExportSet () {}
-
-    StorageExportSet (std :: string dbName, std :: string setName, std :: string outputFilePath, std :: string format) {
+    StorageExportSet(std::string dbName,
+                     std::string setName,
+                     std::string outputFilePath,
+                     std::string format) {
 
         this->dbName = dbName;
         this->setName = setName;
@@ -40,19 +42,19 @@ public:
         this->format = format;
     }
 
-    std :: string getDbName() {
+    std::string getDbName() {
         return dbName;
     }
 
-    std :: string getSetName() {
+    std::string getSetName() {
         return setName;
     }
 
-    std :: string getOutputFilePath() {
+    std::string getOutputFilePath() {
         return outputFilePath;
     }
 
-    std :: string getFormat() {
+    std::string getFormat() {
         return format;
     }
 
@@ -60,19 +62,13 @@ public:
 
 
 private:
+    String dbName;
 
-   String dbName;
+    String setName;
 
-   String setName;
+    String outputFilePath;
 
-   String outputFilePath;
-
-   String format;
-
-
-
-
+    String format;
 };
-
 }
 #endif

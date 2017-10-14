@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   CacheStats.h
  * Author: Jia
  *
@@ -23,9 +23,9 @@
  */
 
 #ifndef CACHESTATS_H
-#define	CACHESTATS_H
+#define CACHESTATS_H
 
-//TODO
+// TODO
 
 class CacheStats {
 public:
@@ -33,8 +33,5 @@ public:
     int numMisses;
     int numEvicted;
     int numCached;
-
-
 };
-#endif	/* CACHESTATS_H */
-
+#endif /* CACHESTATS_H */

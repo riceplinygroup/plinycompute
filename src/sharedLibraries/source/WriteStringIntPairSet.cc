@@ -22,6 +22,6 @@
 #include "WriteStringIntPairSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteStringIntPairSet)
+GET_V_TABLE(WriteStringIntPairSet)
 
 #endif

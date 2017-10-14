@@ -31,25 +31,24 @@ Version number available as major, minor, and patch.
 
 #define BOOST_COMP_INTEL BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || \
-    defined(__ECC)
-#   if !defined(BOOST_COMP_INTEL_DETECTION) && defined(__INTEL_COMPILER)
-#       define BOOST_COMP_INTEL_DETECTION BOOST_PREDEF_MAKE_10_VRP(__INTEL_COMPILER)
-#   endif
-#   if !defined(BOOST_COMP_INTEL_DETECTION)
-#       define BOOST_COMP_INTEL_DETECTION BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#if defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC)
+#if !defined(BOOST_COMP_INTEL_DETECTION) && defined(__INTEL_COMPILER)
+#define BOOST_COMP_INTEL_DETECTION BOOST_PREDEF_MAKE_10_VRP(__INTEL_COMPILER)
+#endif
+#if !defined(BOOST_COMP_INTEL_DETECTION)
+#define BOOST_COMP_INTEL_DETECTION BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #ifdef BOOST_COMP_INTEL_DETECTION
-#   if defined(BOOST_PREDEF_DETAIL_COMP_DETECTED)
-#       define BOOST_COMP_INTEL_EMULATED BOOST_COMP_INTEL_DETECTION
-#   else
-#       undef BOOST_COMP_INTEL
-#       define BOOST_COMP_INTEL BOOST_COMP_INTEL_DETECTION
-#   endif
-#   define BOOST_COMP_INTEL_AVAILABLE
-#   include <boost/predef/detail/comp_detected.h>
+#if defined(BOOST_PREDEF_DETAIL_COMP_DETECTED)
+#define BOOST_COMP_INTEL_EMULATED BOOST_COMP_INTEL_DETECTION
+#else
+#undef BOOST_COMP_INTEL
+#define BOOST_COMP_INTEL BOOST_COMP_INTEL_DETECTION
+#endif
+#define BOOST_COMP_INTEL_AVAILABLE
+#include <boost/predef/detail/comp_detected.h>
 #endif
 
 #define BOOST_COMP_INTEL_NAME "Intel C/C++"
@@ -57,9 +56,9 @@ Version number available as major, minor, and patch.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_INTEL,BOOST_COMP_INTEL_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_INTEL, BOOST_COMP_INTEL_NAME)
 
 #ifdef BOOST_COMP_INTEL_EMULATED
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_INTEL_EMULATED,BOOST_COMP_INTEL_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_COMP_INTEL_EMULATED, BOOST_COMP_INTEL_NAME)
 #endif

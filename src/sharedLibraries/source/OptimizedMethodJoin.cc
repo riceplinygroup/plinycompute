@@ -21,6 +21,6 @@
 #include "OptimizedMethodJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (OptimizedMethodJoin)
+GET_V_TABLE(OptimizedMethodJoin)
 
 #endif

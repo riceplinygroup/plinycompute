@@ -35,15 +35,12 @@ namespace pdb {
 
 // This class calls defines an object for closing the SQLite DB Handler
 
-    class CatalogCloseSQLiteDBHandler : public Object {
-    public:
+class CatalogCloseSQLiteDBHandler : public Object {
+public:
+    CatalogCloseSQLiteDBHandler() {}
 
-        CatalogCloseSQLiteDBHandler() {
-        }
-
-        ENABLE_DEEP_COPY
-
-    };
+    ENABLE_DEEP_COPY
+};
 
 } /* namespace pdb */
 

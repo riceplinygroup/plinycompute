@@ -20,21 +20,21 @@
 #define LEX_TOKENS_H
 
 #ifdef FILTER
-	#undef FILTER
-      	#undef APPLY
-	#undef SCAN
-	#undef AGG
-	#undef JOIN
-	#undef OUTPUT
-	#undef GETS
-	#undef IDENTIFIER
-	#undef STRING
-	#undef HASHLEFT
-	#undef HASHRIGHT
-        #undef HASHONE
-        #undef FLATTEN
+#undef FILTER
+#undef APPLY
+#undef SCAN
+#undef AGG
+#undef JOIN
+#undef OUTPUT
+#undef GETS
+#undef IDENTIFIER
+#undef STRING
+#undef HASHLEFT
+#undef HASHRIGHT
+#undef HASHONE
+#undef FLATTEN
 #endif
- 
+
 #define FILTER 258
 #define APPLY 259
 #define SCAN 260

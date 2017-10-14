@@ -28,16 +28,19 @@
 
 namespace pdb {
 
-extern void *stackBase;
-extern void *stackEnd;
+extern void* stackBase;
+extern void* stackEnd;
 
 PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
 
     // first, make sure that another worker queue does not exist
     if (stackBase != nullptr) {
-        std :: cout << "I have detected that you have started two PDBWorkerQueue objects in this process.\n";
-	std :: cout << "This is a really bad idea.  It probably will result in a crash at some point, and\n";
-	std :: cout << "regardless of that, the idea is to have one queue that everyone draws workers from.\n";
+        std::cout << "I have detected that you have started two PDBWorkerQueue objects in this "
+                     "process.\n";
+        std::cout << "This is a really bad idea.  It probably will result in a crash at some "
+                     "point, and\n";
+        std::cout << "regardless of that, the idea is to have one queue that everyone draws "
+                     "workers from.\n";
     }
 
     pthread_mutex_init(&waitingMutex, nullptr);
@@ -47,24 +50,28 @@ PDBWorkerQueue::PDBWorkerQueue(PDBLoggerPtr myLoggerIn, int numWorkers) {
     numOut = 0;
 
     if (stackBase != nullptr) {
-      std :: cout << "This is bad... it appears that you are creating more than one worker queue!\n";
-      exit (1);
+        std::cout
+            << "This is bad... it appears that you are creating more than one worker queue!\n";
+        exit(1);
     }
 
     // this is the location where each worker is going to have their stack
-    origStackBase = malloc (1024 * 1024 * 4 * (numWorkers + 1));
-    
+    origStackBase = malloc(1024 * 1024 * 4 * (numWorkers + 1));
+
     // align it to 2^22... chop off the last 22 bits, and then add 2^22 to the address
-    stackBase = (void *) (((((size_t) origStackBase) >> 22) << 22) + (1024 * 1024 * 4));
-    stackEnd = ((char *) stackBase) + 1024 * 1024 * 4 * numWorkers;
+    stackBase = (void*)(((((size_t)origStackBase) >> 22) << 22) + (1024 * 1024 * 4));
+    stackEnd = ((char*)stackBase) + 1024 * 1024 * 4 * numWorkers;
 
-    // create each worker... 
+    // create each worker...
     for (int i = 0; i < numWorkers; i++) {
-	// put an allocator at the base of the stack for this worker... give him 64MB of RAM to work with
-	new (i * 1024 * 1024 * 4 + ((char *) stackBase)) Allocator (PDBWorkerQueue :: defaultAllocatorBlockSize);		
+        // put an allocator at the base of the stack for this worker... give him 64MB of RAM to work
+        // with
+        new (i * 1024 * 1024 * 4 + ((char*)stackBase))
+            Allocator(PDBWorkerQueue::defaultAllocatorBlockSize);
 
-	// now create the worker
-        addAnotherWorker (i * 1024 * 1024 * 4 + sizeof (Allocator) + ((char *) stackBase), (i + 1) * 1024 * 1024 * 4 + ((char *) stackBase));
+        // now create the worker
+        addAnotherWorker(i * 1024 * 1024 * 4 + sizeof(Allocator) + ((char*)stackBase),
+                         (i + 1) * 1024 * 1024 * 4 + ((char*)stackBase));
     }
     myLogger = myLoggerIn;
 }
@@ -79,7 +86,7 @@ PDBWorkerQueue::~PDBWorkerQueue() {
     shuttingDown = true;
 
     // keep getting threads and giving them nothing to do... once they complete
-    // the nothing work, they will die since shuttingDown = true.  This goes 
+    // the nothing work, they will die since shuttingDown = true.  This goes
     // until we can't get any thrads because there are no more of them outstanding
     while (true) {
 
@@ -90,9 +97,8 @@ PDBWorkerQueue::~PDBWorkerQueue() {
         if (myWorker == nullptr)
             break;
 
-        PDBWorkPtr nothing{make_shared <NothingWork> ()};
+        PDBWorkPtr nothing{make_shared<NothingWork>()};
         myWorker->execute(nothing, nullptr);
-
     }
 
     // join with all of the threads
@@ -109,10 +115,10 @@ PDBWorkerQueue::~PDBWorkerQueue() {
     pthread_cond_destroy(&waitingSignal);
 
     // kill the allocators and destroy the stack space
-    for (int i = 0; i < threads.size (); i++) {
-	((Allocator *) (i * 1024 * 1024 * 4 + ((char *) stackBase)))->~Allocator ();
-    } 
-    free (origStackBase);
+    for (int i = 0; i < threads.size(); i++) {
+        ((Allocator*)(i * 1024 * 1024 * 4 + ((char*)stackBase)))->~Allocator();
+    }
+    free(origStackBase);
 }
 
 PDBWorkerPtr PDBWorkerQueue::getWorker() {
@@ -147,26 +153,26 @@ PDBWorkerPtr PDBWorkerQueue::getWorker() {
 
 // this is the entry point for all of the worker threads
 
-void *enterTheQueue(void *pdbWorkerQueueInstance) {
-    PDBWorkerQueue *temp = static_cast<PDBWorkerQueue *> (pdbWorkerQueueInstance);
+void* enterTheQueue(void* pdbWorkerQueueInstance) {
+    PDBWorkerQueue* temp = static_cast<PDBWorkerQueue*>(pdbWorkerQueueInstance);
     temp->enter();
     return nullptr;
 }
 
-void PDBWorkerQueue::addAnotherWorker (void *stackBaseIn, void *stackEndIn) {
+void PDBWorkerQueue::addAnotherWorker(void* stackBaseIn, void* stackEndIn) {
 
     pthread_t thread;
     threads.push_back(thread);
 
     // adjust the stack base to align it correctly
-    stackBaseIn = (void *) ((((long) stackBaseIn + (PTHREAD_STACK_MIN - 1)) /
-                          PTHREAD_STACK_MIN) * PTHREAD_STACK_MIN);
+    stackBaseIn = (void*)((((long)stackBaseIn + (PTHREAD_STACK_MIN - 1)) / PTHREAD_STACK_MIN) *
+                          PTHREAD_STACK_MIN);
 
     // create a thread with an allocator located at the base of its stack
     pthread_attr_t tattr;
-    pthread_attr_init (&tattr);
-    //pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
-    pthread_attr_setstack (&tattr, stackBaseIn, ((char *) stackEndIn) - (char *) stackBaseIn);
+    pthread_attr_init(&tattr);
+    // pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
+    pthread_attr_setstack(&tattr, stackBaseIn, ((char*)stackEndIn) - (char*)stackBaseIn);
 
     int return_code = pthread_create(&(threads[threads.size() - 1]), &tattr, enterTheQueue, this);
     if (return_code) {
@@ -183,7 +189,7 @@ void PDBWorkerQueue::notifyAllWorkers(PDBAlarm withMe) {
     // loop through all of the current workers
     for (PDBWorkerPtr p : working) {
 
-        // sound the buzzer... 
+        // sound the buzzer...
         p->soundBuzzer(withMe);
     }
 }
@@ -191,10 +197,10 @@ void PDBWorkerQueue::notifyAllWorkers(PDBAlarm withMe) {
 void PDBWorkerQueue::enter() {
 
     // create the work
-    PDBWorkerPtr temp{make_shared <PDBWorker> (this)};
+    PDBWorkerPtr temp{make_shared<PDBWorker>(this)};
 
     // then work until (a) someone told us that we need to die, or
-    // (b) we are trying to shut down the worker queue 
+    // (b) we are trying to shut down the worker queue
     while (!shuttingDown) {
 
         // put the work on the end of the queue
@@ -222,7 +228,7 @@ void PDBWorkerQueue::enter() {
     }
 
     // if we exited the loop, then this particular worker
-    // needs to die... so decrement the count of outstanding 
+    // needs to die... so decrement the count of outstanding
     // workers and let everyone know if the number is down to zero
     {
         // decrement the count of outstanding workers
@@ -234,8 +240,6 @@ void PDBWorkerQueue::enter() {
             pthread_cond_broadcast(&waitingSignal);
     }
 }
-
 }
 
 #endif
-

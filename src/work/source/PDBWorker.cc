@@ -26,7 +26,7 @@
 
 namespace pdb {
 
-PDBWorker::PDBWorker(PDBWorkerQueue *parentIn) : parent(parentIn) {
+PDBWorker::PDBWorker(PDBWorkerQueue* parentIn) : parent(parentIn) {
     pthread_mutex_init(&workerMutex, nullptr);
     pthread_cond_init(&workToDoSignal, nullptr);
     okToExecute = false;
@@ -79,8 +79,6 @@ PDBWorker::~PDBWorker() {
     pthread_mutex_destroy(&workerMutex);
     pthread_cond_destroy(&workToDoSignal);
 }
-
 }
 
 #endif
-

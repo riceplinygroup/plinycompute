@@ -41,9 +41,8 @@ using pdb_tests::runBuildTcapIrTests;
 using pdb_tests::runLogicalPlanTests;
 using pdb_tests::runBuildTcapBuilderTests;
 
-int main()
-{
-    makeObjectAllocatorBlock (1024 * 10, true);
+int main() {
+    makeObjectAllocatorBlock(1024 * 10, true);
 
     UnitTest qunit(std::cerr, QUnit::normal);
 
@@ -57,4 +56,3 @@ int main()
 
     return qunit.errors();
 }
-

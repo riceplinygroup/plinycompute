@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDADocWordTopicAssignment.h"
 
-GET_V_TABLE (LDADocWordTopicAssignment)
+GET_V_TABLE(LDADocWordTopicAssignment)
 
 #endif

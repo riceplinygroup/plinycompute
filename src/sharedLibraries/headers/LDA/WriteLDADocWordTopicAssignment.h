@@ -19,24 +19,22 @@
 #ifndef WRITE_DOC_WORD_TOPIC_H
 #define WRITE_DOC_WORD_TOPIC_H
 
-//by Shangyu, June 2017
+// by Shangyu, June 2017
 
 #include "WriteUserSet.h"
 #include "LDADocWordTopicAssignment.h"
 
 using namespace pdb;
-class WriteLDADocWordTopicAssignment : public WriteUserSet <LDADocWordTopicAssignment> {
+class WriteLDADocWordTopicAssignment : public WriteUserSet<LDADocWordTopicAssignment> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    WriteLDADocWordTopicAssignment() {}
 
-        WriteLDADocWordTopicAssignment () {}
-
-        WriteLDADocWordTopicAssignment (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
-
+    WriteLDADocWordTopicAssignment(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

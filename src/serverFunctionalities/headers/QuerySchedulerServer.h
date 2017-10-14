@@ -18,7 +18,7 @@
 #ifndef QUERY_SCHEDULER_SERVER_H
 #define QUERY_SCHEDULER_SERVER_H
 
-//by Jia, Sept 2016
+// by Jia, Sept 2016
 
 #include "ServerFunctionality.h"
 #include "ResourceInfo.h"
@@ -45,161 +45,199 @@ namespace pdb {
 class QuerySchedulerServer : public ServerFunctionality {
 
 public:
+    // destructor
+    ~QuerySchedulerServer();
 
-       //destructor
-       ~QuerySchedulerServer ();
+    // constructor for the case when query scheduler is co-located with resource manager
+    QuerySchedulerServer(PDBLoggerPtr logger,
+                         ConfigurationPtr conf,
+                         bool pseudoClusterMode = false,
+                         double partitionToCoreRatio = 0.75,
+                         bool isDynamicPlanning = true,
+                         bool removeIntermediateDataEarly = false);
 
-       //constructor for the case when query scheduler is co-located with resource manager       
-       QuerySchedulerServer(PDBLoggerPtr logger, ConfigurationPtr conf, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75, bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
-
-       QuerySchedulerServer(int port, PDBLoggerPtr logger, ConfigurationPtr conf, bool pseudoClusterMode = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
-
-
-       //constructor for the case when query scheduler and resource manager are in two different nodes
-       QuerySchedulerServer (std :: string resourceManagerIp, int port, PDBLoggerPtr logger, ConfigurationPtr conf, bool usePipelineNetwork = false, double partitionToCoreRatio = 0.75,  bool isDynamicPlanning = true, bool removeIntermediateDataEarly = false);
-
-       //initialization
-       void initialize(bool isRMRunAsServer);
-
-
-       //deprecated
-       //to transform optimized client query into a physical plan
-       //each pipeline can have more than one output
-       void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
-
-       //to replace above two methods to automatically build the physical plan based on TCAP string and computations
-       bool parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations, std :: string myTCAPString);
+    QuerySchedulerServer(int port,
+                         PDBLoggerPtr logger,
+                         ConfigurationPtr conf,
+                         bool pseudoClusterMode = false,
+                         double partitionToCoreRatio = 0.75,
+                         bool isDynamicPlanning = true,
+                         bool removeIntermediateDataEarly = false);
 
 
-       //deprecated
-       //to print parsed physical execution plan
-       void printCurrentPlan();
+    // constructor for the case when query scheduler and resource manager are in two different nodes
+    QuerySchedulerServer(std::string resourceManagerIp,
+                         int port,
+                         PDBLoggerPtr logger,
+                         ConfigurationPtr conf,
+                         bool usePipelineNetwork = false,
+                         double partitionToCoreRatio = 0.75,
+                         bool isDynamicPlanning = true,
+                         bool removeIntermediateDataEarly = false);
 
-       //to replace printCurrentPlan()
-       void printStages();
-
-       //deprecated
-       //to schedule the current job plan
-       bool schedule(std :: string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
-
-       //to schedule dynamic pipeline stages
-       void scheduleStages(std :: vector <Handle<AbstractJobStage>> & stagesToSchedule, std :: vector <Handle<SetIdentifier>> & intermediateSets, std :: shared_ptr<ShuffleInfo> shuffleInfo);
-
-
-       //deprecated
-       //to schedule a job stage
-       bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-
-       //Jia: one TODO is to consolidate below three functions into one function.
-       //to replace: bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode)
-       //to schedule a pipeline stage
-       bool scheduleStage(int index, Handle<TupleSetJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-       bool scheduleStage(int index, Handle<AggregationJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-       bool scheduleStage(int index, Handle<BroadcastJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-       bool scheduleStage(int index, Handle<HashPartitionedJoinBuildHTJobStage> &stage, PDBCommunicatorPtr communicator, ObjectCreationMode mode);
-       //deprecated
-       //to schedule the current job plan on all available resources
-       void schedule();
-
-       //to replace: void schedule()
-       //to schedule the query plan on all available resources
-       void scheduleQuery();
+    // initialization
+    void initialize(bool isRMRunAsServer);
 
 
-       //from the serverFunctionality interface... register the resource manager handlers
-       void registerHandlers (PDBServer &forMe) override;
+    // deprecated
+    // to transform optimized client query into a physical plan
+    // each pipeline can have more than one output
+    void parseOptimizedQuery(pdb_detail::QueryGraphIrPtr queryGraph);
 
-       void cleanup () override;       
-
-       //collect the statistics that will be used for optimizer
-       //this needs the functionality of catalog and distributed storage manager
-       void initializeStats ();
-      
-       //return statsForOptimization
-       StatisticsPtr getStats ();
-
-       //deprecated
-       Handle<SetIdentifier>  getOutputSet() {
-           return currentPlan[0]->getOutput();
-       }
-
-       //deprecated
-       std :: string getOutputTypeName() {
-           return currentPlan[0]->getOutputTypeName();
-       }
+    // to replace above two methods to automatically build the physical plan based on TCAP string
+    // and computations
+    bool parseTCAPString(Handle<Vector<Handle<Computation>>> myComputations,
+                         std::string myTCAPString);
 
 
-       std :: string getNextJobId() {
-           time_t currentTime = time(NULL);
-           struct tm *local = localtime(&currentTime);
-           this->jobId = "Job-"+std::to_string(local->tm_year+1900)+"_"+std::to_string(local->tm_mon+1)+"_"+std::to_string(local->tm_mday)+"_"+std::to_string(local->tm_hour)+"_"+std::to_string(local->tm_min)+"_"+std::to_string(local->tm_sec)+"_"+std::to_string(seqId.getNextSequenceID());
-           return this->jobId;
-       }
+    // deprecated
+    // to print parsed physical execution plan
+    void printCurrentPlan();
 
-       void collectStats ();
-       void updateStats (Handle<SetIdentifier> setToUpdateStats);
-       void resetStats (Handle<SetIdentifier> setToUpdateStats);
+    // to replace printCurrentPlan()
+    void printStages();
+
+    // deprecated
+    // to schedule the current job plan
+    bool schedule(std::string ip, int port, PDBLoggerPtr logger, ObjectCreationMode mode);
+
+    // to schedule dynamic pipeline stages
+    void scheduleStages(std::vector<Handle<AbstractJobStage>>& stagesToSchedule,
+                        std::vector<Handle<SetIdentifier>>& intermediateSets,
+                        std::shared_ptr<ShuffleInfo> shuffleInfo);
+
+
+    // deprecated
+    // to schedule a job stage
+    bool schedule(Handle<JobStage>& stage,
+                  PDBCommunicatorPtr communicator,
+                  ObjectCreationMode mode);
+
+    // Jia: one TODO is to consolidate below three functions into one function.
+    // to replace: bool schedule(Handle<JobStage> &stage, PDBCommunicatorPtr communicator,
+    // ObjectCreationMode mode)
+    // to schedule a pipeline stage
+    bool scheduleStage(int index,
+                       Handle<TupleSetJobStage>& stage,
+                       PDBCommunicatorPtr communicator,
+                       ObjectCreationMode mode);
+    bool scheduleStage(int index,
+                       Handle<AggregationJobStage>& stage,
+                       PDBCommunicatorPtr communicator,
+                       ObjectCreationMode mode);
+    bool scheduleStage(int index,
+                       Handle<BroadcastJoinBuildHTJobStage>& stage,
+                       PDBCommunicatorPtr communicator,
+                       ObjectCreationMode mode);
+    bool scheduleStage(int index,
+                       Handle<HashPartitionedJoinBuildHTJobStage>& stage,
+                       PDBCommunicatorPtr communicator,
+                       ObjectCreationMode mode);
+    // deprecated
+    // to schedule the current job plan on all available resources
+    void schedule();
+
+    // to replace: void schedule()
+    // to schedule the query plan on all available resources
+    void scheduleQuery();
+
+
+    // from the serverFunctionality interface... register the resource manager handlers
+    void registerHandlers(PDBServer& forMe) override;
+
+    void cleanup() override;
+
+    // collect the statistics that will be used for optimizer
+    // this needs the functionality of catalog and distributed storage manager
+    void initializeStats();
+
+    // return statsForOptimization
+    StatisticsPtr getStats();
+
+    // deprecated
+    Handle<SetIdentifier> getOutputSet() {
+        return currentPlan[0]->getOutput();
+    }
+
+    // deprecated
+    std::string getOutputTypeName() {
+        return currentPlan[0]->getOutputTypeName();
+    }
+
+
+    std::string getNextJobId() {
+        time_t currentTime = time(NULL);
+        struct tm* local = localtime(&currentTime);
+        this->jobId = "Job-" + std::to_string(local->tm_year + 1900) + "_" +
+            std::to_string(local->tm_mon + 1) + "_" + std::to_string(local->tm_mday) + "_" +
+            std::to_string(local->tm_hour) + "_" + std::to_string(local->tm_min) + "_" +
+            std::to_string(local->tm_sec) + "_" + std::to_string(seqId.getNextSequenceID());
+        return this->jobId;
+    }
+
+    void collectStats();
+    void updateStats(Handle<SetIdentifier> setToUpdateStats);
+    void resetStats(Handle<SetIdentifier> setToUpdateStats);
+
 protected:
+    // current resources (deprecated, and we should use standardResources in our code)
+    // Handle<Vector<Handle<ResourceInfo>>> resources;
 
-       //current resources (deprecated, and we should use standardResources in our code)
-       //Handle<Vector<Handle<ResourceInfo>>> resources;
+    // current resources
+    std::vector<StandardResourceInfoPtr>* standardResources;
 
-       //current resources
-       std :: vector<StandardResourceInfoPtr> * standardResources;
+    // resource manager IP address
+    std::string resourceManagerIp;
 
-       // resource manager IP address
-       std :: string resourceManagerIp;
+    // port number
+    int port;
 
-       // port number
-       int port;
+    // deprecated
+    // physical plan that is temporary, however each query scheduler can schedule one JobStage at
+    // each time, similar with Spark/Hadoop
+    std::vector<Handle<JobStage>> currentPlan;
 
-       // deprecated
-       // physical plan that is temporary, however each query scheduler can schedule one JobStage at each time, similar with Spark/Hadoop
-       std :: vector<Handle<JobStage>> currentPlan;
+    // use TupleSetJobStage/AggregationJobStage to replace JobStage
+    std::vector<Handle<AbstractJobStage>> queryPlan;
 
-       // use TupleSetJobStage/AggregationJobStage to replace JobStage
-       std :: vector<Handle<AbstractJobStage>> queryPlan;
-
-       //set identifiers for shuffle set, we need to create and remove them at scheduler, so that they exist at any node when any other node needs to write to it
-       std :: vector<Handle<SetIdentifier>> interGlobalSets;
+    // set identifiers for shuffle set, we need to create and remove them at scheduler, so that they
+    // exist at any node when any other node needs to write to it
+    std::vector<Handle<SetIdentifier>> interGlobalSets;
 
 
-       // logger
-       PDBLoggerPtr logger;
+    // logger
+    PDBLoggerPtr logger;
 
-       // Configuration
-       ConfigurationPtr conf;
+    // Configuration
+    ConfigurationPtr conf;
 
-       bool usePipelineNetwork;
+    bool usePipelineNetwork;
 
-       bool pseudoClusterMode; 
+    bool pseudoClusterMode;
 
-       pthread_mutex_t connection_mutex;
+    pthread_mutex_t connection_mutex;
 
-       JobStageID jobStageId;
+    JobStageID jobStageId;
 
-       SequenceID seqId;
+    SequenceID seqId;
 
-       std :: string jobId;
+    std::string jobId;
 
-       double partitionToCoreRatio;
+    double partitionToCoreRatio;
 
-       //below variables are added for dynamic planning
+    // below variables are added for dynamic planning
 
-       bool dynamicPlanningOrNot;
+    bool dynamicPlanningOrNot;
 
-       bool earlyRemovingDataOrNot;
+    bool earlyRemovingDataOrNot;
 
-       std :: shared_ptr<TCAPAnalyzer> tcapAnalyzerPtr;
+    std::shared_ptr<TCAPAnalyzer> tcapAnalyzerPtr;
 
-       StatisticsPtr statsForOptimization;
+    StatisticsPtr statsForOptimization;
 
-       std :: shared_ptr<ShuffleInfo> shuffleInfo;
+    std::shared_ptr<ShuffleInfo> shuffleInfo;
 };
-
-
 }
-
 
 
 #endif

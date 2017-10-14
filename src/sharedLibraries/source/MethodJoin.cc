@@ -21,6 +21,6 @@
 #include "MethodJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (MethodJoin)
+GET_V_TABLE(MethodJoin)
 
 #endif

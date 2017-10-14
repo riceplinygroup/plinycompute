@@ -32,22 +32,24 @@
 #include <iostream>
 
 #ifndef USE_MEMCACHED_SLAB_ALLOCATOR
-    #include "tlsf.h"
+#include "tlsf.h"
 #endif
 
-SharedMem::SharedMem(size_t memSize, pdb :: PDBLoggerPtr logger) {
+SharedMem::SharedMem(size_t memSize, pdb::PDBLoggerPtr logger) {
     this->shmMemSize = memSize;
     this->memPool = nullptr;
     if (this->getMem() < 0) {
-        std :: cout << "Fatal error: initialize shared memory failed with size="
-<< memSize << std :: endl;
-        logger->error(std :: string("Fatal error: initialize shared memory failed with size=") + std :: to_string(memSize));
+        std::cout << "Fatal error: initialize shared memory failed with size=" << memSize
+                  << std::endl;
+        logger->error(std::string("Fatal error: initialize shared memory failed with size=") +
+                      std::to_string(memSize));
         exit(-1);
-    } 
+    }
 #ifdef USE_MEMCACHED_SLAB_ALLOCATOR
-    this->allocator = make_shared<SlabAllocator>(this->memPool, this->shmMemSize, DEFAULT_PAGE_SIZE, 512);
+    this->allocator =
+        make_shared<SlabAllocator>(this->memPool, this->shmMemSize, DEFAULT_PAGE_SIZE, 512);
 #else
-    this->my_tlsf = this->allocator.tlsf_create_with_pool (this->memPool, this->shmMemSize);    
+    this->my_tlsf = this->allocator.tlsf_create_with_pool(this->memPool, this->shmMemSize);
 #endif
     this->initMutex();
     this->logger = logger;
@@ -71,7 +73,7 @@ size_t SharedMem::getShmSize() {
 
 
 void* SharedMem::malloc(size_t size) {
-    void * ptr;
+    void* ptr;
     this->lock();
 #ifdef USE_MEMCACHED_SLAB_ALLOCATOR
     ptr = this->allocator->slabs_alloc_unsafe(size);
@@ -83,19 +85,19 @@ void* SharedMem::malloc(size_t size) {
 }
 
 
-void * SharedMem::mallocAlign (size_t size, size_t alignment, int& offset) {
-    void * ptr = this->malloc(size + alignment);
-    void * retPtr = ptr;
+void* SharedMem::mallocAlign(size_t size, size_t alignment, int& offset) {
+    void* ptr = this->malloc(size + alignment);
+    void* retPtr = ptr;
     offset = 0;
-    if(ptr != nullptr) { 
-        retPtr = (void *)this->addressRoundUp((char *)ptr, alignment);
-        offset = (char *)retPtr - (char *)ptr;
+    if (ptr != nullptr) {
+        retPtr = (void*)this->addressRoundUp((char*)ptr, alignment);
+        offset = (char*)retPtr - (char*)ptr;
     }
     return retPtr;
 }
 
 
-void SharedMem::free(void *ptr, size_t size) {
+void SharedMem::free(void* ptr, size_t size) {
     this->lock();
 #ifdef USE_MEMCACHED_SLAB_ALLOCATOR
     this->allocator->slabs_free_unsafe(ptr, size);
@@ -107,18 +109,18 @@ void SharedMem::free(void *ptr, size_t size) {
 
 
 char* SharedMem::addressRoundUp(char* address, size_t roundTo) {
-    size_t roundToMask = (~((size_t) roundTo - 1));
-    return (char *)((size_t)((address) + (roundTo - 1)) & roundToMask);
+    size_t roundToMask = (~((size_t)roundTo - 1));
+    return (char*)((size_t)((address) + (roundTo - 1)) & roundToMask);
 }
 
 size_t SharedMem::roundUp(size_t address, size_t roundTo) {
-    size_t roundToMask = (~((size_t) roundTo - 1));
+    size_t roundToMask = (~((size_t)roundTo - 1));
     return (((address) + (roundTo - 1)) & roundToMask);
 }
 
 size_t SharedMem::roundDown(size_t address, size_t roundTo) {
-    size_t roundToMask = (~((size_t) roundTo - 1));
-    return ((address) & roundToMask);
+    size_t roundToMask = (~((size_t)roundTo - 1));
+    return ((address)&roundToMask);
 }
 
 
@@ -130,36 +132,35 @@ void SharedMem::destroy() {
     if (this->memLock) {
         pthread_mutex_destroy(this->memLock);
     }
-    if (this->memPool && (this->memPool != (void*) - 1)) {
+    if (this->memPool && (this->memPool != (void*)-1)) {
         munmap(this->memPool, this->shmMemSize);
-        this->memPool = (void*) - 1;
+        this->memPool = (void*)-1;
     }
 }
 
 int SharedMem::getMem() {
-    if (this->memPool && (this->memPool != (void*) - 1)) {
+    if (this->memPool && (this->memPool != (void*)-1)) {
         return -1;
     }
-    this->memPool = mmap(0, this->shmMemSize, PROT_READ | PROT_WRITE,
-            MAP_ANON | MAP_SHARED, -1, 0);
-    if (this->memPool == (void*) - 1) {
+    this->memPool = mmap(0, this->shmMemSize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    if (this->memPool == (void*)-1) {
         return -1;
     }
     return 0;
 }
 
 long long SharedMem::computeOffset(void* shmAddress) {
-    return (long long) ((char*) shmAddress - (char*) this->memPool);
+    return (long long)((char*)shmAddress - (char*)this->memPool);
 }
 
-void * SharedMem::getPointer(size_t offset) {
-    return (void *) ((size_t)this->memPool + (size_t) offset);
+void* SharedMem::getPointer(size_t offset) {
+    return (void*)((size_t)this->memPool + (size_t)offset);
 }
 
 int SharedMem::initMutex() {
-    this->memLock = (pthread_mutex_t *)this->_malloc_unsafe(sizeof (pthread_mutex_t));
+    this->memLock = (pthread_mutex_t*)this->_malloc_unsafe(sizeof(pthread_mutex_t));
     if (this->memLock == 0) {
-        std :: cout << "FATAL ERROR: can't allocate for memLock from buffer pool" << std :: endl;
+        std::cout << "FATAL ERROR: can't allocate for memLock from buffer pool" << std::endl;
         return -1;
     }
     if (pthread_mutex_init(this->memLock, nullptr) != 0) {
@@ -176,12 +177,10 @@ void* SharedMem::_malloc_unsafe(size_t size) {
 #endif
 }
 
-void SharedMem::_free_unsafe(void * ptr, size_t size) {
+void SharedMem::_free_unsafe(void* ptr, size_t size) {
 #ifdef USE_MEMCACHED_SLAB_ALLOCATOR
     return this->allocator->slabs_free_unsafe(ptr, size);
 #else
     return this->allocator.tlsf_free(this->my_tlsf, ptr);
 #endif
 }
-
-

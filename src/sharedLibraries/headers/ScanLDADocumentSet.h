@@ -23,19 +23,17 @@
 #include "LDADocument.h"
 
 using namespace pdb;
-class ScanLDADocumentSet : public ScanUserSet <LDADocument> {
+class ScanLDADocumentSet : public ScanUserSet<LDADocument> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanLDADocumentSet () {
-        }
+    ScanLDADocumentSet() {}
 
-        ScanLDADocumentSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanLDADocumentSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "LineItem.h"
 
-GET_V_TABLE (LineItem)
+GET_V_TABLE(LineItem)
 
 #endif

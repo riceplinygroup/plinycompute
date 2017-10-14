@@ -36,29 +36,24 @@
  */
 namespace pdb {
 
-class QueryDone: public pdb::Object {
+class QueryDone : public pdb::Object {
 
 public:
+    QueryDone() {}
+    ~QueryDone() {}
 
-	QueryDone() {
-	}
-	~QueryDone() {
-	}
+    pdb::String& getQuerID() {
+        return queryID;
+    }
 
-	pdb::String& getQuerID() {
-		return queryID;
-	}
+    void setQueryID(pdb::String& queryID) {
+        this->queryID = queryID;
+    }
 
-	void setQueryID(pdb::String & queryID) {
-		this->queryID = queryID;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-	pdb::String queryID;
-
+    pdb::String queryID;
 };
-
 }
 #endif

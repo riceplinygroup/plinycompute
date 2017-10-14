@@ -21,6 +21,6 @@
 #include "SillyJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SillyJoin)
+GET_V_TABLE(SillyJoin)
 
 #endif

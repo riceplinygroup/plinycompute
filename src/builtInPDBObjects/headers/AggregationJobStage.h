@@ -18,7 +18,7 @@
 #ifndef AGGREGATION_JOBSTAGE_H
 #define AGGREGATION_JOBSTAGE_H
 
-//by Jia, Mar 5th, 2017
+// by Jia, Mar 5th, 2017
 
 #include "PDBDebug.h"
 #include "Object.h"
@@ -34,145 +34,149 @@
 
 namespace pdb {
 
-    //encapsulates a synchronous aggregation consuming job stage
-    class AggregationJobStage : public AbstractJobStage {
-        
-    public:
+// encapsulates a synchronous aggregation consuming job stage
+class AggregationJobStage : public AbstractJobStage {
 
-            AggregationJobStage () {}
-             
-            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation) {
-                this->id = stageId;
-                this->materializeOrNot = materializeOrNot;
-                this->aggComputation = aggComputation;
-            }
+public:
+    AggregationJobStage() {}
 
-            AggregationJobStage (JobStageID stageId, bool materializeOrNot, Handle<AbstractAggregateComp> aggComputation, int numNodePartitions) {
-                this->id = stageId;
-                this->materializeOrNot = materializeOrNot; 
-                this->aggComputation = aggComputation;
-                this->numNodePartitions = numNodePartitions;
-            }
+    AggregationJobStage(JobStageID stageId,
+                        bool materializeOrNot,
+                        Handle<AbstractAggregateComp> aggComputation) {
+        this->id = stageId;
+        this->materializeOrNot = materializeOrNot;
+        this->aggComputation = aggComputation;
+    }
 
-            ~AggregationJobStage () {}
+    AggregationJobStage(JobStageID stageId,
+                        bool materializeOrNot,
+                        Handle<AbstractAggregateComp> aggComputation,
+                        int numNodePartitions) {
+        this->id = stageId;
+        this->materializeOrNot = materializeOrNot;
+        this->aggComputation = aggComputation;
+        this->numNodePartitions = numNodePartitions;
+    }
 
-            void setNumNodePartitions (int numNodePartitions) {
-                this->numNodePartitions = numNodePartitions;
-            }
+    ~AggregationJobStage() {}
 
-            int getNumNodePartitions () {
-                return this->numNodePartitions;
-            }
+    void setNumNodePartitions(int numNodePartitions) {
+        this->numNodePartitions = numNodePartitions;
+    }
 
-
-            std :: string getJobStageType () override {
-                return "AggregationJobStage";
-            }
-
-            //to set source set identifier
-            void setSourceContext( Handle<SetIdentifier> sourceContext ) {
-                this->sourceContext = sourceContext;
-            }
-
-            //to return source set identifier
-            Handle<SetIdentifier> getSourceContext() {
-                return this->sourceContext;
-            }
- 
-            //to set sink set identifier
-            void setSinkContext( Handle<SetIdentifier> sinkContext ) {
-                this->sinkContext = sinkContext;
-            }
-
-            //to return sink set identifier
-            Handle<SetIdentifier> getSinkContext() {
-                return this->sinkContext;
-            } 
-
-            JobStageID getStageId() override {
-                return this->id;
-            }
-
-            bool needsToMaterializeAggOut () {
-                return materializeOrNot;
-            } 
-
-            void print() override {
-                std::cout << "[JOB ID] jobId=" << jobId << std :: endl;
-                std::cout << "[STAGE ID] id=" << id << std :: endl;
-                std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()<<", setName=" << sourceContext->getSetName()<< std :: endl;
-                std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()<<", setName=" << sinkContext->getSetName()<< std :: endl;
-                std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std :: endl;
-                std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std :: endl;
-                std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std :: endl;
-            }
-
-            std :: string getOutputTypeName () {
-                return this->outputTypeName;
-            }
-
-            void setOutputTypeName (std :: string outputTypeName) {
-                this->outputTypeName = outputTypeName;
-            }
-
-            Handle<AbstractAggregateComp> getAggComputation() {
-                return aggComputation;
-            }
-
-            void setAggTotalPartitions(int numPartitions) {
-                this->aggComputation->setNumPartitions(numPartitions);
-            }
-
-            void setAggBatchSize (int batchSize) {
-                this->aggComputation->setBatchSize(batchSize);
-            }
-
-            void setAggComputation (Handle<AbstractAggregateComp> aggComputation) {
-                this->aggComputation = aggComputation;
-            }
-
-            void setNeedsRemoveInputSet (bool needsRemoveInputSet) {
-                this->needsRemoveInputSet = needsRemoveInputSet;
-            }
-
-            bool getNeedsRemoveInputSet () {
-                return this->needsRemoveInputSet;
-            }
-
-            void setTotalMemoryOnThisNode (size_t totalMem) {
-                this->totalMemoryOnThisNode = totalMem;
-            }
-
-            size_t getTotalMemoryOnThisNode () {
-                return this->totalMemoryOnThisNode;
-            }
+    int getNumNodePartitions() {
+        return this->numNodePartitions;
+    }
 
 
-            ENABLE_DEEP_COPY
+    std::string getJobStageType() override {
+        return "AggregationJobStage";
+    }
+
+    // to set source set identifier
+    void setSourceContext(Handle<SetIdentifier> sourceContext) {
+        this->sourceContext = sourceContext;
+    }
+
+    // to return source set identifier
+    Handle<SetIdentifier> getSourceContext() {
+        return this->sourceContext;
+    }
+
+    // to set sink set identifier
+    void setSinkContext(Handle<SetIdentifier> sinkContext) {
+        this->sinkContext = sinkContext;
+    }
+
+    // to return sink set identifier
+    Handle<SetIdentifier> getSinkContext() {
+        return this->sinkContext;
+    }
+
+    JobStageID getStageId() override {
+        return this->id;
+    }
+
+    bool needsToMaterializeAggOut() {
+        return materializeOrNot;
+    }
+
+    void print() override {
+        std::cout << "[JOB ID] jobId=" << jobId << std::endl;
+        std::cout << "[STAGE ID] id=" << id << std::endl;
+        std::cout << "[INPUT] databaseName=" << sourceContext->getDatabase()
+                  << ", setName=" << sourceContext->getSetName() << std::endl;
+        std::cout << "[OUTPUT] databaseName=" << sinkContext->getDatabase()
+                  << ", setName=" << sinkContext->getSetName() << std::endl;
+        std::cout << "[OUTTYPE] typeName=" << getOutputTypeName() << std::endl;
+        std::cout << "[NUMPARTITIONS] numPartitions=" << numNodePartitions << std::endl;
+        std::cout << "[MEM] total memory=" << totalMemoryOnThisNode << std::endl;
+    }
+
+    std::string getOutputTypeName() {
+        return this->outputTypeName;
+    }
+
+    void setOutputTypeName(std::string outputTypeName) {
+        this->outputTypeName = outputTypeName;
+    }
+
+    Handle<AbstractAggregateComp> getAggComputation() {
+        return aggComputation;
+    }
+
+    void setAggTotalPartitions(int numPartitions) {
+        this->aggComputation->setNumPartitions(numPartitions);
+    }
+
+    void setAggBatchSize(int batchSize) {
+        this->aggComputation->setBatchSize(batchSize);
+    }
+
+    void setAggComputation(Handle<AbstractAggregateComp> aggComputation) {
+        this->aggComputation = aggComputation;
+    }
+
+    void setNeedsRemoveInputSet(bool needsRemoveInputSet) {
+        this->needsRemoveInputSet = needsRemoveInputSet;
+    }
+
+    bool getNeedsRemoveInputSet() {
+        return this->needsRemoveInputSet;
+    }
+
+    void setTotalMemoryOnThisNode(size_t totalMem) {
+        this->totalMemoryOnThisNode = totalMem;
+    }
+
+    size_t getTotalMemoryOnThisNode() {
+        return this->totalMemoryOnThisNode;
+    }
 
 
-    private:
-
-            Handle<SetIdentifier> sourceContext;
-
-            Handle<SetIdentifier> sinkContext;
+    ENABLE_DEEP_COPY
 
 
-            JobStageID id;
+private:
+    Handle<SetIdentifier> sourceContext;
 
-            String outputTypeName; 
+    Handle<SetIdentifier> sinkContext;
 
-            bool materializeOrNot;
 
-            Handle<AbstractAggregateComp> aggComputation;
+    JobStageID id;
 
-            bool needsRemoveInputSet;
+    String outputTypeName;
 
-            int numNodePartitions;
+    bool materializeOrNot;
 
-            size_t totalMemoryOnThisNode;
-   };
+    Handle<AbstractAggregateComp> aggComputation;
 
+    bool needsRemoveInputSet;
+
+    int numNodePartitions;
+
+    size_t totalMemoryOnThisNode;
+};
 }
 
 #endif

@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDAInitialWordTopicProbSelection.h"
 
-GET_V_TABLE (LDAInitialWordTopicProbSelection)
+GET_V_TABLE(LDAInitialWordTopicProbSelection)
 
 #endif

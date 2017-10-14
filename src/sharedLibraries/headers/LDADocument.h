@@ -29,50 +29,48 @@ using namespace pdb;
 class LDADocument : public Object {
 
 private:
-
-        unsigned docID;
-	unsigned wordID;
-	unsigned count;
+    unsigned docID;
+    unsigned wordID;
+    unsigned count;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDADocument() {}
 
-        LDADocument () {}
-	
-	void setDoc(unsigned fromDoc) {
-		this->docID = fromDoc;
-	}
+    void setDoc(unsigned fromDoc) {
+        this->docID = fromDoc;
+    }
 
-	unsigned getDoc() {
-		return this->docID;
-	}
-
-
-	void setWord(int fromWord) {
-		this->wordID = fromWord;
-	}
-
-	unsigned getWord() {
-		return this->wordID;
-	}
+    unsigned getDoc() {
+        return this->docID;
+    }
 
 
-	void setCount(unsigned fromCount) {
-		this->count = fromCount;
-	}
+    void setWord(int fromWord) {
+        this->wordID = fromWord;
+    }
 
-	unsigned getCount() {
-		return this->count;
-	}
+    unsigned getWord() {
+        return this->wordID;
+    }
 
 
-	void print() {
-		std :: cout << "docID: " << this->docID << " wordID: " << wordID << " count: " << count << std :: endl;
-	}
+    void setCount(unsigned fromCount) {
+        this->count = fromCount;
+    }
 
-        ~LDADocument () {}
+    unsigned getCount() {
+        return this->count;
+    }
 
+
+    void print() {
+        std::cout << "docID: " << this->docID << " wordID: " << wordID << " count: " << count
+                  << std::endl;
+    }
+
+    ~LDADocument() {}
 };
 
 

@@ -21,6 +21,6 @@
 #include "GMM2/GmmAggregateDatapoint.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmAggregateDatapoint)
+GET_V_TABLE(GmmAggregateDatapoint)
 
 #endif

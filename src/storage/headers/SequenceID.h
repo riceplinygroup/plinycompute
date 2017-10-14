@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   SequenceID.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef SEQUENCEID_H
-#define	SEQUENCEID_H
+#define SEQUENCEID_H
 
 #include <pthread.h>
 
@@ -33,7 +33,6 @@ private:
     pthread_mutex_t sequenceIDMutex;
 
 public:
-
     SequenceID() {
         currentID = 0;
         pthread_mutex_init(&sequenceIDMutex, nullptr);
@@ -53,11 +52,8 @@ public:
         currentID++;
         pthread_mutex_unlock(&sequenceIDMutex);
         return nextID;
-
     }
 };
 
 
-
-#endif	/* SEQUENCEID_H */
-
+#endif /* SEQUENCEID_H */

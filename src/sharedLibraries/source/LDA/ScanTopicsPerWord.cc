@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/ScanTopicsPerWord.h"
 
-GET_V_TABLE (ScanTopicsPerWord)
+GET_V_TABLE(ScanTopicsPerWord)
 
 #endif

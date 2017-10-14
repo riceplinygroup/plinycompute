@@ -21,6 +21,6 @@
 #include "SimpleMovieWrite.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SimpleMovieWrite)
+GET_V_TABLE(SimpleMovieWrite)
 
 #endif

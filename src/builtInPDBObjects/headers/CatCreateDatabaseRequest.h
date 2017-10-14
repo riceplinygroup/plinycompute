@@ -31,22 +31,19 @@ namespace pdb {
 class CatCreateDatabaseRequest : public Object {
 
 public:
+    ~CatCreateDatabaseRequest() {}
+    CatCreateDatabaseRequest() {}
+    CatCreateDatabaseRequest(std::string dbName) : dbName(dbName) {}
 
-	~CatCreateDatabaseRequest () {}
-	CatCreateDatabaseRequest () {}
-	CatCreateDatabaseRequest (std :: string dbName) : dbName (dbName) {}
+    std::string dbToCreate() {
+        return dbName;
+    }
 
-	std :: string dbToCreate () {
-		return dbName;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dbName;
+    String dbName;
 };
-
 }
 
 #endif

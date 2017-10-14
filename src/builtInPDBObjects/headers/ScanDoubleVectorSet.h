@@ -25,19 +25,17 @@
 // PRELOAD %ScanDoubleVectorSet%
 
 using namespace pdb;
-class ScanDoubleVectorSet : public ScanUserSet <DoubleVector> {
+class ScanDoubleVectorSet : public ScanUserSet<DoubleVector> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanDoubleVectorSet () {
-        }
+    ScanDoubleVectorSet() {}
 
-        ScanDoubleVectorSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanDoubleVectorSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

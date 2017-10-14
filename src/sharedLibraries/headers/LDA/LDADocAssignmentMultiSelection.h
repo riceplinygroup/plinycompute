@@ -28,19 +28,20 @@
 
 using namespace pdb;
 
-class LDADocAssignmentMultiSelection  : public MultiSelectionComp <DocAssignment, LDADocWordTopicAssignment> {
+class LDADocAssignmentMultiSelection
+    : public MultiSelectionComp<DocAssignment, LDADocWordTopicAssignment> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    Lambda<bool> getSelection(Handle<LDADocWordTopicAssignment> checkMe) override {
+        return makeLambda(checkMe, [](Handle<LDADocWordTopicAssignment>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<LDADocWordTopicAssignment> & checkMe) {return true;});
-	}
-
-	Lambda <Vector <Handle <DocAssignment>>> getProjection (Handle <LDADocWordTopicAssignment> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getDocAssigns);
-	}
+    Lambda<Vector<Handle<DocAssignment>>> getProjection(
+        Handle<LDADocWordTopicAssignment> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getDocAssigns);
+    }
 };
 
 

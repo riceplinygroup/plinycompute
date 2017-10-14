@@ -23,45 +23,43 @@
 
 namespace pdb {
 
-SingleTableUnbundleProcessor :: ~SingleTableUnbundleProcessor() {
+SingleTableUnbundleProcessor::~SingleTableUnbundleProcessor() {
 
     this->clearInputBlock();
     this->clearOutputVec();
     this->context = nullptr;
 }
 
-SingleTableUnbundleProcessor :: SingleTableUnbundleProcessor () {
+SingleTableUnbundleProcessor::SingleTableUnbundleProcessor() {
 
     this->context = nullptr;
-} 
-
-void SingleTableUnbundleProcessor :: initialize () {
-
-    finalized = false;   
-
 }
 
-void SingleTableUnbundleProcessor :: loadInputBlock (Handle<GenericBlock> inputBlock) {
+void SingleTableUnbundleProcessor::initialize() {
+
+    finalized = false;
+}
+
+void SingleTableUnbundleProcessor::loadInputBlock(Handle<GenericBlock> inputBlock) {
 
     this->inputBlock = inputBlock;
     posInInput = 0;
-
 }
 
-void SingleTableUnbundleProcessor :: loadOutputVector () {
+void SingleTableUnbundleProcessor::loadOutputVector() {
 
     this->clearOutputVec();
     this->outputVec = this->context->getOutputVec();
 }
 
-bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
+bool SingleTableUnbundleProcessor::fillNextOutputVector() {
 
-    Vector<Handle<Object>> &myInputVec = this->inputBlock->getBlock();
-    Vector<Handle<Object>> &myOutputVec = *outputVec;
+    Vector<Handle<Object>>& myInputVec = this->inputBlock->getBlock();
+    Vector<Handle<Object>>& myOutputVec = *outputVec;
 
     // we are finalized in processing the input page
     if (finalized) {
-        
+
         return false;
     }
 
@@ -69,59 +67,55 @@ bool SingleTableUnbundleProcessor :: fillNextOutputVector () {
     // we are not finalized, so process the page
     try {
         int vecSize = myInputVec.size();
-        //std :: cout << "unbundler: posInInput=" << posInInput << ", vecSize=" << vecSize << std :: endl;
+        // std :: cout << "unbundler: posInInput=" << posInInput << ", vecSize=" << vecSize << std
+        // :: endl;
         for (; posInInput < vecSize; posInInput++) {
             myOutputVec.push_back(myInputVec[posInInput]);
-            totalObjects ++;
+            totalObjects++;
         }
-        //an output block is finished.
-        //std :: cout << "the unbundle processor unbundled a block with " << totalObjects << " objects" << std :: endl;
+        // an output block is finished.
+        // std :: cout << "the unbundle processor unbundled a block with " << totalObjects << "
+        // objects" << std :: endl;
         return false;
-    } catch (NotEnoughSpace &n) {
-        //std :: cout << "the unbundle processor consumed the page with "<< totalObjects << " objects" << std :: endl;
-        //std :: cout << "posInInput=" << posInInput << std :: endl;
+    } catch (NotEnoughSpace& n) {
+        // std :: cout << "the unbundle processor consumed the page with "<< totalObjects << "
+        // objects" << std :: endl;
+        // std :: cout << "posInInput=" << posInInput << std :: endl;
         if (this->context != nullptr) {
-            //because final output and intermediate data are allocated on the same page, due to object model limitation
-            //getRecord(this->context->getOutputVec());
+            // because final output and intermediate data are allocated on the same page, due to
+            // object model limitation
+            // getRecord(this->context->getOutputVec());
             context->setOutputFull(true);
         }
-        return true; 
+        return true;
     }
-
 }
 
-void SingleTableUnbundleProcessor :: finalize () {
+void SingleTableUnbundleProcessor::finalize() {
 
-   finalized = true;
-
+    finalized = true;
 }
 
-void SingleTableUnbundleProcessor :: clearOutputVec () {
+void SingleTableUnbundleProcessor::clearOutputVec() {
 
     this->outputVec = nullptr;
-
 }
 
-void SingleTableUnbundleProcessor :: clearInputBlock () {
+void SingleTableUnbundleProcessor::clearInputBlock() {
 
     this->inputBlock = nullptr;
-
 }
 
-void SingleTableUnbundleProcessor :: setContext (PipelineContextPtr context) {
+void SingleTableUnbundleProcessor::setContext(PipelineContextPtr context) {
 
     this->context = context;
-
 }
 
-PipelineContextPtr SingleTableUnbundleProcessor :: getContext() {
+PipelineContextPtr SingleTableUnbundleProcessor::getContext() {
 
     return this->context;
-
 }
-
 }
-
 
 
 #endif

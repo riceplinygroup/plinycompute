@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "LASingleMatrix.h"
 
-GET_V_TABLE (SingleMatrix)
+GET_V_TABLE(SingleMatrix)
 
 #endif

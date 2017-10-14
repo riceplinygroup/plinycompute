@@ -21,7 +21,6 @@
 #include "EmployeeBuiltInIdentitySelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (EmployeeBuiltInIdentitySelection)
+GET_V_TABLE(EmployeeBuiltInIdentitySelection)
 
 #endif
-

@@ -22,6 +22,6 @@
 #include "LAMaxElementValueType.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAMaxElementValueType)
+GET_V_TABLE(LAMaxElementValueType)
 
 #endif

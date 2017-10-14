@@ -18,7 +18,7 @@
 #ifndef K_MEANS_CENTROID_H
 #define K_MEANS_CENTROID_H
 
-//by Shangyu, May 2017
+// by Shangyu, May 2017
 
 #include "Object.h"
 #include "Handle.h"
@@ -33,10 +33,9 @@ private:
     size_t count;
 
 public:
-
     ENABLE_DEEP_COPY
 
-    KMeansCentroid () {}
+    KMeansCentroid() {}
 
     /*
     KMeansCentroid ( size_t count, size_t size ) {
@@ -45,13 +44,12 @@ public:
     }
     */
 
-    KMeansCentroid ( size_t count, KMeansDoubleVector value ) {
+    KMeansCentroid(size_t count, KMeansDoubleVector value) {
         this->count = count;
         this->mean = value;
     }
 
-    ~KMeansCentroid () {
-    }
+    ~KMeansCentroid() {}
 
     size_t getCount() {
         return this->count;
@@ -61,16 +59,14 @@ public:
         return this->mean;
     }
 
-    KMeansCentroid& operator + (KMeansCentroid &other) {
+    KMeansCentroid& operator+(KMeansCentroid& other) {
 
-	//Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count + other.getCount(), this->mean + other.getMean());
+        // Handle<KMeansCentroid> result = makeObject<KMeansCentroid> (this->count +
+        // other.getCount(), this->mean + other.getMean());
         this->count += other.getCount();
         this->mean = this->mean + other.getMean();
-	return *this;
-
+        return *this;
     }
-
-
 };
 
 #endif

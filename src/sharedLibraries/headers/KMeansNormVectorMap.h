@@ -29,42 +29,40 @@
 #include <cstdlib>
 
 #ifndef NUM_KMEANS_DIMENSIONS
-   #define NUM_KMEANS_DIMENSIONS 1000
+#define NUM_KMEANS_DIMENSIONS 1000
 #endif
 
 
 using namespace pdb;
-class KMeansNormVectorMap : public SelectionComp <KMeansDoubleVector, double[NUM_KMEANS_DIMENSIONS]> {
+class KMeansNormVectorMap
+    : public SelectionComp<KMeansDoubleVector, double[NUM_KMEANS_DIMENSIONS]> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    KMeansNormVectorMap() {}
 
-	KMeansNormVectorMap () {
+    // srand has already been invoked in server
+    Lambda<bool> getSelection(Handle<double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
+        return makeLambda(checkMe,
+                          [&](Handle<double[NUM_KMEANS_DIMENSIONS]>& checkMe) { return true; });
+    }
 
-        }
-
-        //srand has already been invoked in server
-	Lambda <bool> getSelection (Handle <double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<double[NUM_KMEANS_DIMENSIONS]> & checkMe) {
-		     return true;
-                });
-	}
-
-	Lambda <Handle <KMeansDoubleVector>> getProjection (Handle <double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<double[NUM_KMEANS_DIMENSIONS]> & checkMe) {
-                        Handle<KMeansDoubleVector> ret = makeObject<KMeansDoubleVector> ();
-                        double * rawData = ret->getRawData();
-                        double * myRawData = *checkMe;
-                        double norm = 0;
-                        for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
-                            rawData[i] = myRawData[i];
-                            norm = norm + rawData[i] * rawData[i];
-                        }
-                        ret->norm = norm;
-                        return ret;
-                });
-	}
+    Lambda<Handle<KMeansDoubleVector>> getProjection(
+        Handle<double[NUM_KMEANS_DIMENSIONS]> checkMe) override {
+        return makeLambda(checkMe, [](Handle<double[NUM_KMEANS_DIMENSIONS]>& checkMe) {
+            Handle<KMeansDoubleVector> ret = makeObject<KMeansDoubleVector>();
+            double* rawData = ret->getRawData();
+            double* myRawData = *checkMe;
+            double norm = 0;
+            for (int i = 0; i < NUM_KMEANS_DIMENSIONS; i++) {
+                rawData[i] = myRawData[i];
+                norm = norm + rawData[i] * rawData[i];
+            }
+            ret->norm = norm;
+            return ret;
+        });
+    }
 };
 
 

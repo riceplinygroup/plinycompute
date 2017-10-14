@@ -22,63 +22,58 @@
 
 #include "MaterializationMode.h"
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+
+/**
+ * Signifies that materilization is to be performed to a specific database name and set name.
+ */
+class MaterializationModeNamedSet : public MaterializationMode {
+
+public:
+    /**
+     * Creates a new MaterializationModeNamedSet.
+     *
+     * @param databaseName he database name of the materilization destination
+     * @param setName the set name of the materilization destination
+     * @return a new MaterializationModeNamedSet
+     */
+    MaterializationModeNamedSet(string databaseName, string setName);
 
     /**
-     * Signifies that materilization is to be performed to a specific database name and set name.
+     * @return false
      */
-    class MaterializationModeNamedSet : public MaterializationMode
-    {
+    bool isNone() override;
 
-    public:
+    // contract from super
+    void execute(MaterializationModeAlgo& algo) override;
 
-        /**
-         * Creates a new MaterializationModeNamedSet.
-         *
-         * @param databaseName he database name of the materilization destination
-         * @param setName the set name of the materilization destination
-         * @return a new MaterializationModeNamedSet
-         */
-        MaterializationModeNamedSet(string databaseName, string setName);
+    /**
+     * @return the database name of the materilization destination
+     */
+    string getDatabaseName();
 
-        /**
-         * @return false
-         */
-        bool isNone() override;
+    /**
+     * @return the set name of the materilization destination
+     */
+    string getSetName();
 
-        // contract from super
-        void execute(MaterializationModeAlgo &algo) override ;
+    /**
+     * @param noneValue ignored
+     * @return the database name of the materilization destination
+     */
+    string tryGetDatabaseName(const string& noneValue) override;
 
-        /**
-         * @return the database name of the materilization destination
-         */
-        string getDatabaseName();
+    /**
+     * @param noneValue ignored
+     * @return the set name of the materilization destination
+     */
+    string tryGetSetName(const string& noneValue) override;
 
-        /**
-         * @return the set name of the materilization destination
-         */
-        string getSetName();
+private:
+    string _databaseName;
 
-        /**
-         * @param noneValue ignored
-         * @return the database name of the materilization destination
-         */
-        string tryGetDatabaseName(const string &noneValue) override;
-
-        /**
-         * @param noneValue ignored
-         * @return the set name of the materilization destination
-         */
-        string tryGetSetName(const string &noneValue) override;
-
-    private:
-
-        string _databaseName;
-
-        string _setName;
-
-    };
+    string _setName;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODENAMEDSET_H
+#endif  // PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODENAMEDSET_H

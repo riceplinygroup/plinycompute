@@ -18,18 +18,18 @@
 
 class A {
 public:
-	int a;	
-	virtual A &operator = (A& toMe) {
-		a = toMe.a;
-	}
+    int a;
+    virtual A& operator=(A& toMe) {
+        a = toMe.a;
+    }
 };
 
 class B : public A {
 
 public:
-	int b;
+    int b;
 
-	void print () {
-		std :: cout << a << " " << b;
-	}
+    void print() {
+        std::cout << a << " " << b;
+    }
 }

@@ -21,6 +21,6 @@
 #include "SimpleMovieJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SimpleMovieJoin)
+GET_V_TABLE(SimpleMovieJoin)
 
 #endif

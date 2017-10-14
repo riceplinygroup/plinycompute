@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "LDA/LDATopicAssignmentMultiSelection.h"
 
-GET_V_TABLE (LDATopicAssignmentMultiSelection)
+GET_V_TABLE(LDATopicAssignmentMultiSelection)
 
 #endif

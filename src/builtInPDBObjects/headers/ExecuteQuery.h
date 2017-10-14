@@ -29,14 +29,11 @@ namespace pdb {
 class ExecuteQuery : public Object {
 
 public:
+    ExecuteQuery() {}
+    ~ExecuteQuery() {}
 
-	ExecuteQuery () {}
-	~ExecuteQuery () {}
-
-	ENABLE_DEEP_COPY
-
+    ENABLE_DEEP_COPY
 };
-
 }
 
 #endif

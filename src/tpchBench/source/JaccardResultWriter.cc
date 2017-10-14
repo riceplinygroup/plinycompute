@@ -22,6 +22,6 @@
 #include "TopJaccard.h"
 #include "JaccardResultWriter.h"
 
-GET_V_TABLE (JaccardResultWriter)
+GET_V_TABLE(JaccardResultWriter)
 
 #endif

@@ -31,78 +31,85 @@
 using namespace std;
 
 class CatalogStandardSetMetadata {
-    public:
+public:
+    CatalogStandardSetMetadata();
 
-        CatalogStandardSetMetadata();
+    CatalogStandardSetMetadata(string pdbSetIdIn,
+                               string pdbSetKeyIn,
+                               string pdbSetNameIn,
+                               string pdbDatabaseIdIn,
+                               string pdbDatabaseNameIn,
+                               string pdbTypeIdIn,
+                               string pdbTypeNameIn);
 
-        CatalogStandardSetMetadata(string pdbSetIdIn, string pdbSetKeyIn, string pdbSetNameIn,
-                                     string pdbDatabaseIdIn, string pdbDatabaseNameIn, string pdbTypeIdIn, string pdbTypeNameIn);
+    CatalogStandardSetMetadata(const CatalogStandardSetMetadata& pdbSetToCopy);
 
-        CatalogStandardSetMetadata(const CatalogStandardSetMetadata& pdbSetToCopy);
+    void setValues(string pdbSetIdIn,
+                   string pdbSetKeyIn,
+                   string pdbSetNameIn,
+                   string pdbDatabaseIdIn,
+                   string pdbDatabaseNameIn,
+                   string pdbTypeIdIn,
+                   string pdbTypeNameIn);
 
-        void setValues(string pdbSetIdIn, string pdbSetKeyIn, string pdbSetNameIn,
-                                      string pdbDatabaseIdIn, string pdbDatabaseNameIn, string pdbTypeIdIn,
-                                      string pdbTypeNameIn);
+    ~CatalogStandardSetMetadata();
 
-        ~CatalogStandardSetMetadata();
+    // The set ID is used as key for storing metadata
+    string getItemKey();
 
-        // The set ID is used as key for storing metadata
-        string getItemKey();
+    string getItemId();
 
-        string getItemId();
+    string getDBId();
 
-        string getDBId();
-
-        string getObjectTypeId();
+    string getObjectTypeId();
 
 
-        string getItemName();
+    string getItemName();
 
-        string getDBName();
+    string getDBName();
 
-        string getObjectTypeName();
+    string getObjectTypeName();
 
-        void setTypeName(string &typeNameIn);
+    void setTypeName(string& typeNameIn);
 
-        void setDBName(string &pdbDatabaseNameIn);
+    void setDBName(string& pdbDatabaseNameIn);
 
-        void setDBId(string &dbIdIn);
+    void setDBId(string& dbIdIn);
 
-        void setTypeId(string &typeIdIn);
+    void setTypeId(string& typeIdIn);
 
-        void setItemKey(string &itemKeyIn);
+    void setItemKey(string& itemKeyIn);
 
-        void setItemId(string &itemIdIn);
+    void setItemId(string& itemIdIn);
 
-        void setItemName(string &itemNameIn);
+    void setItemName(string& itemNameIn);
 
-        string printShort();
+    string printShort();
 
-        friend std::ostream& operator <<(std::ostream &out, CatalogStandardSetMetadata &catalogSet) {
-            out << "\nCatalogSet Metadata"<< endl;
-            out << "-------------------"<< endl;
-    //        out << "      DB Id: " << catalogSet.getDBId() << endl;
-    //        out << "    DB name: " << catalogSet.getDBName() << endl;
-    //        out << "     Set Id: " << catalogSet.getItemId() << endl;
-    //        out << "    Set Key: " << catalogSet.getItemKey() << endl;
-    //        out << "   Set Name: " << catalogSet.getItemName() << endl;
-    //        out << "    Type Id: " << catalogSet.getObjectTypeId() << endl;
-    //        out << "  Type Name: " << catalogSet.getObjectTypeName() << endl;
-            out << "-------------------\n"<< endl;
-           return out;
-       }
+    friend std::ostream& operator<<(std::ostream& out, CatalogStandardSetMetadata& catalogSet) {
+        out << "\nCatalogSet Metadata" << endl;
+        out << "-------------------" << endl;
+        //        out << "      DB Id: " << catalogSet.getDBId() << endl;
+        //        out << "    DB name: " << catalogSet.getDBName() << endl;
+        //        out << "     Set Id: " << catalogSet.getItemId() << endl;
+        //        out << "    Set Key: " << catalogSet.getItemKey() << endl;
+        //        out << "   Set Name: " << catalogSet.getItemName() << endl;
+        //        out << "    Type Id: " << catalogSet.getObjectTypeId() << endl;
+        //        out << "  Type Name: " << catalogSet.getObjectTypeName() << endl;
+        out << "-------------------\n" << endl;
+        return out;
+    }
 
-    private:
-        string pdbSetId;
-        string setKey;
-        string pdbSetName;
+private:
+    string pdbSetId;
+    string setKey;
+    string pdbSetName;
 
-        string pdbDatabaseId;
-        string pdbDatabaseName;
+    string pdbDatabaseId;
+    string pdbDatabaseName;
 
-        string typeId;
-        string typeName;
-
+    string typeId;
+    string typeName;
 };
 
 #endif /* SRC_CATALOG_CATALOGSTANDARDSETMETADATA_H_ */

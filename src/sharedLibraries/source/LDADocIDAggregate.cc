@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDADocIDAggregate.h"
 
-GET_V_TABLE (LDADocIDAggregate)
+GET_V_TABLE(LDADocIDAggregate)
 
 #endif

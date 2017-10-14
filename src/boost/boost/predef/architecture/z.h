@@ -26,12 +26,12 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define BOOST_ARCH_Z BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__SYSC_ZARCH__)
-#   undef BOOST_ARCH_Z
-#   define BOOST_ARCH_Z BOOST_VERSION_NUMBER_AVAILABLE
+#undef BOOST_ARCH_Z
+#define BOOST_ARCH_Z BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_ARCH_Z
-#   define BOOST_ARCH_Z_AVAILABLE
+#define BOOST_ARCH_Z_AVAILABLE
 #endif
 
 #define BOOST_ARCH_Z_NAME "z/Architecture"
@@ -39,4 +39,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_Z,BOOST_ARCH_Z_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_Z, BOOST_ARCH_Z_NAME)

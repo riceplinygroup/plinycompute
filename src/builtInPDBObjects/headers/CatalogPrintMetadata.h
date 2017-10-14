@@ -39,49 +39,43 @@ namespace pdb {
 // This class serves to retrieve metadata from the Catalog and returns it
 // as a String
 
-    class CatalogPrintMetadata : public Object {
-    public:
+class CatalogPrintMetadata : public Object {
+public:
+    CatalogPrintMetadata() {}
 
-        CatalogPrintMetadata() {
-        }
+    CatalogPrintMetadata(String itemName, String timeStamp)
+        : itemName(itemName), timeStamp(timeStamp) {}
 
-        CatalogPrintMetadata(String itemName, String timeStamp) :
-        itemName(itemName),
-        timeStamp(timeStamp)
-        {
-        }
+    // Copy constructor
+    CatalogPrintMetadata(const CatalogPrintMetadata& pdbItemToCopy) {
+        itemName = pdbItemToCopy.itemName;
+        timeStamp = pdbItemToCopy.timeStamp;
+    }
 
-        //Copy constructor
-        CatalogPrintMetadata(const CatalogPrintMetadata& pdbItemToCopy) {
-            itemName = pdbItemToCopy.itemName;
-            timeStamp = pdbItemToCopy.timeStamp;
-        }
-
-        //Copy constructor
-        CatalogPrintMetadata(const Handle<CatalogPrintMetadata>& pdbItemToCopy) {
-            itemName = pdbItemToCopy->getItemName();
-            timeStamp = pdbItemToCopy->getTimeStamp();
-        }
+    // Copy constructor
+    CatalogPrintMetadata(const Handle<CatalogPrintMetadata>& pdbItemToCopy) {
+        itemName = pdbItemToCopy->getItemName();
+        timeStamp = pdbItemToCopy->getTimeStamp();
+    }
 
 
-        String getItemName(){
-            return itemName;
-        }
+    String getItemName() {
+        return itemName;
+    }
 
-        String getTimeStamp(){
-            return timeStamp;
-        }
+    String getTimeStamp() {
+        return timeStamp;
+    }
 
 
-        ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-    private:
-        // the item Name to print
-        String itemName;
-        // the starting timeStamp to include
-        String timeStamp;
-
-    };
+private:
+    // the item Name to print
+    String itemName;
+    // the starting timeStamp to include
+    String timeStamp;
+};
 
 } /* namespace pdb */
 

@@ -33,18 +33,21 @@
 class PartitionPageIterator : public PageIteratorInterface {
 
 public:
-	/**
-	 * To create a new PartitionPageIterator instance
-	 */
-	PartitionPageIterator(PageCachePtr cache, PDBFilePtr file, FilePartitionID partitionId, UserSet * set=nullptr);
-	/*
-	 * To support polymorphism.
-	 */
-	~PartitionPageIterator() {};
+    /**
+     * To create a new PartitionPageIterator instance
+     */
+    PartitionPageIterator(PageCachePtr cache,
+                          PDBFilePtr file,
+                          FilePartitionID partitionId,
+                          UserSet* set = nullptr);
+    /*
+     * To support polymorphism.
+     */
+    ~PartitionPageIterator(){};
 
-	/**
-	 * To return the next page. If there is no more page, return nullptr.
-	 */
+    /**
+     * To return the next page. If there is no more page, return nullptr.
+     */
     PDBPagePtr next();
 
     /**
@@ -63,9 +66,6 @@ private:
     unsigned int numIteratedPages;
     UserSet* set;
 };
-
-
-
 
 
 #endif /* SRC_CPP_MAIN_DATABASE_HEADERS_PARTITIONPAGEITERATOR_H_ */

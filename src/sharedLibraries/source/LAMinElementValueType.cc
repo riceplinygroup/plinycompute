@@ -22,6 +22,6 @@
 #include "LAMinElementValueType.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAMinElementValueType)
+GET_V_TABLE(LAMinElementValueType)
 
 #endif

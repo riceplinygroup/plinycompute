@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PageScanner.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PAGESCANNER_H
-#define	PAGESCANNER_H
+#define PAGESCANNER_H
 
 #include "PDBCommunicator.h"
 #include "PDBLogger.h"
@@ -53,8 +53,12 @@ typedef shared_ptr<PageScanner> PageScannerPtr;
 class PageScanner {
 
 public:
-    PageScanner(pdb :: PDBCommunicatorPtr communicator, SharedMemPtr shm,
-            pdb :: PDBLoggerPtr logger, int numThreads, int recvBufSize, NodeID nodeId);
+    PageScanner(pdb::PDBCommunicatorPtr communicator,
+                SharedMemPtr shm,
+                pdb::PDBLoggerPtr logger,
+                int numThreads,
+                int recvBufSize,
+                NodeID nodeId);
     ~PageScanner();
 
     /**
@@ -62,19 +66,32 @@ public:
      * Each iterator work as a consumer, retrieving a page from the concurrent blocking buffer,
      * each time when next() is invoked.
      */
-    vector<PageCircularBufferIteratorPtr> getSetIterators(NodeID nodeId, DatabaseID dbId,
-            UserTypeID typeId, SetID setId);
+    vector<PageCircularBufferIteratorPtr> getSetIterators(NodeID nodeId,
+                                                          DatabaseID dbId,
+                                                          UserTypeID typeId,
+                                                          SetID setId);
 
     /**
      * To receive PagePinned objects from frontend.
      */
-    bool acceptPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, string & errMsg, bool &morePagesToLoad, NodeID &dataNodeId, DatabaseID &dataDbId, UserTypeID &dataTypeId,
-            SetID &dataSetId, PageID &dataPageId, size_t &pageSize, size_t &offset);
+    bool acceptPagePinned(pdb::PDBCommunicatorPtr myCommunicator,
+                          string& errMsg,
+                          bool& morePagesToLoad,
+                          NodeID& dataNodeId,
+                          DatabaseID& dataDbId,
+                          UserTypeID& dataTypeId,
+                          SetID& dataSetId,
+                          PageID& dataPageId,
+                          size_t& pageSize,
+                          size_t& offset);
 
     /**
      * To send PagePinnedAck objects to frontend to acknowledge the receipt of PagePinned objects.
      */
-    bool sendPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bool wasError, string info, string & errMsg);
+    bool sendPagePinnedAck(pdb::PDBCommunicatorPtr myCommunicator,
+                           bool wasError,
+                           string info,
+                           string& errMsg);
 
     /**
      * Receive pages from frontend, and add them to the concurrent blocking buffer,
@@ -85,7 +102,8 @@ public:
      *
      * You can start multiple loops by assigning multiple different PDBCommunicators respectively.
      */
-    bool recvPagesLoop(pdb ::  Handle< pdb :: StoragePagePinned > pinnedPage, pdb :: PDBCommunicatorPtr myCommunicator);
+    bool recvPagesLoop(pdb::Handle<pdb::StoragePagePinned> pinnedPage,
+                       pdb::PDBCommunicatorPtr myCommunicator);
 
     /**
      * Close the buffer
@@ -99,8 +117,8 @@ public:
 
 
 private:
-    pdb :: PDBCommunicatorPtr communicator;
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBCommunicatorPtr communicator;
+    pdb::PDBLoggerPtr logger;
     PageCircularBufferPtr buffer;
     unsigned int numThreads;
     SharedMemPtr shm;
@@ -108,5 +126,4 @@ private:
 };
 
 
-#endif	/* PAGESCANNER_H */
-
+#endif /* PAGESCANNER_H */

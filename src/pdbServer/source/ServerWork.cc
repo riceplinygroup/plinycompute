@@ -23,12 +23,12 @@
 
 namespace pdb {
 
-ServerWork::ServerWork(PDBServer &workOnMeIn) : workOnMe(workOnMeIn) {
+ServerWork::ServerWork(PDBServer& workOnMeIn) : workOnMe(workOnMeIn) {
     wasEnError = false;
 }
 
 PDBCommWorkPtr ServerWork::clone() {
-    PDBCommWorkPtr returnVal{make_shared <ServerWork> (workOnMe)};
+    PDBCommWorkPtr returnVal{make_shared<ServerWork>(workOnMe)};
     return returnVal;
 }
 
@@ -38,7 +38,7 @@ void ServerWork::handleError() {
 }
 
 PDBBuzzerPtr ServerWork::getLinkedBuzzer() {
-    return std :: make_shared <PDBBuzzer> ([&] (PDBAlarm myAlarm) {});
+    return std::make_shared<PDBBuzzer>([&](PDBAlarm myAlarm) {});
 }
 
 void ServerWork::execute(PDBBuzzerPtr callerBuzzer) {
@@ -54,8 +54,6 @@ void ServerWork::execute(PDBBuzzerPtr callerBuzzer) {
     getLogger()->trace("ServerWork: done with this server work");
     callerBuzzer->buzz(PDBAlarm::WorkAllDone);
 }
-
 }
 
 #endif
-

@@ -22,6 +22,6 @@
 #include "LAScanMatrixBlockSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAScanMatrixBlockSet)
+GET_V_TABLE(LAScanMatrixBlockSet)
 
 #endif

@@ -21,6 +21,6 @@
 #include "WriteKMeansSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteKMeansSet)
+GET_V_TABLE(WriteKMeansSet)
 
 #endif

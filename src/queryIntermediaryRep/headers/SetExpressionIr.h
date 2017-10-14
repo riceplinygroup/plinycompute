@@ -26,64 +26,57 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * Base class for any class that models a PDB set.
+ */
+class SetExpressionIr {
+
+public:
     /**
-     * Base class for any class that models a PDB set.
+     * Executes the given algorithm on the expression.
+     *
+     * @param algo the algoithm to execute.
      */
-    class SetExpressionIr
-    {
+    virtual void execute(SetExpressionIrAlgo& algo) = 0;
 
-    public:
+    virtual string getName() = 0;
 
-        /**
-         * Executes the given algorithm on the expression.
-         *
-         * @param algo the algoithm to execute.
-         */
-        virtual void execute(SetExpressionIrAlgo &algo) = 0;
+    void setMaterializationMode(shared_ptr<MaterializationMode> materializationMode) {
+        _materializationMode = materializationMode;
+    }
 
-        virtual string getName() = 0;
+    shared_ptr<MaterializationMode> getMaterializationMode() {
+        return _materializationMode;
+    }
 
-        void setMaterializationMode(shared_ptr<MaterializationMode> materializationMode)
-        {
-            _materializationMode = materializationMode;
-        }
+    // added for converting logical plan into physical plan
 
-        shared_ptr<MaterializationMode> getMaterializationMode()
-        {
-            return _materializationMode;
-        }
+    void setTraversed(bool traversed, int traversalId) {
+        _traversed = traversed;
+        _traversalId = traversalId;
+    }
 
-        //added for converting logical plan into physical plan
+    bool isTraversed() {
+        return _traversed;
+    }
 
-        void setTraversed (bool traversed, int traversalId) {
-            _traversed = traversed;
-            _traversalId = traversalId;
-        }
-
-        bool isTraversed() {
-            return _traversed;
-        }
-
-        int getTraversalId() {
-            return _traversalId;
-        }
+    int getTraversalId() {
+        return _traversalId;
+    }
 
 
+private:
+    shared_ptr<MaterializationMode> _materializationMode = make_shared<MaterializationModeNone>();
 
-    private:
+    // added for converting logical plan into physical plan
 
-        shared_ptr<MaterializationMode> _materializationMode =  make_shared<MaterializationModeNone>();
+    bool _traversed = false;
 
-        //added for converting logical plan into physical plan
+    int _traversalId = -1;
+};
 
-        bool _traversed = false;
-
-        int _traversalId = -1;
-    };
-
-    typedef shared_ptr<SetExpressionIr> SetExpressionIrPtr;
+typedef shared_ptr<SetExpressionIr> SetExpressionIrPtr;
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H
+#endif  // PDB_QUERYINTERMEDIARYREP_SETEXPRESSIONIR_H

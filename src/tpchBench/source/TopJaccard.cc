@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "TopJaccard.h"
 
-GET_V_TABLE (TopJaccard)
+GET_V_TABLE(TopJaccard)
 
 #endif

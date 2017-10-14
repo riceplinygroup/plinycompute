@@ -31,10 +31,17 @@
 
 using namespace std;
 
-//create a new DefaultDatabase instance
-DefaultDatabase::DefaultDatabase(NodeID nodeId, DatabaseID dbId, string dbName, ConfigurationPtr conf,
-        pdb :: PDBLoggerPtr logger, SharedMemPtr shm, string metaDBPath, vector<string>* dataDBPaths, PageCachePtr cache,
-		PageCircularBufferPtr flushBuffer) {
+// create a new DefaultDatabase instance
+DefaultDatabase::DefaultDatabase(NodeID nodeId,
+                                 DatabaseID dbId,
+                                 string dbName,
+                                 ConfigurationPtr conf,
+                                 pdb::PDBLoggerPtr logger,
+                                 SharedMemPtr shm,
+                                 string metaDBPath,
+                                 vector<string>* dataDBPaths,
+                                 PageCachePtr cache,
+                                 PageCircularBufferPtr flushBuffer) {
     this->nodeId = nodeId;
     this->dbId = dbId;
     this->dbName = dbName;
@@ -45,18 +52,18 @@ DefaultDatabase::DefaultDatabase(NodeID nodeId, DatabaseID dbId, string dbName, 
     this->dataDBPaths = dataDBPaths;
     unsigned int i;
     if (this->metaDBPath.compare("") != 0) {
-    	this->conf->createDir(this->metaDBPath);
+        this->conf->createDir(this->metaDBPath);
     }
-    for (i = 0; i<this->dataDBPaths->size(); i++) {
+    for (i = 0; i < this->dataDBPaths->size(); i++) {
         this->conf->createDir(this->dataDBPaths->at(i));
     }
-    this->types = new map<UserTypeID, TypePtr> ();
+    this->types = new map<UserTypeID, TypePtr>();
     pthread_mutex_init(&this->typeOpLock, nullptr);
     this->cache = cache;
     this->flushBuffer = flushBuffer;
 }
 
-//destructor
+// destructor
 DefaultDatabase::~DefaultDatabase() {
     if (this->types != nullptr) {
         delete this->types;
@@ -65,34 +72,43 @@ DefaultDatabase::~DefaultDatabase() {
 }
 
 
-//encode type path
+// encode type path
 string DefaultDatabase::encodeTypePath(string dbPath, UserTypeID typeId, string typeName) {
     char buffer[500];
     sprintf(buffer, "%s/%d_%s", dbPath.c_str(), typeId, typeName.c_str());
     return string(buffer);
 }
 
-//add a new type
+// add a new type
 bool DefaultDatabase::addType(string name, UserTypeID id) {
     if (this->types->find(id) != this->types->end()) {
         this->logger->writeLn("DefaultDatabase: type exists.");
         return false;
     }
     string metaTypePath = encodeTypePath(this->metaDBPath, id, name);
-    vector<string> * dataTypePaths = new vector<string>();
+    vector<string>* dataTypePaths = new vector<string>();
     unsigned int i;
-    for (i = 0; i<this->dataDBPaths->size(); i++) {
-    	string dataTypePath = encodeTypePath(this->dataDBPaths->at(i), id, name);
-    	//cout<<"AddType: dataTypePath:"<<dataTypePath<<"\n";
+    for (i = 0; i < this->dataDBPaths->size(); i++) {
+        string dataTypePath = encodeTypePath(this->dataDBPaths->at(i), id, name);
+        // cout<<"AddType: dataTypePath:"<<dataTypePath<<"\n";
         dataTypePaths->push_back(dataTypePath);
     }
-    TypePtr type = make_shared<UserType>(this->nodeId, this->dbId, id, name,
-            this->conf, this->logger, this->shm, metaTypePath, dataTypePaths, this->cache, this->flushBuffer);
+    TypePtr type = make_shared<UserType>(this->nodeId,
+                                         this->dbId,
+                                         id,
+                                         name,
+                                         this->conf,
+                                         this->logger,
+                                         this->shm,
+                                         metaTypePath,
+                                         dataTypePaths,
+                                         this->cache,
+                                         this->flushBuffer);
     this->addType(type);
     return true;
 }
 
-//add a new type
+// add a new type
 bool DefaultDatabase::addType(TypePtr type) {
     UserTypeID typeId = type->getId();
     if (this->types->find(typeId) != this->types->end()) {
@@ -105,15 +121,15 @@ bool DefaultDatabase::addType(TypePtr type) {
     return true;
 }
 
-//remove a type and associated disk files
+// remove a type and associated disk files
 bool DefaultDatabase::removeType(UserTypeID typeId) {
     this->logger->writeInt(typeId);
     map<UserTypeID, TypePtr>::iterator it = types->find(typeId);
     if (it != types->end()) {
-        //this->logger->writeLn("DefaultDatabase: Type found, removing it...");
+        // this->logger->writeLn("DefaultDatabase: Type found, removing it...");
         pthread_mutex_lock(&this->typeOpLock);
         this->clearType(typeId, it->second->getName());
-        this->types->erase(it); //will erase invoke destructor of element???
+        this->types->erase(it);  // will erase invoke destructor of element???
         pthread_mutex_unlock(&this->typeOpLock);
         return true;
     } else {
@@ -123,19 +139,19 @@ bool DefaultDatabase::removeType(UserTypeID typeId) {
     }
 }
 
-//clear type data and associated disk files for removal
+// clear type data and associated disk files for removal
 void DefaultDatabase::clearType(UserTypeID typeId, string typeName) {
-	unsigned int i;
-	remove(this->metaDBPath.c_str());
-	string typePath;
-	for (i = 0; i < this->dataDBPaths->size(); i++) {
-		typePath = encodeTypePath(this->dataDBPaths->at(i), typeId, typeName);
-		//remove(typePath.c_str());
-		boost::filesystem::remove_all(typePath.c_str());
-	}
+    unsigned int i;
+    remove(this->metaDBPath.c_str());
+    string typePath;
+    for (i = 0; i < this->dataDBPaths->size(); i++) {
+        typePath = encodeTypePath(this->dataDBPaths->at(i), typeId, typeName);
+        // remove(typePath.c_str());
+        boost::filesystem::remove_all(typePath.c_str());
+    }
 }
 
-//returns a type specified
+// returns a type specified
 TypePtr DefaultDatabase::getType(UserTypeID typeId) {
     map<UserTypeID, TypePtr>::iterator it = this->types->find(typeId);
     if (it != this->types->end()) {
@@ -145,8 +161,8 @@ TypePtr DefaultDatabase::getType(UserTypeID typeId) {
     return nullptr;
 }
 
-//flush data from memory to disk files
-//flush is now fully managed by PageCache, so do nothing here
+// flush data from memory to disk files
+// flush is now fully managed by PageCache, so do nothing here
 void DefaultDatabase::flush() {
     /*
     this->logger->writeLn("DefaultDatabase: flushing Database with DatabaseID:");
@@ -162,12 +178,12 @@ void DefaultDatabase::flush() {
     */
 }
 
-//returns database id
+// returns database id
 DatabaseID DefaultDatabase::getDatabaseID() {
     return this->dbId;
 }
 
-//returns database name
+// returns database name
 string DefaultDatabase::getDatabaseName() {
     return this->dbName;
 }
@@ -179,60 +195,71 @@ using namespace boost::filesystem;
  * This function can only be applied to PartitionedFile instances.
  */
 bool DefaultDatabase::initializeFromMetaDBDir(path metaDBDir) {
-	   if (exists(metaDBDir)) {
-	        if (is_directory(metaDBDir)) {
-	            vector<path> typeDirs;
-	            copy(directory_iterator(metaDBDir), directory_iterator(), back_inserter(typeDirs));
-	            vector<path>::iterator iter;
-	            std::string path;
-	            std::string dirName;
-	            std::string name;
-	            UserTypeID typeId;
-	            for (iter = typeDirs.begin(); iter != typeDirs.end(); iter++) {
-	                if (is_directory(* iter)) {
-	                	//find a type
-	                    path = std::string(iter->c_str());
-	                    dirName = path.substr(path.find_last_of('/') + 1, path.length() - 1);
-	                    //parse type name
-	                    name = dirName.substr(dirName.find('_') + 1, dirName.length() - 1);
-	                    //parse type id
-	                    typeId = stoul(dirName.substr(0, dirName.find('_')));
-	                    //cout << "DefaultDatabase: detect type at path: " << path << "\n";
-	                    //cout << "Type name: " << name << "\n";
-	                    //cout << "Type ID:" << typeId << "\n";
-	                    this->addTypeByPartitionedFiles(name, typeId, path);
-	                }
-	            }
-	        } else {
-	            this->logger->writeLn("DefaultDatabase: dbDir doesn't exist:");
-	            this->logger->writeLn(metaDBDir.c_str());
-	            return false;
-	        }
-	    } else {
-	        return false;
-	    }
-	    return true;
+    if (exists(metaDBDir)) {
+        if (is_directory(metaDBDir)) {
+            vector<path> typeDirs;
+            copy(directory_iterator(metaDBDir), directory_iterator(), back_inserter(typeDirs));
+            vector<path>::iterator iter;
+            std::string path;
+            std::string dirName;
+            std::string name;
+            UserTypeID typeId;
+            for (iter = typeDirs.begin(); iter != typeDirs.end(); iter++) {
+                if (is_directory(*iter)) {
+                    // find a type
+                    path = std::string(iter->c_str());
+                    dirName = path.substr(path.find_last_of('/') + 1, path.length() - 1);
+                    // parse type name
+                    name = dirName.substr(dirName.find('_') + 1, dirName.length() - 1);
+                    // parse type id
+                    typeId = stoul(dirName.substr(0, dirName.find('_')));
+                    // cout << "DefaultDatabase: detect type at path: " << path << "\n";
+                    // cout << "Type name: " << name << "\n";
+                    // cout << "Type ID:" << typeId << "\n";
+                    this->addTypeByPartitionedFiles(name, typeId, path);
+                }
+            }
+        } else {
+            this->logger->writeLn("DefaultDatabase: dbDir doesn't exist:");
+            this->logger->writeLn(metaDBDir.c_str());
+            return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
 }
 
 /**
  * Load a type instance to the database from PartitionedFile instances.
  */
-void DefaultDatabase::addTypeByPartitionedFiles(string name, UserTypeID id, boost::filesystem::path metaTypeDir) {
+void DefaultDatabase::addTypeByPartitionedFiles(string name,
+                                                UserTypeID id,
+                                                boost::filesystem::path metaTypeDir) {
     if (this->types->find(id) != this->types->end()) {
         this->logger->writeLn("DefaultDatabase: type exists.");
         return;
     }
-    vector<string> * dataTypePaths = new vector<string>();
+    vector<string>* dataTypePaths = new vector<string>();
     int numDataPaths = this->dataDBPaths->size();
     int i = 0;
     string dataTypePath;
     for (i = 0; i < numDataPaths; i++) {
-    	dataTypePath = this->encodeTypePath(dataDBPaths->at(i), id, name);
-    	dataTypePaths->push_back(dataTypePath);
+        dataTypePath = this->encodeTypePath(dataDBPaths->at(i), id, name);
+        dataTypePaths->push_back(dataTypePath);
     }
 
-    TypePtr type = make_shared<UserType>(this->nodeId, this->dbId, id, name,
-            this->conf, this->logger, this->shm, string(metaTypeDir.c_str()), dataTypePaths, this->cache, this->flushBuffer);
+    TypePtr type = make_shared<UserType>(this->nodeId,
+                                         this->dbId,
+                                         id,
+                                         name,
+                                         this->conf,
+                                         this->logger,
+                                         this->shm,
+                                         string(metaTypeDir.c_str()),
+                                         dataTypePaths,
+                                         this->cache,
+                                         this->flushBuffer);
     if (type == nullptr) {
         this->logger->error("Fatal Error: DefaultDatabase: Out of Memory.");
         exit(1);
@@ -256,7 +283,7 @@ bool DefaultDatabase::initializeFromDBDir(path dbDir) {
             std::string name;
             UserTypeID typeId;
             for (iter = typeDirs.begin(); iter != typeDirs.end(); iter++) {
-                if (is_directory(* iter)) {
+                if (is_directory(*iter)) {
                     this->logger->writeLn("DefaultDatabase: find a type at path:");
                     this->logger->writeLn(iter->c_str());
                     path = std::string(iter->c_str());
@@ -287,15 +314,26 @@ bool DefaultDatabase::initializeFromDBDir(path dbDir) {
 /**
  * Load a type instance to the database from SequenceFile instances.
  */
-void DefaultDatabase::addTypeBySequenceFiles(string name, UserTypeID id, boost::filesystem::path typeDir) {
+void DefaultDatabase::addTypeBySequenceFiles(string name,
+                                             UserTypeID id,
+                                             boost::filesystem::path typeDir) {
     if (this->types->find(id) != this->types->end()) {
         this->logger->writeLn("DefaultDatabase: type exists.");
         return;
     }
-    vector<string> * dataTypePaths = new vector<string>();
+    vector<string>* dataTypePaths = new vector<string>();
     dataTypePaths->push_back(std::string(typeDir.c_str()));
-    TypePtr type = make_shared<UserType>(this->nodeId, this->dbId, id, name,
-            this->conf, this->logger, this->shm, "", dataTypePaths, this->cache, this->flushBuffer);
+    TypePtr type = make_shared<UserType>(this->nodeId,
+                                         this->dbId,
+                                         id,
+                                         name,
+                                         this->conf,
+                                         this->logger,
+                                         this->shm,
+                                         "",
+                                         dataTypePaths,
+                                         this->cache,
+                                         this->flushBuffer);
     if (type == nullptr) {
         this->logger->writeLn("Fatal Error: DefaultDatabase: Out of Memory.");
         exit(1);
@@ -307,7 +345,7 @@ void DefaultDatabase::addTypeBySequenceFiles(string name, UserTypeID id, boost::
 /**
  * Get all types
  */
-map<UserTypeID, TypePtr> * DefaultDatabase::getTypes() {
+map<UserTypeID, TypePtr>* DefaultDatabase::getTypes() {
     return this->types;
 }
 

@@ -33,66 +33,68 @@ namespace pdb {
 class BackendTestSetCopy : public Object {
 
 public:
+    BackendTestSetCopy(DatabaseID dbIdIn,
+                       UserTypeID typeIdIn,
+                       SetID setIdIn,
+                       DatabaseID dbIdOut,
+                       UserTypeID typeIdOut,
+                       SetID setIdOut) {
+        srcDatabaseID = dbIdIn;
+        srcUserTypeID = typeIdIn;
+        srcSetID = setIdIn;
+        destDatabaseID = dbIdOut;
+        destUserTypeID = typeIdOut;
+        destSetID = setIdOut;
+    }
 
-	BackendTestSetCopy (DatabaseID dbIdIn, UserTypeID typeIdIn, SetID setIdIn, DatabaseID dbIdOut, UserTypeID typeIdOut, SetID setIdOut) {
-		srcDatabaseID = dbIdIn;
-                srcUserTypeID = typeIdIn;
-		srcSetID = setIdIn;	
-                destDatabaseID = dbIdOut;
-                destUserTypeID = typeIdOut;
-                destSetID = setIdOut;
-	}
+    BackendTestSetCopy() {}
+    ~BackendTestSetCopy() {}
 
-	BackendTestSetCopy () {}
-	~BackendTestSetCopy () {}
+    DatabaseID getDatabaseIn() {
+        return srcDatabaseID;
+    }
 
-	DatabaseID getDatabaseIn () {
-		return srcDatabaseID;
-	}
+    UserTypeID getTypeIdIn() {
+        return srcUserTypeID;
+    }
 
-        UserTypeID getTypeIdIn () {
-                return srcUserTypeID;
-        }
+    SetID getSetIdIn() {
+        return srcSetID;
+    }
 
-	SetID getSetIdIn () {
-		return srcSetID;
-	}
+    DatabaseID getDatabaseOut() {
+        return destDatabaseID;
+    }
 
-        DatabaseID getDatabaseOut () {
-                return destDatabaseID;
-        }
+    UserTypeID getTypeIdOut() {
+        return destUserTypeID;
+    }
 
-        UserTypeID getTypeIdOut () {
-                return destUserTypeID;
-        }
+    SetID getSetIdOut() {
+        return destSetID;
+    }
 
-        SetID getSetIdOut () {
-                return destSetID;
-        }
-	
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
+    // this is the database ID of the source set
+    DatabaseID srcDatabaseID;
 
-	// this is the database ID of the source set
-	DatabaseID srcDatabaseID;
-	
-        // this is the type ID of the source set
-        UserTypeID srcUserTypeID; 
+    // this is the type ID of the source set
+    UserTypeID srcUserTypeID;
 
-	// this is the ID of the source set
-	SetID srcSetID;
+    // this is the ID of the source set
+    SetID srcSetID;
 
-        // this is the database ID of the destination set
-        DatabaseID destDatabaseID;
+    // this is the database ID of the destination set
+    DatabaseID destDatabaseID;
 
-        // this is the type ID of the destination set
-        UserTypeID destUserTypeID;
+    // this is the type ID of the destination set
+    UserTypeID destUserTypeID;
 
-        // this is the ID of the destination set
-        SetID destSetID;
+    // this is the ID of the destination set
+    SetID destSetID;
 };
-
 }
 
 #endif

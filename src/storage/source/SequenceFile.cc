@@ -31,16 +31,22 @@
 using namespace std;
 
 
-//if isNew == true, the path is the root path, we need to new a sequence file
-//otherwise, we just open existing sequence file
+// if isNew == true, the path is the root path, we need to new a sequence file
+// otherwise, we just open existing sequence file
 
-SequenceFile::SequenceFile(NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId, string path, pdb :: PDBLoggerPtr logger, size_t pageSize) {
+SequenceFile::SequenceFile(NodeID nodeId,
+                           DatabaseID dbId,
+                           UserTypeID typeId,
+                           SetID setId,
+                           string path,
+                           pdb::PDBLoggerPtr logger,
+                           size_t pageSize) {
     this->nodeId = nodeId;
     this->dbId = dbId;
     this->typeId = typeId;
     this->setId = setId;
     this->file = nullptr;
-    this->metaSize = sizeof (FileType) + sizeof (size_t);
+    this->metaSize = sizeof(FileType) + sizeof(size_t);
     this->filePath = path;
     this->logger = logger;
     this->numFlushedPages = 0;
@@ -80,27 +86,27 @@ bool SequenceFile::closeAll() {
 
 void SequenceFile::clear() {
     this->closeAll();
-    if(this->file != nullptr) {
+    if (this->file != nullptr) {
         this->file = nullptr;
         this->numFlushedPages = 0;
     }
-    //delete the file
-    if( remove(this->filePath.c_str()) == 0) {
-        cout<< "Removed temp data " << this->filePath <<".\n";
+    // delete the file
+    if (remove(this->filePath.c_str()) == 0) {
+        cout << "Removed temp data " << this->filePath << ".\n";
         this->filePath = "";
-    } 
+    }
 }
 
 int SequenceFile::appendPage(FilePartitionID partitionId, PDBPagePtr page) {
-	return appendPage(page);
+    return appendPage(page);
 }
 
 int SequenceFile::appendPage(PDBPagePtr page) {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
     this->logger->writeLn("SequenceFile: appending data...");
-    int retSize = fwrite(page->getRawBytes(), sizeof (char), page->getSize(), this->file);
+    int retSize = fwrite(page->getRawBytes(), sizeof(char), page->getSize(), this->file);
     PageID pageId = page->getPageID();
     this->logger->writeLn("SequenceFile: PageID:");
     this->logger->writeInt(pageId);
@@ -115,11 +121,11 @@ int SequenceFile::appendPage(PDBPagePtr page) {
     return 0;
 }
 
-int SequenceFile::writeData(void * data, size_t length) {
-    if(this->file == nullptr){
+int SequenceFile::writeData(void* data, size_t length) {
+    if (this->file == nullptr) {
         return -1;
     }
-    size_t retSize = fwrite(data, sizeof (char), length, this->file);
+    size_t retSize = fwrite(data, sizeof(char), length, this->file);
     if (retSize != length) {
         return -1;
     } else {
@@ -128,52 +134,51 @@ int SequenceFile::writeData(void * data, size_t length) {
 }
 
 
-
-//Meta data is always at the beginning of a file, and has following layout:
-//FileType: sizeof(enum)
-//PageSize: sizeof(size_t)
+// Meta data is always at the beginning of a file, and has following layout:
+// FileType: sizeof(enum)
+// PageSize: sizeof(size_t)
 int SequenceFile::writeMeta() {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
     char* buffer = new char[this->metaSize];
-    char * cur = buffer;
-    //initialize FileType
-    * ((FileType *) cur) = FileType::SequenceFileType;
-    cur = cur + sizeof (FileType);
-    //initialize PageSize;
-    * ((size_t *) cur) = this->pageSize;
+    char* cur = buffer;
+    // initialize FileType
+    *((FileType*)cur) = FileType::SequenceFileType;
+    cur = cur + sizeof(FileType);
+    // initialize PageSize;
+    *((size_t*)cur) = this->pageSize;
     int ret = this->writeData(buffer, this->metaSize);
     delete[] buffer;
     return ret;
 }
 
-int SequenceFile::updateMeta () {
-	return 0;
+int SequenceFile::updateMeta() {
+    return 0;
 }
 
 int SequenceFile::seekPageSizeInMeta() {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
-    return fseek(this->file, sizeof (FileType), SEEK_SET);
+    return fseek(this->file, sizeof(FileType), SEEK_SET);
 }
 
 size_t SequenceFile::getPageSize() {
-    if(pageSize == 0) {
-       pageSize = getPageSizeInMeta();
+    if (pageSize == 0) {
+        pageSize = getPageSizeInMeta();
     }
     return pageSize;
 }
 
 size_t SequenceFile::getPageSizeInMeta() {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
     if (this->seekPageSizeInMeta() == 0) {
         size_t pageSize;
         this->logger->writeLn("SequenceFile: get page size from file meta:");
-        size_t sizeRead=fread((size_t *) (&(pageSize)), sizeof (size_t), 1, this->file);
+        size_t sizeRead = fread((size_t*)(&(pageSize)), sizeof(size_t), 1, this->file);
         if (sizeRead == 0) {
             return 0;
         }
@@ -185,10 +190,10 @@ size_t SequenceFile::getPageSizeInMeta() {
 }
 
 int SequenceFile::seekLastFlushedPageID() {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
-    return fseek(this->file, -sizeof (PageID), SEEK_END);
+    return fseek(this->file, -sizeof(PageID), SEEK_END);
 }
 
 unsigned int SequenceFile::getAndSetNumFlushedPages() {
@@ -201,9 +206,9 @@ unsigned int SequenceFile::getAndSetNumFlushedPages() {
             this->numFlushedPages = 0;
         }
         this->logger->writeLn("SequenceFile: set numFlushedPages:");
-        size_t sizeRead = fread((PageID *) (&(this->lastFlushedId)), sizeof (PageID), 1, this->file);
+        size_t sizeRead = fread((PageID*)(&(this->lastFlushedId)), sizeof(PageID), 1, this->file);
         if (sizeRead == 0) {
-            std :: cout << "SequenceFile: Read failed" << std :: endl;
+            std::cout << "SequenceFile: Read failed" << std::endl;
             return 0;
         }
         this->numFlushedPages = this->lastFlushedId + 1;
@@ -228,32 +233,34 @@ PageID SequenceFile::getLatestPageID() {
 }
 
 int SequenceFile::seekPage(PageID pageId) {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
-    return fseek(this->file, this->metaSize + (pageId)*(this->pageSize + sizeof (PageID)), SEEK_SET);
+    return fseek(
+        this->file, this->metaSize + (pageId) * (this->pageSize + sizeof(PageID)), SEEK_SET);
 }
 
-//Load data of given length on the page specified to cache
-size_t SequenceFile::loadPage(PageID pageId, char * pageInCache, size_t length) {
-	return loadPage(0, pageId, pageInCache, length);
+// Load data of given length on the page specified to cache
+size_t SequenceFile::loadPage(PageID pageId, char* pageInCache, size_t length) {
+    return loadPage(0, pageId, pageInCache, length);
 }
 
-//Load data of given length on the page specified to cache
-size_t SequenceFile::loadPage(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length) {
-    if(this->file == nullptr){
+// Load data of given length on the page specified to cache
+size_t SequenceFile::loadPage(FilePartitionID partitionId,
+                              unsigned int pageSeqInPartition,
+                              char* pageInCache,
+                              size_t length) {
+    if (this->file == nullptr) {
         return 0;
     }
     seekPage(pageSeqInPartition);
-    return fread(pageInCache, sizeof (char), length, this->file);
+    return fread(pageInCache, sizeof(char), length, this->file);
 }
 
 
 int SequenceFile::seekEnd() {
-    if(this->file == nullptr){
+    if (this->file == nullptr) {
         return -1;
     }
     return fseek(this->file, 0, SEEK_END);
 }
-
-

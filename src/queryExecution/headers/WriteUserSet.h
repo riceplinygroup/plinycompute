@@ -20,7 +20,7 @@
 #define WRITE_USER_SET_H
 
 
-//by Jia, Mar 2017
+// by Jia, Mar 2017
 
 #include "Computation.h"
 #include "VectorSink.h"
@@ -33,94 +33,110 @@ template <class OutputClass>
 class WriteUserSet : public Computation {
 
 public:
-
-        ENABLE_DEEP_COPY
-
-
-        ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &projection, ComputePlan &plan) override {
-        
-             return std :: make_shared<VectorSink <OutputClass>> (consumeMe, projection);
-
-        }
-
-        void setOutput (std :: string dbName, std :: string setName) override {
-              this->dbName = dbName;
-              this->setName = setName;
-        }
-
-        void setDatabaseName (std :: string dbName) {
-            this->dbName = dbName;
-        }
-
-        std :: string getDatabaseName () override {
-            return  dbName;
-        }
-
-        void setSetName (std :: string setName) {
-            this->setName = setName;
-        }
-
-        std :: string getSetName () override {
-            return setName;
-        }
-
-	std :: string getComputationType () override {
-            return std :: string ("WriteUserSet");
-	}
-
-        std :: string getOutputType() override {
-            return getTypeName <OutputClass>();
-        }
-
-        int getNumInputs() override {
-           return 1;   
-        }
-
-        std :: string getIthInputType (int i) override {
-           if (i==0) {
-               return getTypeName <OutputClass>();
-           } else {
-               return "";
-           }
-        }
+    ENABLE_DEEP_COPY
 
 
-        // below function implements the interface for parsing computation into a TCAP string
-        std :: string toTCAPString (std :: vector <InputTupleSetSpecifier> & inputTupleSets, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) override {
+    ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
+                                  TupleSpec& projection,
+                                  ComputePlan& plan) override {
 
-    if (inputTupleSets.size() == 0) {
-        return "";
+        return std::make_shared<VectorSink<OutputClass>>(consumeMe, projection);
     }
-    InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
-    return toTCAPString (inputTupleSet.getTupleSetName(), inputTupleSet.getColumnNamesToKeep(), inputTupleSet.getColumnNamesToApply(), computationLabel, outputTupleSetName, outputColumnNames, addedOutputColumnName);
- }
 
-        // below function returns a TCAP string for this Computation
-       std :: string toTCAPString (std :: string inputTupleSetName, std :: vector<std :: string> & inputColumnNames, std :: vector<std :: string> & inputColumnsToApply, int computationLabel, std :: string& outputTupleSetName, std :: vector<std :: string>& outputColumnNames, std :: string& addedOutputColumnName) {
-              //std :: cout << "\n/*Write to output set*/\n";
-              std :: string ret = std :: string("out() <= OUTPUT (") + inputTupleSetName + " (" + inputColumnsToApply[0] + ")" + std :: string(", '") + std :: string(setName) + std :: string("', '") +  std :: string(dbName) + std :: string ("', '") + getComputationType() + std :: string("_") + std :: to_string(computationLabel)  + std :: string("')");
-              ret = ret + "\n";
-              outputTupleSetName = "out";
-              outputColumnNames.push_back("");
-              addedOutputColumnName = "";
-              this->setTraversed (true);
-              this->setOutputTupleSetName (outputTupleSetName);
-              this->setOutputColumnToApply (addedOutputColumnName);
-              return ret;
-        }
+    void setOutput(std::string dbName, std::string setName) override {
+        this->dbName = dbName;
+        this->setName = setName;
+    }
 
-        bool needsMaterializeOutput () override {
-            return true;
+    void setDatabaseName(std::string dbName) {
+        this->dbName = dbName;
+    }
+
+    std::string getDatabaseName() override {
+        return dbName;
+    }
+
+    void setSetName(std::string setName) {
+        this->setName = setName;
+    }
+
+    std::string getSetName() override {
+        return setName;
+    }
+
+    std::string getComputationType() override {
+        return std::string("WriteUserSet");
+    }
+
+    std::string getOutputType() override {
+        return getTypeName<OutputClass>();
+    }
+
+    int getNumInputs() override {
+        return 1;
+    }
+
+    std::string getIthInputType(int i) override {
+        if (i == 0) {
+            return getTypeName<OutputClass>();
+        } else {
+            return "";
         }
+    }
+
+
+    // below function implements the interface for parsing computation into a TCAP string
+    std::string toTCAPString(std::vector<InputTupleSetSpecifier>& inputTupleSets,
+                             int computationLabel,
+                             std::string& outputTupleSetName,
+                             std::vector<std::string>& outputColumnNames,
+                             std::string& addedOutputColumnName) override {
+
+        if (inputTupleSets.size() == 0) {
+            return "";
+        }
+        InputTupleSetSpecifier inputTupleSet = inputTupleSets[0];
+        return toTCAPString(inputTupleSet.getTupleSetName(),
+                            inputTupleSet.getColumnNamesToKeep(),
+                            inputTupleSet.getColumnNamesToApply(),
+                            computationLabel,
+                            outputTupleSetName,
+                            outputColumnNames,
+                            addedOutputColumnName);
+    }
+
+    // below function returns a TCAP string for this Computation
+    std::string toTCAPString(std::string inputTupleSetName,
+                             std::vector<std::string>& inputColumnNames,
+                             std::vector<std::string>& inputColumnsToApply,
+                             int computationLabel,
+                             std::string& outputTupleSetName,
+                             std::vector<std::string>& outputColumnNames,
+                             std::string& addedOutputColumnName) {
+        // std :: cout << "\n/*Write to output set*/\n";
+        std::string ret = std::string("out() <= OUTPUT (") + inputTupleSetName + " (" +
+            inputColumnsToApply[0] + ")" + std::string(", '") + std::string(setName) +
+            std::string("', '") + std::string(dbName) + std::string("', '") + getComputationType() +
+            std::string("_") + std::to_string(computationLabel) + std::string("')");
+        ret = ret + "\n";
+        outputTupleSetName = "out";
+        outputColumnNames.push_back("");
+        addedOutputColumnName = "";
+        this->setTraversed(true);
+        this->setOutputTupleSetName(outputTupleSetName);
+        this->setOutputColumnToApply(addedOutputColumnName);
+        return ret;
+    }
+
+    bool needsMaterializeOutput() override {
+        return true;
+    }
 
 protected:
-
-        String dbName;
-        String setName;
-        String outputType;
-
+    String dbName;
+    String setName;
+    String outputType;
 };
-
 }
 
 #endif

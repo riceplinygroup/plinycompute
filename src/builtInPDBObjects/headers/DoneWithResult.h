@@ -28,10 +28,8 @@ namespace pdb {
 class DoneWithResult : public Object {
 
 public:
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 };
-
 }
 
 #endif

@@ -22,6 +22,6 @@
 #include "KMeansAggregateOutputType.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (KMeansAggregateOutputType)
+GET_V_TABLE(KMeansAggregateOutputType)
 
 #endif

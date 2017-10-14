@@ -23,16 +23,15 @@
 
 namespace pdb {
 
-RandomPolicy :: RandomPolicy() {
+RandomPolicy::RandomPolicy() {
     this->storageNodes = std::vector<NodePartitionDataPtr>();
     srand(SEED);
 }
 
-RandomPolicy :: ~RandomPolicy() {
+RandomPolicy::~RandomPolicy() {}
 
-}
-
-void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>>> activeStorageNodesRaw) {
+void RandomPolicy::updateStorageNodes(
+    Handle<Vector<Handle<NodeDispatcherData>>> activeStorageNodesRaw) {
 
     auto oldNodes = storageNodes;
     auto activeStorageNodes = createNodePartitionData(activeStorageNodesRaw);
@@ -41,7 +40,7 @@ void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>
     for (int i = 0; i < activeStorageNodes.size(); i++) {
         bool alreadyContains = false;
         for (int j = 0; j < oldNodes.size(); j++) {
-            if ((* activeStorageNodes[i]) == (* oldNodes[j])) {
+            if ((*activeStorageNodes[i]) == (*oldNodes[j])) {
                 // Update the pre-existing node with the new information
                 auto updatedNode = updateExistingNode(activeStorageNodes[i], oldNodes[j]);
                 storageNodes.push_back(updatedNode);
@@ -59,47 +58,54 @@ void RandomPolicy :: updateStorageNodes(Handle<Vector<Handle<NodeDispatcherData>
     }
 }
 
-std::vector<NodePartitionDataPtr> RandomPolicy :: createNodePartitionData(Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) {
+std::vector<NodePartitionDataPtr> RandomPolicy::createNodePartitionData(
+    Handle<Vector<Handle<NodeDispatcherData>>> storageNodes) {
     std::vector<NodePartitionDataPtr> newData = std::vector<NodePartitionDataPtr>();
     for (int i = 0; i < storageNodes->size(); i++) {
-        auto nodeData = (* storageNodes)[i];
-        auto newNode = std::make_shared<NodePartitionData>(nodeData->getNodeId(), nodeData->getPort(),
-                nodeData->getAddress(), std::pair<std::string, std::string>("",""));
+        auto nodeData = (*storageNodes)[i];
+        auto newNode =
+            std::make_shared<NodePartitionData>(nodeData->getNodeId(),
+                                                nodeData->getPort(),
+                                                nodeData->getAddress(),
+                                                std::pair<std::string, std::string>("", ""));
         PDB_COUT << newNode->toString() << std::endl;
         newData.push_back(newNode);
-
     }
     return newData;
 }
 
-NodePartitionDataPtr RandomPolicy :: updateExistingNode(NodePartitionDataPtr newNode, NodePartitionDataPtr oldNode) {
+NodePartitionDataPtr RandomPolicy::updateExistingNode(NodePartitionDataPtr newNode,
+                                                      NodePartitionDataPtr oldNode) {
     PDB_COUT << "Updating existing node " << newNode->toString() << std::endl;
     return oldNode;
 }
 
-NodePartitionDataPtr RandomPolicy :: updateNewNode(NodePartitionDataPtr newNode) {
+NodePartitionDataPtr RandomPolicy::updateNewNode(NodePartitionDataPtr newNode) {
     PDB_COUT << "Updating new node " << newNode->toString() << std::endl;
     return newNode;
 }
 
-NodePartitionDataPtr RandomPolicy :: handleDeadNode(NodePartitionDataPtr deadNode) {
+NodePartitionDataPtr RandomPolicy::handleDeadNode(NodePartitionDataPtr deadNode) {
     PDB_COUT << "Deleting node " << deadNode->toString() << std::endl;
     return deadNode;
 }
 
-std::shared_ptr<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>>
-        RandomPolicy :: partition(Handle<Vector<Handle<Object>>> toPartition) {
+std::shared_ptr<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>> RandomPolicy::partition(
+    Handle<Vector<Handle<Object>>> toPartition) {
 
-    auto partitionedData = std::make_shared<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>> ();
+    auto partitionedData =
+        std::make_shared<std::unordered_map<NodeID, Handle<Vector<Handle<Object>>>>>();
     if (storageNodes.size() == 0) {
-        std :: cout << "FATAL ERROR: there is no storage node in the cluster, please check conf/serverlist" << std :: endl;
+        std::cout
+            << "FATAL ERROR: there is no storage node in the cluster, please check conf/serverlist"
+            << std::endl;
         exit(-1);
     }
     int indexOfNodeToUse = rand() % storageNodes.size();
     auto nodeToUse = storageNodes[indexOfNodeToUse];
-    partitionedData->insert(std::pair<NodeID, Handle<Vector<Handle<Object>>>>(nodeToUse->getNodeId(), toPartition));
+    partitionedData->insert(
+        std::pair<NodeID, Handle<Vector<Handle<Object>>>>(nodeToUse->getNodeId(), toPartition));
     return partitionedData;
-
 }
 }
 

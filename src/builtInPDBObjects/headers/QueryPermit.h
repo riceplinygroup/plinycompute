@@ -40,18 +40,15 @@
 
 namespace pdb {
 
-class QueryPermit : public pdb :: Object {
+class QueryPermit : public pdb::Object {
 
 public:
+    QueryPermit() {}
+    ~QueryPermit() {}
 
-	QueryPermit(){}
-	~QueryPermit(){}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
 };
-
 }
 #endif

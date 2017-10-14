@@ -26,16 +26,14 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_LINUX BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && ( \
-    defined(linux) || defined(__linux) \
-    )
-#   undef BOOST_OS_LINUX
-#   define BOOST_OS_LINUX BOOST_VERSION_NUMBER_AVAILABLE
+#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && (defined(linux) || defined(__linux))
+#undef BOOST_OS_LINUX
+#define BOOST_OS_LINUX BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_OS_LINUX
-#   define BOOST_OS_LINUX_AVAILABLE
-#   include <boost/predef/detail/os_detected.h>
+#define BOOST_OS_LINUX_AVAILABLE
+#include <boost/predef/detail/os_detected.h>
 #endif
 
 #define BOOST_OS_LINUX_NAME "Linux"
@@ -43,4 +41,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_LINUX,BOOST_OS_LINUX_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_LINUX, BOOST_OS_LINUX_NAME)

@@ -32,32 +32,28 @@ namespace pdb {
 class DeleteSet : public Object {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    DeleteSet() {}
+    ~DeleteSet() {}
 
-	DeleteSet () {}
-	~DeleteSet () {}
+    DeleteSet(std::string dbNameIn, std::string setNameIn) {
+        dbName = dbNameIn;
+        setName = setNameIn;
+    }
 
-	DeleteSet (std :: string dbNameIn, std :: string setNameIn) {
-		dbName = dbNameIn;
-		setName = setNameIn;		
-	}
+    std::string whichDatabase() {
+        return dbName;
+    }
 
-	std :: string whichDatabase () {
-		return dbName;
-	}
-
-	std :: string whichSet () {
-		return setName;
-	}
+    std::string whichSet() {
+        return setName;
+    }
 
 private:
-
-	String dbName;
-	String setName;
-
+    String dbName;
+    String setName;
 };
-
 }
 
 #endif

@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PageHandle.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PAGEHANDLE_H
-#define	PAGEHANDLE_H
+#define PAGEHANDLE_H
 
 #include "PDBPage.h"
 #include "DataProxy.h"
@@ -34,25 +34,25 @@ using namespace std;
 class PageHandle;
 typedef shared_ptr<PageHandle> PageHandlePtr;
 
-//this class wraps interfaces of manipulating a page in backend.
+// this class wraps interfaces of manipulating a page in backend.
 class PageHandle {
-    
+
 public:
-    PageHandle (DataProxyPtr proxy, PDBPagePtr page);
+    PageHandle(DataProxyPtr proxy, PDBPagePtr page);
     ~PageHandle();
-   
-    // must be called before a call to getRAM; after this call (and until the 
+
+    // must be called before a call to getRAM; after this call (and until the
     // next call to unPin) all calls to getRAM return the same value
     void pin();
-    
+
     // after a page is unPinned, the storage manager may move it around
     void unpin();
-    
+
     // returns a pointer to the bytes making up the page
-    void * getRAM();
+    void* getRAM();
 
     // returns a pointer to the bytes after meta data
-    void * getWritableBytes();
+    void* getWritableBytes();
 
     // gets the page size, in bytes
     size_t getSize();
@@ -62,13 +62,11 @@ public:
 
     // gets pageId
     PageID getPageID();
-    
+
 private:
     DataProxyPtr proxy;
     PDBPagePtr page;
 };
 
 
-
-#endif	/* PAGEHANDLE_H */
-
+#endif /* PAGEHANDLE_H */

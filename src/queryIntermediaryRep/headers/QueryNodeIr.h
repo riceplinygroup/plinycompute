@@ -23,12 +23,12 @@
 //#include "QueryNodeIrAlgo.h"
 //
 //
-//using pdb::Handle;
-//using pdb::Object;
-//using pdb::Vector;
+// using pdb::Handle;
+// using pdb::Object;
+// using pdb::Vector;
 //
 //
-//namespace pdb_detail
+// namespace pdb_detail
 //{
 //    /**
 //     * Base class for any node in a query graph.

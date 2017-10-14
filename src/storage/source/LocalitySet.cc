@@ -27,8 +27,12 @@
 
 #include "LocalitySet.h"
 #include <iostream>
-LocalitySet::LocalitySet(LocalityType localityType, LocalitySetReplacementPolicy replacementPolicy, OperationType operationType, DurabilityType durabilityType, PersistenceType persistenceType) {
-    cachedPages = new list<PDBPagePtr> ();
+LocalitySet::LocalitySet(LocalityType localityType,
+                         LocalitySetReplacementPolicy replacementPolicy,
+                         OperationType operationType,
+                         DurabilityType durabilityType,
+                         PersistenceType persistenceType) {
+    cachedPages = new list<PDBPagePtr>();
     this->localityType = localityType;
     this->replacementPolicy = replacementPolicy;
     this->operationType = operationType;
@@ -43,99 +47,104 @@ LocalitySet::~LocalitySet() {
 }
 
 void LocalitySet::addCachedPage(PDBPagePtr page) {
-    //cout << "to add page to cache with pageId=" << page->getPageID() << ", setId="<< page->getSetID() << "\n";
+    // cout << "to add page to cache with pageId=" << page->getPageID() << ", setId="<<
+    // page->getSetID() << "\n";
     cachedPages->push_back(page);
 }
 
 void LocalitySet::updateCachedPage(PDBPagePtr page) {
-    //cout << "to update page in cache with pageId=" << page->getPageID() << ", setId=" << page->getSetID() << "\n";
+    // cout << "to update page in cache with pageId=" << page->getPageID() << ", setId=" <<
+    // page->getSetID() << "\n";
     for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
-        if((*it) == page) {
-           cachedPages->erase(it);
-           break;
+        if ((*it) == page) {
+            cachedPages->erase(it);
+            break;
         }
     }
-    cachedPages->push_back(page);   
+    cachedPages->push_back(page);
 }
 
-void LocalitySet::removeCachedPage (PDBPagePtr page) {
-    //cout << "to remove page from cache with pageId=" << page->getPageID() << ", setId=" << page->getSetID() << "\n";
+void LocalitySet::removeCachedPage(PDBPagePtr page) {
+    // cout << "to remove page from cache with pageId=" << page->getPageID() << ", setId=" <<
+    // page->getSetID() << "\n";
     for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
-        if((*it) == page) {
-           cachedPages->erase(it);
-           break;
+        if ((*it) == page) {
+            cachedPages->erase(it);
+            break;
         }
     }
 }
 
 PDBPagePtr LocalitySet::selectPageForReplacement() {
     PDBPagePtr retPage = nullptr;
-    if(this->replacementPolicy == MRU) {
-        for (list<PDBPagePtr>::reverse_iterator it = cachedPages->rbegin(); it != cachedPages->rend(); ++it) {
-             if((*it)->getRefCount()==0) {
-                 retPage = (*it);
-                 //cachedPages->erase(it);
-                 break;
-             }
+    if (this->replacementPolicy == MRU) {
+        for (list<PDBPagePtr>::reverse_iterator it = cachedPages->rbegin();
+             it != cachedPages->rend();
+             ++it) {
+            if ((*it)->getRefCount() == 0) {
+                retPage = (*it);
+                // cachedPages->erase(it);
+                break;
+            }
         }
     } else {
         for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
-             if((*it)->getRefCount()==0) {
-                 retPage = (*it);
-                 //cachedPages->erase(it);
-                 break;
-             }
+            if ((*it)->getRefCount() == 0) {
+                retPage = (*it);
+                // cachedPages->erase(it);
+                break;
+            }
         }
     }
     return retPage;
 }
 
-vector<PDBPagePtr> * LocalitySet::selectPagesForReplacement() {
-    vector<PDBPagePtr> * retPages = new vector<PDBPagePtr>();
+vector<PDBPagePtr>* LocalitySet::selectPagesForReplacement() {
+    vector<PDBPagePtr>* retPages = new vector<PDBPagePtr>();
     int totalPages = cachedPages->size();
-    if(totalPages == 0) {
+    if (totalPages == 0) {
         delete retPages;
         return nullptr;
     }
-    //cout << "totalPages="<<totalPages<<"\n";
+    // cout << "totalPages="<<totalPages<<"\n";
     int numPages = 0;
-    if(this->replacementPolicy == MRU) {
-        for (list<PDBPagePtr>::reverse_iterator it = cachedPages->rbegin(); it != cachedPages->rend(); ++it) {
-             if((*it)->getRefCount()==0) {
-                 retPages->push_back(*it);
-                 numPages ++;
-                 if(this->operationType == Write) {
-                     break;
-                 }
-                 else {
-                     
-                     if((double)numPages/(double)totalPages >= 0.1) {
-                         break;
-                     }
-                 }
-             }
-        } 
+    if (this->replacementPolicy == MRU) {
+        for (list<PDBPagePtr>::reverse_iterator it = cachedPages->rbegin();
+             it != cachedPages->rend();
+             ++it) {
+            if ((*it)->getRefCount() == 0) {
+                retPages->push_back(*it);
+                numPages++;
+                if (this->operationType == Write) {
+                    break;
+                } else {
+
+                    if ((double)numPages / (double)totalPages >= 0.1) {
+                        break;
+                    }
+                }
+            }
+        }
     } else {
         for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
-             if((*it)->getRefCount()==0) {
-                 retPages->push_back(*it);
-                 numPages ++;
-                 if(this->operationType == Write) {
-                     break;
-                 }
-                 else {
-                     if((double)numPages/(double)totalPages >= 0.1) {
-                         break;
-                     }
-                 }
-             }
+            if ((*it)->getRefCount() == 0) {
+                retPages->push_back(*it);
+                numPages++;
+                if (this->operationType == Write) {
+                    break;
+                } else {
+                    if ((double)numPages / (double)totalPages >= 0.1) {
+                        break;
+                    }
+                }
+            }
         }
     }
-    if(numPages == 0) {
-       delete retPages;
-       return nullptr;
+    if (numPages == 0) {
+        delete retPages;
+        return nullptr;
     } else {
-       return retPages;
+        return retPages;
     }
 }
 
@@ -155,7 +164,7 @@ LocalityType LocalitySet::getLocalityType() {
     return this->localityType;
 }
 
-void LocalitySet::setLocalityType (LocalityType type) {
+void LocalitySet::setLocalityType(LocalityType type) {
     this->localityType = type;
 }
 
@@ -163,7 +172,7 @@ LocalitySetReplacementPolicy LocalitySet::getReplacementPolicy() {
     return this->replacementPolicy;
 }
 
-void LocalitySet::setReplacementPolicy (LocalitySetReplacementPolicy policy) {
+void LocalitySet::setReplacementPolicy(LocalitySetReplacementPolicy policy) {
     this->replacementPolicy = policy;
 }
 
@@ -171,16 +180,16 @@ OperationType LocalitySet::getOperationType() {
     return this->operationType;
 }
 
-void LocalitySet::setOperationType (OperationType type) {
+void LocalitySet::setOperationType(OperationType type) {
     this->operationType = type;
 }
 
 
-DurabilityType LocalitySet::getDurabilityType () {
+DurabilityType LocalitySet::getDurabilityType() {
     return this->durabilityType;
 }
 
-void LocalitySet::setDurabilityType (DurabilityType type) {
+void LocalitySet::setDurabilityType(DurabilityType type) {
     this->durabilityType = type;
 }
 
@@ -188,15 +197,15 @@ PersistenceType LocalitySet::getPersistenceType() {
     return this->persistenceType;
 }
 
-void LocalitySet::setPersistenceType (PersistenceType type) {
+void LocalitySet::setPersistenceType(PersistenceType type) {
     this->persistenceType = type;
 }
 
-bool LocalitySet::isLifetimeEnded () {
+bool LocalitySet::isLifetimeEnded() {
     return this->lifetimeEnded;
 }
 
-void LocalitySet::setLifetimeEnd (bool lifetimeEnded) {
+void LocalitySet::setLifetimeEnd(bool lifetimeEnded) {
     this->lifetimeEnded = lifetimeEnded;
 }
 

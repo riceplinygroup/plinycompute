@@ -27,35 +27,33 @@ using namespace pdb;
 
 class DocAssignment : public Object {
 
-	unsigned whichDoc = 0;
-	NumericalVector <unsigned> whichTopics;
+    unsigned whichDoc = 0;
+    NumericalVector<unsigned> whichTopics;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    DocAssignment(unsigned numDims, unsigned whichDoc, unsigned whichTopic, unsigned cnt)
+        : whichDoc(whichDoc), whichTopics(numDims, whichTopic, cnt) {}
 
-	DocAssignment (unsigned numDims, unsigned whichDoc, unsigned whichTopic, unsigned cnt) : whichDoc (whichDoc),
-		whichTopics (numDims, whichTopic, cnt) {}
+    DocAssignment() {}
 
-	DocAssignment () {}
+    DocAssignment& operator+(DocAssignment& addMe) {
+        whichTopics += addMe.whichTopics;
+        return *this;
+    }
 
-	DocAssignment &operator + (DocAssignment &addMe) {
-		whichTopics += addMe.whichTopics;
-		return *this;	
-	}
+    unsigned& getKey() {
+        return whichDoc;
+    }
 
-	unsigned &getKey () {
-		return whichDoc;
-	}
+    DocAssignment& getValue() {
+        return *this;
+    }
 
-	DocAssignment &getValue () {
-		return *this;
-	}
-
-	Vector <unsigned> &getVector () {
-		return whichTopics.getVector ();
-	}
+    Vector<unsigned>& getVector() {
+        return whichTopics.getVector();
+    }
 };
 
 #endif
-

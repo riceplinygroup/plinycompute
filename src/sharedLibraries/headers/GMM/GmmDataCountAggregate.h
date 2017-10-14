@@ -27,30 +27,26 @@
 #include "SumResult.h"
 
 
-
 using namespace pdb;
 
 
-class GmmDataCountAggregate : public ClusterAggregateComp <SumResult, DoubleVector, int, int> {
+class GmmDataCountAggregate : public ClusterAggregateComp<SumResult, DoubleVector, int, int> {
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-        GmmDataCountAggregate () {}
-
-
-        // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <DoubleVector> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) {return 0;});
-        }
-
-        // the value type must have + defined
-        Lambda <int> getValueProjection (Handle <DoubleVector> aggMe) override {
-            	return makeLambda (aggMe, [] (Handle<DoubleVector> & aggMe) { return 1;});
-        }
+    GmmDataCountAggregate() {}
 
 
+    // the key type must have == and size_t hash () defined
+    Lambda<int> getKeyProjection(Handle<DoubleVector> aggMe) override {
+        return makeLambda(aggMe, [](Handle<DoubleVector>& aggMe) { return 0; });
+    }
+
+    // the value type must have + defined
+    Lambda<int> getValueProjection(Handle<DoubleVector> aggMe) override {
+        return makeLambda(aggMe, [](Handle<DoubleVector>& aggMe) { return 1; });
+    }
 };
 
 

@@ -28,29 +28,25 @@
 
 namespace pdb {
 
-    // encapsulates a request to remove a database from storage
-    class StorageRemoveDatabase  : public Object {
+// encapsulates a request to remove a database from storage
+class StorageRemoveDatabase : public Object {
 
-    public:
+public:
+    StorageRemoveDatabase() {}
+    ~StorageRemoveDatabase() {}
 
-        StorageRemoveDatabase () {}
-        ~StorageRemoveDatabase () {}
+    StorageRemoveDatabase(std::string dataBase) : database(dataBase) {}
 
-        StorageRemoveDatabase (std :: string dataBase) : database (dataBase) {}
+    std::string getDatabase() {
+        return database;
+    }
 
-        std :: string getDatabase () {
-            return database;
-        }
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-    private:
-
-        String database;
-
-    };
-
+private:
+    String database;
+};
 }
 
 
-#endif //PDBCM_STORAGEREMOVEDATABASE_H
+#endif  // PDBCM_STORAGEREMOVEDATABASE_H

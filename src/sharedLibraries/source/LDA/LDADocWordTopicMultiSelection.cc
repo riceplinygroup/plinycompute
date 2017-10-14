@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDADocWordTopicMultiSelection.h"
 
-GET_V_TABLE (LDADocWordTopicMultiSelection)
+GET_V_TABLE(LDADocWordTopicMultiSelection)
 
 #endif

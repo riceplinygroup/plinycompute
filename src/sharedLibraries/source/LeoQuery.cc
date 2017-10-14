@@ -22,6 +22,6 @@
 #include "LeoQuery.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LeoQuery)
+GET_V_TABLE(LeoQuery)
 
 #endif

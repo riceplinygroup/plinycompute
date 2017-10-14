@@ -35,26 +35,24 @@ private:
     GmmNewComp value;
 
 public:
-
     ENABLE_DEEP_COPY
 
-    GmmAggregateOutputType () {}
+    GmmAggregateOutputType() {}
 
-	int &getKey(){
-		return key;
-	}
-
-	GmmNewComp &getValue(){
-		return value;
-	}
-
-	void print(){
-		std::cout<<"GmmAggregateOutputType: index: " << key << " value: " <<"."<< std::endl;
-	}
-
-    ~GmmAggregateOutputType () {
+    int& getKey() {
+        return key;
     }
 
+    GmmNewComp& getValue() {
+        return value;
+    }
+
+    void print() {
+        std::cout << "GmmAggregateOutputType: index: " << key << " value: "
+                  << "." << std::endl;
+    }
+
+    ~GmmAggregateOutputType() {}
 };
 
 #endif

@@ -39,30 +39,34 @@ typedef shared_ptr<PDBScanWork> PDBScanWorkPtr;
  * to notify loaded pages.
  */
 
-class PDBScanWork : public pdb :: PDBWork {
+class PDBScanWork : public pdb::PDBWork {
 public:
-
-    PDBScanWork(PageIteratorPtr iter, pdb :: PangeaStorageServer * storage, int & counter);
+    PDBScanWork(PageIteratorPtr iter, pdb::PangeaStorageServer* storage, int& counter);
     ~PDBScanWork();
-    bool sendPagePinned(pdb :: PDBCommunicatorPtr myCommunicator, bool morePagesToPin, NodeID nodeId, DatabaseID dbId, UserTypeID typeId,
-            SetID setId, PageID pageId, size_t pageSize, size_t offset);
+    bool sendPagePinned(pdb::PDBCommunicatorPtr myCommunicator,
+                        bool morePagesToPin,
+                        NodeID nodeId,
+                        DatabaseID dbId,
+                        UserTypeID typeId,
+                        SetID setId,
+                        PageID pageId,
+                        size_t pageSize,
+                        size_t offset);
 
-    bool acceptPagePinnedAck(pdb :: PDBCommunicatorPtr myCommunicator, bool &wasError, string &info, string & errMsg);
+    bool acceptPagePinnedAck(pdb::PDBCommunicatorPtr myCommunicator,
+                             bool& wasError,
+                             string& info,
+                             string& errMsg);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
 
 private:
-
     PageIteratorPtr iter;
-    pdb :: PangeaStorageServer * storage;
-    int & counter;
+    pdb::PangeaStorageServer* storage;
+    int& counter;
     pthread_mutex_t connection_mutex;
-
 };
-
-
-
 
 
 #endif /* SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_ */

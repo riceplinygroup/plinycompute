@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   Database.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef DATABASE_H
-#define	DATABASE_H
+#define DATABASE_H
 
 #include "PDBObject.h"
 #include "UserType.h"
@@ -39,14 +39,14 @@ using namespace std;
  */
 class DatabaseInterface {
 public:
-	/*
-	 * To support polymorphism.
-	 */
-	virtual ~DatabaseInterface() {}
+    /*
+     * To support polymorphism.
+     */
+    virtual ~DatabaseInterface() {}
 
-	/**
-	 * Add a new type to database
-	 */
+    /**
+     * Add a new type to database
+     */
     virtual void addType(TypePtr type) = 0;
 
     /**
@@ -77,17 +77,23 @@ public:
      * Return true if successful, return false
      * if typeId or setId specified in the object doesn't exists.
      */
-    virtual bool addObject(PDBObjectPtr object, PageID &pageId, MiniPageID &miniPageId) = 0;
+    virtual bool addObject(PDBObjectPtr object, PageID& pageId, MiniPageID& miniPageId) = 0;
 
     /**
      * Get an object from the database, miniPageID must be specified instead of offset.
      */
-    virtual PDBObjectPtr getObject(UserTypeID typeID, SetID setID, PageID pageID, MiniPageID miniPageID) = 0;
+    virtual PDBObjectPtr getObject(UserTypeID typeID,
+                                   SetID setID,
+                                   PageID pageID,
+                                   MiniPageID miniPageID) = 0;
 
     /**
      * Get an object from the database, offset must be specified instead of miniPageID.
      */
-    virtual PDBObjectPtr getObjectByOffset(UserTypeID typeID, SetID setID, PageID pageID, size_t offset) = 0;
+    virtual PDBObjectPtr getObjectByOffset(UserTypeID typeID,
+                                           SetID setID,
+                                           PageID pageID,
+                                           size_t offset) = 0;
 
     /**
      * Get a page from the database.
@@ -107,10 +113,8 @@ public:
     /**
      * Flush data in input buffer into disk files.
      */
-    virtual void flush () = 0;
+    virtual void flush() = 0;
 };
 
 
-
-#endif	/* DATABASE_H */
-
+#endif /* DATABASE_H */

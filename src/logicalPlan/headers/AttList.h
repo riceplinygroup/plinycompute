@@ -31,25 +31,21 @@
 struct AttList {
 
 private:
-
-	std :: vector <std :: string> atts;
+    std::vector<std::string> atts;
 
 public:
+    ~AttList() {}
+    AttList() {}
 
-        ~AttList () {}
-	AttList () {}
+    void appendAttribute(char* appendMe) {
+        atts.push_back(std::string(appendMe));
+    }
 
-	void appendAttribute (char *appendMe) {
-		atts.push_back (std :: string (appendMe));
-	}
-	
-	std :: vector <std :: string> &getAtts () {
-		return atts;
-	}
-	
-	friend struct TupleSpec;
+    std::vector<std::string>& getAtts() {
+        return atts;
+    }
 
+    friend struct TupleSpec;
 };
 
 #endif
-

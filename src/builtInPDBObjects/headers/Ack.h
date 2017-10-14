@@ -38,38 +38,33 @@ namespace pdb {
 class Ack : public Object {
 
 public:
+    Ack() {}
 
-	Ack(){}
+    ~Ack() {}
 
-	~Ack(){}
+    String& getInfo() {
+        return info;
+    }
 
-	String& getInfo(){
-	return info;
-	}
+    void setInfo(String& info) {
+        this->info = info;
+    }
 
-	void setInfo(String & info){
-		this->info=info;
-	}
+    bool getWasError() {
+        return wasError;
+    }
 
-	bool getWasError(){
-		return wasError;
-	}
+    void setWasError(bool wasError) {
+        this->wasError = wasError;
+    }
 
-	void setWasError( bool wasError){
-		this->wasError=wasError;
-
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 
 private:
-	String info;
-	bool wasError;
-
-
+    String info;
+    bool wasError;
 };
-
 }
 
 

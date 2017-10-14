@@ -26,45 +26,40 @@
 using std::shared_ptr;
 using std::string;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A lexcial unit and its token type value.
+ *
+ * One of the terminals of the TCAP grammar:
+ *
+ * https://github.com/riceplinygroup/pdb/wiki/TCAP-Grammar
+ *
+ * Or, "uknown" which has type TcapTokenType::UKNOWN and lexeme "".
+ */
+class TcapToken {
+
+public:
     /**
-     * A lexcial unit and its token type value.
-     *
-     * One of the terminals of the TCAP grammar:
-     *
-     * https://github.com/riceplinygroup/pdb/wiki/TCAP-Grammar
-     *
-     * Or, "uknown" which has type TcapTokenType::UKNOWN and lexeme "".
+     * The content of the token.
      */
-    class TcapToken
-    {
+    const string lexeme;
 
-    public:
+    /**
+     * The token's type.
+     */
+    const TcapTokenType tokenType;
 
-        /**
-         * The content of the token.
-         */
-        const string lexeme;
+    /**
+     * Creates a new TcapToken.
+     *
+     * @param lexeme the token's content
+     * @param tokenType the token's type
+     * @return a new TcapToken
+     */
+    TcapToken(const string& lexeme, const TcapTokenType& tokenType);
+};
 
-        /**
-         * The token's type.
-         */
-        const TcapTokenType tokenType;
-
-        /**
-         * Creates a new TcapToken.
-         *
-         * @param lexeme the token's content
-         * @param tokenType the token's type
-         * @return a new TcapToken
-         */
-        TcapToken(const string &lexeme, const TcapTokenType &tokenType);
-
-    };
-
-    typedef shared_ptr<TcapToken> TcapTokenPtr;
-
+typedef shared_ptr<TcapToken> TcapTokenPtr;
 }
 
-#endif //PDB_TCAPLEXER_LEXEME_H
+#endif  // PDB_TCAPLEXER_LEXEME_H

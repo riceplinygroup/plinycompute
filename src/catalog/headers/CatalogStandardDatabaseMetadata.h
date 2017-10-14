@@ -30,7 +30,7 @@
 #include <vector>
 #include <map>
 
-#include<CatalogStandardPermissionsMetadata.h>
+#include <CatalogStandardPermissionsMetadata.h>
 #include "PDBDebug.h"
 
 using namespace std;
@@ -40,147 +40,153 @@ using namespace std;
 // Clients of this class will access this information using a handler to the catalog.
 
 class CatalogStandardDatabaseMetadata {
-    public:
+public:
+    CatalogStandardDatabaseMetadata();
 
-        CatalogStandardDatabaseMetadata();
+    CatalogStandardDatabaseMetadata(string dbIdIn,
+                                    string dbNameIn,
+                                    string userCreatorIn,
+                                    string createdOnIn,
+                                    string lastModifiedIn);
 
-        CatalogStandardDatabaseMetadata(string dbIdIn, string dbNameIn, string userCreatorIn,
-                                 string createdOnIn, string lastModifiedIn);
+    CatalogStandardDatabaseMetadata(const CatalogStandardDatabaseMetadata& pdbDatabaseToCopy);
 
-        CatalogStandardDatabaseMetadata(const CatalogStandardDatabaseMetadata& pdbDatabaseToCopy);
-
-        void setValues(string dbIdIn, string dbNameIn, string userCreatorIn, string createdOnIn, string lastModifiedIn);
-
-
-        ~CatalogStandardDatabaseMetadata();
-
-
-        void addPermission( CatalogStandardPermissionsMetadata &permissionsIn);
-
-        void addNode(string &nodeIn);
-
-        void addSet(string &setIn);
-
-        void addSetToMap(string &setName, string &nodeIP);
-
-        void addNodeToMap(string &nodeIP, string &setName);
+    void setValues(string dbIdIn,
+                   string dbNameIn,
+                   string userCreatorIn,
+                   string createdOnIn,
+                   string lastModifiedIn);
 
 
-        void addType(string &typeIn);
+    ~CatalogStandardDatabaseMetadata();
 
 
-        void replaceListOfSets(vector <string> &newList);
+    void addPermission(CatalogStandardPermissionsMetadata& permissionsIn);
 
-        void replaceListOfNodes(vector <string> &newList);
+    void addNode(string& nodeIn);
 
-        void replaceMapOfSets(map< string, vector < string > > &newMap);
+    void addSet(string& setIn);
 
-        void replaceMapOfNodes(map< string, vector < string > > &newMap);
+    void addSetToMap(string& setName, string& nodeIP);
 
-        /**
-         * Deletes a set from the listOfSets, along with the set->nodes map and the nodes->set map
-         * @param whichSet
-         */
-        void deleteSet(string setName);
-
-        void removeNodeFromSet(string node, string set);
-
-        void deleteNodeFromMap(string &nodeIP, string &setName);
-
-        void deleteType(string &typeIn);
+    void addNodeToMap(string& nodeIP, string& setName);
 
 
-        vector< string > getListOfNodes();
+    void addType(string& typeIn);
 
 
-        vector <string> getListOfSets();
+    void replaceListOfSets(vector<string>& newList);
 
-        vector< string > getListOfTypes();
+    void replaceListOfNodes(vector<string>& newList);
+
+    void replaceMapOfSets(map<string, vector<string>>& newMap);
+
+    void replaceMapOfNodes(map<string, vector<string>>& newMap);
+
+    /**
+     * Deletes a set from the listOfSets, along with the set->nodes map and the nodes->set map
+     * @param whichSet
+     */
+    void deleteSet(string setName);
+
+    void removeNodeFromSet(string node, string set);
+
+    void deleteNodeFromMap(string& nodeIP, string& setName);
+
+    void deleteType(string& typeIn);
 
 
-        vector < CatalogStandardPermissionsMetadata> getListOfPermissions();
+    vector<string> getListOfNodes();
 
-        string getItemId();
 
-        string getItemName();
+    vector<string> getListOfSets();
 
-        string getItemKey();
+    vector<string> getListOfTypes();
 
-        string getUserCreator();
 
-        string getCreatedOn();
+    vector<CatalogStandardPermissionsMetadata> getListOfPermissions();
 
-        string getLastModified();
+    string getItemId();
 
-        void setItemKey(string &itemKeyIn);
+    string getItemName();
 
-        void setItemId(string &idIn);
+    string getItemKey();
 
-        void setItemName(string &itemNameIn);
+    string getUserCreator();
 
-        map< string, vector < string > >  getSetsInDB();
+    string getCreatedOn();
 
-        map< string, vector < string > >  getNodesInDB();
+    string getLastModified();
 
-        string printShort();
+    void setItemKey(string& itemKeyIn);
 
-        friend std::ostream& operator<<(std::ostream &out, CatalogStandardDatabaseMetadata &database) {
-            out << "\nCatalog Database Metadata"<< endl;
-            out << "-------------------"<< endl;
-            out << "      DB Id: " << database.getItemId().c_str() << endl;
-            out << "     DB Key: " << database.getItemKey().c_str() << endl;
-            out << "    DB Name: " << database.getItemName().c_str() << endl;
-            out << "\nThis Database is stored in the following nodes: " << endl;
-            for (int i=0; i < database.getListOfNodes().size(); i++){
-    //            out << "    IP: " << database.getListOfNodes().[i] << endl;
-            }
-            out << "\nThis Database has the following sets: " << endl;
-            for (int i=0; i < database.getListOfSets().size(); i++){
-                out << "    Set: " << database.getListOfSets()[i].c_str() << endl;
-            }
+    void setItemId(string& idIn);
 
-            out << "-------------------\n"<< endl;
-           return out;
-       }
+    void setItemName(string& itemNameIn);
 
-    private:
-        string dbId;
-        string dbName;
-        string userCreator;
-        string createdOn;
-        string lastModified;
+    map<string, vector<string>> getSetsInDB();
 
-        // a map where the key is the name of a set and the value is a vector with
-        // all nodes where that set has information stored
-        map< string, vector< string > > setsInDB;
+    map<string, vector<string>> getNodesInDB();
 
-        // a map where the key is the IP of a node and the value is a vector with
-        // all sets in that node that contain data for this database
-        map< string, vector < string > > nodesInDB;
+    string printShort();
 
-        // Contains information about nodes in the cluster with data for a given database
-        vector< string > listOfNodes;
+    friend std::ostream& operator<<(std::ostream& out, CatalogStandardDatabaseMetadata& database) {
+        out << "\nCatalog Database Metadata" << endl;
+        out << "-------------------" << endl;
+        out << "      DB Id: " << database.getItemId().c_str() << endl;
+        out << "     DB Key: " << database.getItemKey().c_str() << endl;
+        out << "    DB Name: " << database.getItemName().c_str() << endl;
+        out << "\nThis Database is stored in the following nodes: " << endl;
+        for (int i = 0; i < database.getListOfNodes().size(); i++) {
+            //            out << "    IP: " << database.getListOfNodes().[i] << endl;
+        }
+        out << "\nThis Database has the following sets: " << endl;
+        for (int i = 0; i < database.getListOfSets().size(); i++) {
+            out << "    Set: " << database.getListOfSets()[i].c_str() << endl;
+        }
 
-        // Contains information about sets in the cluster containing data for a given database
-        // this might change, check with Jia if this is needed or not
-        vector< string > listOfSets;
+        out << "-------------------\n" << endl;
+        return out;
+    }
 
-        // Contains information about types in the cluster containing data for a given database
-        // this might change, check with Jia if this is needed or not
-        vector< string >  listOfTypes;
+private:
+    string dbId;
+    string dbName;
+    string userCreator;
+    string createdOn;
+    string lastModified;
 
-        // Contains all users' permissions for a given database
-        vector< CatalogStandardPermissionsMetadata > listOfPermissions;
+    // a map where the key is the name of a set and the value is a vector with
+    // all nodes where that set has information stored
+    map<string, vector<string>> setsInDB;
 
-        void deleteSetFromSetList(string &setName);
+    // a map where the key is the IP of a node and the value is a vector with
+    // all sets in that node that contain data for this database
+    map<string, vector<string>> nodesInDB;
 
-        void deleteSetFromSetMap(string &setName);
+    // Contains information about nodes in the cluster with data for a given database
+    vector<string> listOfNodes;
 
-        void deleteNodeFromSingleSet(string &node, string &setName);
+    // Contains information about sets in the cluster containing data for a given database
+    // this might change, check with Jia if this is needed or not
+    vector<string> listOfSets;
 
-        void deleteSetFromSingleNode(string &setName, string &node);
+    // Contains information about types in the cluster containing data for a given database
+    // this might change, check with Jia if this is needed or not
+    vector<string> listOfTypes;
 
-        void deleteSetFromNodeMap(string &setName);
+    // Contains all users' permissions for a given database
+    vector<CatalogStandardPermissionsMetadata> listOfPermissions;
+
+    void deleteSetFromSetList(string& setName);
+
+    void deleteSetFromSetMap(string& setName);
+
+    void deleteNodeFromSingleSet(string& node, string& setName);
+
+    void deleteSetFromSingleNode(string& setName, string& node);
+
+    void deleteSetFromNodeMap(string& setName);
 };
 
 

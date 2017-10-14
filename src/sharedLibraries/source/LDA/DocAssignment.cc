@@ -22,6 +22,6 @@
 #include "GetVTable.h"
 #include "LDA/DocAssignment.h"
 
-GET_V_TABLE (DocAssignment)
+GET_V_TABLE(DocAssignment)
 
 #endif
