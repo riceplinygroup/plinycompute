@@ -23,9 +23,8 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void testSelectionIrExecute(UnitTest &qunit);
+namespace pdb_tests {
+void testSelectionIrExecute(UnitTest& qunit);
 }
 
-#endif //PDB_QUERYINTERMEDIARYREPTESTS_SELECTIONIRTESTS_H
+#endif  // PDB_QUERYINTERMEDIARYREPTESTS_SELECTIONIRTESTS_H

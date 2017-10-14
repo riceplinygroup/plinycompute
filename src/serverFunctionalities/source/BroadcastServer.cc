@@ -22,10 +22,9 @@
 namespace pdb {
 
 BroadcastServer::BroadcastServer(PDBLoggerPtr logger, ConfigurationPtr conf) {
-   this->conf = conf;
-   pthread_mutex_init(&connection_mutex, nullptr);
+    this->conf = conf;
+    pthread_mutex_init(&connection_mutex, nullptr);
 }
-
 
 
 BroadcastServer::BroadcastServer(PDBLoggerPtr logger) {
@@ -38,11 +37,9 @@ BroadcastServer::~BroadcastServer() {
     pthread_mutex_destroy(&connection_mutex);
 }
 
-void BroadcastServer::registerHandlers(PDBServer &forMe) {
+void BroadcastServer::registerHandlers(PDBServer& forMe) {
     // no-op
 }
-
 }
 
 #endif
-

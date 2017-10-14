@@ -26,9 +26,8 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void runTcapParserTests(UnitTest &qunit);
+namespace pdb_tests {
+void runTcapParserTests(UnitTest& qunit);
 }
 
-#endif //PDB_TCAPPARSERSTESTS_TCAPPARSERSTESTSRUNNER_H
+#endif  // PDB_TCAPPARSERSTESTS_TCAPPARSERSTESTSRUNNER_H

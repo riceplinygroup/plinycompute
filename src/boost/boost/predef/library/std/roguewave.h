@@ -32,20 +32,20 @@ If available version number as major, minor, and patch.
 #define BOOST_LIB_STD_RW BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__STD_RWCOMPILER_H__) || defined(_RWSTD_VER)
-#   undef BOOST_LIB_STD_RW
-#   if defined(_RWSTD_VER)
-#       if _RWSTD_VER < 0x010000
-#           define BOOST_LIB_STD_RW BOOST_PREDEF_MAKE_0X_VVRRP(_RWSTD_VER)
-#       else
-#           define BOOST_LIB_STD_RW BOOST_PREDEF_MAKE_0X_VVRRPP(_RWSTD_VER)
-#       endif
-#   else
-#       define BOOST_LIB_STD_RW BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#undef BOOST_LIB_STD_RW
+#if defined(_RWSTD_VER)
+#if _RWSTD_VER < 0x010000
+#define BOOST_LIB_STD_RW BOOST_PREDEF_MAKE_0X_VVRRP(_RWSTD_VER)
+#else
+#define BOOST_LIB_STD_RW BOOST_PREDEF_MAKE_0X_VVRRPP(_RWSTD_VER)
+#endif
+#else
+#define BOOST_LIB_STD_RW BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_LIB_STD_RW
-#   define BOOST_LIB_STD_RW_AVAILABLE
+#define BOOST_LIB_STD_RW_AVAILABLE
 #endif
 
 #define BOOST_LIB_STD_RW_NAME "Roguewave"
@@ -53,4 +53,4 @@ If available version number as major, minor, and patch.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_STD_RW,BOOST_LIB_STD_RW_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_STD_RW, BOOST_LIB_STD_RW_NAME)

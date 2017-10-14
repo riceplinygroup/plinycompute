@@ -33,45 +33,38 @@
 
 class PartialResult : public pdb::Object {
 
-    public:
+public:
+    ENABLE_DEEP_COPY
 
-       ENABLE_DEEP_COPY
-
-       PartialResult() {}
-
-
-       void initialize() {
-
-           int i;
-           for ( i = 0; i < NUM_CLUSTERS; i ++ ) {
-               centroids[i].initialize();
-           }
-
-       }
+    PartialResult() {}
 
 
-       void updateCentroid (int clusterIndex, double* point) {
+    void initialize() {
 
-           centroids[clusterIndex].update(point);
+        int i;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            centroids[i].initialize();
+        }
+    }
 
-       }
 
-       void printCentroids() {
-           int i;
-           std :: cout << std :: endl;
-           for ( i = 0; i < NUM_CLUSTERS; i ++) {
-               std :: cout << "cluster-" << i << ":" << std :: endl;
-               centroids[i].print();
-           }
-       }
+    void updateCentroid(int clusterIndex, double* point) {
 
-    private:
+        centroids[clusterIndex].update(point);
+    }
 
-       Centroid centroids[NUM_CLUSTERS];
+    void printCentroids() {
+        int i;
+        std::cout << std::endl;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            std::cout << "cluster-" << i << ":" << std::endl;
+            centroids[i].print();
+        }
+    }
 
+private:
+    Centroid centroids[NUM_CLUSTERS];
 };
-
-
 
 
 #endif

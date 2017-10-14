@@ -21,6 +21,6 @@
 #include "LAWriteMinElementSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAWriteMinElementSet)
+GET_V_TABLE(LAWriteMinElementSet)
 
 #endif

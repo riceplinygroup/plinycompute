@@ -38,31 +38,30 @@
 
 using namespace pdb;
 
-int main () {
+int main() {
 
-	// for timing
-	auto begin = std::chrono::high_resolution_clock::now();
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
 
-	// create one million allocators and one million objects
-	try {
-		for (int i = 0; i < NUM_OBJECTS; i++) {
-			if (i % 1000 == 0)
-				std :: cout << i << "\n";
-			makeObjectAllocatorBlock (1024 * 24, true);
-			Handle <Supervisor> super = makeObject <Supervisor> ("Joe Johnson", 57);
-			for (int j = 0; j < 10; j++) {
-				Handle <Employee> temp = makeObject <Employee> ("Steve Stevens", 57);	
-				super->addEmp (temp);
-			}
-		}
+    // create one million allocators and one million objects
+    try {
+        for (int i = 0; i < NUM_OBJECTS; i++) {
+            if (i % 1000 == 0)
+                std::cout << i << "\n";
+            makeObjectAllocatorBlock(1024 * 24, true);
+            Handle<Supervisor> super = makeObject<Supervisor>("Joe Johnson", 57);
+            for (int j = 0; j < 10; j++) {
+                Handle<Employee> temp = makeObject<Employee>("Steve Stevens", 57);
+                super->addEmp(temp);
+            }
+        }
 
-	} catch (NotEnoughSpace &e) {
-		std :: cout << "This is bad.  Why did I run out of RAM?\n";
-	}
+    } catch (NotEnoughSpace& e) {
+        std::cout << "This is bad.  Why did I run out of RAM?\n";
+    }
 
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Duration to create all of the objects: " <<
-		std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to create all of the objects: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
 }
-	

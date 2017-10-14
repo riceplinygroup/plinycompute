@@ -30,72 +30,68 @@ using std::shared_ptr;
 using std::string;
 using std::vector;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A list of columns within a table.
+ */
+class TableColumns {
+public:
     /**
-     * A list of columns within a table.
+     * The name of the table.
      */
-    class TableColumns
-    {
-    public:
+    const string tableName;
 
-        /**
-         * The name of the table.
-         */
-        const string tableName;
+    /**
+     * A non-empty list of unique columnIds.
+     */
+    const shared_ptr<const vector<string>> columnIds;
 
-        /**
-         * A non-empty list of unique columnIds.
-         */
-        const shared_ptr<const vector<string>> columnIds;
+    /**
+     * Creates a new TableColumns of one column.
+     *
+     * @param tableName The name of the table.
+     * @param columnId the only column for columnIds
+     * @return  a new TableColumns
+     */
+    TableColumns(const string& tableName, const string& columnId);
 
-        /**
-         * Creates a new TableColumns of one column.
-         *
-         * @param tableName The name of the table.
-         * @param columnId the only column for columnIds
-         * @return  a new TableColumns
-         */
-        TableColumns(const string &tableName, const string &columnId);
+    /**
+     * Creates a new TableColumns of two columns in the order columnId1, columnId2.
+     *
+     * If columnId1 == columnId2, columnIds is set to nullptr;
+     *
+     * @param tableName The name of the table.
+     * @param columnId1 the fisrt column
+     * @param columnId2 the second column
+     * @return  a new TableColumns
+     */
+    TableColumns(const string& tableName, const string& columnId1, const string& columnId2);
 
-        /**
-         * Creates a new TableColumns of two columns in the order columnId1, columnId2.
-         *
-         * If columnId1 == columnId2, columnIds is set to nullptr;
-         *
-         * @param tableName The name of the table.
-         * @param columnId1 the fisrt column
-         * @param columnId2 the second column
-         * @return  a new TableColumns
-         */
-        TableColumns(const string &tableName, const string &columnId1, const string &columnId2);
+    /**
+     * @return columnIds->operator[](index)
+     */
+    string operator[](vector<string>::size_type index) const;
 
-        /**
-         * @return columnIds->operator[](index)
-         */
-        string operator[](vector<string>::size_type index) const;
+private:
+    /**
+     * Creates a new TableColumns.
+     *
+     * If columnIds is empty or contains repeated strings, columnIds is set to nullptr.
+     *
+     * @param tableName The name of the table.
+     * @param columnIds A non-empty list of unique columnIds.
+     * @return a new TableColumns
+     */
+    TableColumns(const string& tableName, shared_ptr<vector<string>> columnIds);
 
-    private:
+    friend void pdb_tests::testBuildLogicalPlanFromStore(class UnitTest& qunit);
 
-        /**
-         * Creates a new TableColumns.
-         *
-         * If columnIds is empty or contains repeated strings, columnIds is set to nullptr.
-         *
-         * @param tableName The name of the table.
-         * @param columnIds A non-empty list of unique columnIds.
-         * @return a new TableColumns
-         */
-        TableColumns(const string &tableName, shared_ptr<vector<string>> columnIds);
+    friend InstructionPtr makeInstructionFromApply(const class ApplyOperation& applyOp,
+                                                   const class TableAssignment& tableAssignment);
 
-        friend void pdb_tests::testBuildLogicalPlanFromStore(class UnitTest &qunit);
-
-        friend InstructionPtr makeInstructionFromApply(const class ApplyOperation &applyOp,
-                                                       const class TableAssignment& tableAssignment);
-
-        friend shared_ptr<class Store> makeInstructionFromStore(const class StoreOperation &storeOperation);
-
-    };
+    friend shared_ptr<class Store> makeInstructionFromStore(
+        const class StoreOperation& storeOperation);
+};
 }
 
-#endif //PDB_TCAPINTERMEDIARYREP_TABLECOLUMNS_H
+#endif  // PDB_TCAPINTERMEDIARYREP_TABLECOLUMNS_H

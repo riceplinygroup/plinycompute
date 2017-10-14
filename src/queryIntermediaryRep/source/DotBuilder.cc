@@ -18,7 +18,7 @@
 //
 //#include <DotBuilder.h>
 //
-//namespace pdb_detail
+// namespace pdb_detail
 //{
 //    string buildDot(QueryIr query)
 //    {

@@ -28,35 +28,33 @@ namespace pdb {
 
 // encapsulates a request to obtain a shared library from the catalog
 // given the name of the type, this is used when the typeId is unknown
-class CatSharedLibraryByNameRequest  : public Object {
+class CatSharedLibraryByNameRequest : public Object {
 
 public:
-
-    CatSharedLibraryByNameRequest () {};
-    CatSharedLibraryByNameRequest (int16_t identifierIn, String NameIn) : identifier(identifierIn), objectTypeName (NameIn) {}
+    CatSharedLibraryByNameRequest(){};
+    CatSharedLibraryByNameRequest(int16_t identifierIn, String NameIn)
+        : identifier(identifierIn), objectTypeName(NameIn) {}
     CatSharedLibraryByNameRequest(const CatSharedLibraryByNameRequest& objectToCopy) {
         objectTypeName = objectToCopy.objectTypeName;
         identifier = objectToCopy.identifier;
     }
-	~CatSharedLibraryByNameRequest () {};
+    ~CatSharedLibraryByNameRequest(){};
 
-    String getTypeLibraryName () {
+    String getTypeLibraryName() {
         return objectTypeName;
     }
 
-    int16_t getTypeLibraryId () {
+    int16_t getTypeLibraryId() {
         return identifier;
     }
 
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
     int16_t identifier;
-	String objectTypeName;
+    String objectTypeName;
 };
-
 }
 
 #endif

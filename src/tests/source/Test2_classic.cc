@@ -34,68 +34,65 @@
 Allocator allocator;
 
 class Employee {
-	std :: string *name;
-	int age;
+    std::string* name;
+    int age;
 
 public:
+    ~Employee() {
+        delete name;
+    }
 
-	~Employee () {
-		delete name;
-	}
+    Employee() {}
 
-	Employee () {}
-
-	Employee (std :: string nameIn, int ageIn) { 
-		name = new std :: string (nameIn);
-		age = ageIn;
-	}
+    Employee(std::string nameIn, int ageIn) {
+        name = new std::string(nameIn);
+        age = ageIn;
+    }
 };
 
 class Supervisor {
 
 private:
-
-	Employee *me;
-	std :: vector <Employee *> myGuys;
+    Employee* me;
+    std::vector<Employee*> myGuys;
 
 public:
+    ~Supervisor() {}
+    Supervisor() {
+        for (auto a : myGuys) {
+            delete a;
+        }
+    }
 
-	~Supervisor () {}
-	Supervisor () {
-		for (auto a : myGuys) {
-			delete a;
-		}
-	}
+    Supervisor(std::string name, int age) {
+        me = new Employee(name, age);
+    }
 
-	Supervisor (std :: string name, int age) {
-		me = new Employee (name, age);
-	}
-
-	void addEmp (Employee *addMe) {
-		myGuys.push_back (addMe);
-	}
+    void addEmp(Employee* addMe) {
+        myGuys.push_back(addMe);
+    }
 };
 
-int main () {
+int main() {
 
-        // for timing
-       	auto begin = std::chrono::high_resolution_clock::now();
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
 
-	// put a lot of copies of it into a vector
-	for (int i = 0; i < 1000000; i++) {
-		
-		Supervisor *mySup = new Supervisor ("Joe Johnson", 23);
+    // put a lot of copies of it into a vector
+    for (int i = 0; i < 1000000; i++) {
 
-		for (int i = 0; i < 10; i++) {
-			Employee *temp = new Employee ("Steve Stevens", 57);	
-			mySup->addEmp (temp);
-		}
+        Supervisor* mySup = new Supervisor("Joe Johnson", 23);
 
-		delete mySup;
-	}
+        for (int i = 0; i < 10; i++) {
+            Employee* temp = new Employee("Steve Stevens", 57);
+            mySup->addEmp(temp);
+        }
 
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Duration to create all of the objects: " <<
-		std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
+        delete mySup;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to create all of the objects: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
 }
-	

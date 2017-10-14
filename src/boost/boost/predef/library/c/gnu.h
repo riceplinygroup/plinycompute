@@ -39,18 +39,16 @@ Version number available as major, and minor.
 #define BOOST_LIB_C_GNU BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
-#   undef BOOST_LIB_C_GNU
-#   if defined(__GLIBC__)
-#       define BOOST_LIB_C_GNU \
-            BOOST_VERSION_NUMBER(__GLIBC__,__GLIBC_MINOR__,0)
-#   else
-#       define BOOST_LIB_C_GNU \
-            BOOST_VERSION_NUMBER(__GNU_LIBRARY__,__GNU_LIBRARY_MINOR__,0)
-#   endif
+#undef BOOST_LIB_C_GNU
+#if defined(__GLIBC__)
+#define BOOST_LIB_C_GNU BOOST_VERSION_NUMBER(__GLIBC__, __GLIBC_MINOR__, 0)
+#else
+#define BOOST_LIB_C_GNU BOOST_VERSION_NUMBER(__GNU_LIBRARY__, __GNU_LIBRARY_MINOR__, 0)
+#endif
 #endif
 
 #if BOOST_LIB_C_GNU
-#   define BOOST_LIB_C_GNU_AVAILABLE
+#define BOOST_LIB_C_GNU_AVAILABLE
 #endif
 
 #define BOOST_LIB_C_GNU_NAME "GNU"
@@ -58,4 +56,4 @@ Version number available as major, and minor.
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_C_GNU,BOOST_LIB_C_GNU_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_LIB_C_GNU, BOOST_LIB_C_GNU_NAME)

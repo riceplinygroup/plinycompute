@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "ScanIntDoubleVectorPairSet.h"
 
-GET_V_TABLE (ScanIntDoubleVectorPairSet)
+GET_V_TABLE(ScanIntDoubleVectorPairSet)
 
 #endif

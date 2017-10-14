@@ -21,6 +21,6 @@
 #include "CountCustomer.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CountCustomer)
+GET_V_TABLE(CountCustomer)
 
 #endif

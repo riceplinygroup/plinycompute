@@ -28,24 +28,24 @@
 #include "PangeaStorageServer.h"
 #include "SharedMem.h"
 
-int main () {
+int main() {
 
-       std :: cout << "Starting up a resource manager/query scheduler server!!\n";
-       pdb :: PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("frontendLogFile.log");
-       pdb :: PDBServer frontEnd (8108, 10, myLogger);
-       frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, "localhost", 8108);
-       frontEnd.addFunctionality <pdb :: CatalogClient> (8108, "localhost", myLogger);
+    std::cout << "Starting up a resource manager/query scheduler server!!\n";
+    pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
+    pdb::PDBServer frontEnd(8108, 10, myLogger);
+    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, "localhost", 8108);
+    frontEnd.addFunctionality<pdb::CatalogClient>(8108, "localhost", myLogger);
 
-       ConfigurationPtr conf = make_shared < Configuration > ();
-       pdb :: PDBLoggerPtr logger = make_shared < pdb :: PDBLogger> (conf->getLogFile());
-       SharedMemPtr shm = make_shared< SharedMem > (conf->getShmSize(), logger);
-       frontEnd.addFunctionality<pdb :: PangeaStorageServer> (shm, frontEnd.getWorkerQueue(), logger, conf);
-       frontEnd.getFunctionality<pdb :: PangeaStorageServer>().startFlushConsumerThreads();
+    ConfigurationPtr conf = make_shared<Configuration>();
+    pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>(conf->getLogFile());
+    SharedMemPtr shm = make_shared<SharedMem>(conf->getShmSize(), logger);
+    frontEnd.addFunctionality<pdb::PangeaStorageServer>(
+        shm, frontEnd.getWorkerQueue(), logger, conf);
+    frontEnd.getFunctionality<pdb::PangeaStorageServer>().startFlushConsumerThreads();
 
-       frontEnd.addFunctionality <pdb :: ResourceManagerServer> ("conf/serverlist", 8108);
-       frontEnd.addFunctionality <pdb :: QuerySchedulerServer> ("localhost", 8108, myLogger);
-       frontEnd.startServer (nullptr);
+    frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", 8108);
+    frontEnd.addFunctionality<pdb::QuerySchedulerServer>("localhost", 8108, myLogger);
+    frontEnd.startServer(nullptr);
 }
 
 #endif
-

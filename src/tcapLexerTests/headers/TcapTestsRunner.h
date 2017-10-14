@@ -22,9 +22,8 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void runTcapTests(UnitTest &qunit);
+namespace pdb_tests {
+void runTcapTests(UnitTest& qunit);
 }
 
-#endif //PDB_RCAPLEXERTESTS_TCAPTESTSRUNNER_H
+#endif  // PDB_RCAPLEXERTESTS_TCAPTESTSRUNNER_H

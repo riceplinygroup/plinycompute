@@ -12,24 +12,23 @@
 class NullStream {
 public:
     NullStream() {}
-    NullStream& operator<<(std::ostream & (*pf)(std::ostream&)) {
+    NullStream& operator<<(std::ostream& (*pf)(std::ostream&)) {
         return *this;
     }
-    template<typename T>
+    template <typename T>
     NullStream& operator<<(T const&) {
         return *this;
     }
-    template<typename R, typename P> 
-    NullStream& operator<<(R & (*pf)(P &)) {
+    template <typename R, typename P>
+    NullStream& operator<<(R& (*pf)(P&)) {
         return *this;
     }
-
 };
 
 #ifdef PDB_DEBUG
-    #define PDB_COUT std::cout
+#define PDB_COUT std::cout
 #else
-    #define PDB_COUT NullStream()
+#define PDB_COUT NullStream()
 #endif
 
 

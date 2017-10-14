@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "StarsIn.h"
 
-GET_V_TABLE (StarsIn)
+GET_V_TABLE(StarsIn)
 
 #endif

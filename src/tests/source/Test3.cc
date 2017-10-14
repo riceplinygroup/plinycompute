@@ -37,57 +37,59 @@
 
 using namespace pdb;
 
-int main () {
+int main() {
 
-	// for timing
-	auto begin = std::chrono::high_resolution_clock::now();
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
 
-	// load up the allocator with RAM
-	makeObjectAllocatorBlock (1024 * 1024 * 24, false);
+    // load up the allocator with RAM
+    makeObjectAllocatorBlock(1024 * 1024 * 24, false);
 
-	// get the file size
-	std::ifstream in ("testfile", std::ifstream::ate | std::ifstream::binary);
-	size_t fileLen = in.tellg(); 
+    // get the file size
+    std::ifstream in("testfile", std::ifstream::ate | std::ifstream::binary);
+    size_t fileLen = in.tellg();
 
-	// read in the serialized record
-	int filedesc = open ("testfile", O_RDONLY);
-	Record <Vector <Handle <Supervisor>>> *myNewBytes = (Record <Vector <Handle <Supervisor>>> *) malloc (fileLen);
-	size_t sizeRead = read (filedesc, myNewBytes, fileLen);
-        if (sizeRead == 0) {
-           std :: cout << "Read failed." << std :: endl;
-        }
-	// get the root object
-	Handle <Vector <Handle <Supervisor>>> mySupers = myNewBytes->getRootObject ();
+    // read in the serialized record
+    int filedesc = open("testfile", O_RDONLY);
+    Record<Vector<Handle<Supervisor>>>* myNewBytes =
+        (Record<Vector<Handle<Supervisor>>>*)malloc(fileLen);
+    size_t sizeRead = read(filedesc, myNewBytes, fileLen);
+    if (sizeRead == 0) {
+        std::cout << "Read failed." << std::endl;
+    }
+    // get the root object
+    Handle<Vector<Handle<Supervisor>>> mySupers = myNewBytes->getRootObject();
 
-	// and loop through it, copying over some employees
-	int numSupers = (*mySupers).size ();
-	Handle <Vector <Handle <Employee>>> result = makeObject <Vector <Handle <Employee>>> (10);
-	for (int i = 0; i < numSupers; i++) {
-		result->push_back (((*mySupers)[i]->getEmp (i % 10)));
-	}
+    // and loop through it, copying over some employees
+    int numSupers = (*mySupers).size();
+    Handle<Vector<Handle<Employee>>> result = makeObject<Vector<Handle<Employee>>>(10);
+    for (int i = 0; i < numSupers; i++) {
+        result->push_back(((*mySupers)[i]->getEmp(i % 10)));
+    }
 
-	// now, we serialize those employees
-	close (filedesc);
+    // now, we serialize those employees
+    close(filedesc);
 
-	Record <Vector <Handle <Employee>>> *myBytes = getRecord <Vector <Handle <Employee>>> (result);
-	filedesc = open ("testfile2", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-	size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
-        if (sizeWritten == 0) {
-           std :: cout << "Write failed." << std :: endl;
-        }
-	close (filedesc);
-	std :: cout << "Wrote " << myBytes->numBytes () << " bytes to the file.\n";
+    Record<Vector<Handle<Employee>>>* myBytes = getRecord<Vector<Handle<Employee>>>(result);
+    filedesc = open("testfile2", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    size_t sizeWritten = write(filedesc, myBytes, myBytes->numBytes());
+    if (sizeWritten == 0) {
+        std::cout << "Write failed." << std::endl;
+    }
+    close(filedesc);
+    std::cout << "Wrote " << myBytes->numBytes() << " bytes to the file.\n";
 
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Duration to do the copies and then write the new objects: " <<
-		std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-	std :: cout << "Are " << getBytesAvailableInCurrentAllocatorBlock () << " bytes left in the current allocation block.\n";
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to do the copies and then write the new objects: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
+    std::cout << "Are " << getBytesAvailableInCurrentAllocatorBlock()
+              << " bytes left in the current allocation block.\n";
 
-	for (int i = 0; i < numSupers; i += 1000) {
-		(*result)[i]->print ();
-		std :: cout << "\n";
-	}
+    for (int i = 0; i < numSupers; i += 1000) {
+        (*result)[i]->print();
+        std::cout << "\n";
+    }
 
-	free (myNewBytes);
+    free(myNewBytes);
 }
-	

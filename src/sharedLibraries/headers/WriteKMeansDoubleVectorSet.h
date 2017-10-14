@@ -19,25 +19,24 @@
 #ifndef WRITE_KMEANS_DOUBLE_Vector_SET_H
 #define WRITE_KMEANS_DOUBLE_Vector_SET_H
 
-//by Shangyu, May 2017
+// by Shangyu, May 2017
 
 #include "WriteUserSet.h"
 #include "KMeansDoubleVector.h"
 
 using namespace pdb;
-class WriteKMeansDoubleVectorSet : public WriteUserSet <KMeansDoubleVector> {
+class WriteKMeansDoubleVectorSet : public WriteUserSet<KMeansDoubleVector> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    WriteKMeansDoubleVectorSet() {}
 
-        WriteKMeansDoubleVectorSet () {}
-
-        //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-        WriteKMeansDoubleVectorSet (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
-
+    // below constructor is not required, but if we do not call setOutput() here, we must call
+    // setOutput() later to set the output set
+    WriteKMeansDoubleVectorSet(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

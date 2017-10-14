@@ -32,25 +32,22 @@ namespace pdb {
 class SimpleRequestResult : public Object {
 
 public:
+    SimpleRequestResult() {}
+    ~SimpleRequestResult() {}
 
-	SimpleRequestResult () {}
-	~SimpleRequestResult () {}
+    // generally res should be true on success
+    SimpleRequestResult(bool res, std::string errMsg) : res(res), errMsg(errMsg) {}
 
-	// generally res should be true on success
-	SimpleRequestResult (bool res, std :: string errMsg) : res (res), errMsg (errMsg) {}
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
-
-        std :: pair <bool, std :: string> getRes () {
-                return std :: make_pair (res, errMsg);
-        }
+    std::pair<bool, std::string> getRes() {
+        return std::make_pair(res, errMsg);
+    }
 
 private:
-
-        bool res;
-        String errMsg;
+    bool res;
+    String errMsg;
 };
-
 }
 
 #endif

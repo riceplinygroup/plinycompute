@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBWorker.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBWORKER_H
-#define	PDBWORKER_H
+#define PDBWORKER_H
 
 // create a smart pointer for PDBWorker objects
 #include <memory>
@@ -33,21 +33,20 @@
 #include "PDBWorkerQueue.h"
 
 // this class wraps up a thread... note that PDBWorker objects should always be created
-// by the PDBWorkerQueue class. 
+// by the PDBWorkerQueue class.
 
 namespace pdb {
 
 class PDBWorker;
-typedef shared_ptr <PDBWorker> PDBWorkerPtr;
+typedef shared_ptr<PDBWorker> PDBWorkerPtr;
 
 class PDBWork;
-typedef shared_ptr <PDBWork> PDBWorkPtr;
+typedef shared_ptr<PDBWork> PDBWorkPtr;
 
 class PDBWorker {
 public:
-
     // constructor... accepts the work queue that is creating it
-    PDBWorker(PDBWorkerQueue *parent);
+    PDBWorker(PDBWorkerQueue* parent);
 
     // destructor
     ~PDBWorker();
@@ -57,7 +56,7 @@ public:
     PDBWorkerPtr getWorker();
 
     // asks this worker to execute runMe... this call is non-blocking.  When the task
-    // is done, myBuzzer->buzz () should be called.  
+    // is done, myBuzzer->buzz () should be called.
     void execute(PDBWorkPtr runMe, PDBBuzzerPtr myBuzzer);
 
     // directly sound the buzzer on this guy to wake him if he is sleeping
@@ -73,9 +72,8 @@ public:
     void reset();
 
 private:
-
     // the work queue we came from
-    PDBWorkerQueue *parent;
+    PDBWorkerQueue* parent;
 
     // the work to run
     PDBWorkPtr runMe;
@@ -90,8 +88,6 @@ private:
     // set to true when the worker is able to go and do the work
     bool okToExecute;
 };
-
 }
 
-#endif	/* PDBWORKER_H */
-
+#endif /* PDBWORKER_H */

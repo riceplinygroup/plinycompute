@@ -32,7 +32,7 @@
 
 
 template <class T>
-PDBCircularBuffer<T>::PDBCircularBuffer(unsigned int bufferSize, pdb :: PDBLoggerPtr logger) {
+PDBCircularBuffer<T>::PDBCircularBuffer(unsigned int bufferSize, pdb::PDBLoggerPtr logger) {
     this->maxArraySize = bufferSize + 1;
     this->logger = logger;
     this->initArray();
@@ -40,7 +40,7 @@ PDBCircularBuffer<T>::PDBCircularBuffer(unsigned int bufferSize, pdb :: PDBLogge
 
 template <class T>
 PDBCircularBuffer<T>::~PDBCircularBuffer() {
-    //the buffer is not responsible for freeing the elements in the buffer
+    // the buffer is not responsible for freeing the elements in the buffer
     delete[] this->array;
 }
 
@@ -48,15 +48,14 @@ template <class T>
 int PDBCircularBuffer<T>::initArray() {
     this->array = new T[this->maxArraySize];
     if (this->array == nullptr) {
-        std :: cout << "PDBCircularBuffer: Out of Memory in Heap.\n";
+        std::cout << "PDBCircularBuffer: Out of Memory in Heap.\n";
         this->logger->writeLn("PDBCircularBuffer: Out of Memory in Heap.");
         return -1;
     }
     int i;
-    for (i = 0; i<this->maxArraySize; i++) {
+    for (i = 0; i < this->maxArraySize; i++) {
 
         this->array[i] = nullptr;
-
     }
     this->arrayHead = 0;
     this->arrayTail = 0;
@@ -68,19 +67,19 @@ int PDBCircularBuffer<T>::addToTail(T const& elem) {
     if (this->isFull()) {
         return -1;
     }
-    this->logger->writeLn("PDBCircularBuffer<T>: the buffer is not full, adding the element to tail...");
+    this->logger->writeLn(
+        "PDBCircularBuffer<T>: the buffer is not full, adding the element to tail...");
     this->arrayTail = (this->arrayTail + 1) % this->maxArraySize;
     this->array[this->arrayTail] = elem;
 
     return 0;
-
 }
 
 template <class T>
 T PDBCircularBuffer<T>::popFromHead() {
     if (this->isEmpty()) {
         this->logger->writeLn("PDBCircularBuffer: array is empty.");
-        throw std :: out_of_range("PDBCircularBuffer<>::popFromHead(): empty buffer");
+        throw std::out_of_range("PDBCircularBuffer<>::popFromHead(): empty buffer");
     }
     this->arrayHead = (this->arrayHead + 1) % this->maxArraySize;
     T elem = this->array[this->arrayHead];
@@ -103,4 +102,3 @@ unsigned int PDBCircularBuffer<T>::getSize() {
 }
 
 #endif
-

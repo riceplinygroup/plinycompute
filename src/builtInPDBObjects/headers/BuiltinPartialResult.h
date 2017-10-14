@@ -18,7 +18,7 @@
 #ifndef BUILTIN_PARTIAL_RESULT_H
 #define BUILTIN_PARTIAL_RESULT_H
 
-//PRELOAD %BuiltinPartialResult%
+// PRELOAD %BuiltinPartialResult%
 #include "Object.h"
 #include "Centroid.h"
 #include <stdlib.h>
@@ -34,52 +34,44 @@
 namespace pdb {
 class BuiltinPartialResult : public Object {
 
-    public:
+public:
+    ENABLE_DEEP_COPY
 
-       ENABLE_DEEP_COPY
+    BuiltinPartialResult() {}
+    ~BuiltinPartialResult() {}
 
-       BuiltinPartialResult() {}
-       ~BuiltinPartialResult() {}
+    void initialize() {
 
-       void initialize() {
-
-           int i;
-           for ( i = 0; i < NUM_CLUSTERS; i ++ ) {
-               centroids[i].initialize();
-           }
-
-       }
+        int i;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            centroids[i].initialize();
+        }
+    }
 
 
-       void updateCentroid (int clusterIndex, double* point) {
+    void updateCentroid(int clusterIndex, double* point) {
 
-           centroids[clusterIndex].update(point);
+        centroids[clusterIndex].update(point);
+    }
 
-       }
+    void printCentroids() {
+        int i;
+        std::cout << std::endl;
+        for (i = 0; i < NUM_CLUSTERS; i++) {
+            std::cout << "cluster-" << i << ":" << std::endl;
+            centroids[i].print();
+        }
+    }
 
-       void printCentroids() {
-           int i;
-           std :: cout << std :: endl;
-           for ( i = 0; i < NUM_CLUSTERS; i ++) {
-               std :: cout << "cluster-" << i << ":" << std :: endl;
-               centroids[i].print();
-           }
-       }
+    Centroid* getCentroids() {
 
-      Centroid * getCentroids() {
-
-           return centroids;
-
-      }
+        return centroids;
+    }
 
 
-
-    private:
-
-       Centroid centroids[NUM_CLUSTERS];
-
+private:
+    Centroid centroids[NUM_CLUSTERS];
 };
-
 }
 
 

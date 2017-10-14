@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   UserType.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef USERTYPE_H
-#define	USERTYPE_H
+#define USERTYPE_H
 
 #include "DataTypes.h"
 #include "SequenceFile.h"
@@ -45,7 +45,7 @@ using namespace std;
 
 // create a smart pointer for Type objects
 class UserType;
-typedef shared_ptr <UserType> TypePtr;
+typedef shared_ptr<UserType> TypePtr;
 
 using namespace boost::filesystem;
 
@@ -60,10 +60,17 @@ public:
     /**
      * Create a UserType instance.
      */
-    UserType(NodeID nodeId, DatabaseID dbId, UserTypeID id, string name,
-            ConfigurationPtr conf, pdb :: PDBLoggerPtr logger, SharedMemPtr shm,
-            string metaTypePath, vector<string>* dataTypePaths, PageCachePtr cache,
-			PageCircularBufferPtr flushBuffer);
+    UserType(NodeID nodeId,
+             DatabaseID dbId,
+             UserTypeID id,
+             string name,
+             ConfigurationPtr conf,
+             pdb::PDBLoggerPtr logger,
+             SharedMemPtr shm,
+             string metaTypePath,
+             vector<string>* dataTypePaths,
+             PageCachePtr cache,
+             PageCircularBufferPtr flushBuffer);
 
     /**
      * Release the in-memory structure that is belonging to a UserType instance.
@@ -76,58 +83,57 @@ public:
      */
     void flush();
 
-    //add new set
+    // add new set
     int addSet(string setName, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE);
 
-    //Remove an existing set, including all the disk files associated with the set.
-    //If successful, return 0.
-    //Otherwise, e.g. the set doesn't exist, return -1.
+    // Remove an existing set, including all the disk files associated with the set.
+    // If successful, return 0.
+    // Otherwise, e.g. the set doesn't exist, return -1.
     int removeSet(SetID setId);
 
-    //Return the specified Set instance that is belonging to this type instance.
-    //If no such set, returns nullptr.
+    // Return the specified Set instance that is belonging to this type instance.
+    // If no such set, returns nullptr.
     SetPtr getSet(SetID setId);
 
-    //Initialize type instance based on disk dirs and files.
-    //This function is only used for SequenceFile instances.
+    // Initialize type instance based on disk dirs and files.
+    // This function is only used for SequenceFile instances.
     bool initializeFromTypeDir(path typeDir);
 
-    //Initialize type instance based on disk dirs and files.
-    //This function is only used for PartitionedFile instances.
+    // Initialize type instance based on disk dirs and files.
+    // This function is only used for PartitionedFile instances.
     bool initializeFromMetaTypeDir(path metaTypeDir);
 
-    //Return TypeID of the type instance.
+    // Return TypeID of the type instance.
     UserTypeID getId() const {
         return id;
     }
 
-    //Return name of the type instance.
+    // Return name of the type instance.
     string getName() const {
         return name;
     }
 
-    //Set the TypeID for the type instance.
+    // Set the TypeID for the type instance.
     void setId(UserTypeID id) {
         this->id = id;
     }
 
-    //Set the name for the type instance.
+    // Set the name for the type instance.
     void setName(string name) {
         this->name = name;
     }
 
-    //Return the total number of sets belonging to the type instance.
+    // Return the total number of sets belonging to the type instance.
     unsigned int getNumSets() {
         return this->numSets;
     }
 
-    map<SetID, SetPtr> * getSets() {
+    map<SetID, SetPtr>* getSets() {
         return this->sets;
     }
 
 
 protected:
-
     /**
      * Compute the path to store the UserType data for persistence.
      */
@@ -139,18 +145,16 @@ private:
     NodeID nodeId;
     DatabaseID dbId;
     int numSets;
-    map<SetID, SetPtr> * sets;
+    map<SetID, SetPtr>* sets;
     ConfigurationPtr conf;
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger;
     SharedMemPtr shm;
     string metaPath;
-    vector<string> * dataPaths;
+    vector<string>* dataPaths;
     PageCachePtr cache;
     PageCircularBufferPtr flushBuffer;
     pthread_mutex_t setLock;
 };
 
 
-
-#endif	/* PDBTYPE_H */
-
+#endif /* PDBTYPE_H */

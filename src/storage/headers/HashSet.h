@@ -17,7 +17,7 @@
  *****************************************************************************/
 /*
  * HashSet.h
- * 
+ *
  * Created on: May 30, 2016
  * Author: Jia
  */
@@ -43,7 +43,15 @@ typedef shared_ptr<HashSet> HashSetPtr;
 
 class HashSet : public LocalitySet {
 public:
-    HashSet(PageCachePtr cache, PDBLoggerPtr logger, size_t pageSize, NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId, string setName) : LocalitySet (HashPartitionData, LRU, Write, TryCache, Transient) {
+    HashSet(PageCachePtr cache,
+            PDBLoggerPtr logger,
+            size_t pageSize,
+            NodeID nodeId,
+            DatabaseID dbId,
+            UserTypeID typeId,
+            SetID setId,
+            string setName)
+        : LocalitySet(HashPartitionData, LRU, Write, TryCache, Transient) {
         this->cache = cache;
         this->logger = logger;
         this->pageSize = pageSize;
@@ -51,16 +59,13 @@ public:
         this->dbId = dbId;
         this->typeId = typeId;
         this->setId = setId;
-        this->pageId = 0; 
+        this->pageId = 0;
         this->setName = setName;
-   }
-
-    ~HashSet() {
-
     }
-   
-    void clear() {
-    }
+
+    ~HashSet() {}
+
+    void clear() {}
 
     DatabaseID getDatabaseID() {
         return this->dbId;
@@ -84,8 +89,8 @@ public:
         key.typeId = this->typeId;
         key.setId = this->setId;
         key.pageId = this->pageId;
-        this->pageId ++;
-        //PDBPagePtr page = this->cache->getNewPageNonBlocking(this->nodeId, key, this);
+        this->pageId++;
+        // PDBPagePtr page = this->cache->getNewPageNonBlocking(this->nodeId, key, this);
         PDBPagePtr page = this->cache->getNewPage(this->nodeId, key, this);
         return page;
     }
@@ -97,10 +102,10 @@ public:
         key.setId = this->setId;
         key.pageId = pageId;
         this->cache->decPageRefCount(key);
-        
     }
+
 private:
-    PDBLoggerPtr logger; 
+    PDBLoggerPtr logger;
     PageCachePtr cache;
     size_t pageSize;
     NodeID nodeId;
@@ -108,7 +113,7 @@ private:
     UserTypeID typeId;
     SetID setId;
     PageID pageId;
-    string setName;    
+    string setName;
 };
 
 #endif

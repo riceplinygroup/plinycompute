@@ -37,7 +37,6 @@ namespace pdb {
 class NodeDispatcherData : public Object {
 
 public:
-
     ENABLE_DEEP_COPY
 
     NodeDispatcherData() {}
@@ -83,13 +82,13 @@ public:
     }
 
 private:
-
     NodeID nodeId;
     int port;
     String address;
 
-    // TODO: Replace this with map when possible. Provides a mapping between a set and the number of bytes sent to it.
-    //Vector<Handle<SetInfo>> sets;
+    // TODO: Replace this with map when possible. Provides a mapping between a set and the number of
+    // bytes sent to it.
+    // Vector<Handle<SetInfo>> sets;
 
     // JOSEPH: These bottom values will only be available to the dispatcher
     Vector<size_t> bytesSent;
@@ -99,9 +98,8 @@ private:
     size_t totalBytesStored;
 
     // TODO: Add database and set information
-
 };
 }
 
 
-#endif //OBJECTQUERYMODEL_NODEDISPATCHERDATA_H
+#endif  // OBJECTQUERYMODEL_NODEDISPATCHERDATA_H

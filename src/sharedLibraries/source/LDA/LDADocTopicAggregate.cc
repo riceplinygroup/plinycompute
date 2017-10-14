@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDADocTopicAggregate.h"
 
-GET_V_TABLE (LDADocTopicAggregate)
+GET_V_TABLE(LDADocTopicAggregate)
 
 #endif

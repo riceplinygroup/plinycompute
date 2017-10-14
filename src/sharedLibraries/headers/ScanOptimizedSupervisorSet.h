@@ -23,19 +23,17 @@
 #include "OptimizedSupervisor.h"
 
 using namespace pdb;
-class ScanOptimizedSupervisorSet : public ScanUserSet <OptimizedSupervisor> {
+class ScanOptimizedSupervisorSet : public ScanUserSet<OptimizedSupervisor> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanOptimizedSupervisorSet () {
-        }
+    ScanOptimizedSupervisorSet() {}
 
-        ScanOptimizedSupervisorSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanOptimizedSupervisorSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

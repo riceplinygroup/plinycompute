@@ -27,35 +27,33 @@ using namespace pdb;
 
 class TopicAssignment : public Object {
 
-	unsigned whichTopic = 0;
-	NumericalVector <unsigned> whichWords;
+    unsigned whichTopic = 0;
+    NumericalVector<unsigned> whichWords;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    TopicAssignment(unsigned numDims, unsigned whichTopic, unsigned whichWord, unsigned cnt)
+        : whichTopic(whichTopic), whichWords(numDims, whichWord, cnt) {}
 
-	TopicAssignment (unsigned numDims, unsigned whichTopic, unsigned whichWord, unsigned cnt) : whichTopic (whichTopic),
-		whichWords (numDims, whichWord, cnt) {}
+    TopicAssignment() {}
 
-	TopicAssignment () {}
+    TopicAssignment& operator+(TopicAssignment& addMe) {
+        whichWords += addMe.whichWords;
+        return *this;
+    }
 
-	TopicAssignment &operator + (TopicAssignment &addMe) {
-		whichWords += addMe.whichWords;
-		return *this;	
-	}
+    unsigned& getKey() {
+        return whichTopic;
+    }
 
-	unsigned &getKey () {
-		return whichTopic;
-	}
+    TopicAssignment& getValue() {
+        return *this;
+    }
 
-	TopicAssignment &getValue () {
-		return *this;
-	}
-
-	Vector <unsigned> &getVector () {
-		return whichWords.getVector ();
-	}
+    Vector<unsigned>& getVector() {
+        return whichWords.getVector();
+    }
 };
 
 #endif
-

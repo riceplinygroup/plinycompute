@@ -29,15 +29,14 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_ARCH_RS6000 BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__THW_RS6000) || defined(_IBMR2) || \
-    defined(_POWER) || defined(_ARCH_PWR) || \
+#if defined(__THW_RS6000) || defined(_IBMR2) || defined(_POWER) || defined(_ARCH_PWR) || \
     defined(_ARCH_PWR2)
-#   undef BOOST_ARCH_RS6000
-#   define BOOST_ARCH_RS6000 BOOST_VERSION_NUMBER_AVAILABLE
+#undef BOOST_ARCH_RS6000
+#define BOOST_ARCH_RS6000 BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_ARCH_RS6000
-#   define BOOST_ARCH_RS6000_AVAILABLE
+#define BOOST_ARCH_RS6000_AVAILABLE
 #endif
 
 #define BOOST_ARCH_RS6000_NAME "RS/6000"
@@ -45,7 +44,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 #define BOOST_ARCH_PWR BOOST_ARCH_RS6000
 
 #if BOOST_ARCH_PWR
-#   define BOOST_ARCH_PWR_AVAILABLE
+#define BOOST_ARCH_PWR_AVAILABLE
 #endif
 
 #define BOOST_ARCH_PWR_NAME BOOST_ARCH_RS6000_NAME
@@ -53,4 +52,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_RS6000,BOOST_ARCH_RS6000_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_RS6000, BOOST_ARCH_RS6000_NAME)

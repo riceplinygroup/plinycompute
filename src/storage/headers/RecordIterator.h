@@ -18,7 +18,7 @@
 #ifndef RECORD_ITERATOR_H
 #define RECORD_ITERATOR_H
 
-//by Jia, 2017
+// by Jia, 2017
 
 #include "PDBPage.h"
 #include "Record.h"
@@ -27,7 +27,7 @@
 
 
 class RecordIterator;
-typedef std :: shared_ptr<RecordIterator> RecordIteratorPtr;
+typedef std::shared_ptr<RecordIterator> RecordIteratorPtr;
 
 
 using namespace pdb;
@@ -37,7 +37,6 @@ using namespace pdb;
 class RecordIterator {
 
 public:
-
     RecordIterator(PDBPagePtr page);
     ~RecordIterator();
 
@@ -45,7 +44,7 @@ public:
      * Returns a pointer to a Record.
      * Returns nullptr, if there is no more record in the page.
      */
-    Record<Object> * next();
+    Record<Object>* next();
 
     /**
      * Returns true, if there is more objects in the page, otherwise returns false.
@@ -53,13 +52,10 @@ public:
     bool hasNext();
 
 private:
-
     PDBPagePtr page;
     int numObjectsInCurPage;
-    char * curPosInPage;
+    char* curPosInPage;
     int numObjectsIterated;
-
-
 };
 
 

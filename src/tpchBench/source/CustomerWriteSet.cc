@@ -21,6 +21,6 @@
 #include "CustomerWriteSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CustomerWriteSet)
+GET_V_TABLE(CustomerWriteSet)
 
 #endif

@@ -26,10 +26,9 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void testGetSetInput(UnitTest &qunit);
-    void testSelectionExecute(UnitTest &qunit);
+namespace pdb_tests {
+void testGetSetInput(UnitTest& qunit);
+void testSelectionExecute(UnitTest& qunit);
 }
 
-#endif //PDB_QUERYIES_TESTS_SELECTIONTESTS_H
+#endif  // PDB_QUERYIES_TESTS_SELECTIONTESTS_H

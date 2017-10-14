@@ -23,19 +23,17 @@
 #include "LDATopicWordProb.h"
 
 using namespace pdb;
-class ScanTopicsPerWord : public ScanUserSet <LDATopicWordProb> {
+class ScanTopicsPerWord : public ScanUserSet<LDATopicWordProb> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanTopicsPerWord () {
-        }
+    ScanTopicsPerWord() {}
 
-        ScanTopicsPerWord (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanTopicsPerWord(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

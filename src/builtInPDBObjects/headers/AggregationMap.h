@@ -20,7 +20,7 @@
 
 // PRELOAD %AggregationMap<Nothing>%
 
-//by Jia, Jun 2017
+// by Jia, Jun 2017
 
 #include "PDBMap.h"
 
@@ -32,33 +32,28 @@ template <class KeyType, class ValueType = Nothing>
 class AggregationMap : public Map<KeyType, ValueType> {
 
 private:
-
-     //this member will only be used in PDB aggregation
-     unsigned int hashPartitionId;
+    // this member will only be used in PDB aggregation
+    unsigned int hashPartitionId;
 
 
 public:
-
-     ENABLE_DEEP_COPY
-
-
-     // this constructor pre-allocates initSize slots... initSize must be a power of two
-     AggregationMap (uint32_t initSize);
-
-     // this constructor creates a map with a single slot
-     AggregationMap ();
-
-     // destructor
-     ~AggregationMap ();
-
-     //enhance the performance of indexing a hash partition.
-
-     unsigned int getHashPartitionId ();
-     void setHashPartitionId (unsigned int id);
+    ENABLE_DEEP_COPY
 
 
+    // this constructor pre-allocates initSize slots... initSize must be a power of two
+    AggregationMap(uint32_t initSize);
+
+    // this constructor creates a map with a single slot
+    AggregationMap();
+
+    // destructor
+    ~AggregationMap();
+
+    // enhance the performance of indexing a hash partition.
+
+    unsigned int getHashPartitionId();
+    void setHashPartitionId(unsigned int id);
 };
-
 }
 
 #include "AggregationMap.cc"

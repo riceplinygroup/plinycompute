@@ -30,57 +30,57 @@ namespace pdb {
 
 class Employee : public Object {
 
-        Handle <String> name;
-        int age;
+    Handle<String> name;
+    int age;
+
 public:
+    double salary;
+    String department;
 
-        double salary;
-        String department;
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    ~Employee() {}
+    Employee() {}
+    size_t hash() {
+        return name->hash();
+    }
+    void print() {
+        std::cout << "name is: " << *name << " age is: " << age << " dept is: " << department;
+    }
 
-        ~Employee () {}
-        Employee () {}
-        size_t hash () {
-           return name->hash();
-        }
-        void print () {
-                std :: cout << "name is: " << *name << " age is: " << age << " dept is: " << department;
-        }
+    Handle<String>& getName() {
+        return name;
+    }
 
-	Handle <String> &getName () {
-		return name;
-	}
+    bool isFrank() {
+        return (*name == "Frank");
+    }
 
-        bool isFrank() {
-                return (*name == "Frank");
-        }
+    int getAge() {
+        return age;
+    }
 
-	int getAge() {
-		return age;
-	}
+    double getSalary() {
+        return salary;
+    }
 
-	double getSalary () {
-		return salary;
-	}
+    Employee(std::string nameIn, int ageIn, std::string department, double salary)
+        : salary(salary), department(department) {
+        name = makeObject<String>(nameIn);
+        age = ageIn;
+    }
 
-        Employee (std :: string nameIn, int ageIn, std :: string department, double salary) : salary (salary), department (department) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-        }
+    Employee(std::string nameIn, int ageIn) {
+        name = makeObject<String>(nameIn);
+        age = ageIn;
+        department = "myDept";
+        salary = 123.45;
+    }
 
-	Employee (std :: string nameIn, int ageIn) {
-                name = makeObject <String> (nameIn);
-                age = ageIn;
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (Employee &me) const {
-		return name == me.name;
-	}
+    bool operator==(Employee& me) const {
+        return name == me.name;
+    }
 };
-
 }
 
 #endif

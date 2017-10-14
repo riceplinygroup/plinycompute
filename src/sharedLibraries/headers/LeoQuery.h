@@ -28,23 +28,23 @@ using namespace pdb;
 class LeoQuery : public BaseQuery {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LeoQuery() {}
 
-	LeoQuery() {}
+    Lambda<bool> getSelection(Handle<Supervisor>& checkMe) {
+        return makeLambdaFromMethod(checkMe, getSteve) == makeLambdaFromMember(checkMe, me);
+    }
 
-	Lambda <bool> getSelection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
+    Lambda<Handle<Employee>> getProjection(Handle<Supervisor>& checkMe) {
+        return makeLambdaFromMethod(checkMe, getMe);
+    }
 
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> &checkMe) {
-		return makeLambdaFromMethod (checkMe, getMe);
-	}
-
-	virtual void toMap(std :: map <std :: string, GenericLambdaObjectPtr> &fillMe, int &identifier) override {
-		Handle <Supervisor> temp = nullptr;
-    	getSelection(temp).toMap (fillMe, identifier);
-    	getProjection(temp).toMap (fillMe, identifier);
+    virtual void toMap(std::map<std::string, GenericLambdaObjectPtr>& fillMe,
+                       int& identifier) override {
+        Handle<Supervisor> temp = nullptr;
+        getSelection(temp).toMap(fillMe, identifier);
+        getProjection(temp).toMap(fillMe, identifier);
     }
 };
 

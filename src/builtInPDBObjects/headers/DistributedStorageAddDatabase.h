@@ -27,27 +27,23 @@
 namespace pdb {
 
 // encapsulates a request to add a database in the storage (and catalog)
-    class DistributedStorageAddDatabase  : public Object {
+class DistributedStorageAddDatabase : public Object {
 
-    public:
+public:
+    DistributedStorageAddDatabase() {}
+    ~DistributedStorageAddDatabase() {}
 
-        DistributedStorageAddDatabase () {}
-        ~DistributedStorageAddDatabase () {}
+    DistributedStorageAddDatabase(std::string dataBase) : database(dataBase) {}
 
-        DistributedStorageAddDatabase (std :: string dataBase) : database (dataBase) {}
+    std::string getDatabase() {
+        return database;
+    }
 
-        std :: string getDatabase () {
-            return database;
-        }
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-    private:
-
-        String database;
-
-    };
-
+private:
+    String database;
+};
 }
 
-#endif //DISTRIBUTEDSTORAGEADDDATABASE_H
+#endif  // DISTRIBUTEDSTORAGEADDDATABASE_H

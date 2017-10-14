@@ -21,6 +21,6 @@
 #include "SillyGroupBy.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SillyGroupBy)
+GET_V_TABLE(SillyGroupBy)
 
 #endif

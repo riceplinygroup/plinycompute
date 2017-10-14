@@ -28,38 +28,35 @@
 
 namespace pdb {
 
-// encapsulates a request to scan a set stored in the database 
+// encapsulates a request to scan a set stored in the database
 class SetScan : public Object {
 
 public:
+    SetScan(std::string dbNameIn, std::string setNameIn) {
+        dbName = dbNameIn;
+        setName = setNameIn;
+    }
 
-	SetScan (std :: string dbNameIn, std :: string setNameIn) {
-		dbName = dbNameIn;
-		setName = setNameIn;	
-	}
+    SetScan() {}
+    ~SetScan() {}
 
-	SetScan () {}
-	~SetScan () {}
+    String getDatabase() {
+        return dbName;
+    }
 
-	String getDatabase () {
-		return dbName;
-	}
+    String getSetName() {
+        return setName;
+    }
 
-	String getSetName () {
-		return setName;
-	}
-	
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
+    // this is the database that we are computing over
+    String dbName;
 
-	// this is the database that we are computing over
-	String dbName;
-	
-	// and the set
-	String setName;
+    // and the set
+    String setName;
 };
-
 }
 
 #endif

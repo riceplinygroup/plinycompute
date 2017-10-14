@@ -23,19 +23,17 @@
 #include "IntDoubleVectorPair.h"
 
 using namespace pdb;
-class ScanIntDoubleVectorPairSet : public ScanUserSet <IntDoubleVectorPair> {
+class ScanIntDoubleVectorPairSet : public ScanUserSet<IntDoubleVectorPair> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanIntDoubleVectorPairSet () {
-        }
+    ScanIntDoubleVectorPairSet() {}
 
-        ScanIntDoubleVectorPairSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanIntDoubleVectorPairSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

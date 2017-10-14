@@ -22,6 +22,6 @@
 #include "WriteDoubleVectorSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteDoubleVectorSet)
+GET_V_TABLE(WriteDoubleVectorSet)
 
 #endif

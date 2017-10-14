@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   TestScanWork.h
  * Author: Jia (modified from Chris' BackEndQueryOneRunWork class.)
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef TESTSCANWORK_H
-#define	TESTSCANWORK_H
+#define TESTSCANWORK_H
 
 #include "PDBBuzzer.h"
 #include "PageCircularBufferIterator.h"
@@ -38,24 +38,20 @@ typedef shared_ptr<TestScanWork> TestScanWorkPtr;
  * to scan user data stored as a set in storage.
  */
 
-class TestScanWork : public pdb :: PDBWork {
+class TestScanWork : public pdb::PDBWork {
 public:
-
-    TestScanWork(PageCircularBufferIteratorPtr iter, pdb :: HermesExecutionServer * server, int & counter);
+    TestScanWork(PageCircularBufferIteratorPtr iter,
+                 pdb::HermesExecutionServer* server,
+                 int& counter);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
 
 private:
-
     PageCircularBufferIteratorPtr iter;
-    pdb :: HermesExecutionServer * server;
-    int & counter;
-
+    pdb::HermesExecutionServer* server;
+    int& counter;
 };
 
 
-
-
-#endif	/* TESTSCANWORK_H */
-
+#endif /* TESTSCANWORK_H */

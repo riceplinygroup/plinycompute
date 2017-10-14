@@ -21,6 +21,6 @@
 #include "WriteBuiltinEmployeeSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteBuiltinEmployeeSet)
+GET_V_TABLE(WriteBuiltinEmployeeSet)
 
 #endif

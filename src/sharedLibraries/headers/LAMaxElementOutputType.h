@@ -25,31 +25,31 @@
 
 // By Binhang, May 2017
 
-//This class is designed for finding the maximal element by aggregation;
+// This class is designed for finding the maximal element by aggregation;
 using namespace pdb;
 class LAMaxElementOutputType : public Object {
-	private:	
-		int key = 1; //Any constant should work here!
-		LAMaxElementValueType myValue;
+private:
+    int key = 1;  // Any constant should work here!
+    LAMaxElementValueType myValue;
 
-	public:
+public:
+    ENABLE_DEEP_COPY
 
-		ENABLE_DEEP_COPY
+    ~LAMaxElementOutputType() {}
+    LAMaxElementOutputType() {}
 
-		~LAMaxElementOutputType(){}
-		LAMaxElementOutputType(){}
+    int& getKey() {
+        return key;
+    }
 
-		int &getKey(){
-			return key;
-		}
+    LAMaxElementValueType& getValue() {
+        return myValue;
+    }
 
-		LAMaxElementValueType &getValue(){
-			return myValue;
-		}
-
-		void print(){
-			std::cout<<"LAMaxElementOutputType: value: " << myValue.getValue() << " index:(" << myValue.getRowIndex() << "," << myValue.getColIndex() <<")."<< std::endl; 
-		}
+    void print() {
+        std::cout << "LAMaxElementOutputType: value: " << myValue.getValue() << " index:("
+                  << myValue.getRowIndex() << "," << myValue.getColIndex() << ")." << std::endl;
+    }
 };
 
 #endif

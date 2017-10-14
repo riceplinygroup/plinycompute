@@ -29,21 +29,20 @@
 #include "Supervisor.h"
 
 using namespace pdb;
-class SupervisorMultiSelection : public MultiSelectionComp <Employee, Supervisor> {
+class SupervisorMultiSelection : public MultiSelectionComp<Employee, Supervisor> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    SupervisorMultiSelection() {}
 
-	SupervisorMultiSelection () {}
+    Lambda<bool> getSelection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getSteve) == makeLambdaFromMember(checkMe, me);
+    }
 
-	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Vector<Handle <Employee>>> getProjection (Handle <Supervisor> checkMe) override {
-                return makeLambdaFromMember (checkMe, myGuys);
-	}
+    Lambda<Vector<Handle<Employee>>> getProjection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMember(checkMe, myGuys);
+    }
 };
 
 

@@ -17,7 +17,7 @@
  *****************************************************************************/
 /*
  * FileSet.h
- * 
+ *
  * Created on: May 26, 2016
  * Author: Jia
  */
@@ -38,12 +38,18 @@ using namespace std;
 class FileSet;
 typedef shared_ptr<FileSet> FileSetPtr;
 
-class FileSet : public LocalitySet{
+class FileSet : public LocalitySet {
 public:
-    FileSet(PageCachePtr cache, string filePath, size_t pageSize, NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId);
+    FileSet(PageCachePtr cache,
+            string filePath,
+            size_t pageSize,
+            NodeID nodeId,
+            DatabaseID dbId,
+            UserTypeID typeId,
+            SetID setId);
     ~FileSet();
     void clear();
-    int writeData(void * data, size_t length);    
+    int writeData(void* data, size_t length);
     PageIteratorPtr getIterator();
     NodeID getNodeID() {
         return this->nodeId;
@@ -61,6 +67,7 @@ public:
     string getFilePath() {
         return this->filePath;
     }
+
 private:
     string filePath;
     int handle;
@@ -71,7 +78,6 @@ private:
     DatabaseID dbId;
     UserTypeID typeId;
     SetID setId;
-        
 };
 
 #endif

@@ -40,27 +40,26 @@
 
 namespace pdb {
 
-	VTableMap :: VTableMap() {
-		logger = std :: make_shared<PDBLogger>("vtablemap.log");
-		catalog = nullptr;
-                stringstream ss;
-                ss << &(myLock);
-                PDB_COUT << "to initialize lock at " << ss.str() << std :: endl;
-		pthread_mutex_init(&(myLock), nullptr);
-        	for (unsigned int i = 0; i < 16384; i++) {
-			allVTables.push_back (nullptr);
-		}
+VTableMap::VTableMap() {
+    logger = std::make_shared<PDBLogger>("vtablemap.log");
+    catalog = nullptr;
+    stringstream ss;
+    ss << &(myLock);
+    PDB_COUT << "to initialize lock at " << ss.str() << std::endl;
+    pthread_mutex_init(&(myLock), nullptr);
+    for (unsigned int i = 0; i < 16384; i++) {
+        allVTables.push_back(nullptr);
+    }
 
-		// this will add a type identifier for each one of the built-in types
-		// (building the map from type name to ID) and then after that, it
-		// is going to create an instance of each of the types, and extract
-		// the v-table pointer from it, adding that to the allVTables vector
-		#include "BuiltinPDBObjects.cc"
+// this will add a type identifier for each one of the built-in types
+// (building the map from type name to ID) and then after that, it
+// is going to create an instance of each of the types, and extract
+// the v-table pointer from it, adding that to the allVTables vector
+#include "BuiltinPDBObjects.cc"
+}
 
-	}
-
-	// the global variables all live here!!
-	#include "GlobalVariables.cc"
+// the global variables all live here!!
+#include "GlobalVariables.cc"
 } /* namespace pdb */
 
 

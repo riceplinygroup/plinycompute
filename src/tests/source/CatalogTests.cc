@@ -35,53 +35,82 @@ namespace po = boost::program_options;
 using namespace std;
 using namespace pdb;
 
-int main (int numArgs, const char *args[]) {
+int main(int numArgs, const char* args[]) {
 
     string serverAddress;
 
     po::options_description desc("Options");
-    desc.add_options()("help", "produce help messages")("conf", po::value<std::vector<std::string>>(), "configure files")
-    ("command", po::value<string>(),
-    "\nregister-type      Registers in the catalog a user-defined type contained in an .so dynamic library\n"
-    "retrieve-type      Retrieves from the catalog a user-defined type stored as an .so dynamic library\n"
-    "register-node      Registers in the catalog a user-defined type contained in an .so dynamic library\n"
-    "retrieve-node      Retrieves from the catalog information about the nodes in the cluster\n"
-    "register-db            Registers in the catalog a database\n"
-    "retrieve-db            Retrieves from the catalog information about registered databases\n"
-    "get-serialized-catalog Retrieves a serialized version of the catalog (as an SQLite file)\n"
-    "print-catalog Retrieves information from the catalog as a string\n"
-    "register-set       Registers in the catalog a set associated to a database\n"
-    "retrieve-set       Retrieves from the catalog information about the registered sets\n"
-    "shut-down          Shuts down the server\n")("port", po::value<int>(), "frontEnd server listening port, default is 8108. In the case of Client this is the frontEnd server to connect to")
-    ("serverAddress", po::value<string>(), "IP address of the front end server, default is localhost")
-    ("nodeIP",po::value<int>(), "ID of the node")
-    ("serverName", po::value<int>(), "name of the node")
-    ("node-ip", po::value<string>(), "node ip to be registered in PDB catalog")
-    ("node-port", po::value<int>(), "node port to be registered in PDB catalog")
-    ("node-name", po::value<string>(), "node name to be registered in PDB catalog")
-    ("node-type", po::value<string>(), "node type to be registered in PDB catalog")
-    ("db-name", po::value<string>(), "database name to be registered in PDB catalog")
-    ("type-name", po::value<string>(),"type name to be registered in PDB catalog")
-    ("type-id", po::value<int>(),"type id of data type")
-    ("set-name", po::value<string>(), "set name to be registered in PDB catalog")
-    ("so-library-file", po::value<string>(),"name of .so library file to be registered, e.g. 'libraries/libSharedEmployee.so'")
-    ("timestamp", po::value<string>(), "timestamp in unix format for retrieving newer metadata")
-    ("library-type", po::value<string>(), "can take two values: 'data-types' (for data) or 'metrics' (for metrics)")
-    ("register-type", po::value<string>(),"Registers in the catalog a user-defined type contained in an .so dynamic library")
-    ("retrieve-type", po::value<string>(), "Retrieves from the catalog a user-defined type stored as an .so dynamic library")
-    ("register-node", po::value<string>(), "Registers in the catalog a user-defined type contained in an .so dynamic library")
-    ("retrieve-node", po::value<string>(),"Retrieves from the catalog information about the nodes in the cluster")
-    ("register-db", po::value<string>(), "Registers in the catalog a database")
-    ("retrieve-db", po::value<string>(), "Retrieves from the catalog information about registered databases")
-    ("print-catalog", po::value<string>(), "    Prints metadata from catalog")
-    ("register-set", po::value<string>(), "Registers in the catalog a set associated to a database")
-    ("retrieve-set", po::value<string>(), "Retrieves from the catalog information about the registered sets");
+    desc.add_options()("help", "produce help messages")(
+        "conf", po::value<std::vector<std::string>>(), "configure files")(
+        "command",
+        po::value<string>(),
+        "\nregister-type      Registers in the catalog a user-defined type contained in an .so "
+        "dynamic library\n"
+        "retrieve-type      Retrieves from the catalog a user-defined type stored as an .so "
+        "dynamic library\n"
+        "register-node      Registers in the catalog a user-defined type contained in an .so "
+        "dynamic library\n"
+        "retrieve-node      Retrieves from the catalog information about the nodes in the cluster\n"
+        "register-db            Registers in the catalog a database\n"
+        "retrieve-db            Retrieves from the catalog information about registered databases\n"
+        "get-serialized-catalog Retrieves a serialized version of the catalog (as an SQLite file)\n"
+        "print-catalog Retrieves information from the catalog as a string\n"
+        "register-set       Registers in the catalog a set associated to a database\n"
+        "retrieve-set       Retrieves from the catalog information about the registered sets\n"
+        "shut-down          Shuts down the server\n")("port",
+                                                      po::value<int>(),
+                                                      "frontEnd server listening port, default is "
+                                                      "8108. In the case of Client this is the "
+                                                      "frontEnd server to connect to")(
+        "serverAddress",
+        po::value<string>(),
+        "IP address of the front end server, default is localhost")(
+        "nodeIP", po::value<int>(), "ID of the node")(
+        "serverName", po::value<int>(), "name of the node")(
+        "node-ip", po::value<string>(), "node ip to be registered in PDB catalog")(
+        "node-port", po::value<int>(), "node port to be registered in PDB catalog")(
+        "node-name", po::value<string>(), "node name to be registered in PDB catalog")(
+        "node-type", po::value<string>(), "node type to be registered in PDB catalog")(
+        "db-name", po::value<string>(), "database name to be registered in PDB catalog")(
+        "type-name", po::value<string>(), "type name to be registered in PDB catalog")(
+        "type-id", po::value<int>(), "type id of data type")(
+        "set-name", po::value<string>(), "set name to be registered in PDB catalog")(
+        "so-library-file",
+        po::value<string>(),
+        "name of .so library file to be registered, e.g. 'libraries/libSharedEmployee.so'")(
+        "timestamp", po::value<string>(), "timestamp in unix format for retrieving newer metadata")(
+        "library-type",
+        po::value<string>(),
+        "can take two values: 'data-types' (for data) or 'metrics' (for metrics)")(
+        "register-type",
+        po::value<string>(),
+        "Registers in the catalog a user-defined type contained in an .so dynamic library")(
+        "retrieve-type",
+        po::value<string>(),
+        "Retrieves from the catalog a user-defined type stored as an .so dynamic library")(
+        "register-node",
+        po::value<string>(),
+        "Registers in the catalog a user-defined type contained in an .so dynamic library")(
+        "retrieve-node",
+        po::value<string>(),
+        "Retrieves from the catalog information about the nodes in the cluster")(
+        "register-db", po::value<string>(), "Registers in the catalog a database")(
+        "retrieve-db",
+        po::value<string>(),
+        "Retrieves from the catalog information about registered databases")(
+        "print-catalog", po::value<string>(), "    Prints metadata from catalog")(
+        "register-set",
+        po::value<string>(),
+        "Registers in the catalog a set associated to a database")(
+        "retrieve-set",
+        po::value<string>(),
+        "Retrieves from the catalog information about the registered sets");
 
     po::positional_options_description p;
     p.add("conf", -1);
     po::variables_map vm;
     po::store(po::command_line_parser(numArgs, args).options(desc).positional(p).run(), vm);
-    //po::store(po::parse_command_line(numArgs, args, desc), vm);
+    // po::store(po::parse_command_line(numArgs, args, desc), vm);
     po::notify(vm);
 
     ConfigurationPtr conf = make_shared<Configuration>();
@@ -110,14 +139,14 @@ int main (int numArgs, const char *args[]) {
         serverAddress = vm["serverAddress"].as<string>();
         conf->setServerAddress(serverAddress);
         cout << "server address was set to " << serverAddress << ".\n";
-    }else{
+    } else {
         conf->setServerAddress("localhost");
     }
 
     if (vm.count("usePangea")) {
         conf->setUsePangea(vm["usePangea"].as<bool>());
         cout << "usePangea was set to " << conf->getUsePangea() << ".\n";
-    }else{
+    } else {
         conf->setUsePangea(true);
     }
 
@@ -125,7 +154,7 @@ int main (int numArgs, const char *args[]) {
         bool isMasterCatalogServer = vm["isMasterCatalogServer"].as<bool>();
         conf->setMasterCatalogServer(isMasterCatalogServer);
         cout << "isMasterCatalogServer was set to " << isMasterCatalogServer << ".\n";
-    }else{
+    } else {
         conf->setMasterCatalogServer(false);
     }
 
@@ -138,21 +167,24 @@ int main (int numArgs, const char *args[]) {
         command = "0";
     }
 
-    //start a catalog client
-    pdb :: CatalogClient catClient (conf->getPort(), conf->getServerAddress(), make_shared <pdb :: PDBLogger> ("clientCatalogLog"));
+    // start a catalog client
+    pdb::CatalogClient catClient(
+        conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("clientCatalogLog"));
 
-    //start a storage client
+    // start a storage client
     bool usePangea = conf->getUsePangea();
 
     cout << " Connected to IP: " << conf->getServerAddress() << endl;
     cout << " Using port: " << conf->getPort() << endl;
     cout << " Using pangea: " << conf->getUsePangea() << endl;
 
-    pdb :: StorageClient storageClient (conf->getPort(), conf->getServerAddress(),
-            make_shared <pdb :: PDBLogger> ("clientLog"), true);
+    pdb::StorageClient storageClient(
+        conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("clientLog"), true);
 
-    pdb::DistributedStorageManagerClient distributedStorageClient(conf->getPort(), conf->getServerAddress(),
-            make_shared <pdb :: PDBLogger> ("distributedStorageManager"));
+    pdb::DistributedStorageManagerClient distributedStorageClient(
+        conf->getPort(),
+        conf->getServerAddress(),
+        make_shared<pdb::PDBLogger>("distributedStorageManager"));
 
     string errMsg;
 
@@ -162,37 +194,38 @@ int main (int numArgs, const char *args[]) {
         std::string soFile = vm["so-library-file"].as<std::string>();
         std::string soDataType = vm["library-type"].as<std::string>();
 
-        std :: cout << "Adding library: " << soFile << std :: endl;
+        std::cout << "Adding library: " << soFile << std::endl;
 
         // register the shared employee class
-        if (!storageClient.registerType (soFile, errMsg)) {
-                cout << "Not able to register type: " + errMsg<<std::endl;
+        if (!storageClient.registerType(soFile, errMsg)) {
+            cout << "Not able to register type: " + errMsg << std::endl;
         } else {
-                cout << "Registered type.\n";
+            cout << "Registered type.\n";
         }
         cout << "Done.\n";
 
     } else if (command.compare("retrieve-type") == 0) {
 
-//        std::string typeName = vm["type-name"].as<std::string>();
+        //        std::string typeName = vm["type-name"].as<std::string>();
         int typeId = vm["type-id"].as<int>();
 
-//        cout << "Retrieving type " << typeName << endl;
+        //        cout << "Retrieving type " << typeName << endl;
         cout << "Retrieving typeId " << typeId << endl;
 
         // Local allocator
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 124};
 
-        Handle <CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
+        Handle<CatalogUserTypeMetadata> typeMetadata = makeObject<CatalogUserTypeMetadata>();
         string soFileObject = "temp.so";
 
         string soBytes;
-//        if (!catClient.getSharedLibraryByName(typeId, typeName, soFileObject, (*putResultHere), typeMetadata, soBytes, errMsg)) {
-        if (!catClient.getSharedLibrary (typeId, soFileObject)) {
-            std :: cout << "Not able to retrieve type data: " + errMsg << std::endl;
-                    std :: cout << "Please change the parameters: type-id."<<std::endl;
+        //        if (!catClient.getSharedLibraryByName(typeId, typeName, soFileObject,
+        //        (*putResultHere), typeMetadata, soBytes, errMsg)) {
+        if (!catClient.getSharedLibrary(typeId, soFileObject)) {
+            std::cout << "Not able to retrieve type data: " + errMsg << std::endl;
+            std::cout << "Please change the parameters: type-id." << std::endl;
         } else {
-            std :: cout << "Type properly retrieved." << errMsg << endl;
+            std::cout << "Type properly retrieved." << errMsg << endl;
         }
 
 
@@ -206,20 +239,23 @@ int main (int numArgs, const char *args[]) {
         std::string nodeName = vm["node-name"].as<std::string>();
         std::string nodeType = vm["node-type"].as<std::string>();
         int status = 0;
-        //Change a bit to support running multiple ports on the same IP
-        pdb :: String _nodeIP = String(nodeIP);
-        pdb :: String _nodeAddress = String(nodeIP + ":" + to_string(nodePort));
-        pdb :: String _nodeName = String(nodeName);
-        pdb :: String _nodeType = String(nodeType);
+        // Change a bit to support running multiple ports on the same IP
+        pdb::String _nodeIP = String(nodeIP);
+        pdb::String _nodeAddress = String(nodeIP + ":" + to_string(nodePort));
+        pdb::String _nodeName = String(nodeName);
+        pdb::String _nodeType = String(nodeType);
 
-        pdb :: Handle<pdb :: CatalogNodeMetadata> nodeData = pdb :: makeObject<pdb :: CatalogNodeMetadata>(_nodeAddress, _nodeIP , nodePort,_nodeName,_nodeType,status);
+        pdb::Handle<pdb::CatalogNodeMetadata> nodeData = pdb::makeObject<pdb::CatalogNodeMetadata>(
+            _nodeAddress, _nodeIP, nodePort, _nodeName, _nodeType, status);
 
-//            if (!catClient.registerNodeMetadata (nodeData, nodeIP , nodeIP, port, nodeName, nodeType, status, errMsg)) {
-        if (!catClient.registerNodeMetadata (nodeData, errMsg)) {
-            std :: cout << "Not able to register node metadata: " + errMsg << std::endl;
-                    std :: cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."<<std::endl;
+        //            if (!catClient.registerNodeMetadata (nodeData, nodeIP , nodeIP, port,
+        //            nodeName, nodeType, status, errMsg)) {
+        if (!catClient.registerNodeMetadata(nodeData, errMsg)) {
+            std::cout << "Not able to register node metadata: " + errMsg << std::endl;
+            std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."
+                      << std::endl;
         } else {
-            std :: cout << "Node metadata successfully added.\n";
+            std::cout << "Node metadata successfully added.\n";
         }
         cout << "Done.\n";
 
@@ -232,36 +268,38 @@ int main (int numArgs, const char *args[]) {
     } else if (command.compare("register-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-        if (!distributedStorageClient.createDatabase (databaseName, errMsg)) {
-            std :: cout << "Not able to create database: " + errMsg << std::endl;
+        if (!distributedStorageClient.createDatabase(databaseName, errMsg)) {
+            std::cout << "Not able to create database: " + errMsg << std::endl;
         } else {
-            std :: cout << "Database and its metadata successfully created.\n";
+            std::cout << "Database and its metadata successfully created.\n";
         }
         cout << "Done.\n";
 
     } else if (command.compare("remove-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-//        if (!storageClient.removeDatabase (databaseName, errMsg)) {
-//            std :: cout << "Not able to remove database: " + errMsg << std::endl;
-//        } else {
-//            std :: cout << "Database and its metadata successfully removed.\n";
-//        }
+        //        if (!storageClient.removeDatabase (databaseName, errMsg)) {
+        //            std :: cout << "Not able to remove database: " + errMsg << std::endl;
+        //        } else {
+        //            std :: cout << "Database and its metadata successfully removed.\n";
+        //        }
         cout << "Done.\n";
 
     } else if (command.compare("retrieve-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-        cout << "*********** Printing DB metadata for: " << ((databaseName.compare("") == 0) ? "All" : databaseName )<< endl;
+        cout << "*********** Printing DB metadata for: "
+             << ((databaseName.compare("") == 0) ? "All" : databaseName) << endl;
 
 
-//        if (!catClient.printCatalogMetadata(databaseName, errMsg)) {
-//                std :: cout << "Not able to print metadata due to error: " + errMsg << std :: endl;
-//        } else {
-//                std :: cout << "List metadata.\n";
-//        }
-//
-//        cout << "Done.\n";
+        //        if (!catClient.printCatalogMetadata(databaseName, errMsg)) {
+        //                std :: cout << "Not able to print metadata due to error: " + errMsg << std
+        //                :: endl;
+        //        } else {
+        //                std :: cout << "List metadata.\n";
+        //        }
+        //
+        //        cout << "Done.\n";
 
     } else if (command.compare("list-catalog") == 0) {
         // Test to retrieve a serialized version of the catalog
@@ -276,20 +314,19 @@ int main (int numArgs, const char *args[]) {
 
         cout << "***********ADD set to db" << endl;
 
-        std :: cout << "Adding set: " << setName << std :: endl;
-        std :: cout << "     To db: " << databaseName << std :: endl;
-        std :: cout << " With type: " << setName << std :: endl;
+        std::cout << "Adding set: " << setName << std::endl;
+        std::cout << "     To db: " << databaseName << std::endl;
+        std::cout << " With type: " << setName << std::endl;
 
         // now create a new set in that database
-        if (typeName.compare("SharedEmployee")==0){
+        if (typeName.compare("SharedEmployee") == 0) {
             if (!distributedStorageClient.createSet(databaseName, setName, typeName, errMsg)) {
-                    std :: cout << "Could not create set due to error: " + errMsg << std :: endl;
+                std::cout << "Could not create set due to error: " + errMsg << std::endl;
             } else {
-                    std :: cout << "Set and its metadata successfully created.\n";
+                std::cout << "Set and its metadata successfully created.\n";
             }
-        } else{
-            std :: cout << "Error type " << typeName << " is not registered.\n";
-
+        } else {
+            std::cout << "Error type " << typeName << " is not registered.\n";
         }
 
         cout << "Done.\n";
@@ -302,19 +339,18 @@ int main (int numArgs, const char *args[]) {
 
         cout << "***********Delete set from db" << endl;
 
-        std :: cout << "Deleting set: " << setName << std :: endl;
-        std :: cout << "     From db: " << databaseName << std :: endl;
-        std :: cout << " With type: " << setName << std :: endl;
+        std::cout << "Deleting set: " << setName << std::endl;
+        std::cout << "     From db: " << databaseName << std::endl;
+        std::cout << " With type: " << setName << std::endl;
 
         // now the set from the database
-        if (typeName.compare("SharedEmployee")==0){
+        if (typeName.compare("SharedEmployee") == 0) {
             if (!distributedStorageClient.removeSet(databaseName, setName, errMsg)) {
-                    std :: cout << "Could not delete set due to error: " + errMsg << std :: endl;
+                std::cout << "Could not delete set due to error: " + errMsg << std::endl;
             } else {
-                    std :: cout << "Set and its metadata successfully deleted.\n";
+                std::cout << "Set and its metadata successfully deleted.\n";
             }
-        } else{
-
+        } else {
         }
 
         cout << "Done.\n";
@@ -326,27 +362,23 @@ int main (int numArgs, const char *args[]) {
         cout << "Done.\n";
 
     } else if (command.compare("print-catalog") == 0) {
-//        std::string timeStamp = vm["timestamp"].as<std::string>();
+        //        std::string timeStamp = vm["timestamp"].as<std::string>();
 
         // creates an object to send request for printing all metadata
-        pdb :: Handle<pdb :: CatalogPrintMetadata> printObject = pdb::makeObject<CatalogPrintMetadata>("", "0");
+        pdb::Handle<pdb::CatalogPrintMetadata> printObject =
+            pdb::makeObject<CatalogPrintMetadata>("", "0");
 
-//        cout << "timestamp=" << printObject->getItemName() << endl;
+        //        cout << "timestamp=" << printObject->getItemName() << endl;
 
         if (!catClient.printCatalogMetadata(printObject, errMsg)) {
-                std :: cout << "Not able to print metadata due to error: " + errMsg << std :: endl;
+            std::cout << "Not able to print metadata due to error: " + errMsg << std::endl;
         } else {
-                std :: cout << "List metadata.\n";
+            std::cout << "List metadata.\n";
         }
 
 
         cout << "Done.\n";
-
     }
-
-
-
 }
 
 #endif
-

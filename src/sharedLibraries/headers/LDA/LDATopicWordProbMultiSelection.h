@@ -32,87 +32,86 @@
 #include <gsl/gsl_vector.h>
 
 using namespace pdb;
-class LDATopicWordProbMultiSelection : public MultiSelectionComp <LDATopicWordProb, TopicAssignment> {
+class LDATopicWordProbMultiSelection
+    : public MultiSelectionComp<LDATopicWordProb, TopicAssignment> {
 
 private:
-        Vector<double> prior;
-        Handle <Vector <char>> myMem;
-	int numTopics;
+    Vector<double> prior;
+    Handle<Vector<char>> myMem;
+    int numTopics;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDATopicWordProbMultiSelection() {}
 
-	LDATopicWordProbMultiSelection () {}
+    LDATopicWordProbMultiSelection(Vector<double>& fromPrior, unsigned numTopics) {
 
-	LDATopicWordProbMultiSelection (Vector<double>& fromPrior, unsigned numTopics) {
+        this->prior = fromPrior;
+        this->numTopics = numTopics;
 
-                this->prior = fromPrior;
-		this->numTopics = numTopics;
+        // start by setting up the gsl_rng *src...
+        gsl_rng* src = gsl_rng_alloc(gsl_rng_mt19937);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        gsl_rng_set(src, gen());
 
-                // start by setting up the gsl_rng *src...
-                gsl_rng *src = gsl_rng_alloc(gsl_rng_mt19937);
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                gsl_rng_set(src, gen());
+        // now allocate space needed for myRand
+        int spaceNeeded = sizeof(gsl_rng) + src->type->size;
+        myMem = makeObject<Vector<char>>(spaceNeeded, spaceNeeded);
 
-                // now allocate space needed for myRand
-                int spaceNeeded = sizeof (gsl_rng) + src->type->size;
-                myMem = makeObject <Vector <char>> (spaceNeeded, spaceNeeded);
+        // copy src over
+        memcpy(myMem->c_ptr(), src, sizeof(gsl_rng));
+        memcpy(myMem->c_ptr() + sizeof(gsl_rng), src->state, src->type->size);
 
-                // copy src over
-                memcpy (myMem->c_ptr (), src, sizeof (gsl_rng));
-                memcpy (myMem->c_ptr () + sizeof (gsl_rng), src->state, src->type->size);
+        // lastly, free src
+        gsl_rng_free(src);
+    }
 
-                // lastly, free src
-                gsl_rng_free (src);
+    Lambda<bool> getSelection(Handle<TopicAssignment> checkMe) override {
+        return makeLambda(checkMe, [](Handle<TopicAssignment>& checkMe) { return true; });
+    }
 
+    Lambda<Vector<Handle<LDATopicWordProb>>> getProjection(
+        Handle<TopicAssignment> checkMe) override {
+        return makeLambda(checkMe, [&](Handle<TopicAssignment>& checkMe) {
 
-        }
+            gsl_rng* rng = getRng();
+            Vector<unsigned>& wordCount = checkMe->getVector();
 
-	Lambda <bool> getSelection (Handle <TopicAssignment> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<TopicAssignment> & checkMe) {return true;});
-	}
+            unsigned wordNum = prior.size();
+            double* mySamples = new double[wordNum];
+            double* totalProb = new double[wordNum];
+            double* myPrior = prior.c_ptr();
+            for (int i = 0; i < wordNum; i++) {
+                totalProb[i] = myPrior[i] + wordCount[i];
+            }
 
-	Lambda <Vector<Handle <LDATopicWordProb>>> getProjection (Handle <TopicAssignment> checkMe) override {
-		return makeLambda (checkMe, [&] (Handle<TopicAssignment> & checkMe) {
-	
-			gsl_rng *rng = getRng();
-			Vector<unsigned> &wordCount = checkMe->getVector();
+            gsl_ran_dirichlet(rng, wordNum, totalProb, mySamples);
 
-			unsigned wordNum = prior.size ();
-			double *mySamples = new double[wordNum];
-			double *totalProb = new double[wordNum];
-			double *myPrior = prior.c_ptr (); 
-                        for (int i = 0; i < wordNum; i++) {
-                                totalProb[i] = myPrior[i] + wordCount[i];
-                        }
+            Vector<Handle<LDATopicWordProb>> result(wordNum);
+            for (int i = 0; i < wordNum; i++) {
+                Handle<LDATopicWordProb> myTWP =
+                    makeObject<LDATopicWordProb>(numTopics, i, checkMe->getKey(), mySamples[i]);
+                result.push_back(myTWP);
+            }
 
-                        gsl_ran_dirichlet(rng, wordNum, totalProb, mySamples);
-			
-			Vector<Handle<LDATopicWordProb>> result (wordNum);
-			for (int i = 0; i < wordNum; i++) {
-				Handle<LDATopicWordProb> myTWP = 
-					makeObject<LDATopicWordProb>(numTopics, i, checkMe->getKey (), mySamples[i]);
-				result.push_back(myTWP);
-			}
+            delete[] mySamples;
+            delete[] totalProb;
 
-			delete [] mySamples;
-			delete [] totalProb;
+            return result;
 
-                        return result;		
-				
-		});
-	}
+        });
+    }
 
-	// gets the GSL RNG from myMem
+    // gets the GSL RNG from myMem
 
-        gsl_rng *getRng () {
-                gsl_rng *dst = (gsl_rng *) myMem->c_ptr ();
-                dst->state = (void *) (myMem->c_ptr () + sizeof (gsl_rng));
-                dst->type = gsl_rng_mt19937;
-                return dst;
-        }
+    gsl_rng* getRng() {
+        gsl_rng* dst = (gsl_rng*)myMem->c_ptr();
+        dst->state = (void*)(myMem->c_ptr() + sizeof(gsl_rng));
+        dst->type = gsl_rng_mt19937;
+        return dst;
+    }
 };
 
 

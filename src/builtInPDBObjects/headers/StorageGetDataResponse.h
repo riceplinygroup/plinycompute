@@ -31,49 +31,58 @@ namespace pdb {
 class StorageGetDataResponse : public Object {
 
 public:
+    StorageGetDataResponse(){};
+    ~StorageGetDataResponse(){};
+    StorageGetDataResponse(int numPages,
+                           std::string databaseName,
+                           std::string setName,
+                           size_t rawPageSize,
+                           size_t pageSize,
+                           bool success,
+                           std::string errMsg)
+        : numPages(numPages),
+          databaseName(databaseName),
+          setName(setName),
+          rawPageSize(rawPageSize),
+          pageSize(pageSize),
+          errMsg(errMsg),
+          success(success) {}
 
-	StorageGetDataResponse () {};
-	~StorageGetDataResponse () {};
-	StorageGetDataResponse (int numPages, std :: string databaseName, std :: string setName, size_t rawPageSize, size_t pageSize, bool success, std :: string errMsg) : 
-		numPages (numPages), databaseName (databaseName), setName (setName), rawPageSize(rawPageSize), pageSize(pageSize),errMsg (errMsg), success (success) {}
+    int getNumPages() {
+        return numPages;
+    }
 
-	int getNumPages () {
-		return numPages;
-	}
+    std::string getDatabaseName() {
+        return databaseName;
+    }
 
-        std :: string getDatabaseName() {
-                return databaseName;
-        }
+    std::string getSetName() {
+        return setName;
+    }
 
-        std :: string getSetName() {
-                return setName;
-        }
+    std::pair<bool, std::string> wasSuccessful() {
+        return std::make_pair(success, errMsg);
+    }
 
-	std :: pair <bool, std :: string> wasSuccessful () {
-		return std :: make_pair (success, errMsg);
-	}
+    size_t getRawPageSize() {
+        return rawPageSize;
+    }
 
-        size_t getRawPageSize() {
-                return rawPageSize;
-        }
+    size_t getPageSize() {
+        return pageSize;
+    }
 
-        size_t getPageSize() {
-                return pageSize;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	int numPages;
-        std :: string databaseName;
-        std :: string setName;
-        size_t rawPageSize;
-        size_t pageSize;
-	String errMsg;
-	bool success;
+    int numPages;
+    std::string databaseName;
+    std::string setName;
+    size_t rawPageSize;
+    size_t pageSize;
+    String errMsg;
+    bool success;
 };
-
 }
 
 #endif

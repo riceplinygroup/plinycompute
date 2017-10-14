@@ -21,6 +21,6 @@
 #include "IntAggregation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (IntAggregation)
+GET_V_TABLE(IntAggregation)
 
 #endif

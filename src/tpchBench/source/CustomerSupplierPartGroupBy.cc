@@ -21,6 +21,6 @@
 #include "CustomerSupplierPartGroupBy.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CustomerSupplierPartGroupBy)
+GET_V_TABLE(CustomerSupplierPartGroupBy)
 
 #endif

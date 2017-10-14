@@ -18,7 +18,7 @@
 #ifndef AGGREGATION_PROCESSOR_H
 #define AGGREGATION_PROCESSOR_H
 
-//by Jia, Mar 13 2017
+// by Jia, Mar 13 2017
 
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"
@@ -34,36 +34,33 @@ template <class KeyType, class ValueType>
 class AggregationProcessor : public SimpleSingleTableQueryProcessor {
 
 public:
-
-    ~AggregationProcessor () {};
-    AggregationProcessor () {};
-    AggregationProcessor (HashPartitionID id);   
-    void initialize () override;
-    void loadInputPage (void * pageToProcess) override;
-    void loadInputObject (Handle<Object> & objectToProcess) override;
-    void loadOutputPage (void * pageToWriteTo, size_t numBytesInPage) override;
-    bool fillNextOutputPage () override;
-    void finalize () override;
-    void clearOutputPage () override;
-    void clearInputPage () override;
+    ~AggregationProcessor(){};
+    AggregationProcessor(){};
+    AggregationProcessor(HashPartitionID id);
+    void initialize() override;
+    void loadInputPage(void* pageToProcess) override;
+    void loadInputObject(Handle<Object>& objectToProcess) override;
+    void loadOutputPage(void* pageToWriteTo, size_t numBytesInPage) override;
+    bool fillNextOutputPage() override;
+    void finalize() override;
+    void clearOutputPage() override;
+    void clearInputPage() override;
     bool needsProcessInput() override;
 
 private:
-
     UseTemporaryAllocationBlockPtr blockPtr;
-    Handle <Vector<Handle<AggregationMap <KeyType, ValueType>>>> inputData;
-    Handle <Map <KeyType, ValueType>> outputData;
+    Handle<Vector<Handle<AggregationMap<KeyType, ValueType>>>> inputData;
+    Handle<Map<KeyType, ValueType>> outputData;
     bool finalized;
     Handle<AggregationMap<KeyType, ValueType>> curMap;
     int id;
-    
-    //the iterators for current map partition
-    PDBMapIterator <KeyType, ValueType> * begin;
-    PDBMapIterator <KeyType, ValueType> * end;
+
+    // the iterators for current map partition
+    PDBMapIterator<KeyType, ValueType>* begin;
+    PDBMapIterator<KeyType, ValueType>* end;
 
     int count;
 };
-
 }
 
 

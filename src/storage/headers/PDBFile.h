@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBFile.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBFILE_H
-#define	PDBFILE_H
+#define PDBFILE_H
 
 #include <stdio.h>
 #include <vector>
@@ -41,14 +41,14 @@ typedef shared_ptr<PDBFileInterface> PDBFilePtr;
  */
 class PDBFileInterface {
 public:
-	/*
-	 * To support polymorphism.
-	 */
-	virtual ~PDBFileInterface() {}
+    /*
+     * To support polymorphism.
+     */
+    virtual ~PDBFileInterface() {}
 
-	/**
-	 * To open a file.
-	 */
+    /**
+     * To open a file.
+     */
     virtual bool openAll() = 0;
 
     /**
@@ -80,7 +80,10 @@ public:
      * To load a page from the file partition to cache.
      * If the file is of SequenceFile type, set the partitionId = 0;
      */
-    virtual size_t loadPage(FilePartitionID partitionId, unsigned int pageSeqInPartition, char * pageInCache, size_t length) = 0;
+    virtual size_t loadPage(FilePartitionID partitionId,
+                            unsigned int pageSeqInPartition,
+                            char* pageInCache,
+                            size_t length) = 0;
 
 
     /**
@@ -137,9 +140,7 @@ public:
      * To return the file type of the file: SequenceFile or PartitionedFile
      */
     virtual FileType getFileType() = 0;
-
 };
 
 
-#endif	/* PDBFILE_H */
-
+#endif /* PDBFILE_H */

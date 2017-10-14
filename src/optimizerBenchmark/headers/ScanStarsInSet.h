@@ -22,18 +22,17 @@
 #include "StarsIn.h"
 
 using namespace pdb;
-class ScanStarsInSet : public ScanUserSet <StarsIn> {
+class ScanStarsInSet : public ScanUserSet<StarsIn> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	 ScanStarsInSet () {
-        }
+    ScanStarsInSet() {}
 
-	ScanStarsInSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
+    ScanStarsInSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 #endif

@@ -28,27 +28,29 @@
 #include "PDBString.h"
 
 using namespace pdb;
-class AllSelectionWithCreation : public SelectionComp <Employee, Employee> {
+class AllSelectionWithCreation : public SelectionComp<Employee, Employee> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    AllSelectionWithCreation() {}
 
-	AllSelectionWithCreation () {}
+    Lambda<bool> getSelection(Handle<Employee> checkMe) override {
+        return makeLambda(checkMe, [](Handle<Employee>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <Employee> checkMe) override {
-                return makeLambda (checkMe, [] (Handle<Employee> & checkMe) {return true;});
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Employee> checkMe) override {
-               return makeLambda (checkMe, [] (Handle<Employee>& checkMe) {
-                   //checkMe->print();
-                   Handle <Employee> newEmployee = 
-                      makeObject <Employee>(*(checkMe->getName()),100, checkMe->department, checkMe->salary); // cannot get age!
-                   //newEmployee->print();
-                   return newEmployee;
-               });
-	}
+    Lambda<Handle<Employee>> getProjection(Handle<Employee> checkMe) override {
+        return makeLambda(checkMe, [](Handle<Employee>& checkMe) {
+            // checkMe->print();
+            Handle<Employee> newEmployee =
+                makeObject<Employee>(*(checkMe->getName()),
+                                     100,
+                                     checkMe->department,
+                                     checkMe->salary);  // cannot get age!
+            // newEmployee->print();
+            return newEmployee;
+        });
+    }
 };
 
 

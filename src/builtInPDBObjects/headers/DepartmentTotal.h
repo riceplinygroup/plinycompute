@@ -29,37 +29,35 @@ namespace pdb {
 class DepartmentTotal : public Object {
 
 public:
+    double totSales;
+    String departmentName;
 
-	double totSales;
-	String departmentName;
-	
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	bool checkSales () {
-		if ((((int) (totSales * 10)) + 5) / 10 == ((int) (totSales * 10)) / 10) {
-			return true;
-		}
-		return false;
-	}
-
-	Handle <double> getTotSales () {
-		Handle <double> returnVal = makeObject <double> (totSales);
-		return returnVal;
-	}
-
-	String &getKey () {
-		return departmentName;
-	}
-	
-	double &getValue () {
-		return totSales;
-	}
-
-        void print() {
-               std :: cout << departmentName << ":" << totSales << std :: endl;
+    bool checkSales() {
+        if ((((int)(totSales * 10)) + 5) / 10 == ((int)(totSales * 10)) / 10) {
+            return true;
         }
-};
+        return false;
+    }
 
+    Handle<double> getTotSales() {
+        Handle<double> returnVal = makeObject<double>(totSales);
+        return returnVal;
+    }
+
+    String& getKey() {
+        return departmentName;
+    }
+
+    double& getValue() {
+        return totSales;
+    }
+
+    void print() {
+        std::cout << departmentName << ":" << totSales << std::endl;
+    }
+};
 }
 
 #endif

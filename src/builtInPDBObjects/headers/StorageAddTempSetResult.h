@@ -28,26 +28,29 @@ namespace pdb {
 
 class StorageAddTempSetResult : public SimpleRequestResult {
 
-public : 
+public:
+    StorageAddTempSetResult() {}
+    ~StorageAddTempSetResult() {}
 
-    StorageAddTempSetResult () {}
-    ~StorageAddTempSetResult () {}
-  
-    StorageAddTempSetResult(bool res, std :: string errMsg) : SimpleRequestResult (res, errMsg) {}
-   
-    StorageAddTempSetResult (bool res, std :: string errMsg, SetID tempsetId) : SimpleRequestResult(res, errMsg) {
+    StorageAddTempSetResult(bool res, std::string errMsg) : SimpleRequestResult(res, errMsg) {}
+
+    StorageAddTempSetResult(bool res, std::string errMsg, SetID tempsetId)
+        : SimpleRequestResult(res, errMsg) {
         this->tempsetId = tempsetId;
     }
 
-    SetID getTempSetID () { return this->tempsetId;}
-    void setTempSetID (SetID tempsetId) { this->tempsetId = tempsetId; }
+    SetID getTempSetID() {
+        return this->tempsetId;
+    }
+    void setTempSetID(SetID tempsetId) {
+        this->tempsetId = tempsetId;
+    }
 
     ENABLE_DEEP_COPY
 
 
 private:
     SetID tempsetId;
-
 };
 }
 

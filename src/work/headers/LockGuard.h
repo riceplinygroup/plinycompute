@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   LockGuard.h
  * Author: Chris
  *
@@ -23,8 +23,7 @@
  */
 
 #ifndef LOCKGUARD_H
-#define	LOCKGUARD_H
-
+#define LOCKGUARD_H
 
 
 #include <pthread.h>
@@ -38,35 +37,32 @@
 class LockGuard {
 public:
     // lock on construction
-    explicit LockGuard(pthread_mutex_t &mutex)
-    : mutex(mutex) {
-        //std :: stringstream ss;
-        //ss << &mutex;
-        //std :: cout << "to get lock at " << ss.str() << std :: endl;
+    explicit LockGuard(pthread_mutex_t& mutex) : mutex(mutex) {
+        // std :: stringstream ss;
+        // ss << &mutex;
+        // std :: cout << "to get lock at " << ss.str() << std :: endl;
         pthread_mutex_lock(&mutex);
-        //std :: cout << "got lock at " << ss.str() << std :: endl;
+        // std :: cout << "got lock at " << ss.str() << std :: endl;
     }
 
     // unlock on destruction
 
     ~LockGuard() {
-        //std :: stringstream ss;
-        //ss << &mutex;
-        //std :: cout << "to unlock at " << ss.str() << std :: endl;
+        // std :: stringstream ss;
+        // ss << &mutex;
+        // std :: cout << "to unlock at " << ss.str() << std :: endl;
         pthread_mutex_unlock(&mutex);
-        //std :: cout << "unlocked at " << ss.str() << std :: endl;
+        // std :: cout << "unlocked at " << ss.str() << std :: endl;
     }
 
     // forbidden, to avoid double-unlock bugs
-    LockGuard(const LockGuard &) = delete;
-    LockGuard & operator=(const LockGuard &) = delete;
+    LockGuard(const LockGuard&) = delete;
+    LockGuard& operator=(const LockGuard&) = delete;
 
 private:
     // underlying system mutex to manage
-    pthread_mutex_t &mutex;
+    pthread_mutex_t& mutex;
 };
 
 
-
-#endif	/* LOCKGUARD_H */
-
+#endif /* LOCKGUARD_H */

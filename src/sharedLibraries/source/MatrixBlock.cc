@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "MatrixBlock.h"
 
-GET_V_TABLE (MatrixBlock)
+GET_V_TABLE(MatrixBlock)
 
 #endif

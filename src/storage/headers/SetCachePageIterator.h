@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   SetCachePageIterator.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef SETCACHEPAGEITERATOR_H
-#define	SETCACHEPAGEITERATOR_H
+#define SETCACHEPAGEITERATOR_H
 
 
 #include "UserSet.h"
@@ -38,14 +38,15 @@ class SetCachePageIterator;
 typedef shared_ptr<SetCachePageIterator> SetCachePageIteratorPtr;
 
 /**
- * This class implements an iterator to all dirty pages stored in PageCache that hasn't been flushed ever for a given set.
+ * This class implements an iterator to all dirty pages stored in PageCache that hasn't been flushed
+ * ever for a given set.
  */
 class SetCachePageIterator : public PageIteratorInterface {
 public:
-
-    //NOTE: the constructor can only be invoked in UserSet::getIterators(), where it will be protected by lockDirtyPageSet();
+    // NOTE: the constructor can only be invoked in UserSet::getIterators(), where it will be
+    // protected by lockDirtyPageSet();
     SetCachePageIterator(PageCachePtr cache, UserSet* set);
-    virtual ~SetCachePageIterator() ;
+    virtual ~SetCachePageIterator();
 
     /**
      * Returns the page with the smallest PageID in the input buffer.
@@ -75,6 +76,4 @@ private:
 };
 
 
-
-#endif	/* SETCACHEPAGEITERATOR_H */
-
+#endif /* SETCACHEPAGEITERATOR_H */

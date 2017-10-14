@@ -27,35 +27,31 @@
 namespace pdb {
 
 // encapsulates a request to request resources for running a query
-class RequestResources  : public Object {
+class RequestResources : public Object {
 
 public:
+    RequestResources() {}
+    ~RequestResources() {}
 
-	RequestResources () {}
-	~RequestResources () {}
+    RequestResources(int numCores, int memSize) : numCores(numCores), memSize(memSize) {}
 
-	RequestResources (int numCores, int memSize) : numCores (numCores), memSize (memSize) {}
+    int getNumCores() {
+        return numCores;
+    }
 
-	int getNumCores () {
-		return numCores;
-	}
+    int getMemSize() {
+        return memSize;
+    }
 
-        int getMemSize () {
-                return memSize;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
+    // number of CPU cores
+    int numCores;
 
-        //number of CPU cores
-	int numCores;
-
-        //total size of memory (in MB)
-        int memSize;
-
+    // total size of memory (in MB)
+    int memSize;
 };
-
 }
 
 #endif

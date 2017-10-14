@@ -18,7 +18,7 @@
 #ifndef K_MEANS_DATA_COUNT_AGGREGATE_H
 #define K_MEANS_DATA_COUNT_AGGREGATE_H
 
-//by Shangyu, May 2017
+// by Shangyu, May 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
@@ -28,30 +28,27 @@
 #include "SumResult.h"
 
 
-
 using namespace pdb;
 
 
-class KMeansDataCountAggregate : public ClusterAggregateComp <SumResult, KMeansDoubleVector, int, int> {
+class KMeansDataCountAggregate
+    : public ClusterAggregateComp<SumResult, KMeansDoubleVector, int, int> {
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-        KMeansDataCountAggregate () {}
-
-
-        // the key type must have == and size_t hash () defined
-        Lambda <int> getKeyProjection (Handle <KMeansDoubleVector> aggMe) override {
-                return makeLambda (aggMe, [] (Handle<KMeansDoubleVector> & aggMe) {return 0;});
-        }
-
-        // the value type must have + defined
-        Lambda <int> getValueProjection (Handle <KMeansDoubleVector> aggMe) override {
-            	return makeLambda (aggMe, [] (Handle<KMeansDoubleVector> & aggMe) { return 1;});
-        }
+    KMeansDataCountAggregate() {}
 
 
+    // the key type must have == and size_t hash () defined
+    Lambda<int> getKeyProjection(Handle<KMeansDoubleVector> aggMe) override {
+        return makeLambda(aggMe, [](Handle<KMeansDoubleVector>& aggMe) { return 0; });
+    }
+
+    // the value type must have + defined
+    Lambda<int> getValueProjection(Handle<KMeansDoubleVector> aggMe) override {
+        return makeLambda(aggMe, [](Handle<KMeansDoubleVector>& aggMe) { return 1; });
+    }
 };
 
 

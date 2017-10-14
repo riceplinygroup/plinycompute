@@ -25,6 +25,7 @@ struct AtomicComputationList;
 #ifdef __cplusplus
 extern "C"
 #endif
-int yyparse (yyscan_t, struct AtomicComputationList **);
+    int
+    yyparse(yyscan_t, struct AtomicComputationList**);
 
-#endif	
+#endif

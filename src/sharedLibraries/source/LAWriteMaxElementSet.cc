@@ -21,6 +21,6 @@
 #include "LAWriteMaxElementSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LAWriteMaxElementSet)
+GET_V_TABLE(LAWriteMaxElementSet)
 
 #endif

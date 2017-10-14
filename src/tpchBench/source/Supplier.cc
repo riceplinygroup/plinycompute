@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "Supplier.h"
 
-GET_V_TABLE (Supplier)
+GET_V_TABLE(Supplier)
 
 #endif

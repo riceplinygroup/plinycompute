@@ -34,41 +34,30 @@ using pdb_detail::ProjectionIr;
 using pdb_detail::SetExpressionIrAlgo;
 using pdb_detail::SourceSetNameIr;
 
-namespace pdb_tests
-{
-    void testSelectionIrExecute(UnitTest &qunit)
-    {
-        class Algo : public SetExpressionIrAlgo
-        {
-        public:
+namespace pdb_tests {
+void testSelectionIrExecute(UnitTest& qunit) {
+    class Algo : public SetExpressionIrAlgo {
+    public:
+        void forProjection(ProjectionIr& projection) {}
+
+        void forSelection(SelectionIr& selection) {
+            success = true;
+        }
+
+        void forSourceSetName(SourceSetNameIr& setName) {}
+
+        bool success = false;
+    } algo;
+
+    shared_ptr<SetExpressionIr> nullInputSet;
+    // shared_ptr<RecordPredicateIr> nullCondition;
+    Handle<Selection<Object, Object>> nullSelection;
+
+    SelectionIr selection(nullInputSet, nullSelection);
+
+    selection.execute(algo);
 
 
-            void forProjection(ProjectionIr &projection)
-            {
-            }
-
-            void forSelection(SelectionIr &selection)
-            {
-                success = true;
-            }
-
-            void forSourceSetName(SourceSetNameIr &setName)
-            {
-            }
-
-            bool success = false;
-        } algo;
-
-        shared_ptr<SetExpressionIr> nullInputSet;
-       // shared_ptr<RecordPredicateIr> nullCondition;
-        Handle<Selection<Object,Object>> nullSelection;
-
-        SelectionIr selection(nullInputSet, nullSelection);
-
-        selection.execute(algo);
-
-
-        QUNIT_IS_TRUE(algo.success);
-
-    }
+    QUNIT_IS_TRUE(algo.success);
+}
 }

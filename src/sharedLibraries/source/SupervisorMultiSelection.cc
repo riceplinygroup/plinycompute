@@ -21,6 +21,6 @@
 #include "SupervisorMultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SupervisorMultiSelection)
+GET_V_TABLE(SupervisorMultiSelection)
 
 #endif

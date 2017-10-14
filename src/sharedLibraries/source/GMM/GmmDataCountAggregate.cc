@@ -21,6 +21,6 @@
 #include "GMM/GmmDataCountAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmDataCountAggregate)
+GET_V_TABLE(GmmDataCountAggregate)
 
 #endif

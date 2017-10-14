@@ -22,18 +22,17 @@
 #include "MovieStar.h"
 
 using namespace pdb;
-class ScanMovieStarSet : public ScanUserSet <MovieStar> {
+class ScanMovieStarSet : public ScanUserSet<MovieStar> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	 ScanMovieStarSet () {
-        }
+    ScanMovieStarSet() {}
 
-	ScanMovieStarSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
+    ScanMovieStarSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 #endif

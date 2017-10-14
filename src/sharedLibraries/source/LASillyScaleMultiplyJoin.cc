@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "LASillyScaleMultiplyJoin.h"
 
-GET_V_TABLE (LASillyScaleMultiplyJoin)
+GET_V_TABLE(LASillyScaleMultiplyJoin)
 
 #endif

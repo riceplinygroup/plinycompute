@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBAlarm.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBALARM_H
-#define	PDBALARM_H
+#define PDBALARM_H
 
 enum PDBAlarm {
     WorkAllDone,
@@ -37,5 +37,4 @@ enum PDBAlarm {
 
 };
 
-#endif	/* PDBALARM_H */
-
+#endif /* PDBALARM_H */

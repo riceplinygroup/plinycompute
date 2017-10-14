@@ -24,30 +24,27 @@
 
 using std::string;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+* Signifies no materilization is to be done.
+*/
+class MaterializationModeNone : public MaterializationMode {
+
+public:
     /**
-    * Signifies no materilization is to be done.
-    */
-    class MaterializationModeNone : public MaterializationMode
-    {
+     * @return true
+     */
+    bool isNone() override;
 
-    public:
+    // contract from super
+    void execute(MaterializationModeAlgo& algo) override;
 
-        /**
-         * @return true
-         */
-        bool isNone() override;
+    // contract from super
+    string tryGetDatabaseName(const string& noneValue) override;
 
-        // contract from super
-        void execute(MaterializationModeAlgo &algo) override;
-
-        // contract from super
-        string tryGetDatabaseName(const string &noneValue) override;
-
-        // contract from super
-        string tryGetSetName(const string &noneValue) override;
-    };
+    // contract from super
+    string tryGetSetName(const string& noneValue) override;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODENONE_H
+#endif  // PDB_QUERYINTERMEDIARYREP_MATERIALIZATIONMODENONE_H

@@ -23,18 +23,16 @@
 #include "TopJaccard.h"
 
 using namespace pdb;
-class JaccardResultWriter  : public WriteUserSet <TopKQueue <double, Handle <AllParts>>> {
+class JaccardResultWriter : public WriteUserSet<TopKQueue<double, Handle<AllParts>>> {
 
 public:
-
     ENABLE_DEEP_COPY
 
-    JaccardResultWriter () {}
+    JaccardResultWriter() {}
 
-    JaccardResultWriter (std :: string dbName, std :: string setName) {
+    JaccardResultWriter(std::string dbName, std::string setName) {
         this->setOutput(dbName, setName);
     }
-
 };
 
 

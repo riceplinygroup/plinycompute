@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "LDA/LDADocWordTopicJoin.h"
 
-GET_V_TABLE (LDADocWordTopicJoin)
+GET_V_TABLE(LDADocWordTopicJoin)
 
 #endif

@@ -21,6 +21,6 @@
 #include "GMM2/GmmAggregateLazy.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmAggregateLazy)
+GET_V_TABLE(GmmAggregateLazy)
 
 #endif

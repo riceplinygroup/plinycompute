@@ -31,34 +31,35 @@ namespace pdb {
 class QueriesAndPlan : public Object {
 
 public:
+    QueriesAndPlan() {}
 
-	QueriesAndPlan () {}
+    void setPlan(String myPlan) {
+        plan = myPlan;
+    }
 
-	void setPlan(String myPlan) {
-		plan = myPlan;
-	}
+    String getPlan() {
+        return plan;
+    }
 
-	String getPlan() {return plan;}
+    Handle<Vector<Handle<BaseQuery>>> getQueries() {
+        return queries;
+    }
 
-	Handle<Vector <Handle <BaseQuery>>> getQueries() { return queries; }
+    void addQuery(Handle<BaseQuery> query) {
+        if (queries == nullptr) {
+            queries = makeObject<Vector<Handle<BaseQuery>>>(1);
+        }
+        queries->push_back(query);
+    }
 
-	void addQuery(Handle <BaseQuery> query) {
-		if (queries == nullptr) {
-			queries = makeObject <Vector <Handle <BaseQuery>>> (1);
-		}
-		queries->push_back(query);
-	}
-	
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
+    String plan;
 
-	String plan;
-
-	// The queries to run the plan
-	Handle <Vector <Handle <BaseQuery>>> queries;
+    // The queries to run the plan
+    Handle<Vector<Handle<BaseQuery>>> queries;
 };
-
 }
 
 #endif

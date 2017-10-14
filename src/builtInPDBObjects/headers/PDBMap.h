@@ -33,50 +33,45 @@ template <class KeyType, class ValueType = Nothing>
 class Map : public Object {
 
 protected:
-
-	// this is where the data are actually stored
-	Handle <PairArray <KeyType, ValueType>> myArray;
+    // this is where the data are actually stored
+    Handle<PairArray<KeyType, ValueType>> myArray;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    // this constructor pre-allocates initSize slots... initSize must be a power of two
+    Map(uint32_t initSize);
 
-	// this constructor pre-allocates initSize slots... initSize must be a power of two
-	Map (uint32_t initSize);
+    // this constructor creates a map with a single slot
+    Map();
 
-	// this constructor creates a map with a single slot
-	Map ();
+    // destructor
+    ~Map();
 
-	// destructor
-	~Map ();
+    // access the value at "which"; if this is undefined, define it and return a reference
+    ValueType& operator[](const KeyType& which);
 
-	// access the value at "which"; if this is undefined, define it and return a reference
-	ValueType &operator [] (const KeyType &which);
+    // clears the particular key from the map, destructing both the key and the value.  NOTE THAT
+    // THIS IS ONLY SAFE TO USE IF CLEARME WAS THE VERY LAST ITEM ADDED TO THE MAP.  If it is not,
+    // the hash table may be in an inconsistent state.  This is typically used when an out-of-memory
+    // exception is thrown when we try to add to the hash table, and we want to immediately clear
+    // the last item added.
+    void setUnused(const KeyType& clearMe);
 
-        // clears the particular key from the map, destructing both the key and the value.  NOTE THAT
-        // THIS IS ONLY SAFE TO USE IF CLEARME WAS THE VERY LAST ITEM ADDED TO THE MAP.  If it is not,
-        // the hash table may be in an inconsistent state.  This is typically used when an out-of-memory
-        // exception is thrown when we try to add to the hash table, and we want to immediately clear
-        // the last item added.
-        void setUnused (const KeyType &clearMe);
+    // returns the number of elements in the map
+    size_t size() const;
 
-	// returns the number of elements in the map
-	size_t size() const;
-	
-	// returns 0 if this entry is undefined; 1 if it is defined
-	int count (const KeyType &which);
+    // returns 0 if this entry is undefined; 1 if it is defined
+    int count(const KeyType& which);
 
-        // these are used for iteration
-        PDBMapIterator <KeyType, ValueType> begin ();
-        PDBMapIterator <KeyType, ValueType> end ();
+    // these are used for iteration
+    PDBMapIterator<KeyType, ValueType> begin();
+    PDBMapIterator<KeyType, ValueType> end();
 
-        Handle <PairArray <KeyType, ValueType>>& getArray(); 
-
+    Handle<PairArray<KeyType, ValueType>>& getArray();
 };
-
 }
 
 #include "PDBMap.cc"
 
 #endif
-

@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "AllParts.h"
 
-GET_V_TABLE (AllParts)
+GET_V_TABLE(AllParts)
 
 #endif

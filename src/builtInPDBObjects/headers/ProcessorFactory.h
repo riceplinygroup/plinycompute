@@ -28,12 +28,10 @@
 using pdb::Object;
 using pdb::SimpleSingleTableQueryProcessorPtr;
 
-namespace pdb
-{
-    class ProcessorFactory : public Object
-    {
-        virtual SimpleSingleTableQueryProcessorPtr makeProcessor() = 0;
-    };
+namespace pdb {
+class ProcessorFactory : public Object {
+    virtual SimpleSingleTableQueryProcessorPtr makeProcessor() = 0;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_PROCESSORFACTORY_H
+#endif  // PDB_QUERYINTERMEDIARYREP_PROCESSORFACTORY_H

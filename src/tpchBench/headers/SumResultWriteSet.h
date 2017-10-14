@@ -24,19 +24,18 @@
 #include "SumResult.h"
 
 using namespace pdb;
-class SumResultWriteSet : public WriteUserSet <SumResult> {
+class SumResultWriteSet : public WriteUserSet<SumResult> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    SumResultWriteSet() {}
 
-	SumResultWriteSet () {}
-
-    //below constructor is not required, but if we do not call setOutput() here, we must call setOutput() later to set the output set
-	SumResultWriteSet (std :: string dbName, std :: string setName) {
+    // below constructor is not required, but if we do not call setOutput() here, we must call
+    // setOutput() later to set the output set
+    SumResultWriteSet(std::string dbName, std::string setName) {
         this->setOutput(dbName, setName);
     }
-
 };
 
 

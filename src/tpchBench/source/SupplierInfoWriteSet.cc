@@ -21,6 +21,6 @@
 #include "SupplierInfoWriteSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SupplierInfoWriteSet)
+GET_V_TABLE(SupplierInfoWriteSet)
 
 #endif

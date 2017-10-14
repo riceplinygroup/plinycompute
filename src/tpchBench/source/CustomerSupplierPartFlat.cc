@@ -22,6 +22,6 @@
 #include "GetVTable.h"
 #include "CustomerSupplierPartFlat.h"
 
-GET_V_TABLE (CustomerSupplierPartFlat)
+GET_V_TABLE(CustomerSupplierPartFlat)
 
 #endif

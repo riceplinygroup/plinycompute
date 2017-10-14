@@ -39,117 +39,120 @@
 //	);
 
 
-class Customer: public pdb::Object {
+class Customer : public pdb::Object {
 
 
 public:
+    pdb::Vector<Order> orders;
+    int custKey;
+    pdb::String name;
+    pdb::String address;
+    int nationKey;
+    pdb::String phone;
+    double accbal;
+    pdb::String mktsegment;
+    pdb::String comment;
 
-	pdb::Vector<Order> orders;
-	int custKey;
-	pdb::String name;
-	pdb::String address;
-	int nationKey;
-	pdb::String phone;
-	double accbal;
-	pdb::String mktsegment;
-	pdb::String comment;
 
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    ~Customer() {}
 
-	~Customer() {
-	}
+    Customer() {}
 
-	Customer() {}
+    // Constructor with arguments using std::string
 
-	// Constructor with arguments using std::string
+    Customer(pdb::Vector<Order> orders,
+             int custKey,
+             std::string name,
+             std::string address,
+             int nationKey,
+             std::string phone,
+             double accbal,
+             std::string mktsegment,
+             std::string comment) {
+        this->orders = orders;
+        this->custKey = custKey;
+        this->name = name;
+        this->address = address;
+        this->nationKey = nationKey;
+        this->phone = phone;
+        this->accbal = accbal;
+        this->mktsegment = mktsegment;
+        this->comment = comment;
+    }
 
-	Customer(pdb::Vector<Order> orders, int custKey,
-			std:: string name, std:: string address,
-			int nationKey, std:: string phone, double accbal,
-			std:: string mktsegment, std:: string comment) {
-		this->orders=orders;
-		this->custKey=custKey;
-		this->name= name;
-		this->address= address;
-		this->nationKey=nationKey;
-		this->phone =phone;
-		this->accbal=accbal;
-		this->mktsegment= mktsegment;
-		this->comment= comment;
-	}
+    double getAccbal() const {
+        return accbal;
+    }
 
-	double getAccbal() const {
-		return accbal;
-	}
+    void setAccbal(double accbal) {
+        this->accbal = accbal;
+    }
 
-	void setAccbal(double accbal) {
-		this->accbal = accbal;
-	}
+    const pdb::String& getAddress() const {
+        return address;
+    }
 
-	const pdb::String& getAddress() const {
-		return address;
-	}
+    void setAddress(const pdb::String& address) {
+        this->address = address;
+    }
 
-	void setAddress(const pdb::String& address) {
-		this->address = address;
-	}
+    const pdb::String& getComment() const {
+        return comment;
+    }
 
-	const pdb::String& getComment() const {
-		return comment;
-	}
+    void setComment(const pdb::String& comment) {
+        this->comment = comment;
+    }
 
-	void setComment(const pdb::String& comment) {
-		this->comment = comment;
-	}
+    int getCustKey() const {
+        return custKey;
+    }
 
-	int getCustKey() const {
-		return custKey;
-	}
+    void setCustKey(int custKey) {
+        this->custKey = custKey;
+    }
 
-	void setCustKey(int custKey) {
-		this->custKey = custKey;
-	}
+    const pdb::String& getMktsegment() const {
+        return mktsegment;
+    }
 
-	const pdb::String& getMktsegment() const {
-		return mktsegment;
-	}
+    void setMktsegment(const pdb::String& mktsegment) {
+        this->mktsegment = mktsegment;
+    }
 
-	void setMktsegment(const pdb::String& mktsegment) {
-		this->mktsegment = mktsegment;
-	}
+    pdb::String& getName() {
+        return name;
+    }
 
-        pdb::String& getName() {
-		return name;
-	}
+    void setName(pdb::String& name) {
+        this->name = name;
+    }
 
-	void setName(pdb::String& name) {
-		this->name = name;
-	}
+    int getNationKey() const {
+        return nationKey;
+    }
 
-	int getNationKey() const {
-		return nationKey;
-	}
+    void setNationKey(int nationKey) {
+        this->nationKey = nationKey;
+    }
 
-	void setNationKey(int nationKey) {
-		this->nationKey = nationKey;
-	}
+    pdb::Vector<Order>& getOrders() {
+        return orders;
+    }
 
-	pdb::Vector<Order>& getOrders() {
-		return orders;
-	}
+    void setOrders(pdb::Vector<Order>& orders) {
+        this->orders = orders;
+    }
 
-	void setOrders(pdb::Vector<Order>& orders) {
-		this->orders = orders;
-	}
+    const pdb::String& getPhone() const {
+        return phone;
+    }
 
-	const pdb::String& getPhone() const {
-		return phone;
-	}
-
-	void setPhone(const pdb::String& phone) {
-		this->phone = phone;
-	}
+    void setPhone(const pdb::String& phone) {
+        this->phone = phone;
+    }
 };
 
 #endif

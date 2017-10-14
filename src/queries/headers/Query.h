@@ -28,29 +28,26 @@
 namespace pdb {
 
 // this is the basic query type... all queries returning OutType derive from this class
-template <typename OutType> 
+template <typename OutType>
 class Query : public QueryBase {
 
 public:
+    Query() {
+        myOutType = getTypeName<OutType>();
+    }
 
-	Query () {
-		myOutType = getTypeName <OutType> ();
-	}
+    // gets the name of this output type
+    std::string getOutputType() override {
+        return myOutType;
+    }
 
-	// gets the name of this output type
-	std :: string getOutputType () override {
-		return myOutType;
-	}
+    // from QueryBase
+    // virtual int getNumInputs () = 0;
+    // virtual std :: string getIthInputType (int i) = 0;
+    // virtual std :: string getQueryType () = 0;
 
-	// from QueryBase
-	// virtual int getNumInputs () = 0;
-	// virtual std :: string getIthInputType (int i) = 0;
-	// virtual std :: string getQueryType () = 0;
-
-	String myOutType;
-
+    String myOutType;
 };
-
 }
 
 #endif

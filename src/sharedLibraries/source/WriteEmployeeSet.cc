@@ -23,6 +23,6 @@
 #include "WriteEmployeeSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteEmployeeSet)
+GET_V_TABLE(WriteEmployeeSet)
 
 #endif

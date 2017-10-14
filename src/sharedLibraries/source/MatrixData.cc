@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "MatrixData.h"
 
-GET_V_TABLE (MatrixData)
+GET_V_TABLE(MatrixData)
 
 #endif

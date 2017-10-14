@@ -28,21 +28,20 @@
 
 
 using namespace pdb;
-class FinalSelection : public SelectionComp <double, DepartmentTotal> {
+class FinalSelection : public SelectionComp<double, DepartmentTotal> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    FinalSelection() {}
 
-	FinalSelection () {}
+    Lambda<bool> getSelection(Handle<DepartmentTotal> checkMe) override {
+        return makeLambdaFromMethod(checkMe, checkSales);
+    }
 
-	Lambda <bool> getSelection (Handle <DepartmentTotal> checkMe) override {
-		return makeLambdaFromMethod (checkMe, checkSales);
-	}
-
-	Lambda <Handle <double>> getProjection (Handle <DepartmentTotal> checkMe) override {
-                return makeLambdaFromMethod (checkMe, getTotSales);
-	}
+    Lambda<Handle<double>> getProjection(Handle<DepartmentTotal> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getTotSales);
+    }
 };
 
 

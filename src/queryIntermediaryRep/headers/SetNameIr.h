@@ -22,10 +22,10 @@
 //#include "PDBString.h"
 //#include "SetExpressionIr.h"
 //
-//using pdb::Handle;
-//using pdb::String;
+// using pdb::Handle;
+// using pdb::String;
 //
-//namespace pdb_detail
+// namespace pdb_detail
 //{
 //    /**
 //     * A PDB set identified by database name and set name.

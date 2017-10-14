@@ -11,16 +11,16 @@ http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/predef/other/endian.h>
 
 #if BOOST_ENDIAN_BIG_BYTE
-#   define BOOST_BIG_ENDIAN
-#   define BOOST_BYTE_ORDER 4321
+#define BOOST_BIG_ENDIAN
+#define BOOST_BYTE_ORDER 4321
 #endif
 #if BOOST_ENDIAN_LITTLE_BYTE
-#   define BOOST_LITTLE_ENDIAN
-#   define BOOST_BYTE_ORDER 1234
+#define BOOST_LITTLE_ENDIAN
+#define BOOST_BYTE_ORDER 1234
 #endif
 #if BOOST_ENDIAN_LITTLE_WORD
-#   define BOOST_PDP_ENDIAN
-#   define BOOST_BYTE_ORDER 2134
+#define BOOST_PDP_ENDIAN
+#define BOOST_BYTE_ORDER 2134
 #endif
 
 #endif

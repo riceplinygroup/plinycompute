@@ -30,22 +30,19 @@ namespace pdb {
 class CatTypeSearchResult : public Object {
 
 public:
+    CatTypeSearchResult(){};
+    ~CatTypeSearchResult(){};
+    CatTypeSearchResult(int16_t searchRes) : findMe(searchRes) {}
 
-	CatTypeSearchResult () {};
-	~CatTypeSearchResult () {};
-	CatTypeSearchResult (int16_t searchRes) : findMe (searchRes) {}
+    int16_t getTypeID() {
+        return findMe;
+    }
 
-	int16_t getTypeID () {
-		return findMe;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	int16_t findMe;
+    int16_t findMe;
 };
-
 }
 
 #endif

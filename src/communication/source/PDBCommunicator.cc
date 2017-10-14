@@ -53,21 +53,21 @@ PDBCommunicator::PDBCommunicator() {
     socketFD = -1;
     nextTypeID = NoMsg_TYPEID;
     socketClosed = true;
-    //Jia: moved this logic from Chris' message-based communication framework to here
+    // Jia: moved this logic from Chris' message-based communication framework to here
     needToSendDisconnectMsg = false;
     longConnection = false;
 }
 
-bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, std :: string& errMsg) {
+bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, std::string& errMsg) {
 
     // first, connect to the backend
     logToMe = logToMeIn;
 
     struct sockaddr_in cli_addr;
-    socklen_t clilen = sizeof (cli_addr);
-    bzero((char *) &cli_addr, sizeof (cli_addr));
+    socklen_t clilen = sizeof(cli_addr);
+    bzero((char*)&cli_addr, sizeof(cli_addr));
     logToMe->info("PDBCommunicator: about to wait for request from Internet");
-    socketFD = accept(socketFDIn, (struct sockaddr *) &cli_addr, &clilen);
+    socketFD = accept(socketFDIn, (struct sockaddr*)&cli_addr, &clilen);
     if (socketFD < 0) {
         logToMe->error("PDBCommunicator: could not get FD to internet socket");
         logToMe->error(strerror(errno));
@@ -82,17 +82,19 @@ bool PDBCommunicator::pointToInternet(PDBLoggerPtr logToMeIn, int socketFDIn, st
     return false;
 }
 
-bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNumber, std :: string serverAddress,
-        std :: string &errMsg) {
+bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn,
+                                              int portNumber,
+                                              std::string serverAddress,
+                                              std::string& errMsg) {
 
     logToMe = logToMeIn;
-    //std :: cout << "################################" << std :: endl;
-    //std :: cout << "To connect to Internet server..." << std :: endl;
-    //std :: cout << "portNumber=" << portNumber << std :: endl;
-    //std :: cout << "serverAddress=" << serverAddress << std :: endl;
+    // std :: cout << "################################" << std :: endl;
+    // std :: cout << "To connect to Internet server..." << std :: endl;
+    // std :: cout << "portNumber=" << portNumber << std :: endl;
+    // std :: cout << "serverAddress=" << serverAddress << std :: endl;
     // set up the socket
-    //struct sockaddr_in serv_addr;
-    //struct hostent *server;
+    // struct sockaddr_in serv_addr;
+    // struct hostent *server;
     /*
     socketFD = socket(AF_INET, SOCK_STREAM, 0);
     std :: cout << "socketFD=" << socketFD << std :: endl;
@@ -108,11 +110,11 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     logToMe->trace("PDBCommunicator: About to check the database for the host name");
     */
     /* CHRIS NOTE: turns out that gethostbyname () is depricated, and should be replaced */
-    //std :: cout << "Address cstring=" << serverAddress.c_str() << std :: endl;
-    //server = gethostbyname(serverAddress.c_str());
-    //std :: cout << "h_name=" << server->h_name << std :: endl;
-    //std :: cout << "h_addr_list[0]=" << server->h_addr_list[0] << std :: endl;
-    //std :: cout << "h_addr=" << server->h_addr << std :: endl;
+    // std :: cout << "Address cstring=" << serverAddress.c_str() << std :: endl;
+    // server = gethostbyname(serverAddress.c_str());
+    // std :: cout << "h_name=" << server->h_name << std :: endl;
+    // std :: cout << "h_addr_list[0]=" << server->h_addr_list[0] << std :: endl;
+    // std :: cout << "h_addr=" << server->h_addr << std :: endl;
     /*if (server == nullptr) {
         logToMe->error("PDBCommunicator: could not get host by name");
         logToMe->error(strerror(errno));
@@ -141,7 +143,7 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     // Jia: gethostbyname() has multi-threading issue, to replace it with getaddrinfo()
 
     struct addrinfo hints;
-    struct addrinfo * result, * rp;
+    struct addrinfo *result, *rp;
     char port[10];
     sprintf(port, "%d", portNumber);
 
@@ -157,7 +159,7 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
         logToMe->error(strerror(errno));
         errMsg = "Could not get addr info ";
         errMsg += strerror(errno);
-        std :: cout << errMsg << std :: endl;
+        std::cout << errMsg << std::endl;
         socketClosed = true;
         return true;
     }
@@ -167,7 +169,7 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
         int count = 0;
         while (count <= MAX_RETRIES) {
             logToMe->trace("PDBCommunicator: creating socket....");
-            socketFD = socket (rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+            socketFD = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
             if (socketFD == -1) {
                 continue;
             }
@@ -175,27 +177,26 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
                 connected = true;
                 break;
             }
-            count ++;
-            std :: cout << "Connection error, to retry..." << std :: endl;
-            sleep (1);
+            count++;
+            std::cout << "Connection error, to retry..." << std::endl;
+            sleep(1);
             close(socketFD);
             socketFD = -1;
-       }
-       if (connected == true) {
-           break;
-       }
-       
+        }
+        if (connected == true) {
+            break;
+        }
     }
 
     if (rp == NULL) {
         logToMe->error("PDBCommunicator: could not connect to server: address info is null");
         logToMe->error(strerror(errno));
-        errMsg = "Could not connect to server: address info is null with ip="+serverAddress+", and port="+port;
+        errMsg = "Could not connect to server: address info is null with ip=" + serverAddress +
+            ", and port=" + port;
         errMsg += strerror(errno);
-        std :: cout << errMsg << std :: endl;
+        std::cout << errMsg << std::endl;
         socketClosed = true;
         return true;
-
     }
 
     freeaddrinfo(result);
@@ -204,27 +205,30 @@ bool PDBCommunicator::connectToInternetServer(PDBLoggerPtr logToMeIn, int portNu
     needToSendDisconnectMsg = true;
     isInternet = true;
     this->portNumber = portNumber;
-    this->serverAddress = serverAddress; 
+    this->serverAddress = serverAddress;
     socketClosed = false;
     logToMe->trace("PDBCommunicator: Successfully connected to the remote host");
-    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
-/*    std :: cout << "##########################" << std :: endl;
-    std :: cout << "Connected to server with port =" << portNumber <<", address =" << serverAddress << ", socket=" << socketFD << std :: endl;
-    std :: cout << "==========================" << std :: endl;
-*/
+    logToMe->trace("PDBCommunicator: Socket FD is " + std::to_string(socketFD));
+    /*    std :: cout << "##########################" << std :: endl;
+        std :: cout << "Connected to server with port =" << portNumber <<", address =" <<
+       serverAddress << ", socket=" << socketFD << std :: endl;
+        std :: cout << "==========================" << std :: endl;
+    */
     return false;
 }
 
-void PDBCommunicator::setNeedsToDisconnect(bool option){
+void PDBCommunicator::setNeedsToDisconnect(bool option) {
     needToSendDisconnectMsg = option;
 }
 
-bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string fName, std :: string& errMsg) {
+bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn,
+                                           std::string fName,
+                                           std::string& errMsg) {
 
     logToMe = logToMeIn;
     struct sockaddr_un server;
-    //TODO: add retry logic here
-    //TODO: add retry logic here
+    // TODO: add retry logic here
+    // TODO: add retry logic here
     socketFD = socket(AF_UNIX, SOCK_STREAM, 0);
     if (socketFD < 0) {
         logToMe->error("PDBCommunicator: could not get FD to local server socket");
@@ -237,11 +241,11 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
         return true;
     }
 
-    //std :: cout << "In here!!\n";
+    // std :: cout << "In here!!\n";
 
     server.sun_family = AF_UNIX;
     strcpy(server.sun_path, fName.c_str());
-    if (::connect(socketFD, (struct sockaddr *) &server, sizeof (struct sockaddr_un)) < 0) {
+    if (::connect(socketFD, (struct sockaddr*)&server, sizeof(struct sockaddr_un)) < 0) {
         logToMe->error("PDBCommunicator: could not connect to local server socket");
         logToMe->error(strerror(errno));
         errMsg = "Could not connect to local server socket ";
@@ -256,13 +260,13 @@ bool PDBCommunicator::connectToLocalServer(PDBLoggerPtr logToMeIn, std :: string
     // note that we need to close this up when we are done
     needToSendDisconnectMsg = true;
     isInternet = false;
-    fileName = fName; 
-    //std :: cout << "Connected!!\n";
+    fileName = fName;
+    // std :: cout << "Connected!!\n";
     socketClosed = false;
     return false;
 }
 
-bool PDBCommunicator::pointToFile(PDBLoggerPtr logToMeIn, int socketFDIn, std :: string& errMsg) {
+bool PDBCommunicator::pointToFile(PDBLoggerPtr logToMeIn, int socketFDIn, std::string& errMsg) {
 
     // connect to the backend
     logToMe = logToMeIn;
@@ -287,19 +291,18 @@ bool PDBCommunicator::pointToFile(PDBLoggerPtr logToMeIn, int socketFDIn, std ::
 
 PDBCommunicator::~PDBCommunicator() {
 
-    // Jia: moved below logic from Chris' message-based communication to here.
-    // tell the server that we are disconnecting (note that needToSendDisconnectMsg is
-    // set to true only if we are a client and we want to close a connection to the server
-#ifdef __APPLE__    
+// Jia: moved below logic from Chris' message-based communication to here.
+// tell the server that we are disconnecting (note that needToSendDisconnectMsg is
+// set to true only if we are a client and we want to close a connection to the server
+#ifdef __APPLE__
     if (needToSendDisconnectMsg && socketFD > 0) {
         const UseTemporaryAllocationBlock tempBlock{1024};
-        Handle <CloseConnection> temp = makeObject <CloseConnection> ();
+        Handle<CloseConnection> temp = makeObject<CloseConnection>();
         logToMe->trace("PDBCommunicator: closing connection to the server");
-	std :: string errMsg;
-	if (!sendObject (temp, errMsg)) {
-	    logToMe->trace("PDBCommunicator: could not send close connection message");
-	}
-
+        std::string errMsg;
+        if (!sendObject(temp, errMsg)) {
+            logToMe->trace("PDBCommunicator: could not send close connection message");
+        }
     }
 
     if (socketFD >= 0) {
@@ -308,14 +311,14 @@ PDBCommunicator::~PDBCommunicator() {
         socketFD = -1;
     }
 #else
-    
-  
+
+
     if (needToSendDisconnectMsg && socketFD >= 0) {
         close(socketFD);
         socketFD = -1;
     } else if (!needToSendDisconnectMsg && socketFD >= 0) {
         shutdown(socketFD, SHUT_WR);
-        //below logic doesn't work!
+        // below logic doesn't work!
         /*
         char c;
         ssize_t res = recv(socketFD, &c, 1, MSG_PEEK);
@@ -328,89 +331,98 @@ PDBCommunicator::~PDBCommunicator() {
         close(socketFD);
         socketFD = -1;
     }
-    socketClosed =true;
+    socketClosed = true;
 #endif
-
 }
 
 int PDBCommunicator::getSocketFD() {
-   return socketFD;
+    return socketFD;
 }
 
-int16_t PDBCommunicator::getObjectTypeID () {
+int16_t PDBCommunicator::getObjectTypeID() {
 
-        if (!readCurMsgSize) {
-            getSizeOfNextObject ();
-        }
-	return nextTypeID;
+    if (!readCurMsgSize) {
+        getSizeOfNextObject();
+    }
+    return nextTypeID;
 }
 
-size_t PDBCommunicator::getSizeOfNextObject () {
+size_t PDBCommunicator::getSizeOfNextObject() {
 
     // if we have previously gotten the size, just return it
     if (readCurMsgSize) {
         logToMe->debug("getSizeOfNextObject: we've done this before");
-	return msgSize;
+        return msgSize;
     }
 
     // make sure we got enough bytes... if we did not, then error out
     // JIANOTE: we may not receive all the bytes at once, so we need a loop
     int receivedBytes = 0;
     int receivedTotal = 0;
-    int bytesToReceive = (int)(sizeof(int16_t)); 
+    int bytesToReceive = (int)(sizeof(int16_t));
     int retries = 0;
     while (receivedTotal < (int)(sizeof(int16_t))) {
-        if ((receivedBytes = read(socketFD, (char *) ((char *)(&nextTypeID)+receivedTotal*sizeof(char)), bytesToReceive)) < 0) {
-            std :: string errMsg = std::string("PDBCommunicator: could not read next message type") + strerror(errno);
+        if ((receivedBytes = read(socketFD,
+                                  (char*)((char*)(&nextTypeID) + receivedTotal * sizeof(char)),
+                                  bytesToReceive)) < 0) {
+            std::string errMsg =
+                std::string("PDBCommunicator: could not read next message type") + strerror(errno);
             logToMe->error(errMsg);
-            PDB_COUT << errMsg << std :: endl;
+            PDB_COUT << errMsg << std::endl;
             nextTypeID = NoMsg_TYPEID;
             msgSize = 0;
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std ::
+                // endl;
+                // std :: cout << "############################################" << std :: endl;
             } else {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
             }
             socketClosed = true;
             return 0;
-         } else if (receivedBytes == 0) {
-            logToMe->info("PDBCommunicator: the other side closed the socket when we try to read the type");
+        } else if (receivedBytes == 0) {
+            logToMe->info(
+                "PDBCommunicator: the other side closed the socket when we try to read the type");
             nextTypeID = NoMsg_TYPEID;
-            PDB_COUT << "PDBCommunicator: the other side closed the socket when we try to get next type" << std :: endl;
+            PDB_COUT
+                << "PDBCommunicator: the other side closed the socket when we try to get next type"
+                << std::endl;
 
-            //if (retries < MAX_RETRIES) {
+            // if (retries < MAX_RETRIES) {
             if (retries < 0) {
-                retries ++;
+                retries++;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
-                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover"
+                         << std::endl;
                 continue;
             } else {
-                 if (longConnection) {
-                     //std :: cout << "############################################" << std :: endl;
-                     //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
-                     //std :: cout << "############################################" << std :: endl;
-                 }
-                 close(socketFD);
-                 socketFD = -1;
-                 socketClosed = true;
-                 msgSize = 0;
-                 return 0;
+                if (longConnection) {
+                    // std :: cout << "############################################" << std :: endl;
+                    // std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER
+                    // RETRY" << std :: endl;
+                    // std :: cout << "############################################" << std :: endl;
+                }
+                close(socketFD);
+                socketFD = -1;
+                socketClosed = true;
+                msgSize = 0;
+                return 0;
             }
 
-         } else {
-            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading type is ")+std::to_string(receivedBytes));
+        } else {
+            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading type is ") +
+                          std::to_string(receivedBytes));
             receivedTotal = receivedTotal + receivedBytes;
             bytesToReceive = sizeof(int16_t) - receivedTotal;
-         }
+        }
     }
-    //now we get enough bytes
-    logToMe->trace("PDBCommunicator: typeID of next object is " + std :: to_string (nextTypeID));
+    // now we get enough bytes
+    logToMe->trace("PDBCommunicator: typeID of next object is " + std::to_string(nextTypeID));
     logToMe->trace("PDBCommunicator: getting the size of the next object:");
 
     // make sure we got enough bytes... if we did not, then error out
@@ -419,61 +431,70 @@ size_t PDBCommunicator::getSizeOfNextObject () {
     bytesToReceive = (int)(sizeof(size_t));
     retries = 0;
     while (receivedTotal < (int)(sizeof(size_t))) {
-        if ((receivedBytes = read(socketFD, (char *) ((char *)(&msgSize)+receivedTotal*sizeof(char)), bytesToReceive)) <  0) {
-            std :: string errMsg = "PDBCommunicator: could not read next message size:" + std :: to_string(receivedTotal) + strerror(errno);
-            logToMe->error (errMsg);
-            PDB_COUT << errMsg << std :: endl;
+        if ((receivedBytes = read(socketFD,
+                                  (char*)((char*)(&msgSize) + receivedTotal * sizeof(char)),
+                                  bytesToReceive)) < 0) {
+            std::string errMsg = "PDBCommunicator: could not read next message size:" +
+                std::to_string(receivedTotal) + strerror(errno);
+            logToMe->error(errMsg);
+            PDB_COUT << errMsg << std::endl;
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std ::
+                // endl;
+                // std :: cout << "############################################" << std :: endl;
             } else {
-                //std :: cout << "############################################"<< std :: endl;
-                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR"<< std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################"<< std :: endl;
+                // std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR"<< std :: endl;
+                // std :: cout << "############################################" << std :: endl;
             }
             socketClosed = true;
             msgSize = 0;
             return 0;
-        } else if (receivedBytes == 0) { 
-            logToMe->info("PDBCommunicator: the other side closed the socket when we try to get next size");
+        } else if (receivedBytes == 0) {
+            logToMe->info(
+                "PDBCommunicator: the other side closed the socket when we try to get next size");
             nextTypeID = NoMsg_TYPEID;
-            PDB_COUT << "PDBCommunicator: the other side closed the socket when we try to get next size" << std :: endl;
-            //if (retries < MAX_RETRIES) {
+            PDB_COUT
+                << "PDBCommunicator: the other side closed the socket when we try to get next size"
+                << std::endl;
+            // if (retries < MAX_RETRIES) {
             if (retries < 0) {
-                 retries ++;
-                 PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
-                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
-                 continue;
-             } else {
-                 if (longConnection) {
-                     //std :: cout << "############################################" << std :: endl;
-                     //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER RETRIE" << std :: endl;
-                     //std :: cout << "############################################" << std :: endl;
-                 } 
-                 close(socketFD);
-                 socketFD = -1;
-                 socketClosed = true;
-                 msgSize = 0;
-                 return 0;
-             }
+                retries++;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover"
+                         << std::endl;
+                logToMe->info("PDBCommunicator: Retry to see whether network can recover");
+                continue;
+            } else {
+                if (longConnection) {
+                    // std :: cout << "############################################" << std :: endl;
+                    // std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR AFTER
+                    // RETRIE" << std :: endl;
+                    // std :: cout << "############################################" << std :: endl;
+                }
+                close(socketFD);
+                socketFD = -1;
+                socketClosed = true;
+                msgSize = 0;
+                return 0;
+            }
 
-        }
-        else {
-            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading size is ")+std::to_string(receivedBytes));
+        } else {
+            logToMe->info(std::string("PDBCommunicator: receivedBytes for reading size is ") +
+                          std::to_string(receivedBytes));
             receivedTotal = receivedTotal + receivedBytes;
             bytesToReceive = sizeof(size_t) - receivedTotal;
         }
     }
     // OK, we did get enough bytes
-    logToMe->trace("PDBCommunicator: size of next object is " + std :: to_string (msgSize));
+    logToMe->trace("PDBCommunicator: size of next object is " + std::to_string(msgSize));
     readCurMsgSize = true;
     return msgSize;
 }
 
-bool PDBCommunicator::doTheWrite(char *start, char *end) {
+bool PDBCommunicator::doTheWrite(char* start, char* end) {
 
     int retries = 0;
     // and do the write
@@ -484,81 +505,89 @@ bool PDBCommunicator::doTheWrite(char *start, char *end) {
         // make sure they went through
         if (numBytes < 0) {
             logToMe->error("PDBCommunicator: error in socket write");
-	    logToMe->trace("PDBCommunicator: tried to write " + std :: to_string (end - start) + " bytes.\n");
-    	    logToMe->trace("PDBCommunicator: Socket FD is " + std :: to_string (socketFD));
+            logToMe->trace("PDBCommunicator: tried to write " + std::to_string(end - start) +
+                           " bytes.\n");
+            logToMe->trace("PDBCommunicator: Socket FD is " + std::to_string(socketFD));
             logToMe->error(strerror(errno));
-            //if (retries < MAX_RETRIES) {
+            // if (retries < MAX_RETRIES) {
             if (retries < 0) {
-                retries ++;
-                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                retries++;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover"
+                         << std::endl;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
                 continue;
                 continue;
             } else {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO WRITE ERROR AFTER RETRY" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: CONNECTION CLOSED DUE TO WRITE ERROR AFTER RETRY" << std
+                // :: endl;
+                // std :: cout << "############################################" << std :: endl;
                 close(socketFD);
                 socketFD = -1;
                 socketClosed = true;
                 return true;
             }
         } else {
-	    logToMe->trace("PDBCommunicator: wrote " + std :: to_string (numBytes) + " and are " + std :: to_string (end - start - numBytes) + " to go!");
+            logToMe->trace("PDBCommunicator: wrote " + std::to_string(numBytes) + " and are " +
+                           std::to_string(end - start - numBytes) + " to go!");
             start += numBytes;
-	}
+        }
     }
     return false;
 }
 
-bool PDBCommunicator :: doTheRead(char *dataIn) {
+bool PDBCommunicator::doTheRead(char* dataIn) {
 
     if (!readCurMsgSize) {
-        getSizeOfNextObject ();
+        getSizeOfNextObject();
     }
     readCurMsgSize = false;
 
     // now, read the rest of the bytes
-    char *start = dataIn;
-    char *cur = start;
-    
+    char* start = dataIn;
+    char* cur = start;
+
     int retries = 0;
-    while (cur - start < (long) msgSize) {
+    while (cur - start < (long)msgSize) {
 
         ssize_t numBytes = read(socketFD, cur, msgSize - (cur - start));
-        this->logToMe->trace("PDBCommunicator: received bytes: " + std :: to_string (numBytes));
+        this->logToMe->trace("PDBCommunicator: received bytes: " + std::to_string(numBytes));
 
         if (numBytes < 0) {
-            logToMe->error("PDBCommunicator: error reading socket when trying to accept text message");
+            logToMe->error(
+                "PDBCommunicator: error reading socket when trying to accept text message");
             logToMe->error(strerror(errno));
             close(socketFD);
             socketFD = -1;
             if (longConnection) {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: LONG CONNECTION CLOSED DUE TO READ ERROR" << std ::
+                // endl;
+                // std :: cout << "############################################" << std :: endl;
             } else {
-                //std :: cout << "############################################" << std :: endl;
-                //std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
-                //std :: cout << "############################################" << std :: endl;
-            } 
+                // std :: cout << "############################################" << std :: endl;
+                // std :: cout << "WARNING: CONNECTION CLOSED DUE TO READ ERROR" << std :: endl;
+                // std :: cout << "############################################" << std :: endl;
+            }
             socketClosed = true;
             return true;
-        }
-        else if (numBytes == 0) {
+        } else if (numBytes == 0) {
             logToMe->info("PDBCommunicator: the other side closed the socket when we do the read");
-            PDB_COUT << "PDBCommunicator: the other side closed the socket when we doTheRead" << std :: endl;
-            //if (retries < MAX_RETRIES) {
+            PDB_COUT << "PDBCommunicator: the other side closed the socket when we doTheRead"
+                     << std::endl;
+            // if (retries < MAX_RETRIES) {
             if (retries < 0) {
-                retries ++;
+                retries++;
                 logToMe->info("PDBCommunicator: Retry to see whether network can recover");
-                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover" << std :: endl;
+                PDB_COUT << "PDBCommunicator: Retry to see whether network can recover"
+                         << std::endl;
                 continue;
             } else {
                 if (longConnection) {
-                    //std :: cout << "############################################" << std :: endl;
-                    //std :: cout << "WARNING: LONG CONNECTION IS CLOSED DUE TO READ ERROR AFTER RETRY" << std :: endl;
-                    //std :: cout << "############################################" << std :: endl;
+                    // std :: cout << "############################################" << std :: endl;
+                    // std :: cout << "WARNING: LONG CONNECTION IS CLOSED DUE TO READ ERROR AFTER
+                    // RETRY" << std :: endl;
+                    // std :: cout << "############################################" << std :: endl;
                 }
                 close(socketFD);
                 socketFD = -1;
@@ -568,12 +597,13 @@ bool PDBCommunicator :: doTheRead(char *dataIn) {
         } else {
             cur += numBytes;
         }
-        this->logToMe->trace("PDBCommunicator: " + std :: to_string (msgSize - (cur - start)) + " bytes to go!");
+        this->logToMe->trace("PDBCommunicator: " + std::to_string(msgSize - (cur - start)) +
+                             " bytes to go!");
     }
     return false;
 }
 
-//JiaNote: add following functions to enable a stable long connection:
+// JiaNote: add following functions to enable a stable long connection:
 
 bool PDBCommunicator::isSocketClosed() {
     return socketClosed;
@@ -587,11 +617,11 @@ void PDBCommunicator::setLongConnection(bool longConnection) {
     this->longConnection = longConnection;
 }
 
-bool PDBCommunicator::reconnect(std :: string& errMsg) {
+bool PDBCommunicator::reconnect(std::string& errMsg) {
 
     if (needToSendDisconnectMsg == true) {
-      //I can reconnect because I'm a client
-        PDB_COUT << "To reconnect..." << std :: endl;
+        // I can reconnect because I'm a client
+        PDB_COUT << "To reconnect..." << std::endl;
 
         if (socketFD >= 0) {
             close(socketFD);
@@ -601,21 +631,19 @@ bool PDBCommunicator::reconnect(std :: string& errMsg) {
 
         if (isInternet == true) {
 
-            return connectToInternetServer(logToMe, portNumber, serverAddress, errMsg);         
+            return connectToInternetServer(logToMe, portNumber, serverAddress, errMsg);
 
         } else {
 
             return connectToLocalServer(logToMe, fileName, errMsg);
-     
         }
 
-     } else {   
+    } else {
         errMsg = "Can't reconnect because I'm a server";
         logToMe->error(errMsg);
         return true;
-     }
+    }
 }
-
 }
 
 #endif

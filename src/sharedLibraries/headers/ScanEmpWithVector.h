@@ -23,19 +23,17 @@
 #include "EmpWithVector.h"
 
 using namespace pdb;
-class ScanEmpWithVector : public ScanUserSet <EmpWithVector> {
+class ScanEmpWithVector : public ScanUserSet<EmpWithVector> {
 
 public:
-        ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanEmpWithVector () {
-        }
+    ScanEmpWithVector() {}
 
-        ScanEmpWithVector (std :: string dbName, std :: string setName) {
-            setDatabaseName (dbName);
-            setSetName (setName);
-        }
-
+    ScanEmpWithVector(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

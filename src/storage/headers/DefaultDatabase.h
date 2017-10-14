@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   DefaultDatabase.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef DEFAULTDATABASE_H
-#define	DEFAULTDATABASE_H
+#define DEFAULTDATABASE_H
 
 #include "Configuration.h"
 #include "DataTypes.h"
@@ -40,23 +40,29 @@ using namespace std;
 
 // create a smart pointer for DummyDatabase objects
 class DefaultDatabase;
-typedef shared_ptr <DefaultDatabase> DefaultDatabasePtr;
+typedef shared_ptr<DefaultDatabase> DefaultDatabasePtr;
 ;
 
 /**
  * This class implements a DefaultDatabase object, that consists of a set of UserType objects.
  */
-class DefaultDatabase  {
+class DefaultDatabase {
 
 public:
-	/**
-	 * Create a database instance.
-	 */
-    DefaultDatabase(NodeID nodeId, DatabaseID dbId, string dbName, ConfigurationPtr conf,
-            pdb :: PDBLoggerPtr logger, SharedMemPtr shm, string metaDBPath,
-			vector<string>* dataDBPaths, PageCachePtr cache, PageCircularBufferPtr flushBuffer);
+    /**
+     * Create a database instance.
+     */
+    DefaultDatabase(NodeID nodeId,
+                    DatabaseID dbId,
+                    string dbName,
+                    ConfigurationPtr conf,
+                    pdb::PDBLoggerPtr logger,
+                    SharedMemPtr shm,
+                    string metaDBPath,
+                    vector<string>* dataDBPaths,
+                    PageCachePtr cache,
+                    PageCircularBufferPtr flushBuffer);
     ~DefaultDatabase();
-
 
 
     /**
@@ -111,11 +117,10 @@ public:
     /**
      * Get all types
      */
-    map<UserTypeID, TypePtr> * getTypes();
+    map<UserTypeID, TypePtr>* getTypes();
 
 
 protected:
-
     /**
      * Load a type instance to the database from SequenceFile instances.
      */
@@ -138,21 +143,18 @@ protected:
 
 private:
     ConfigurationPtr conf;
-    map<UserTypeID, TypePtr> * types;
+    map<UserTypeID, TypePtr>* types;
     string dbName;
     DatabaseID dbId;
     NodeID nodeId;
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger;
     pthread_mutex_t typeOpLock;
     string metaDBPath;
-    vector<string> * dataDBPaths;
+    vector<string>* dataDBPaths;
     SharedMemPtr shm;
     PageCachePtr cache;
     PageCircularBufferPtr flushBuffer;
-
 };
 
 
-
-#endif	/* DEFAULTDATABASE_H */
-
+#endif /* DEFAULTDATABASE_H */

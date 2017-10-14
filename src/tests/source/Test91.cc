@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_OBJECTS 12000 
+#define NUM_OBJECTS 12000
 
 #include <cstddef>
 #include <iostream>
@@ -43,14 +43,13 @@ using namespace pdb;
 
 void myFunc(String myIp) {
     String ip = myIp;
-    String nodeAddress = std :: string(ip)+":8108";
-    std :: cout << "ip in myFunc is " << ip << std :: endl;
-    std :: cout << "nodeAddress in myFunc is " << nodeAddress << std :: endl;
+    String nodeAddress = std::string(ip) + ":8108";
+    std::cout << "ip in myFunc is " << ip << std::endl;
+    std::cout << "nodeAddress in myFunc is " << nodeAddress << std::endl;
 }
 
-int main () {
-    std :: string input = "localhost";
+int main() {
+    std::string input = "localhost";
     String ip = String(input);
     myFunc(ip);
 }
-	

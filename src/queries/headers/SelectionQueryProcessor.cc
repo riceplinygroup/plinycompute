@@ -25,95 +25,94 @@
 namespace pdb {
 
 template <class Output, class Input>
-SelectionQueryProcessor <Output, Input> :: SelectionQueryProcessor (Selection <Output, Input> &forMe) {
+SelectionQueryProcessor<Output, Input>::SelectionQueryProcessor(Selection<Output, Input>& forMe) {
 
-	// get a copy of the lambdas for query processing
-	selectionPred = forMe.getSelection (inputObject);
-	projection = forMe.getProjection (inputObject);
-	finalized = false;
+    // get a copy of the lambdas for query processing
+    selectionPred = forMe.getSelection(inputObject);
+    projection = forMe.getProjection(inputObject);
+    finalized = false;
 }
 
 // no need to do anything
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: initialize () {
-	selectionFunc = selectionPred.getFunc ();
-	projectionFunc = projection.getFunc ();
+void SelectionQueryProcessor<Output, Input>::initialize() {
+    selectionFunc = selectionPred.getFunc();
+    projectionFunc = projection.getFunc();
 }
 
 // loads up another input page to process
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProcess)
-{
-	Record <Vector <Handle <Input>>> *myRec = (Record <Vector <Handle <Input>>> *) pageToProcess;
-	inputVec = myRec->getRootObject ();
-	posInInput = 0;
+void SelectionQueryProcessor<Output, Input>::loadInputPage(void* pageToProcess) {
+    Record<Vector<Handle<Input>>>* myRec = (Record<Vector<Handle<Input>>>*)pageToProcess;
+    inputVec = myRec->getRootObject();
+    posInInput = 0;
 }
 
 // load up another output page to process
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) {
+void SelectionQueryProcessor<Output, Input>::loadOutputPage(void* pageToWriteTo,
+                                                            size_t numBytesInPage) {
 
-	// kill the old allocation block
-	blockPtr = nullptr;
+    // kill the old allocation block
+    blockPtr = nullptr;
 
-	// create the new one
-	blockPtr = std :: make_shared <UseTemporaryAllocationBlock> (pageToWriteTo, numBytesInPage);
+    // create the new one
+    blockPtr = std::make_shared<UseTemporaryAllocationBlock>(pageToWriteTo, numBytesInPage);
 
-	// and here's where we write the ouput to
-	outputVec = makeObject <Vector <Handle <Output>>> (10);
+    // and here's where we write the ouput to
+    outputVec = makeObject<Vector<Handle<Output>>>(10);
 }
 
 template <class Output, class Input>
-bool SelectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
-		
-	Vector <Handle <Input>> &myInVec = *(inputVec);
-	Vector <Handle <Output>> &myOutVec = *(outputVec);
+bool SelectionQueryProcessor<Output, Input>::fillNextOutputPage() {
 
-	// if we are finalized, see if there are some left over records
-	if (finalized) {
-		getRecord (outputVec);
-		return false;
-	}
+    Vector<Handle<Input>>& myInVec = *(inputVec);
+    Vector<Handle<Output>>& myOutVec = *(outputVec);
 
-	// we are not finalized, so process the page
-	try {
-		int vecSize = myInVec.size ();
-		for (; posInInput < vecSize; posInInput++) {
-			inputObject = myInVec[posInInput];
-			if (selectionFunc ()) {
-				myOutVec.push_back (projectionFunc ());	
-			}
-		}	
+    // if we are finalized, see if there are some left over records
+    if (finalized) {
+        getRecord(outputVec);
+        return false;
+    }
 
-		return false;
+    // we are not finalized, so process the page
+    try {
+        int vecSize = myInVec.size();
+        for (; posInInput < vecSize; posInInput++) {
+            inputObject = myInVec[posInInput];
+            if (selectionFunc()) {
+                myOutVec.push_back(projectionFunc());
+            }
+        }
 
-	} catch (NotEnoughSpace &n) {
-		
-		getRecord (outputVec);
-		return true;
-	}
+        return false;
+
+    } catch (NotEnoughSpace& n) {
+
+        getRecord(outputVec);
+        return true;
+    }
 }
 
 // must be called repeately after all of the input pages have been sent in...
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: finalize () {
-	finalized = true;
+void SelectionQueryProcessor<Output, Input>::finalize() {
+    finalized = true;
 }
 
 // must be called before freeing the memory in output page
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: clearOutputPage () {
-        blockPtr = nullptr;
-        outputVec = nullptr;
+void SelectionQueryProcessor<Output, Input>::clearOutputPage() {
+    blockPtr = nullptr;
+    outputVec = nullptr;
 }
 
 // must be called before freeing the memory in input page
 template <class Output, class Input>
-void SelectionQueryProcessor <Output, Input> :: clearInputPage () {
-        inputObject = nullptr;
-        inputVec = nullptr;
+void SelectionQueryProcessor<Output, Input>::clearInputPage() {
+    inputObject = nullptr;
+    inputVec = nullptr;
 }
-
 }
 
 #endif

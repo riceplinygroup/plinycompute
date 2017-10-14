@@ -31,25 +31,22 @@ namespace pdb {
 class CatDeleteDatabaseRequest : public Object {
 
 public:
+    ~CatDeleteDatabaseRequest() {}
+    CatDeleteDatabaseRequest() {}
+    CatDeleteDatabaseRequest(std::string dbName) : dbName(dbName) {}
+    CatDeleteDatabaseRequest(const Handle<CatDeleteDatabaseRequest>& requestToCopy) {
+        dbName = requestToCopy->dbName;
+    }
 
-	~CatDeleteDatabaseRequest () {}
-	CatDeleteDatabaseRequest () {}
-	CatDeleteDatabaseRequest (std :: string dbName) : dbName (dbName) {}
-	CatDeleteDatabaseRequest(const Handle<CatDeleteDatabaseRequest>& requestToCopy) {
-		dbName = requestToCopy->dbName;
-	}
+    std::string dbToDelete() {
+        return dbName;
+    }
 
-	std :: string dbToDelete () {
-		return dbName;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dbName;
+    String dbName;
 };
-
 }
 
 #endif

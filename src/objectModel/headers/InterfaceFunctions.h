@@ -29,9 +29,12 @@
 
 namespace pdb {
 
-template <class ObjType> class RefCountedObject;
-template <class ObjType> class Record;
-template <class ObjType> class Handle;
+template <class ObjType>
+class RefCountedObject;
+template <class ObjType>
+class Record;
+template <class ObjType>
+class Handle;
 
 // The way that the whole object infrastructure works is that all Objects are
 // allocated using the Allocator class.  The Allocator class has a notion of
@@ -39,7 +42,7 @@ template <class ObjType> class Handle;
 // happen from.  There is only one active "current allocation block".  This
 // block is set up using the makeObjectAllocatorBlock () function.
 //
-// When makeObjectAllocatorBlock () is called many times in succession, it 
+// When makeObjectAllocatorBlock () is called many times in succession, it
 // causes the allocation blocks that used to be active to become inactive.
 // Whenever an inactive allocation block has no more reachable objects in it,
 // it is automatically deallocated, so the user never has to worry about memory
@@ -56,11 +59,11 @@ template <class ObjType> class Handle;
 //
 // What will happen here is that before the loop, we'll have created an
 // allocation block.  In the zero'th iteration of the loop, myEmp and foo
-// will be written to that block.  
+// will be written to that block.
 //
 // At the call to makeObjectAllocatorBlock () at the end of the loop, the
-// current, active allocation block (storing myEmp and foo) becomes inactive.  
-// At the end of the loop, the destructors for myEmp and foo are called.  
+// current, active allocation block (storing myEmp and foo) becomes inactive.
+// At the end of the loop, the destructors for myEmp and foo are called.
 // This causes that inactive block to have no reachable objects, so it is
 // automatically deleted.
 //
@@ -70,46 +73,46 @@ template <class ObjType> class Handle;
 //
 // The result of all of this is that after the loop executes, there will
 // be no remaining inactive allocation blocks; just a single active block
-// (the last one created) and that block will have no Objects stored in 
+// (the last one created) and that block will have no Objects stored in
 // it.
 //
 // The first parameter to makeObjectAllocatorBlock (1024, false) is the number of bytes to
 // allocate to write objects to.  The second parameter is how to handle makeObject ()
-// calls that fail due to lack of memory.  If throwExceptionOnFail == true, then an 
+// calls that fail due to lack of memory.  If throwExceptionOnFail == true, then an
 // exception is thrown when an allocate fails.  If throwExceptionOnFail == false, then
-// the resulting object will be equal to the nullptr constant.  
+// the resulting object will be equal to the nullptr constant.
 //
-// Note that while using exceptions are a bit of a pain in the arse, it is MUCH safer 
+// Note that while using exceptions are a bit of a pain in the arse, it is MUCH safer
 // to use throwExceptionOnFail == true as oppsed to == false.  The reason is that
 // it is easily for operations (such as deep copies to the allocation block) to run out
-// of RAM half way through, in a way that is not transparent to th user.  If this 
+// of RAM half way through, in a way that is not transparent to th user.  If this
 // happens, the ultimate return val may be OK, but there can be null pointers embedded in
 // the middle of the object, and it is going to be difficult to discover this until it is
 // too late.  It is recommended that throwExceptionOnFail == false be used primarily
 // in simple cases where the allocation block is going to be used to build a small set
 // of fixed-sized objects that one is sure are going to fit in the block.
-// 
-void makeObjectAllocatorBlock (size_t numBytesIn, bool throwExceptionOnFail);
+//
+void makeObjectAllocatorBlock(size_t numBytesIn, bool throwExceptionOnFail);
 
 // This is just like the above function, except that the allocation block is allocated
 // by the programmer.  As a result, it is NOT automatically freed once the count of
-// the number of objects in the block goes to zero.  After the next call to 
+// the number of objects in the block goes to zero.  After the next call to
 // makeObjectAllocatorBlock () the Allocator will "forget" about the block completely.
 // The caller is ultimately responsible for freeing the block.
-void makeObjectAllocatorBlock (void *spaceToUse, size_t numBytesIn, bool throwExceptionOnFail);
+void makeObjectAllocatorBlock(void* spaceToUse, size_t numBytesIn, bool throwExceptionOnFail);
 
 // this gets a count of the total number of free bytes available in the current
 // allocation block.
-size_t getBytesAvailableInCurrentAllocatorBlock  ();
+size_t getBytesAvailableInCurrentAllocatorBlock();
 
 // this gets a count of the current number of individual, active objects that
 // are present in the current allocation block
-unsigned getNumObjectsInCurrentAllocatorBlock  ();
+unsigned getNumObjectsInCurrentAllocatorBlock();
 
 
 // this removes all references to all objects in the block containing forMe, and
 // it deallocates the block if needed
-void emptyOutContainingBlock (void *forMe);
+void emptyOutContainingBlock(void* forMe);
 
 
 // this gets a count of the current number of individual, active objects that
@@ -122,11 +125,11 @@ void emptyOutContainingBlock (void *forMe);
 // a zero.  The only other way that the result of the call can be a zero is
 // if the Handle forMe is equl to a nullptr.
 template <class ObjType>
-unsigned getNumObjectsInHomeAllocatorBlock (Handle <ObjType> &forMe);
+unsigned getNumObjectsInHomeAllocatorBlock(Handle<ObjType>& forMe);
 
 // like the above, except that it finds the number of objects in the block
 // that contains the specified pointer
-unsigned getNumObjectsInAllocatorBlock (void *forMe);
+unsigned getNumObjectsInAllocatorBlock(void* forMe);
 
 // creates and returns a RefCountedObject that is located in the current
 // allocation block.  This RefCountedObject can be converted into a handle
@@ -139,19 +142,19 @@ unsigned getNumObjectsInAllocatorBlock (void *forMe);
 // Handle <Supervisor> mySup;
 // Supervisor temp (134, 124.5, myEmp); // allocate temp on the stack
 // mySup = getHandle <Supervisor> (temp);
-// 
+//
 // Note that, just like the rest of these operations, you can use getHandle ()
 // and not worry about where the various objects are allocated.  They will be
 // copied and moved around as needed.  So you can allocate an object on the stack,
 // get a Handle to it (as above) and then later assign that Handle to a handle
-// that is located in an object Obj in the current allocation block... in this 
+// that is located in an object Obj in the current allocation block... in this
 // case, a deep copy will be performed, as needed, so that all handles in Obj
 // will point only to Objects located in the current allocation block.
 //
-template <class ObjType> 
-RefCountedObject <ObjType> *getHandle (ObjType &forMe);
+template <class ObjType>
+RefCountedObject<ObjType>* getHandle(ObjType& forMe);
 
-// makes an object, allocating it in the current allocation block, 
+// makes an object, allocating it in the current allocation block,
 // and returns a handle to it.  On failure (not enough RAM) the resulting
 // handle == nullptr if the allocator is set up not to throw an exception,
 // and an exception is thrown if it is set up this way.
@@ -166,17 +169,17 @@ RefCountedObject <ObjType> *getHandle (ObjType &forMe);
 // as long as A is a subclass of B.
 //
 template <class ObjType, class... Args>
-RefCountedObject <ObjType> *makeObject (Args&&... args);
+RefCountedObject<ObjType>* makeObject(Args&&... args);
 
 // This is just like the above function, but here the first param to
 // makeObjectWithExtraStorage is the number of bytes to pad the object
 // with at the end.  This is useful when you want additional storage at
 // the end of the object, but it is not clear at compile time how much
-// you will need... it is used, for example, to implement the Vector 
+// you will need... it is used, for example, to implement the Vector
 // class where we want an Object with a bunch of extra storage at the
 // end that stores the Vector's data
 template <class ObjType, class... Args>
-RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... args);
+RefCountedObject<ObjType>* makeObjectWithExtraStorage(size_t extra, Args&&... args);
 
 // This gets a raw, bytewise representation of an object from a Handle.  This
 // call is always executed in constant time, so it is fast.  The resulting bytes
@@ -206,31 +209,31 @@ RefCountedObject <ObjType> *makeObjectWithExtraStorage (size_t extra, Args&&... 
 // A nullptr is returned on an error.
 //
 // While this is super-fast (the call to getRecord runs in constant
-// time, regardless of the size of the underlying object), there are 
+// time, regardless of the size of the underlying object), there are
 // three important caveats:
 //
 // (1) The callee does not own the resulting Record <ObjType> *.
-//     It will be deallocated automatically.  In particular, 
+//     It will be deallocated automatically.  In particular,
 //     if the destructor for Handle <ObjType> &forMe is called,
 //     or forMe is assigned to new value at a later time,
 //     then the resulting Record <ObjType> *can be made invalid.
 //     Also, a second call to getRecord () can make the resulting
 //     Record <ObjType> * invalid.  However, as long as forMe
-//     is not destructed or modified, the resulting 
+//     is not destructed or modified, the resulting
 //     Record <ObjType> * will be valid.
 //
-// (2) There can be a lot of garbage inside of the resulting 
+// (2) There can be a lot of garbage inside of the resulting
 //     Record <ObjType> *.  In particular, everything that was
 //     allocated using the same allocator as forMe will also be
 //     contained in the result of the call.  So while this is fast,
 //     it can be space-inefficient.
 //
 // (3) This method will fail (return a null pointer) if the object
-//     pointed to by forMe is not housed in an allocation block 
+//     pointed to by forMe is not housed in an allocation block
 //     managed by the Allocator associated with this thread.
 //
-template <class ObjType> 
-Record <ObjType> *getRecord (Handle <ObjType> &forMe);
+template <class ObjType>
+Record<ObjType>* getRecord(Handle<ObjType>& forMe);
 
 // This is like Record <ObjType> *getRecord (Handle <ObjType> &forMe)
 // except that the bytes for the object pointed to by forMe are actually
@@ -247,18 +250,18 @@ Record <ObjType> *getRecord (Handle <ObjType> &forMe);
 // allocator.
 //
 template <class ObjType>
-Record <ObjType> *getRecord (Handle <ObjType> &forMe, void *putMeHere, size_t numBytesAvailable);
+Record<ObjType>* getRecord(Handle<ObjType>& forMe, void* putMeHere, size_t numBytesAvailable);
 
 // this gets the type ID that the system has assigned to this particular type
 template <class ObjType>
-int16_t getTypeID ();
+int16_t getTypeID();
 
 // this performs a cast whose safety is not verifiable at compile time---note
 // that because of difficulties stemming from the use of shared libraries,
 // it is not possible to verify the correctness of the cast at runtime, either.
 // So use this operation CAREFULLY!!
 template <class OutObjType, class InObjType>
-Handle <OutObjType> unsafeCast (Handle <InObjType> &castMe);
+Handle<OutObjType> unsafeCast(Handle<InObjType>& castMe);
 /*
 template <class TargetType>
 class Holder : public Object{
@@ -268,11 +271,10 @@ class Holder : public Object{
 };
 */
 
-//To facilitate deep copy, even in case copyMe is of an abstract class
-//added by Jia based on Chris' proposal
+// To facilitate deep copy, even in case copyMe is of an abstract class
+// added by Jia based on Chris' proposal
 template <class TargetType>
-Handle <TargetType> deepCopyToCurrentAllocationBlock (Handle <TargetType> &copyMe); 
-
+Handle<TargetType> deepCopyToCurrentAllocationBlock(Handle<TargetType>& copyMe);
 }
 
 #include "InterfaceFunctions.cc"

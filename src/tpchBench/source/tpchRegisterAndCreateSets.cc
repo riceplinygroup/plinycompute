@@ -91,111 +91,105 @@ using namespace std;
 
 
 #define KB 1024
-#define MB (1024*KB)
-#define GB (1024*MB)
+#define MB (1024 * KB)
+#define GB (1024 * MB)
 
-#define BLOCKSIZE (256*MB)
+#define BLOCKSIZE (256 * MB)
 
-int main(int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
 
-	// Connection info
-	string masterHostname = "localhost";
-	int masterPort = 8108;
+    // Connection info
+    string masterHostname = "localhost";
+    int masterPort = 8108;
 
-	// register the shared employee class
-	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+    // register the shared employee class
+    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
-	pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
+    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
+        masterPort, masterHostname, clientLogger);
+    pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
 
-	string errMsg;
+    string errMsg;
 
-	cout << "Register Types Part, Supplier, LineItem, Order, Customer \n";
-	if (!catalogClient.registerType("libraries/libPart.so", errMsg))
-		cout << "Not able to register libPart type.\n";
+    cout << "Register Types Part, Supplier, LineItem, Order, Customer \n";
+    if (!catalogClient.registerType("libraries/libPart.so", errMsg))
+        cout << "Not able to register libPart type.\n";
 
-	if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
-		cout << "Not able to register libSupplier type.\n";
+    if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
+        cout << "Not able to register libSupplier type.\n";
 
-	if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
-		cout << "Not able to register libLineItem type.\n";
+    if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
+        cout << "Not able to register libLineItem type.\n";
 
-	if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
-		cout << "Not able to register libOrder type.\n";
+    if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
+        cout << "Not able to register libOrder type.\n";
 
-	if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
-		cout << "Not able to register libCustomer type.\n";
+    if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
+        cout << "Not able to register libCustomer type.\n";
 
-	cout << errMsg << endl;
-
-
-
-	// now, create a new database
-	if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
-		cout << "Not able to create database: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created TPCH_db database.\n";
-	}
-
-	// now, create the sets for storing Customer Data
-	if (!distributedStorageManagerClient.createSet<Customer>("TPCH_db", "tpch_bench_set1", errMsg)) {
-		cout << "Not able to create set: " + errMsg;
-		exit(-1);
-	} else {
-		cout << "Created tpch_bench_set1  set.\n";
-	}
+    cout << errMsg << endl;
 
 
+    // now, create a new database
+    if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
+        cout << "Not able to create database: " + errMsg;
+        exit(-1);
+    } else {
+        cout << "Created TPCH_db database.\n";
+    }
 
-	cout << "Register further Types ... \n";
-
-
-	if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
-		cout << "Not able to register type libSumResultWriteSet.\n";
-
-	if (!catalogClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
-		cout << "Not able to register type libCustomerWriteSet.\n";
-
-	if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
-		cout << "Not able to register type libScanCustomerSet. \n";
-
-	if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
-		cout << "Not able to register type libCustomerMapSelection. \n";
-
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
-		cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
-
-	if (!catalogClient.registerType("libraries/libSupplierInfo.so", errMsg))
-		cout << "Not able to register type  libSupplierInfo\n";
-
-	if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
-		cout << "Not able to register type  libCustomerSupplierPartFlat\n";
-
-	if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
-		cout << "Not able to register type  libCountAggregation\n";
-
-	if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
-		cout << "Not able to register type  libCountCustomer\n";
-
-        if (!catalogClient.registerType("libraries/libSupplierInfoWriteSet.so", errMsg))
-                cout << "Not able to register type libSupplierInfoWriteSet\n";
-
-	cout << errMsg << endl;
+    // now, create the sets for storing Customer Data
+    if (!distributedStorageManagerClient.createSet<Customer>(
+            "TPCH_db", "tpch_bench_set1", errMsg)) {
+        cout << "Not able to create set: " + errMsg;
+        exit(-1);
+    } else {
+        cout << "Created tpch_bench_set1  set.\n";
+    }
 
 
+    cout << "Register further Types ... \n";
 
 
+    if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
+        cout << "Not able to register type libSumResultWriteSet.\n";
 
-	// Clean up the SO files.
-	int code = system("scripts/cleanupSoFiles.sh");
-	if (code < 0) {
+    if (!catalogClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
+        cout << "Not able to register type libCustomerWriteSet.\n";
 
-		std::cout << "Can't cleanup so files" << std::endl;
+    if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
+        cout << "Not able to register type libScanCustomerSet. \n";
 
-	}
+    if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+        cout << "Not able to register type libCustomerMapSelection. \n";
 
+    if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
+        cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
+
+    if (!catalogClient.registerType("libraries/libSupplierInfo.so", errMsg))
+        cout << "Not able to register type  libSupplierInfo\n";
+
+    if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
+        cout << "Not able to register type  libCustomerSupplierPartFlat\n";
+
+    if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
+        cout << "Not able to register type  libCountAggregation\n";
+
+    if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
+        cout << "Not able to register type  libCountCustomer\n";
+
+    if (!catalogClient.registerType("libraries/libSupplierInfoWriteSet.so", errMsg))
+        cout << "Not able to register type libSupplierInfoWriteSet\n";
+
+    cout << errMsg << endl;
+
+
+    // Clean up the SO files.
+    int code = system("scripts/cleanupSoFiles.sh");
+    if (code < 0) {
+
+        std::cout << "Can't cleanup so files" << std::endl;
+    }
 }
 
 #endif
-

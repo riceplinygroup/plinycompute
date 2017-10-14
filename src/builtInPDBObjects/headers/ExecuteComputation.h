@@ -30,30 +30,26 @@ namespace pdb {
 class ExecuteComputation : public Object {
 
 public:
+    ExecuteComputation() {}
+    ~ExecuteComputation() {}
 
-	ExecuteComputation () {}
-	~ExecuteComputation () {}
+    ExecuteComputation(std::string tcapString) {
+        this->tcapString = tcapString;
+    }
 
-        ExecuteComputation (std :: string tcapString) {
-            this->tcapString = tcapString;
-        }
+    void setTCAPString(std::string tcapString) {
+        this->tcapString = tcapString;
+    }
 
-        void setTCAPString (std :: string tcapString) {
-            this->tcapString = tcapString;
-        }
+    std::string getTCAPString() {
+        return tcapString;
+    }
 
-        std :: string getTCAPString () {
-            return tcapString;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-        String tcapString;
-
+    String tcapString;
 };
-
 }
 
 #endif

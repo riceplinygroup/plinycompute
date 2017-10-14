@@ -22,6 +22,6 @@
 #include "LASillyColMaxAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyColMaxAggregate)
+GET_V_TABLE(LASillyColMaxAggregate)
 
 #endif

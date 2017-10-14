@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PageCircularBuffer.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PAGECIRCULARBUFFER_H
-#define	PAGECIRCULARBUFFER_H
+#define PAGECIRCULARBUFFER_H
 
 #include "PDBPage.h"
 #include "PDBLogger.h"
@@ -36,12 +36,13 @@ typedef shared_ptr<PageCircularBuffer> PageCircularBufferPtr;
 /**
  * This class implements a concurrent blocking circular buffer for producer-consumer problems.
  * The consumer threads will wait until there are pages available in the buffer.
- * The producer threads will wait until there are rooms available in the buffer to push back new pages.
+ * The producer threads will wait until there are rooms available in the buffer to push back new
+ * pages.
  */
 
 class PageCircularBuffer {
 public:
-    PageCircularBuffer(unsigned int bufferSize, pdb :: PDBLoggerPtr logger);
+    PageCircularBuffer(unsigned int bufferSize, pdb::PDBLoggerPtr logger);
     ~PageCircularBuffer();
 
     /**
@@ -79,9 +80,9 @@ public:
      */
     void close();
 
-   /**
-     * Open the buffer.
-     */
+    /**
+      * Open the buffer.
+      */
     void open();
 
 
@@ -93,11 +94,10 @@ public:
     }
 
 protected:
-
     /**
      * Return the page array used to construct the concurrent blocking circular buffer.
      */
-    PDBPagePtr * getPageArray() {
+    PDBPagePtr* getPageArray() {
         return pageArray;
     }
 
@@ -128,8 +128,8 @@ protected:
     int initArray();
 
 private:
-    PDBPagePtr * pageArray;
-    pdb :: PDBLoggerPtr logger;
+    PDBPagePtr* pageArray;
+    pdb::PDBLoggerPtr logger;
     unsigned int maxArraySize;
     unsigned int pageArrayHead;
     unsigned int pageArrayTail;
@@ -137,10 +137,7 @@ private:
     pthread_mutex_t addPageMutex;
     pthread_cond_t cond;
     bool closed;
-
 };
 
 
-
-#endif	/* PAGECIRCULARBUFFER_H */
-
+#endif /* PAGECIRCULARBUFFER_H */

@@ -22,10 +22,9 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void runBuildTcapBuilderTests(UnitTest &qunit);
+namespace pdb_tests {
+void runBuildTcapBuilderTests(UnitTest& qunit);
 }
 
 
-#endif //PDB_TCAPINTERMEDIARYREPTESTS_TCAPBUILDERTESTSRUNNER_H
+#endif  // PDB_TCAPINTERMEDIARYREPTESTS_TCAPBUILDERTESTSRUNNER_H

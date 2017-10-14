@@ -24,7 +24,7 @@
 #include <iostream>
 namespace pdb {
 
-void PDBWork::execute(PDBWorkerQueue *parentIn, PDBBuzzerPtr callerBuzzer) {
+void PDBWork::execute(PDBWorkerQueue* parentIn, PDBBuzzerPtr callerBuzzer) {
     parent = parentIn;
     execute(callerBuzzer);
 }
@@ -38,10 +38,7 @@ PDBLoggerPtr PDBWork::getLogger() {
 }
 
 PDBBuzzerPtr PDBWork::getLinkedBuzzer() {
-    return {make_shared <PDBBuzzer> ([] (PDBAlarm myAlarm) {})};
+    return {make_shared<PDBBuzzer>([](PDBAlarm myAlarm) {})};
 }
-
 }
 #endif
-
-

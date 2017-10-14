@@ -26,17 +26,16 @@
 // By Binhang, May 2017
 
 using namespace pdb;
-class LAScanMatrixBlockSet : public ScanUserSet <MatrixBlock> {
+class LAScanMatrixBlockSet : public ScanUserSet<MatrixBlock> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-    LAScanMatrixBlockSet () {
-    }
+    LAScanMatrixBlockSet() {}
 
-    LAScanMatrixBlockSet (std :: string dbName, std :: string setName) {
-        setDatabaseName( dbName );
-        setSetName ( setName );
+    LAScanMatrixBlockSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
     }
 };
 

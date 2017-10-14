@@ -20,37 +20,36 @@
 #include "LAParser.h"
 #include "LAStatementsList.h"
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
 
-int main(int argc, char **argv){
-	
-	if (argc==2){
-		FILE * targetCode = fopen(argv[1],"r");
-		if(!targetCode){
-			std::cout<< "No such file ! <" << argv[1] << ">" << std::endl;
-			return -1;
-		}
-		
-		LAscan_t myscanner;
+int main(int argc, char** argv) {
 
-		LAlex_init(&myscanner);
+    if (argc == 2) {
+        FILE* targetCode = fopen(argv[1], "r");
+        if (!targetCode) {
+            std::cout << "No such file ! <" << argv[1] << ">" << std::endl;
+            return -1;
+        }
 
-		LAset_in(targetCode,myscanner);
+        LAscan_t myscanner;
 
-		std:: cout <<"Get started to parse the file!" << std::endl;
+        LAlex_init(&myscanner);
 
-		LAStatementsList * myStatements = new LAStatementsList();
+        LAset_in(targetCode, myscanner);
 
-		LAparse(myscanner,&myStatements);
+        std::cout << "Get started to parse the file!" << std::endl;
 
-		LAlex_destroy(myscanner);
+        LAStatementsList* myStatements = new LAStatementsList();
 
-		std::cout<<"Parsing Done" <<std::endl;
+        LAparse(myscanner, &myStatements);
 
-		for(int i=0; i<myStatements->size();i++){
-			std::cout << myStatements->get(i)->toString() << std::endl;
-		}
-	}
+        LAlex_destroy(myscanner);
+
+        std::cout << "Parsing Done" << std::endl;
+
+        for (int i = 0; i < myStatements->size(); i++) {
+            std::cout << myStatements->get(i)->toString() << std::endl;
+        }
+    }
 }
-

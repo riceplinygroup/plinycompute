@@ -29,7 +29,8 @@
 // 	RequestType: the type of object to create to send over the wire
 //	ResponseType: the type of object we expect to receive over the wire
 //	ReturnType: the type we will return to the caller
-//	RequestTypeParams: type of the params to use for the contructor to the object we send over the wre
+//	RequestTypeParams: type of the params to use for the contructor to the object we send over the
+//wre
 //
 // The params are:
 //	myLogger: The logger we write error messages to
@@ -43,10 +44,15 @@
 
 namespace pdb {
 
-template <class RequestType, class ResponseType, class ReturnType, class ...RequestTypeParams>
-ReturnType compositeRequest (PDBLoggerPtr myLogger, int port, std :: string address, ReturnType onErr, size_t bytesForRequest, 
-	function <ReturnType (Handle <ResponseType>, PDBCommunicator)> processResponse, RequestTypeParams&&... args);
-
+template <class RequestType, class ResponseType, class ReturnType, class... RequestTypeParams>
+ReturnType compositeRequest(
+    PDBLoggerPtr myLogger,
+    int port,
+    std::string address,
+    ReturnType onErr,
+    size_t bytesForRequest,
+    function<ReturnType(Handle<ResponseType>, PDBCommunicator)> processResponse,
+    RequestTypeParams&&... args);
 }
 
 #endif

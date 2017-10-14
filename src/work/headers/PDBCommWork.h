@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBCommWork.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBCOMMWORK_H
-#define	PDBCOMMWORK_H
+#define PDBCOMMWORK_H
 
 #include <memory>
 #include "PDBWork.h"
@@ -35,8 +35,7 @@
 namespace pdb {
 
 class PDBCommWork;
-typedef std :: shared_ptr <PDBCommWork> PDBCommWorkPtr;
-
+typedef std::shared_ptr<PDBCommWork> PDBCommWorkPtr;
 }
 // create a smart pointer for PDBCommWork objects
 #include <pthread.h>
@@ -47,7 +46,6 @@ namespace pdb {
 
 class PDBCommWork : public PDBWork {
 public:
-
     // gets a new worker of this type and returns it
     virtual PDBCommWorkPtr clone() = 0;
 
@@ -66,12 +64,9 @@ public:
 
 
 private:
-
     // this is responsible for talking over the network
     PDBCommunicatorPtr myCommunicator;
 };
-
 }
 
-#endif	/* PDBCOMMWORK_H */
-
+#endif /* PDBCOMMWORK_H */

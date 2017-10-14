@@ -24,132 +24,131 @@
 namespace pdb {
 
 // this lists the differenet LambdaType classes
-template <typename T> class PlusOp : public LambdaType <T> {
+template <typename T>
+class PlusOp : public LambdaType<T> {
 
-	Lambda <T> leftLambda;
-	Lambda <T> rightLambda;
-
-public:
-
-	~PlusOp () {}
-
-	void addParam (Handle <Object> &addMe) {
-		cout << "Bad: why add a param to a plus?\n";
-	}
-
-	std :: string toString () {
-		return "(" + leftLambda.toString () + " + " + rightLambda.toString () + ")";
-	}
-	
-	PlusOp (Lambda <T> leftLambda, Lambda <T> rightLambda) : leftLambda (leftLambda), rightLambda (rightLambda)   {
-	}
-
-	std :: function <T ()> getFunc () {
-		std :: function <T ()> left = leftLambda.getFunc ();
-		std :: function <T ()> right = rightLambda.getFunc ();
-		return [=] {return left () + right ();};
-	}
-
-	FuncType getType () {
-		return FuncType :: Plus;
-	}
-
-	vector <Handle <Object> *> getParams () {
-		vector <Handle <Object> *> left = leftLambda->getParams ();
-		vector <Handle <Object> *> right = rightLambda->getParams ();
-		vector <Handle <Object> *> returnVal;
-		returnVal.insert (returnVal.end (), left.begin (), left.end ());
-		returnVal.insert (returnVal.end (), right.begin (), right.end ());
-		std :: sort (returnVal.begin(), returnVal.end());
-		returnVal.erase(std :: unique (returnVal.begin(), returnVal.end()), returnVal.end());
-		return returnVal;
-	}	
-};
-
-template <typename L, typename R> class EqualsOp : public LambdaType <bool> {
-
-	Lambda <L> leftLambda;
-	Lambda <R> rightLambda;
+    Lambda<T> leftLambda;
+    Lambda<T> rightLambda;
 
 public:
+    ~PlusOp() {}
 
-	~EqualsOp () {}
+    void addParam(Handle<Object>& addMe) {
+        cout << "Bad: why add a param to a plus?\n";
+    }
 
-	void addParam (Handle <Object> &addMe) {
-		cout << "Bad: why add a param to an equals?\n";
-	}
+    std::string toString() {
+        return "(" + leftLambda.toString() + " + " + rightLambda.toString() + ")";
+    }
 
-	std :: string toString () {
-		return "(" + leftLambda.toString () + " == " + rightLambda.toString () + ")";
-	}
+    PlusOp(Lambda<T> leftLambda, Lambda<T> rightLambda)
+        : leftLambda(leftLambda), rightLambda(rightLambda) {}
 
-	EqualsOp (Lambda <L> leftLambda, Lambda <R> rightLambda) : leftLambda (leftLambda), rightLambda (rightLambda)   {
-	}
+    std::function<T()> getFunc() {
+        std::function<T()> left = leftLambda.getFunc();
+        std::function<T()> right = rightLambda.getFunc();
+        return [=] { return left() + right(); };
+    }
 
-	std :: function <bool ()> getFunc () {
-		std :: function <L ()> left = leftLambda.getFunc ();
-		std :: function <R ()> right = rightLambda.getFunc ();
-		return [=] {return left () == right ();};
-	}
+    FuncType getType() {
+        return FuncType::Plus;
+    }
 
-	FuncType getType () {
-		return FuncType :: Equals;
-	}
-
-	vector <Handle <Object> *> getParams () {
-		vector <Handle <Object> *> left = leftLambda->getParams ();
-		vector <Handle <Object> *> right = rightLambda->getParams ();
-		vector <Handle <Object> *> returnVal;
-		returnVal.insert (returnVal.end (), left.begin (), left.end ());
-		returnVal.insert (returnVal.end (), right.begin (), right.end ());
-		std :: sort (returnVal.begin(), returnVal.end());
-		returnVal.erase(std :: unique (returnVal.begin(), returnVal.end()), returnVal.end());
-		return returnVal;
-	}
+    vector<Handle<Object>*> getParams() {
+        vector<Handle<Object>*> left = leftLambda->getParams();
+        vector<Handle<Object>*> right = rightLambda->getParams();
+        vector<Handle<Object>*> returnVal;
+        returnVal.insert(returnVal.end(), left.begin(), left.end());
+        returnVal.insert(returnVal.end(), right.begin(), right.end());
+        std::sort(returnVal.begin(), returnVal.end());
+        returnVal.erase(std::unique(returnVal.begin(), returnVal.end()), returnVal.end());
+        return returnVal;
+    }
 };
 
-template <typename L, typename R> class GreaterThanOp : public LambdaType <bool> {
+template <typename L, typename R>
+class EqualsOp : public LambdaType<bool> {
 
-	Lambda <L> leftLambda;
-	Lambda <R> rightLambda;
+    Lambda<L> leftLambda;
+    Lambda<R> rightLambda;
 
 public:
+    ~EqualsOp() {}
 
-	~GreaterThanOp () {}
+    void addParam(Handle<Object>& addMe) {
+        cout << "Bad: why add a param to an equals?\n";
+    }
 
-	void addParam (Handle <Object> &addMe) {
-		cout << "Bad: why add a param to a greater than?\n";
-	}
+    std::string toString() {
+        return "(" + leftLambda.toString() + " == " + rightLambda.toString() + ")";
+    }
 
-	std :: string toString () {
-		return "(" + leftLambda.toString () + " > " + rightLambda.toString () + ")";
-	}
+    EqualsOp(Lambda<L> leftLambda, Lambda<R> rightLambda)
+        : leftLambda(leftLambda), rightLambda(rightLambda) {}
 
-	GreaterThanOp (Lambda <L> leftLambda, Lambda <R> rightLambda) : leftLambda (leftLambda), rightLambda (rightLambda)   {
-	}
+    std::function<bool()> getFunc() {
+        std::function<L()> left = leftLambda.getFunc();
+        std::function<R()> right = rightLambda.getFunc();
+        return [=] { return left() == right(); };
+    }
 
-	std :: function <bool ()> getFunc () {
-		std :: function <L ()> left = leftLambda.getFunc ();
-		std :: function <R ()> right = rightLambda.getFunc ();
-		return [=] {return left () > right ();};
-	}
+    FuncType getType() {
+        return FuncType::Equals;
+    }
 
-	FuncType getType () {
-		return FuncType :: GreaterThan;
-	}
-
-	vector <Handle <Object> *> getParams () {
-		vector <Handle <Object> *> left = leftLambda->getParams ();
-		vector <Handle <Object> *> right = rightLambda->getParams ();
-		vector <Handle <Object> *> returnVal;
-		returnVal.insert (returnVal.end (), left.begin (), left.end ());
-		returnVal.insert (returnVal.end (), right.begin (), right.end ());
-		std :: sort (returnVal.begin(), returnVal.end());
-		returnVal.erase(std :: unique (returnVal.begin(), returnVal.end()), returnVal.end());
-		return returnVal;
-	}
+    vector<Handle<Object>*> getParams() {
+        vector<Handle<Object>*> left = leftLambda->getParams();
+        vector<Handle<Object>*> right = rightLambda->getParams();
+        vector<Handle<Object>*> returnVal;
+        returnVal.insert(returnVal.end(), left.begin(), left.end());
+        returnVal.insert(returnVal.end(), right.begin(), right.end());
+        std::sort(returnVal.begin(), returnVal.end());
+        returnVal.erase(std::unique(returnVal.begin(), returnVal.end()), returnVal.end());
+        return returnVal;
+    }
 };
 
+template <typename L, typename R>
+class GreaterThanOp : public LambdaType<bool> {
+
+    Lambda<L> leftLambda;
+    Lambda<R> rightLambda;
+
+public:
+    ~GreaterThanOp() {}
+
+    void addParam(Handle<Object>& addMe) {
+        cout << "Bad: why add a param to a greater than?\n";
+    }
+
+    std::string toString() {
+        return "(" + leftLambda.toString() + " > " + rightLambda.toString() + ")";
+    }
+
+    GreaterThanOp(Lambda<L> leftLambda, Lambda<R> rightLambda)
+        : leftLambda(leftLambda), rightLambda(rightLambda) {}
+
+    std::function<bool()> getFunc() {
+        std::function<L()> left = leftLambda.getFunc();
+        std::function<R()> right = rightLambda.getFunc();
+        return [=] { return left() > right(); };
+    }
+
+    FuncType getType() {
+        return FuncType::GreaterThan;
+    }
+
+    vector<Handle<Object>*> getParams() {
+        vector<Handle<Object>*> left = leftLambda->getParams();
+        vector<Handle<Object>*> right = rightLambda->getParams();
+        vector<Handle<Object>*> returnVal;
+        returnVal.insert(returnVal.end(), left.begin(), left.end());
+        returnVal.insert(returnVal.end(), right.begin(), right.end());
+        std::sort(returnVal.begin(), returnVal.end());
+        returnVal.erase(std::unique(returnVal.begin(), returnVal.end()), returnVal.end());
+        return returnVal;
+    }
+};
 }
 
 #endif

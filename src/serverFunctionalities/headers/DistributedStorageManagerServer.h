@@ -25,42 +25,41 @@
 
 namespace pdb {
 
-    class DistributedStorageManagerServer : public BroadcastServer {
+class DistributedStorageManagerServer : public BroadcastServer {
 
-    public:
-
-        //A new constructor added by Jia to take a Configuration parameter
-        DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf);
-
-
-        DistributedStorageManagerServer(PDBLoggerPtr logger);
-        ~DistributedStorageManagerServer();
-
-        void registerHandlers (PDBServer &forMe) override;
-
-    private:
-
-        bool findNodesForDatabase(const std::string& databaseName, std::vector<std::string>& nodesForDatabase,
-                                  std::string& errMsg);
-
-        bool findNodesContainingDatabase(const std::string& databaseName,
-                                         std::vector<std::string>& nodesContainingDatabase, std::string& errMsg);
-
-        bool findNodesForSet(const std::string& databaseName, const std::string& setName,
-                             std::vector<std::string>& nodesContainingSet, std::string& errMsg);
-
-        bool findNodesContainingSet(const std::string& databaseName, const std::string& setName,
-                                    std::vector<std::string>& nodesContainingSet, std::string& errMsg);
-
-        std::function<void (Handle<SimpleRequestResult>, std::string)> generateAckHandler(
-                std::vector<std::string>& success, std::vector<std::string>& failures, mutex& lock);
+public:
+    // A new constructor added by Jia to take a Configuration parameter
+    DistributedStorageManagerServer(PDBLoggerPtr logger, ConfigurationPtr conf);
 
 
-    };
+    DistributedStorageManagerServer(PDBLoggerPtr logger);
+    ~DistributedStorageManagerServer();
 
+    void registerHandlers(PDBServer& forMe) override;
+
+private:
+    bool findNodesForDatabase(const std::string& databaseName,
+                              std::vector<std::string>& nodesForDatabase,
+                              std::string& errMsg);
+
+    bool findNodesContainingDatabase(const std::string& databaseName,
+                                     std::vector<std::string>& nodesContainingDatabase,
+                                     std::string& errMsg);
+
+    bool findNodesForSet(const std::string& databaseName,
+                         const std::string& setName,
+                         std::vector<std::string>& nodesContainingSet,
+                         std::string& errMsg);
+
+    bool findNodesContainingSet(const std::string& databaseName,
+                                const std::string& setName,
+                                std::vector<std::string>& nodesContainingSet,
+                                std::string& errMsg);
+
+    std::function<void(Handle<SimpleRequestResult>, std::string)> generateAckHandler(
+        std::vector<std::string>& success, std::vector<std::string>& failures, mutex& lock);
+};
 }
 
 
-
-
-#endif //OBJECTQUERYMODEL_DISTRIBUTEDSTORAGEMANAGERSERVER_H
+#endif  // OBJECTQUERYMODEL_DISTRIBUTEDSTORAGEMANAGERSERVER_H

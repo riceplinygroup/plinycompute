@@ -23,21 +23,18 @@
 #include "KMeansDoubleVector.h"
 
 
-
 using namespace pdb;
-class ScanKMeansDoubleVectorSet : public ScanUserSet <KMeansDoubleVector> {
+class ScanKMeansDoubleVectorSet : public ScanUserSet<KMeansDoubleVector> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanKMeansDoubleVectorSet () {
-        }
+    ScanKMeansDoubleVectorSet() {}
 
-        ScanKMeansDoubleVectorSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanKMeansDoubleVectorSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

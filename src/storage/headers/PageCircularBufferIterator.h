@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PageCircularBufferIterator.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PAGECIRCULARBUFFERITERATOR_H
-#define	PAGECIRCULARBUFFERITERATOR_H
+#define PAGECIRCULARBUFFERITERATOR_H
 
 #include "PageIterator.h"
 #include "PageCircularBuffer.h"
@@ -38,7 +38,9 @@ typedef shared_ptr<PageCircularBufferIterator> PageCircularBufferIteratorPtr;
  */
 class PageCircularBufferIterator : public PageIteratorInterface {
 public:
-    PageCircularBufferIterator(unsigned int id, PageCircularBufferPtr buffer, pdb :: PDBLoggerPtr logger);
+    PageCircularBufferIterator(unsigned int id,
+                               PageCircularBufferPtr buffer,
+                               pdb::PDBLoggerPtr logger);
     ~PageCircularBufferIterator();
 
     /**
@@ -63,9 +65,8 @@ public:
 
 private:
     PageCircularBufferPtr buffer;
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger;
     unsigned int id;
 };
 
-#endif	/* PAGECIRCULARBUFFERITERATOR_H */
-
+#endif /* PAGECIRCULARBUFFERITERATOR_H */

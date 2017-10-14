@@ -29,21 +29,20 @@
 #include "SharedEmployee.h"
 
 using namespace pdb;
-class EmployeeSelection : public SelectionComp <String, SharedEmployee> {
+class EmployeeSelection : public SelectionComp<String, SharedEmployee> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    EmployeeSelection() {}
 
-	EmployeeSelection () {}
+    Lambda<bool> getSelection(Handle<SharedEmployee> checkMe) override {
+        return makeLambdaFromMethod(checkMe, isFrank);
+    }
 
-	Lambda <bool> getSelection (Handle <SharedEmployee> checkMe) override {
-		return makeLambdaFromMethod (checkMe, isFrank);
-	}
-
-	Lambda <Handle <String>> getProjection (Handle <SharedEmployee> checkMe) override {
-                return makeLambdaFromMethod (checkMe, getName);
-	}
+    Lambda<Handle<String>> getProjection(Handle<SharedEmployee> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getName);
+    }
 };
 
 

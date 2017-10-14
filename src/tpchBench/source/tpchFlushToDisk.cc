@@ -46,7 +46,6 @@
 #include "InterfaceFunctions.h"
 
 
-
 #include "Handle.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -78,31 +77,24 @@
 using namespace std;
 
 
-
-int main(int argc, char * argv[]) {
-
-
-	// Connection info
-	string masterHostname = "localhost";
-	int masterPort = 8108;
-
-	// register the shared employee class
-	pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-	pdb::DistributedStorageManagerClient distributedStorageManagerClient(masterPort, masterHostname, clientLogger);
-
-	string errMsg;
-
-//	 flush to disk
-	cout << "Flush data to disk" << endl;
-	distributedStorageManagerClient.flushData(errMsg);
-	cout << errMsg << endl;
+int main(int argc, char* argv[]) {
 
 
+    // Connection info
+    string masterHostname = "localhost";
+    int masterPort = 8108;
 
+    // register the shared employee class
+    pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
+    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
+        masterPort, masterHostname, clientLogger);
 
+    string errMsg;
 
-
+    //	 flush to disk
+    cout << "Flush data to disk" << endl;
+    distributedStorageManagerClient.flushData(errMsg);
+    cout << errMsg << endl;
 }
 
 #endif
-

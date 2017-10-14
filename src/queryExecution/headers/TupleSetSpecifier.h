@@ -18,78 +18,71 @@
 #ifndef TUPLESET_SPECIFIER_HEADER
 #define TUPLESET_SPECIFIER_HEADER
 
-//by Jia, Mar 2017
+// by Jia, Mar 2017
 
 namespace pdb {
 
 class TupleSetSpecifier {
 
 public:
+    // default constructor
+    TupleSetSpecifier() {
+        this->tupleSetName = "";
+    }
 
-//default constructor
-TupleSetSpecifier () {
-   this->tupleSetName = "";
-}
 
+    // constructor
+    TupleSetSpecifier(std::string tupleSetName,
+                      std::vector<std::string> columnNamesToKeep,
+                      std::vector<std::string> columnNamesToApply) {
 
-//constructor
-TupleSetSpecifier (std :: string tupleSetName, std :: vector < std :: string > columnNamesToKeep, std :: vector < std :: string > columnNamesToApply) {
+        this->tupleSetName = tupleSetName;
+        this->columnNamesToKeep = columnNamesToKeep;
+        this->columnNamesToApply = columnNamesToApply;
+    }
 
-    this->tupleSetName = tupleSetName;
-    this->columnNamesToKeep = columnNamesToKeep;
-    this->columnNamesToApply = columnNamesToApply;
+    // return tuple set name
+    std::string getTupleSetName() {
+        return tupleSetName;
+    }
 
-}
+    // return column names to keep in the output
 
-//return tuple set name
-std :: string getTupleSetName () {
-    return tupleSetName;
-}
+    std::vector<std::string> getColumnNamesToKeep() {
+        return columnNamesToKeep;
+    }
 
-//return column names to keep in the output
+    // return column names to apply a lambda
 
-std :: vector < std :: string > getColumnNamesToKeep () {
-    return columnNamesToKeep;
-}
+    std::vector<std::string> getColumnNamesToApply() {
+        return columnNamesToApply;
+    }
 
-//return column names to apply a lambda
+    // set tuple set name
+    void setTupleSetName(std::string tupleSetName) {
+        this->tupleSetName = tupleSetName;
+    }
 
-std :: vector < std :: string > getColumnNamesToApply () {
-    return columnNamesToApply;
-}
+    // set column names to keep in the output
+    void setColumnsToKeep(std::vector<std::string> columnsToKeep) {
+        this->columnNamesToKeep = columnsToKeep;
+    }
 
-//set tuple set name
-void setTupleSetName (std :: string tupleSetName) {
-    this->tupleSetName = tupleSetName;
-}
-
-//set column names to keep in the output
-void setColumnsToKeep (std :: vector <std :: string> columnsToKeep) {
-    this->columnNamesToKeep = columnsToKeep;
-}
-
-//set column names to apply
-void setColumnsToApply (std :: vector <std :: string> columnsToApply) {
-    this->columnsToApply = columnsToApply;
-}
+    // set column names to apply
+    void setColumnsToApply(std::vector<std::string> columnsToApply) {
+        this->columnsToApply = columnsToApply;
+    }
 
 private:
+    // name of the the tuple set
+    std::string tupleSetName;
 
+    // column names in the tuple set to keep in the output
+    std::vector<std::string> columnNamesToKeep;
 
-//name of the the tuple set
-std :: string tupleSetName;
-
-//column names in the tuple set to keep in the output
-std :: vector < std :: string > columnNamesToKeep;
-
-//column names in the tuple set to apply
-std :: vector < std :: string > columnNamesToApply;
-
-
-
-
+    // column names in the tuple set to apply
+    std::vector<std::string> columnNamesToApply;
 };
-
 }
 
 #endif

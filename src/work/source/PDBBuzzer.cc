@@ -23,13 +23,12 @@
 #include <iostream>
 
 
-PDBBuzzer :: PDBBuzzer () {
+PDBBuzzer::PDBBuzzer() {
 
-   pthread_cond_init(&waitingSignal, nullptr);
-   pthread_mutex_init(&waitingMutex, nullptr);
-   stringFunc = nullptr;
-   signalSent = false;
-
+    pthread_cond_init(&waitingSignal, nullptr);
+    pthread_mutex_init(&waitingMutex, nullptr);
+    stringFunc = nullptr;
+    signalSent = false;
 }
 
 PDBBuzzer::PDBBuzzer(std::nullptr_t) {
@@ -40,28 +39,28 @@ PDBBuzzer::PDBBuzzer(std::nullptr_t) {
 }
 
 
-void PDBBuzzer::buzz (PDBAlarm withMe) {
-    pthread_mutex_lock(&waitingMutex);    
+void PDBBuzzer::buzz(PDBAlarm withMe) {
+    pthread_mutex_lock(&waitingMutex);
     if (noStringFunc != nullptr)
-        noStringFunc (withMe);
+        noStringFunc(withMe);
     pthread_cond_signal(&waitingSignal);
     signalSent = true;
     pthread_mutex_unlock(&waitingMutex);
 }
 
-void PDBBuzzer::buzz (PDBAlarm withMe, string message) {
+void PDBBuzzer::buzz(PDBAlarm withMe, string message) {
     pthread_mutex_lock(&waitingMutex);
     if (stringFunc != nullptr)
-        stringFunc (withMe, message);
+        stringFunc(withMe, message);
     pthread_cond_signal(&waitingSignal);
     signalSent = true;
     pthread_mutex_unlock(&waitingMutex);
 }
 
-void PDBBuzzer::buzz (PDBAlarm withMe, int& counter) {
+void PDBBuzzer::buzz(PDBAlarm withMe, int& counter) {
     pthread_mutex_lock(&waitingMutex);
     if (intFunc != nullptr)
-        intFunc (withMe, counter);
+        intFunc(withMe, counter);
     pthread_cond_signal(&waitingSignal);
     signalSent = true;
     pthread_mutex_unlock(&waitingMutex);
@@ -71,7 +70,7 @@ void PDBBuzzer::wait() {
 
     // wait until there is a buzz
     pthread_mutex_lock(&waitingMutex);
-    if(signalSent == true) {
+    if (signalSent == true) {
         pthread_mutex_unlock(&waitingMutex);
         return;
     }
@@ -79,21 +78,21 @@ void PDBBuzzer::wait() {
     pthread_mutex_unlock(&waitingMutex);
 }
 
-PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm)> noStringFuncIn) {
+PDBBuzzer::PDBBuzzer(std::function<void(PDBAlarm)> noStringFuncIn) {
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     noStringFunc = noStringFuncIn;
     signalSent = false;
 }
 
-PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm, std::string)> stringFuncIn) {
+PDBBuzzer::PDBBuzzer(std::function<void(PDBAlarm, std::string)> stringFuncIn) {
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     stringFunc = stringFuncIn;
     signalSent = false;
 }
 
-PDBBuzzer::PDBBuzzer(std::function <void (PDBAlarm, int &)> intFuncIn) {    
+PDBBuzzer::PDBBuzzer(std::function<void(PDBAlarm, int&)> intFuncIn) {
     pthread_cond_init(&waitingSignal, nullptr);
     pthread_mutex_init(&waitingMutex, nullptr);
     intFunc = intFuncIn;
@@ -108,4 +107,3 @@ PDBBuzzer::~PDBBuzzer() {
 
 
 #endif
-

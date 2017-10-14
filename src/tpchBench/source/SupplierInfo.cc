@@ -23,6 +23,6 @@
 
 #include "GetVTable.h"
 
-GET_V_TABLE (SupplierInfo)
+GET_V_TABLE(SupplierInfo)
 
 #endif

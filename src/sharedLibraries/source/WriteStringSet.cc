@@ -22,6 +22,6 @@
 #include "WriteStringSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteStringSet)
+GET_V_TABLE(WriteStringSet)
 
 #endif

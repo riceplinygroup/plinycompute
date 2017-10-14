@@ -18,15 +18,14 @@
 #ifndef ABSTRACT_HASH_SET
 #define ABSTRACT_HASH_SET
 
-//by Jia, May 2017
+// by Jia, May 2017
 
 #include <memory>
 
 namespace pdb {
 
 class AbstractHashSet;
-typedef std :: shared_ptr <AbstractHashSet> AbstractHashSetPtr;
-
+typedef std::shared_ptr<AbstractHashSet> AbstractHashSetPtr;
 
 
 /*
@@ -38,19 +37,15 @@ class AbstractHashSet {
 
 
 public:
+    // return the hash set type
+    virtual std::string getHashSetType() = 0;
 
-    //return the hash set type
-    virtual std :: string getHashSetType() = 0;
-
-    //clean up
+    // clean up
     virtual void cleanup() = 0;
 
-    //get size
+    // get size
     virtual size_t getSize() = 0;
-
 };
-
-
 }
 
 

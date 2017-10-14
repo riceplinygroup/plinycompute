@@ -20,6 +20,4 @@
 #define OBJECTQUERYMODEL_PARTITIONPOLICY_CC
 
 
-
-
 #endif

@@ -22,6 +22,6 @@
 #include "GetVTable.h"
 #include "ScanEmpWithVector.h"
 
-GET_V_TABLE (ScanEmpWithVector)
+GET_V_TABLE(ScanEmpWithVector)
 
 #endif

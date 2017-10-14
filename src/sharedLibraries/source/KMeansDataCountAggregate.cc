@@ -21,6 +21,6 @@
 #include "KMeansDataCountAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (KMeansDataCountAggregate)
+GET_V_TABLE(KMeansDataCountAggregate)
 
 #endif

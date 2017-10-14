@@ -21,6 +21,6 @@
 #include "WriteSumResultSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (WriteSumResultSet)
+GET_V_TABLE(WriteSumResultSet)
 
 #endif

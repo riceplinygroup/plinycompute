@@ -19,7 +19,7 @@
 #ifndef PANGEA_STORAGE_SERVER_H
 #define PANGEA_STORAGE_SERVER_H
 
-//by Jia, Sept 2016
+// by Jia, Sept 2016
 
 
 #include "ServerFunctionality.h"
@@ -41,50 +41,55 @@
 #include <memory>
 
 
-
 namespace pdb {
 
 
 class PangeaStorageServer;
-typedef std :: shared_ptr <PangeaStorageServer> PangeaStorageServerPtr;
+typedef std::shared_ptr<PangeaStorageServer> PangeaStorageServerPtr;
 
 
 class PangeaStorageServer : public ServerFunctionality {
 
 public:
-
-	// creates a storage server, putting all data in the indicated directory.
-	// pages can be dynamically allocated from the specified shared memory pool.
-	PangeaStorageServer (SharedMemPtr shm, PDBWorkerQueuePtr workers, PDBLoggerPtr logger, ConfigurationPtr conf, bool standalone= true);
-
-
-        /*****************To Comply with Chris' Interfaces***************************/
-
-
-	// takes all of the currently buffered records for the given database/set pair,
-	// creates at most one page of data with them, and then writes that page to storage
-	void writeBackRecords (pair <std :: string, std :: string> databaseAndSet, bool flushOrNot = true, bool directPutOrNot = false) ;
-
-	// this allocates a new page at the end of the indicated database/set combo
-	PDBPagePtr getNewPage (pair <std :: string, std :: string> databaseAndSet);
-
-        // returns a set object referencing the given database/set pair
-        SetPtr getSet (std :: pair < std :: string, std :: string> databaseAndSet);
+    // creates a storage server, putting all data in the indicated directory.
+    // pages can be dynamically allocated from the specified shared memory pool.
+    PangeaStorageServer(SharedMemPtr shm,
+                        PDBWorkerQueuePtr workers,
+                        PDBLoggerPtr logger,
+                        ConfigurationPtr conf,
+                        bool standalone = true);
 
 
-	// from the ServerFunctionality interface... registers the StorageServer's handlers
-	void registerHandlers (PDBServer &forMe) override;
-
-	// stores a record---we'll keep buffering records until we get enough of them that
-	// we can put them together into a page.  The return value is the total size of
-	// all of the records that we are buffering for this database and set
-	size_t bufferRecord (pair <std :: string, std :: string> databaseAndSet, Record <Vector <Handle <Object>>> *addMe);
-
-	// destructor
-	~PangeaStorageServer ();
+    /*****************To Comply with Chris' Interfaces***************************/
 
 
-        /****************Pangea Interfaces******************************************/
+    // takes all of the currently buffered records for the given database/set pair,
+    // creates at most one page of data with them, and then writes that page to storage
+    void writeBackRecords(pair<std::string, std::string> databaseAndSet,
+                          bool flushOrNot = true,
+                          bool directPutOrNot = false);
+
+    // this allocates a new page at the end of the indicated database/set combo
+    PDBPagePtr getNewPage(pair<std::string, std::string> databaseAndSet);
+
+    // returns a set object referencing the given database/set pair
+    SetPtr getSet(std::pair<std::string, std::string> databaseAndSet);
+
+
+    // from the ServerFunctionality interface... registers the StorageServer's handlers
+    void registerHandlers(PDBServer& forMe) override;
+
+    // stores a record---we'll keep buffering records until we get enough of them that
+    // we can put them together into a page.  The return value is the total size of
+    // all of the records that we are buffering for this database and set
+    size_t bufferRecord(pair<std::string, std::string> databaseAndSet,
+                        Record<Vector<Handle<Object>>>* addMe);
+
+    // destructor
+    ~PangeaStorageServer();
+
+
+    /****************Pangea Interfaces******************************************/
 
     /**
      * Returns server name
@@ -129,63 +134,68 @@ public:
     /**
      * Add a new and empty database
      */
-    bool addDatabase(std :: string dbName, DatabaseID dbId);
+    bool addDatabase(std::string dbName, DatabaseID dbId);
 
     /**
      * Add a new and empty database using only name
      */
-    bool addDatabase(std :: string dbName);
+    bool addDatabase(std::string dbName);
 
 
     /**
      * Remove an existing database
      */
-    bool removeDatabase(std :: string dbName);
+    bool removeDatabase(std::string dbName);
 
 
     /**
      * Add a new and empty type
      */
-    bool addType(std :: string typeName, UserTypeID typeId); 
+    bool addType(std::string typeName, UserTypeID typeId);
 
     /**
      * Remove a type from a database, and also remove all sets in the database having that type
      */
-    bool removeTypeFromDatabase(std :: string dbName, std :: string typeName);
+    bool removeTypeFromDatabase(std::string dbName, std::string typeName);
 
     /**
      * Remove a type from the typeName to typeId mapping
      */
-    bool removeType(std :: string typeName);
+    bool removeType(std::string typeName);
 
     /**
      * Add a new and empty set
      */
-    bool addSet (std :: string dbName, std :: string typeName, std :: string setName, SetID setId, size_t pageSize = DEFAULT_PAGE_SIZE);
+    bool addSet(std::string dbName,
+                std::string typeName,
+                std::string setName,
+                SetID setId,
+                size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
     /**
      * Add a new and empty set using only name
      */
-    bool addSet (std :: string dbName, std :: string typeName, std :: string setName, size_t pageSize = DEFAULT_PAGE_SIZE);
+    bool addSet(std::string dbName,
+                std::string typeName,
+                std::string setName,
+                size_t pageSize = DEFAULT_PAGE_SIZE);
 
     /**
      * Add a set using only database name and set name
      */
-    bool addSet (std :: string dbName, std :: string setName, size_t pageSize = DEFAULT_PAGE_SIZE);
-
+    bool addSet(std::string dbName, std::string setName, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
     /**
      * Remove an existing set
      */
-    bool removeSet(std :: string dbName, std :: string typeName, std :: string setName);
+    bool removeSet(std::string dbName, std::string typeName, std::string setName);
 
     /**
      * Remove an existing set
      */
-    bool removeSet(std :: string dbName, std :: string setName);
-
+    bool removeSet(std::string dbName, std::string setName);
 
 
     /**
@@ -198,7 +208,7 @@ public:
     /**
      * Add a new and empty temporary set
      */
-    bool addTempSet(std :: string setName, SetID &setId, size_t pageSize = DEFAULT_PAGE_SIZE);
+    bool addTempSet(std::string setName, SetID& setId, size_t pageSize = DEFAULT_PAGE_SIZE);
 
 
     /**
@@ -243,20 +253,27 @@ public:
     bool isStandalone();
 
 
-   // cleaner to be invoked in destruct
+    // cleaner to be invoked in destruct
 
     void cleanup(bool flushOrNot = true);
 
-   //export to a local file 
-   bool  exportToFile (std :: string dbName, std :: string setName, std :: string path, std :: string format, std :: string & errMsg); 
+    // export to a local file
+    bool exportToFile(std::string dbName,
+                      std::string setName,
+                      std::string path,
+                      std::string format,
+                      std::string& errMsg);
 
-   //export to a HDFS partition
-   bool  exportToHDFSFile (std :: string dbName, std :: string setName, std :: string hdfsNameNodeIp, int hdfsNameNodePort, std :: string path, std :: string format, std :: string & errMsg);
+    // export to a HDFS partition
+    bool exportToHDFSFile(std::string dbName,
+                          std::string setName,
+                          std::string hdfsNameNodeIp,
+                          int hdfsNameNodePort,
+                          std::string path,
+                          std::string format,
+                          std::string& errMsg);
 
 protected:
-
-
-
     /**
      * Encode database path
      */
@@ -296,124 +313,121 @@ protected:
     /**
      * Add an existing database based on Partitioned file (by default)
      */
-    void addDatabaseByPartitionedFiles(string dbName, DatabaseID dbId, boost::filesystem::path dbMetaPath);
+    void addDatabaseByPartitionedFiles(string dbName,
+                                       DatabaseID dbId,
+                                       boost::filesystem::path dbMetaPath);
 
 
 private:
-    //Mapping DatabaseID and SetID to a Set instance
-    std :: map< std :: pair <DatabaseID, SetID>,  SetPtr> * userSets;
+    // Mapping DatabaseID and SetID to a Set instance
+    std::map<std::pair<DatabaseID, SetID>, SetPtr>* userSets;
 
-    //Mapping Database name and Set name to DatabaseID and SetID
-    std :: map< std :: pair <std :: string, std :: string>, std :: pair <DatabaseID, SetID>> * names2ids;
+    // Mapping Database name and Set name to DatabaseID and SetID
+    std::map<std::pair<std::string, std::string>, std::pair<DatabaseID, SetID>>* names2ids;
 
-    //Mapping a user type name to UserTypeID
-    std :: map< std :: string, UserTypeID> * typename2id;
+    // Mapping a user type name to UserTypeID
+    std::map<std::string, UserTypeID>* typename2id;
 
-    //Mapping SetID to a TempSet instance
-    std :: map<SetID, TempSetPtr> * tempSets;
+    // Mapping SetID to a TempSet instance
+    std::map<SetID, TempSetPtr>* tempSets;
 
-    //Mapping TempSet name to ID
-    std :: map< std :: string, SetID> * name2tempSetId;
+    // Mapping TempSet name to ID
+    std::map<std::string, SetID>* name2tempSetId;
 
-    //Log instance
+    // Log instance
     PDBLoggerPtr logger;
 
-    //Configuration object
+    // Configuration object
     ConfigurationPtr conf;
 
-    //the name of the server
-    std :: string serverName;
+    // the name of the server
+    std::string serverName;
 
-    //the id of the server
+    // the id of the server
     NodeID nodeId;
 
-    //the instance to shared memory manager
+    // the instance to shared memory manager
     SharedMemPtr shm;
 
-    //the path for storing TempSet metadata
-    std :: string metaTempPath;
+    // the path for storing TempSet metadata
+    std::string metaTempPath;
 
-    //the path for storing TempSet data
-    std :: vector< std :: string> dataTempPaths;
+    // the path for storing TempSet data
+    std::vector<std::string> dataTempPaths;
 
-    //the path for storing UserSet metadata
-    std :: string metaRootPath;
+    // the path for storing UserSet metadata
+    std::string metaRootPath;
 
-    //the path for storing UserSet data
-    std :: vector< std :: string> dataRootPaths;
+    // the path for storing UserSet data
+    std::vector<std::string> dataRootPaths;
 
-    //Pointer to page cache
+    // Pointer to page cache
     PageCachePtr cache;
 
-    //Path to backend server
+    // Path to backend server
     string pathToBackEndServer;
 
-    //mutex for managing database
+    // mutex for managing database
     pthread_mutex_t databaseLock;
 
-    //mutex for managing type
+    // mutex for managing type
     pthread_mutex_t typeLock;
 
-    //mutex for managing set
+    // mutex for managing set
     pthread_mutex_t usersetLock;
 
-    //mutex for managing tempset 
-    pthread_mutex_t tempsetLock; 
+    // mutex for managing tempset
+    pthread_mutex_t tempsetLock;
 
-    //SequenceID for adding temp set
+    // SequenceID for adding temp set
     SequenceID tempsetSeqId;
 
-    //SequenceID for adding database
+    // SequenceID for adding database
     SequenceID databaseSeqId;
 
-    //SequenceID for adding user set
-    std :: map <std :: string, SequenceID * > * usersetSeqIds; 
+    // SequenceID for adding user set
+    std::map<std::string, SequenceID*>* usersetSeqIds;
 
-    //Thread Pool for starting flushing threads
+    // Thread Pool for starting flushing threads
     PDBWorkerQueuePtr workers;
 
-    //the flush buffer connecting producers and consumers
+    // the flush buffer connecting producers and consumers
     PageCircularBufferPtr flushBuffer;
-    
-    //The vector of flush threads
-    std :: vector<PDBWorkPtr> flushers;
 
-/****** for distribution *******************************/
+    // The vector of flush threads
+    std::vector<PDBWorkPtr> flushers;
 
-private:
-
-        bool standalone = true;
-
-
-
-/******* to comply with Chris' interfaces ***************/
+    /****** for distribution *******************************/
 
 private:
+    bool standalone = true;
 
-	// this stores the set of all records that we are buffering
-	std :: map <pair <std :: string, std :: string>, std :: vector <Record <Vector <Handle <Object>>> *>> allRecords;
 
-	// this stores the total sizes of all lists of records that we are buffering
-	std :: map <pair <std :: string, std :: string>, size_t> sizes;
-
-/******* backward compliance ***************************/
+    /******* to comply with Chris' interfaces ***************/
 
 private:
+    // this stores the set of all records that we are buffering
+    std::map<pair<std::string, std::string>, std::vector<Record<Vector<Handle<Object>>>*>>
+        allRecords;
 
-        //this stores the set of databases
-        std :: map < DatabaseID, DefaultDatabasePtr > * dbs;
+    // this stores the total sizes of all lists of records that we are buffering
+    std::map<pair<std::string, std::string>, size_t> sizes;
 
-        //this stores the mapping from Database name to DatabaseID
-        std :: map < std :: string, DatabaseID > * name2id;
+    /******* backward compliance ***************************/
 
-        long totalObjects;
+private:
+    // this stores the set of databases
+    std::map<DatabaseID, DefaultDatabasePtr>* dbs;
 
-        pthread_mutex_t workingMutex;
-        pthread_mutex_t counterMutex;
-        int numWaitingBufferDataRequests;
+    // this stores the mapping from Database name to DatabaseID
+    std::map<std::string, DatabaseID>* name2id;
 
+    long totalObjects;
+
+    pthread_mutex_t workingMutex;
+    pthread_mutex_t counterMutex;
+    int numWaitingBufferDataRequests;
 };
-
 }
 
 #endif

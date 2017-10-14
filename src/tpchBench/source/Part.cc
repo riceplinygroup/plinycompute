@@ -27,6 +27,6 @@
 #include "GetVTable.h"
 #include "Part.h"
 
-GET_V_TABLE (Part)
+GET_V_TABLE(Part)
 
 #endif

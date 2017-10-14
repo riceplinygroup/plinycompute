@@ -34,26 +34,23 @@ namespace pdb {
 class ListOfNodes : public Object {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-	ListOfNodes() {
-	}
+    ListOfNodes() {}
 
-	~ListOfNodes() {
-	}
+    ~ListOfNodes() {}
 
-	Handle<Vector<String>> getHostNames() {
-		return hostNames;
-	}
+    Handle<Vector<String>> getHostNames() {
+        return hostNames;
+    }
 
-	void setHostNames(Handle<Vector<String>> hostNames) {
-		this->hostNames = hostNames;
-	}
+    void setHostNames(Handle<Vector<String>> hostNames) {
+        this->hostNames = hostNames;
+    }
 
 private:
-	// hostnames of the nodes
-	Handle <Vector <String>> hostNames;
-
+    // hostnames of the nodes
+    Handle<Vector<String>> hostNames;
 };
 }
 #endif

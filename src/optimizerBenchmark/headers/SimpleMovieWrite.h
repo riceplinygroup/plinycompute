@@ -18,7 +18,7 @@
 #ifndef SIMPLE_MOVIE_WRITE_H
 #define SIMPLE_MOVIE_WRITE_H
 
-//by Sourav, Jun 2017
+// by Sourav, Jun 2017
 
 //#include "VectorSink.h"
 //#include "ComputePlan.h"
@@ -48,18 +48,20 @@
 
 using namespace pdb;
 
-class SimpleMovieWrite : public SetWriter <MovieStar> {
+class SimpleMovieWrite : public SetWriter<MovieStar> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
-
-	// eventually, this method should be moved into a class that works with the system to 
-	// iterate through pages that are pulled from disk/RAM by the system... a programmer
-	// should not provide this particular method
-	ComputeSinkPtr getComputeSink (TupleSpec &consumeMe, TupleSpec &whichAttsToOpOn, TupleSpec &projection, ComputePlan &plan) override {
-		return std :: make_shared <VectorSink <MovieStar>> (consumeMe, projection);
-	}
+    // eventually, this method should be moved into a class that works with the system to
+    // iterate through pages that are pulled from disk/RAM by the system... a programmer
+    // should not provide this particular method
+    ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
+                                  TupleSpec& whichAttsToOpOn,
+                                  TupleSpec& projection,
+                                  ComputePlan& plan) override {
+        return std::make_shared<VectorSink<MovieStar>>(consumeMe, projection);
+    }
 };
 
 #endif

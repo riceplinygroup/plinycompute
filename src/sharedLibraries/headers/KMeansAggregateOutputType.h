@@ -35,26 +35,24 @@ private:
     KMeansCentroid value;
 
 public:
-
     ENABLE_DEEP_COPY
 
-    KMeansAggregateOutputType () {}
+    KMeansAggregateOutputType() {}
 
-	int &getKey(){
-		return key;
-	}
-
-	KMeansCentroid &getValue(){
-		return value;
-	}
-
-	void print(){
-		std::cout<<"KMeansAggregateOutputType: index: " << key << " value: " <<"."<< std::endl;
-	}
-
-    ~KMeansAggregateOutputType () {
+    int& getKey() {
+        return key;
     }
 
+    KMeansCentroid& getValue() {
+        return value;
+    }
+
+    void print() {
+        std::cout << "KMeansAggregateOutputType: index: " << key << " value: "
+                  << "." << std::endl;
+    }
+
+    ~KMeansAggregateOutputType() {}
 };
 
 #endif

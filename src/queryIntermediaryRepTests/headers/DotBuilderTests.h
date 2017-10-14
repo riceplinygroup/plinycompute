@@ -26,9 +26,8 @@
 
 using QUnit::UnitTest;
 
-namespace pdb_tests
-{
-    void testDotBuilderSelection(UnitTest &qunit);
+namespace pdb_tests {
+void testDotBuilderSelection(UnitTest& qunit);
 }
 
-#endif //PDB_QUERYINTERMEDIARYREPTESTS_DOTBUILDERTETS_H
+#endif  // PDB_QUERYINTERMEDIARYREPTESTS_DOTBUILDERTETS_H

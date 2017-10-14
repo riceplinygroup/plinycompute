@@ -41,83 +41,78 @@ namespace pdb {
 // Since the array class can be variable length, it is used as the key building block for
 // both the Vector and String classes.
 
-template <class TypeContained> 
+template <class TypeContained>
 class Array : public Object {
 
 public:
+    // constructor/sdestructor
+    Array();
+    Array(uint32_t numSlots);
+    Array(const Array& copyFromMe);
+    ~Array();
 
-	// constructor/sdestructor
-	Array ();
-	Array (uint32_t numSlots);
-	Array (const Array &copyFromMe);
-	~Array ();
+    // this constructor pre-allocates the given number of slots, and initializes the specified
+    // number,
+    // so that the number of used slots is equal to the secod parameter
+    Array(uint32_t numSlots, uint32_t numUsedSlots);
 
-	// this constructor pre-allocates the given number of slots, and initializes the specified number,
-	// so that the number of used slots is equal to the secod parameter
-	Array (uint32_t numSlots, uint32_t numUsedSlots);
-
-	// normally these would be defined by the ENABLE_DEEP_COPY macro, but because
-	// Array is the one variable-sized type that we allow, we need to manually override 
-	// these methods
-	void setUpAndCopyFrom (void *target, void *source) const;
-	void deleteObject (void *deleteMe);
-	size_t getSize (void *forMe);
+    // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
+    // Array is the one variable-sized type that we allow, we need to manually override
+    // these methods
+    void setUpAndCopyFrom(void* target, void* source) const;
+    void deleteObject(void* deleteMe);
+    size_t getSize(void* forMe);
 
 private:
+    // and this gives us our info about TypeContained
+    PDBTemplateBase typeInfo;
 
-	// and this gives us our info about TypeContained
-	PDBTemplateBase typeInfo;
+    // the number of slots actually used
+    uint32_t usedSlots;
 
-	// the number of slots actually used
-	uint32_t usedSlots;
+    // the number of slots
+    uint32_t numSlots;
 
-	// the number of slots
-	uint32_t numSlots;
-
-	// the array of data
-	Nothing data[0];
+    // the array of data
+    Nothing data[0];
 
 public:
+    // create a new Array object of size howMany, and copy our contents into it
+    Handle<Array<TypeContained>> resize(uint32_t howMany);
 
-	// create a new Array object of size howMany, and copy our contents into it
-	Handle <Array <TypeContained>> resize (uint32_t howMany);
+    // get a pointer to the data
+    TypeContained* c_ptr();
 
-	// get a pointer to the data
-	TypeContained *c_ptr ();
+    // access a particular object in the array, by index
+    TypeContained& getObj(uint32_t which);
 
-	// access a particular object in the array, by index
-	TypeContained &getObj (uint32_t which);
+    // assign a particular item in the array
+    void assign(uint32_t which, const TypeContained& val);
 
-	// assign a particular item in the array
-	void assign (uint32_t which, const TypeContained &val);
+    // add to the end
+    void push_back(const TypeContained& val);
 
-	// add to the end
-	void push_back (const TypeContained &val);
+    // add an empty item at the end
+    void push_back();
 
-        // add an empty item at the end
-        void push_back ();
+    // remove from the end and shrink the number of used slots
+    void pop_back();
 
-	// remove from the end and shrink the number of used slots
-	void pop_back ();
+    // return a new array that is twice the size, containing the same contents
+    Handle<Array<TypeContained>> doubleSize();
 
-	// return a new array that is twice the size, containing the same contents 
-	Handle <Array <TypeContained>> doubleSize ();
+    // check if the array is full
+    bool isFull();
 
-	// check if the array is full
-	bool isFull ();
+    // return/set the number of used slots
+    uint32_t numUsedSlots();
+    void setUsed(uint32_t toMe);
 
-	// return/set the number of used slots
-	uint32_t numUsedSlots ();
-	void setUsed (uint32_t toMe);
-
-	// beause the communicator needs to see inside to do efficient sends
-	friend class PDBCommunicator;
-
+    // beause the communicator needs to see inside to do efficient sends
+    friend class PDBCommunicator;
 };
-
 }
 
 #include "Array.cc"
 
 #endif
-

@@ -27,102 +27,102 @@
 namespace pdb {
 
 template <class Output, class Input>
-ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (Selection <Output, Input> &forMe) {
+ProjectionQueryProcessor<Output, Input>::ProjectionQueryProcessor(Selection<Output, Input>& forMe) {
 
-	// get a copy of the lambdas for query processing
-	projection = forMe.getProjection (inputObject);
-	finalized = false;
+    // get a copy of the lambdas for query processing
+    projection = forMe.getProjection(inputObject);
+    finalized = false;
 }
 
 
 template <class Output, class Input>
-ProjectionQueryProcessor <Output, Input> :: ProjectionQueryProcessor (SimpleLambda <Handle<Output>> projection) {
+ProjectionQueryProcessor<Output, Input>::ProjectionQueryProcessor(
+    SimpleLambda<Handle<Output>> projection) {
 
-        // get a copy of the lambdas for query processing
-        this->projection = projection;
-        finalized = false;
+    // get a copy of the lambdas for query processing
+    this->projection = projection;
+    finalized = false;
 }
 
 // no need to do anything
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: initialize () {
-	projectionFunc = projection.getFunc ();
-	finalized = false;
+void ProjectionQueryProcessor<Output, Input>::initialize() {
+    projectionFunc = projection.getFunc();
+    finalized = false;
 }
 
 // loads up another input page to process
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: loadInputPage (void *pageToProcess)
-{
-	Record <Vector <Handle <Input>>> *myRec = (Record <Vector <Handle <Input>>> *) pageToProcess;
-	inputVec = myRec->getRootObject ();
-	posInInput = 0;
+void ProjectionQueryProcessor<Output, Input>::loadInputPage(void* pageToProcess) {
+    Record<Vector<Handle<Input>>>* myRec = (Record<Vector<Handle<Input>>>*)pageToProcess;
+    inputVec = myRec->getRootObject();
+    posInInput = 0;
 }
 
 // load up another output page to process
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: loadOutputPage (void *pageToWriteTo, size_t numBytesInPage) {
+void ProjectionQueryProcessor<Output, Input>::loadOutputPage(void* pageToWriteTo,
+                                                             size_t numBytesInPage) {
 
-	// kill the old allocation block
-	blockPtr = nullptr;
+    // kill the old allocation block
+    blockPtr = nullptr;
 
-	// create the new one
-	blockPtr = std :: make_shared <UseTemporaryAllocationBlock> (pageToWriteTo, numBytesInPage);
+    // create the new one
+    blockPtr = std::make_shared<UseTemporaryAllocationBlock>(pageToWriteTo, numBytesInPage);
 
-	// and here's where we write the ouput to
-	outputVec = makeObject <Vector <Handle <Output>>> (10);
+    // and here's where we write the ouput to
+    outputVec = makeObject<Vector<Handle<Output>>>(10);
 }
 
 template <class Output, class Input>
-bool ProjectionQueryProcessor <Output, Input> :: fillNextOutputPage () {
-		
-	Vector <Handle <Input>> &myInVec = *(inputVec);
-	Vector <Handle <Output>> &myOutVec = *(outputVec);
+bool ProjectionQueryProcessor<Output, Input>::fillNextOutputPage() {
 
-	// if we are finalized, see if there are some left over records
-	if (finalized) {
-		getRecord (outputVec);
-		return false;
-	}
+    Vector<Handle<Input>>& myInVec = *(inputVec);
+    Vector<Handle<Output>>& myOutVec = *(outputVec);
 
-	// we are not finalized, so process the page
-	try {
-		int vecSize = myInVec.size ();
-	        PDB_COUT << "Vector Size: " << std::to_string(vecSize) << std::endl;
-		for (; posInInput < vecSize; posInInput++) {
-			inputObject = myInVec[posInInput];
-		//std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;
-			myOutVec.push_back (projectionFunc ());	
-		}	
+    // if we are finalized, see if there are some left over records
+    if (finalized) {
+        getRecord(outputVec);
+        return false;
+    }
 
-		return false;
+    // we are not finalized, so process the page
+    try {
+        int vecSize = myInVec.size();
+        PDB_COUT << "Vector Size: " << std::to_string(vecSize) << std::endl;
+        for (; posInInput < vecSize; posInInput++) {
+            inputObject = myInVec[posInInput];
+            // std :: cout << "Pos: "<< std::to_string(posInInput) << std::endl;
+            myOutVec.push_back(projectionFunc());
+        }
 
-	} catch (NotEnoughSpace &n) {
-		
-		getRecord (outputVec);
-		return true;
-	}
+        return false;
+
+    } catch (NotEnoughSpace& n) {
+
+        getRecord(outputVec);
+        return true;
+    }
 }
 
 // must be called repeately after all of the input pages have been sent in...
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: finalize () {
-	finalized = true;
+void ProjectionQueryProcessor<Output, Input>::finalize() {
+    finalized = true;
 }
 
 // must be called before freeing the memory in output page
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: clearOutputPage () {
-        outputVec = nullptr;
-        blockPtr = nullptr;
+void ProjectionQueryProcessor<Output, Input>::clearOutputPage() {
+    outputVec = nullptr;
+    blockPtr = nullptr;
 }
 
 template <class Output, class Input>
-void ProjectionQueryProcessor <Output, Input> :: clearInputPage () {
-        inputVec = nullptr;
-        inputObject = nullptr;
+void ProjectionQueryProcessor<Output, Input>::clearInputPage() {
+    inputVec = nullptr;
+    inputObject = nullptr;
 }
-
 }
 
 #endif

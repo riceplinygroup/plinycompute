@@ -42,59 +42,59 @@
 
 using namespace pdb;
 
-int main () {
+int main() {
 
-	makeObjectAllocatorBlock (1024 * 1024 * 24, true);
+    makeObjectAllocatorBlock(1024 * 1024 * 24, true);
 
-        // get the file size
-        std::ifstream in2 ("testfile7", std::ifstream::ate | std::ifstream::binary);
-        size_t fileLen = in2.tellg();
+    // get the file size
+    std::ifstream in2("testfile7", std::ifstream::ate | std::ifstream::binary);
+    size_t fileLen = in2.tellg();
 
-        // read in the guys that we wrote out
-        int filedesc = open ("testfile7", O_RDONLY);
-        Record <ZB_Company> *myCompany = (Record <ZB_Company> *) malloc (fileLen);
-        //added by Jia to remove warnings
-	size_t sizeRead = read (filedesc, myCompany, fileLen);
-        if (sizeRead == 0) {
-            std :: cout << "Read failed" << std :: endl;
-        }
-	auto myComp = myCompany->getRootObject ();
-	myComp->print ();
-	
-	// now, we'll create a new list of supervisors and copy them over
-	Vector <Supervisor> mySups;
-	for (int i = 0; i < 5; i++) {
-		mySups.push_back (*(myComp->getSupervisor (i)));
-	}
+    // read in the guys that we wrote out
+    int filedesc = open("testfile7", O_RDONLY);
+    Record<ZB_Company>* myCompany = (Record<ZB_Company>*)malloc(fileLen);
+    // added by Jia to remove warnings
+    size_t sizeRead = read(filedesc, myCompany, fileLen);
+    if (sizeRead == 0) {
+        std::cout << "Read failed" << std::endl;
+    }
+    auto myComp = myCompany->getRootObject();
+    myComp->print();
 
-	close (filedesc);
+    // now, we'll create a new list of supervisors and copy them over
+    Vector<Supervisor> mySups;
+    for (int i = 0; i < 5; i++) {
+        mySups.push_back(*(myComp->getSupervisor(i)));
+    }
 
-	// and go ahead and write this guy out
-	Handle <Vector <Supervisor>> myHandle = getHandle (mySups);
-        auto myBytes = getRecord (myHandle);
-        filedesc = open ("testfile8", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-        size_t sizeWritten = write (filedesc, myBytes, myBytes->numBytes ());
-        if (sizeWritten == 0) {
-            std :: cout << "Write failed" << std :: endl;
-        }
-        close (filedesc);
+    close(filedesc);
 
-	// now finally, we will read him in 
-	std::ifstream in3 ("testfile8", std::ifstream::ate | std::ifstream::binary);	
-        fileLen = in3.tellg();
-        filedesc = open ("testfile8", O_RDONLY);
-        Record <Vector <Supervisor>> *allSups = (Record <Vector <Supervisor>> *) malloc (fileLen);
-        //added by Jia to remove warnings
-	sizeRead = read (filedesc, allSups, fileLen);
-        if (sizeRead == 0) {
-            std :: cout << "Read failed" << std :: endl;
-        }
-	auto mySupervisors = allSups->getRootObject ();
+    // and go ahead and write this guy out
+    Handle<Vector<Supervisor>> myHandle = getHandle(mySups);
+    auto myBytes = getRecord(myHandle);
+    filedesc = open("testfile8", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    size_t sizeWritten = write(filedesc, myBytes, myBytes->numBytes());
+    if (sizeWritten == 0) {
+        std::cout << "Write failed" << std::endl;
+    }
+    close(filedesc);
 
-	for (int i = 0; i < mySupervisors->size (); i++) {
-		(*mySupervisors)[i].print ();
-	}
+    // now finally, we will read him in
+    std::ifstream in3("testfile8", std::ifstream::ate | std::ifstream::binary);
+    fileLen = in3.tellg();
+    filedesc = open("testfile8", O_RDONLY);
+    Record<Vector<Supervisor>>* allSups = (Record<Vector<Supervisor>>*)malloc(fileLen);
+    // added by Jia to remove warnings
+    sizeRead = read(filedesc, allSups, fileLen);
+    if (sizeRead == 0) {
+        std::cout << "Read failed" << std::endl;
+    }
+    auto mySupervisors = allSups->getRootObject();
 
-	free (allSups);	
-        free (myCompany);
+    for (int i = 0; i < mySupervisors->size(); i++) {
+        (*mySupervisors)[i].print();
+    }
+
+    free(allSups);
+    free(myCompany);
 }

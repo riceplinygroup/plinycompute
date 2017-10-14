@@ -22,6 +22,6 @@
 #include "LASillyColMinAggregate.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyColMinAggregate)
+GET_V_TABLE(LASillyColMinAggregate)
 
 #endif

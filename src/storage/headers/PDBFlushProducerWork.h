@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBFlushProducerWork.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBFLUSHPRODUCERWORK_H
-#define	PDBFLUSHPRODUCERWORK_H
+#define PDBFLUSHPRODUCERWORK_H
 
 #include "PDBWork.h"
 #include "PangeaStorageServer.h"
@@ -32,19 +32,15 @@ using namespace std;
 class PDBFlushProducerWork;
 typedef shared_ptr<PDBFlushProducerWork> PDBFlushProducerWorkPtr;
 
-class PDBFlushProducerWork : public pdb :: PDBWork {
+class PDBFlushProducerWork : public pdb::PDBWork {
 public:
-    PDBFlushProducerWork(pdb :: PangeaStorageServer * server);
-    ~PDBFlushProducerWork() {
-    };
+    PDBFlushProducerWork(pdb::PangeaStorageServer* server);
+    ~PDBFlushProducerWork(){};
     void execute(PDBBuzzerPtr callerBuzzer) override;
 
 private:
-    pdb :: PangeaStorageServer* server;
-
+    pdb::PangeaStorageServer* server;
 };
 
 
-
-#endif	/* PDBFLUSHPRODUCERWORK_H */
-
+#endif /* PDBFLUSHPRODUCERWORK_H */

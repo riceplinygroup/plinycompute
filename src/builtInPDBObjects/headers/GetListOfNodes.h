@@ -29,21 +29,14 @@ namespace pdb {
 class GetListOfNodes : public Object {
 
 public:
+    GetListOfNodes() {}
+    ~GetListOfNodes() {}
 
-	GetListOfNodes(){
-
-	}
-	~GetListOfNodes(){
-
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 
 private:
-
 };
-
 }
 
 #endif

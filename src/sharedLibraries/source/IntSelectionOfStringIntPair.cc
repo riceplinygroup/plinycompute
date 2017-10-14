@@ -21,6 +21,6 @@
 #include "IntSelectionOfStringIntPair.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (IntSelectionOfStringIntPair)
+GET_V_TABLE(IntSelectionOfStringIntPair)
 
 #endif

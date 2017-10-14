@@ -21,6 +21,6 @@
 #include "GetVTable.h"
 #include "LASillyRowSumAggregate.h"
 
-GET_V_TABLE (LASillyRowSumAggregate)
+GET_V_TABLE(LASillyRowSumAggregate)
 
 #endif

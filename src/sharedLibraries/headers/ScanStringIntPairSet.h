@@ -23,19 +23,17 @@
 #include "StringIntPair.h"
 
 using namespace pdb;
-class ScanStringIntPairSet : public ScanUserSet <StringIntPair> {
+class ScanStringIntPairSet : public ScanUserSet<StringIntPair> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanStringIntPairSet () {
-        }
+    ScanStringIntPairSet() {}
 
-        ScanStringIntPairSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName);
-            setSetName ( setName);
-        }
-
+    ScanStringIntPairSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

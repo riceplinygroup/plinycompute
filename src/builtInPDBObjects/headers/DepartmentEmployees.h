@@ -32,86 +32,81 @@ namespace pdb {
 class DepartmentEmployees : public Object {
 
 public:
-        DepartmentEmployees () {
+    DepartmentEmployees() {}
+
+    ~DepartmentEmployees() {}
+
+    String departmentName;  // the name of the department
+    Map<String, Vector<Handle<Employee>>>
+        employees;  // for each supervisor in this department, the list of employees
+    ENABLE_DEEP_COPY
+
+
+    String& getKey() {
+        return departmentName;
+    }
+
+    Map<String, Vector<Handle<Employee>>>& getValue() {
+        return employees;
+    }
+
+    void print() {
+        std::cout << "Department: " << departmentName << std::endl;
+        auto iter = employees.begin();
+        while (iter != employees.end()) {
+            std::cout << "----Supervisor: " << (*iter).key << std::endl;
+            std::cout << "----NumEmployees: " << (*iter).value.size() << std::endl;
+            for (int i = 0; i < (*iter).value.size(); i++) {
+                std::cout << i << ": ";
+                (((*iter).value)[i])->print();
+                std::cout << ";";
+            }
+            std::cout << std::endl;
+            ++iter;
         }
-
-        ~DepartmentEmployees() {}
-
-        String departmentName; //the name of the department
-	Map<String, Vector<Handle<Employee>>> employees; //for each supervisor in this department, the list of employees	
-	ENABLE_DEEP_COPY
-
-
-	String &getKey () {
-		return departmentName;
-	}
-	
-	Map<String, Vector<Handle<Employee>>>  &getValue () {
-		return employees;
-	}
-
-        void print() {
-               std :: cout << "Department: " << departmentName  << std :: endl;
-               auto iter = employees.begin();
-               while (iter != employees.end()) {
-                   std :: cout << "----Supervisor: " << (*iter).key << std :: endl;
-                   std :: cout << "----NumEmployees: " << (*iter).value.size() << std :: endl;
-                   for (int i = 0; i < (*iter).value.size(); i++) {
-                       std :: cout << i << ": ";
-                       (((*iter).value)[i])->print();
-                       std :: cout << ";";
-                   }
-                   std :: cout << std :: endl;
-                   ++iter;
-               }
-        }
+    }
 };
 
 
-inline Map<String, Vector<Handle<Employee>>> &operator+ (Map<String, Vector<Handle<Employee>>> &lhs, Map<String, Vector<Handle<Employee>>> &rhs) {
-       auto iter = rhs.begin();
-       while (iter != rhs.end()) {
-           String myKey = (*iter).key;
-           if (lhs.count(myKey) == 0) {
-               try {
-                   lhs[myKey] = (*iter).value;
-               } catch ( NotEnoughSpace &n ) {
-                   //std :: cout << "not enough space when inserting new pair" << std :: endl;
-                   lhs.setUnused (myKey);
-                   throw n;
-               }
-           } else {
+inline Map<String, Vector<Handle<Employee>>>& operator+(
+    Map<String, Vector<Handle<Employee>>>& lhs, Map<String, Vector<Handle<Employee>>>& rhs) {
+    auto iter = rhs.begin();
+    while (iter != rhs.end()) {
+        String myKey = (*iter).key;
+        if (lhs.count(myKey) == 0) {
+            try {
+                lhs[myKey] = (*iter).value;
+            } catch (NotEnoughSpace& n) {
+                // std :: cout << "not enough space when inserting new pair" << std :: endl;
+                lhs.setUnused(myKey);
+                throw n;
+            }
+        } else {
 
-                   size_t mySize = lhs[myKey].size();
-                   size_t otherSize = (*iter).value.size();
+            size_t mySize = lhs[myKey].size();
+            size_t otherSize = (*iter).value.size();
 
-                      
-                   //std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std :: endl;
-                   for (size_t i = mySize; i < mySize + otherSize; i++) {
-                       try {
 
-                               lhs[myKey].push_back((*iter).value[i-mySize]);
+            // std :: cout << "mySize is " << mySize << " and otherSize is " << otherSize << std ::
+            // endl;
+            for (size_t i = mySize; i < mySize + otherSize; i++) {
+                try {
 
-                       } catch (NotEnoughSpace &n) {
+                    lhs[myKey].push_back((*iter).value[i - mySize]);
 
-                               //std :: cout << i << ": not enough space when updating value by pushing back: " << lhs[myKey].size() << std :: endl;   
-                               throw n;
+                } catch (NotEnoughSpace& n) {
 
-                       }
-
-                   }
-                   //std :: cout << "now my size is " << (*lhs)[myKey].size() << std :: endl;
-           }
-           ++iter;
-       }
-       return lhs;
-
+                    // std :: cout << i << ": not enough space when updating value by pushing back:
+                    // " << lhs[myKey].size() << std :: endl;
+                    throw n;
+                }
+            }
+            // std :: cout << "now my size is " << (*lhs)[myKey].size() << std :: endl;
+        }
+        ++iter;
+    }
+    return lhs;
 }
-
-
-
-
-
 }
 
 #endif

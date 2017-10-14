@@ -25,21 +25,22 @@
 
 using namespace pdb;
 
-class LDADocWordTopicAssignmentIdentity : public SelectionComp <LDADocWordTopicAssignment, LDADocWordTopicAssignment> {
+class LDADocWordTopicAssignmentIdentity
+    : public SelectionComp<LDADocWordTopicAssignment, LDADocWordTopicAssignment> {
 
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
+    LDADocWordTopicAssignmentIdentity() {}
 
-	LDADocWordTopicAssignmentIdentity () {}
+    Lambda<bool> getSelection(Handle<LDADocWordTopicAssignment> in) override {
+        return makeLambda(in, [&](Handle<LDADocWordTopicAssignment>& in) { return true; });
+    }
 
-        Lambda <bool> getSelection (Handle <LDADocWordTopicAssignment> in) override {
-		return makeLambda (in, [&] (Handle<LDADocWordTopicAssignment> &in) {return true;});
-	}
-
-        Lambda <Handle <LDADocWordTopicAssignment>> getProjection (Handle <LDADocWordTopicAssignment> in) override {
-		return makeLambda (in, [&] (Handle<LDADocWordTopicAssignment> &in) {return in;});
-	}
+    Lambda<Handle<LDADocWordTopicAssignment>> getProjection(
+        Handle<LDADocWordTopicAssignment> in) override {
+        return makeLambda(in, [&](Handle<LDADocWordTopicAssignment>& in) { return in; });
+    }
 };
 
 #endif

@@ -27,26 +27,23 @@ using pdb::Handle;
 using pdb::Lambda;
 using pdb::Object;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A boolean function that operates over a single input record.
+ */
+class RecordPredicateIr {
+
+public:
     /**
-     * A boolean function that operates over a single input record.
+     * Produces a Lambda<bool> representation of the predicate.
+     *
+     * @param inputRecordPlaceholder a placeholder to represend the "free variable" input record the
+     * predicate
+     *                               operates over within the structure of the returned Lambda.
+     * @return a Lambda version of the predciate.
      */
-    class RecordPredicateIr
-    {
-
-    public:
-
-        /**
-         * Produces a Lambda<bool> representation of the predicate.
-         *
-         * @param inputRecordPlaceholder a placeholder to represend the "free variable" input record the predicate
-         *                               operates over within the structure of the returned Lambda.
-         * @return a Lambda version of the predciate.
-         */
-        virtual Lambda<bool> toLambda(Handle<Object> &inputRecordPlaceholder) = 0;
-
-    };
+    virtual Lambda<bool> toLambda(Handle<Object>& inputRecordPlaceholder) = 0;
+};
 }
 
-#endif //PDB_QUERYINTERMEDIARYREP_RECORDPREDICATEIR_H
+#endif  // PDB_QUERYINTERMEDIARYREP_RECORDPREDICATEIR_H

@@ -18,7 +18,7 @@
 #ifndef LA_PARSER_H
 #define LA_PARSER_H
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
 #include "LALexer.h"
 
@@ -29,8 +29,8 @@ extern "C"
 #endif
 
 
-int LAparse (LAscan_t, struct LAStatementsList **);
-
+    int
+    LAparse(LAscan_t, struct LAStatementsList**);
 
 
 #endif

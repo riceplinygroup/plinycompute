@@ -37,128 +37,128 @@
 // O_SHIPPRIORITY INTEGER NOT NULL,
 // O_COMMENT VARCHAR(79) NOT NULL);
 
-class Order: public pdb::Object {
+class Order : public pdb::Object {
 
 public:
+    pdb::Vector<LineItem> lineItems;
 
-	pdb::Vector <LineItem> lineItems;
-
-	int orderKey;
-	int custKey;
-	pdb::String orderStatus;
-	double totalPrice;
-	pdb::String orderDate;
-	pdb::String orderPriority;
-	pdb::String clerk;
-	int shipPriority;
-	pdb::String comment;
-
+    int orderKey;
+    int custKey;
+    pdb::String orderStatus;
+    double totalPrice;
+    pdb::String orderDate;
+    pdb::String orderPriority;
+    pdb::String clerk;
+    int shipPriority;
+    pdb::String comment;
 
 
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    ~Order() {}
 
-	~Order() {
-	}
+    Order() {}
 
-	Order() {
-	}
+    Order(pdb::Vector<LineItem> lineItems,
+          int orderkey,
+          int custkey,
+          std::string orderstatus,
+          double totalprice,
+          std::string orderdate,
+          std::string orderpriority,
+          std::string clerk,
+          int shippriority,
+          std::string comment) {
+        this->lineItems = lineItems;
+        this->orderKey = orderkey;
+        this->custKey = custkey;
+        this->orderStatus = orderstatus;
+        this->totalPrice = totalprice;
+        this->orderDate = orderdate;
+        this->orderPriority = orderpriority;
+        this->clerk = clerk;
+        this->shipPriority = shippriority;
+        this->comment = comment;
+    }
 
-	Order(pdb::Vector <LineItem> lineItems, int orderkey,
-			int custkey, std::string orderstatus,
-			double totalprice, std::string orderdate,
-			std::string orderpriority, std::string clerk,
-			int shippriority, std::string comment){
-		this->lineItems = lineItems;
-		this->orderKey = orderkey;
-		this->custKey = custkey;
-		this->orderStatus = orderstatus;
-		this->totalPrice = totalprice;
-		this->orderDate = orderdate;
-		this->orderPriority = orderpriority;
-		this->clerk = clerk;
-		this->shipPriority = shippriority;
-		this->comment = comment;
-	}
+    pdb::String getClerk() {
+        return clerk;
+    }
 
-	pdb::String getClerk()  {
-		return clerk;
-	}
+    void setClerk(pdb::String clerk) {
+        this->clerk = clerk;
+    }
 
-	void setClerk(pdb::String clerk) {
-		this->clerk = clerk;
-	}
+    pdb::String getComment() {
+        return comment;
+    }
 
-	 pdb::String getComment()  {
-		return comment;
-	}
+    void setComment(pdb::String comment) {
+        this->comment = comment;
+    }
 
-	void setComment( pdb::String comment) {
-		this->comment = comment;
-	}
+    int getCustKey() {
+        return custKey;
+    }
 
-	int getCustKey()  {
-		return custKey;
-	}
+    void setCustKey(int custKey) {
+        this->custKey = custKey;
+    }
 
-	void setCustKey(int custKey) {
-		this->custKey = custKey;
-	}
+    pdb::Vector<LineItem>& getLineItems() {
+        return lineItems;
+    }
 
-	 pdb::Vector<LineItem>& getLineItems()  {
-		return lineItems;
-	}
+    void setLineItems(pdb::Vector<LineItem>& lineItems) {
+        this->lineItems = lineItems;
+    }
 
-	void setLineItems( pdb::Vector<LineItem>& lineItems) {
-		this->lineItems = lineItems;
-	}
+    pdb::String getOrderDate() {
+        return orderDate;
+    }
 
-	 pdb::String getOrderDate()  {
-		return orderDate;
-	}
+    void setOrderDate(pdb::String orderDate) {
+        this->orderDate = orderDate;
+    }
 
-	void setOrderDate( pdb::String orderDate) {
-		this->orderDate = orderDate;
-	}
+    int getOrderKey() {
+        return orderKey;
+    }
 
-	int getOrderKey()  {
-		return orderKey;
-	}
+    void setOrderKey(int orderKey) {
+        this->orderKey = orderKey;
+    }
 
-	void setOrderKey(int orderKey) {
-		this->orderKey = orderKey;
-	}
+    pdb::String getOrderPriority() {
+        return orderPriority;
+    }
 
-	 pdb::String getOrderPriority()  {
-		return orderPriority;
-	}
+    void setOrderPriority(pdb::String orderPriority) {
+        this->orderPriority = orderPriority;
+    }
 
-	void setOrderPriority(pdb::String orderPriority) {
-		this->orderPriority = orderPriority;
-	}
+    pdb::String getOrderStatus() {
+        return orderStatus;
+    }
 
-	 pdb::String getOrderStatus()  {
-		return orderStatus;
-	}
+    void setOrderStatus(pdb::String orderStatus) {
+        this->orderStatus = orderStatus;
+    }
 
-	void setOrderStatus(pdb::String orderStatus) {
-		this->orderStatus = orderStatus;
-	}
+    int getShipPriority() {
+        return shipPriority;
+    }
 
-	int getShipPriority()  {
-		return shipPriority;
-	}
+    void setShipPriority(int shipPriority) {
+        this->shipPriority = shipPriority;
+    }
 
-	void setShipPriority(int shipPriority) {
-		this->shipPriority = shipPriority;
-	}
+    double getTotalPrice() {
+        return totalPrice;
+    }
 
-	double getTotalPrice(){
-		return totalPrice;
-	}
-
-	void setTotalPrice(double totalPrice) {
-		this->totalPrice = totalPrice;
-	}
+    void setTotalPrice(double totalPrice) {
+        this->totalPrice = totalPrice;
+    }
 };
 #endif

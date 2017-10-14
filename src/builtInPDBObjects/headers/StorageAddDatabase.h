@@ -28,27 +28,23 @@
 namespace pdb {
 
 // encapsulates a request to add a database in the storage (and catalog)
-class StorageAddDatabase  : public Object {
+class StorageAddDatabase : public Object {
 
 public:
+    StorageAddDatabase() {}
+    ~StorageAddDatabase() {}
 
-	StorageAddDatabase () {}
-	~StorageAddDatabase () {}
+    StorageAddDatabase(std::string dataBase) : database(dataBase) {}
 
-	StorageAddDatabase (std :: string dataBase) : database (dataBase) {}
+    std::string getDatabase() {
+        return database;
+    }
 
-	std :: string getDatabase () {
-		return database;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String database;
-
+    String database;
 };
-
 }
 
 #endif

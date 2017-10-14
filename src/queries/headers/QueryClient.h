@@ -36,293 +36,348 @@ namespace pdb {
 class QueryClient {
 
 public:
+    QueryClient() {}
 
-        QueryClient() {}
+    // connect to the database
+    QueryClient(int portIn,
+                std::string addressIn,
+                PDBLoggerPtr myLoggerIn,
+                bool useScheduler = false)
+        : myHelper(portIn, addressIn, myLoggerIn) {
+        port = portIn;
+        address = addressIn;
+        myLogger = myLoggerIn;
+        runUs = makeObject<Vector<Handle<QueryBase>>>();
+        queryGraph = makeObject<Vector<Handle<Computation>>>();
+        this->useScheduler = useScheduler;
+    }
 
-	// connect to the database
-	QueryClient (int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool useScheduler=false) : myHelper (portIn, addressIn, myLoggerIn) {
-		port = portIn;
-		address = addressIn;
-		myLogger = myLoggerIn;
-		runUs = makeObject <Vector <Handle <QueryBase>>> ();
-                queryGraph = makeObject <Vector <Handle <Computation>>> ();
-                this->useScheduler = useScheduler;
-	}
+    ~QueryClient() {
+        runUs = nullptr;
+        queryGraph = nullptr;
+    }
 
-        ~QueryClient() {
-                runUs = nullptr;
-                queryGraph = nullptr;
-       }
+    // access a set in the database
+    template <class Type>
+    Handle<Set<Type>> getSet(std::string databaseName, std::string setName) {
 
-	// access a set in the database
-	template <class Type>
-	Handle <Set <Type>> getSet (std :: string databaseName, std :: string setName) {
-	
-		// verify that the database and set work 
+// verify that the database and set work
 #ifdef DEBUG_SET_TYPE
-		std :: string errMsg;
+        std::string errMsg;
 
-		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
-		
-		if (typeName == "") {
-			std :: cout << "I was not able to obtain the type for database set " << setName << "\n";
-			myLogger->error ("query client: not able to verify type: " + errMsg);
-			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
-			return returnVal;
-		}
+        std::string typeName = myHelper.getObjectType(databaseName, setName, errMsg);
 
-		if (typeName != getTypeName <Type> ()) {
-			std :: cout << "Wrong type for database set " << setName << "\n";
-			Handle <Set <Type>> returnVal = makeObject <Set <Type>> (false);
-			return returnVal;
-		}
+        if (typeName == "") {
+            std::cout << "I was not able to obtain the type for database set " << setName << "\n";
+            myLogger->error("query client: not able to verify type: " + errMsg);
+            Handle<Set<Type>> returnVal = makeObject<Set<Type>>(false);
+            return returnVal;
+        }
+
+        if (typeName != getTypeName<Type>()) {
+            std::cout << "Wrong type for database set " << setName << "\n";
+            Handle<Set<Type>> returnVal = makeObject<Set<Type>>(false);
+            return returnVal;
+        }
 #endif
-		Handle <Set <Type>> returnVal = makeObject <Set <Type>> (databaseName, setName);
-		return returnVal;
-	}
+        Handle<Set<Type>> returnVal = makeObject<Set<Type>>(databaseName, setName);
+        return returnVal;
+    }
 
-	// get an iterator for a set in the database
-	template <class Type>
-	SetIterator <Type> getSetIterator (std :: string databaseName, std :: string setName) {
+    // get an iterator for a set in the database
+    template <class Type>
+    SetIterator<Type> getSetIterator(std::string databaseName, std::string setName) {
 
-		// verify that the database and set work 
+// verify that the database and set work
 #ifdef DEBUG_SET_TYPE
-		std :: string errMsg;
-		std :: string typeName = myHelper.getObjectType (databaseName, setName, errMsg);
-		
-		if (typeName == "") {
-			myLogger->error ("query client: not able to verify type: " + errMsg);
-			SetIterator <Type> returnVal;
-			return returnVal;
-		}
+        std::string errMsg;
+        std::string typeName = myHelper.getObjectType(databaseName, setName, errMsg);
+
+        if (typeName == "") {
+            myLogger->error("query client: not able to verify type: " + errMsg);
+            SetIterator<Type> returnVal;
+            return returnVal;
+        }
 #endif
-                //commented by Jia, below type check can not work with complex types such as Vector<Handle<Foo>>
-                /*
-		if (typeName != getTypeName <Type> ()) {
-			std :: cout << "Wrong type for database set " << setName << "\n";
-			SetIterator <Type> returnVal;
-			return returnVal;
-		}
-                */
-		SetIterator <Type> returnVal (myLogger, port, address, databaseName, setName);
-		return returnVal;
-	}
+        // commented by Jia, below type check can not work with complex types such as
+        // Vector<Handle<Foo>>
+        /*
+if (typeName != getTypeName <Type> ()) {
+    std :: cout << "Wrong type for database set " << setName << "\n";
+    SetIterator <Type> returnVal;
+    return returnVal;
+}
+        */
+        SetIterator<Type> returnVal(myLogger, port, address, databaseName, setName);
+        return returnVal;
+    }
 
-	bool deleteSet (std :: string databaseName, std :: string setName) {
-                // this is for query testing stuff
-		return simpleRequest <DeleteSet, SimpleRequestResult, bool, String, String> (myLogger, port, 
-		address, false, 124 * 1024, 
-                [&] (Handle <SimpleRequestResult> result) {
-			std :: string errMsg;
-                        if (result != nullptr) {
+    bool deleteSet(std::string databaseName, std::string setName) {
+        // this is for query testing stuff
+        return simpleRequest<DeleteSet, SimpleRequestResult, bool, String, String>(
+            myLogger,
+            port,
+            address,
+            false,
+            124 * 1024,
+            [&](Handle<SimpleRequestResult> result) {
+                std::string errMsg;
+                if (result != nullptr) {
 
-				// make sure we got the correct number of results
-				if (!result->getRes ().first) {
-                                        errMsg = "Could not remove set: " + result->getRes ().second;
-                                        myLogger->error ("QueryErr: " + errMsg);
-                                        return false;
-                                }
-
-                                return true;
-                        }
-                        errMsg = "Error getting type name: got nothing back from catalog";
-                        return false;}, databaseName, setName);
-	}
-
-        //deprecated
-        bool executeQuery (std :: string &errMsg, Handle<Vector<Handle<Computation>>> computations, bool isAggregation = false) {
-
-                        // this is the request
-                const UseTemporaryAllocationBlock myBlock {1024};
-
-                Handle<TupleSetExecuteQuery> executeQuery;
-
-                if (isAggregation == false) {
-                      executeQuery = makeObject <TupleSetExecuteQuery> ();
-                } else {
-                      executeQuery = makeObject <TupleSetExecuteQuery> (true);
-                }
-
-                // this call asks the database to execute the query, and then it inserts the result set name
-                // within each of the results, as well as the database connection information
-
-                // this is for query scheduling stuff
-                return simpleDoubleRequest<TupleSetExecuteQuery, Vector<Handle<Computation>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
-                [&] (Handle<SimpleRequestResult> result) {
-                        if (result != nullptr) {
-                                if (!result->getRes ().first) {
-                                        errMsg = "Error in query: " + result->getRes ().second;
-                                        myLogger->error ("Error querying data: " + result->getRes ().second);
-                                        return false;
-                                }
-                                return true;
-                        }
-                        errMsg = "Error getting type name: got nothing back from server";
+                    // make sure we got the correct number of results
+                    if (!result->getRes().first) {
+                        errMsg = "Could not remove set: " + result->getRes().second;
+                        myLogger->error("QueryErr: " + errMsg);
                         return false;
+                    }
 
+                    return true;
+                }
+                errMsg = "Error getting type name: got nothing back from catalog";
+                return false;
+            },
+            databaseName,
+            setName);
+    }
 
-                }, executeQuery, computations);
+    // deprecated
+    bool executeQuery(std::string& errMsg,
+                      Handle<Vector<Handle<Computation>>> computations,
+                      bool isAggregation = false) {
 
+        // this is the request
+        const UseTemporaryAllocationBlock myBlock{1024};
+
+        Handle<TupleSetExecuteQuery> executeQuery;
+
+        if (isAggregation == false) {
+            executeQuery = makeObject<TupleSetExecuteQuery>();
+        } else {
+            executeQuery = makeObject<TupleSetExecuteQuery>(true);
         }
 
-        //deprecated
-	template <class ...Types>
-	bool execute (std :: string &errMsg, Handle <QueryBase> firstParam, Handle <Types>... args) {
-		if (firstParam->wasError ()) {
-			std :: cout << "There was an error constructing this query.  Can't run it.\n";
-			exit (1);
-		}
-		if (firstParam->getQueryType () != "localoutput") {
-			std :: cout << "Currently, we can only execute queries that write output sets to the server...\n";
-			std :: cout << "You seem to have done something else.  Who knows what will happen???\n";
-		}
+        // this call asks the database to execute the query, and then it inserts the result set name
+        // within each of the results, as well as the database connection information
 
-		runUs->push_back (firstParam);
-		return execute (errMsg, args...);	
-	}
-
-        //deprecated
-	bool execute (std :: string &errMsg) {
-
-		// this is the request
-		const UseTemporaryAllocationBlock myBlock {1024};
-		Handle <ExecuteQuery> executeQuery = makeObject <ExecuteQuery> ();
-
-		// this call asks the database to execute the query, and then it inserts the result set name
-		// within each of the results, as well as the database connection information
-
-                // this is for query scheduling stuff
-                if (useScheduler == true) {
-                     return simpleDoubleRequest<ExecuteQuery, Vector<Handle<QueryBase>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
-                [&] (Handle<SimpleRequestResult> result) {
-                        if (result != nullptr) {
-                                if (!result->getRes ().first) {
-                                        errMsg = "Error in query: " + result->getRes ().second;
-                                        myLogger->error ("Error querying data: " + result->getRes ().second);
-                                        return false;
-                                }
-                                return true;
-                        }
-                        errMsg = "Error getting type name: got nothing back from server";
+        // this is for query scheduling stuff
+        return simpleDoubleRequest<TupleSetExecuteQuery,
+                                   Vector<Handle<Computation>>,
+                                   SimpleRequestResult,
+                                   bool>(
+            myLogger,
+            port,
+            address,
+            false,
+            124 * 1024,
+            [&](Handle<SimpleRequestResult> result) {
+                if (result != nullptr) {
+                    if (!result->getRes().first) {
+                        errMsg = "Error in query: " + result->getRes().second;
+                        myLogger->error("Error querying data: " + result->getRes().second);
                         return false;
+                    }
+                    return true;
+                }
+                errMsg = "Error getting type name: got nothing back from server";
+                return false;
 
 
-                }, executeQuery, runUs);
+            },
+            executeQuery,
+            computations);
+    }
 
-
-                } else {
-		     return simpleDoubleRequest <ExecuteQuery, Vector <Handle <QueryBase>>, Vector <String>, bool> (myLogger, port, 
-		address, false, 124 * 1024, 
-                [&] (Handle <Vector <String>> result) {
-                        if (result != nullptr) {
-
-				// make sure we got the correct number of results
-				if (result->size () != runUs->size ()) {
-                                        errMsg = "Got a strange result size from execute";
-                                        myLogger->error ("QueryErr: " + errMsg);
-                                        return false;
-                                }
-
-				// make sure the results are all sets
-				for (int i = 0; i < result->size (); i++) {
-
-					if ((*runUs)[i]->getQueryType () != "localoutput")
-						std :: cout << "This is bad... there was an output that was not writing to a set.\n";
-
-					myLogger->info (std :: string ("Query execute: wrote set ") + std :: string ((*result)[i]));
-				}
-                                return true;
-                        }
-                        errMsg = "Error getting query execution results";
-                        return false;}, executeQuery, runUs);
-                 }
-         
-	}
-
-        //JiaNote: to execute computations
-        template <class ...Types>
-        bool executeComputations (std :: string &errMsg, Handle <Computation> firstParam, Handle <Types>... args) {
-                queryGraph->push_back (firstParam);
-                return executeComputations (errMsg, args...);
+    // deprecated
+    template <class... Types>
+    bool execute(std::string& errMsg, Handle<QueryBase> firstParam, Handle<Types>... args) {
+        if (firstParam->wasError()) {
+            std::cout << "There was an error constructing this query.  Can't run it.\n";
+            exit(1);
+        }
+        if (firstParam->getQueryType() != "localoutput") {
+            std::cout << "Currently, we can only execute queries that write output sets to the "
+                         "server...\n";
+            std::cout << "You seem to have done something else.  Who knows what will happen???\n";
         }
 
-       bool executeComputations (std :: string &errMsg) {
+        runUs->push_back(firstParam);
+        return execute(errMsg, args...);
+    }
 
-                // this is the request
-                const UseTemporaryAllocationBlock myBlock {256*1024*1024};
-                QueryGraphAnalyzer queryAnalyzer (this->queryGraph);
-                std :: string tcapString = queryAnalyzer.parseTCAPString();
-                std :: vector<Handle<Computation>> computations;
-                queryAnalyzer.parseComputations(computations);
-                Handle<Vector<Handle<Computation>>> computationsToSend = makeObject<Vector<Handle<Computation>>>();
-                for (int i = 0; i < computations.size(); i++) {
-                    computationsToSend->push_back(computations[i]);
-                }
-                Handle <ExecuteComputation> executeComputation = makeObject <ExecuteComputation> (tcapString);
+    // deprecated
+    bool execute(std::string& errMsg) {
 
-                // this call asks the database to execute the query, and then it inserts the result set name
-                // within each of the results, as well as the database connection information
+        // this is the request
+        const UseTemporaryAllocationBlock myBlock{1024};
+        Handle<ExecuteQuery> executeQuery = makeObject<ExecuteQuery>();
 
-                // this is for query scheduling stuff
-                if (useScheduler == true) {
-                     return simpleDoubleRequest<ExecuteComputation, Vector<Handle<Computation>>, SimpleRequestResult, bool> (myLogger, port, address, false, 124 * 1024,
-                [&] (Handle<SimpleRequestResult> result) {
-                        if (result != nullptr) {
-                                if (!result->getRes ().first) {
-                                        errMsg = "Error in query: " + result->getRes ().second;
-                                        myLogger->error ("Error querying data: " + result->getRes ().second);
-                                        return false;
-                                }
-                                this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
-                                return true;
+        // this call asks the database to execute the query, and then it inserts the result set name
+        // within each of the results, as well as the database connection information
+
+        // this is for query scheduling stuff
+        if (useScheduler == true) {
+            return simpleDoubleRequest<ExecuteQuery,
+                                       Vector<Handle<QueryBase>>,
+                                       SimpleRequestResult,
+                                       bool>(
+                myLogger,
+                port,
+                address,
+                false,
+                124 * 1024,
+                [&](Handle<SimpleRequestResult> result) {
+                    if (result != nullptr) {
+                        if (!result->getRes().first) {
+                            errMsg = "Error in query: " + result->getRes().second;
+                            myLogger->error("Error querying data: " + result->getRes().second);
+                            return false;
                         }
-                        errMsg = "Error getting type name: got nothing back from server";
-                        this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
-                        return false;
+                        return true;
+                    }
+                    errMsg = "Error getting type name: got nothing back from server";
+                    return false;
 
 
-                }, executeComputation, computationsToSend);
-                  
-
-                } else {
-                     errMsg = "This query must be sent to QuerySchedulerServer, but it seems QuerySchedulerServer is not supported";
-                     this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
-                     return false;
-                }
-                this->queryGraph = makeObject <Vector <Handle <Computation>>> ();
-          }
+                },
+                executeQuery,
+                runUs);
 
 
-        void setUseScheduler(bool useScheduler) {
-                this->useScheduler = useScheduler;
+        } else {
+            return simpleDoubleRequest<ExecuteQuery,
+                                       Vector<Handle<QueryBase>>,
+                                       Vector<String>,
+                                       bool>(
+                myLogger,
+                port,
+                address,
+                false,
+                124 * 1024,
+                [&](Handle<Vector<String>> result) {
+                    if (result != nullptr) {
+
+                        // make sure we got the correct number of results
+                        if (result->size() != runUs->size()) {
+                            errMsg = "Got a strange result size from execute";
+                            myLogger->error("QueryErr: " + errMsg);
+                            return false;
+                        }
+
+                        // make sure the results are all sets
+                        for (int i = 0; i < result->size(); i++) {
+
+                            if ((*runUs)[i]->getQueryType() != "localoutput")
+                                std::cout << "This is bad... there was an output that was not "
+                                             "writing to a set.\n";
+
+                            myLogger->info(std::string("Query execute: wrote set ") +
+                                           std::string((*result)[i]));
+                        }
+                        return true;
+                    }
+                    errMsg = "Error getting query execution results";
+                    return false;
+                },
+                executeQuery,
+                runUs);
         }
+    }
+
+    // JiaNote: to execute computations
+    template <class... Types>
+    bool executeComputations(std::string& errMsg,
+                             Handle<Computation> firstParam,
+                             Handle<Types>... args) {
+        queryGraph->push_back(firstParam);
+        return executeComputations(errMsg, args...);
+    }
+
+    bool executeComputations(std::string& errMsg) {
+
+        // this is the request
+        const UseTemporaryAllocationBlock myBlock{256 * 1024 * 1024};
+        QueryGraphAnalyzer queryAnalyzer(this->queryGraph);
+        std::string tcapString = queryAnalyzer.parseTCAPString();
+        std::vector<Handle<Computation>> computations;
+        queryAnalyzer.parseComputations(computations);
+        Handle<Vector<Handle<Computation>>> computationsToSend =
+            makeObject<Vector<Handle<Computation>>>();
+        for (int i = 0; i < computations.size(); i++) {
+            computationsToSend->push_back(computations[i]);
+        }
+        Handle<ExecuteComputation> executeComputation = makeObject<ExecuteComputation>(tcapString);
+
+        // this call asks the database to execute the query, and then it inserts the result set name
+        // within each of the results, as well as the database connection information
+
+        // this is for query scheduling stuff
+        if (useScheduler == true) {
+            return simpleDoubleRequest<ExecuteComputation,
+                                       Vector<Handle<Computation>>,
+                                       SimpleRequestResult,
+                                       bool>(
+                myLogger,
+                port,
+                address,
+                false,
+                124 * 1024,
+                [&](Handle<SimpleRequestResult> result) {
+                    if (result != nullptr) {
+                        if (!result->getRes().first) {
+                            errMsg = "Error in query: " + result->getRes().second;
+                            myLogger->error("Error querying data: " + result->getRes().second);
+                            return false;
+                        }
+                        this->queryGraph = makeObject<Vector<Handle<Computation>>>();
+                        return true;
+                    }
+                    errMsg = "Error getting type name: got nothing back from server";
+                    this->queryGraph = makeObject<Vector<Handle<Computation>>>();
+                    return false;
+
+
+                },
+                executeComputation,
+                computationsToSend);
+
+
+        } else {
+            errMsg =
+                "This query must be sent to QuerySchedulerServer, but it seems "
+                "QuerySchedulerServer is not supported";
+            this->queryGraph = makeObject<Vector<Handle<Computation>>>();
+            return false;
+        }
+        this->queryGraph = makeObject<Vector<Handle<Computation>>>();
+    }
+
+
+    void setUseScheduler(bool useScheduler) {
+        this->useScheduler = useScheduler;
+    }
 
 private:
+    // how we connect to the catalog
+    CatalogClient myHelper;
 
-	// how we connect to the catalog
-	CatalogClient myHelper;
+    // deprecated
+    // this is the query graph we'll execute
+    Handle<Vector<Handle<QueryBase>>> runUs;
 
-        // deprecated
-	// this is the query graph we'll execute
-	Handle <Vector <Handle <QueryBase>>> runUs;
-
-        // JiaNote: the Computation-based query graph to execute
-        Handle <Vector <Handle <Computation>>> queryGraph;
+    // JiaNote: the Computation-based query graph to execute
+    Handle<Vector<Handle<Computation>>> queryGraph;
 
 
-	// connection info
-	int port;
-	std :: string address;
+    // connection info
+    int port;
+    std::string address;
 
-	// for logging
-	PDBLoggerPtr myLogger;
+    // for logging
+    PDBLoggerPtr myLogger;
 
-        //JiaNote: whether to run in distributed mode
-        bool useScheduler;
-
+    // JiaNote: whether to run in distributed mode
+    bool useScheduler;
 };
-
 }
 
 #endif
-

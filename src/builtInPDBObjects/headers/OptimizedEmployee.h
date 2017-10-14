@@ -31,52 +31,50 @@ namespace pdb {
 class OptimizedEmployee : public Object {
 
 public:
+    String name;
+    int age;
+    double salary;
+    String department;
 
-        String name;
-        int age;
-        double salary;
-        String department;
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    ~OptimizedEmployee() {}
+    OptimizedEmployee() {}
+    size_t hash() {
+        return name.hash();
+    }
+    void print() {
+        std::cout << "name is: " << name << " age is: " << age;
+    }
 
-        ~OptimizedEmployee () {}
-        OptimizedEmployee () {}
-        size_t hash () {
-           return name.hash();
-        }
-        void print () {
-                std :: cout << "name is: " << name << " age is: " << age;
-        }
+    String& getName() {
+        return name;
+    }
 
-	String &getName () {
-		return name;
-	}
+    bool isFrank() {
+        return (name == "Frank");
+    }
 
-        bool isFrank() {
-                return (name == "Frank");
-        }
+    int getAge() {
+        return age;
+    }
 
-	int getAge() {
-		return age;
-	}
+    double getSalary() {
+        return salary;
+    }
 
-	double getSalary () {
-		return salary;
-	}
+    OptimizedEmployee(std::string nameIn, int ageIn, std::string department, double salary)
+        : name(nameIn), age(ageIn), salary(salary), department(department) {}
 
-        OptimizedEmployee (std :: string nameIn, int ageIn, std :: string department, double salary) : name (nameIn), age (ageIn), salary (salary), department (department) {
-        }
+    OptimizedEmployee(std::string nameIn, int ageIn) : name(nameIn), age(ageIn) {
+        department = "myDept";
+        salary = 123.45;
+    }
 
-	OptimizedEmployee (std :: string nameIn, int ageIn) : name (nameIn), age (ageIn) {
-		department = "myDept";
-		salary = 123.45;	
-	}
-
-	bool operator == (OptimizedEmployee &me)  {
-		return name == me.name;
-	}
+    bool operator==(OptimizedEmployee& me) {
+        return name == me.name;
+    }
 };
-
 }
 
 #endif

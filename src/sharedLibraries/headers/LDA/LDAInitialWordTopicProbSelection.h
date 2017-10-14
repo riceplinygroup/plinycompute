@@ -27,43 +27,42 @@
 #include "LDA/LDATopicWordProb.h"
 
 using namespace pdb;
-class LDAInitialWordTopicProbSelection : public SelectionComp <LDATopicWordProb, int> {
+class LDAInitialWordTopicProbSelection : public SelectionComp<LDATopicWordProb, int> {
 
 private:
-	unsigned numTopic;
+    unsigned numTopic;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LDAInitialWordTopicProbSelection() {}
+    LDAInitialWordTopicProbSelection(unsigned numTopicIn) {
+        this->numTopic = numTopicIn;
+    }
 
-	LDAInitialWordTopicProbSelection () {}
-	LDAInitialWordTopicProbSelection (unsigned numTopicIn) {
-		this->numTopic = numTopicIn;
-	}
+    Lambda<bool> getSelection(Handle<int> checkMe) override {
+        return makeLambda(checkMe, [](Handle<int>& checkMe) { return true; });
+    }
 
-	Lambda <bool> getSelection (Handle <int> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<int> & checkMe) {return true;});
-	}
-
-	Lambda <Handle <LDATopicWordProb>> getProjection (Handle <int> checkMe) override {
+    Lambda<Handle<LDATopicWordProb>> getProjection(Handle<int> checkMe) override {
 
 
-		return makeLambda (checkMe, [&] (Handle<int> & checkMe) {
+        return makeLambda(checkMe, [&](Handle<int>& checkMe) {
 
-			int numWord = *checkMe;
+            int numWord = *checkMe;
 
-			// first, seed the RNG
-			srand48 (numWord);
+            // first, seed the RNG
+            srand48(numWord);
 
-                        Handle<Vector <double>> wordTopicProb = makeObject<Vector <double>> (numTopic);
-                        for (int j = 0; j < numTopic; j++) {
-                        	wordTopicProb->push_back(drand48 ());
-                        }
-			Handle <LDATopicWordProb> myList = makeObject <LDATopicWordProb> (numWord, wordTopicProb);
-			
-			return myList;
-		});
-	}
+            Handle<Vector<double>> wordTopicProb = makeObject<Vector<double>>(numTopic);
+            for (int j = 0; j < numTopic; j++) {
+                wordTopicProb->push_back(drand48());
+            }
+            Handle<LDATopicWordProb> myList = makeObject<LDATopicWordProb>(numWord, wordTopicProb);
+
+            return myList;
+        });
+    }
 };
 
 

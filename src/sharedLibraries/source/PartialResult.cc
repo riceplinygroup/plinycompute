@@ -22,6 +22,6 @@
 #include "PartialResult.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (PartialResult)
+GET_V_TABLE(PartialResult)
 
 #endif

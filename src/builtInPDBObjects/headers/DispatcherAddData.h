@@ -31,42 +31,44 @@
 namespace pdb {
 
 // encapsulates a request to add data to a set in storage
-    class DispatcherAddData  : public Object {
+class DispatcherAddData : public Object {
 
-    public:
+public:
+    DispatcherAddData() {}
+    ~DispatcherAddData() {}
 
-        DispatcherAddData () {}
-        ~DispatcherAddData () {}
+    DispatcherAddData(std::string databaseName,
+                      std::string setName,
+                      std::string typeName,
+                      bool shallowCopyOrNot = false)
+        : databaseName(databaseName), setName(setName), typeName(typeName) {
+        this->shallowCopyOrNot = shallowCopyOrNot;
+    }
 
-        DispatcherAddData (std :: string databaseName, std :: string setName, std :: string typeName, bool shallowCopyOrNot = false) : databaseName (databaseName), setName (setName),
-                                                                                                 typeName (typeName) { this->shallowCopyOrNot = shallowCopyOrNot; }
+    std::string getDatabaseName() {
+        return databaseName;
+    }
 
-        std :: string getDatabaseName () {
-            return databaseName;
-        }
+    std::string getSetName() {
+        return setName;
+    }
 
-        std :: string getSetName () {
-            return setName;
-        }
+    std::string getTypeName() {
+        return typeName;
+    }
 
-        std :: string getTypeName () {
-            return typeName;
-        }
+    bool isShallowCopy() {
+        return shallowCopyOrNot;
+    }
 
-        bool isShallowCopy() {
-            return shallowCopyOrNot;
-        }
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-    private:
-
-        String databaseName;
-        String setName;
-        String typeName;
-        bool shallowCopyOrNot;
-    };
-
+private:
+    String databaseName;
+    String setName;
+    String typeName;
+    bool shallowCopyOrNot;
+};
 }
 
-#endif //OBJECTQUERYMODEL_DISPATCHERADDDATA_H
+#endif  // OBJECTQUERYMODEL_DISPATCHERADDDATA_H

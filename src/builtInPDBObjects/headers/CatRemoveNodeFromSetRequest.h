@@ -30,33 +30,30 @@ namespace pdb {
 class CatRemoveNodeFromSetRequest : public Object {
 
 public:
+    ~CatRemoveNodeFromSetRequest() {}
+    CatRemoveNodeFromSetRequest() {}
+    CatRemoveNodeFromSetRequest(std::string dbName, std::string setName, std::string nodeIP)
+        : dbName(dbName), setName(setName), nodeIP(nodeIP) {}
 
-	~CatRemoveNodeFromSetRequest () {}
-	CatRemoveNodeFromSetRequest () {}
-	CatRemoveNodeFromSetRequest (std :: string dbName, std :: string setName, std :: string nodeIP) :
-        dbName (dbName), setName (setName), nodeIP (nodeIP) {}
+    std::string nodeToRemove() {
+        return nodeIP;
+    }
 
-	std :: string nodeToRemove () {
-		return nodeIP;
-	}
-
-    std :: string whichSet () {
+    std::string whichSet() {
         return setName;
     }
 
-    std :: string whichDB () {
+    std::string whichDB() {
         return dbName;
     }
 
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
     String dbName;
     String setName;
     String nodeIP;
 };
-
 }
 
 #endif

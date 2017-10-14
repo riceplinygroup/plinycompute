@@ -21,6 +21,6 @@
 #include "GMM/GmmNewComp.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (GmmNewComp)
+GET_V_TABLE(GmmNewComp)
 
 #endif

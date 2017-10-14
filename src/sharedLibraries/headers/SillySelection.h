@@ -29,21 +29,20 @@
 #include "Supervisor.h"
 
 using namespace pdb;
-class SillySelection : public SelectionComp <Employee, Supervisor> {
+class SillySelection : public SelectionComp<Employee, Supervisor> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    SillySelection() {}
 
-	SillySelection () {}
+    Lambda<bool> getSelection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getSteve) == makeLambdaFromMember(checkMe, me);
+    }
 
-	Lambda <bool> getSelection (Handle <Supervisor> checkMe) override {
-		return makeLambdaFromMethod (checkMe, getSteve) == makeLambdaFromMember (checkMe, me);
-	}
-
-	Lambda <Handle <Employee>> getProjection (Handle <Supervisor> checkMe) override {
-                return makeLambdaFromMethod (checkMe, getMe);
-	}
+    Lambda<Handle<Employee>> getProjection(Handle<Supervisor> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getMe);
+    }
 };
 
 

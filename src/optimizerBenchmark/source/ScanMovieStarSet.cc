@@ -21,6 +21,6 @@
 #include "ScanMovieStarSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanMovieStarSet)
+GET_V_TABLE(ScanMovieStarSet)
 
 #endif

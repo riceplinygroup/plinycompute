@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "KMeansNormVectorMap.h"
 
-GET_V_TABLE (KMeansNormVectorMap)
+GET_V_TABLE(KMeansNormVectorMap)
 
 #endif

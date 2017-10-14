@@ -24,27 +24,27 @@
 
 using std::function;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A retention clause that indicates that all columns from an input table should be copied into the
+ * output table.
+ */
+class RetainAllClause : public RetainClause {
     /**
-     * A retention clause that indicates that all columns from an input table should be copied into the output table.
+     * @return true
      */
-    class RetainAllClause : public RetainClause
-    {
-        /**
-         * @return true
-         */
-        bool isAll() override;
+    bool isAll() override;
 
-        /**
-         * @return false
-         */
-        bool isNone() override;
+    /**
+     * @return false
+     */
+    bool isNone() override;
 
-        // contract from super
-        void match(function<void(RetainAllClause &)> forAll, function<void(RetainExplicitClause &)>,
-                   function<void(RetainNoneClause &)> forNone) override;
-    };
+    // contract from super
+    void match(function<void(RetainAllClause&)> forAll,
+               function<void(RetainExplicitClause&)>,
+               function<void(RetainNoneClause&)> forNone) override;
+};
 }
 
-#endif //PDB_TCAPPARSER_RETAINALLCLAUSE_H
+#endif  // PDB_TCAPPARSER_RETAINALLCLAUSE_H

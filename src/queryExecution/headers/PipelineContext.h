@@ -18,7 +18,7 @@
 #ifndef PIPELINE_CONTEXT_H
 #define PIPELINE_CONTEXT_H
 
-//by Jia, Oct 2016
+// by Jia, Oct 2016
 
 #include "Handle.h"
 #include "PDBVector.h"
@@ -33,38 +33,40 @@ namespace pdb {
 class PipelineContext;
 typedef std::shared_ptr<PipelineContext> PipelineContextPtr;
 
-//this class encapsulates the global state that is shared by pipeline nodes in the same pipeline network
+// this class encapsulates the global state that is shared by pipeline nodes in the same pipeline
+// network
 class PipelineContext {
 
-    public:
-    //temporarily make this public for getRecord()
-    //the final output vector that needs to invoke getRecord() on
+public:
+    // temporarily make this public for getRecord()
+    // the final output vector that needs to invoke getRecord() on
     Handle<Vector<Handle<Object>>> outputVec;
 
 
-    private:
-
-    //the proxy to pin/unpin output page
+private:
+    // the proxy to pin/unpin output page
     DataProxyPtr proxy;
 
-    //the output set identifier
+    // the output set identifier
     SetSpecifierPtr outputSet;
 
-    //whether output page is full
+    // whether output page is full
     bool outputPageFull;
 
-    //page to unpin
+    // page to unpin
     PDBPagePtr pageToUnpin;
 
 
-    public:
+public:
     ~PipelineContext() {
         this->outputVec = nullptr;
         this->outputSet = nullptr;
     }
 
 
-    PipelineContext (Handle<Vector<Handle<Object>>> outputVec, DataProxyPtr proxy, SetSpecifierPtr outputSet) {
+    PipelineContext(Handle<Vector<Handle<Object>>> outputVec,
+                    DataProxyPtr proxy,
+                    SetSpecifierPtr outputSet) {
         this->outputVec = outputVec;
         this->proxy = proxy;
         this->outputSet = outputSet;
@@ -72,13 +74,12 @@ class PipelineContext {
         this->pageToUnpin = nullptr;
     }
 
-    Handle<Vector<Handle<Object>>> & getOutputVec() {
+    Handle<Vector<Handle<Object>>>& getOutputVec() {
         return this->outputVec;
     }
 
     void setOutputVec(Handle<Vector<Handle<Object>>> outputVec) {
         this->outputVec = outputVec;
-
     }
 
     void clearOutputPage() {
@@ -87,7 +88,7 @@ class PipelineContext {
 
     DataProxyPtr getProxy() {
         return this->proxy;
-    } 
+    }
 
     SetSpecifierPtr getOutputSet() {
         return this->outputSet;
@@ -97,27 +98,19 @@ class PipelineContext {
         this->outputPageFull = fullOrNot;
     }
 
-    bool isOutputFull () {
+    bool isOutputFull() {
         return this->outputPageFull;
     }
 
-    void setPageToUnpin (PDBPagePtr page) {
+    void setPageToUnpin(PDBPagePtr page) {
         this->pageToUnpin = page;
     }
 
-    PDBPagePtr getPageToUnpin () {
+    PDBPagePtr getPageToUnpin() {
         return this->pageToUnpin;
     }
-
-
-
 };
-
-
-
 }
-
-
 
 
 #endif

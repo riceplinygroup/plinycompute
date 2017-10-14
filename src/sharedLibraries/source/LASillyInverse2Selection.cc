@@ -21,6 +21,6 @@
 #include "LASillyInverse2Selection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyInverse2Selection)
+GET_V_TABLE(LASillyInverse2Selection)
 
 #endif

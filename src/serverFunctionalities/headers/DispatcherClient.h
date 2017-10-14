@@ -34,22 +34,23 @@ namespace pdb {
 class DispatcherClient : public ServerFunctionality {
 
 public:
-
-    DispatcherClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn);
+    DispatcherClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn);
     ~DispatcherClient();
 
     /**
      *
      * @param forMe
      */
-    void registerHandlers (PDBServer &forMe) override; // no-op
+    void registerHandlers(PDBServer& forMe) override;  // no-op
 
     /**
      *
      * @param setAndDatabase
      * @return
      */
-    bool registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg);
+    bool registerSet(std::pair<std::string, std::string> setAndDatabase,
+                     PartitionPolicy::Policy policy,
+                     std::string& errMsg);
 
     /**
      *
@@ -57,20 +58,24 @@ public:
      * @return
      */
     template <class DataType>
-    bool sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg);
+    bool sendData(std::pair<std::string, std::string> setAndDatabase,
+                  Handle<Vector<Handle<DataType>>> dataToSend,
+                  std::string& errMsg);
 
     template <class DataType>
-    bool sendBytes(std::pair<std::string, std::string> setAndDatabase, char * bytes, size_t numBytes, std::string& errMsg);
+    bool sendBytes(std::pair<std::string, std::string> setAndDatabase,
+                   char* bytes,
+                   size_t numBytes,
+                   std::string& errMsg);
 
 private:
     CatalogClient myHelper;
     int port;
-    std :: string address;
+    std::string address;
     PDBLoggerPtr logger;
-
 };
 }
 
 #include "DispatcherClientTemplate.cc"
 
-#endif //OBJECTQUERYMODEL_DISPATCHERCLIENT_H
+#endif  // OBJECTQUERYMODEL_DISPATCHERCLIENT_H

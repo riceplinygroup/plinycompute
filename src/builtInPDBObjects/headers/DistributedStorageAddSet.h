@@ -27,43 +27,43 @@
 namespace pdb {
 
 // encapsulates a request to add a set in storage
-    class DistributedStorageAddSet  : public Object {
+class DistributedStorageAddSet : public Object {
 
-    public:
+public:
+    DistributedStorageAddSet() {}
+    ~DistributedStorageAddSet() {}
 
-        DistributedStorageAddSet () {}
-        ~DistributedStorageAddSet () {}
+    DistributedStorageAddSet(std::string dataBase,
+                             std::string setName,
+                             std::string typeName,
+                             size_t pageSize)
+        : dataBase(dataBase), setName(setName), typeName(typeName), pageSize(pageSize) {}
 
-        DistributedStorageAddSet (std :: string dataBase, std :: string setName, std :: string typeName, size_t pageSize)
-                : dataBase (dataBase), setName (setName), typeName (typeName), pageSize (pageSize) {}
+    std::string getDatabase() {
+        return dataBase;
+    }
 
-        std :: string getDatabase () {
-            return dataBase;
-        }
+    std::string getSetName() {
+        return setName;
+    }
 
-        std :: string getSetName () {
-            return setName;
-        }
+    std::string getTypeName() {
+        return typeName;
+    }
 
-        std :: string getTypeName () {
-            return typeName;
-        }
+    size_t getPageSize() {
+        return pageSize;
+    }
 
-        size_t getPageSize () {
-            return pageSize;
-        }
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
-
-    private:
-
-        String dataBase;
-        String setName;
-        String typeName;
-        size_t pageSize;
-    };
-
+private:
+    String dataBase;
+    String setName;
+    String typeName;
+    size_t pageSize;
+};
 }
 
 
-#endif //DISTRIBUTEDSTORAGEADDSET_H
+#endif  // DISTRIBUTEDSTORAGEADDSET_H

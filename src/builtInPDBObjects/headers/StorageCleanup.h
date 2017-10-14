@@ -31,22 +31,24 @@
 //  PRELOAD %StorageCleanup%
 
 namespace pdb {
-// this object type is sent to the server to tell it there is no more page to load, scan finished at frontend
-class StorageCleanup : public pdb :: Object {
+// this object type is sent to the server to tell it there is no more page to load, scan finished at
+// frontend
+class StorageCleanup : public pdb::Object {
 
 public:
+    StorageCleanup(bool flushOrNot = true) {
+        this->flushOrNot = flushOrNot;
+    }
+    ~StorageCleanup() {}
 
-	StorageCleanup (bool flushOrNot=true) { this->flushOrNot = flushOrNot; }
-	~StorageCleanup () {}       
+    bool isFlushing() {
+        return flushOrNot;
+    }
 
-        bool isFlushing() { return flushOrNot; }
-
-        ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-        bool flushOrNot;
-
+    bool flushOrNot;
 };
 }
 

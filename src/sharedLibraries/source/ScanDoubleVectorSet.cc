@@ -21,6 +21,6 @@
 #include "ScanDoubleVectorSet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanDoubleVectorSet)
+GET_V_TABLE(ScanDoubleVectorSet)
 
 #endif

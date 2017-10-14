@@ -37,12 +37,19 @@ typedef shared_ptr<FileSetPageIterator> FileSetPageIteratorPtr;
 
 class FileSetPageIterator : public PageIteratorInterface {
 public:
-
-    FileSetPageIterator(PageCachePtr cache, int fileHandle, size_t fileSize, size_t pageSize, NodeID nodeId, DatabaseID dbId, UserTypeID typeId, SetID setId);
+    FileSetPageIterator(PageCachePtr cache,
+                        int fileHandle,
+                        size_t fileSize,
+                        size_t pageSize,
+                        NodeID nodeId,
+                        DatabaseID dbId,
+                        UserTypeID typeId,
+                        SetID setId);
     virtual ~FileSetPageIterator();
     PDBPagePtr next() override;
     bool hasNext() override;
-    bool offsetIteratedSize (size_t iteratedSize);
+    bool offsetIteratedSize(size_t iteratedSize);
+
 private:
     PageCachePtr cache;
     int handle;

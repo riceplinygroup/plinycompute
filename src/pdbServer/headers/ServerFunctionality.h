@@ -24,42 +24,39 @@
 namespace pdb {
 
 // this pure virtual class encapsulates some particular server functionality (catalog client,
-// catalog server, storage server, etc.).  
+// catalog server, storage server, etc.).
 class ServerFunctionality {
 
 public:
+    // registers any particular handlers that this server needs
+    virtual void registerHandlers(PDBServer& forMe) = 0;
 
-	// registers any particular handlers that this server needs
-	virtual void registerHandlers (PDBServer &forMe) = 0;
+    // added by Jia, it will be invoked when PDBServer is to be shutdown
+    virtual void cleanup() {}
 
-        // added by Jia, it will be invoked when PDBServer is to be shutdown
-        virtual void cleanup() {}
- 
-	// access a particular functionality on the attached server
-	template <class Functionality>
-	Functionality &getFunctionality () {
-		return parent->getFunctionality <Functionality> ();
-	}
-	
-	// remember the server this is attached to
-	void recordServer (PDBServer &recordMe) {
-		parent = &recordMe;
-	}
+    // access a particular functionality on the attached server
+    template <class Functionality>
+    Functionality& getFunctionality() {
+        return parent->getFunctionality<Functionality>();
+    }
 
-	PDBWorkerPtr getWorker () {
-		return parent->getWorkerQueue ()->getWorker ();
-	}
+    // remember the server this is attached to
+    void recordServer(PDBServer& recordMe) {
+        parent = &recordMe;
+    }
 
-        PDBLoggerPtr getLogger () {
-                return parent->getLogger ();
-        }
+    PDBWorkerPtr getWorker() {
+        return parent->getWorkerQueue()->getWorker();
+    }
+
+    PDBLoggerPtr getLogger() {
+        return parent->getLogger();
+    }
 
 
 private:
-
-	PDBServer *parent;	
+    PDBServer* parent;
 };
-
 }
 
 #endif

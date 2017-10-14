@@ -28,44 +28,44 @@
 #include "LAMultiplicativeExpressionNode.h"
 #include "LAAdditiveExpressionNode.h"
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
 struct LAStatementNode;
 typedef std::shared_ptr<struct LAStatementNode> LAStatementNodePtr;
 
 
-struct LAStatementNode : public LAASTNode{
+struct LAStatementNode : public LAASTNode {
 
 private:
-	LAIdentifierNodePtr identifier = NULL;
+    LAIdentifierNodePtr identifier = NULL;
 
-	LAExpressionNodePtr expression = NULL;
+    LAExpressionNodePtr expression = NULL;
 
-	LAStatementNodePtr me = NULL;
+    LAStatementNodePtr me = NULL;
 
-	bool printQueryResult = true;
+    bool printQueryResult = true;
 
 
 public:
-	LAStatementNode():LAASTNode(LA_ASTNODE_TYPE_STATEMENT) {}
-	
-	std::string toString() final{
-		return identifier->toString() + " = " + expression->toString();
-	}
+    LAStatementNode() : LAASTNode(LA_ASTNODE_TYPE_STATEMENT) {}
 
-	void setShared(LAStatementNodePtr meIn){
-		me = meIn;
-	}
+    std::string toString() final {
+        return identifier->toString() + " = " + expression->toString();
+    }
 
-	void setLeftIdentifier(LAIdentifierNodePtr i){
-		identifier = i;
-	}
+    void setShared(LAStatementNodePtr meIn) {
+        me = meIn;
+    }
 
-	void setRightExpression(LAExpressionNodePtr e){
-		expression = e;
-	}
+    void setLeftIdentifier(LAIdentifierNodePtr i) {
+        identifier = i;
+    }
 
-	void evaluateQuery(LAPDBInstance& instance);
+    void setRightExpression(LAExpressionNodePtr e) {
+        expression = e;
+    }
+
+    void evaluateQuery(LAPDBInstance& instance);
 };
 
 #endif

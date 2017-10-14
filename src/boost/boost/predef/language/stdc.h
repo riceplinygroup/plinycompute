@@ -29,20 +29,20 @@ If available, the year of the standard is detected as YYYY.MM.1 from the Epoc da
 #define BOOST_LANG_STDC BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
 #if defined(__STDC__)
-#   undef BOOST_LANG_STDC
-#   if defined(__STDC_VERSION__)
-#       if (__STDC_VERSION__ > 100)
-#           define BOOST_LANG_STDC BOOST_PREDEF_MAKE_YYYYMM(__STDC_VERSION__)
-#       else
-#           define BOOST_LANG_STDC BOOST_VERSION_NUMBER_AVAILABLE
-#       endif
-#   else
-#       define BOOST_LANG_STDC BOOST_VERSION_NUMBER_AVAILABLE
-#   endif
+#undef BOOST_LANG_STDC
+#if defined(__STDC_VERSION__)
+#if (__STDC_VERSION__ > 100)
+#define BOOST_LANG_STDC BOOST_PREDEF_MAKE_YYYYMM(__STDC_VERSION__)
+#else
+#define BOOST_LANG_STDC BOOST_VERSION_NUMBER_AVAILABLE
+#endif
+#else
+#define BOOST_LANG_STDC BOOST_VERSION_NUMBER_AVAILABLE
+#endif
 #endif
 
 #if BOOST_LANG_STDC
-#   define BOOST_LANG_STDC_AVAILABLE
+#define BOOST_LANG_STDC_AVAILABLE
 #endif
 
 #define BOOST_LANG_STDC_NAME "Standard C"
@@ -50,4 +50,4 @@ If available, the year of the standard is detected as YYYY.MM.1 from the Epoc da
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_LANG_STDC,BOOST_LANG_STDC_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_LANG_STDC, BOOST_LANG_STDC_NAME)

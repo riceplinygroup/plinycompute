@@ -18,34 +18,33 @@
 #ifndef SILLY_LA_INVERSE2_SELECT_H
 #define SILLY_LA_INVERSE2_SELECT_H
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
 #include "Lambda.h"
 #include "LambdaCreationFunctions.h"
 #include "SelectionComp.h"
 #include "LASingleMatrix.h"
 
-//LA libraries:
+// LA libraries:
 #include <eigen3/Eigen/Dense>
 
 using namespace pdb;
 
-class LASillyInverse2Selection : public SelectionComp <SingleMatrix, SingleMatrix> {
+class LASillyInverse2Selection : public SelectionComp<SingleMatrix, SingleMatrix> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    LASillyInverse2Selection() {}
 
-	LASillyInverse2Selection () {}
-
-	Lambda <bool> getSelection (Handle <SingleMatrix> checkMe) override {
-		return makeLambda (checkMe, [] (Handle<SingleMatrix> & checkMe) {return true;});
-	}
+    Lambda<bool> getSelection(Handle<SingleMatrix> checkMe) override {
+        return makeLambda(checkMe, [](Handle<SingleMatrix>& checkMe) { return true; });
+    }
 
 
-	Lambda <Handle <SingleMatrix>> getProjection (Handle <SingleMatrix> checkMe) override {
-        return makeLambdaFromMethod (checkMe, getInverse);
-	}
+    Lambda<Handle<SingleMatrix>> getProjection(Handle<SingleMatrix> checkMe) override {
+        return makeLambdaFromMethod(checkMe, getInverse);
+    }
 };
 
 

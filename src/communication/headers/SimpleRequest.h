@@ -28,7 +28,8 @@
 // 	RequestType: the type of object to create to send over the wire
 //	ResponseType: the type of object we expect to receive over the wire
 //	ReturnType: the type we will return to the caller
-//	RequestTypeParams: type of the params to use for the contructor to the object we send over the wre
+//	RequestTypeParams: type of the params to use for the contructor to the object we send over the
+//wre
 //
 // The params are:
 //	myLogger: The logger we write error messages to
@@ -42,20 +43,26 @@
 
 namespace pdb {
 
-template <class RequestType, class ResponseType, class ReturnType, class ...RequestTypeParams>
-ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address, ReturnType onErr, size_t bytesForRequest, 
-	function <ReturnType (Handle <ResponseType>)> processResponse, RequestTypeParams&&... args);
-
+template <class RequestType, class ResponseType, class ReturnType, class... RequestTypeParams>
+ReturnType simpleRequest(PDBLoggerPtr myLogger,
+                         int port,
+                         std::string address,
+                         ReturnType onErr,
+                         size_t bytesForRequest,
+                         function<ReturnType(Handle<ResponseType>)> processResponse,
+                         RequestTypeParams&&... args);
 }
 
-// This is a similar templated function that sends two objects, in sequence and then asks for the results.
+// This is a similar templated function that sends two objects, in sequence and then asks for the
+// results.
 //
 // The type args are:
 // 	RequestType: the type of object to create to send over the wire
 //	SecondRequestType: the second object to create and send over the wirte
 //	ResponseType: the type of object we expect to receive over the wire
 //	ReturnType: the type we will return to the caller
-//	RequestTypeParams: type of the params to use for the contructor to the object we send over the wre
+//	RequestTypeParams: type of the params to use for the contructor to the object we send over the
+//wre
 //
 // The params are:
 //	myLogger: The logger we write error messages to
@@ -70,10 +77,14 @@ ReturnType simpleRequest (PDBLoggerPtr myLogger, int port, std :: string address
 namespace pdb {
 
 template <class RequestType, class SecondRequestType, class ResponseType, class ReturnType>
-ReturnType simpleDoubleRequest (PDBLoggerPtr myLogger, int port, std :: string address, ReturnType onErr, size_t bytesForRequest, 
-	function <ReturnType (Handle <ResponseType>)> processResponse, Handle <RequestType> &firstRequest, 
-	Handle <SecondRequestType> &secondRequest);
-
+ReturnType simpleDoubleRequest(PDBLoggerPtr myLogger,
+                               int port,
+                               std::string address,
+                               ReturnType onErr,
+                               size_t bytesForRequest,
+                               function<ReturnType(Handle<ResponseType>)> processResponse,
+                               Handle<RequestType>& firstRequest,
+                               Handle<SecondRequestType>& secondRequest);
 }
 
 #endif

@@ -21,6 +21,6 @@
 #include "SimpleMovieSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (SimpleMovieSelection)
+GET_V_TABLE(SimpleMovieSelection)
 
 #endif

@@ -28,28 +28,23 @@
 namespace pdb {
 
 // encapsulates a request to search for a type in the catalog
-class CatTypeNameSearch  : public Object {
+class CatTypeNameSearch : public Object {
 
 public:
+    CatTypeNameSearch() {}
+    ~CatTypeNameSearch() {}
 
-	CatTypeNameSearch () {}
-	~CatTypeNameSearch () {}
+    CatTypeNameSearch(std::string searchForMe) : objectName(searchForMe) {}
 
-	CatTypeNameSearch (std :: string searchForMe) : objectName (searchForMe) {   
- }
+    std::string getObjectTypeName() {
+        return objectName;
+    }
 
-	std :: string getObjectTypeName () {
-		return objectName;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String objectName;
-
+    String objectName;
 };
-
 }
 
 #endif

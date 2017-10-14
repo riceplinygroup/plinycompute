@@ -39,27 +39,23 @@
  */
 namespace pdb {
 
-class QueryPermitResponse  : public pdb :: Object {
+class QueryPermitResponse : public pdb::Object {
 public:
+    QueryPermitResponse() {}
 
-	QueryPermitResponse(){}
+    ~QueryPermitResponse() {}
 
-   ~QueryPermitResponse(){}
+    pdb::String& getQueryId() {
+        return queryID;
+    }
 
-   pdb::String& getQueryId(){
-	 return queryID;
-	}
-
-	void setQueryId(pdb::String& queryId){
-		this->queryID=queryId;
-	}
+    void setQueryId(pdb::String& queryId) {
+        this->queryID = queryId;
+    }
 
 
 private:
-
-	pdb::String queryID;
-
+    pdb::String queryID;
 };
-
 }
 #endif

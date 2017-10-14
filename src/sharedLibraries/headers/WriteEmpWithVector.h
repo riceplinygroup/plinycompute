@@ -24,18 +24,16 @@
 #include "EmpWithVector.h"
 
 using namespace pdb;
-class WriteEmpWithVector : public WriteUserSet <TopKQueue <double, Handle<EmpWithVector>>> {
+class WriteEmpWithVector : public WriteUserSet<TopKQueue<double, Handle<EmpWithVector>>> {
 
 public:
-        ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        WriteEmpWithVector () {
-        }
+    WriteEmpWithVector() {}
 
-        WriteEmpWithVector (std :: string dbName, std :: string setName) {
-		this->setOutput(dbName, setName);
-        }
-
+    WriteEmpWithVector(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

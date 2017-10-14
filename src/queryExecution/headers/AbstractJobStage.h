@@ -18,37 +18,29 @@
 #ifndef ABSTRACT_JOBSTAGE_H
 #define ABSTRACT_JOBSTAGE_H
 
-//by Jia, Mar 2017
+// by Jia, Mar 2017
 
 namespace pdb {
 
-    class AbstractJobStage : public Object {
-    
-public:
+class AbstractJobStage : public Object {
 
-    void setJobId(std :: string jobId) {
+public:
+    void setJobId(std::string jobId) {
         this->jobId = jobId;
     }
 
-    std :: string getJobId() {
+    std::string getJobId() {
         return this->jobId;
     }
-    
-    
 
-    virtual std :: string getJobStageType() = 0;
+
+    virtual std::string getJobStageType() = 0;
     virtual JobStageID getStageId() = 0;
     virtual void print() = 0;
 
 protected:
-
     String jobId;
-
-    };
-
-
-
-
+};
 }
 
 #endif

@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBCircularBuffer.h
  * Author: Jia
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBCIRCULARBUFFER_H
-#define	PDBCIRCULARBUFFER_H
+#define PDBCIRCULARBUFFER_H
 
 
 #include "PDBLogger.h"
@@ -31,7 +31,7 @@
 template <class T>
 class PDBCircularBuffer {
 public:
-    PDBCircularBuffer(unsigned int bufferSize, pdb :: PDBLoggerPtr logger);
+    PDBCircularBuffer(unsigned int bufferSize, pdb::PDBLoggerPtr logger);
     ~PDBCircularBuffer();
 
     int addToTail(T const&);
@@ -45,16 +45,11 @@ protected:
 
 private:
     T* array;
-    pdb :: PDBLoggerPtr logger;
+    pdb::PDBLoggerPtr logger;
     unsigned int maxArraySize;
     unsigned int arrayHead;
     unsigned int arrayTail;
 };
 
 
-
-
-
-
-#endif	/* PDBCIRCULARBUFFER_H */
-
+#endif /* PDBCIRCULARBUFFER_H */

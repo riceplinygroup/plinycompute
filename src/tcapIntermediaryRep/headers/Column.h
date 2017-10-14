@@ -22,18 +22,15 @@
 
 using std::string;
 
-namespace pdb_detail
-{
-    class Column
-    {
-    public:
+namespace pdb_detail {
+class Column {
+public:
+    const string tableId;
 
-        const string tableId;
+    const string columnId;
 
-        const string columnId;
-
-        Column(string tableId, string columnId);
-    };
+    Column(string tableId, string columnId);
+};
 }
 
-#endif //PDB_TCAPINTERMEDIARYREP_COLUMN_H
+#endif  // PDB_TCAPINTERMEDIARYREP_COLUMN_H

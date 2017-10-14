@@ -15,15 +15,15 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   TestCopyWork.h
- * Author: Jia 
+ * Author: Jia
  *
  * Created on November 16, 2015, 10:22 AM
  */
 
 #ifndef TESTCOPYWORK_H
-#define	TESTCOPYWORK_H
+#define TESTCOPYWORK_H
 
 #include "PDBBuzzer.h"
 #include "PageCircularBufferIterator.h"
@@ -41,27 +41,26 @@ typedef shared_ptr<TestCopyWork> TestCopyWorkPtr;
  * to scan data and copy data to another set in storage.
  */
 
-class TestCopyWork : public pdb :: PDBWork {
+class TestCopyWork : public pdb::PDBWork {
 public:
-
-    TestCopyWork(PageCircularBufferIteratorPtr iter, DatabaseID destDatabaseId, UserTypeID destTypeId, SetID destSetId, pdb :: HermesExecutionServer * server, int & counter);
+    TestCopyWork(PageCircularBufferIteratorPtr iter,
+                 DatabaseID destDatabaseId,
+                 UserTypeID destTypeId,
+                 SetID destSetId,
+                 pdb::HermesExecutionServer* server,
+                 int& counter);
 
     // do the actual work
     void execute(PDBBuzzerPtr callerBuzzer) override;
 
 private:
-
     PageCircularBufferIteratorPtr iter;
-    pdb :: HermesExecutionServer * server;
+    pdb::HermesExecutionServer* server;
     DatabaseID destDatabaseId;
     UserTypeID destTypeId;
     SetID destSetId;
-    int & counter;
-
+    int& counter;
 };
 
 
-
-
-#endif	/* TESTCOPYWORK_H */
-
+#endif /* TESTCOPYWORK_H */

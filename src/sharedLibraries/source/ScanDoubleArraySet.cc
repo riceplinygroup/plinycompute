@@ -22,6 +22,6 @@
 #include "ScanDoubleArraySet.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (ScanDoubleArraySet)
+GET_V_TABLE(ScanDoubleArraySet)
 
 #endif

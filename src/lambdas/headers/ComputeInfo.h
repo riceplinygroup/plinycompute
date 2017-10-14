@@ -27,12 +27,10 @@ namespace pdb {
 class ComputeInfo {
 
 public:
-
-	virtual ~ComputeInfo () {}
+    virtual ~ComputeInfo() {}
 };
 
-typedef std :: shared_ptr <ComputeInfo> ComputeInfoPtr;
-
+typedef std::shared_ptr<ComputeInfo> ComputeInfoPtr;
 }
 
 #endif

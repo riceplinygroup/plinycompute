@@ -27,37 +27,35 @@
 #include "SharedEmployee.h"
 
 using namespace pdb;
-class ChrisSelection : public Selection <String, SharedEmployee> {
+class ChrisSelection : public Selection<String, SharedEmployee> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    ChrisSelection() {}
 
-	ChrisSelection () {}
-
-	SimpleLambda <bool> getSelection (Handle <SharedEmployee> &checkMe) override {
-		return makeSimpleLambda (checkMe, [&] () {
-			//std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
-			return (checkMe->isFrank());
-		});
-	}
-
-
-        SimpleLambda <bool> getProjectionSelection (Handle<String> &checkMe) override {
-                return makeSimpleLambda (checkMe, [&] () {
-                        //std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
-                        return ((*checkMe) == "Frank");
-                });
-        }
+    SimpleLambda<bool> getSelection(Handle<SharedEmployee>& checkMe) override {
+        return makeSimpleLambda(checkMe, [&]() {
+            // std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
+            return (checkMe->isFrank());
+        });
+    }
 
 
+    SimpleLambda<bool> getProjectionSelection(Handle<String>& checkMe) override {
+        return makeSimpleLambda(checkMe, [&]() {
+            // std :: cout << std :: to_string((*(checkMe->getName ()) != "Joe Johnson48")) << "; ";
+            return ((*checkMe) == "Frank");
+        });
+    }
 
-	SimpleLambda <Handle <String>> getProjection (Handle <SharedEmployee> &checkMe) override {
-		return makeSimpleLambda (checkMe, [&] {
-			//std :: cout << *(checkMe->getName ()) << std :: endl;
-			return checkMe->getName ();
-		});
-	}
+
+    SimpleLambda<Handle<String>> getProjection(Handle<SharedEmployee>& checkMe) override {
+        return makeSimpleLambda(checkMe, [&] {
+            // std :: cout << *(checkMe->getName ()) << std :: endl;
+            return checkMe->getName();
+        });
+    }
 };
 
 

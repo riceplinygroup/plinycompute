@@ -32,19 +32,18 @@ using namespace std;
 class PDBFlushConsumerWork;
 typedef shared_ptr<PDBFlushConsumerWork> PDBFlushConsumerWorkPtr;
 
-class PDBFlushConsumerWork : public pdb :: PDBWork {
+class PDBFlushConsumerWork : public pdb::PDBWork {
 public:
-    PDBFlushConsumerWork(FilePartitionID partitionId, pdb :: PangeaStorageServer* server);
-    ~PDBFlushConsumerWork() {
-    };
+    PDBFlushConsumerWork(FilePartitionID partitionId, pdb::PangeaStorageServer* server);
+    ~PDBFlushConsumerWork(){};
     void execute(PDBBuzzerPtr callerBuzzer) override;
     void stop();
+
 private:
-    pdb :: PangeaStorageServer* server;
+    pdb::PangeaStorageServer* server;
     FilePartitionID partitionId;
     bool isStopped;
 };
-
 
 
 #endif /* SRC_CPP_MAIN_STORAGE_HEADERS_PDBFLUSHCONSUMERWORK_H_ */

@@ -19,24 +19,22 @@
 #ifndef WRITE_TOPICS_PER_WORD_H
 #define WRITE_TOPICS_PER_WORD_H
 
-//by Shangyu, June 2017
+// by Shangyu, June 2017
 
 #include "WriteUserSet.h"
 #include "LDATopicWordProb.h"
 
 using namespace pdb;
-class WriteTopicsPerWord : public WriteUserSet <LDATopicWordProb> {
+class WriteTopicsPerWord : public WriteUserSet<LDATopicWordProb> {
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
+    WriteTopicsPerWord() {}
 
-        WriteTopicsPerWord () {}
-
-        WriteTopicsPerWord (std :: string dbName, std :: string setName) {
-            this->setOutput(dbName, setName);
-        }
-
+    WriteTopicsPerWord(std::string dbName, std::string setName) {
+        this->setOutput(dbName, setName);
+    }
 };
 
 

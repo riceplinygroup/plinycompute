@@ -15,7 +15,7 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/* 
+/*
  * File:   PDBWork.h
  * Author: Chris
  *
@@ -23,7 +23,7 @@
  */
 
 #ifndef PDBWORK_H
-#define	PDBWORK_H
+#define PDBWORK_H
 
 
 #include <memory>
@@ -38,18 +38,17 @@ using namespace std;
 
 // this class wraps up a bit of work that needs to be accomplished...
 // the idea is that one first obtains a PDBWorker that has been loaded
-// with this work; they call PDBWorker.execute () which executes the 
-// work, and then they get the result.  
+// with this work; they call PDBWorker.execute () which executes the
+// work, and then they get the result.
 
 namespace pdb {
 
 // create a smart pointer for PDBWork objects
 class PDBWork;
-typedef shared_ptr <PDBWork> PDBWorkPtr;
+typedef shared_ptr<PDBWork> PDBWorkPtr;
 
 class PDBWork {
 public:
-
     // actually go off and do the work... the worker can optionally invoke
     // any of the handlers embedded in callerBuzzer to ask the caller to
     // deal with errors
@@ -64,23 +63,20 @@ public:
     virtual PDBBuzzerPtr getLinkedBuzzer();
 
     // this is called by the PDBWorker class to initiate the work
-    void execute(PDBWorkerQueue *parent, PDBBuzzerPtr callerBuzzer);
+    void execute(PDBWorkerQueue* parent, PDBBuzzerPtr callerBuzzer);
 
     // gets another worker from the PDBWorkQueue that was used to
-    // create the PDBWorker who is running this guy... 
+    // create the PDBWorker who is running this guy...
     PDBWorkerPtr getWorker();
 
     // gets access to the logger
     PDBLoggerPtr getLogger();
 
 private:
-
     // this is the work queue that this dude came from... used to supply
     // additional workers, if they are requested
-    PDBWorkerQueue *parent;
+    PDBWorkerQueue* parent;
 };
-
 }
 
-#endif	/* PDBWORK_H */
-
+#endif /* PDBWORK_H */

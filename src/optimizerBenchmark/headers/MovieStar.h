@@ -22,59 +22,49 @@
 #include "Handle.h"
 #include "PDBString.h"
 
-class MovieStar: public pdb::Object {
+class MovieStar : public pdb::Object {
 
 public:
-	
-	pdb::Handle<pdb::String> name;
-	pdb::Handle<pdb::String> address;
-	char gender;
-	int birthYear;
-	
-	int checkBirthYear = 1960;
+    pdb::Handle<pdb::String> name;
+    pdb::Handle<pdb::String> address;
+    char gender;
+    int birthYear;
 
-	ENABLE_DEEP_COPY
+    int checkBirthYear = 1960;
 
-	// Default constructor and destructor:
-	~MovieStar() {
-	}
-	MovieStar() {}
-	
+    ENABLE_DEEP_COPY
 
-	
-	// Constructor with arguments using std::string
+    // Default constructor and destructor:
+    ~MovieStar() {}
+    MovieStar() {}
 
-	MovieStar(std:: string name, std:: string address, char gender, int birthYear) {
-		this->name = pdb::makeObject <pdb::String> (name);
-		this->address= pdb::makeObject <pdb::String>(address);
-		this->gender = gender;
-		this->birthYear = birthYear;
-	}
 
-	const pdb::Handle<pdb::String>& getName() const
-	{
-		return name;
-	}
+    // Constructor with arguments using std::string
 
-	void setName(const pdb::Handle<pdb::String>& name)
-	{
-		this->name = name;
-	}
+    MovieStar(std::string name, std::string address, char gender, int birthYear) {
+        this->name = pdb::makeObject<pdb::String>(name);
+        this->address = pdb::makeObject<pdb::String>(address);
+        this->gender = gender;
+        this->birthYear = birthYear;
+    }
 
-	
-	const pdb::Handle<pdb::String>& getAddress() const
-	{
-		return address;
-	}
+    const pdb::Handle<pdb::String>& getName() const {
+        return name;
+    }
 
-	void setAddress(const pdb::Handle<pdb::String>& address)
-	{
-		this->address = address;
-	}	
-	
+    void setName(const pdb::Handle<pdb::String>& name) {
+        this->name = name;
+    }
 
+
+    const pdb::Handle<pdb::String>& getAddress() const {
+        return address;
+    }
+
+    void setAddress(const pdb::Handle<pdb::String>& address) {
+        this->address = address;
+    }
 };
-	
-	
-	
+
+
 #endif

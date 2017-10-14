@@ -1956,8 +1956,9 @@ bool PangeaStorageServer::addSet(
         }
     }
     type->addSet(setName, setId, pageSize);
-    std :: cout << "to add set with dbName=" << dbName << ", typeName=" << typeName
-             << ", setName=" << setName << ", setId=" << setId << ", pageSize=" << pageSize << std::endl;
+    std::cout << "to add set with dbName=" << dbName << ", typeName=" << typeName
+              << ", setName=" << setName << ", setId=" << setId << ", pageSize=" << pageSize
+              << std::endl;
     set = type->getSet(setId);
     this->getCache()->pin(set, MRU, Write);
     PDB_COUT << "to get usersetLock" << std::endl;

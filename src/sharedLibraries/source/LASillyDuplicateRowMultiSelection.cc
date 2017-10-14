@@ -21,6 +21,6 @@
 #include "LASillyDuplicateRowMultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (LASillyDuplicateRowMultiSelection)
+GET_V_TABLE(LASillyDuplicateRowMultiSelection)
 
 #endif

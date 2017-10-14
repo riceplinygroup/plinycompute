@@ -16,8 +16,8 @@
  *                                                                           *
  *****************************************************************************/
 
-//Pipeline performance test by Jia
-//Aug 30, 2016
+// Pipeline performance test by Jia
+// Aug 30, 2016
 
 #include <cstddef>
 #include <iostream>
@@ -34,9 +34,9 @@
 #include "Allocator.h"
 #include "Handle.h"
 #include "InterfaceFunctions.h"
-#include "Object.h" 
-#include "Record.h"  
-#include "RefCountedObject.h" 
+#include "Object.h"
+#include "Record.h"
+#include "RefCountedObject.h"
 #include "PDBVector.h"
 #include "PDBString.h"
 #include "MyEmployee.h"
@@ -62,7 +62,7 @@ typedef shared_ptr<DoubleSalaryOperator> DoubleSalaryOperatorPtr;
 class LinearPipeline;
 typedef shared_ptr<LinearPipeline> LinearPipelinePtr;
 
-using namespace pdb; 
+using namespace pdb;
 
 Allocator allocator;
 
@@ -73,47 +73,43 @@ Allocator allocator;
 class Page {
 
 private:
-
-    char * rawBytes;
+    char* rawBytes;
     size_t size;
     Handle<Vector<Handle<Vector<Handle<Object>>>>> vectors;
 
 public:
-
-    void setNull () {
-	vectors = nullptr;
+    void setNull() {
+        vectors = nullptr;
     }
 
-    ~Page () {
-            free(rawBytes);
-            rawBytes = nullptr;
+    ~Page() {
+        free(rawBytes);
+        rawBytes = nullptr;
     }
 
-    Page (char * rawBytesIn, size_t sizeIn) {
-            rawBytes = rawBytesIn;
-            size = sizeIn;
-            //to initialize the page into a vector of vectors
-            //each subvector represents a batch
-            makeObjectAllocatorBlock (rawBytes, size, true);
-            vectors = makeObject <Vector<Handle<Vector<Handle<Object>>>>> (10);
+    Page(char* rawBytesIn, size_t sizeIn) {
+        rawBytes = rawBytesIn;
+        size = sizeIn;
+        // to initialize the page into a vector of vectors
+        // each subvector represents a batch
+        makeObjectAllocatorBlock(rawBytes, size, true);
+        vectors = makeObject<Vector<Handle<Vector<Handle<Object>>>>>(10);
     }
 
     Handle<Vector<Handle<Object>>> addVector() {
-            Handle<Vector<Handle<Object>>> curVec = makeObject<Vector<Handle<Object>>> ();
-            vectors->push_back (curVec);
-            return curVec;
+        Handle<Vector<Handle<Object>>> curVec = makeObject<Vector<Handle<Object>>>();
+        vectors->push_back(curVec);
+        return curVec;
     }
 
     Handle<Vector<Handle<Vector<Handle<Object>>>>> getVectors() {
-            return vectors;
+        return vectors;
     }
 
-    char * getRawBytes () {
-            return rawBytes;
+    char* getRawBytes() {
+        return rawBytes;
     }
 };
-
-
 
 
 /**
@@ -124,34 +120,31 @@ public:
 class Operator {
 
 protected:
-
     PagePtr page;
     Handle<Vector<Handle<Object>>> outVec;
 
 public:
-
-    void setNull () {
-	outVec = nullptr;
+    void setNull() {
+        outVec = nullptr;
     }
 
-    Operator (PagePtr pageIn) {
-            page = pageIn;
+    Operator(PagePtr pageIn) {
+        page = pageIn;
     }
 
     void loadOutVec() {
-            try {
-                this->outVec = page->addVector();
-            } catch (NotEnoughSpace &e) {
-                 std :: cout << "Page is fully written, so we can not add a new vector!\n";
-            }
+        try {
+            this->outVec = page->addVector();
+        } catch (NotEnoughSpace& e) {
+            std::cout << "Page is fully written, so we can not add a new vector!\n";
+        }
     }
 
     Handle<Vector<Handle<Object>>> getOutVec() {
-            return this->outVec;
+        return this->outVec;
     }
 
-    virtual void run (Handle<Vector<Handle<Object>>> inVec) = 0;
-
+    virtual void run(Handle<Vector<Handle<Object>>> inVec) = 0;
 };
 
 /**
@@ -161,25 +154,22 @@ public:
 class HalfAgeOperator : public Operator {
 
 public:
+    HalfAgeOperator(PagePtr pageIn) : Operator(pageIn) {}
 
-    HalfAgeOperator (PagePtr pageIn): Operator (pageIn) {
-    }
-
-    virtual void run (Handle<Vector<Handle<Object>>> inVec) {
+    virtual void run(Handle<Vector<Handle<Object>>> inVec) {
 
         try {
-              int vecSize = inVec->size();
-              for (int posInInput = 0; posInInput < vecSize; posInInput++) {
-                      Handle<MyEmployee> inObject = unsafeCast<MyEmployee, Object>((*inVec)[posInInput]);
-                      Handle<MyEmployee> outObject = makeObject<MyEmployee> (inObject->getAge()/2, inObject->getSalary());
-                      this->outVec->push_back(outObject);
-              }
-        } catch (NotEnoughSpace &n) {
-              std :: cout << "Page is fully written, so we can not half age!\n";
+            int vecSize = inVec->size();
+            for (int posInInput = 0; posInInput < vecSize; posInInput++) {
+                Handle<MyEmployee> inObject = unsafeCast<MyEmployee, Object>((*inVec)[posInInput]);
+                Handle<MyEmployee> outObject =
+                    makeObject<MyEmployee>(inObject->getAge() / 2, inObject->getSalary());
+                this->outVec->push_back(outObject);
+            }
+        } catch (NotEnoughSpace& n) {
+            std::cout << "Page is fully written, so we can not half age!\n";
         }
-
     }
-
 };
 
 
@@ -190,27 +180,23 @@ public:
 class DoubleSalaryOperator : public Operator {
 
 public:
+    DoubleSalaryOperator(PagePtr pageIn) : Operator(pageIn) {}
 
-    DoubleSalaryOperator (PagePtr pageIn): Operator (pageIn) {
-    }
-
-    virtual void run (Handle<Vector<Handle<Object>>> inVec) {
+    virtual void run(Handle<Vector<Handle<Object>>> inVec) {
 
         try {
-              int vecSize = inVec->size();
-              for (int posInInput = 0; posInInput < vecSize; posInInput++) {
-                      Handle<MyEmployee> inObject = unsafeCast<MyEmployee, Object>((*inVec)[posInInput]);
-                      Handle<MyEmployee> outObject = makeObject<MyEmployee> (inObject->getAge(), 2*inObject->getSalary());
-                      this->outVec->push_back(outObject);
-              }
-        } catch (NotEnoughSpace &n) {
-              std :: cout << "Page is fully written, so we can not double salary!\n";
+            int vecSize = inVec->size();
+            for (int posInInput = 0; posInInput < vecSize; posInInput++) {
+                Handle<MyEmployee> inObject = unsafeCast<MyEmployee, Object>((*inVec)[posInInput]);
+                Handle<MyEmployee> outObject =
+                    makeObject<MyEmployee>(inObject->getAge(), 2 * inObject->getSalary());
+                this->outVec->push_back(outObject);
+            }
+        } catch (NotEnoughSpace& n) {
+            std::cout << "Page is fully written, so we can not double salary!\n";
         }
-
     }
-
 };
-
 
 
 /**
@@ -220,43 +206,38 @@ public:
 class LinearPipeline {
 
 private:
-
-    std::vector<OperatorPtr> * operators;
+    std::vector<OperatorPtr>* operators;
 
 public:
-
     ~LinearPipeline() {
-         delete operators;
+        delete operators;
     }
 
     LinearPipeline() {
-         operators = new std::vector<OperatorPtr> () ;
+        operators = new std::vector<OperatorPtr>();
     }
 
     // add operator to pipeline
     void addOperator(OperatorPtr op) {
-         operators->push_back(op);
+        operators->push_back(op);
     }
 
     // run the pipeline on input page
-    void run( PagePtr oneHugePageAsInput, int triggerOperatorId ) {
-         Handle<Vector<Handle<Vector<Handle<Object>>>>>  myVectors = oneHugePageAsInput->getVectors();
-         int i;
-         for (i = triggerOperatorId; i < myVectors->size(); i++) {
-                 
-                  Handle<Vector<Handle<Object>>> inputVec = (*myVectors)[i];
-                  for (int j = 0; j < operators->size(); j++) {
-                         OperatorPtr op = (*operators)[j];
-                         op->loadOutVec();
-                         op->run (inputVec);
-                         inputVec = op->getOutVec();
-                  }
+    void run(PagePtr oneHugePageAsInput, int triggerOperatorId) {
+        Handle<Vector<Handle<Vector<Handle<Object>>>>> myVectors = oneHugePageAsInput->getVectors();
+        int i;
+        for (i = triggerOperatorId; i < myVectors->size(); i++) {
 
-         }
-         cout << "run " << i << " batches in total!\n";
-
+            Handle<Vector<Handle<Object>>> inputVec = (*myVectors)[i];
+            for (int j = 0; j < operators->size(); j++) {
+                OperatorPtr op = (*operators)[j];
+                op->loadOutVec();
+                op->run(inputVec);
+                inputVec = op->getOutVec();
+            }
+        }
+        cout << "run " << i << " batches in total!\n";
     }
-
 };
 
 
@@ -267,91 +248,90 @@ public:
 class TestDataGenerator {
 
 private:
-
     int batchSize;
     PagePtr page;
 
 public:
-
-    TestDataGenerator (int batchSizeIn, PagePtr pageIn) {
-            batchSize = batchSizeIn;
-            page = pageIn;
+    TestDataGenerator(int batchSizeIn, PagePtr pageIn) {
+        batchSize = batchSizeIn;
+        page = pageIn;
     }
 
     void run() {
 
-            int count = 0;
-            try {
-                    while (1) {
-                              Handle<Vector<Handle<Object>>> vector = page->addVector();
-                              for (int i = 0; i < batchSize; i++) {
-                                       
-                                       Handle<MyEmployee> employee = makeObject<MyEmployee> (i%100, i*100);
-                                       vector->push_back(employee);
-                                       
-                              }
-                              count ++;
-                    }            
+        int count = 0;
+        try {
+            while (1) {
+                Handle<Vector<Handle<Object>>> vector = page->addVector();
+                for (int i = 0; i < batchSize; i++) {
 
-             } catch (NotEnoughSpace &e) {
-                 std :: cout << count+1 << " batches added!\n";
-                 std :: cout << "Page is fully written, and let's test!\n";
-             }
+                    Handle<MyEmployee> employee = makeObject<MyEmployee>(i % 100, i * 100);
+                    vector->push_back(employee);
+                }
+                count++;
+            }
+
+        } catch (NotEnoughSpace& e) {
+            std::cout << count + 1 << " batches added!\n";
+            std::cout << "Page is fully written, and let's test!\n";
+        }
     }
-
 };
 
 
-int main (int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
 
-       int batchSize = 100;
-       if (argc != 2) {
-           std :: cout << "error parameter, batch size is set to be default 100!\n";
-       }
-       else {
-           batchSize = atoi(argv[1]);
-           std :: cout << "batch size is set to be " << batchSize << std :: endl;
-       }
+    int batchSize = 100;
+    if (argc != 2) {
+        std::cout << "error parameter, batch size is set to be default 100!\n";
+    } else {
+        batchSize = atoi(argv[1]);
+        std::cout << "batch size is set to be " << batchSize << std::endl;
+    }
 
-       //load random myEmployees
-       char * memoryPool = (char *) malloc (512*1024*1024*sizeof(char));
-       PagePtr page = make_shared<Page>(memoryPool, 512*1024*1024);
-       TestDataGeneratorPtr dataGenerator = make_shared<TestDataGenerator>(batchSize, page);
-       dataGenerator->run();
+    // load random myEmployees
+    char* memoryPool = (char*)malloc(512 * 1024 * 1024 * sizeof(char));
+    PagePtr page = make_shared<Page>(memoryPool, 512 * 1024 * 1024);
+    TestDataGeneratorPtr dataGenerator = make_shared<TestDataGenerator>(batchSize, page);
+    dataGenerator->run();
 
-       //create pipeline 
-       LinearPipelinePtr pipeline = make_shared<LinearPipeline>();
-       
-       //create operator 1
-       char * memoryPool1 = (char *) malloc (512*1024*1024*sizeof(char));
-       PagePtr page1 = make_shared<Page>(memoryPool1, 512*1024*1024); //this will set the page to be current block
-       HalfAgeOperatorPtr op1 = make_shared<HalfAgeOperator>(page1);
-       pipeline->addOperator (op1);
+    // create pipeline
+    LinearPipelinePtr pipeline = make_shared<LinearPipeline>();
 
-       //create operator 2
-       char * memoryPool2 = (char *) malloc (512*1024*1024*sizeof(char));
-       PagePtr page2 = make_shared<Page>(memoryPool2, 512*1024*1024); // this will set the page to be current block
-       DoubleSalaryOperatorPtr op2 = make_shared<DoubleSalaryOperator>(page2);
-       pipeline->addOperator (op2);
+    // create operator 1
+    char* memoryPool1 = (char*)malloc(512 * 1024 * 1024 * sizeof(char));
+    PagePtr page1 = make_shared<Page>(
+        memoryPool1, 512 * 1024 * 1024);  // this will set the page to be current block
+    HalfAgeOperatorPtr op1 = make_shared<HalfAgeOperator>(page1);
+    pipeline->addOperator(op1);
 
-       //create another memory pool to place intermediate data;
-       char * tempMemoryPool = (char *) malloc (1024*1024*1024*sizeof(char));//this will set the page to be current block
-       PagePtr tempPage = make_shared<Page>(tempMemoryPool, 1024*1024*1024);
- 
-       std :: cout << "running pipeline...\n";
-       // for timing
-       auto begin = std::chrono::high_resolution_clock::now();
-       pipeline->run(page, 0);               
-       auto end = std::chrono::high_resolution_clock::now();
-       std::cout << "pipeline duration: " <<
-                std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-       //TODO: how to allocate blocks for multiple operators???
+    // create operator 2
+    char* memoryPool2 = (char*)malloc(512 * 1024 * 1024 * sizeof(char));
+    PagePtr page2 = make_shared<Page>(
+        memoryPool2, 512 * 1024 * 1024);  // this will set the page to be current block
+    DoubleSalaryOperatorPtr op2 = make_shared<DoubleSalaryOperator>(page2);
+    pipeline->addOperator(op2);
 
-       // we need to remove references to all of the Handles, which will deallocate all objects
-       op1->setNull ();
-       op2->setNull ();
-       page1->setNull ();
-       page2->setNull ();
-       tempPage->setNull ();
-       std :: cout << getNumObjectsInCurrentAllocatorBlock () << "\n";
+    // create another memory pool to place intermediate data;
+    char* tempMemoryPool = (char*)malloc(
+        1024 * 1024 * 1024 * sizeof(char));  // this will set the page to be current block
+    PagePtr tempPage = make_shared<Page>(tempMemoryPool, 1024 * 1024 * 1024);
+
+    std::cout << "running pipeline...\n";
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
+    pipeline->run(page, 0);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "pipeline duration: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
+    // TODO: how to allocate blocks for multiple operators???
+
+    // we need to remove references to all of the Handles, which will deallocate all objects
+    op1->setNull();
+    op2->setNull();
+    page1->setNull();
+    page2->setNull();
+    tempPage->setNull();
+    std::cout << getNumObjectsInCurrentAllocatorBlock() << "\n";
 }

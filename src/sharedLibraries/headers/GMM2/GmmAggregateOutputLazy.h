@@ -25,7 +25,6 @@
 #include "GmmAggregateNewComp.h"
 
 
-
 // By Tania, October 2017
 
 using namespace pdb;
@@ -35,136 +34,148 @@ class GmmAggregateOutputLazy : public Object {
 private:
     int key = 1;
 
-    Handle<GmmAggregateDatapoint> aggDatapoint;		//Datapoint to be processed and responsabilities
-    Handle<GmmAggregateNewComp> newComp;			//newComp contains the partial results of
-    									//processing datapoint for current model
+    Handle<GmmAggregateDatapoint> aggDatapoint;  // Datapoint to be processed and responsabilities
+    Handle<GmmAggregateNewComp> newComp;         // newComp contains the partial results of
+    // processing datapoint for current model
 public:
-
     ENABLE_DEEP_COPY
 
-    GmmAggregateOutputLazy () {
+    GmmAggregateOutputLazy() {}
+
+    GmmAggregateOutputLazy(Handle<GmmAggregateDatapoint>& aggDatapoint) {
+        this->aggDatapoint = aggDatapoint;
+        this->newComp = nullptr;
     }
 
-    GmmAggregateOutputLazy (Handle<GmmAggregateDatapoint>& aggDatapoint) {
-    	this->aggDatapoint = aggDatapoint;
-    	this->newComp = nullptr;
+    int& getKey() {
+        return key;
     }
 
-	int &getKey(){
-		return key;
-	}
-
-	GmmAggregateOutputLazy &getValue(){
-		return (*this);
-	}
-
-	//Lazy evaluation -> if newComp == null, the data point has not been processed yet
-	//In that case, we process newComp and later perform the overload +
-
-	GmmAggregateOutputLazy& operator + (GmmAggregateOutputLazy &other) {
-
-
-		//if LHS == NULL, process LHS -> Calculate sumMean and sumCovar
-		if (this->aggDatapoint != nullptr && this->newComp == nullptr) {
-
-
-			int dim = this->aggDatapoint->getDatapoint().size;
-			int k = this->aggDatapoint->getRvalues().size();
-
-			this->newComp = makeObject<GmmAggregateNewComp>(k,dim);
-
-			gsl_vector_view gdata = gsl_vector_view_array(this->aggDatapoint->getDatapoint().getRawData(), dim);
-			double * r_valuesptr = this->aggDatapoint->getRvalues().c_ptr();
-
-			for (int i=0; i<k; i++) {
-
-				//Covar = r * x * x^T
-				gsl_matrix_view gsumCovar = gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
-				gsl_blas_dsyr (CblasUpper, r_valuesptr[i], &gdata.vector, &gsumCovar.matrix);
-
-				//Mean = r * x
-				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
-				gsl_blas_daxpy (r_valuesptr[i], &gdata.vector, &gsumMean.vector);
-
-				this->newComp->setSumWeights(i, r_valuesptr[i]);
-			}
-			this->newComp->setLogLikelihood(this->aggDatapoint->getLogLikelihood());
-
-			//Now mark as processed
-			//delete(*aggDatapoint);
-			this->aggDatapoint = nullptr;
-		}
-
-
-		//if RHS == NULL, process RHS and add it to LHS
-		if (other.aggDatapoint != nullptr && other.newComp == nullptr) {
-
-			int dim = other.aggDatapoint->getDatapoint().size;
-			int k = other.aggDatapoint->getRvalues().size();
-
-			gsl_vector_view gotherdata = gsl_vector_view_array(other.aggDatapoint->getDatapoint().getRawData(), dim);
-
-			for (int i=0; i<k; i++) {
-
-				//Covar = r * x * x^T
-				gsl_matrix_view gsumCovar = gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
-				gsl_blas_dsyr (CblasUpper, other.aggDatapoint->getRvalues()[i], &gotherdata.vector, &gsumCovar.matrix);
-
-
-				//Mean = r * x
-				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
-				gsl_blas_daxpy (other.aggDatapoint->getRvalues()[i], &gotherdata.vector, &gsumMean.vector);
-
-				//Sum r
-				this->newComp->setSumWeights(i, this->newComp->getSumWeights(i) + other.aggDatapoint->getRvalues()[i]);
-			}
-			//Set loglikelihood
-			this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + other.aggDatapoint->getLogLikelihood());
-		}
-		//Just sum LHS and RHS
-		else { //this->aggDatapoint == nullptr and/or other->aggDatapoint == nullptr
-
-			//std::cout << "*******  Entering BOTH NULL" << std::endl;
-			int dim = this->newComp->getSumMean(0).size();
-			int k = this->newComp->getSumWeights().size();
-
-			//std::cout << "dim " << dim << " k " << k << std::endl;
-
-			for (int i=0; i<k; i++) {
-				//Covar = r * x * x^T
-				gsl_vector_view gsumCovar = gsl_vector_view_array(this->newComp->getSumCovar(i).c_ptr(), dim*dim);
-				gsl_vector_view gOtherSumCovar = gsl_vector_view_array(other.newComp->getSumCovar(i).c_ptr(), dim*dim);
-				gsl_blas_daxpy (1.0, &gOtherSumCovar.vector, &gsumCovar.vector);
-
-				//Mean = r * x
-				gsl_vector_view gsumMean = gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
-				gsl_vector_view gOtherSumMean = gsl_vector_view_array(other.newComp->getSumMean(i).c_ptr(), dim);
-
-				gsl_blas_daxpy (1.0, &gOtherSumMean.vector, &gsumMean.vector);
-
-				//Sum r
-				this->newComp->setSumWeights(i, this->newComp->getSumWeights(i) + other.newComp->getSumWeights(i));
-			}
-			//Set loglikelihood
-			this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() + other.newComp->getLogLikelihood());
-
-		}
-
-		//Return LHS (this) with the resulting sum
-
-		return (*this);
-	}
-
-
-
-	GmmAggregateNewComp getNewComp(){
-		return *(this->newComp);
-	}
-
-
-    ~GmmAggregateOutputLazy () {
+    GmmAggregateOutputLazy& getValue() {
+        return (*this);
     }
 
+    // Lazy evaluation -> if newComp == null, the data point has not been processed yet
+    // In that case, we process newComp and later perform the overload +
+
+    GmmAggregateOutputLazy& operator+(GmmAggregateOutputLazy& other) {
+
+
+        // if LHS == NULL, process LHS -> Calculate sumMean and sumCovar
+        if (this->aggDatapoint != nullptr && this->newComp == nullptr) {
+
+
+            int dim = this->aggDatapoint->getDatapoint().size;
+            int k = this->aggDatapoint->getRvalues().size();
+
+            this->newComp = makeObject<GmmAggregateNewComp>(k, dim);
+
+            gsl_vector_view gdata =
+                gsl_vector_view_array(this->aggDatapoint->getDatapoint().getRawData(), dim);
+            double* r_valuesptr = this->aggDatapoint->getRvalues().c_ptr();
+
+            for (int i = 0; i < k; i++) {
+
+                // Covar = r * x * x^T
+                gsl_matrix_view gsumCovar =
+                    gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
+                gsl_blas_dsyr(CblasUpper, r_valuesptr[i], &gdata.vector, &gsumCovar.matrix);
+
+                // Mean = r * x
+                gsl_vector_view gsumMean =
+                    gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+                gsl_blas_daxpy(r_valuesptr[i], &gdata.vector, &gsumMean.vector);
+
+                this->newComp->setSumWeights(i, r_valuesptr[i]);
+            }
+            this->newComp->setLogLikelihood(this->aggDatapoint->getLogLikelihood());
+
+            // Now mark as processed
+            // delete(*aggDatapoint);
+            this->aggDatapoint = nullptr;
+        }
+
+
+        // if RHS == NULL, process RHS and add it to LHS
+        if (other.aggDatapoint != nullptr && other.newComp == nullptr) {
+
+            int dim = other.aggDatapoint->getDatapoint().size;
+            int k = other.aggDatapoint->getRvalues().size();
+
+            gsl_vector_view gotherdata =
+                gsl_vector_view_array(other.aggDatapoint->getDatapoint().getRawData(), dim);
+
+            for (int i = 0; i < k; i++) {
+
+                // Covar = r * x * x^T
+                gsl_matrix_view gsumCovar =
+                    gsl_matrix_view_array(this->newComp->getSumCovar(i).c_ptr(), dim, dim);
+                gsl_blas_dsyr(CblasUpper,
+                              other.aggDatapoint->getRvalues()[i],
+                              &gotherdata.vector,
+                              &gsumCovar.matrix);
+
+
+                // Mean = r * x
+                gsl_vector_view gsumMean =
+                    gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+                gsl_blas_daxpy(
+                    other.aggDatapoint->getRvalues()[i], &gotherdata.vector, &gsumMean.vector);
+
+                // Sum r
+                this->newComp->setSumWeights(
+                    i, this->newComp->getSumWeights(i) + other.aggDatapoint->getRvalues()[i]);
+            }
+            // Set loglikelihood
+            this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() +
+                                            other.aggDatapoint->getLogLikelihood());
+        }
+        // Just sum LHS and RHS
+        else {  // this->aggDatapoint == nullptr and/or other->aggDatapoint == nullptr
+
+            // std::cout << "*******  Entering BOTH NULL" << std::endl;
+            int dim = this->newComp->getSumMean(0).size();
+            int k = this->newComp->getSumWeights().size();
+
+            // std::cout << "dim " << dim << " k " << k << std::endl;
+
+            for (int i = 0; i < k; i++) {
+                // Covar = r * x * x^T
+                gsl_vector_view gsumCovar =
+                    gsl_vector_view_array(this->newComp->getSumCovar(i).c_ptr(), dim * dim);
+                gsl_vector_view gOtherSumCovar =
+                    gsl_vector_view_array(other.newComp->getSumCovar(i).c_ptr(), dim * dim);
+                gsl_blas_daxpy(1.0, &gOtherSumCovar.vector, &gsumCovar.vector);
+
+                // Mean = r * x
+                gsl_vector_view gsumMean =
+                    gsl_vector_view_array(this->newComp->getSumMean(i).c_ptr(), dim);
+                gsl_vector_view gOtherSumMean =
+                    gsl_vector_view_array(other.newComp->getSumMean(i).c_ptr(), dim);
+
+                gsl_blas_daxpy(1.0, &gOtherSumMean.vector, &gsumMean.vector);
+
+                // Sum r
+                this->newComp->setSumWeights(
+                    i, this->newComp->getSumWeights(i) + other.newComp->getSumWeights(i));
+            }
+            // Set loglikelihood
+            this->newComp->setLogLikelihood(this->newComp->getLogLikelihood() +
+                                            other.newComp->getLogLikelihood());
+        }
+
+        // Return LHS (this) with the resulting sum
+
+        return (*this);
+    }
+
+
+    GmmAggregateNewComp getNewComp() {
+        return *(this->newComp);
+    }
+
+
+    ~GmmAggregateOutputLazy() {}
 };
 
 #endif

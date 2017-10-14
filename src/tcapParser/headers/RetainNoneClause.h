@@ -20,27 +20,26 @@
 
 #include "RetainClause.h"
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A retention clause that indicates that no columns should be copied into the output table.
+ */
+class RetainNoneClause : public RetainClause {
     /**
-     * A retention clause that indicates that no columns should be copied into the output table.
+     * @return false
      */
-    class RetainNoneClause : public RetainClause
-    {
-        /**
-         * @return false
-         */
-        bool isAll();
+    bool isAll();
 
-        /**
-         * @return true
-         */
-        bool isNone() ;
+    /**
+     * @return true
+     */
+    bool isNone();
 
-        // contract from super
-        void match(function<void(RetainAllClause&)> forAll, function<void(RetainExplicitClause&)>,
-                   function<void(RetainNoneClause&)> forNone);
-    };
+    // contract from super
+    void match(function<void(RetainAllClause&)> forAll,
+               function<void(RetainExplicitClause&)>,
+               function<void(RetainNoneClause&)> forNone);
+};
 }
 
-#endif //PDB_RETAINNONECLAUSE_H
+#endif  // PDB_RETAINNONECLAUSE_H

@@ -28,13 +28,11 @@ using pdb_detail::RecordPredicateIr;
 using pdb_detail::SelectionIr;
 using pdb_detail::SetExpressionIr;
 
-namespace pdb_tests
-{
-    void testDotBuilderSelection(UnitTest &qunit)
-    {
-//        Handle<RecordPredicate> nullRecord;
-//        Handle<SetExpression> nullInputSet;
-//        SelectionIr selectionIr(nullRecord, nullInputSet);
-        QUNIT_IS_TRUE(true);
-    }
+namespace pdb_tests {
+void testDotBuilderSelection(UnitTest& qunit) {
+    //        Handle<RecordPredicate> nullRecord;
+    //        Handle<SetExpression> nullInputSet;
+    //        SelectionIr selectionIr(nullRecord, nullInputSet);
+    QUNIT_IS_TRUE(true);
+}
 }

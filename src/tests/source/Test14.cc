@@ -24,30 +24,29 @@
 // this won't be visible to the v-table map, since it is not in the biult in types directory
 #include "SharedEmployee.h"
 
-int main () {
+int main() {
 
-	std:: cout << "Make sure to run bin/test15 in a different window!!\n";
+    std::cout << "Make sure to run bin/test15 in a different window!!\n";
 
-	// register the shared employee class
-	pdb :: CatalogClient temp (8108, "localhost", make_shared <pdb :: PDBLogger> ("clientLog"));
-	string errMsg;
-	if (!temp.registerType ("libraries/libSharedEmployee.so", errMsg))
-		cout << "Not able to register type.\n";
+    // register the shared employee class
+    pdb::CatalogClient temp(8108, "localhost", make_shared<pdb::PDBLogger>("clientLog"));
+    string errMsg;
+    if (!temp.registerType("libraries/libSharedEmployee.so", errMsg))
+        cout << "Not able to register type.\n";
 
-	pdb :: makeObjectAllocatorBlock (8192 * 1024, true);
+    pdb::makeObjectAllocatorBlock(8192 * 1024, true);
 
-	// since SharedEmployee is not a builtin object, this will cause a request to the catalog to 
-	// obtain the type code for the SharedEmployee class
-	pdb :: Handle <PrintableObject> myData = pdb :: makeObject <SharedEmployee> ("Joe Johnson", 12);
+    // since SharedEmployee is not a builtin object, this will cause a request to the catalog to
+    // obtain the type code for the SharedEmployee class
+    pdb::Handle<PrintableObject> myData = pdb::makeObject<SharedEmployee>("Joe Johnson", 12);
 
-	// and here, we'll need to fix the vTable for myData, using the shared library from the catalog
-	myData->print ();	
-	std :: cout << "\n";
+    // and here, we'll need to fix the vTable for myData, using the shared library from the catalog
+    myData->print();
+    std::cout << "\n";
 
-	// and downcast
-	pdb :: Handle <SharedEmployee> newOne = pdb :: unsafeCast <SharedEmployee> (myData);
-	std :: cout << *(newOne->getName ()) << "\n";	
+    // and downcast
+    pdb::Handle<SharedEmployee> newOne = pdb::unsafeCast<SharedEmployee>(myData);
+    std::cout << *(newOne->getName()) << "\n";
 }
 
 #endif
-

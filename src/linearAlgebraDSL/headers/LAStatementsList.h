@@ -22,26 +22,25 @@
 #include <vector>
 #include "LAStatementNode.h"
 
-//by Binhang, June 2017
+// by Binhang, June 2017
 
-struct LAStatementsList{
+struct LAStatementsList {
 
 private:
-	std::vector<LAStatementNodePtr> statements;
+    std::vector<LAStatementNodePtr> statements;
 
 public:
+    void addStatement(LAStatementNodePtr addMe) {
+        statements.push_back(addMe);
+    }
 
-	void addStatement(LAStatementNodePtr addMe){
-		statements.push_back(addMe);
-	}
+    int size() {
+        return statements.size();
+    }
 
-	int size(){
-		return statements.size();
-	}
-
-	LAStatementNodePtr get(int i){
-		return statements[i];
-	}
+    LAStatementNodePtr get(int i) {
+        return statements[i];
+    }
 };
 
 #endif

@@ -38,63 +38,60 @@
 // page handles are basically smart pointers
 using namespace std;
 class MyDB_PageHandleBase;
-typedef shared_ptr <MyDB_PageHandleBase> MyDB_PageHandle;
+typedef shared_ptr<MyDB_PageHandleBase> MyDB_PageHandle;
 
 class MyDB_PageHandleBase {
 
 public:
+    // flush the page to disk, so that it gets written out
+    void flush() {
+        page->flush(page);
+    }
 
-	// flush the page to disk, so that it gets written out
-	void flush () {
-		page->flush (page);
-	}
+    // access the raw bytes in this page
+    void* getBytes() {
+        return page->getBytes(page);
+    }
 
-	// access the raw bytes in this page
-	void *getBytes () {
-		return page->getBytes (page);
-	}
+    // let the page know that we have written to the bytes.  Must always
+    // be called once the page's bytes have been written.  If this is not
+    // called, then the page will never be marked as dirty, and the page
+    // will never be written to disk.
+    void wroteBytes() {
+        page->wroteBytes();
+    }
 
-	// let the page know that we have written to the bytes.  Must always
-	// be called once the page's bytes have been written.  If this is not
-	// called, then the page will never be marked as dirty, and the page
-	// will never be written to disk. 
-	void wroteBytes () {
-		page->wroteBytes ();
-	}
+    // unpin the page
+    void unpin() {
+        page->unpin(page);
+    }
 
-	// unpin the page
-	void unpin () {
-		page->unpin (page);
-	}
+    // There are no more references to the handle when this is called...
+    // this should decrmeent a reference count to the number of handles
+    // to the particular page that it references.  If the number of
+    // references to a pinned page goes down to zero, then the page should
+    // become unpinned.
+    ~MyDB_PageHandleBase() {
+        page->decRefCount(page);
+    }
 
-	// There are no more references to the handle when this is called...
-	// this should decrmeent a reference count to the number of handles
-	// to the particular page that it references.  If the number of 
-	// references to a pinned page goes down to zero, then the page should
-	// become unpinned.  
-	~MyDB_PageHandleBase () {
-		page->decRefCount (page);
-	}
-
-	// sets up the page...
-	MyDB_PageHandleBase (MyDB_PagePtr useMe) {
-		page = useMe;
-		page->incRefCount ();
-	}
+    // sets up the page...
+    MyDB_PageHandleBase(MyDB_PagePtr useMe) {
+        page = useMe;
+        page->incRefCount();
+    }
 
 private:
+    friend class MyDB_PageReaderWriter;
 
-	friend class MyDB_PageReaderWriter;
+    // get the buffer manager
+    MyDB_BufferManager& getParent() {
+        return page->getParent();
+    }
 
-	// get the buffer manager
-	MyDB_BufferManager &getParent () {
-		return page->getParent ();
-	}
-
-	friend class CheckLRU;
-	friend class MyDB_BufferManager;
-	MyDB_PagePtr page;
+    friend class CheckLRU;
+    friend class MyDB_BufferManager;
+    MyDB_PagePtr page;
 };
 
 #endif
-

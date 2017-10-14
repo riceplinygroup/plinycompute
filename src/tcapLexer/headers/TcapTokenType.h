@@ -21,55 +21,54 @@
 /**
  * The types of TCAP tokens.
  */
-enum TcapTokenType
-{
-     UNKNOWN_TYPE, // an unexpected lexeme in the string
+enum TcapTokenType {
+    UNKNOWN_TYPE,  // an unexpected lexeme in the string
 
-     STRING_LITERAL_TYPE, // "\"*"
+    STRING_LITERAL_TYPE,  // "\"*"
 
-     IDENTIFIER_TYPE, // (letter | digit)+   except a keyword
+    IDENTIFIER_TYPE,  // (letter | digit)+   except a keyword
 
-     LPAREN_TYPE, // (
+    LPAREN_TYPE,  // (
 
-     RPAREN_TYPE, // )
+    RPAREN_TYPE,  // )
 
-     EQ_TYPE, // =
+    EQ_TYPE,  // =
 
-     LOAD_TYPE, // load
+    LOAD_TYPE,  // load
 
-     APPLY_TYPE, // apply
+    APPLY_TYPE,  // apply
 
-     TO_TYPE, // to
+    TO_TYPE,  // to
 
-     LBRACKET_TYPE, // [
+    LBRACKET_TYPE,  // [
 
-     RBRACKET_TYPE, // ]
+    RBRACKET_TYPE,  // ]
 
-     RETAIN_TYPE, // retain
+    RETAIN_TYPE,  // retain
 
-     ALL_TYPE, // all
+    ALL_TYPE,  // all
 
-     COMMA_TYPE, // ,
+    COMMA_TYPE,  // ,
 
-     BY_TYPE, // by
+    BY_TYPE,  // by
 
-     STORE_TYPE, // store
+    STORE_TYPE,  // store
 
-     FILTER_TYPE, // filter
+    FILTER_TYPE,  // filter
 
-     NONE_TYPE, // none
+    NONE_TYPE,  // none
 
-     AT_SIGN_TYPE,  // @
+    AT_SIGN_TYPE,  // @
 
-     FUNC_TYPE, // func
+    FUNC_TYPE,  // func
 
-     METHOD_TYPE, // method
+    METHOD_TYPE,  // method
 
-     HOIST_TYPE, // hoist
+    HOIST_TYPE,  // hoist
 
-     FROM_TYPE, // from
+    FROM_TYPE,  // from
 
-     GREATER_THAN_TYPE // >
+    GREATER_THAN_TYPE  // >
 };
 
-#endif //PDB_TCAPLEXER_TOKENTYPE_H
+#endif  // PDB_TCAPLEXER_TOKENTYPE_H

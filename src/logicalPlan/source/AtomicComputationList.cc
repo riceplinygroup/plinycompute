@@ -24,59 +24,62 @@
 #include "PDBDebug.h"
 
 // gets the computation that builds the tuple set with the specified name
-AtomicComputationPtr AtomicComputationList :: getProducingAtomicComputation (std :: string outputName) {
-	if (producers.count (outputName) == 0) {
-		PDB_COUT << "This could be bad... can't find the guy producing output " << outputName << ".\n";
-	}
-	return producers [outputName];
+AtomicComputationPtr AtomicComputationList::getProducingAtomicComputation(std::string outputName) {
+    if (producers.count(outputName) == 0) {
+        PDB_COUT << "This could be bad... can't find the guy producing output " << outputName
+                 << ".\n";
+    }
+    return producers[outputName];
 }
 
 // gets the list of comptuations that consume the tuple set with the specified name
-std :: vector <AtomicComputationPtr> &AtomicComputationList :: getConsumingAtomicComputations (std :: string inputName) {
-	if (consumers.count (inputName) == 0) {
-		PDB_COUT << "This could be bad... can't find the guy consuming input " << inputName << ".\n";
-	}
-	return consumers [inputName];
+std::vector<AtomicComputationPtr>& AtomicComputationList::getConsumingAtomicComputations(
+    std::string inputName) {
+    if (consumers.count(inputName) == 0) {
+        PDB_COUT << "This could be bad... can't find the guy consuming input " << inputName
+                 << ".\n";
+    }
+    return consumers[inputName];
 }
 
 // this effectively gets all of the leaves of the graph, since it returns all of the scans... every
 // AtomicComputationPtr in the returned list will point to a ScanSet object
-std :: vector <AtomicComputationPtr> &AtomicComputationList :: getAllScanSets () {
-	return scans;
+std::vector<AtomicComputationPtr>& AtomicComputationList::getAllScanSets() {
+    return scans;
 }
 
 // add an atomic computation to the graph
-void AtomicComputationList :: addAtomicComputation (AtomicComputationPtr addMe) {
+void AtomicComputationList::addAtomicComputation(AtomicComputationPtr addMe) {
 
-	if (addMe->getAtomicComputationType () == "Scan") {
-		scans.push_back (addMe);
-	}
+    if (addMe->getAtomicComputationType() == "Scan") {
+        scans.push_back(addMe);
+    }
 
-	producers[addMe->getOutputName ()] = addMe;
-	if (consumers.count (addMe->getInputName ()) == 0) {
-		std :: vector <AtomicComputationPtr> rhs;
-		consumers[addMe->getInputName ()] = rhs;
-	}
-	consumers[addMe->getInputName ()].push_back (addMe);
+    producers[addMe->getOutputName()] = addMe;
+    if (consumers.count(addMe->getInputName()) == 0) {
+        std::vector<AtomicComputationPtr> rhs;
+        consumers[addMe->getInputName()] = rhs;
+    }
+    consumers[addMe->getInputName()].push_back(addMe);
 
-	// now, see if this guy is a join; join is special, because we have to add both inputs to the 
-	// join to the consumers map
-	if (addMe->getAtomicComputationType () == "JoinSets") {
-		ApplyJoin *myPtr = (ApplyJoin *) addMe.get ();
-		consumers[myPtr->getRightInput ().getSetName ()].push_back (addMe);	
-	}
+    // now, see if this guy is a join; join is special, because we have to add both inputs to the
+    // join to the consumers map
+    if (addMe->getAtomicComputationType() == "JoinSets") {
+        ApplyJoin* myPtr = (ApplyJoin*)addMe.get();
+        consumers[myPtr->getRightInput().getSetName()].push_back(addMe);
+    }
 
-	// kill the copy of the shared pointer that is inside him
-	addMe->destroyPtr ();
+    // kill the copy of the shared pointer that is inside him
+    addMe->destroyPtr();
 }
 
-std :: ostream& operator<<(std :: ostream& os, const AtomicComputationList& printMe) {
-	for (auto &a : printMe.producers) {
-		os << a.second->output << " <= " << a.second->getAtomicComputationType () << 
-			"(" << a.second->input << ", " << a.second->projection;
-		os << ")\n";
-	}
-	return os;
+std::ostream& operator<<(std::ostream& os, const AtomicComputationList& printMe) {
+    for (auto& a : printMe.producers) {
+        os << a.second->output << " <= " << a.second->getAtomicComputationType() << "("
+           << a.second->input << ", " << a.second->projection;
+        os << ")\n";
+    }
+    return os;
 }
 
 #endif

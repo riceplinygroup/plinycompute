@@ -40,95 +40,88 @@ using pdb::Vector;
 
 using pdb_detail::buildTcap;
 
-namespace pdb_tests
-{
-    void buildTcapTest1(UnitTest &qunit)
-    {
-        /**
-        * A user defined type to prove we can work over types other than object.
-        */
-        class Zebra : public Object
-        {
-            ENABLE_DEEP_COPY
-        };
+namespace pdb_tests {
+void buildTcapTest1(UnitTest& qunit) {
+    /**
+    * A user defined type to prove we can work over types other than object.
+    */
+    class Zebra : public Object {
+        ENABLE_DEEP_COPY
+    };
 
 
-        class MySelectionType : public Selection<Zebra, Zebra>
-        {
+    class MySelectionType : public Selection<Zebra, Zebra> {
 
-        public:
+    public:
+        SimpleLambda<bool> getSelection(Handle<Zebra>& in) override {
+            return SimpleLambda<bool>([]() { return true; });
+        }
 
-            SimpleLambda<bool> getSelection(Handle<Zebra> &in) override
-            {
-                return SimpleLambda<bool>([]() { return true; });
-            }
+        SimpleLambda<Handle<Zebra>> getProjection(Handle<Zebra>& in) override {
+            return SimpleLambda<Handle<Zebra>>([]() { return nullptr; });
+        }
 
-            SimpleLambda<Handle<Zebra>> getProjection(Handle<Zebra> &in) override
-            {
-                return SimpleLambda<Handle<Zebra>>([]() { return nullptr; });
-            }
-
-            // over-ridden by the user so they can supply the selection on projection
-            // temporarily added by Jia: for testing pipeline execution for logical plan with pushing-down projection
-            SimpleLambda <bool> getProjectionSelection (Handle <Zebra> &in) override
-            {
-
-            }
+        // over-ridden by the user so they can supply the selection on projection
+        // temporarily added by Jia: for testing pipeline execution for logical plan with
+        // pushing-down projection
+        SimpleLambda<bool> getProjectionSelection(Handle<Zebra>& in) override {}
 
 
-            ENABLE_DEEP_COPY
-        };
+        ENABLE_DEEP_COPY
+    };
 
 
-        /**
-         * Setup a user query graph that looks like:
-         *
-         * (outputSet1)<--(selection2)<--(selection1)<--(inputSet)
-         *                               |
-         *                (outputSet2)<---
-         *
-         */
-        Handle<Set<Zebra>> sourceSet = makeObject<Set<Zebra>>("somedb", "inputSetName");
+    /**
+     * Setup a user query graph that looks like:
+     *
+     * (outputSet1)<--(selection2)<--(selection1)<--(inputSet)
+     *                               |
+     *                (outputSet2)<---
+     *
+     */
+    Handle<Set<Zebra>> sourceSet = makeObject<Set<Zebra>>("somedb", "inputSetName");
 
-        Handle<MySelectionType> selection1 = makeObject<MySelectionType>();
-        selection1->setInput(sourceSet);
+    Handle<MySelectionType> selection1 = makeObject<MySelectionType>();
+    selection1->setInput(sourceSet);
 
-        Handle<MySelectionType> selection2 = makeObject<MySelectionType>();
-        selection2->setInput(selection1);
+    Handle<MySelectionType> selection2 = makeObject<MySelectionType>();
+    selection2->setInput(selection1);
 
-        Handle<QueryOutput<Zebra>> outputSet1 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName1", selection1);
-
-
-        Handle<QueryOutput<Zebra>> outputSet2 = makeObject<QueryOutput<Zebra>>("somedb", "outputSetName2", selection2);
+    Handle<QueryOutput<Zebra>> outputSet1 =
+        makeObject<QueryOutput<Zebra>>("somedb", "outputSetName1", selection1);
 
 
-        /**
-         * Test translation of the user query graph with sinks outputSet1 and outputSet2 to a logical graph.
-         *
-         * The logical graph should have the form:
-         *
-         * (querySink) <- (internalNode1) <- (internalNode2) <- (internalNode3) <- (sourceNode)
-         *
-         *
-         * With some following details:
-         *
-         * querySink: type = ProjectionIr, materialization? = yes (outputSetName2)
-         *
-         * internalNode1: type = SelectionIr, materialization? = no
-         *
-         * internalNode2: type = ProjectionIr, materialization? = yes (outputSetName1)
-         *
-         * internalNode3: type = SelectionIr, materialization? = no
-         *
-         * sourceNode: type = SourceSetNameIr, materialization? = no
-         */
-        Handle<Vector<Handle<QueryBase>>> sinks = makeObject<Vector<Handle<QueryBase>>>();
-        sinks->push_back(outputSet2);
-        sinks->push_back(outputSet1);
+    Handle<QueryOutput<Zebra>> outputSet2 =
+        makeObject<QueryOutput<Zebra>>("somedb", "outputSetName2", selection2);
 
-        string tcapProgram = buildTcap(outputSet1);
 
-//        QUNIT_IS_EQUAL("", tcapProgram);
+    /**
+     * Test translation of the user query graph with sinks outputSet1 and outputSet2 to a logical
+     * graph.
+     *
+     * The logical graph should have the form:
+     *
+     * (querySink) <- (internalNode1) <- (internalNode2) <- (internalNode3) <- (sourceNode)
+     *
+     *
+     * With some following details:
+     *
+     * querySink: type = ProjectionIr, materialization? = yes (outputSetName2)
+     *
+     * internalNode1: type = SelectionIr, materialization? = no
+     *
+     * internalNode2: type = ProjectionIr, materialization? = yes (outputSetName1)
+     *
+     * internalNode3: type = SelectionIr, materialization? = no
+     *
+     * sourceNode: type = SourceSetNameIr, materialization? = no
+     */
+    Handle<Vector<Handle<QueryBase>>> sinks = makeObject<Vector<Handle<QueryBase>>>();
+    sinks->push_back(outputSet2);
+    sinks->push_back(outputSet1);
 
-    }
+    string tcapProgram = buildTcap(outputSet1);
+
+    //        QUNIT_IS_EQUAL("", tcapProgram);
+}
 }

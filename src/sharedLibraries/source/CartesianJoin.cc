@@ -21,6 +21,6 @@
 #include "CartesianJoin.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CartesianJoin)
+GET_V_TABLE(CartesianJoin)
 
 #endif

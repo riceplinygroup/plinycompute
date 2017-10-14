@@ -26,13 +26,13 @@
 
 #include "PDBFlushProducerWork.h"
 
-PDBFlushProducerWork::PDBFlushProducerWork(pdb :: PangeaStorageServer * server) {
+PDBFlushProducerWork::PDBFlushProducerWork(pdb::PangeaStorageServer* server) {
     this->server = server;
 }
 
 void PDBFlushProducerWork::execute(PDBBuzzerPtr callerBuzzer) {
     server->getLogger()->writeLn("PDBFlushWork: started!");
-    //this->server->flush();
+    // this->server->flush();
     callerBuzzer->buzz(PDBAlarm::WorkAllDone);
 }
 

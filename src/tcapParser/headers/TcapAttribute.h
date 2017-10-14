@@ -25,36 +25,33 @@
 
 using std::shared_ptr;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * A key value pair associated with a statement.
+ */
+class TcapAttribute {
+public:
     /**
-     * A key value pair associated with a statement.
+     * The key name of the attribute.
      */
-    class TcapAttribute
-    {
-    public:
+    const TcapIdentifier name;
 
-        /**
-         * The key name of the attribute.
-         */
-        const TcapIdentifier name;
+    /**
+     * The value of the attribute.
+     */
+    const StringLiteral value;
 
-        /**
-         * The value of the attribute.
-         */
-        const StringLiteral value;
+    /**
+     * Creates a new TCAP attribute.
+     *
+     * @param name The key name of the attribute.
+     * @param value The value of the attribute.
+     * @return a new TcapAttribute
+     */
+    TcapAttribute(const TcapIdentifier& name, const StringLiteral& value);
+};
 
-        /**
-         * Creates a new TCAP attribute.
-         *
-         * @param name The key name of the attribute.
-         * @param value The value of the attribute.
-         * @return a new TcapAttribute
-         */
-        TcapAttribute(const TcapIdentifier &name, const StringLiteral &value);
-    };
-
-    typedef shared_ptr<TcapAttribute> TcapAttributePtr;
+typedef shared_ptr<TcapAttribute> TcapAttributePtr;
 }
 
-#endif //PDB_TCAPATTRIBUTE_H
+#endif  // PDB_TCAPATTRIBUTE_H

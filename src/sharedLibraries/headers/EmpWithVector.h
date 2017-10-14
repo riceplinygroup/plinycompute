@@ -24,24 +24,23 @@ using namespace pdb;
 
 class EmpWithVector : public Object {
 
-	Supervisor myDude;
-	Vector <double> myVec;
-	
+    Supervisor myDude;
+    Vector<double> myVec;
+
 public:
+    ENABLE_DEEP_COPY
 
-        ENABLE_DEEP_COPY
+    EmpWithVector() {}
 
-        EmpWithVector () {}
+    EmpWithVector(Supervisor& useMe, Vector<double>& andMe) : myDude(useMe), myVec(andMe) {}
 
-	EmpWithVector (Supervisor &useMe, Vector <double>  &andMe) : myDude (useMe), myVec (andMe) {}
+    Supervisor& getEmp() {
+        return myDude;
+    }
 
-	Supervisor &getEmp () {
-		return myDude;
-	}
-
-	Vector <double> &getVector () {
-		return myVec;
-	}
+    Vector<double>& getVector() {
+        return myVec;
+    }
 };
 
 

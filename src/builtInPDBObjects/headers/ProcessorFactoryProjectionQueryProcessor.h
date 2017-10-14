@@ -29,34 +29,25 @@
 
 using std::make_shared;
 
-namespace pdb
-{
-    class ProcessorFactoryProjectionQueryProcessor : public ProcessorFactory
-    {
-    public:
+namespace pdb {
+class ProcessorFactoryProjectionQueryProcessor : public ProcessorFactory {
+public:
+    ProcessorFactoryProjectionQueryProcessor() {
+        // for deep copy
+    }
 
-        ProcessorFactoryProjectionQueryProcessor()
-        {
-            // for deep copy
-        }
+    ProcessorFactoryProjectionQueryProcessor(Handle<QueryBase> originalSelection)
+        : _originalSelection(originalSelection) {}
 
-        ProcessorFactoryProjectionQueryProcessor(Handle<QueryBase> originalSelection) : _originalSelection(originalSelection)
-        {
+    SimpleSingleTableQueryProcessorPtr makeProcessor() override {
+        return make_shared<ProjectionQueryProcessor<Object, Object>>(_originalSelection);
+    }
 
-        }
+    ENABLE_DEEP_COPY
 
-        SimpleSingleTableQueryProcessorPtr makeProcessor() override
-        {
-            return make_shared<ProjectionQueryProcessor<Object,Object>>(_originalSelection);
-        }
-
-        ENABLE_DEEP_COPY
-
-    private:
-
-        Handle<QueryBase> _originalSelection;
-
-    };
+private:
+    Handle<QueryBase> _originalSelection;
+};
 }
 
-#endif //PDB_PROCESSORFACTORYFILTERQUERYPROCESSOR_H
+#endif  // PDB_PROCESSORFACTORYFILTERQUERYPROCESSOR_H

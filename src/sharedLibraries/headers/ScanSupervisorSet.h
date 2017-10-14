@@ -23,19 +23,17 @@
 #include "Supervisor.h"
 
 using namespace pdb;
-class ScanSupervisorSet : public ScanUserSet <Supervisor> {
+class ScanSupervisorSet : public ScanUserSet<Supervisor> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanSupervisorSet () {
-        }
+    ScanSupervisorSet() {}
 
-        ScanSupervisorSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanSupervisorSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

@@ -24,23 +24,23 @@ http://www.boost.org/LICENSE_1_0.txt)
     [[`__MACH__`] [__predef_detection__]]
     [[`__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__`] [__predef_detection__]]
 
-    [[`__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__`] [__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__*1000]]
+    [[`__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__`]
+[__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__*1000]]
     ]
  */
 
 #define BOOST_OS_IOS BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && ( \
-    defined(__APPLE__) && defined(__MACH__) && \
-    defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) \
-    )
-#   undef BOOST_OS_IOS
-#   define BOOST_OS_IOS (__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__*1000)
+#if !defined(BOOST_PREDEF_DETAIL_OS_DETECTED) && \
+    (defined(__APPLE__) && defined(__MACH__) &&  \
+     defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__))
+#undef BOOST_OS_IOS
+#define BOOST_OS_IOS (__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ * 1000)
 #endif
 
 #if BOOST_OS_IOS
-#   define BOOST_OS_IOS_AVAILABLE
-#   include <boost/predef/detail/os_detected.h>
+#define BOOST_OS_IOS_AVAILABLE
+#include <boost/predef/detail/os_detected.h>
 #endif
 
 #define BOOST_OS_IOS_NAME "iOS"
@@ -48,4 +48,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_IOS,BOOST_OS_IOS_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_IOS, BOOST_OS_IOS_NAME)

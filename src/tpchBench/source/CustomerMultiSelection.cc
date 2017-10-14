@@ -21,6 +21,6 @@
 #include "CustomerMultiSelection.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CustomerMultiSelection)
+GET_V_TABLE(CustomerMultiSelection)
 
 #endif

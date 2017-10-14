@@ -26,12 +26,13 @@
 #include "DispatcherServer.h"
 
 /**
- * Starts up a server with all of the master functionalities and performs all the proper initializations for the various
+ * Starts up a server with all of the master functionalities and performs all the proper
+ * initializations for the various
  * servers
  *
  * Usage: ./MasterServer <port>
  */
-int main (int argc, char * argv[]) {
+int main(int argc, char* argv[]) {
 
     int port = 8108;
     if (argc >= 2) {
@@ -41,7 +42,7 @@ int main (int argc, char * argv[]) {
     std::cout << "Starting up a master server" << std::endl;
     pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
     pdb::PDBServer frontEnd(port, 10, myLogger);
-    frontEnd.addFunctionality <pdb :: CatalogServer> ("CatalogDir", true, "localhost", 8108);
+    frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", true, "localhost", 8108);
     frontEnd.addFunctionality<pdb::CatalogClient>(port, "localhost", myLogger);
     frontEnd.addFunctionality<pdb::ResourceManagerServer>("conf/serverlist", port);
     frontEnd.addFunctionality<pdb::DistributedStorageManagerServer>(myLogger);

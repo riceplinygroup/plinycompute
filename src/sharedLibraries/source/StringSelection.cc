@@ -23,6 +23,6 @@
 #include "StringSelection.h"
 
 
-GET_V_TABLE (StringSelection)
+GET_V_TABLE(StringSelection)
 
 #endif

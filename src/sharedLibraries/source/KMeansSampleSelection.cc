@@ -23,6 +23,6 @@
 #include "GetVTable.h"
 #include "KMeansSampleSelection.h"
 
-GET_V_TABLE (KMeansSampleSelection)
+GET_V_TABLE(KMeansSampleSelection)
 
 #endif

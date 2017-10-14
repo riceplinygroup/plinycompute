@@ -23,19 +23,17 @@
 #include "SharedEmployee.h"
 
 using namespace pdb;
-class ScanEmployeeSet : public ScanUserSet <SharedEmployee> {
+class ScanEmployeeSet : public ScanUserSet<SharedEmployee> {
 
 public:
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
-        ScanEmployeeSet () {
-        }
+    ScanEmployeeSet() {}
 
-        ScanEmployeeSet (std :: string dbName, std :: string setName) {
-            setDatabaseName( dbName );
-            setSetName ( setName );
-        }
-
+    ScanEmployeeSet(std::string dbName, std::string setName) {
+        setDatabaseName(dbName);
+        setSetName(setName);
+    }
 };
 
 

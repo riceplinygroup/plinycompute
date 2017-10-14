@@ -28,34 +28,30 @@
 namespace pdb {
 
 // encapsulates a request to add a type in the storage
-class StorageAddType  : public Object {
+class StorageAddType : public Object {
 
 public:
+    StorageAddType() {}
+    ~StorageAddType() {}
 
-	StorageAddType () {}
-	~StorageAddType () {}
+    StorageAddType(std::string typeNameIn, unsigned int typeCodeIn) : typeName(typeNameIn) {
+        typeCode = typeCodeIn;
+    }
 
-	StorageAddType (std :: string typeNameIn, unsigned int typeCodeIn) : typeName(typeNameIn) {
-                typeCode = typeCodeIn;
-        }
+    std::string getTypeName() {
+        return typeName;
+    }
 
-	std :: string getTypeName () {
-		return typeName;
-	}
+    unsigned int getTypeCode() {
+        return typeCode;
+    }
 
-        unsigned int getTypeCode () {
-                return typeCode;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String typeName;
-        unsigned int typeCode;
-
+    String typeName;
+    unsigned int typeCode;
 };
-
 }
 
 #endif

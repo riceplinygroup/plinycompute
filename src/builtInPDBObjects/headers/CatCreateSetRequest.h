@@ -31,29 +31,26 @@ namespace pdb {
 class CatCreateSetRequest : public Object {
 
 public:
+    ~CatCreateSetRequest() {}
+    CatCreateSetRequest() {}
+    CatCreateSetRequest(std::string dbName, std::string setName, int16_t typeID)
+        : dbName(dbName), setName(setName), typeID(typeID) {}
 
-	~CatCreateSetRequest () {}
-	CatCreateSetRequest () {}
-	CatCreateSetRequest (std :: string dbName, std :: string setName, int16_t typeID) : 
-		dbName (dbName), setName (setName), typeID (typeID) {}
+    std::pair<std::string, std::string> whichSet() {
+        return std::make_pair<std::string, std::string>(dbName, setName);
+    }
 
-	std :: pair <std :: string, std :: string> whichSet () {
-		return std :: make_pair <std :: string, std :: string> (dbName, setName);
-	}
+    int16_t whichType() {
+        return typeID;
+    }
 
-	int16_t whichType () {
-		return typeID;
-	}
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dbName;
-	String setName;
-	int16_t typeID;
+    String dbName;
+    String setName;
+    int16_t typeID;
 };
-
 }
 
 #endif

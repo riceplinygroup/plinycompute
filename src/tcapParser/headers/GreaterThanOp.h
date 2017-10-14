@@ -29,76 +29,76 @@
 using std::function;
 using std::shared_ptr;
 
-namespace pdb_detail
-{
+namespace pdb_detail {
+/**
+ * Models a a greater than operation in the TCAP grammar.  For example:
+ *
+ *    C[examAverage] > C[hwAverage] retain all
+ *
+ * In this example:
+ *
+ *     lhsTableName would be C
+ *     lhsColumnName would be examAverage
+ *     rhsTableName would be C
+ *     rhsColumnName would be hwAverage
+ *     an instance of RetailAllClause would be the value of retain
+ */
+class GreaterThanOp : public BinaryOperation {
+public:
     /**
-     * Models a a greater than operation in the TCAP grammar.  For example:
-     *
-     *    C[examAverage] > C[hwAverage] retain all
-     *
-     * In this example:
-     *
-     *     lhsTableName would be C
-     *     lhsColumnName would be examAverage
-     *     rhsTableName would be C
-     *     rhsColumnName would be hwAverage
-     *     an instance of RetailAllClause would be the value of retain
+     * The table from which the left hand column is drawn.
      */
-    class GreaterThanOp : public BinaryOperation
-    {
-    public:
+    const TcapIdentifier lhsTableName;
 
-        /**
-         * The table from which the left hand column is drawn.
-         */
-        const TcapIdentifier lhsTableName;
+    /**
+     * The left hand side column used in comparision.
+     */
+    const TcapIdentifier lhsColumnName;
 
-        /**
-         * The left hand side column used in comparision.
-         */
-        const TcapIdentifier lhsColumnName;
+    /**
+     * The table from which the right hand column is drawn.
+     */
+    const TcapIdentifier rhsTableName;
 
-        /**
-         * The table from which the right hand column is drawn.
-         */
-        const TcapIdentifier rhsTableName;
+    /**
+     * The right hand side column used in comparision.
+     */
+    const TcapIdentifier rhsColumnName;
 
-        /**
-         * The right hand side column used in comparision.
-         */
-        const TcapIdentifier rhsColumnName;
+    /**
+     * The retention clause of the operation.
+     */
+    const shared_ptr<RetainClause> retain;
 
-        /**
-         * The retention clause of the operation.
-         */
-        const shared_ptr<RetainClause> retain;
+    // contract from super
+    void execute(function<void(GreaterThanOp&)> forGreaterThan) override;
 
-        // contract from super
-        void execute(function<void(GreaterThanOp&)> forGreaterThan) override;
+private:
+    /**
+     * Creates a new GreaterThanOp.
+     *
+     * Throws invalid_argument exception if retain is nulltpr
+     *
+     * @param lhsTableName The table from which the left hand column is drawn.
+     * @param lhsColumnName The left hand side column used in comparision.
+     * @param rhsTableName The table from which the right hand column is drawn.
+     * @param rhsColumnName The right hand side column used in comparision.
+     * @param retain The retention clause of the operation.
+     * @return a GreaterThanOp.
+     */
+    // private because throws exception and PDB style guide forbids exceptions from crossing API
+    // boundaries.
+    GreaterThanOp(TcapIdentifier lhsTableName,
+                  TcapIdentifier lhsColumnName,
+                  TcapIdentifier rhsTableName,
+                  TcapIdentifier rhsColumnName,
+                  shared_ptr<RetainClause> retain);
 
-    private:
+    friend BinaryOperationPtr makeBinaryOperation(
+        class TcapTokenStream& tokens);  // for constructor
 
-        /**
-         * Creates a new GreaterThanOp.
-         *
-         * Throws invalid_argument exception if retain is nulltpr
-         *
-         * @param lhsTableName The table from which the left hand column is drawn.
-         * @param lhsColumnName The left hand side column used in comparision.
-         * @param rhsTableName The table from which the right hand column is drawn.
-         * @param rhsColumnName The right hand side column used in comparision.
-         * @param retain The retention clause of the operation.
-         * @return a GreaterThanOp.
-         */
-        // private because throws exception and PDB style guide forbids exceptions from crossing API boundaries.
-        GreaterThanOp(TcapIdentifier lhsTableName, TcapIdentifier lhsColumnName, TcapIdentifier rhsTableName,
-                      TcapIdentifier rhsColumnName, shared_ptr<RetainClause> retain);
-
-        friend BinaryOperationPtr makeBinaryOperation(class TcapTokenStream &tokens); // for constructor
-
-        friend void pdb_tests::buildTcapIrTest6(class::UnitTest &qunit); // for constructor
-
-    };
+    friend void pdb_tests::buildTcapIrTest6(class ::UnitTest& qunit);  // for constructor
+};
 }
 
-#endif //PDB_TCAPPARSER_GREATERTHANOP_H
+#endif  // PDB_TCAPPARSER_GREATERTHANOP_H

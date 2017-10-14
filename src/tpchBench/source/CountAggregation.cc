@@ -21,6 +21,6 @@
 #include "CountAggregation.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (CountAggregation)
+GET_V_TABLE(CountAggregation)
 
 #endif

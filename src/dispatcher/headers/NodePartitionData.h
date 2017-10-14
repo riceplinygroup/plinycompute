@@ -31,8 +31,10 @@ typedef std::shared_ptr<NodePartitionData> NodePartitionDataPtr;
 
 class NodePartitionData {
 public:
-
-    NodePartitionData(NodeID nodeId, int port, std::string address, std::pair<std::string, std::string> setAndDatabaseName);
+    NodePartitionData(NodeID nodeId,
+                      int port,
+                      std::string address,
+                      std::pair<std::string, std::string> setAndDatabaseName);
 
     std::string toString() const;
     NodeID getNodeId() const;
@@ -47,7 +49,6 @@ public:
     }
 
 private:
-
     NodeID nodeId;
     int port;
     std::string address;
@@ -56,8 +57,7 @@ private:
 
     size_t totalBytesSent;
 };
-
 }
 
 
-#endif //OBJECTQUERYMODEL_NODEPARTITIONDATA_H
+#endif  // OBJECTQUERYMODEL_NODEPARTITIONDATA_H

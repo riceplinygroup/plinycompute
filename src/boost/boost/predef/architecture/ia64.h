@@ -30,15 +30,14 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_ARCH_IA64 BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__ia64__) || defined(_IA64) || \
-    defined(__IA64__) || defined(__ia64) || \
+#if defined(__ia64__) || defined(_IA64) || defined(__IA64__) || defined(__ia64) || \
     defined(_M_IA64) || defined(__itanium__)
-#   undef BOOST_ARCH_IA64
-#   define BOOST_ARCH_IA64 BOOST_VERSION_NUMBER_AVAILABLE
+#undef BOOST_ARCH_IA64
+#define BOOST_ARCH_IA64 BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_ARCH_IA64
-#   define BOOST_ARCH_IA64_AVAILABLE
+#define BOOST_ARCH_IA64_AVAILABLE
 #endif
 
 #define BOOST_ARCH_IA64_NAME "Intel Itanium 64"
@@ -46,4 +45,4 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_IA64,BOOST_ARCH_IA64_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_ARCH_IA64, BOOST_ARCH_IA64_NAME)

@@ -22,7 +22,6 @@
 #include "TopKTest.h"
 #include "GetVTable.h"
 
-GET_V_TABLE (TopKTest)
+GET_V_TABLE(TopKTest)
 
 #endif
-

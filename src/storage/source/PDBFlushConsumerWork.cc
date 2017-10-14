@@ -31,127 +31,139 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-PDBFlushConsumerWork::PDBFlushConsumerWork(FilePartitionID partitionId, pdb :: PangeaStorageServer* server) {
-	this->partitionId = partitionId;
-        this->server = server;
-        this->isStopped = false;
+PDBFlushConsumerWork::PDBFlushConsumerWork(FilePartitionID partitionId,
+                                           pdb::PangeaStorageServer* server) {
+    this->partitionId = partitionId;
+    this->server = server;
+    this->isStopped = false;
 }
 
-void PDBFlushConsumerWork :: stop() {
-        this->isStopped = true;
+void PDBFlushConsumerWork::stop() {
+    this->isStopped = true;
 }
 
 
 void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
-	PageCircularBufferPtr flushBuffer = this->server->getFlushBuffer();
-	PDBPagePtr page;
-        SetPtr set = nullptr;
-	while(!isStopped) {
-		if((page = flushBuffer->popPageFromHead()) != nullptr) {
-			//got a page from flush buffer
-			//find the set of the page
-                        //this->server->getLogger()->writeLn("Got a page with PageID=");
-                        //this->server->getLogger()->writeInt(page->getPageID());
-                        //this->server->getLogger()->writeLn("PartitionId=");
-                        //this->server->getLogger()->writeInt(this->partitionId);
-			PDB_COUT <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
-                        PDB_COUT << "page dbId=" << page->getDbID()<<"\n";
-                        PDB_COUT << "page typeId=" << page->getTypeID()<<"\n";
-                        PDB_COUT << "page setId=" << page->getSetID()<<"\n";
-                        bool isTempSet = false;
-                        if((page->getDbID()==0)&&(page->getTypeID()== 0)){
-                            set = this->server->getTempSet(page->getSetID());
-                            isTempSet = true;
-                        } else {
-			    set = this->server->getSet(page->getDbID(), page->getTypeID(), page->getSetID());
-                            isTempSet = false;
-                        }
-                        CacheKey key;
-                        key.dbId = page->getDbID();
-                        key.typeId = page->getTypeID();
-                        key.setId =page->getSetID();
-                        key.pageId = page->getPageID();
-                        //cout << "to get lock\n";
-                        //this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for flushLock()...");
-                        this->server->getCache()->flushLock();
-                        //this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for flushLock()...");
-                        //cout << "got lock!\n";
-			if((set != nullptr)&&(page->getRawBytes()!=nullptr)) {
-                                
-     				//append the page to the partition
-			        //cout<<"start flushing at partition:"<<this->partitionId<<"\n";
-                                //this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for lockDirtyPageSet()...");
-                                //this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for lockDirtyPageSet()...");
-                                //auto begin = std::chrono::high_resolution_clock::now();
-				int ret = set->getFile()->appendPage(this->partitionId, page);
-                                //auto end = std::chrono::high_resolution_clock::now();
-                                //std::cout << "append page latency:"<< std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-                                if (ret < 0) {
-                                    PDB_COUT << "Can't write page with below info:\n";
-                                    PDB_COUT <<"Got a page with PageID "<<page->getPageID()<<" for partition:"<<this->partitionId<<"\n";
-                                    PDB_COUT << "page dbId=" << page->getDbID()<<"\n";
-                                    PDB_COUT << "page typeId=" << page->getTypeID()<<"\n";
-                                    PDB_COUT << "page setId=" << page->getSetID()<<"\n";
+    PageCircularBufferPtr flushBuffer = this->server->getFlushBuffer();
+    PDBPagePtr page;
+    SetPtr set = nullptr;
+    while (!isStopped) {
+        if ((page = flushBuffer->popPageFromHead()) != nullptr) {
+            // got a page from flush buffer
+            // find the set of the page
+            // this->server->getLogger()->writeLn("Got a page with PageID=");
+            // this->server->getLogger()->writeInt(page->getPageID());
+            // this->server->getLogger()->writeLn("PartitionId=");
+            // this->server->getLogger()->writeInt(this->partitionId);
+            PDB_COUT << "Got a page with PageID " << page->getPageID()
+                     << " for partition:" << this->partitionId << "\n";
+            PDB_COUT << "page dbId=" << page->getDbID() << "\n";
+            PDB_COUT << "page typeId=" << page->getTypeID() << "\n";
+            PDB_COUT << "page setId=" << page->getSetID() << "\n";
+            bool isTempSet = false;
+            if ((page->getDbID() == 0) && (page->getTypeID() == 0)) {
+                set = this->server->getTempSet(page->getSetID());
+                isTempSet = true;
+            } else {
+                set = this->server->getSet(page->getDbID(), page->getTypeID(), page->getSetID());
+                isTempSet = false;
+            }
+            CacheKey key;
+            key.dbId = page->getDbID();
+            key.typeId = page->getTypeID();
+            key.setId = page->getSetID();
+            key.pageId = page->getPageID();
+            // cout << "to get lock\n";
+            // this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for
+            // flushLock()...");
+            this->server->getCache()->flushLock();
+            // this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for
+            // flushLock()...");
+            // cout << "got lock!\n";
+            if ((set != nullptr) && (page->getRawBytes() != nullptr)) {
 
-                                }
-                                //std :: cout << "lockDirtyPageSet() for set with id=" << set->getSetID() << std :: endl;
-                                set->lockDirtyPageSet(); 
-                                if(isTempSet == false) {
-                                     PDB_COUT << "to write meta" << std :: endl;
-                                     set->getFile()->writeMeta();
-                                }               
-                                set->removePageFromDirtyPageSet(page->getPageID(), this->partitionId, ret);
-                                set->unlockDirtyPageSet();
-                                //std :: cout << "unlockDirtyPageSet() for set with id=" << set->getSetID() << std :: endl;
-                                //this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for lockDirtyPageSet()...");
-				PDB_COUT<<"page with PageID "<<page->getPageID() <<" appended to partition with PartitionID "<<this->partitionId<<"\n";
-                         }
+                // append the page to the partition
+                // cout<<"start flushing at partition:"<<this->partitionId<<"\n";
+                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for
+                // lockDirtyPageSet()...");
+                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for
+                // lockDirtyPageSet()...");
+                // auto begin = std::chrono::high_resolution_clock::now();
+                int ret = set->getFile()->appendPage(this->partitionId, page);
+                // auto end = std::chrono::high_resolution_clock::now();
+                // std::cout << "append page latency:"<<
+                // std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns."
+                // << std::endl;
+                if (ret < 0) {
+                    PDB_COUT << "Can't write page with below info:\n";
+                    PDB_COUT << "Got a page with PageID " << page->getPageID()
+                             << " for partition:" << this->partitionId << "\n";
+                    PDB_COUT << "page dbId=" << page->getDbID() << "\n";
+                    PDB_COUT << "page typeId=" << page->getTypeID() << "\n";
+                    PDB_COUT << "page setId=" << page->getSetID() << "\n";
+                }
+                // std :: cout << "lockDirtyPageSet() for set with id=" << set->getSetID() << std ::
+                // endl;
+                set->lockDirtyPageSet();
+                if (isTempSet == false) {
+                    PDB_COUT << "to write meta" << std::endl;
+                    set->getFile()->writeMeta();
+                }
+                set->removePageFromDirtyPageSet(page->getPageID(), this->partitionId, ret);
+                set->unlockDirtyPageSet();
+                // std :: cout << "unlockDirtyPageSet() for set with id=" << set->getSetID() << std
+                // :: endl;
+                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for
+                // lockDirtyPageSet()...");
+                PDB_COUT << "page with PageID " << page->getPageID()
+                         << " appended to partition with PartitionID " << this->partitionId << "\n";
+            }
 #ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
-                         if((page->getRawBytes() != nullptr)&&(page->getRefCount()==0)&&(page->isInEviction()==true)) {
-#else 
-                          if((page->getRawBytes() != nullptr)&&(page->isInEviction()==true)) {
-#endif
-
-                             //remove the page from cache!
-                             PDB_COUT << "to free the page!\n";
-		             this->server->getSharedMem()->free(page->getRawBytes()-page->getInternalOffset(), page->getSize()+512);
-                             PDB_COUT << "internalOffset="<<page->getInternalOffset()<< "\n";
-		             page->setOffset(0);
-		             page->setRawBytes(nullptr);
-                         }
-                         /*
-                         else {
-                             //cout << "page->getRefCount()="<<page->getRefCount()<<"\n";
-                             if(page->isInEviction()==false) {
-                                 cout << "page is not in eviction!\n";
-                             }
-                         }
-                         */
-                         //remove the page from cache!
-#ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
-                         if((page->getRefCount()==0)&&(page->isInEviction()==true)) {
+            if ((page->getRawBytes() != nullptr) && (page->getRefCount() == 0) &&
+                (page->isInEviction() == true)) {
 #else
-                         if(page->isInEviction()==true) {
+            if ((page->getRawBytes() != nullptr) && (page->isInEviction() == true)) {
 #endif
-                             this->server->getCache()->removePage(key);
-                         } 
-                         else {
-                             page->setInFlush(false);
-                             page->setDirty(false);
-                         }
-                         PDB_COUT << "PDBFlushConsumerWork: page freed from cache" << std :: endl;       
-                         this->server->getCache()->flushUnlock();
-                         this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for flushUnlock()...");
+
+                // remove the page from cache!
+                PDB_COUT << "to free the page!\n";
+                this->server->getSharedMem()->free(page->getRawBytes() - page->getInternalOffset(),
+                                                   page->getSize() + 512);
+                PDB_COUT << "internalOffset=" << page->getInternalOffset() << "\n";
+                page->setOffset(0);
+                page->setRawBytes(nullptr);
+            }
 /*
-                         if(set!=nullptr) {
-                                if((set->getLastFlushedPageId()==(unsigned int)(-1)) || (key.pageId > set->getLastFlushedPageId())) {
-                                	set->setLastFlushedPageId(key.pageId);
-                                }
-			}*/
-		}
-
-	}
-	PDB_COUT<<"flushing thread stopped running for partition: "<<partitionId<<"\n";
+else {
+    //cout << "page->getRefCount()="<<page->getRefCount()<<"\n";
+    if(page->isInEviction()==false) {
+        cout << "page is not in eviction!\n";
+    }
 }
-
-
+*/
+// remove the page from cache!
+#ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
+            if ((page->getRefCount() == 0) && (page->isInEviction() == true)) {
+#else
+            if (page->isInEviction() == true) {
+#endif
+                this->server->getCache()->removePage(key);
+            } else {
+                page->setInFlush(false);
+                page->setDirty(false);
+            }
+            PDB_COUT << "PDBFlushConsumerWork: page freed from cache" << std::endl;
+            this->server->getCache()->flushUnlock();
+            this->server->getLogger()->writeLn(
+                "PDBFlushConsumerWork: unlocked for flushUnlock()...");
+            /*
+                                     if(set!=nullptr) {
+                                            if((set->getLastFlushedPageId()==(unsigned int)(-1)) ||
+               (key.pageId > set->getLastFlushedPageId())) {
+                                                set->setLastFlushedPageId(key.pageId);
+                                            }
+                        }*/
+        }
+    }
+    PDB_COUT << "flushing thread stopped running for partition: " << partitionId << "\n";
+}

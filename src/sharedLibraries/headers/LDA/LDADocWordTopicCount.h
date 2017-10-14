@@ -29,45 +29,41 @@ using namespace pdb;
 class LDADocWordTopicCount : public Object {
 
 private:
-
-        int docID;
-        int wordID;
-	int topicID;
-	int count;
+    int docID;
+    int wordID;
+    int topicID;
+    int count;
 
 public:
+    ENABLE_DEEP_COPY
 
-	ENABLE_DEEP_COPY
-
-        ~LDADocWordTopicCount () {}
-        LDADocWordTopicCount () {}
-
-		
-	LDADocWordTopicCount (int fromDoc, int fromWord, int fromTopic, int fromCount) {
-		this->docID = fromDoc;
-		this->wordID = fromWord;
-		this->topicID = fromTopic;
-		this->count = fromCount;
-	}
-	
-
-	int getDoc() {
-		return this->docID;
-	}
-
-	int getTopic() {
-		return this->topicID;
-	}
-
-	int getWord() {
-		return this->wordID;
-	}
-
-	int getCount() {
-		return this->count;
-	}
+    ~LDADocWordTopicCount() {}
+    LDADocWordTopicCount() {}
 
 
+    LDADocWordTopicCount(int fromDoc, int fromWord, int fromTopic, int fromCount) {
+        this->docID = fromDoc;
+        this->wordID = fromWord;
+        this->topicID = fromTopic;
+        this->count = fromCount;
+    }
+
+
+    int getDoc() {
+        return this->docID;
+    }
+
+    int getTopic() {
+        return this->topicID;
+    }
+
+    int getWord() {
+        return this->wordID;
+    }
+
+    int getCount() {
+        return this->count;
+    }
 };
 
 

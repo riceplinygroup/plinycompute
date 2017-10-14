@@ -28,14 +28,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_UNIX BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(unix) || defined(__unix) || \
-    defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
-#   undef BOOST_OS_UNIX
-#   define BOOST_OS_UNIX BOOST_VERSION_NUMBER_AVAILABLE
+#if defined(unix) || defined(__unix) || defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
+#undef BOOST_OS_UNIX
+#define BOOST_OS_UNIX BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_OS_UNIX
-#   define BOOST_OS_UNIX_AVAILABLE
+#define BOOST_OS_UNIX_AVAILABLE
 #endif
 
 #define BOOST_OS_UNIX_NAME "Unix Environment"
@@ -57,14 +56,13 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_SVR4 BOOST_VERSION_NUMBER_NOT_AVAILABLE
 
-#if defined(__sysv__) || defined(__SVR4) || \
-    defined(__svr4__) || defined(_SYSTYPE_SVR4)
-#   undef BOOST_OS_SVR4
-#   define BOOST_OS_SVR4 BOOST_VERSION_NUMBER_AVAILABLE
+#if defined(__sysv__) || defined(__SVR4) || defined(__svr4__) || defined(_SYSTYPE_SVR4)
+#undef BOOST_OS_SVR4
+#define BOOST_OS_SVR4 BOOST_VERSION_NUMBER_AVAILABLE
 #endif
 
 #if BOOST_OS_SVR4
-#   define BOOST_OS_SVR4_AVAILABLE
+#define BOOST_OS_SVR4_AVAILABLE
 #endif
 
 #define BOOST_OS_SVR4_NAME "SVR4 Environment"
@@ -72,5 +70,5 @@ http://www.boost.org/LICENSE_1_0.txt)
 #endif
 
 #include <boost/predef/detail/test.h>
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_UNIX,BOOST_OS_UNIX_NAME)
-BOOST_PREDEF_DECLARE_TEST(BOOST_OS_SVR4,BOOST_OS_SVR4_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_UNIX, BOOST_OS_UNIX_NAME)
+BOOST_PREDEF_DECLARE_TEST(BOOST_OS_SVR4, BOOST_OS_SVR4_NAME)

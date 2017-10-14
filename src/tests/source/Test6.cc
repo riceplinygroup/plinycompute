@@ -36,22 +36,31 @@
 
 using namespace pdb;
 
-int main () {
+int main() {
 
-	// for timing
-	auto begin = std::chrono::high_resolution_clock::now();
+    // for timing
+    auto begin = std::chrono::high_resolution_clock::now();
 
-	// load up the allocator with RAM
-	makeObjectAllocatorBlock (1024 * 1024 * 24, false);
+    // load up the allocator with RAM
+    makeObjectAllocatorBlock(1024 * 1024 * 24, false);
 
-	int i = 0;
-        for (i = 0; i < 10000; i++) {
-	    Handle <String> str = makeObject <String>("This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing  soon. It has a total of 512 bytes to test. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing soon. This is an object big enough to force flushing.."); 
-        }
+    int i = 0;
+    for (i = 0; i < 10000; i++) {
+        Handle<String> str = makeObject<String>(
+            "This is an object big enough to force flushing soon. This is an object big enough to "
+            "force flushing soon. This is an object big enough to force flushing soon. This is an "
+            "object big enough to force flushing soon. This is an object big enough to force "
+            "flushing soon. This is an object big enough to force flushing soon. This is an object "
+            "big enough to force flushing soon. This is an object big enough to force flushing "
+            "soon. This is an object big enough to force flushing  soon. It has a total of 512 "
+            "bytes to test. This is an object big enough to force flushing soon. This is an object "
+            "big enough to force flushing soon. This is an object big enough to force flushing "
+            "soon. This is an object big enough to force flushing soon. This is an object big "
+            "enough to force flushing..");
+    }
 
-	auto end = std::chrono::high_resolution_clock::now();
-	std::cout << "Duration to create all of the String objects: " <<
-		std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." << std::endl;
-
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Duration to create all of the String objects: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count() << " ns."
+              << std::endl;
 };
-	

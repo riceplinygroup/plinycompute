@@ -31,9 +31,7 @@ PDBEvictWork::PDBEvictWork(PageCache* cache) {
     this->cache = cache;
 }
 
-PDBEvictWork::~PDBEvictWork() {
-
-}
+PDBEvictWork::~PDBEvictWork() {}
 
 void PDBEvictWork::execute(PDBBuzzerPtr callerBuzzer) {
     this->cache->evict();

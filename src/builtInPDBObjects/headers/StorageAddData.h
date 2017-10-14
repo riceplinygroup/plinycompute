@@ -28,78 +28,88 @@
 namespace pdb {
 
 // encapsulates a request to add data to a set in storage
-class StorageAddData  : public Object {
+class StorageAddData : public Object {
 
 public:
+    StorageAddData() {}
+    ~StorageAddData() {}
 
-	StorageAddData () {}
-	~StorageAddData () {}
+    StorageAddData(std::string dataBase,
+                   std::string setName,
+                   std::string typeName,
+                   bool typeCheck = true,
+                   bool flushOrNot = true,
+                   bool compressedOrNot = false,
+                   bool directPutOrNot = false)
+        : dataBase(dataBase), setName(setName), typeName(typeName) {
+        this->typeCheck = typeCheck;
+        this->typeID = -1;
+        this->flushOrNot = flushOrNot;
+        this->compressedOrNot = compressedOrNot;
+        this->directPutOrNot = directPutOrNot;
+    }
 
-	StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, bool typeCheck = true, bool flushOrNot = true, bool compressedOrNot = false, bool directPutOrNot = false) : dataBase (dataBase), setName (setName),
-		typeName (typeName) {
-                this->typeCheck = typeCheck;
-                this->typeID = -1;
-                this->flushOrNot = flushOrNot;
-                this->compressedOrNot = compressedOrNot;
-                this->directPutOrNot = directPutOrNot;
-        }
 
+    StorageAddData(std::string dataBase,
+                   std::string setName,
+                   std::string typeName,
+                   int typeID,
+                   bool typeCheck = true,
+                   bool flushOrNot = true,
+                   bool compressedOrNot = false,
+                   bool directPutOrNot = false)
+        : dataBase(dataBase), setName(setName), typeName(typeName) {
+        this->typeCheck = typeCheck;
+        this->typeID = typeID;
+        this->flushOrNot = flushOrNot;
+        this->compressedOrNot = compressedOrNot;
+        this->directPutOrNot = directPutOrNot;
+    }
 
-        StorageAddData (std :: string dataBase, std :: string setName, std :: string typeName, int typeID, bool typeCheck = true, bool flushOrNot = true, bool compressedOrNot = false, bool directPutOrNot = false) : dataBase (dataBase), setName (setName),
-                typeName (typeName) {
-                this->typeCheck = typeCheck;
-                this->typeID = typeID;
-                this->flushOrNot = flushOrNot;
-                this->compressedOrNot = compressedOrNot;
-                this->directPutOrNot = directPutOrNot;
-        }
+    std::string getDatabase() {
+        return dataBase;
+    }
 
-	std :: string getDatabase () {
-		return dataBase;
-	}
+    std::string getSetName() {
+        return setName;
+    }
 
-	std :: string getSetName () {
-		return setName;
-	}
+    std::string getType() {
+        return typeName;
+    }
 
-	std :: string getType () {
-		return typeName;
-	}
+    int getTypeID() {
+        return typeID;
+    }
 
-        int getTypeID() {
-                return typeID;
-        }
+    bool isTypeCheck() {
+        return typeCheck;
+    }
 
-        bool isTypeCheck() {
-                return typeCheck;
-        }
+    bool isFlushing() {
+        return flushOrNot;
+    }
 
-        bool isFlushing() {
-                return flushOrNot;
-        }
+    bool isCompressed() {
+        return compressedOrNot;
+    }
 
-        bool isCompressed() {
-                return compressedOrNot;
-        }
+    bool isDirectPut() {
+        return directPutOrNot;
+    }
 
-        bool isDirectPut() {
-                return directPutOrNot;
-        }
-
-	ENABLE_DEEP_COPY
+    ENABLE_DEEP_COPY
 
 private:
-
-	String dataBase;
-	String setName;
-	String typeName;
-        int typeID;
-        bool typeCheck;
-        bool flushOrNot;
-        bool compressedOrNot;
-        bool directPutOrNot;
+    String dataBase;
+    String setName;
+    String typeName;
+    int typeID;
+    bool typeCheck;
+    bool flushOrNot;
+    bool compressedOrNot;
+    bool directPutOrNot;
 };
-
 }
 
 #endif
