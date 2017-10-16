@@ -1,0 +1,76 @@
+
+\section{Optimizing TCAP}
+
+%TCAP computations can be optimized in much the same way that 
+%
+%Removing redundant method calls.  A comon pattern when writing PC compuations is:
+%
+%\begin{codesmall} 
+%Lambda <bool> getSelection (Handle <Emp> emp) {
+%        return makeLambdaFromMethod (emp, getSalary) > 50000 &&
+%		makeLambdaFromMethod (emp, getSalary) < 10000;
+%}	
+%\end{codesmall}
+%
+%This would be compiled into:
+%
+%\begin{codesmall}
+%JK2_1(emp,mt1) <=
+%  APPLY(In(emp), In(emp), 'Sel_43', 'method_call_1', [('type', 'methodCall'), ('methodName', 'getSalary')]);
+%
+%JK2_2(emp,bl1) <=
+%  APPLY(JK2_1(mt1), JK2_1(emp), 'Sel_43', '<_1', [('type', 'const comparison'), ('op', '<'), ...]);
+%
+%JK2_3(emp,bl1,mt2) <=
+%  APPLY(JK2_2(emp), JK2_2(emp,bl1), 'Sel_v3', 'method_call_2', [('type', 'methodCall'), ('methodName', 'getSalary')]);
+%
+%JK2_4(emp,bl1,bl2) <=
+%  APPLY(JK2_3(mt2), JK2_3(emp,bl1), 'Sel_43', '<_2', [('type', 'comparison')]);
+%
+%JK2_5(emp,bl3) <=
+%  APPLY(JK2_4(bl1,bl2), JK2_4(emp), 'Sel_43', '&&_1', [('type', 'bool_and')]);
+%
+%JK2_6(emp) <=
+%  FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43');
+%\end{codesmall}
+%
+%This code first calls the method \texttt{getSalary} on \texttt{In.emp}, to produce a new vector list \texttt{JK2_2}, storing the result
+%%of the method call in \texttt{JK2_1.mt1}.  After comparing \texttt{JK2_2.bl1} to \texttt{50000}, the result of the method call is dropped.
+%The method is then called once again on \texttt{JK2_2.emp} and the result compared with \texttt{100000} to produce \texttt{JK2_4}, at which 
+%point the two boolean vectors are ``anded'' and the result is filtered.
+%
+%Obviously, there is a redundancy here, as the method \texttt{getSalary} will be called twice.
+%A redundant call of this type can be detected when:
+%
+%\begin{itemize}
+%%\item One \texttt{APPLY} opertion is the ancestor of the other in the TCAP graph.
+%\item The two \texttt{APPLY} opertions are both of type \texttt{methodCall} and both invoke the same \texttt{methodName}.
+%\item Both 
+%
+%
+%
+%--OP2 is redundant... comes after
+%REDUNDANT_CALL (OP1, OP2) ::= OP1.type = 'methodCall'
+%OP2.type = 'methodCall' and OP2.methodName = Op1.methodName and DESCENDED_FROM (Op2.inputVecs, Op1.inputVec)
+%
+%UNCHANGED (OP) ::== NOT EXISTS (OP1, OP2) s.t. REDUNDANT_CALL (OP1, OP2) and BETWEEN (OP, OP1, OP2)
+%REMOVED (OP) ::= EXISTS (OP1) s.t. REDUNDANT_CALL (OP1, OP)
+%DROPPED (attName) ::=
+%
+%NEEDS_ATT (
+% on the same object: once on \texttt{In.emp} to create
+%the vector list \texttt{JK2_1(emp,mt1)} (\texttt{JK2_1.mt1} will contain the output of the method call); then, after checking whether
+%the result exceeds \texttt{50000} (the result is stored into \texttt{JK2_2.bl1}) the method \texttt{getSalary} is again called
+%on 
+%
+%WDNm_2(dep,emp,sup,nm1,nm2) <=
+%   APPLY(WDNm_1(emp), WDNm_1(dep,emp,sup,nm1), 'Join_2212', 'method_call_2', 'getDeptName');
+%
+%WBl_1(dep,emp,sup,bl) <=
+%   APPLY(WDNm_2(nm1,nm2),WDNm_2(dep,emp,sup), 'Join_2212', '==_3', '');
+%
+%Flt_1(dep,emp,sup) <= FILTER(WBl_1(bl), WBl_1(dep,emp,sup), 'Join_2212');
+%\end{codesmall}
+%
+%
+%%%This section talks about the some of the basic principle in optimizing TCAP programs.

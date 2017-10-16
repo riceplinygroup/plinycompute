@@ -1,0 +1,147 @@
+%\documentclass{sig-alternate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% comment out the following to switch back to sig-alternate!!
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,tabularx}
+\usepackage{fullpage}
+\usepackage{times}
+\usepackage{url}
+\usepackage{epsfig}
+%\usepackage{subfigure}
+\usepackage{makecell}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{multirow}
+\usepackage{amsmath, amsthm, amssymb}
+
+\titlespacing{\section}{0pt}{3mm}{1mm}
+\titlespacing{\subsection}{0pt}{2mm}{0.5mm}
+\titlespacing{\subsubsection}{0pt}{2mm}{0.8mm}
+% done with the part that should be commented out!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{cleveref}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{amssymb}
+\usepackage{latexsym}
+\usepackage{bm}
+\usepackage{color}
+\usepackage{subscript}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{tgheros}
+\usepackage{array}
+\usepackage{verbatim}
+
+\newcounter{Examplecount}
+\setcounter{Examplecount}{0}
+\newenvironment{example}
+{\stepcounter{Examplecount} {\bf Example} \arabic{Examplecount} \begin{it}}{\end{it} }
+
+%\newcommand{\muhat}{\hat{\mu}}
+%\newcommand{\sigmahat}{\hat{\sigma}}
+%\newcommand{\todo}[1]{[\textbf{TODO: #1}]}
+%\newcommand{\eat}[1]{} % TO MAKE LARGE BLOCKS OF TEXT INVISIBLE
+%\newcommand{\sz}[1]{\lvert#1\rvert}
+%\newcommand{\card}[1]{\lvert#1\rvert}
+%\newcommand{\xp}[2]{P \if*#1\else^{#1}\fi \if*#2\else_{\! #2}\fi}
+%\newcommand{\pr}[3]{\xp{#1}{#2}\left\{\,#3\,\right\}}
+%\newcommand{\prl}[3]{\xp{#1}{#2}\{\,#3\,\}}
+%\renewcommand\:{\colon} % for use with \sset, etc.
+%\newcommand{\sset}[1]{\left\{\,#1\,\right\}}
+%\newcommand\xD{\mathcal{D}}
+%\newcommand\xP{\mathcal{P}}
+%\newcommand\xS{\mathcal{S}}
+%\newcommand\xbar{\bar x}
+%\newcommand\vbar{\bar v}
+%\newcommand\xmax{{x_{\text{max}}}}
+%\newcommand\eps{\epsilon}
+%\newcommand{\eeblk}{\hbox{\lower 1pt \vbox{\hrule width6pt\hbox to
+%  6pt{\vrule height5pt depth1pt \hfil\vrule height5pt depth1pt} \hrule
+%  width6pt} \unskip}}
+%\newcommand{\eblk}{{\unskip\nobreak\hfil\penalty50
+%  \hskip1em\hbox{}\nobreak\hfil\eeblk
+%  \parfillskip=0pt\finalhyphendemerits=0\par}}
+%\newtheorem{xample}{Example}
+\makeatletter
+\newenvironment{sql}%
+ {\vspace{-3 pt} \begin{list}{}{%
+  \setlength{\topsep}{0pt}\setlength{\partopsep}{0pt}\setlength{\parskip}{0pt}%
+  \setlength{\parsep}{0pt}\setlength{\labelwidth}{0pt}%
+  \setlength{\rightmargin}{0pt}\setlength{\leftmargin}{0pt}%
+  \setlength{\labelsep}{0pt}%
+  \obeylines\@vobeyspaces\normalfont\ttfamily%
+  \item[]}}
+ {\end{list}\vspace{-3 pt}\noindent}
+\makeatother
+%\newcommand{\bpar}[1]{\vskip 5pt\noindent\textbf{#1}\hskip 1em}
+%\newcommand\yN{{\tilde N}}
+%\newcommand\yX{{\tilde X}}
+%\newcommand\ymu{{\tilde\mu}}
+%\newcommand\ysigma{{\tilde\sigma}}
+
+%\newcommand{\goodgap}{
+%        \hspace{\subfigtopskip}
+%        \hspace{\subfigbottomskip}
+%}
+
+%\newtheorem{definition}{Definition}
+%\newtheorem{Rule}{Rule}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{problem}{Problem}
+%\newtheorem{example}{Example}
+%\newtheorem{optimization}{Optimization}
+%\newtheorem{observation}{Observation}
+%\newtheorem{corollary}{Corollary}
+
+\hyphenation{par-am-et-rize par-am-et-riz-ed}
+
+\begin{document}
+\clubpenalty=10000 
+\widowpenalty = 10000
+
+\input{DataManagement}
+
+\clearpage
+\setcounter{page}{1}
+\input{postdoc}
+
+\clearpage
+\setcounter{page}{1}
+
+\input{code}
+
+
+\input{intro}
+
+\input{pc_overview}
+
+\input{exp.tex}
+
+\input{research.tex}
+
+\input{conc.tex}
+
+\newpage
+\setcounter{page}{1}
+\bibliographystyle{abbrv}
+\bibliography{buds}
+
+%\input{gmm}
+%\input{analysis-detailed}
+
+\end{document}
