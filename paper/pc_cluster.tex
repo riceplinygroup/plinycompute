@@ -1,0 +1,29 @@
+
+\section{Overview of a PC Cluster}
+
+A typical PC cluster configuration is shown in Figure ???.  Each worker machine in a PC cluster runs two processes: a frontend process and a backend process.
+Dual processes are used because PC executes potentailly unsafe native user code.  By definition, user code is run only in the backend process---if            
+user code happens to crash the backed process, it can be restarted by the front end.
+
+The frontend process runs an instance of Pangaea (providing storage and memory management, including buffering and caching), as well as one more more specialized
+servers that handle requests from elsewhere in the PC cluster, as well as from PC users.
+The following servers may be running on a front-end process:
+
+\begin{enuermate}
+
+\item A \emph{Catalog server}, serving system meta-data as well as dynamically-loaded code for performing computation over PC \texttt{Object}s (see
+Section ??? of the paper);
+
+\item A \emph{Pangaea storage server}, providing access to the process' Pangaea instance;
+
+\item A \emph{Dispatcher server}, responsibly for processing incoming data and distributing it to the Pangaea storage servers in the cluster;
+
+\item A \emph{Distribution manager server}, responsible for monitoring the state of the cluster, including resrouce utilization;
+
+\item A \emph{Compute optimization server}, responsible for optimizing programs that have been compiled into PC's domain-specific TCAP langague; and,
+
+\item A \emph{Compute scheduler server}, responsible accepting optimized TCAP computations, choosing a physical execution plan for the TCAP, and executing the TCAP on the cluster.
+
+\item A  \emph{Compute execution server}, responsible for performing requested computations.
+
+\end{enumerate}
