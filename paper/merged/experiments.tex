@@ -1,13 +1,51 @@
 
 \section{Experiments}
 
-In this section, we describe our experimental results, with the aim of demonstrating
-to the
-reader of the utility of the approach taken in the design and implementation of PC.
+In this section, we describe our an experimental evaluation of the
+performance of the PC distributed computation framework for a set of
+representative big data analytics problems. The aim is to answer
+following questions:
 
-\vspace{5 pt}
-\noindent
-\textbf{Construction of a linear algebra library.}  Since PC is designed to support the construction
+\begin {enumerate}
+\item How useful is PC in building tools and libraries for big data analytics?
+\item How efficient is PC in manipulating complex objects?
+\item How well is PC in performing complex computations like real
+  machine learning applications?
+\end {enumerate}
+
+\subsection {Experimental Environment and Applications}
+
+All of the experiments reported in this paper were performed in a
+cluster that consists of eleven Amazon EC2 m2.4xlarge machines,
+running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
+disk, and 68 GB of RAM). One of the eleven machines serves as the Master
+node and the rest ten machines serve as Worker nodes.
+
+\vspace{5pt}
+To conduct a convincing benchmarks and performance comparisons, we
+select eight representative applications from three important categories
+of big data analytics workloads:
+
+\begin {itemize}
+\item \texttt{Linear Algebra Library.} We constructed a linear algebra library
+  and tested three common linear algebra computations: Gram Matrix,
+  Linear Regression, and Nearest Neighbor Search.
+\item \texttt{Analytical queries on TPC-H Data
+    Set.}  We implemented two typical analytical queries against TPC-H
+  benchmark data set, which contains complex nested objects: the first one is an aggregation query reporting which customer buys which
+  parts for each supplier; the second one is a Top-K similarity query
+  to search for K customers who buy the most similar items with a
+  certain customer.
+\item \texttt{Machine Learning.} We also implemented three widely used
+  machine learning algorithms: \textbf{Latent Dirichlet Allocation (LDA)}--A
+  generative statistic model for text topic mining;
+  \textbf{Gaussian Mixture Model (GMM)}--A clustering algorithm to generate a composite
+  distribution whereby points are drawn from one of multiple Gaussian distributions;  and \textbf{KMeans}-- A well-known clustering algorithm that clusters
+  data points into a pre-defined number of clusters.
+\end {itemize}
+
+\subsection {Construction of a linear algebra library}
+Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
 whether PC is actually useful for that task.  Thus, we asked
 a graduate student who knew nothing of PC to use the system to build a small Matlab-like 
@@ -62,7 +100,6 @@ A star ($*$) indicates running in local mode.}
 \end{center}
 \end{table}
 
-\vspace{-20 pt}
 In every case except for the small problems when SystemML chose not to distribute the data,
 \texttt{LilLinAlg} was the fastest.  
 Though SystemML nearest neighbor approached the speed of 
@@ -72,9 +109,7 @@ technology developed for the system, including one awarded a VLDB best paper awa
 \texttt{LilLinAlg} was developed in six weeks, and it is faster (though to be fair, SystemML has a much broader
 set of capabilities than \texttt{LilLinAlg}).
 
-\vspace{5 pt}
-\noindent
-\textbf{Big object-oriented data manipulation.}
+\subsection{Big object-oriented data manipulation}
 For an example of the raw performance of the PC object model and its ability to power large-scale 
 object-oriented computations, we use the TPC-H benchmark data set \cite{council2008tpc}
 and de-normalize
@@ -117,7 +152,6 @@ Spark: in-RAM RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \end{center}
 \end{table}
 
-\vspace{-20 pt}
 We see that in a somewhat fair comparison, when PC data are
 stored in a hot Pliny Database (PDB for short; PDB is PC's backend storage system) and Spark data
 are stored in
@@ -129,9 +163,7 @@ between 50\% and $26\times$ faster.  However, we point out that this is not an a
 Among other costs, it ignores
 the cost Spark would incur at a later time to free the objects stored in RAM.
 
-\vspace{5 pt}
-\noindent
-\textbf{Machine learning.}
+\subsection {Machine Learning}
 Finally, we describe our experience writing a word-based, non-collapsed LDA implementation \cite{jermaineExperimental} on top of
 both Spark and PC.  LDA is a standard text mining algorithm and non-collapsed LDA is chosen because
 it is challenging:
@@ -154,7 +186,7 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \end{center}
 \end{table}
 
-\vspace{-20 pt}
+
 While Spark performed well---in the end, PC was somewhat
 limited by the lack of engineering that has gone
 into its broadcast protocol---the 
