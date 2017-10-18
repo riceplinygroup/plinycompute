@@ -181,6 +181,15 @@ public:
     /* Sends a request to the Catalog Server to close the SQLite DB Handler */
     bool closeCatalogSQLite(std::string& errMsg);
 
+    /* Lists the Databases registered in the catalog. */
+    bool listRegisteredDatabases (std :: string &errMsg);
+
+    /* Lists the Sets for a given database registered in the catalog. */
+    bool listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
+
+    /* Lists the Nodes registered in the catalog. */
+    bool listNodesInCluster (std :: string &errMsg);
+
 private:
     /* True if this Catalog Client points to the Master Catalog Server */
     bool pointsToCatalogMaster;

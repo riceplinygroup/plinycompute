@@ -31,18 +31,7 @@
 #include "PartitionPolicy.h"
 #include "CatalogClient.h"
 
-
-// maybe to be removed
 #include "SimpleRequest.h"
-#include "DistributedStorageAddDatabase.h"
-#include "DistributedStorageAddSet.h"
-#include "DistributedStorageAddTempSet.h"
-#include "DistributedStorageRemoveDatabase.h"
-#include "DistributedStorageRemoveSet.h"
-#include "DistributedStorageRemoveTempSet.h"
-#include "DistributedStorageExportSet.h"
-#include "DistributedStorageClearSet.h"
-#include "DistributedStorageCleanup.h"
 
 /**
  * Class for communicating and accessing different Server functionalities.
@@ -73,42 +62,48 @@ namespace pdb {
          * Methods for invoking DistributedStorageManager-related operations
          */
 
-        // TODO: Allow the user to specify what partitioning policy they want to use for this step in the future
+        /* Creates a database */
         bool createDatabase(const std::string& databaseName, std::string& errMsg);
 
+        /* Creates a set with a given type for an existing database */
         bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
                        std::string& errMsg, size_t pageSize=DEFAULT_PAGE_SIZE);
 
-        // createTempSet added by Jia (only go through storage)
-        bool createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string& errMsg, size_t pageSize=DEFAULT_PAGE_SIZE);
+        /* Creates a temporary set with a given type for an existing database (only goes through storage) */
+        bool createTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
+                           std::string& errMsg, size_t pageSize=DEFAULT_PAGE_SIZE);
 
-        // templated createSet added by Jia
+        /* Creates a set with a given type (using a template) for an existing database */
         template <class DataType>
-        bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg, size_t pageSize = DEFAULT_PAGE_SIZE);
+        bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg,
+                        size_t pageSize = DEFAULT_PAGE_SIZE);
 
-        // storage cleanup added by Jia
+        /* Flushes data currently in memory into disk. */
         bool flushData ( std :: string &errMsg );
 
+        /* Removes a database from storage. */
         bool removeDatabase(const std::string& databaseName, std::string & errMsg);
 
+        /* Removes a set for an existing database from storage. */
         bool removeSet(const std::string& databaseName, const std::string& setName, std::string & errMsg);
 
-        // clearSet added by Jia
+        /* Removes a set given a type from an existing database. */
         bool clearSet(const std::string& databaseName, const std::string& setName, const std::string & typeName, std::string & errMsg);
 
-        // removeTempSet added by Jia (only go through storage)
+        /* Removes a temporary set given a type from an existing database (only goes through storage). */
         bool removeTempSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg);
 
-        // export set added by Jia
-        // Note that the objects in set must be instances of ExportableObject
+        /* Exports the content of a set from a database into a file. Note that the objects in
+         * set must be instances of ExportableObject
+         */
         bool exportSet (const std :: string & databaseName, const std :: string & setName, const std :: string & outputFilePath, const std :: string & format, std :: string & errMsg);
 
         /****
          * Methods for invoking Catalog-related operations
          */
 
-        /* Sends a request to the Catalog Server to register a type with the catalog
-         * returns true on success, false on fail */
+        /* Sends a request to the Catalog Server to register a user-defined type defined
+         * in a shared library. */
         bool registerType (std :: string fileContainingSharedLib, std :: string &errMsg);
 
         /* Sends a request to the Catalog Server to register metadata about a node in the cluster */
@@ -119,13 +114,16 @@ namespace pdb {
                                    int nodeStatus,
                                    std :: string &errMsg);
 
-        /* Sends a request to the Catalog Server to prints the content of the metadata stored in the catalog */
+        /* Prints the content of the catalog. */
         bool printCatalogMetadata (pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch, std :: string &errMsg);
 
+        /* Lists the Databases registered in the catalog. */
         bool listRegisteredDatabases (std :: string &errMsg);
 
+        /* Lists the Sets for a given database registered in the catalog. */
         bool listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
 
+        /* Lists the Nodes registered in the catalog. */
         bool listNodesInCluster (std :: string &errMsg);
 
         /****
@@ -148,24 +146,24 @@ namespace pdb {
         bool sendBytes(std::pair<std::string, std::string> setAndDatabase, char * bytes, size_t numBytes, std::string& errMsg);
 
     private:
+
         pdb :: CatalogClient catalogClient;
-        pdb :: QueryClient queryClient;
         pdb :: DispatcherClient dispatcherClient;
         pdb :: DistributedStorageManagerClient distributedStorageClient;
+        pdb :: QueryClient queryClient;
 
         std::function<bool (Handle<SimpleRequestResult>)> generateResponseHandler(std::string description, std::string & errMsg);
 
         int port;
-        std :: string address;
         bool usePangea;
         bool useQueryScheduler;
+        std :: string address;
         PDBLoggerPtr logger;
 
     };
 
 }
 
-#include "PDBClientTemplate.cc"
 #include "StorageClientTemplate.cc"
 #include "DistributedStorageManagerClientTemplate.cc"
 #include "DispatcherClientTemplate.cc"
