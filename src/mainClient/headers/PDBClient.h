@@ -128,6 +128,9 @@ namespace pdb {
         /* Lists the Nodes registered in the catalog. */
         bool listNodesInCluster (std :: string &errMsg);
 
+        /* Lists user-defined types registered in the catalog. */
+        bool listUserDefinedTypes (std :: string &errMsg);
+
         /****
          * Methods for invoking Dispatcher-related operations
          *
