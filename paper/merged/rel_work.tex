@@ -24,9 +24,8 @@ query execution to amortize the virtual function call overhead and
 also to exploit SIMD support on modern hardware.
 Hyper~\cite{neumann2011efficiently} proposed a different code
 generation strategy for query compilation to translate relational
-algebra to LLVM assembler for execution. This approach gained
-popularity in a number of database
-engines. LegoBase~\cite{klonatos2014building} switched the interface
+algebra to LLVM assembler for execution.
+ LegoBase~\cite{klonatos2014building} switched the interface
 from declarative SQL to high-level language (Scala) and uses a query engine
 written in Scala as a code generator to emit specialized and low-level
 C code for execution. TupleWare~\cite{crotty2015tupleware} also supports
@@ -42,7 +41,30 @@ GPU and so on. Weld~\cite{palkar2017weld} is a recent system proposed
 to have a common runtime for data anlytics libraries by asking library
 developers to express their work using a new intermediate
 representation and asking application developers to use new APIs to
-call different libraries.
+call different libraries from Weld.  
 
 \subsection{Distributed Dataflow Processing Systems}
+Over last a few years, distributed dataflow computing gained
+popularity for big
+data analytics. MapReduce~\cite {dean2008mapreduce} and its opensource
+implementation Apache Hadoop~\cite{white2009hadoop} is the simplest and
+most fundamental form of this model, while systems like
+Dryad/DryadLINQ~\cite{yu2008dryadlinq} generalized the types of operators and
+data flows supported. In recent years, due to the requirements for
+iterative processing, in-memory systems like
+Apache Spark~\cite{zaharia2012resilient} and
+Apache Flink~\cite{alexandrov2014stratosphere} are widely deployed and
+discussed. While those systems are all object-oriented, they all provide a high-level language
+(e.g. Java, Scala and Python) and non-declarative interface and are
+based on a layered backend that is built on Java virtual machines.
+
+SparkSQL~\cite{armbrust2015spark} builds a SQL query
+interfaces, a Catalyst query optimizer and query compiler called Whole-stage Code Generation
+on top of the Spark distributed platform. Different with PC, SparkSQL
+is based on relational data and can not be used to compose complex
+objects and is not designed for extensive use of user defined functions.
+
+
+
+
 
