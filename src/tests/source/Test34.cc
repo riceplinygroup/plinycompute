@@ -33,38 +33,40 @@
 
 using namespace pdb;
 
-int main() {
+int main () {
 
-    // for allocations
-    const UseTemporaryAllocationBlock tempBlock{1024 * 128};
+	// for allocations
+	const UseTemporaryAllocationBlock tempBlock {1024 * 128};
 
-    // register this query class
-    string errMsg;
-    PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("clientLog");
-    StorageClient temp(8108, "localhost", myLogger, true);
-    // to register type
-    // temp.registerType ("libraries/libChrisSelection.so", errMsg);
-    // temp.registerType ("libraries/libStringSelection.so", errMsg);
+	// register this query class
+	string errMsg;
+	PDBLoggerPtr myLogger = make_shared <pdb :: PDBLogger> ("clientLog");
+	StorageClient temp (8108, "localhost", myLogger, true);
+        //to register type 
+	//temp.registerType ("libraries/libChrisSelection.so", errMsg);	
+	//temp.registerType ("libraries/libStringSelection.so", errMsg);	
 
-    // connect to the query client
-    QueryClient myClient(8108, "localhost", myLogger, true);
+	// connect to the query client
+	PDBClient myClient (8108, "localhost", myLogger, true, true);
 
-    // make the query graph
+	// make the query graph
+	Handle <Set <SharedEmployee>> myInputSet = myClient.queryClient.getSet <SharedEmployee> ("chris_db", "chris_set");
     Handle<Set<SharedEmployee>> myInputSet =
         myClient.getSet<SharedEmployee>("chris_db", "chris_set");
-    Handle<ChrisSelection> myFirstSelect = makeObject<ChrisSelection>();
-    myFirstSelect->setInput(myInputSet);
-    Handle<StringSelection> mySecondSelect = makeObject<StringSelection>();
-    mySecondSelect->setInput(myFirstSelect);
+	Handle <ChrisSelection> myFirstSelect = makeObject <ChrisSelection> ();
+	myFirstSelect->setInput (myInputSet);
+	Handle <StringSelection> mySecondSelect = makeObject <StringSelection> ();
+	mySecondSelect->setInput (myFirstSelect);
     Handle<QueryOutput<String>> outputOne =
         makeObject<QueryOutput<String>>("chris_db", "output_set1", myFirstSelect);
     Handle<QueryOutput<String>> outputTwo =
         makeObject<QueryOutput<String>>("chris_db", "output_set2", mySecondSelect);
+	
+	if (!myClient.queryClient.execute (errMsg, outputOne, outputTwo)) {
+		std :: cout << "Query failed.  Message was: " << errMsg << "\n";
+		return 0;
+	}
 
-    if (!myClient.execute(errMsg, outputOne, outputTwo)) {
-        std::cout << "Query failed.  Message was: " << errMsg << "\n";
-        return 0;
-    }
 }
 
 #endif

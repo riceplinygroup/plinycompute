@@ -547,4 +547,4 @@ private:
 };
 
 
-#endif /* FIRSTCATALOG_H_ */
+#endif /* PDB_CATALOG_H_ */
