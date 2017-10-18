@@ -22,9 +22,10 @@ disk, and 68 GB of RAM). One of the eleven machines serves as the Master
 node and the rest ten machines serve as Worker nodes.
 
 \vspace{5pt}
-To conduct a convincing benchmarks and performance comparisons, we
-select eight representative applications from three important categories
-of big data analytics workloads:
+To conduct convincing benchmarks and performance comparisons, we
+select eight representative applications from three categories
+of big data analytics workloads that are important for demonstrating
+PC's utility:
 
 \begin {itemize}
 \item \texttt{Linear Algebra Library.} We constructed a linear algebra library
@@ -32,12 +33,12 @@ of big data analytics workloads:
   Linear Regression, and Nearest Neighbor Search.
 \item \texttt{Analytical queries on TPC-H Data
     Set.}  We implemented two typical analytical queries against TPC-H
-  benchmark data set, which contains complex nested objects: the first one is an aggregation query reporting which customer buys which
+  benchmark data set that were denomalized to complex nested objects: the first one is an aggregation query reporting which customer buys which
   parts for each supplier; the second one is a Top-K similarity query
-  to search for K customers who buy the most similar items with a
-  certain customer.
+  to search for K customers who buy the closest items compared with a
+  given customer.
 \item \texttt{Machine Learning.} We also implemented three widely used
-  machine learning algorithms: \textbf{Latent Dirichlet Allocation (LDA)}--A
+  iterative and complex machine learning algorithms: \textbf{Latent Dirichlet Allocation (LDA)}--A
   generative statistic model for text topic mining;
   \textbf{Gaussian Mixture Model (GMM)}--A clustering algorithm to generate a composite
   distribution whereby points are drawn from one of multiple Gaussian distributions;  and \textbf{KMeans}-- A well-known clustering algorithm that clusters
@@ -75,8 +76,9 @@ ten Amazon
 EC2 m2.4xlarge workers.  For
 all three computations, 
 $10^6$ data points were used.  Results are given in 
-Table \ref{fig:LR} (for Gram and regression, SystemML V0.9 on Hadoop was used; for
-nearest neighbor, V1.0 on Spark was used).
+Table \ref{fig:LR} (for Gram and regression, SystemML V0.9 on Hadoop,
+and Spark 1.6.1 was used; for
+nearest neighbor, SystemML V1.0 on Spark and Spark 2.1.0 was used).
 
 
 \begin{table}[h!]
@@ -85,7 +87,7 @@ nearest neighbor, V1.0 on Spark was used).
 \hline
 & \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c||}{Nearest Neighbor} \\
 \hline
-Dimensionality & $10$ & $10^2$ & $10^3$& $10$ & $10^2$ & $10^3$& $10$ & $10^2$ & $10^3$ \\
+Dimensionality & $10$ & $100$ & $1000$& $10$ & $100$ & $1000$& $10$ & $100$ & $1000$ \\
 \hline
 \hline
 PC (\texttt{LilLinAlg}) &00:07 & 00:09 &00:39 &00:14 &00:22 &00:49& 00:15 & 00:20 & 01:06 \\
@@ -108,6 +110,13 @@ SystemML was built over many years by a team of PhDs. Research papers have been 
 technology developed for the system, including one awarded a VLDB best paper award \cite{boehm2016systemml}.
 \texttt{LilLinAlg} was developed in six weeks, and it is faster (though to be fair, SystemML has a much broader
 set of capabilities than \texttt{LilLinAlg}).
+
+\vspace{5pt}
+\noindent
+\textbf{Summary.} This set of experiments demonstrated that a
+domain-expert who has a few years' C++ programming experiences can fully control and
+exploit the bare-metal computing power of PC through PC's highly
+declarative and highly tunable interfaces.
 
 \subsection{Big object-oriented data manipulation}
 For an example of the raw performance of the PC object model and its ability to power large-scale 
@@ -138,13 +147,13 @@ Kryo data size: &41.5GB & 83.1GB & 167.2GB &251.1GB &333.2 &416.2GB \\
 \hline
 PlinyCompute: hot PDB & 00:11&	00:19&	00:35&	00:51&	01:08&	01:21 \\
 Spark: hot HDFS & 01:04&	01:53&	03:24&	04:54&	06:25&	08:16\\
-Spark: in-RAM RDD & 00:16& 	00:29& 	00:56& 	01:21& 	02:18& 	03:56\\
+Spark: in-RAM deserialized RDD & 00:16& 	00:29& 	00:56& 	01:21& 	02:18& 	03:56\\
 \hline
 & \multicolumn{6}{c|}{top-$k$ Jaccard} \\
 \hline
 PlinyCompute: hot PDB & 00:03&	00:03&	00:04&	00:05&	00:05&	00:06 \\
 Spark: hot HDFS & 00:56&	01:38&	03:01 & 04:01&	05:22&	06:34\\
-Spark: in-RAM RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
+Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \hline
 \end{tabular}
 \caption{PlinyCompute vs. Spark for large-scale OO computation. Times in MM:SS.}
@@ -161,7 +170,26 @@ garbage collected by the JVM---a cost not included in the computation. If the da
 fully deserialized and stored as an RDD, PC is 
 between 50\% and $26\times$ faster.  However, we point out that this is not an apples-to-apples comparison.
 Among other costs, it ignores
-the cost Spark would incur at a later time to free the objects stored in RAM.
+the cost Spark would incur at a later time to free the objects stored
+in RAM.
+
+\vspace{5pt}
+\noindent
+\textbf{Summary.} The components of the TPC-H database are defined to
+consist of eight separate and individual tables. After translated to
+object-oriented data representation, a denormalized object is highly
+nested and requires significant amount of dereference
+operations to complete a query. Therefore, we regarded this set of
+experiments as reasonable stress
+tests for manipulating complex objects. 
+
+The experimental results showed that
+compared with Java objects, the PC
+object model has a significant performance improvement, which are
+brought by the native code advantage and PC object model features such
+as no serialization/deserialization overhead for data shuffling. It
+also proved that the costs associated with PC object model such as
+vtable fixing can be minimized via careful engineering.
 
 \subsection {Machine Learning}
 \vspace{5pt}
@@ -183,7 +211,7 @@ database.  Results (per iteration) are illustrated in Tab.~\ref{fig:LDA}:
 \hline
 PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\join hint} & \makecell{Spark 3: also with \\forced persist} & \makecell{Spark 3: also hand-\\coded multinomial} \\
 \hline
-02:05 & 50:20 & 17:30 & 09:26 & 05:00 \\
+02:05 & 50:20 & 17:30 & 09:26 & 05:26 \\
 \hline
 \end{tabular}
 \caption{PlinyCompute vs. Spark for LDA. Times in MM:SS, averaged over five iterations.}
@@ -221,7 +249,7 @@ the two steps until log likelihood or parameters converges.
 
 We compared PC with Spark MLLib (using Spark 2.1.0) for $10^7$ data
 points with 100 dimenisons, and $10^6$ data points with 300 and 500
-dimensions. All experiments are running in a 10-worker cluster. 
+dimensions. All experiments were run in the 10-worker cluster aforementioned. 
 As illustrated in Tab.~\ref{fig:Gmm}, PC achieves a $2\times$ to
 $3\times$ speedup compared with Spark MLLib. For Spark MLLib, we
 carefully tuned the data partition size to make sure there are enough
@@ -253,12 +281,12 @@ is equivalent with the KMeans implementation in Spark MLLib. Spark
 MLLib KMeans implementation has two initialization approach: KMeans++
 and random initialization using sampling. For both experiments, we use
 random initialization by sampling $K$ data points as initial
-cluster centroids. 
+cluster centroids. For initialization, both implementations also compute $L^2$ norm for each data
+point, and transform each data point into a new form with $L^2$ norm value
+associated. 
 
-Both implementations first compute $L^2$ norm for each data
-point, and transform data point into a new form with norm value
-associated. Then in each iteration, each data point finds the closest cluster
-of which the centroid has the closest distance with the data point, and assigns the closest
+Then in each iteration, each data point finds the closest cluster
+of which the centroid has the closest distance with that data point, and assigns the closest
 cluster label to itself. When computing the distance of a data point to a
 centroid, a lower bound based on $\|a - b\| \geq |\|a\| - \|b\||$ is
 first computed to avoid unnecessary distance computation. Then an aggregation is run to update centroids
@@ -269,7 +297,7 @@ converge.
 We compared PC with Spark MLLib (using Spark 2.1.0) for $10^9$ data
 points with 10 dimenisons, $10^8$ data points with 100 dimensions,  and $10^7$
 data points with 10
-dimensions. All experiments are running in a 10-worker cluster. 
+dimensions. All experiments were run in the 10-worker cluster aforementioned. 
 As illustrated in Tab.~\ref{fig:KMeans}, PC achieves a $2\times$ to
 $4\times$ speedup compared with Spark MLLib. 
 
@@ -291,9 +319,19 @@ Spark \texttt{mllib} &9:06  &4:18 &3:20 &00:37 & 00:09 & 00:06\\
 \label{fig:KMeans}
 \end{center}
 \end{table}
-\vspace{-10pt}
 
 
+\vspace{5pt}
+\noindent
+\textbf{Summary.} For iterative and complex machine learning
+benchmarks, compared with equivalent and carefully tuned implementations on the latest
+Spark platform, PC still achieved $2 \times$ to $4 \times$
+speedup. On one side this demonstrated PC's utility in handling
+complex and iterative computations. On the other side, we've found that due to the complexity in mathematical and statistical
+computations in those workloads, in many cases performance comparison is reduced to comparisons of
+language efficiency and compiler supports. So it also indicates that PC has a
+potential to achieve even larger performance gain by better
+synergizing with C++ compiler and link-time optimizing tool chains.
 
 
 
