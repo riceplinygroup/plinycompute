@@ -640,24 +640,24 @@ bool CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> 
 }
 
 // sends a request to the Catalog Server to print the databases registered in the catalog.
-void CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
-    ;
+bool CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
+    return true;
 }
 
 // sends a request to the Catalog Server to print the sets for a given
 // database registered in the catalog.
-void CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
-    ;
+bool CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
+    return true;
 }
 
 // sends a request to the Catalog Server to print the nodes registered in the catalog.
-void CatalogClient::listNodesInCluster (std :: string &errMsg) {
-    ;
+bool CatalogClient::listNodesInCluster (std :: string &errMsg) {
+    return true;
 }
 
 // sends a request to the Catalog Server to print the user-defined types registered in the catalog.
-void CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
-    ;
+bool CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
+    return true;
 }
 
 

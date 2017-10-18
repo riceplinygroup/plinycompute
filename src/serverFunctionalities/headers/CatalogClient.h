@@ -182,16 +182,16 @@ public:
     bool closeCatalogSQLite(std::string& errMsg);
 
     /* Lists the Databases registered in the catalog. */
-    void listRegisteredDatabases (std :: string &errMsg);
+    bool listRegisteredDatabases (std :: string &errMsg);
 
     /* Lists the Sets for a given database registered in the catalog. */
-    void listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
+    bool listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
 
     /* Lists the Nodes registered in the catalog. */
-    void listNodesInCluster (std :: string &errMsg);
+    bool listNodesInCluster (std :: string &errMsg);
 
     /* Lists the user-defined types registered in the catalog. */
-    void listUserDefinedTypes (std :: string &errMsg);
+    bool listUserDefinedTypes (std :: string &errMsg);
 
 private:
     /* True if this Catalog Client points to the Master Catalog Server */
