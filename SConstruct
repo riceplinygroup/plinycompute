@@ -325,7 +325,7 @@ all = ['build/sqlite/sqlite3.c',
        boost_component_dir_basename_to_cc_file_paths['system'],
       ]
 
-pdb_client = ['build/mainClient']
+pdb_client = component_dir_basename_to_cc_file_paths['mainClient']
 
 common_env.SharedLibrary('libraries/libAllSelection.so', ['build/libraries/AllSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libEmpWithVector.so', ['build/libraries/EmpWithVector.cc'] + all)
