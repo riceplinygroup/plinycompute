@@ -324,7 +324,7 @@ public:
     void listNodesInCluster (std :: string &errMsg);
 
     /* Lists the user-defined types registered in the catalog. */
-    void PDBCatalog::listUserDefinedTypes (std :: string &errMsg);
+    void listUserDefinedTypes (std :: string &errMsg);
 
     /**
      * Retrieves a dynamic library stored as BLOB in the Catalog
