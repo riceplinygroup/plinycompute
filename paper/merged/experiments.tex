@@ -1,14 +1,14 @@
 
 \section{Experiments}
 
-In this section, we describe our an experimental evaluation of the
+In this section, we describe our experimental evaluation of the
 performance of the PC distributed computation framework for a set of
 representative big data analytics problems. The aim is to answer
 following questions:
 
 \begin {enumerate}
 \item How useful is PC in building tools and libraries for big data analytics?
-\item How efficient is PC in manipulating complex objects?
+\item How efficient is PC in manipulating highly nested and complex objects?
 \item How well is PC in performing complex computations like real
   machine learning applications?
 \end {enumerate}
@@ -18,14 +18,14 @@ following questions:
 All of the experiments reported in this paper were performed in a
 cluster that consists of eleven Amazon EC2 m2.4xlarge machines,
 running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
-disk, and 68 GB of RAM). One of the eleven machines serves as the Master
-node and the rest ten machines serve as Worker nodes.
+disk, and 68 GB of RAM). One of the eleven machines served as the Master
+node and the rest ten machines served as Worker nodes.
 
 \vspace{5pt}
 To conduct convincing benchmarks and performance comparisons, we
-select eight representative applications from three categories
+selected eight representative applications from three categories
 of big data analytics workloads that are important for demonstrating
-PC's utility:
+PC's utilities and performance:
 
 \begin {itemize}
 \item \texttt{Linear Algebra Library.} We constructed a linear algebra library
@@ -185,9 +185,9 @@ tests for manipulating complex objects.
 
 The experimental results showed that
 compared with Java objects, the PC
-object model has a significant performance improvement, which are
+object model had a significant performance improvement, which were
 brought by the native code advantage and PC object model features such
-as no serialization/deserialization overhead for data shuffling. It
+as no serialization/deserialization overhead for moving data. It
 also proved that the costs associated with PC object model such as
 vtable fixing can be minimized via careful engineering.
 
