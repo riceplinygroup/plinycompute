@@ -639,11 +639,9 @@ common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + a
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
-common_env.Program('bin/TestKMeans1', ['build/tests/TestKMeansMLLibCompliant.cc'] + all)
+common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
-common_env.Program('bin/TestLDA1', ['build/tests/TestLDA1.cc'] + all)
-common_env.Program('bin/TestLDA2', ['build/tests/TestLDA2.cc'] + all)
 
 
 
@@ -720,8 +718,6 @@ lda=common_env.Alias('lda', [
   'bin/pdb-cluster',
   'bin/pdb-server',
   'bin/TestLDA',
-  'bin/TestLDA1',
-  'bin/TestLDA2',
   # LDA 
   'libraries/libLDADocIDAggregate.so',
   'libraries/libScanLDADocumentSet.so',
@@ -897,7 +893,7 @@ KMeans=common_env.Alias('KMeans', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
-  'bin/TestKMeans1',
+  'bin/TestKMeans',
   'bin/KMeansDataLoader',
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
@@ -985,7 +981,7 @@ lda2=common_env.Alias('lda2', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
-  'bin/TestLDA1', 
+  'bin/TestLDA', 
   'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libScanIntSet.so', 
   'libraries/libLDADocument.so', 'libraries/libScanLDADocumentSet.so', 'libraries/libLDADocIDAggregate.so', 'libraries/libLDAInitialTopicProbSelection.so', 'libraries/libLDAInitialWordTopicProbSelection.so', 'libraries/libLDADocWordTopicJoin.so', 'libraries/libLDADocAssignmentMultiSelection.so', 'libraries/libLDADocTopicAggregate.so', 'libraries/libLDADocTopicProbSelection.so', 'libraries/libIntDoubleVectorPair.so', 'libraries/libLDATopicAssignmentMultiSelection.so', 'libraries/libLDATopicWordAggregate.so', 'libraries/libLDATopicWordProbMultiSelection.so', 'libraries/libLDAWordTopicAggregate.so', 'libraries/libWriteTopicsPerWord.so', 'libraries/libDocAssignment.so', 'libraries/libTopicAssignment.so', 'libraries/libLDATopicWordProb.so', 'libraries/libWriteLDADocWordTopicAssignment.so', 'libraries/libLDADocWordTopicAssignment.so', 'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libLDADocWordTopicAssignmentIdentity.so', 'libraries/libScanTopicsPerWord.so', 'libraries/libScanIntDoubleVectorPairSet.so'
 ])
@@ -995,10 +991,9 @@ mlBench=common_env.Alias('mlBench', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
-  'bin/TestKMeans1',
+  'bin/TestKMeans',
   'bin/KMeansDataLoader',
   'bin/TestLDA',
-  'bin/TestLDA1',
 # K-means
   'libraries/libKMeansDataCountAggregate.so',
   'libraries/libKMeansSampleSelection.so',
