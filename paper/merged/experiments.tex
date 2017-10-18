@@ -72,7 +72,7 @@ $\textbf{x}'$ and matrix $\textbf{X}$, find the $k$ rows in the matrix that mini
 $d_{\textbf{A}}^2(\textbf{x}_i, \textbf{x}') = 
 (\textbf{x}_i - \textbf{x}')^T\textbf{A}(\textbf{x}_i - \textbf{x}')$).  All experiments used
 ten Amazon
-EC2 m2.4xlarge machines.  For
+EC2 m2.4xlarge workers.  For
 all three computations, 
 $10^6$ data points were used.  Results are given in 
 Table \ref{fig:LR} (for Gram and regression, SystemML V0.9 on Hadoop was used; for
@@ -99,7 +99,7 @@ A star ($*$) indicates running in local mode.}
 \label{fig:LR}
 \end{center}
 \end{table}
-
+\vspace{-10pt}
 In every case except for the small problems when SystemML chose not to distribute the data,
 \texttt{LilLinAlg} was the fastest.  
 Though SystemML nearest neighbor approached the speed of 
@@ -125,8 +125,8 @@ Second, we compute the $k$ customers whose set of \texttt{Part} items purchased 
 a query set, according to Jaccard similarity.
 Because the data are object-oriented, it
 is not possible to use Spark's Dataset/DataFrame abstraction to implement this computation, and so
-we compare algorithmically equivalent Spark RDD and PC implementations.
-Results are in Table \ref{fig:TPC}, run on the same 10 machine cluster.  
+we compare algorithmically equivalent Spark RDD (using Spark 2.1.0) and PC implementations.
+Results are in Table \ref{fig:TPC}, run on the same 10-worker cluster.  
 
 \begin{table}[h!]
 \begin{center}
@@ -151,7 +151,7 @@ Spark: in-RAM RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \label{fig:TPC}
 \end{center}
 \end{table}
-
+\vspace{-10pt}
 We see that in a somewhat fair comparison, when PC data are
 stored in a hot Pliny Database (PDB for short; PDB is PC's backend storage system) and Spark data
 are stored in
@@ -164,13 +164,18 @@ Among other costs, it ignores
 the cost Spark would incur at a later time to free the objects stored in RAM.
 
 \subsection {Machine Learning}
-Finally, we describe our experience writing a word-based, non-collapsed LDA implementation \cite{jermaineExperimental} on top of
-both Spark and PC.  LDA is a standard text mining algorithm and non-collapsed LDA is chosen because
+\vspace{5pt}
+\noindent
+\textbf {(1) LDA.} We first describe our experience writing a word-based, non-collapsed LDA implementation \cite{jermaineExperimental} on top of
+both Spark and PC.  LDA is a standard text mining algorithm and
+non-collapsed. 
+LDA is chosen because
 it is challenging:
 it contains two joins and two aggregations among other operations.
 Our Spark combined RDD and DataSet        
-implementation was carefully engineered by an expert.
-On the cluster used before, we run LDA over a 2.5 million document database.  Results (per iteration) are:
+implementation (using Spark 2.1.0) was carefully engineered by an expert.
+On the cluster used before, we run LDA over a 2.5 million document
+database.  Results (per iteration) are illustrated in Tab.~\ref{fig:LDA}:
 
 \begin{table}[h!]
 \begin{center}
@@ -185,17 +190,71 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \label{fig:LDA}
 \end{center}
 \end{table}
-
-
-While Spark performed well---in the end, PC was somewhat
-limited by the lack of engineering that has gone
-into its broadcast protocol---the 
+\vspace{-10pt}
+While Spark performed well, the 
 amount of work required to arrive at a good solution 
 was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
 broadcast join.  Then, it was necessary to force Spark to
 persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
 Multinomial sampler to obtain an implementation that was competitive with PC.
 This illustrates the advantage of PC's declarative approach: decisions such as broadcast vs. full hash
-join as well as which intermediate results to materialize are automated.  
+join as well as which intermediate results to materialize are
+automated. 
+
+\vspace{5pt}
+\noindent
+\textbf {(2) GMM.} A Gaussian mixture model (GMM) can be used to model data points that comes
+from one of $K$ clusters, and data points within the same cluster
+can be modeled by a Gaussian distribution. So the $k$-th Gaussian
+distribution is parameterized by a mean vector $\mu_k$ and a covariance
+matrix $\sum_k$, and has a probability distribution $\pi_k$.
+
+For this experiment, we
+implement GMM using the Expectation Maximization (EM) algorithm to be
+consistent with the GMM algorithm implemented in Spark Mllib. EM is an
+iterative optimization technique that consists of two steps in each
+iteration: an estimation step to determine ``responsibility'' score
+for assigning each data point to each Gaussian $k$ using the current model; and a maximization step to
+update the model parameters using the new ``responsibility'' score. A complex
+aggregation will run in each iteration to complete the two steps. The algorithm repeats
+the two steps until log likelihood or parameters converges. 
+
+We compare PC with Spark MLLib (using Spark 2.1.0) for $10^7$ data
+points with 100 dimenisons, and $10^6$ data points with 300 and 500
+dimensions. All experiments are running in a 10-worker cluster. 
+As illustrated in Tab.~\ref{fig:Gmm}, PC achieves a $2\times$ to
+$3\times$ speedup compared with Spark MLLib. For Spark MLLib, we
+carefully tune the data partition size to make sure there are enough
+partitions to keep all CPU cores busy.
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c||c|c|c||}
+\hline
+Dimensionality & $100$ & $300$ & $500$ \\
+\hline
+\hline
+PlinyCompute &00:33 & 00:53 & 2:16 \\
+Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark for GMM. Times in MM:SS, averaged over five iterations.}
+\label{fig:Gmm}
+\end{center}
+\end{table}
+\vspace{-10pt}
+
+
+\vspace{5pt}
+\noindent
+\textbf {(3) KMeans.}
+
+
+
+
+
+
+
+
 
 
