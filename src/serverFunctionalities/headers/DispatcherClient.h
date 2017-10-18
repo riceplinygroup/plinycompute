@@ -34,6 +34,7 @@ namespace pdb {
 class DispatcherClient : public ServerFunctionality {
 
 public:
+    DispatcherClient();
     DispatcherClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn);
     ~DispatcherClient();
 

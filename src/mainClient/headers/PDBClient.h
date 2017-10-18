@@ -146,7 +146,7 @@ namespace pdb {
         bool sendBytes(std::pair<std::string, std::string> setAndDatabase, char * bytes, size_t numBytes, std::string& errMsg);
 
     private:
-
+xxx
         pdb :: CatalogClient catalogClient;
         pdb :: DispatcherClient dispatcherClient;
         pdb :: DistributedStorageManagerClient distributedStorageClient;
