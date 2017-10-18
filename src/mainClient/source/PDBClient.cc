@@ -189,15 +189,19 @@ namespace pdb {
     }
 
     bool PDBClient::listRegisteredDatabases (std :: string &errMsg) {
-        ;
+        return catalogClient.listRegisteredDatabases (errMsg);
     }
 
     bool PDBClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
-        ;
+        return catalogClient.listRegisteredSetsForADatabase (databaseName, errMsg);
     }
 
     bool PDBClient::listNodesInCluster (std :: string &errMsg) {
-        ;
+        return catalogClient.listNodesInCluster (errMsg);
+    }
+
+    bool PDBClient::listUserDefinedTypes (std :: string &errMsg) {
+        return catalogClient.listUserDefinedTypes (errMsg);
     }
 
     /****
