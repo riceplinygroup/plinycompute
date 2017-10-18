@@ -314,6 +314,18 @@ public:
      */
     void printsAllCatalogMetadata();
 
+    /* Lists the Databases registered in the catalog. */
+    void listRegisteredDatabases (std :: string &errMsg);
+
+    /* Lists the Sets for a given database registered in the catalog. */
+    void listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
+
+    /* Lists the Nodes registered in the catalog. */
+    void listNodesInCluster (std :: string &errMsg);
+
+    /* Lists the user-defined types registered in the catalog. */
+    void PDBCatalog::listUserDefinedTypes (std :: string &errMsg);
+
     /**
      * Retrieves a dynamic library stored as BLOB in the Catalog
      * returns 1 if success, 0 otherwise.

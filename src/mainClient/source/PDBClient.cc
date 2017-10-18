@@ -21,18 +21,6 @@
 
 #include "PDBClient.h"
 
-// maybe to be removed
-#include "SimpleRequest.h"
-#include "DistributedStorageAddDatabase.h"
-#include "DistributedStorageAddSet.h"
-#include "DistributedStorageAddTempSet.h"
-#include "DistributedStorageRemoveDatabase.h"
-#include "DistributedStorageRemoveSet.h"
-#include "DistributedStorageRemoveTempSet.h"
-#include "DistributedStorageExportSet.h"
-#include "DistributedStorageClearSet.h"
-#include "DistributedStorageCleanup.h"
-
 namespace pdb {
 
     PDBClient::PDBClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn, bool usePangaea) :
@@ -44,12 +32,6 @@ namespace pdb {
             addressIn,
             make_shared<pdb::PDBLogger>("catalogClientLog"));
 
-        queryClient = pdb :: QueryClient(
-            portIn,
-            addressIn,
-            make_shared<pdb::PDBLogger>("queryClientLog"),
-            useQueryScheduler);
-
         dispatcherClient = DispatcherClient(
             portIn,
             addressIn,
@@ -59,14 +41,19 @@ namespace pdb {
             portIn,
             addressIn,
             make_shared<pdb::PDBLogger>("distributedStorageClientLog"));
+
+        queryClient = pdb :: QueryClient(
+            portIn,
+            addressIn,
+            make_shared<pdb::PDBLogger>("queryClientLog"),
+            useQueryScheduler);
+
     }
 
     PDBClient::~PDBClient(){
-        // no-op
     }
 
     void PDBClient::registerHandlers (PDBServer &forMe) {
-        // no-op
     }
 
     /****
