@@ -21,6 +21,7 @@
 
 #include "CatalogClient.h"
 #include "DispatcherClient.h"
+#include "DistributedStorageManagerClient.h"
 #include "PDBClient.h"
 #include "QueryClient.h"
 #include "ServerFunctionality.h"
@@ -29,7 +30,6 @@
 #include "PDBVector.h"
 #include "PDBObject.h"
 #include "PartitionPolicy.h"
-#include "CatalogClient.h"
 
 #include "SimpleRequest.h"
 

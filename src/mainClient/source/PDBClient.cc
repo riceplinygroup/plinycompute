@@ -23,7 +23,7 @@
 
 namespace pdb {
 
-    PDBClient::PDBClient();
+    PDBClient::PDBClient() {}
 
     PDBClient::PDBClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn,
             bool usePangaea, bool useQueryScheduler) :
