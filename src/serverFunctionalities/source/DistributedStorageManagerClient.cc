@@ -33,6 +33,8 @@
 
 namespace pdb {
 
+DistributedStorageManagerClient::DistributedStorageManagerClient() {}
+
 DistributedStorageManagerClient::DistributedStorageManagerClient(int portIn,
                                                                  std::string addressIn,
                                                                  PDBLoggerPtr myLoggerIn)

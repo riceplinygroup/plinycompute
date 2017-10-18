@@ -28,6 +28,7 @@ namespace pdb {
 class DistributedStorageManagerClient : public ServerFunctionality {
 
 public:
+    DistributedStorageManagerClient();
     DistributedStorageManagerClient(int portIn, std::string addressIn, PDBLoggerPtr myLoggerIn);
     ~DistributedStorageManagerClient();
 

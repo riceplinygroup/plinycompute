@@ -54,6 +54,8 @@ namespace pdb {
                   PDBLoggerPtr myLoggerIn, bool usePangea,
                   bool useQueryScheduler);
 
+        PDBClient();
+
         ~PDBClient();
 
         void registerHandlers (PDBServer &forMe); // no - op
