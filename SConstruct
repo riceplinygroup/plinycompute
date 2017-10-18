@@ -325,6 +325,7 @@ all = ['build/sqlite/sqlite3.c',
        boost_component_dir_basename_to_cc_file_paths['system'],
       ]
 
+pdb_client = ['build/mainClient']
 
 common_env.SharedLibrary('libraries/libAllSelection.so', ['build/libraries/AllSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libEmpWithVector.so', ['build/libraries/EmpWithVector.cc'] + all)
@@ -506,7 +507,7 @@ common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all)
 #common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
-common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all)
+common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all + pdb_client)
 common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
 common_env.Program('bin/MasterServerTest', ['build/tests/MasterServerTest.cc'] + all)
 common_env.Program('bin/objectModelTest1', ['build/tests/ObjectModelTest1.cc'] + all)
