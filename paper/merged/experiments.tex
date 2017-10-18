@@ -210,7 +210,7 @@ distribution is parameterized by a mean vector $\mu_k$ and a covariance
 matrix $\sum_k$, and has a probability distribution $\pi_k$.
 
 For this experiment, we
-implement GMM using the Expectation Maximization (EM) algorithm to be
+implemented GMM using the Expectation Maximization (EM) algorithm to be
 consistent with the GMM algorithm implemented in Spark Mllib. EM is an
 iterative optimization technique that consists of two steps in each
 iteration: an estimation step to determine ``responsibility'' score
@@ -219,12 +219,12 @@ update the model parameters using the new ``responsibility'' score. A complex
 aggregation will run in each iteration to complete the two steps. The algorithm repeats
 the two steps until log likelihood or parameters converges. 
 
-We compare PC with Spark MLLib (using Spark 2.1.0) for $10^7$ data
+We compared PC with Spark MLLib (using Spark 2.1.0) for $10^7$ data
 points with 100 dimenisons, and $10^6$ data points with 300 and 500
 dimensions. All experiments are running in a 10-worker cluster. 
 As illustrated in Tab.~\ref{fig:Gmm}, PC achieves a $2\times$ to
 $3\times$ speedup compared with Spark MLLib. For Spark MLLib, we
-carefully tune the data partition size to make sure there are enough
+carefully tuned the data partition size to make sure there are enough
 partitions to keep all CPU cores busy.
 
 \begin{table}[h!]
@@ -232,6 +232,7 @@ partitions to keep all CPU cores busy.
 \begin{tabular}{|c||c|c|c||}
 \hline
 Dimensionality & $100$ & $300$ & $500$ \\
+Number of points & $10^7$ & $10^6$ & $10^6$ \\
 \hline
 \hline
 PlinyCompute &00:33 & 00:53 & 2:16 \\
@@ -247,8 +248,50 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 
 \vspace{5pt}
 \noindent
-\textbf {(3) KMeans.}
+\textbf {(3) KMeans.} We developed a KMeans implementation on PC, which
+is equivalent with the KMeans implementation in Spark MLLib. Spark
+MLLib KMeans implementation has two initialization approach: KMeans++
+and random initialization using sampling. For both experiments, we use
+random initialization by sampling $K$ data points as initial
+cluster centroids. 
 
+Both implementations first compute $L^2$ norm for each data
+point, and transform data point into a new form with norm value
+associated. Then in each iteration, each data point finds the closest cluster
+of which the centroid has the closest distance with the data point, and assigns the closest
+cluster label to itself. When computing the distance of a data point to a
+centroid, a lower bound based on $\|a - b\| \geq |\|a\| - \|b\||$ is
+first computed to avoid unnecessary distance computation. Then an aggregation is run to update centroids
+based on computed new labels. Iteration repeats until centroids
+converge.
+
+
+We compared PC with Spark MLLib (using Spark 2.1.0) for $10^9$ data
+points with 10 dimenisons, $10^8$ data points with 100 dimensions,  and $10^7$
+data points with 10
+dimensions. All experiments are running in a 10-worker cluster. 
+As illustrated in Tab.~\ref{fig:KMeans}, PC achieves a $2\times$ to
+$4\times$ speedup compared with Spark MLLib. 
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c||c|c|c||c|c|c||}
+\hline
+& \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c||}{Average
+                                         Iteration Latency} \\
+\hline
+Dimensionality & $10$ & $100$ & $1000$ & $10$ & $100$ & $1000$\\
+Number of points & $10^9$ & $10^8$ & $10^7$ & $10^9$ & $10^8$ & $10^7$\\
+\hline
+PlinyCompute &3:59 & 1:12 & 00:57 &00:37 & 00:09 & 00:06\\
+Spark \texttt{mllib} &9:06  &4:18 &3:20 &00:37 & 00:09 & 00:06\\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark for KMeans. Times in MM:SS, averaged over five iterations.}
+\label{fig:KMeans}
+\end{center}
+\end{table}
+\vspace{-10pt}
 
 
 
