@@ -1,2 +1,48 @@
 
 \section{Related Work}
+
+The PC project was inspired by works from a broad class of
+fields, including database engines, distributed in-memory processing
+frameworks,  programming languages and compilers. PC is
+mainly aiming at providing domain-experts a convenient platform to build high
+performance tools and libraries. PC distinguishes itself with existing
+works in following aspects:
+(1) it combines a highly declarative object-oriented interface with a
+low-level native
+C++-based query engine, (2) it builds a unique PC Object Model on top of
+native C++ to move objects around a distributed system with no
+serialization/deserialization costs, (3) it uses a unique TCAP compiler to generate vectorized
+pipeline code with thread-local memory management for executing
+user-defined object-oriented queries.
+
+\subsection {In-memory Query Processing Systems}
+Vector processing and just-in-time compilation techniques are widely
+used in modern in-memory query
+processing. VectorWise~\cite{zukowski2012vectorwise}, which was
+commercialized as the MonetDB/X100 project, makes use of vectorized
+query execution to amortize the virtual function call overhead and
+also to exploit SIMD support on modern hardware.
+Hyper~\cite{neumann2011efficiently} proposed a different code
+generation strategy for query compilation to translate relational
+algebra to LLVM assembler for execution. This approach gained
+popularity in a number of database
+engines. LegoBase~\cite{klonatos2014building} switched the interface
+from declarative SQL to high-level language (Scala) and uses a query engine
+written in Scala as a code generator to emit specialized and low-level
+C code for execution. TupleWare~\cite{crotty2015tupleware} also supports
+high-level language (any language with an LLVM compiler) interfaces
+and aims to
+optimize for UDFs by utilizing code
+generation technique to integrate UDF code with the framework
+code. Voodoo~\cite{pirk2016voodoo} served as an alternative backend for
+relational databases like MonetDB and Hyper. It used a new
+declarative algebra as the compilation target for query plans to
+enable tuning for hardware specifics like caches, SIMD registers,
+GPU and so on. Weld~\cite{palkar2017weld} is a recent system proposed
+to have a common runtime for data anlytics libraries by asking library
+developers to express their work using a new intermediate
+representation and asking application developers to use new APIs to
+call different libraries.
+
+\subsection{Distributed Dataflow Processing Systems}
+
