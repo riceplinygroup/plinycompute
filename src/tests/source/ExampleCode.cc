@@ -36,9 +36,13 @@
 #include "PDBVector.h"
 #include "PDBString.h"
 
+using namespace pdb;
+
 Allocator allocator;
 
 class Employee : public Object {
+
+  ENABLE_DEEP_COPY
 
 private:
     int height;
@@ -64,6 +68,8 @@ public:
 };
 
 class Supervisor : public Object {
+
+  ENABLE_DEEP_COPY
 
 private:
     int salary;
@@ -92,6 +98,8 @@ public:
 };
 
 class WorkPlace : public Object {
+
+  ENABLE_DEEP_COPY
 
 private:
     Handle<Supervisor> sup;

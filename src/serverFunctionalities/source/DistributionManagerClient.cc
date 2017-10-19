@@ -121,9 +121,7 @@ Handle<ListOfNodes> DistributionManagerClient::getCurrentNodes(string& masterHos
 
         // send  the object over
         if (!myCommunicator.sendObject(requestToGetListOfNodes, errMsg)) {
-            logger->error(
-                "[DistributionManagerClient] - HeartBeat Client: Sending nodeInfo object: " +
-                errMsg);
+            logger->error("[DistributionManagerClient] - HeartBeat Client: Sending nodeInfo object: " + errMsg);
             // try to connect and send the object again.
             wasError = true;
             return nullptr;

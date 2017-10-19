@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     string errMsg;
 
     // register the shared employee class
-    pdb::StorageClient conn(8108, "localhost", make_shared<pdb::PDBLogger>("clientLog"), true);
+    pdb::StorageClient conn(8108, "localhost", make_shared<pdb::PDBLogger>("clientLog"));
 
     // now, create a new database
     if (!conn.createDatabase(databaseName, errMsg)) {
@@ -85,17 +85,11 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < numOfObjects; i++) {
 
-
-        pdb::Handle<pdb::Vector<pdb::Handle<Employee>>> storeMe =
-            pdb::makeObject<pdb::Vector<pdb::Handle<Employee>>>();
+        pdb::Handle<pdb::Vector<pdb::Handle<Employee>>> storeMe = pdb::makeObject<pdb::Vector<pdb::Handle<Employee>>>();
 
         try {
-            pdb::Handle<Employee> myData =
-                pdb::makeObject<Employee>("Joe Johnson" + to_string(i), i + 45);
+            pdb::Handle<Employee> myData = pdb::makeObject<Employee>("Joe Johnson" + to_string(i), i + 45);
             storeMe->push_back(myData);
-
-            //			std :: cout << "In Allocator are currently " <<
-            //getNumObjectsInCurrentAllocatorBlock () << " objects.\n";
 
             if (storeMe->size() != 0) {
                 if (!conn.storeData<Employee>(storeMe, databaseName, setName, errMsg, false)) {
@@ -103,12 +97,10 @@ int main(int argc, char* argv[]) {
                     return 0;
                 }
             }
-
         } catch (pdb::NotEnoughSpace& n) {
             // Because we store small size of data, this should never happen.
             std::cout << "This should never happen. NotEnoughSpace  " << endl;
         }
-
 
         if (i % 100 == 0) {
 

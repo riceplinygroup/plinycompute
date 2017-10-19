@@ -20,10 +20,6 @@
 #define TEST_54_CC
 
 #include "StorageClient.h"
-#include "PDBVector.h"
-#include "InterfaceFunctions.h"
-#include <stdlib.h>
-#include <time.h>
 // this won't be visible to the v-table map, since it is not in the biult in types directory
 
 #ifndef NUM_DIMENSIONS
