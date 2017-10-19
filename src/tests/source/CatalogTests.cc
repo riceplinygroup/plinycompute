@@ -314,7 +314,7 @@ int main(int numArgs, const char* args[]) {
 
         // now create a new set in that database
         if (typeName.compare("SharedEmployee") == 0) {
-            if (!pdbClient.createSet(databaseName, setName, typeName, errMsg)) {
+            if (!pdbClient.createSet(databaseName, setName, typeName, errMsg, DEFAULT_PAGE_SIZE)) {
                 std::cout << "Could not create set due to error: " + errMsg << std::endl;
             } else {
                 std::cout << "Set and its metadata successfully created.\n";
