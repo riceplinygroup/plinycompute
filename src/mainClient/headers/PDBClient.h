@@ -87,12 +87,18 @@ namespace pdb {
         bool createDatabase(const std::string& databaseName, std::string& errMsg);
 
         /* Creates a set with a given type for an existing database, no page_size needed in arg. */
-        bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
-                       std::string& errMsg);
+        bool createSet(
+                const std::string& databaseName,
+                const std::string& setName,
+                const std::string& typeName,
+                std::string& errMsg);
 
         /* Creates a set with a given type (using a template) for an existing database, no page_size needed in arg. */
         template <class DataType>
-        bool createSet (const std :: string& databaseName, const std :: string& setName, std :: string &errMsg);
+        bool createSet (
+                const std :: string& databaseName,
+                const std :: string& setName,
+                std :: string &errMsg);
 
         /* Creates a set with a given type for an existing database */
         bool createSet(const std::string& databaseName, const std::string& setName, const std::string& typeName,
@@ -197,7 +203,7 @@ namespace pdb {
 }
 
 #include "StorageClientTemplate.cc"
-#include "DistributedStorageManagerClientTemplate.cc"
+#include "PDBClientTemplate.cc"
 #include "DispatcherClientTemplate.cc"
 
 #endif
