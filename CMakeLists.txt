@@ -10,6 +10,7 @@ project(pdb)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${PROJECT_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/libraries")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/libraries")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake")
 
 # set the standard
 set(CMAKE_CXX_STANDARD 14)
@@ -18,7 +19,7 @@ set(CMAKE_CXX_STANDARD 14)
 if (APPLE)
     SET(CMAKE_CXX_FLAGS "-Wall -g")
 elseif (UNIX AND NOT APPLE)
-    SET(CMAKE_CXX_FLAGS "-g -lsnappy -fPIC -Wno-deprecated-declarations")
+    SET(CMAKE_CXX_FLAGS "-g -fPIC -Wno-deprecated-declarations")
 endif ()
 
 # set the definitions for the compiler
@@ -109,6 +110,9 @@ FIND_PACKAGE(FLEX REQUIRED)
 SET(LogicalPlanFlexOutput ${CMAKE_SOURCE_DIR}/src/logicalPlan/source/Lexer.c)
 SET(LinearAlgebraDSLFlexOutput ${CMAKE_SOURCE_DIR}/src/linearAlgebraDSL/source/LALexer.c)
 
+# find the UUID package
+FIND_PACKAGE(UUID REQUIRED)
+
 # setup the commands
 IF (FLEX_FOUND)
     # logical plan lexer commands
@@ -159,6 +163,13 @@ IF (BISON_FOUND)
             BUILD_BYPRODUCTS ${LinearAlgebraDSLParserOutput}
     )
 ENDIF ()
+
+# find gsl
+FIND_PACKAGE(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS} ${GSLCBLAS_INCLUDE_DIRS})
+
+#find snappy
+FIND_PACKAGE(Snappy REQUIRED)
 
 # setup the command to generate the object ids
 SET(BUILT_IN_OBJECT_TYPE_ID ${CMAKE_SOURCE_DIR}/src/objectModel/headers/BuiltInObjectTypeIDs.h)
@@ -225,6 +236,12 @@ add_library(pdb-shared $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:program-options>
         $<TARGET_OBJECTS:system>)
 
+# link the dependent libraries so that they are made of the public interface
+target_link_libraries(pdb-shared PRIVATE ${SNAPPY_LIBRARY})
+target_link_libraries(pdb-shared PUBLIC ${UUID_LIBRARY})
+target_link_libraries(pdb-shared PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pdb-shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
 # form the parsers for the logical plan and linear algebra
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
 add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearAlgebraDSLParserOutput} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
@@ -233,50 +250,45 @@ add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearA
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/mainServer/source/MasterMain.cc)
 add_executable(pdb-cluster ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 target_link_libraries(pdb-cluster pdb-shared)
-target_link_libraries(pdb-cluster ${CMAKE_DL_LIBS})
-target_link_libraries(pdb-cluster ${CMAKE_THREAD_LIBS_INIT})
 
 # set the pdb-server build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/mainServer/source/WorkerMain.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(pdb-server ${SOURCE_FILES_PDB_CLUSTER})
 target_link_libraries(pdb-server pdb-shared)
-target_link_libraries(pdb-server ${CMAKE_DL_LIBS})
-target_link_libraries(pdb-server ${CMAKE_THREAD_LIBS_INIT})
 
 # set the source for the pdb-cluster
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/tests/source/CatalogServerTests.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(catalog-server-tests ${SOURCE_FILES_PDB_CLUSTER})
 target_link_libraries(catalog-server-tests pdb-shared)
-target_link_libraries(catalog-server-tests ${CMAKE_DL_LIBS})
-target_link_libraries(catalog-server-tests ${CMAKE_THREAD_LIBS_INIT})
 
 # set the source for te catalog-tests
 set(SOURCE_FILES_CATALOG_TESTS ${PROJECT_SOURCE_DIR}/src/tests/source/CatalogTests.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(catalog-tests ${SOURCE_FILES_CATALOG_TESTS})
 target_link_libraries(catalog-tests pdb-shared)
-target_link_libraries(catalog-tests ${CMAKE_DL_LIBS})
-target_link_libraries(catalog-tests ${CMAKE_THREAD_LIBS_INIT})
 
 # set the source for te selection-tests
 set(SOURCE_FILES_SELECTION_TEST ${PROJECT_SOURCE_DIR}/src/tests/source/Test52.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(selection-test ${SOURCE_FILES_SELECTION_TEST})
 target_link_libraries(selection-test pdb-shared)
-target_link_libraries(selection-test ${CMAKE_DL_LIBS})
-target_link_libraries(selection-test ${CMAKE_THREAD_LIBS_INIT})
 
 # set the source for te sily-join test
 set(SOURCE_FILES_SELECTION_TEST ${PROJECT_SOURCE_DIR}/src/tests/source/Test94.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(optimized-join-test ${SOURCE_FILES_SELECTION_TEST})
 target_link_libraries(optimized-join-test pdb-shared)
-target_link_libraries(optimized-join-test ${CMAKE_DL_LIBS})
-target_link_libraries(optimized-join-test ${CMAKE_THREAD_LIBS_INIT})
 
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/sharedLibraries/source/*.cc")
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
     add_library(${fileName} MODULE ${file})
-    target_link_libraries(${fileName} PUBLIC pdb-shared)
-    target_link_libraries(${fileName} PUBLIC ${CMAKE_DL_LIBS})
-    target_link_libraries(${fileName} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${fileName} pdb-shared)
+endforeach()
+
+# build tests
+file(GLOB files "${PROJECT_SOURCE_DIR}/src/tests/source/*.cc")
+foreach(file ${files})
+    get_filename_component(fileName "${file}" NAME_WE)
+    add_executable(${fileName} ${file} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
+    target_link_libraries(${fileName} pdb-shared)
+    target_link_libraries(${fileName} ${GSL_LIBRARIES})
 endforeach()
