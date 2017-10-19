@@ -22,7 +22,6 @@
 #include "CatalogClient.h"
 #include "DispatcherClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "PDBClient.h"
 #include "QueryClient.h"
 #include "ServerFunctionality.h"
 
