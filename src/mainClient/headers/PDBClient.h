@@ -60,6 +60,26 @@ namespace pdb {
         void registerHandlers (PDBServer &forMe); // no - op
 
         /****
+         * Gets a reference to the Catalog Client
+         */
+        pdb :: CatalogClient getCatalogClient();
+
+        /****
+         * Gets a reference to the Dispatcher Client
+         */
+        pdb :: DispatcherClient getDispatcherClient();
+
+        /****
+         * Gets a reference to the Distributed Storage Manager Client
+         */
+        pdb :: DistributedStorageManagerClient getDistributedStorageClient();
+
+        /****
+         * Gets a reference to the Query Client
+         */
+        pdb :: QueryClient getQueryClient();
+
+        /****
          * Methods for invoking DistributedStorageManager-related operations
          */
 

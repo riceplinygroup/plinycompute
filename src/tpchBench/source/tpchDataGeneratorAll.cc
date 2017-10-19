@@ -516,31 +516,27 @@ int main(int argc, char* argv[]) {
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
-    pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-    pdb::DispatcherClient dispatcherClient =
-        DispatcherClient(masterPort, masterHostname, clientLogger);
-    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
+    pdb::PDBClient pdbClient(
+            masterPort, masterHostname, clientLogger, false, true);
 
     string errMsg;
-    if (!catalogClient.registerType("libraries/libPart.so", errMsg))
+    if (!pdbClient.registerType("libraries/libPart.so", errMsg))
         cout << "Not able to register libPart type.\n";
 
-    if (!catalogClient.registerType("libraries/libSupplier.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSupplier.so", errMsg))
         cout << "Not able to register libSupplier type.\n";
 
-    if (!catalogClient.registerType("libraries/libLineItem.so", errMsg))
+    if (!pdbClient.registerType("libraries/libLineItem.so", errMsg))
         cout << "Not able to register libLineItem type.\n";
 
-    if (!catalogClient.registerType("libraries/libOrder.so", errMsg))
+    if (!pdbClient.registerType("libraries/libOrder.so", errMsg))
         cout << "Not able to register libOrder type.\n";
 
-    if (!catalogClient.registerType("libraries/libCustomer.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCustomer.so", errMsg))
         cout << "Not able to register libCustomer type.\n";
 
     // now, create a new database
-    if (!distributedStorageManagerClient.createDatabase("TPCH_db", errMsg)) {
+    if (!pdbClient.createDatabase("TPCH_db", errMsg)) {
         cout << "Not able to create database: " + errMsg;
         exit(-1);
     } else {
@@ -548,7 +544,7 @@ int main(int argc, char* argv[]) {
     }
 
     // now, create the sets for storing Customer Data
-    if (!distributedStorageManagerClient.createSet<Customer>(
+    if (!pdbClient.createSet<Customer>(
             "TPCH_db", "tpch_bench_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
@@ -559,7 +555,7 @@ int main(int argc, char* argv[]) {
     pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
 
     // Generate the data
-    dataGenerator(scaleFactor, dispatcherClient, noOfCopies);
+    dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopies);
 
     //	pdb::Handle<pdb::Vector<pdb::Handle<Customer>>>  storeMeCustomerList =
     //generateSmallDataset(4);
@@ -585,31 +581,31 @@ int main(int argc, char* argv[]) {
     //	cout << errMsg << endl;
 
 
-    if (!catalogClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSumResultWriteSet.so", errMsg))
         cout << "Not able to register type libSumResultWriteSet.\n";
 
-    if (!catalogClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCustomerWriteSet.so", errMsg))
         cout << "Not able to register type libCustomerWriteSet.\n";
 
-    if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
+    if (!pdbClient.registerType("libraries/libScanCustomerSet.so", errMsg))
         cout << "Not able to register type libScanCustomerSet. \n";
 
-    if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
         cout << "Not able to register type libCustomerMapSelection. \n";
 
-    if (!catalogClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCustomerSupplierPartGroupBy.so", errMsg))
         cout << "Not able to register type libCustomerSupplierPartGroupBy.\n";
 
-    if (!catalogClient.registerType("libraries/libSupplierData.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSupplierData.so", errMsg))
         cout << "Not able to register type  libSupplierData\n";
 
-    if (!catalogClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCustomerSupplierPartFlat.so", errMsg))
         cout << "Not able to register type  libCustomerSupplierPartFlat\n";
 
-    if (!catalogClient.registerType("libraries/libCountAggregation.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCountAggregation.so", errMsg))
         cout << "Not able to register type  libCountAggregation\n";
 
-    if (!catalogClient.registerType("libraries/libCountCustomer.so", errMsg))
+    if (!pdbClient.registerType("libraries/libCountCustomer.so", errMsg))
         cout << "Not able to register type  libCountCustomer\n";
 
 

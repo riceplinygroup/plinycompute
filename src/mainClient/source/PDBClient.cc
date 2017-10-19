@@ -56,6 +56,22 @@ namespace pdb {
     PDBClient::~PDBClient(){
     }
 
+    pdb :: CatalogClient PDBClient::getCatalogClient() {
+        return catalogClient;
+    }
+
+    pdb :: DispatcherClient PDBClient::getDispatcherClient() {
+        return dispatcherClient;
+    }
+
+    pdb :: DistributedStorageManagerClient PDBClient::getDistributedStorageClient() {
+        return distributedStorageClient;
+    }
+
+    pdb :: QueryClient PDBClient::getQueryClient() {
+        return queryClient;
+    }
+
     void PDBClient::registerHandlers (PDBServer &forMe) {
     }
 
