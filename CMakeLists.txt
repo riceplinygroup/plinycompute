@@ -266,11 +266,6 @@ set(SOURCE_FILES_CATALOG_TESTS ${PROJECT_SOURCE_DIR}/src/tests/source/CatalogTes
 add_executable(catalog-tests ${SOURCE_FILES_CATALOG_TESTS})
 target_link_libraries(catalog-tests pdb-shared)
 
-# set the source for te selection-tests
-set(SOURCE_FILES_SELECTION_TEST ${PROJECT_SOURCE_DIR}/src/tests/source/Test52.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-add_executable(selection-test ${SOURCE_FILES_SELECTION_TEST})
-target_link_libraries(selection-test pdb-shared)
-
 # set the source for te sily-join test
 set(SOURCE_FILES_SELECTION_TEST ${PROJECT_SOURCE_DIR}/src/tests/source/Test94.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(optimized-join-test ${SOURCE_FILES_SELECTION_TEST})
