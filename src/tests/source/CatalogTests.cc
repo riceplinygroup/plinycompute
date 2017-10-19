@@ -168,8 +168,11 @@ int main(int numArgs, const char* args[]) {
     }
 
     // start a catalog client
-    pdb::CatalogClient catClient(
-        conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("clientCatalogLog"));
+//    pdb::CatalogClient catClient(
+//        conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("clientCatalogLog"));
+
+    pdb::PDBClient pdbClient(
+        conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("pdbClientLog"), false, false);
 
     // start a storage client
     bool usePangea = conf->getUsePangea();
@@ -181,10 +184,10 @@ int main(int numArgs, const char* args[]) {
     pdb::StorageClient storageClient(
         conf->getPort(), conf->getServerAddress(), make_shared<pdb::PDBLogger>("clientLog"), true);
 
-    pdb::DistributedStorageManagerClient distributedStorageClient(
-        conf->getPort(),
-        conf->getServerAddress(),
-        make_shared<pdb::PDBLogger>("distributedStorageManager"));
+//    pdb::DistributedStorageManagerClient distributedStorageClient(
+//        conf->getPort(),
+//        conf->getServerAddress(),
+//        make_shared<pdb::PDBLogger>("distributedStorageManager"));
 
     string errMsg;
 
@@ -221,12 +224,12 @@ int main(int numArgs, const char* args[]) {
         string soBytes;
         //        if (!catClient.getSharedLibraryByName(typeId, typeName, soFileObject,
         //        (*putResultHere), typeMetadata, soBytes, errMsg)) {
-        if (!catClient.getSharedLibrary(typeId, soFileObject)) {
-            std::cout << "Not able to retrieve type data: " + errMsg << std::endl;
-            std::cout << "Please change the parameters: type-id." << std::endl;
-        } else {
-            std::cout << "Type properly retrieved." << errMsg << endl;
-        }
+//        if (!pdbClient.getSharedLibrary(typeId, soFileObject)) {
+//            std::cout << "Not able to retrieve type data: " + errMsg << std::endl;
+//            std::cout << "Please change the parameters: type-id." << std::endl;
+//        } else {
+//            std::cout << "Type properly retrieved." << errMsg << endl;
+//        }
 
 
         cout << "Done.\n";
@@ -239,18 +242,8 @@ int main(int numArgs, const char* args[]) {
         std::string nodeName = vm["node-name"].as<std::string>();
         std::string nodeType = vm["node-type"].as<std::string>();
         int status = 0;
-        // Change a bit to support running multiple ports on the same IP
-        pdb::String _nodeIP = String(nodeIP);
-        pdb::String _nodeAddress = String(nodeIP + ":" + to_string(nodePort));
-        pdb::String _nodeName = String(nodeName);
-        pdb::String _nodeType = String(nodeType);
 
-        pdb::Handle<pdb::CatalogNodeMetadata> nodeData = pdb::makeObject<pdb::CatalogNodeMetadata>(
-            _nodeAddress, _nodeIP, nodePort, _nodeName, _nodeType, status);
-
-        //            if (!catClient.registerNodeMetadata (nodeData, nodeIP , nodeIP, port,
-        //            nodeName, nodeType, status, errMsg)) {
-        if (!catClient.registerNodeMetadata(nodeData, errMsg)) {
+        if (!pdbClient.registerNode(nodeIP, nodePort, nodeName, nodeType, 1, errMsg)) {
             std::cout << "Not able to register node metadata: " + errMsg << std::endl;
             std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."
                       << std::endl;
@@ -268,7 +261,7 @@ int main(int numArgs, const char* args[]) {
     } else if (command.compare("register-db") == 0) {
         std::string databaseName = vm["db-name"].as<std::string>();
 
-        if (!distributedStorageClient.createDatabase(databaseName, errMsg)) {
+        if (!pdbClient.createDatabase(databaseName, errMsg)) {
             std::cout << "Not able to create database: " + errMsg << std::endl;
         } else {
             std::cout << "Database and its metadata successfully created.\n";
@@ -320,7 +313,7 @@ int main(int numArgs, const char* args[]) {
 
         // now create a new set in that database
         if (typeName.compare("SharedEmployee") == 0) {
-            if (!distributedStorageClient.createSet(databaseName, setName, typeName, errMsg)) {
+            if (!pdbClient.createSet(databaseName, setName, typeName, errMsg)) {
                 std::cout << "Could not create set due to error: " + errMsg << std::endl;
             } else {
                 std::cout << "Set and its metadata successfully created.\n";
@@ -345,7 +338,7 @@ int main(int numArgs, const char* args[]) {
 
         // now the set from the database
         if (typeName.compare("SharedEmployee") == 0) {
-            if (!distributedStorageClient.removeSet(databaseName, setName, errMsg)) {
+            if (!pdbClient.removeSet(databaseName, setName, errMsg)) {
                 std::cout << "Could not delete set due to error: " + errMsg << std::endl;
             } else {
                 std::cout << "Set and its metadata successfully deleted.\n";
@@ -370,7 +363,7 @@ int main(int numArgs, const char* args[]) {
 
         //        cout << "timestamp=" << printObject->getItemName() << endl;
 
-        if (!catClient.printCatalogMetadata(printObject, errMsg)) {
+        if (!pdbClient.printCatalogMetadata(printObject, errMsg)) {
             std::cout << "Not able to print metadata due to error: " + errMsg << std::endl;
         } else {
             std::cout << "List metadata.\n";
