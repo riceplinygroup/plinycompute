@@ -33,18 +33,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     port = atoi(argv[1]);
-    pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
-    pdb::DistributedStorageManagerClient client =
-        pdb::DistributedStorageManagerClient(port, "localhost", logger);
 
-    // Add this in so the dispatcher can build the correct type
-    pdb::CatalogClient catalogClient = pdb::CatalogClient(port, "localhost", logger);
+    pdb::PDBClient pdbClient(
+        port, "localhost", make_shared<pdb::PDBLogger>("Test405.log"), false, false);
 
     std::string err;
 
     if (argv[2][0] == 't') {
-        pdb::CatalogClient catalogClient = pdb::CatalogClient(port, "localhost", logger);
-        if (!catalogClient.registerType("libraries/libSharedEmployee.so", err)) {
+        if (!pdbClient.registerType("libraries/libSharedEmployee.so", err)) {
             std::cout << "Not able to register type: " << err << std::endl;
         } else {
             std::cout << "Registered type" << std::endl;
@@ -52,7 +48,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argv[2][0] == 'd') {
-        if (client.createDatabase("joseph_db", err)) {
+        if (pdbClient.createDatabase("joseph_db", err)) {
             std::cout << "Success" << std::endl;
             return 0;
         } else {
@@ -62,7 +58,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argv[2][0] == 's') {
-        if (client.createSet("joseph_db", "joseph_set", "SharedEmployee", err)) {
+        if (pdbClient.createSet("joseph_db", "joseph_set", "SharedEmployee", err)) {
             std::cout << "Success" << std::endl;
             return 0;
         } else {
@@ -72,7 +68,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argv[2][0] == 'r') {
-        if (client.removeDatabase("joseph_db", err)) {
+        if (pdbClient.removeDatabase("joseph_db", err)) {
             std::cout << "Success" << std::endl;
             return 0;
         } else {
@@ -82,7 +78,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (argv[2][0] == 'm') {
-        if (client.removeSet("joseph_db", "joseph_set", err)) {
+        if (pdbClient.removeSet("joseph_db", "joseph_set", err)) {
             std::cout << "Success" << std::endl;
             return 0;
         } else {
@@ -92,11 +88,6 @@ int main(int argc, char* argv[]) {
     }
 
     if (argv[2][0] == 'e') {
-
-        pdb::DispatcherClient dispatcherClient =
-            pdb::DispatcherClient(port, "localhost", make_shared<pdb::PDBLogger>("Test405log"));
-        // dispatcherClient.registerSet(std::pair<std::string, std::string>("joseph_set",
-        // "joseph_db"), pdb::PartitionPolicy::Policy::RANDOM, err);
 
         void* storage = malloc(96 * 1024 * 1024);
         pdb::makeObjectAllocatorBlock(storage, 96 * 1024 * 1024, true);
@@ -117,7 +108,7 @@ int main(int argc, char* argv[]) {
             }
             for (int i = 0; i < 10; i++) {
                 std::cout << "Dispatching a vector of size " << storeMe->size() << std::endl;
-                if (!dispatcherClient.sendData<SharedEmployee>(
+                if (!pdbClient.sendData<SharedEmployee>(
                         std::pair<std::string, std::string>("joseph_set", "joseph_db"),
                         storeMe,
                         err)) {
