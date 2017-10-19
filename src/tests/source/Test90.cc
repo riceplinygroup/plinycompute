@@ -22,12 +22,12 @@
 
 #include "Handle.h"
 #include "Lambda.h"
+#include "PDBClient.h"
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
 #include "OptimizedSupervisor.h"
 #include "OptimizedEmployee.h"
-#include "PDBClient.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
