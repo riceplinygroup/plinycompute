@@ -647,7 +647,6 @@ common_env.Depends(pdbTest, [
   'bin/pdb-server', 
   'bin/test44', 
   'bin/test46', 
-#  'bin/test52', 
   'bin/test74', 
   'bin/test79', 
   'bin/test78',

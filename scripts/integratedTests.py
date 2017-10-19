@@ -72,31 +72,6 @@ numTotal = 5
 numErrors = 0
 numPassed = 0
 
-
-
-print("#################################")
-print("RUN DISTRIBUTED SELECTION TEST ON G-1 PIPELINE")
-print("#################################")
-
-try:
-    #start pseudo cluster
-    startPseudoCluster()
-
-    #run bin/test52
-    print (bcolors.OKBLUE + "start a query client to store and query data from pdb cluster" + bcolors.ENDC)
-    subprocess.check_call(['bin/test52', 'N', 'Y', '1024', 'localhost'])
-
-except subprocess.CalledProcessError as e:
-    print (bcolors.FAIL + "[ERROR] in running distributed integration tests" + bcolors.ENDC)
-    print (e.returncode)
-    numErrors = numErrors + 1
-
-else:
-    print (bcolors.OKBLUE + "[PASSED] distributed G1-selection tests" + bcolors.ENDC)
-    numPassed = numPassed + 1
-
-
-
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
 print (bcolors.OKBLUE + "waiting for 5 seconds for server to be fully cleaned up...")
 time.sleep(5)
