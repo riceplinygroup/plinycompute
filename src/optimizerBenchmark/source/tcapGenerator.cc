@@ -37,6 +37,7 @@
 
 #include "PDBDebug.h"
 #include "PDBString.h"
+#include "PDBClient.h"
 #include "Query.h"
 #include "Lambda.h"
 #include "QueryClient.h"
@@ -121,39 +122,34 @@ int main() {
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
-    pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-    pdb::DispatcherClient dispatcherClient =
-        DispatcherClient(masterPort, masterHostname, clientLogger);
-    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
-
+    pdb::PDBClient pdbClient(
+            masterPort, masterHostname, clientLogger, false, true);
 
     string errMsg;
-    if (!catalogClient.registerType("libraries/libMovieStar.so", errMsg))
+    if (!pdbClient.registerType("libraries/libMovieStar.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libStarsIn.so", errMsg))
+    if (!pdbClient.registerType("libraries/libStarsIn.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libScanMovieStarSet.so", errMsg))
+    if (!pdbClient.registerType("libraries/libScanMovieStarSet.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libScanStarsInSet.so", errMsg))
+    if (!pdbClient.registerType("libraries/libScanStarsInSet.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libSimpleMovieJoin.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSimpleMovieJoin.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libSimpleMovieSelection.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSimpleMovieSelection.so", errMsg))
         cout << "Not able to register type.\n";
 
-    if (!catalogClient.registerType("libraries/libSimpleMovieWrite.so", errMsg))
+    if (!pdbClient.registerType("libraries/libSimpleMovieWrite.so", errMsg))
         cout << "Not able to register type.\n";
 
 
     // Create a new database:
-    if (!distributedStorageManagerClient.createDatabase("TCAP_db", errMsg)) {
+    if (!pdbClient.createDatabase("TCAP_db", errMsg)) {
         cout << "Not able to create database: " + errMsg;
         exit(-1);
     } else {
@@ -161,7 +157,7 @@ int main() {
     }
 
     // Create the sets for storing MovieStar data:
-    if (!distributedStorageManagerClient.createSet<MovieStar>(
+    if (!pdbClient.createSet<MovieStar>(
             "TCAP_db", "tcap_bench_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
@@ -170,7 +166,7 @@ int main() {
     }
 
     // Create the sets for storing StarsIn data:
-    if (!distributedStorageManagerClient.createSet<StarsIn>("TCAP_db", "tcap_bench_set2", errMsg)) {
+    if (!pdbClient.createSet<StarsIn>("TCAP_db", "tcap_bench_set2", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -264,16 +260,16 @@ int main() {
         // flush to disk
         distributedStorageManagerClient.flushData(errMsg);
 
-        if (!catalogClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
+        if (!pdbClient.registerType("libraries/libCustomerMultiSelection.so", errMsg))
             cout << "Not able to register type libCustomerMultiSelection.\n";
 
-        if (!catalogClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
+        if (!pdbClient.registerType("libraries/libOrderMultiSelection.so", errMsg))
             cout << "Not able to register type  libOrderMultiSelection.\n";
 
-        if (!catalogClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
+        if (!pdbClient.registerType("libraries/libCustomerSupplierPartWriteSet.so", errMsg))
             cout << "Not able to register type libOrderWriteSet.\n";
 
-        if (!catalogClient.registerType("libraries/libScanCustomerSet.so", errMsg))
+        if (!pdbClient.registerType("libraries/libScanCustomerSet.so", errMsg))
             cout << "Not able to register type libScanCustomerSet. \n";
 
         // now, create the sets for storing Customer Data

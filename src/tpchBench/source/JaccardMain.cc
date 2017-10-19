@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     }
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    pdb::PDBClient pdbClient(
+            8108, masterIp, clientLogger, false, true);
 
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",
@@ -93,15 +93,15 @@ int main(int argc, char* argv[]) {
                                   "libraries/libJaccardResultWriter.so"};
 
     for (auto& a : v) {
-        if (!catalogClient.registerType(a, errMsg)) {
+        if (!pdbClient.registerType(a, errMsg)) {
             std::cout << "could not load library: " << errMsg << "\n";
         } else {
             std::cout << "loaded library: " << a << "\n";
         }
     }
 
-    temp.removeSet("TPCH_db", "result", errMsg);
-    if (!temp.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result", errMsg)) {
+    pdbClient.removeSet("TPCH_db", "result", errMsg);
+    if (!pdbClient.createSet<TopKQueue<double, AllParts>>("TPCH_db", "result", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
