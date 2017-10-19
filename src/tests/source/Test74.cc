@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<Supervisor>("test74_db", "test74_set", errMsg)) {
+        if (!pdbClient.createSet<Supervisor>("test74_db", "test74_set", errMsg, DEFAULT_PAGE_SIZE)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<double>("test74_db", "output_set1", errMsg)) {
+    if (!pdbClient.createSet<double>("test74_db", "output_set1", errMsg, DEFAULT_PAGE_SIZE)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {

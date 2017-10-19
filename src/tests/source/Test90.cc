@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!pdbClient.createSet<OptimizedSupervisor>("test90_db", "test90_set", errMsg)) {
+        if (!pdbClient.createSet<OptimizedSupervisor>("test90_db", "test90_set", errMsg, DEFAULT_PAGE_SIZE)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
     if (strcmp(argv[5], "JustStoreData") != 0) {
 
         PDB_COUT << "to create a new set for storing output data" << std::endl;
-        if (!pdbClient.createSet<OptimizedDepartmentEmployees>("test90_db", "output_set", errMsg)) {
+        if (!pdbClient.createSet<OptimizedDepartmentEmployees>("test90_db", "output_set", errMsg, DEFAULT_PAGE_SIZE)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
