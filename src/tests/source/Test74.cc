@@ -30,6 +30,7 @@
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
+#include "PDBClient.h"
 #include "SillySelection.h"
 #include "SelectionComp.h"
 #include "FinalSelection.h"
@@ -115,9 +116,8 @@ int main(int argc, char* argv[]) {
 
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
-    DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
-
-    CatalogClient catalogClient(8108, masterIp, clientLogger);
+    pdb::PDBClient pdbClient(
+            8108, masterIp, clientLogger, false, false);
 
     string errMsg;
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!temp.createDatabase("test74_db", errMsg)) {
+        if (!pdbClient.createDatabase("test74_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<Supervisor>("test74_db", "test74_set", errMsg)) {
+        if (!pdbClient.createSet<Supervisor>("test74_db", "test74_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -223,12 +223,12 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
         }
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<double>("test74_db", "output_set1", errMsg)) {
+    if (!pdbClient.createSet<double>("test74_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -239,11 +239,11 @@ int main(int argc, char* argv[]) {
 
     // this is the object allocation block where all of this stuff will reside
     // register this query class
-    catalogClient.registerType("libraries/libSillySelection.so", errMsg);
-    catalogClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    catalogClient.registerType("libraries/libSillyAggregation.so", errMsg);
-    catalogClient.registerType("libraries/libFinalSelection.so", errMsg);
-    catalogClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
+    pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
+    pdbClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
     // create all of the computation objects
@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         myClient.deleteSet("test74_db", "output_set1");
     } else {
-        if (!temp.removeSet("test74_db", "output_set1", errMsg)) {
+        if (!pdbClient.removeSet("test74_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {
