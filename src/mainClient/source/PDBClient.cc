@@ -85,12 +85,41 @@ namespace pdb {
     bool PDBClient::createSet(const std::string& databaseName,
                               const std::string& setName,
                               const std::string& typeName,
+                              std::string& errMsg) {
+
+        return distributedStorageClient.createSet(databaseName, setName,
+                typeName, errMsg, DEFAULT_PAGE_SIZE);
+    }
+
+    template <class DataType>
+    bool PDBClient::createSet(const std::string& databaseName,
+                              const std::string& setName,
+                              std::string& errMsg) {
+
+        return distributedStorageClient.createSet<DataType>(databaseName, setName,
+                              errMsg, DEFAULT_PAGE_SIZE);
+    }
+
+    bool PDBClient::createSet(const std::string& databaseName,
+                              const std::string& setName,
+                              const std::string& typeName,
                               std::string& errMsg,
                               size_t pageSize) {
 
         return distributedStorageClient.createSet(databaseName, setName,
                 typeName, errMsg, pageSize);
     }
+
+    template <class DataType>
+    bool PDBClient::createSet(const std::string& databaseName,
+                              const std::string& setName,
+                              std::string& errMsg,
+                              size_t pageSize) {
+
+        return distributedStorageClient.createSet<DataType>(databaseName, setName,
+                errMsg, pageSize);
+    }
+
 
     bool PDBClient::createTempSet(const std::string& databaseName,
                                   const std::string& setName,
