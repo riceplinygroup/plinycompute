@@ -89,13 +89,13 @@ int main() {
 
     Record<Vector<Handle<Supervisor>>>* myBytes = getRecord<Vector<Handle<Supervisor>>>(supers);
 
-    int filedesc = open("testfile", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    int fileDesc = open("testfile", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     // added by Jia
-    size_t sizeWritten = write(filedesc, myBytes, myBytes->numBytes());
+    ssize_t sizeWritten = write(fileDesc, myBytes, myBytes->numBytes());
     if (sizeWritten == 0) {
         std::cout << "Write failed" << std::endl;
     }
-    close(filedesc);
+    close(fileDesc);
 
 
     // Start of the Second Phase - Reading File Back
@@ -106,14 +106,13 @@ int main() {
 
     // get the file size
     std::ifstream in2("testfile", std::ifstream::ate | std::ifstream::binary);
-    size_t fileLen2 = in2.tellg();
+    ssize_t fileLen2 = in2.tellg();
 
     // read in the serialized record
     int filedesc2 = open("testfile", O_RDONLY);
 
-    Record<Vector<Handle<Supervisor>>>* myNewBytes =
-        (Record<Vector<Handle<Supervisor>>>*)malloc(fileLen2);
-    size_t sizeRead = read(filedesc2, myNewBytes, fileLen2);
+    auto * myNewBytes = (Record<Vector<Handle<Supervisor>>>*)malloc(static_cast<size_t>(fileLen2));
+    ssize_t sizeRead = read(filedesc2, myNewBytes, static_cast<size_t>(fileLen2));
     // added by Jia
     if (sizeRead == 0) {
         std::cout << "Read failed" << std::endl;
@@ -122,19 +121,18 @@ int main() {
     Handle<Vector<Handle<Supervisor>>> mySupers = myNewBytes->getRootObject();
 
     // and loop through it, copying over some employees
-    int numSupers = (*mySupers).size();
+    size_t numSupers = (*mySupers).size();
 
     Handle<Vector<Handle<Employee>>> result = makeObject<Vector<Handle<Employee>>>(10);
-    for (int i = 0; i < numSupers; i++) {
-        result->push_back((*mySupers)[i]->getEmp(i % 10));
+    for (int k = 0; k < numSupers; k++) {
+        result->push_back((*mySupers)[k]->getEmp(k % 10));
     }
 
     // now, we serialize those employees
     close(filedesc2);
 
-    for (int i = 0; i < numSupers; i += 1000) {
-
-        QUNIT_IS_EQUAL(i, (*result)[i]->getAge());
+    for (int k = 0; k < numSupers; k += 1000) {
+        QUNIT_IS_EQUAL(k, (*result)[k]->getAge());
     }
 
     // free memory

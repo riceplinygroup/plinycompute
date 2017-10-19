@@ -39,3 +39,4 @@ RUN make
 RUN make install
 
 RUN apt-get install -y libsnappy1v5 libsnappy-dev
+RUN apt-get install -y libgsl-dev

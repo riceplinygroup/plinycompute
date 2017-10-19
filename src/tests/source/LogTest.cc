@@ -16,15 +16,11 @@
  *                                                                           *
  *****************************************************************************/
 #include <iostream>
-
 #include "PDBServer.h"
-
-#include "PDBLogger.h"
 
 using namespace pdb;
 
-
-void logToFile(pdb::PDBLoggerPtr logger) {
+void logToFile(const pdb::PDBLoggerPtr &logger) {
     logger->fatal("This is a FATAL");
     logger->error("This is a ERROR");
     logger->info("This is a INFO");

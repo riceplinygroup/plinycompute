@@ -30,8 +30,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string>
+#include "InterfaceFunctions.h"
 
-Allocator allocator;
+using namespace pdb;
 
 template <class DataType>
 class LinkedList {

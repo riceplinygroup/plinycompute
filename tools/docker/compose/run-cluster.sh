@@ -15,9 +15,13 @@
 #!/usr/bin/env bash
 
 # copy the binaries
-mkdir ../cluster-image/libraries
-cp -r ../../../libraries/* ../cluster-image/libraries
-cp -r ../../../bin/* ../cluster-image/
+cp -r ../../../bin/pdb-cluster ../cluster-image/
+cp -r ../../../bin/pdb-server ../cluster-image/
+cp -r ../../../bin/MasterServerTest ../cluster-image/
+
+#cp -r ../../../bin/CatalogServerTests ../cluster-image/
+#cp -r ../../../bin/GetListNodesTest ../cluster-image/
+#cp -r ../../../bin/GetListNodesTest ../cluster-image/
 
 # rebuild the images
 docker-compose rm

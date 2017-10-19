@@ -9,4 +9,6 @@ WORKDIR /pdb
 # add the binaries
 ADD pdb-cluster /pdb
 ADD pdb-server /pdb
-ADD libraries /pdb/libraries
+ADD MasterServerTest /pdb
+# ADD CatalogServerTests /pdb
+# ADD GetListNodesTest /pdb
