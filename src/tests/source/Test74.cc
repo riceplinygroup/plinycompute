@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, false);
+            8108, masterIp, clientLogger, false, true);
 
     string errMsg;
 

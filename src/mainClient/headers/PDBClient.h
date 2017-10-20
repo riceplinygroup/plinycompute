@@ -51,8 +51,8 @@ namespace pdb {
          * useQueryScheduler: true if Query Scheduler is used
          */
         PDBClient(int portIn, std :: string addressIn,
-                  PDBLoggerPtr myLoggerIn, bool usePangea,
-                  bool useQueryScheduler);
+                  PDBLoggerPtr myLoggerIn, bool usePangeaIn,
+                  bool useQuerySchedulerIn);
 
         PDBClient();
 
