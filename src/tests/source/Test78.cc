@@ -249,14 +249,15 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
 
+    //TODO remove this, here is just for testing.
     CatalogClient catClient(8108, masterIp, clientLogger);
 
-    catClient.registerType("libraries/libIntSillyJoin.so", errMsg);
-    catClient.registerType("libraries/libScanIntSet.so", errMsg);
-    catClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
-    catClient.registerType("libraries/libStringSelectionOfStringIntPair.so", errMsg);
-    catClient.registerType("libraries/libIntAggregation.so", errMsg);
-    catClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+    pdbClient.registerType("libraries/libIntSillyJoin.so", errMsg);
+    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
+    pdbClient.registerType("libraries/libStringSelectionOfStringIntPair.so", errMsg);
+    pdbClient.registerType("libraries/libIntAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
 
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test78_db", "test78_set1");
