@@ -26,9 +26,9 @@ namespace pdb {
     PDBClient::PDBClient() {}
 
     PDBClient::PDBClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn,
-            bool usePangaea, bool useQueryScheduler) :
+            bool usePangaeaIn, bool useQuerySchedulerIn) :
                 port(portIn), address(addressIn), logger(myLoggerIn),
-                usePangea(usePangaea), useQueryScheduler(useQueryScheduler) {
+                usePangea(usePangaeaIn), useQueryScheduler(useQuerySchedulerIn) {
 
         catalogClient = pdb::CatalogClient(
             portIn,
