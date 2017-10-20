@@ -68,7 +68,7 @@ print("#################################")
 print("CLEAN UP THE TESTING ENVIRONMENT")
 print("#################################")
 subprocess.call(['bash', './scripts/cleanupNode.sh'])
-numTotal = 5
+numTotal = 4
 numErrors = 0
 numPassed = 0
 

@@ -34,5 +34,23 @@ namespace pdb {
                                   errMsg, pageSize);
     }
 
+    template <class... Types>
+    bool PDBClient::executeComputations(std::string& errMsg,
+                             Handle<Computation> firstParam,
+                             Handle<Types>... args) {
+        return queryClient.executeComputations(errMsg, args...);
+    }
+
+    bool PDBClient::deleteSet(std::string databaseName, std::string setName) {
+        return queryClient.deleteSet(databaseName, setName);
+    }
+
+    template <class Type>
+    SetIterator<Type> PDBClient::getSetIterator(std::string databaseName, std::string setName){
+        return queryClient.getSetIterator<Type>(databaseName, setName);
+    }
+
+
+
 }
 #endif

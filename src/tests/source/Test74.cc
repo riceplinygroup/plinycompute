@@ -142,7 +142,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         if (numOfMb > 0) {
@@ -209,7 +208,7 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!dispatcherClient.sendData<Supervisor>(
+                    if (!pdbClient.sendData<Supervisor>(
                             std::pair<std::string, std::string>("test74_set", "test74_db"),
                             storeMe,
                             errMsg)) {
@@ -235,8 +234,6 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 
-    QueryClient myClient(8108, "localhost", clientLogger, true);
-
     // this is the object allocation block where all of this stuff will reside
     // register this query class
     pdbClient.registerType("libraries/libSillySelection.so", errMsg);
@@ -258,7 +255,7 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(mySelection);
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -273,7 +270,7 @@ int main(int argc, char* argv[]) {
     // print the resuts
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
-        SetIterator<double> result = myClient.getSetIterator<double>("test74_db", "output_set1");
+        SetIterator<double> result = pdbClient.getSetIterator<double>("test74_db", "output_set1");
 
         std::cout << "Query results: ";
         int count = 0;
@@ -292,7 +289,7 @@ int main(int argc, char* argv[]) {
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("test74_db", "output_set1");
+        pdbClient.deleteSet("test74_db", "output_set1");
     } else {
         if (!pdbClient.removeSet("test74_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;

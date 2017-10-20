@@ -44,10 +44,11 @@ namespace pdb {
     public:
 
         /* Creates PDBClient
-         *       portIn: the port number of the Master Catalog
-         *    addressIn: the IP address of the Master Catalog
-         *    usePangea: the path of the location of the catalog
-         *   myLoggerIn: true if this is the Master Catalog Server
+         *            portIn: the port number of the PDB master server
+         *         addressIn: the IP address of the PDB master server
+         *        myLoggerIn: the logger
+         *         usePangea: true if Pangea is used
+         * useQueryScheduler: true if Query Scheduler is used
          */
         PDBClient(int portIn, std :: string addressIn,
                   PDBLoggerPtr myLoggerIn, bool usePangea,
@@ -182,6 +183,23 @@ namespace pdb {
 
         template <class DataType>
         bool sendBytes(std::pair<std::string, std::string> setAndDatabase, char * bytes, size_t numBytes, std::string& errMsg);
+
+        /****
+         * Methods for invoking Query-related operations
+         */
+
+        /* Executes some computations */
+        template <class... Types>
+        bool executeComputations(std::string& errMsg,
+                                 Handle<Computation> firstParam,
+                                 Handle<Types>... args);
+
+        /* Deletes a set. */
+        bool deleteSet(std::string databaseName, std::string setName);
+
+        /* Gets a set iterator. */
+        template <class Type>
+        SetIterator<Type> getSetIterator(std::string databaseName, std::string setName);
 
     private:
 
