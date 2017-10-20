@@ -216,7 +216,7 @@ add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(boost-filesystem OBJECT ${BOOST_FILESYSTEM_SOURCE})
 add_library(program-options OBJECT ${PROGRAM_OPTIONS_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(system OBJECT ${SYSTEM_SOURCE})
-add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
+add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(pdb-shared $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
