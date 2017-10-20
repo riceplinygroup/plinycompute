@@ -237,11 +237,6 @@ namespace pdb {
         return dispatcherClient.registerSet(setAndDatabase, policy, errMsg);
     }
 
-    template <class DataType>
-    bool PDBClient::sendData(std::pair<std::string, std::string> setAndDatabase, Handle<Vector<Handle<DataType>>> dataToSend, std::string& errMsg) {
-        return dispatcherClient.sendData(setAndDatabase, dataToSend, errMsg);
-    }
-
     /****
      * Methods for invoking Query-related operations
      */
