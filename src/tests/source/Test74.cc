@@ -50,7 +50,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
-#include <thread>
+
 
 // to run the aggregate, the system first passes each through the hash operation...
 // then the system
@@ -234,15 +234,13 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 	
-    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
-    pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
-    pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
-    pdbClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
+    CatalogClient catClient(8108, masterIp, clientLogger);
 
-    // pause for 15 secs just to allow shared libraries to register
-    // TODO find a way to synchronize
-    std::this_thread::sleep_for(std::chrono::seconds(15));
+    catClient.registerType("libraries/libSillySelection.so", errMsg);
+    catClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
+    catClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    catClient.registerType("libraries/libFinalSelection.so", errMsg);
+    catClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
     // create all of the computation objects
