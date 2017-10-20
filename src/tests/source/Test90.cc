@@ -45,7 +45,7 @@
 #include <sys/stat.h>
 #include <chrono>
 #include <fcntl.h>
-
+#include <thread>
 
 // to run the aggregate, the system first passes each through the hash operation...
 // then the system
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, false);
+            8108, masterIp, clientLogger, false, true);
 
     string errMsg;
 
@@ -143,8 +143,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
         int total = 0;
         if (numOfMb > 0) {
             int numIterations = numOfMb / 128;
@@ -212,7 +210,7 @@ int main(int argc, char* argv[]) {
                         storeMe->push_back(myData);
                         total++;
                         if (total == numObjects) {
-                            if (!dispatcherClient.sendData<OptimizedSupervisor>(
+                            if (!pdbClient.sendData<OptimizedSupervisor>(
                                     std::pair<std::string, std::string>("test90_set", "test90_db"),
                                     storeMe,
                                     errMsg)) {
@@ -228,7 +226,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     // std :: cout << "We comes to " << i << " here" << std :: endl;
-                    if (!dispatcherClient.sendData<OptimizedSupervisor>(
+                    if (!pdbClient.sendData<OptimizedSupervisor>(
                             std::pair<std::string, std::string>("test90_set", "test90_db"),
                             storeMe,
                             errMsg)) {
@@ -257,13 +255,15 @@ int main(int argc, char* argv[]) {
             cout << "Created set.\n";
         }
 
-        QueryClient myClient(8108, "localhost", clientLogger, true);
-
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
         // register this query class
         pdbClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
         pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
+
+        // pause for 15 secs just to allow shared libraries to register
+        // TODO find a way to synchronize
+        std::this_thread::sleep_for(std::chrono::seconds(15));
 
         // create all of the computation objects
         Handle<Computation> myScanSet =
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, myAgg)) {
+        if (!pdbClient.executeComputations(errMsg, myAgg)) {
             std::cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
         if (printResult == true) {
             std::cout << "to print result..." << std::endl;
             SetIterator<OptimizedDepartmentEmployees> result =
-                myClient.getSetIterator<OptimizedDepartmentEmployees>("test90_db", "output_set");
+                pdbClient.getSetIterator<OptimizedDepartmentEmployees>("test90_db", "output_set");
             std::cout << "Query results: ";
             int count = 0;
             for (auto a : result) {
@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet("test90_db", "output_set");
+            pdbClient.deleteSet("test90_db", "output_set");
         } else {
             if (!pdbClient.removeSet("test90_db", "output_set", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
