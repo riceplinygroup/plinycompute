@@ -59,7 +59,7 @@ namespace pdb {
     bool PDBClient::executeComputations(std::string& errMsg,
                              Handle<Computation> firstParam,
                              Handle<Types>... args) {
-        return queryClient.executeComputations(errMsg, args...);
+        return queryClient.executeComputations(errMsg, firstParam, args...);
     }
 
     template <class Type>
