@@ -41,10 +41,6 @@ namespace pdb {
         return queryClient.executeComputations(errMsg, args...);
     }
 
-    bool PDBClient::deleteSet(std::string databaseName, std::string setName) {
-        return queryClient.deleteSet(databaseName, setName);
-    }
-
     template <class Type>
     SetIterator<Type> PDBClient::getSetIterator(std::string databaseName, std::string setName){
         return queryClient.getSetIterator<Type>(databaseName, setName);

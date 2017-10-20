@@ -242,6 +242,14 @@ namespace pdb {
         return dispatcherClient.sendData(setAndDatabase, dataToSend, errMsg);
     }
 
+    /****
+     * Methods for invoking Query-related operations
+     */
+    bool PDBClient::deleteSet(std::string databaseName, std::string setName) {
+        return queryClient.deleteSet(databaseName, setName);
+    }
+
+
 }
 
 #endif
