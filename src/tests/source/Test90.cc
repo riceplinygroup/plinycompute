@@ -143,8 +143,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
         int total = 0;
         if (numOfMb > 0) {
             int numIterations = numOfMb / 128;
@@ -212,7 +210,7 @@ int main(int argc, char* argv[]) {
                         storeMe->push_back(myData);
                         total++;
                         if (total == numObjects) {
-                            if (!dispatcherClient.sendData<OptimizedSupervisor>(
+                            if (!pdbClient.sendData<OptimizedSupervisor>(
                                     std::pair<std::string, std::string>("test90_set", "test90_db"),
                                     storeMe,
                                     errMsg)) {
@@ -228,7 +226,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     // std :: cout << "We comes to " << i << " here" << std :: endl;
-                    if (!dispatcherClient.sendData<OptimizedSupervisor>(
+                    if (!pdbClient.sendData<OptimizedSupervisor>(
                             std::pair<std::string, std::string>("test90_set", "test90_db"),
                             storeMe,
                             errMsg)) {
@@ -257,8 +255,6 @@ int main(int argc, char* argv[]) {
             cout << "Created set.\n";
         }
 
-        QueryClient myClient(8108, "localhost", clientLogger, true);
-
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
         // register this query class
@@ -275,7 +271,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, myAgg)) {
+        if (!pdbClient.executeComputations(errMsg, myAgg)) {
             std::cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -292,7 +288,7 @@ int main(int argc, char* argv[]) {
         if (printResult == true) {
             std::cout << "to print result..." << std::endl;
             SetIterator<OptimizedDepartmentEmployees> result =
-                myClient.getSetIterator<OptimizedDepartmentEmployees>("test90_db", "output_set");
+                pdbClient.getSetIterator<OptimizedDepartmentEmployees>("test90_db", "output_set");
             std::cout << "Query results: ";
             int count = 0;
             for (auto a : result) {
@@ -307,7 +303,7 @@ int main(int argc, char* argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet("test90_db", "output_set");
+            pdbClient.deleteSet("test90_db", "output_set");
         } else {
             if (!pdbClient.removeSet("test90_db", "output_set", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
