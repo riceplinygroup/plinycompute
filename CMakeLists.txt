@@ -75,6 +75,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src/dummyFolder/headers")
 include_directories("${PROJECT_SOURCE_DIR}/src/sharedLibraries/headers")
 include_directories("${PROJECT_SOURCE_DIR}/src/queryExecution/headers")
 include_directories("${PROJECT_SOURCE_DIR}/src/boost")
+include_directories("${PROJECT_SOURCE_DIR}/src/mainClient/headers")
 
 # specify the source files
 file(GLOB SERVER_FUNCTIONALITIES_SOURCE "${PROJECT_SOURCE_DIR}/src/serverFunctionalities/source/*.cc")
@@ -96,6 +97,7 @@ file(GLOB LINEAR_ALGEBRA_DSL_SOURCE "${PROJECT_SOURCE_DIR}/src/linearAlgebraDSL/
 file(GLOB BOOST_FILESYSTEM_SOURCE "${PROJECT_SOURCE_DIR}/src/boost/libs/filesystem/src/*.cpp")
 file(GLOB PROGRAM_OPTIONS_SOURCE "${PROJECT_SOURCE_DIR}/src/boost/libs/program_options/src/*.cpp")
 file(GLOB SYSTEM_SOURCE "${PROJECT_SOURCE_DIR}/src/boost/libs/system/src/*.cpp")
+file(GLOB PDB_CLIENT_SOURCE "${PROJECT_SOURCE_DIR}/src/mainClient/source/*.cc")
 set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/src/sqlite/source/sqlite3.c)
 
 # specify the hearder files
@@ -214,6 +216,7 @@ add_library(linear-algebra OBJECT ${LINEAR_ALGEBRA_DSL_SOURCE})
 add_library(boost-filesystem OBJECT ${BOOST_FILESYSTEM_SOURCE})
 add_library(program-options OBJECT ${PROGRAM_OPTIONS_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(system OBJECT ${SYSTEM_SOURCE})
+add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(pdb-shared $<TARGET_OBJECTS:sql-lite>
         $<TARGET_OBJECTS:server-functionalities>
@@ -256,21 +259,6 @@ set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/mainServer/source/WorkerM
 add_executable(pdb-server ${SOURCE_FILES_PDB_CLUSTER})
 target_link_libraries(pdb-server pdb-shared)
 
-# set the source for the pdb-cluster
-set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/tests/source/CatalogServerTests.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-add_executable(catalog-server-tests ${SOURCE_FILES_PDB_CLUSTER})
-target_link_libraries(catalog-server-tests pdb-shared)
-
-# set the source for te catalog-tests
-set(SOURCE_FILES_CATALOG_TESTS ${PROJECT_SOURCE_DIR}/src/tests/source/CatalogTests.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-add_executable(catalog-tests ${SOURCE_FILES_CATALOG_TESTS})
-target_link_libraries(catalog-tests pdb-shared)
-
-# set the source for te sily-join test
-set(SOURCE_FILES_SELECTION_TEST ${PROJECT_SOURCE_DIR}/src/tests/source/Test94.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-add_executable(optimized-join-test ${SOURCE_FILES_SELECTION_TEST})
-target_link_libraries(optimized-join-test pdb-shared)
-
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/sharedLibraries/source/*.cc")
 foreach(file ${files})
@@ -283,7 +271,7 @@ endforeach()
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/tests/source/*.cc")
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
-    add_executable(${fileName} ${file} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
+    add_executable(${fileName} ${file} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser> $<TARGET_OBJECTS:pdb-client> $<TARGET_OBJECTS:linear-algebra-parser>)
     target_link_libraries(${fileName} pdb-shared)
     target_link_libraries(${fileName} ${GSL_LIBRARIES})
 endforeach()
