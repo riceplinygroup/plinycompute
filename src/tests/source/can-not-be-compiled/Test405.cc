@@ -18,10 +18,10 @@
 #ifndef TEST_405_CC
 #define TEST_405_CC
 
+#include "PDBClient.h"
 #include "PDBServer.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
-#include "CatalogClient.h"
 
 #include "SharedEmployee.h"
 #include "StorageAddDatabase.h"
