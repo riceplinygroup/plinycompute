@@ -34,6 +34,16 @@ namespace pdb {
                                   errMsg, pageSize);
     }
 
+    template <class DataType>
+    bool PDBClient::sendData(
+            std::pair<std::string, std::string> setAndDatabase,
+            Handle<Vector<Handle<DataType>>> dataToSend,
+            std::string& errMsg) {
+
+        return dispatcherClient.sendData<DataType>(setAndDatabase, dataToSend, errMsg);
+    }
+
+
     template <class... Types>
     bool PDBClient::executeComputations(std::string& errMsg,
                              Handle<Computation> firstParam,
