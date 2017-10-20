@@ -1,0 +1,75 @@
+
+\section{System Implementation}
+Centered around the PC object model, TCAP compiler and PC pipeline execution, we've built a distributed system to manage large scale PC objects and support user queries and analytics workloads, as illustrated in Fig.~\ref{fig:arch}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.75\textwidth]{arch.pdf}
+  \caption{\label{fig:arch} PC distributed runtime.}
+\end{figure}
+
+The Master server contains four components: 
+
+\begin{enumerate}
+\item \emph{Catalog Manager}, serving system meta-data as well as dynamically-loaded code for performing computation over PC \texttt{Object}s;
+\item \emph{Distributed Storage Manager}, a centralized server functionality to manage storage subsystem in each worker server to perform Create, Read, Update, Delete operations over datasets of PC \texttt{Object}s across a distributed cluster.
+\item \emph{TCAP Optimizer},  responsible for optimizing programs that have been compiled into PC's domain-specific TCAP langague.
+\item \emph{Distributed Query Scheduler}, responsible for accepting optimized TCAP computations, dynamically schedule job stages from TCAP, and executing the compiled TCAP code on the cluster for each job stage.
+\end{enumerate}
+
+Each worker machine in a PC cluster runs two processes: a frontend process and a backend process.
+Dual processes are used because PC executes potentailly unsafe native user code.  By definition, user code is run only in the backend process---if            
+user code happens to crash the backed process, it can be restarted by the front end.
+
+The frontend process runs following components:
+
+\begin{enumerate}
+\item \emph{Local Catalog}, storing local meta data and dynamically-loaded code dispatched to this worker;
+\item \emph{Storage Server}, a local storage server that manages a shared-memory buffer pool used for buffering and caching datasets and a user-level file system used to store persist datasets or data spills. The buffer pool shared memory is created via mmap system call, so data stored in it can be read by backend process (which is forked from the frontend process) through zero-copy access. The local storage server manages a number of datasets. Each dataset consists of one or more pages (with default size being 256 mega bytes), which can be cached in buffer pool and/or spill to the user-level file system.
+\item \emph{Message Proxy},  responsible for communicating with backend process to bridge the Master Server, local catalog, local storage server and the backend process.
+
+\end{enumerate}
+
+The backend process consists of a query execution engine that executes various types of computation, such as selection, multiselection, aggregation, broadcast join, hashPartitioned join, topK and so on. Here we describe the execution of aggregation as an example.
+
+
+\subsection{Aggregation Example}
+As shown in Fig.~\ref{fig:aggregation},  PC aggregation implementation provides high performance service based on (i) the object model that avoids serialization and deserialization overhead when shuffling data; (ii) decomposing the complex multi-producer/multi-consumer processing into a set of multi-threading stages connected by zero-copy and low-synchronization pointer queues to avoid materializing intermediate data and avoid overcommiting resources when demand exeeds service capacity; (iii) employment of dynamic control to automatically tune runtime parameters (e.g. number of threads and buffer size for each stage) to improve resource utilization. 
+
+\begin{figure}
+\centering
+\includegraphics[width=0.75\textwidth]{aggregation.pdf}
+  \caption{\label{fig:aggregation} Aggregation Implementation Illustration.}
+\end{figure}
+
+As illustrated in Fig.~\ref{fig:aggregation}, the QueryScheduler server will schedule an Aggregation computation into two consecutive JobStages. The first JobStage do the pre-aggregation and shuffle pre-aggregation results to each other worker, so that each worker have all the data for one or more partitions. The second JobStage completes the aggregation for each partition. The details are described as following.
+
+\vspace{5pt}
+{\bf 1. Producing Stage.} This stage consists of $N$ pipelining threads to scan and process pages in the input set. An input page has a container Vector$<$Object$>$ or Map$<$Object$>$ to hold input objects to process. Each pipeline thread will invoke makeObjectAllocatorBlock() to allocate a temporary page to write intermediate data and output key-value pairs. Each such temporary page is allocated in heap and has a handle to container Vector$<$Map $<$Object, Object$>$$>$ as the pipe sink, where each Map Object corresponds to a hash partition. 
+
+When pipeline threads start running, each pipeline thread iteratively generates batches of Objects from the container in the input page. A batch typically consists of hundereds of Objects to amortize function call overhead and also fit intermediate data to cache size to avoid OS cache miss and page faults overhead. For each batch, the pipeline thread applies the a series of lambda functions that are compiled from TCAP to each batch. In the end, for each element in the batch the pipeline will transform it into a Key Value pair. Then the Key in the pair will be hashed to match the hash partition that the Key Value pair belongs to and then the pair will be inserted to the Map$<$Object, Object$>$ in the container that corresponds to the hash partition.
+
+In the same time, $K$ combining threads are running in local to pre-aggregate key-value pairs for hash partitions allocated for a specific cluster node. 
+
+To efficiently pass the pipe sink pages to combining threads with minimum memory copy and synchronization overhead, we provide a zero-copy pointer queue structure to connect pipelining threads to combining threads. Once a pipe sink page becomes full, we get the pointer to that page, and append the pointer to each combining thread's pointer queue ( and allocate a new temporary page for pipe sink ). Then each combining thread can read the container in the same page in parallel, but will only select from the container a subset of hash partitions that it is responsible for to process. We maintain a reference count for each page, before appending a Record pointer to the all the queues, we increment the reference count to be the total number of queues. Later for each dequeue operation, the reference count will be decremented. The page data will only be freed from heap when reference count reduces to zero. 
+
+Each combining thread writes pre-aggregated key-value pairs of its responsible partitions, also in the form of Vector$<$Map$<$Object, Object$>$$>$, to a thread-local combiner page that can have arbitrary size (automatically tuned to use as much memory as possible). 
+
+Once a combiner page becomes full, the container in the page is directly sent to the corresponding cluster node for final aggregation and a new combiner page will be allocated. Each node stores received container into a shuffle set that is created in buffer pool and will be processed in the consuming stage. Because all objects are inherited from Object or be simple C++ type, there is no need to serialize/deserialize data for shuffling. Compression can be enabled to reduce shuffle data size through configuration.
+ 
+\vspace{5pt}
+{\bf 2. Consuming Stage.} This stage consists of $N$ scanning threads and $M$ aggregation threads. Each aggregation thread is responsible for one hash partition,  so $M$ is the total number of partitions on each node.
+
+Similar with combining in the Producing stage, each aggregation thread has a zero-copy pointer queue that connects to all scanning threads.
+
+Scanning threads retrieve different subsets of pages from the shuffle set, and append the pointer to each shuffle page to each aggregation thread's incoming queue, so that all aggregation thread can find and process its own partition in all shuffle pages in parallel. For each shuffle page, an aggregation thread first gets the Handle to the Vector$<$Map$<$Object, Object$>$$>$ container, and then gets the Handle to the Map partition in the Vector container that this aggregation thread is responsible for. Each aggregation thread allocates a large enough page in the heap to serve as thread-local allocation block, and creates a Map$<$Object, Object$>$ container in the allocation block to write aggregation results to serve as aggregation sink. So each Key Value pair in the source maps extracted from shuffle pages is inserted and aggregated to the aggregation sink. 
+
+All aggregation sinks form a special hash set. The lifetime of input set, shuffle set and hash set are managed automatically by the distributed query scheduler component.
+
+
+\vspace{5pt}
+
+On each node, all parameters like number of hash partitions $M$, number of pipelining threads $N$, number of combining Gthreads for each remote node $K$, combiner page size, and aggregation page size are all automatically determined at run-time to maximize memory utilization, network utilization and CPU utilization. For example, $M$ and $N$ are tuned to be proportional (1.5 times by default) to CPU core number on each node, $K$ is tuned as a trade-off between context switch overhead and amount of data that needs to be shuffled, so we reduce $K$ when there are a lot of remote nodes to shuffle data to reduce context swith overhead and we increase $K$ when the data to shuffle increases to be able to transfer data to consumer in time. Combiner page size and aggregation page size are all tuned to be the total free memory multiplied by a pre-configured ratio (0.8 by default) to maximize memory utilization. 
+
+
+
