@@ -49,7 +49,7 @@ namespace pdb {
             portIn,
             addressIn,
             make_shared<pdb::PDBLogger>("queryClientLog"),
-            useQueryScheduler);
+            useQuerySchedulerIn);
 
     }
 
