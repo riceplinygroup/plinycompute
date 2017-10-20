@@ -258,12 +258,11 @@ int main(int argc, char* argv[]) {
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
         // register this query class
-        pdbClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
-        pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
-        // pause for 15 secs just to allow shared libraries to register
-        // TODO find a way to synchronize
-        std::this_thread::sleep_for(std::chrono::seconds(15));
+        CatalogClient catClient(8108, masterIp, clientLogger);
+
+        catClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
+        catClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
         // create all of the computation objects
         Handle<Computation> myScanSet =

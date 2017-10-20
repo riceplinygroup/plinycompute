@@ -318,18 +318,17 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
-    // register this query class
-    pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
-    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
-    pdbClient.registerType("libraries/libIntSelectionOfStringIntPair.so", errMsg);
-    pdbClient.registerType("libraries/libWriteIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
+    CatalogClient catClient(8108, masterIp, clientLogger);
 
-    // pause for 15 secs just to allow shared libraries to register
-    // TODO find a way to synchronize
-    std::this_thread::sleep_for(std::chrono::seconds(15));
+    // register this query class
+    catClient.registerType("libraries/libSillyJoin.so", errMsg);
+    catClient.registerType("libraries/libScanIntSet.so", errMsg);
+    catClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
+    catClient.registerType("libraries/libScanStringSet.so", errMsg);
+    catClient.registerType("libraries/libIntSelectionOfStringIntPair.so", errMsg);
+    catClient.registerType("libraries/libWriteIntSet.so", errMsg);
+    catClient.registerType("libraries/libWriteStringSet.so", errMsg);
+
 
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test79_db", "test79_set1");
