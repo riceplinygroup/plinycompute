@@ -234,13 +234,14 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 	
+    //TODO remove this, here is just for testing.
     CatalogClient catClient(8108, masterIp, clientLogger);
 
-    catClient.registerType("libraries/libSillySelection.so", errMsg);
-    catClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    catClient.registerType("libraries/libSillyAggregation.so", errMsg);
-    catClient.registerType("libraries/libFinalSelection.so", errMsg);
-    catClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
+    pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
+    pdbClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
     // create all of the computation objects

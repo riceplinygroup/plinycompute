@@ -261,8 +261,8 @@ int main(int argc, char* argv[]) {
 
         CatalogClient catClient(8108, masterIp, clientLogger);
 
-        catClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
-        catClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
+        pdbClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
+        pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
         // create all of the computation objects
         Handle<Computation> myScanSet =
