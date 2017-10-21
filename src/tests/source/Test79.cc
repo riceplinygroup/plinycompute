@@ -120,7 +120,16 @@ int main(int argc, char* argv[]) {
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, true);
+            8108,
+            masterIp,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -317,8 +326,6 @@ int main(int argc, char* argv[]) {
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
-
-    CatalogClient catClient(8108, masterIp, clientLogger);
 
     // register this query class
     pdbClient.registerType("libraries/libSillyJoin.so", errMsg);

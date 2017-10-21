@@ -15,7 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
 #ifndef PDB_CLIENT_TEMPLATE_CC
 #define PDB_CLIENT_TEMPLATE_CC
 
