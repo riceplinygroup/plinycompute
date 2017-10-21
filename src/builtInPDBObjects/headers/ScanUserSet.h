@@ -21,9 +21,6 @@
 
 // PRELOAD %ScanUserSet <Nothing>%
 
-// by Jia, Mar 2017
-
-
 #include "TypeName.h"
 #include "Computation.h"
 #include "PageCircularBufferIterator.h"
@@ -39,7 +36,36 @@ template <class OutputClass>
 class ScanUserSet : public Computation {
 
 public:
-    ENABLE_DEEP_COPY
+
+    // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
+    // Array is the one variable-sized type that we allow, we need to manually override
+    // these methods
+    void setUpAndCopyFrom(void* target, void* source) const override {
+        new (target) ScanUserSet<OutputClass> ();
+        ScanUserSet<OutputClass>& fromMe = *((ScanUserSet<OutputClass> *) source);
+        ScanUserSet<OutputClass>& toMe = *((ScanUserSet<OutputClass> *) target);
+        toMe.iterator = fromMe.iterator;
+        toMe.proxy = fromMe.proxy;
+        toMe.batchSize = fromMe.batchSize;
+        toMe.dbName = fromMe.dbName;
+        toMe.setName = fromMe.setName;
+
+    }
+
+    void deleteObject(void* deleteMe) override {
+        deleter(deleteMe, this);
+    }
+
+    size_t getSize(void* forMe) override {
+        return sizeof(ScanUserSet<OutputClass>);
+    }
+
+    ScanUserSet () {}
+
+    ScanUserSet (std :: string dbName, std :: string setName) {
+        this->dbName = dbName;
+        this->setName = setName;
+    }
 
     ~ScanUserSet() {
         this->iterator = nullptr;
@@ -91,8 +117,7 @@ public:
             );
     }
 
-    // JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb
-    // object
+    // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object
     void setIterator(PageCircularBufferIteratorPtr iterator) {
         this->iterator = iterator;
     }
@@ -198,8 +223,7 @@ public:
     }
 
 protected:
-    // JiaNote: be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb
-    // object.
+    // Be careful here that we put PageCircularBufferIteratorPtr and DataProxyPtr in a pdb object.
     PageCircularBufferIteratorPtr iterator = nullptr;
 
     DataProxyPtr proxy = nullptr;
