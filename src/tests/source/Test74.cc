@@ -117,7 +117,15 @@ int main(int argc, char* argv[]) {
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, true);
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -234,9 +242,6 @@ int main(int argc, char* argv[]) {
         cout << "Created set.\n";
     }
 	
-    //TODO remove this, here is just for testing.
-    CatalogClient catClient(8108, masterIp, clientLogger);
-
     pdbClient.registerType("libraries/libSillySelection.so", errMsg);
     pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
     pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);

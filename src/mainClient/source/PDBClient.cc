@@ -25,6 +25,42 @@ namespace pdb {
 
     PDBClient::PDBClient() {}
 
+    PDBClient::PDBClient(
+            int portIn,
+            std :: string addressIn,
+            PDBLoggerPtr myLoggerIn,
+            bool usePangaeaIn,
+            bool useQuerySchedulerIn) :
+                port(portIn),
+                address(addressIn),
+                logger(myLoggerIn),
+                usePangea(usePangaeaIn),
+                useQueryScheduler(useQuerySchedulerIn) {
+
+        catalogClient = pdb::CatalogClient(
+            portIn,
+            addressIn,
+            make_shared<pdb::PDBLogger>("catalogClientLog"));
+
+        dispatcherClient = DispatcherClient(
+            portIn,
+            addressIn,
+            make_shared<pdb::PDBLogger>("dispatcherClientLog"));
+
+        distributedStorageClient =  DistributedStorageManagerClient(
+            portIn,
+            addressIn,
+            make_shared<pdb::PDBLogger>("distributedStorageClientLog"));
+
+        queryClient = pdb :: QueryClient(
+            portIn,
+            addressIn,
+            make_shared<pdb::PDBLogger>("queryClientLog"),
+            useQuerySchedulerIn);
+
+    }
+
+
     PDBClient::PDBClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn,
             bool usePangaeaIn, bool useQuerySchedulerIn) :
                 port(portIn), address(addressIn), logger(myLoggerIn),
@@ -78,7 +114,10 @@ namespace pdb {
     /****
      * Methods for invoking DistributedStorageManager-related operations
      */
-    bool PDBClient::createDatabase(const std::string& databaseName, std::string& errMsg) {
+    bool PDBClient::createDatabase(
+            const std::string& databaseName,
+            std::string& errMsg) {
+
         return distributedStorageClient.createDatabase(databaseName, errMsg);
     }
 
@@ -87,71 +126,107 @@ namespace pdb {
                               const std::string& typeName,
                               std::string& errMsg) {
 
-        return distributedStorageClient.createSet(databaseName, setName,
-                typeName, errMsg, DEFAULT_PAGE_SIZE);
+        return distributedStorageClient.createSet(
+                databaseName,
+                setName,
+                typeName,
+                errMsg,
+                DEFAULT_PAGE_SIZE);
     }
 
-    bool PDBClient::createSet(const std::string& databaseName,
-                              const std::string& setName,
-                              const std::string& typeName,
-                              std::string& errMsg,
-                              size_t pageSize) {
+    bool PDBClient::createSet(
+            const std::string& databaseName,
+            const std::string& setName,
+            const std::string& typeName,
+            std::string& errMsg,
+            size_t pageSize) {
 
-        return distributedStorageClient.createSet(databaseName, setName,
-                typeName, errMsg, pageSize);
+        return distributedStorageClient.createSet(
+                databaseName,
+                setName,
+                typeName,
+                errMsg,
+                pageSize);
     }
 
-    bool PDBClient::createTempSet(const std::string& databaseName,
-                                  const std::string& setName,
-                                  const std::string& typeName,
-                                  std::string& errMsg,
-                                  size_t pageSize) {
+    bool PDBClient::createTempSet(
+            const std::string& databaseName,
+            const std::string& setName,
+            const std::string& typeName,
+            std::string& errMsg,
+            size_t pageSize) {
 
-        return distributedStorageClient.createTempSet(databaseName, setName,
-                typeName, errMsg, pageSize);
+        return distributedStorageClient.createTempSet(
+                databaseName,
+                setName,
+                typeName,
+                errMsg,
+                pageSize);
     }
 
-    bool PDBClient::removeDatabase(const std::string& databaseName,
-                                   std::string & errMsg) {
+    bool PDBClient::removeDatabase(
+            const std::string& databaseName,
+            std::string & errMsg) {
 
-        return distributedStorageClient.removeDatabase(databaseName,
-                                                       errMsg);
+        return distributedStorageClient.removeDatabase(
+                databaseName,
+                errMsg);
     }
 
-    bool PDBClient::removeSet(const std::string& databaseName,
-                              const std::string& setName,
-                              std::string & errMsg) {
+    bool PDBClient::removeSet(
+            const std::string& databaseName,
+            const std::string& setName,
+            std::string & errMsg) {
 
-        return distributedStorageClient.removeSet(databaseName, setName,
+        return distributedStorageClient.removeSet(
+                databaseName,
+                setName,
                 errMsg);
 
     }
 
-    bool PDBClient::removeTempSet(const std::string& databaseName, const std::string& setName,
-                                                     const std :: string& typeName, std::string & errMsg) {
+    bool PDBClient::removeTempSet(
+            const std::string& databaseName,
+            const std::string& setName,
+            const std :: string& typeName,
+            std::string & errMsg) {
 
-        return distributedStorageClient.removeTempSet(databaseName, setName, typeName,
+        return distributedStorageClient.removeTempSet(
+                databaseName,
+                setName,
+                typeName,
                 errMsg);
 
     }
 
 
     bool PDBClient::exportSet (
-        const std :: string & databaseName, const std :: string & setName,
-        const std :: string & outputFilePath, const std :: string & format,
-        std :: string & errMsg) {
+            const std :: string & databaseName,
+            const std :: string & setName,
+            const std :: string & outputFilePath,
+            const std :: string & format,
+            std :: string & errMsg) {
 
-            return distributedStorageClient.exportSet(
-                databaseName, setName,
-                outputFilePath, format, errMsg);
+        return distributedStorageClient.exportSet(
+                databaseName,
+                setName,
+                outputFilePath,
+                format,
+                errMsg);
     }
 
 
-    bool PDBClient::clearSet(const std::string& databaseName, const std::string& setName, const std::string& typeName, std::string & errMsg) {
+    bool PDBClient::clearSet(
+            const std::string& databaseName,
+            const std::string& setName,
+            const std::string& typeName,
+            std::string & errMsg) {
 
         return distributedStorageClient.clearSet(
-            databaseName, setName,
-            typeName, errMsg);
+            databaseName,
+            setName,
+            typeName,
+            errMsg);
 
     }
 
@@ -163,7 +238,8 @@ namespace pdb {
    }
 
     std::function<bool (Handle<SimpleRequestResult>)> PDBClient::generateResponseHandler(
-            std::string description, std::string & errMsg) {
+            std::string description,
+            std::string & errMsg) {
 
         return [&](Handle<SimpleRequestResult> result) {
             if (result != nullptr) {
@@ -184,12 +260,13 @@ namespace pdb {
      * Methods for invoking Catalog-related operations
      */
 
-    bool PDBClient::registerNode(string &localIP,
-                                   int localPort,
-                                   string &nodeName,
-                                   string &nodeType,
-                                   int nodeStatus,
-                                   std :: string &errMsg) {
+    bool PDBClient::registerNode(
+            string &localIP,
+            int localPort,
+            string &nodeName,
+            string &nodeType,
+            int nodeStatus,
+            std :: string &errMsg) {
 
         makeObjectAllocatorBlock (1024 * 1024 * 1, true);
 
@@ -205,23 +282,39 @@ namespace pdb {
         return catalogClient.registerNodeMetadata (nodeInfo, errMsg);
     }
 
-    bool PDBClient::registerType (std :: string fileContainingSharedLib, std :: string &errMsg){
-        return catalogClient.registerType(fileContainingSharedLib, errMsg);
+    bool PDBClient::registerType (
+            std :: string fileContainingSharedLib,
+            std :: string &errMsg) {
+
+        return catalogClient.registerType(
+                fileContainingSharedLib,
+                errMsg);
     }
 
-    bool PDBClient::printCatalogMetadata (pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch, std :: string &errMsg) {
-        return catalogClient.printCatalogMetadata (itemToSearch, errMsg) ;
+    bool PDBClient::printCatalogMetadata (
+            pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch,
+            std :: string &errMsg) {
+
+        return catalogClient.printCatalogMetadata (
+                itemToSearch,
+                errMsg) ;
     }
 
     bool PDBClient::listRegisteredDatabases (std :: string &errMsg) {
         return catalogClient.listRegisteredDatabases (errMsg);
     }
 
-    bool PDBClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
-        return catalogClient.listRegisteredSetsForADatabase (databaseName, errMsg);
+    bool PDBClient::listRegisteredSetsForADatabase (
+            std :: string databaseName,
+            std :: string &errMsg) {
+
+        return catalogClient.listRegisteredSetsForADatabase (
+                databaseName,
+                errMsg);
     }
 
     bool PDBClient::listNodesInCluster (std :: string &errMsg) {
+
         return catalogClient.listNodesInCluster (errMsg);
     }
 
@@ -233,17 +326,28 @@ namespace pdb {
      * Methods for invoking Dispatcher-related operations
      */
 
-    bool PDBClient::registerSet(std::pair<std::string, std::string> setAndDatabase, PartitionPolicy::Policy policy, std::string& errMsg) {
-        return dispatcherClient.registerSet(setAndDatabase, policy, errMsg);
+    bool PDBClient::registerSet(
+            std::pair<std::string, std::string> setAndDatabase,
+            PartitionPolicy::Policy policy,
+            std::string& errMsg) {
+
+        return dispatcherClient.registerSet(
+                setAndDatabase,
+                policy,
+                errMsg);
     }
 
     /****
      * Methods for invoking Query-related operations
      */
-    bool PDBClient::deleteSet(std::string databaseName, std::string setName) {
-        return queryClient.deleteSet(databaseName, setName);
-    }
+    bool PDBClient::deleteSet(
+            std::string databaseName,
+            std::string setName) {
 
+        return queryClient.deleteSet(
+                databaseName,
+                setName);
+    }
 
 }
 

@@ -118,7 +118,16 @@ int main(int argc, char* argv[]) {
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
     PDBClient pdbClient(
-            8108, masterIp, clientLogger, false, true);
+            8108,
+            masterIp,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -257,10 +266,8 @@ int main(int argc, char* argv[]) {
 
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+
         // register this query class
-
-        CatalogClient catClient(8108, masterIp, clientLogger);
-
         pdbClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
         pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
