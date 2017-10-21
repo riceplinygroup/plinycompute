@@ -19,8 +19,7 @@
 #ifndef WRITE_USER_SET_H
 #define WRITE_USER_SET_H
 
-
-// by Jia, Mar 2017
+// PRELOAD %WriteUserSet <Nothing>%
 
 #include "Computation.h"
 #include "VectorSink.h"
@@ -29,13 +28,40 @@
 
 namespace pdb {
 
+//this class encapsulates a computation that write objects of OutputClass type to a userset defined by setName and dbName.
+
+
 template <class OutputClass>
 class WriteUserSet : public Computation {
 
 public:
-    ENABLE_DEEP_COPY
 
+    // normally these would be defined by the ENABLE_DEEP_COPY macro, but because
+    // Array is the one variable-sized type that we allow, we need to manually override
+    // these methods
 
+    // for deep copy
+    void setUpAndCopyFrom(void* target, void* source) const override {
+        new (target) WriteUserSet<OutputClass> ();
+        WriteUserSet<OutputClass>& fromMe = *((WriteUserSet<OutputClass> *) source);
+        WriteUserSet<OutputClass>& toMe = *((WriteUserSet<OutputClass> *) target);
+        toMe.outputType = fromMe.outputType;
+        toMe.dbName = fromMe.dbName;
+        toMe.setName = fromMe.setName;
+
+    }
+
+    // for deletion
+    void deleteObject(void* deleteMe) override {
+        deleter(deleteMe, this);
+    }
+
+    // for compute size
+    size_t getSize(void* forMe) override {
+        return sizeof(WriteUserSet<OutputClass>);
+    }
+
+    // returns a ComputeSink for this computation
     ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
                                   TupleSpec& projection,
                                   ComputePlan& plan) override {
@@ -43,39 +69,48 @@ public:
         return std::make_shared<VectorSink<OutputClass>>(consumeMe, projection);
     }
 
+    // to set the user set for writing objects to
     void setOutput(std::string dbName, std::string setName) override {
         this->dbName = dbName;
         this->setName = setName;
     }
 
+    // to set the database name
     void setDatabaseName(std::string dbName) {
         this->dbName = dbName;
     }
 
+    // to get the database name
     std::string getDatabaseName() override {
         return dbName;
     }
 
+    // to set the user set name
     void setSetName(std::string setName) {
         this->setName = setName;
     }
 
+    // to get the user set name
     std::string getSetName() override {
         return setName;
     }
 
+    // to return the type of the computation
     std::string getComputationType() override {
         return std::string("WriteUserSet");
     }
 
+    // to return the output type
     std::string getOutputType() override {
         return getTypeName<OutputClass>();
     }
 
+    // to return the number of inputs
     int getNumInputs() override {
         return 1;
     }
 
+    // to return the i-th input type
     std::string getIthInputType(int i) override {
         if (i == 0) {
             return getTypeName<OutputClass>();
@@ -128,6 +163,7 @@ public:
         return ret;
     }
 
+    //this computation always materializes output
     bool needsMaterializeOutput() override {
         return true;
     }
