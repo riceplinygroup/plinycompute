@@ -60,35 +60,6 @@ namespace pdb {
 
     }
 
-
-    PDBClient::PDBClient(int portIn, std :: string addressIn, PDBLoggerPtr myLoggerIn,
-            bool usePangaeaIn, bool useQuerySchedulerIn) :
-                port(portIn), address(addressIn), logger(myLoggerIn),
-                usePangea(usePangaeaIn), useQueryScheduler(useQuerySchedulerIn) {
-
-        catalogClient = pdb::CatalogClient(
-            portIn,
-            addressIn,
-            make_shared<pdb::PDBLogger>("catalogClientLog"));
-
-        dispatcherClient = DispatcherClient(
-            portIn,
-            addressIn,
-            make_shared<pdb::PDBLogger>("dispatcherClientLog"));
-
-        distributedStorageClient =  DistributedStorageManagerClient(
-            portIn,
-            addressIn,
-            make_shared<pdb::PDBLogger>("distributedStorageClientLog"));
-
-        queryClient = pdb :: QueryClient(
-            portIn,
-            addressIn,
-            make_shared<pdb::PDBLogger>("queryClientLog"),
-            useQuerySchedulerIn);
-
-    }
-
     PDBClient::~PDBClient(){
     }
 
