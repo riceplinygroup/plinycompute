@@ -49,6 +49,7 @@ public:
         toMe.batchSize = fromMe.batchSize;
         toMe.dbName = fromMe.dbName;
         toMe.setName = fromMe.setName;
+        toMe.outputType = fromMe.outputType;
 
     }
 
@@ -60,11 +61,17 @@ public:
         return sizeof(ScanUserSet<OutputClass>);
     }
 
+
+    //this constructor is for constructing builtin object
     ScanUserSet () {}
 
+
+
+    //user should only use following constructor
     ScanUserSet (std :: string dbName, std :: string setName) {
         this->dbName = dbName;
         this->setName = setName;
+        this->outputType = getTypeName<OutputClass>();
     }
 
     ~ScanUserSet() {
@@ -215,7 +222,7 @@ public:
     }
 
     std::string getOutputType() override {
-        return getTypeName<OutputClass>();
+        return this->outputType;
     }
 
     bool needsMaterializeOutput() override {
@@ -233,6 +240,9 @@ protected:
     String setName;
 
     int batchSize;
+
+    String outputType = "";    
+
 };
 }
 
