@@ -268,15 +268,13 @@ int main(int argc, char* argv[]) {
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
         // register this query class
-        pdbClient.registerType("libraries/libScanOptimizedSupervisorSet.so", errMsg);
         pdbClient.registerType("libraries/libOptimizedEmployeeGroupBy.so", errMsg);
 
         // create all of the computation objects
         Handle<Computation> myScanSet =
-            makeObject<ScanOptimizedSupervisorSet>("test90_db", "test90_set");
+            makeObject<ScanUserSet<OptimizedSupervisor>>("test90_db", "test90_set");
         Handle<Computation> myAgg = makeObject<OptimizedEmployeeGroupBy>("test90_db", "output_set");
         myAgg->setUsingCombiner(false);
-        // myAgg->setAllocatorPolicy(noReuseAllocator);
         myAgg->setInput(myScanSet);
 
         auto begin = std::chrono::high_resolution_clock::now();
@@ -288,9 +286,6 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl;
 
         auto end = std::chrono::high_resolution_clock::now();
-        // std::cout << "Time Duration: " <<
-        //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-        //      std::endl;
 
         std::cout << std::endl;
 

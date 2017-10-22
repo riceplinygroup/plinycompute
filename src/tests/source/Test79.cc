@@ -18,7 +18,6 @@
 #ifndef TEST_79_H
 #define TEST_79_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -39,14 +38,11 @@
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
 #include "StringIntPair.h"
-#include "ScanIntSet.h"
-#include "ScanStringSet.h"
-#include "ScanStringIntPairSet.h"
+#include "ScanUserSet.h"
 #include "SillyJoin.h"
 #include "IntAggregation.h"
 #include "IntSelectionOfStringIntPair.h"
-#include "WriteIntSet.h"
-#include "WriteStringSet.h"
+#include "WriteUserSet.h"
 #include "PDBString.h"
 #include <ctime>
 #include <unistd.h>
@@ -329,27 +325,22 @@ int main(int argc, char* argv[]) {
 
     // register this query class
     pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
-    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
     pdbClient.registerType("libraries/libIntSelectionOfStringIntPair.so", errMsg);
-    pdbClient.registerType("libraries/libWriteIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
 
 
     // create all of the computation objects
-    Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test79_db", "test79_set1");
-    Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test79_db", "test79_set2");
-    Handle<Computation> myScanSet3 = makeObject<ScanStringSet>("test79_db", "test79_set3");
+    Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test79_db", "test79_set1");
+    Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test79_db", "test79_set2");
+    Handle<Computation> myScanSet3 = makeObject<ScanUserSet<String>>("test79_db", "test79_set3");
     Handle<Computation> myJoin = makeObject<SillyJoin>();
     myJoin->setInput(0, myScanSet1);
     myJoin->setInput(1, myScanSet2);
     myJoin->setInput(2, myScanSet3);
-    Handle<Computation> myWriter = makeObject<WriteStringSet>("test79_db", "output_set2");
+    Handle<Computation> myWriter = makeObject<WriteUserSet<String>>("test79_db", "output_set2");
     myWriter->setInput(myJoin);
     Handle<Computation> myIntSelection = makeObject<IntSelectionOfStringIntPair>();
     myIntSelection->setInput(myScanSet2);
-    Handle<Computation> myIntWriter = makeObject<WriteIntSet>("test79_db", "output_set1");
+    Handle<Computation> myIntWriter = makeObject<WriteUserSet<int>>("test79_db", "output_set1");
     myIntWriter->setInput(myIntSelection);
 
     auto begin = std::chrono::high_resolution_clock::now();
@@ -361,9 +352,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts

@@ -18,7 +18,6 @@
 #ifndef TEST_74_H
 #define TEST_74_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -35,7 +34,7 @@
 #include "SelectionComp.h"
 #include "FinalSelection.h"
 #include "AggregateComp.h"
-#include "ScanSupervisorSet.h"
+#include "ScanUserSet.h"
 #include "SillyAggregation.h"
 #include "DepartmentTotal.h"
 #include "VectorSink.h"
@@ -43,7 +42,7 @@
 #include "MapTupleSetIterator.h"
 #include "VectorTupleSetIterator.h"
 #include "ComputePlan.h"
-#include "WriteDoubleSet.h"
+#include "WriteUserSet.h"
 #include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
@@ -243,21 +242,19 @@ int main(int argc, char* argv[]) {
     }
 	
     pdbClient.registerType("libraries/libSillySelection.so", errMsg);
-    pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
     pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
     pdbClient.registerType("libraries/libFinalSelection.so", errMsg);
-    pdbClient.registerType("libraries/libWriteDoubleSet.so", errMsg);
 
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 24};
     // create all of the computation objects
-    Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test74_db", "test74_set");
+    Handle<Computation> myScanSet = makeObject<ScanUserSet<Supervisor>>("test74_db", "test74_set");
     Handle<Computation> myFilter = makeObject<SillySelection>();
     myFilter->setInput(myScanSet);
     Handle<Computation> myAgg = makeObject<SillyAggregation>();
     myAgg->setInput(myFilter);
     Handle<Computation> mySelection = makeObject<FinalSelection>();
     mySelection->setInput(myAgg);
-    Handle<Computation> myWriter = makeObject<WriteDoubleSet>("test74_db", "output_set1");
+    Handle<Computation> myWriter = makeObject<WriteUserSet<double>>("test74_db", "output_set1");
     myWriter->setInput(mySelection);
     auto begin = std::chrono::high_resolution_clock::now();
 
