@@ -49,6 +49,7 @@ public:
         toMe.dbName = fromMe.dbName;
         toMe.setName = fromMe.setName;
 
+
     }
 
     // for deletion
@@ -60,6 +61,18 @@ public:
     size_t getSize(void* forMe) override {
         return sizeof(WriteUserSet<OutputClass>);
     }
+
+    //this constructor is for constructing builtin object
+    WriteUserSet () {}
+
+
+    //user should only use following constructor
+    WriteUserSet (std :: string dbName, std :: string setName) {
+        this->dbName = dbName;
+        this->setName = setName;
+        this->outputType = getTypeName<OutputClass>();
+    }
+
 
     // returns a ComputeSink for this computation
     ComputeSinkPtr getComputeSink(TupleSpec& consumeMe,
@@ -102,7 +115,7 @@ public:
 
     // to return the output type
     std::string getOutputType() override {
-        return getTypeName<OutputClass>();
+        return outputType;
     }
 
     // to return the number of inputs
@@ -113,7 +126,7 @@ public:
     // to return the i-th input type
     std::string getIthInputType(int i) override {
         if (i == 0) {
-            return getTypeName<OutputClass>();
+            return outputType;
         } else {
             return "";
         }

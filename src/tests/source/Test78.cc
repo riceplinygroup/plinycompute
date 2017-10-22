@@ -18,7 +18,6 @@
 #ifndef TEST_78_H
 #define TEST_78_H
 
-// by Jia, May 2017
 
 #include "Handle.h"
 #include "Lambda.h"
@@ -259,15 +258,12 @@ int main(int argc, char* argv[]) {
     // register this query class
 
     pdbClient.registerType("libraries/libIntSillyJoin.so", errMsg);
-    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
-    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
     pdbClient.registerType("libraries/libStringSelectionOfStringIntPair.so", errMsg);
     pdbClient.registerType("libraries/libIntAggregation.so", errMsg);
-    pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
 
     // create all of the computation objects
-    Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test78_db", "test78_set1");
-    Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test78_db", "test78_set2");
+    Handle<Computation> myScanSet1 = makeObject<ScanUserSet<int>>("test78_db", "test78_set1");
+    Handle<Computation> myScanSet2 = makeObject<ScanUserSet<StringIntPair>>("test78_db", "test78_set2");
     Handle<Computation> mySelection = makeObject<StringSelectionOfStringIntPair>();
     mySelection->setInput(myScanSet2);
     Handle<Computation> myJoin = makeObject<IntSillyJoin>();
@@ -276,7 +272,7 @@ int main(int argc, char* argv[]) {
     myJoin->setInput(2, mySelection);
     Handle<Computation> myAggregation = makeObject<IntAggregation>();
     myAggregation->setInput(myJoin);
-    Handle<Computation> myWriter = makeObject<WriteSumResultSet>("test78_db", "output_set1");
+    Handle<Computation> myWriter = makeObject<WriteUserSet<SumResult>>("test78_db", "output_set1");
     myWriter->setInput(myAggregation);
     auto begin = std::chrono::high_resolution_clock::now();
 
@@ -287,9 +283,6 @@ int main(int argc, char* argv[]) {
     std::cout << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "Time Duration: " <<
-    //      std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns." <<
-    //      std::endl;
 
     std::cout << std::endl;
     // print the resuts
