@@ -95,7 +95,7 @@ Scanning threads retrieve different subsets of pages from the shuffle set, and a
 
 
 \vspace{5pt}
-{\bf 3. Hash Join Job Stage.} Once each of the first $K-1$ input has been transformed to a partitioned hash table, and the $K$-th input has been repartitioned and stored as shuffle sets in each node, the same partition for all inputs should be co-located in the same machine. 
+{\bf 3. Hash Join Job Stage.} Once each of the first $K-1$ inputs has been transformed to a partitioned hash table, and the $K$-th input has been repartitioned and stored as shuffle set in each node, the same partition for all inputs should be co-located in the same machine. 
 
 Then this final job stage is run to complete the join operation. It allocates one pipeline thread for each partition on each machine. The source of the pipeline thread is the shuffle set caching the partitioned data of the $K$-th input, and the sink can be an output dataset that is buffer cached in buffer pool and persisted to the user-level file, or can be an intermediate dataset that just needs to be cached in buffer pool and does not need to be persisted to disk. 
 
