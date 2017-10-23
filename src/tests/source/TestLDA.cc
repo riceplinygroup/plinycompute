@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef TEST_LDA1_CC
-#define TEST_LDA1_CC
+#ifndef TEST_LDA_CC
+#define TEST_LDA_CC
 
-
-// By Shangyu, June 2017
-// LDA using Gibbs Sampling;
+/* 
+ * Learning Latent Dirichlet Allocation (LDA) by Gibbs Sampling
+ */
 
 #include "PDBDebug.h"
 #include "PDBVector.h"
@@ -58,7 +58,6 @@
 #include "LDA/LDAWordTopicAggregate.h"
 #include "LDA/WriteTopicsPerWord.h"
 #include "LDA/LDATopicAssignmentMultiSelection.h"
-
 #include "LDA/LDATopicWordProb.h"
 
 #include <ctime>
@@ -80,14 +79,7 @@ using namespace pdb;
 int main(int argc, char* argv[]) {
     std::ofstream term("/dev/tty", std::ios_base::out);
 
-    const std::string red("\033[0;31m");
-    const std::string green("\033[1;32m");
-    const std::string yellow("\033[1;33m");
-    const std::string blue("\033[1;34m");
-    const std::string cyan("\033[0;36m");
-    const std::string magenta("\033[0;35m");
-    const std::string reset("\033[0m");
-
+    /* Read in the parameters */
     if (argc != 8 && argc != 6) {
         std::cout << "Usage: #masterIp #iterations #words #topics #addData[Y/N] "
                      "#addDataFromFile[Y/N] #docs(If addDataFromFile = N)/#inputFile (If "
@@ -97,7 +89,6 @@ int main(int argc, char* argv[]) {
 
     std::string masterIp;
     masterIp = argv[1];
-    std::cout << "Master IP Address is " << masterIp << std::endl;
 
     int iter = std::stoi(argv[2]);
     term << "The number of iterations: " << iter << std::endl;
@@ -125,12 +116,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::cout << "Got here.\n";
+    /* Set up the client */
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
     pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
     pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
 
-    std::cout << "Got here.\n";
+    /* Load the libraries */
     string errMsg;
     std::vector<std::string> v = {"libraries/libIntDoubleVectorPair.so",
                                   "libraries/libLDADocument.so",
@@ -162,12 +153,9 @@ int main(int argc, char* argv[]) {
     for (auto& a : v) {
         if (!catalogClient.registerType(a, errMsg)) {
             std::cout << "could not load library: " << errMsg << "\n";
-        } else {
-            std::cout << "loaded library: " << a << "\n";
-        }
+	}
     }
 
-    std::cout << "Got here.\n";
     if (whetherToAddData == true) {
         // Step 1. Create Database and Set
 
