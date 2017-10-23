@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_ROW_DIM1 1000
+#define NUM_ROW_DIM1 10000
 #define NUM_COL_DIM1 1000
 #define NUM_ROW_DIM2 1000
 #define NUM_COL_DIM2 1000
@@ -59,7 +59,7 @@ double drand() {
 void generateData(double * matrix, int numRows, int numCols) {
     for (int i = 0; i < numRows; i++) {
         for (int j = 0; j < numCols; j++) {
-            matrix[i*numRows+j] = drand();
+            matrix[i*numCols+j] = drand();
         }
     } 
 }
@@ -159,43 +159,43 @@ int main(int argc, char* argv[]) {
 
     //generate data
     if((mode == "NativeGSLMult") || (mode == "NativeEigenMult") || (mode == "native")) {
-        nativeArrayLHS = new double[NUM_ROW_DIM1*NUM_COL_DIM1]();
+        nativeArrayLHS = new double[(size_t)NUM_ROW_DIM1*(size_t)NUM_COL_DIM1]();
         generateData(nativeArrayLHS, NUM_ROW_DIM1, NUM_COL_DIM1);
-        nativeArrayRHS = new double[NUM_ROW_DIM2*NUM_COL_DIM2]();
+        nativeArrayRHS = new double[(size_t)NUM_ROW_DIM2*(size_t)NUM_COL_DIM2]();
         generateData(nativeArrayRHS, NUM_ROW_DIM2, NUM_COL_DIM2);
         nativeProduct = new double[NUM_ROW_DIM1*NUM_COL_DIM2]();
     } else if ((mode == "PDBGSLMult") || (mode == "PDBEigenMult")) {
         makeObjectAllocatorBlock ((size_t)4*(size_t)1024*(size_t)1024*(size_t)1024, true);
-        pdbVectorLHS = makeObject<pdb::Vector<double>>(NUM_ROW_DIM1 * NUM_COL_DIM1, NUM_ROW_DIM1 * NUM_COL_DIM1);
+        pdbVectorLHS = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1, (size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1);
         generateData(pdbVectorLHS->c_ptr(), NUM_ROW_DIM1, NUM_COL_DIM1);
-        pdbVectorRHS = makeObject<pdb::Vector<double>>(NUM_ROW_DIM2 * NUM_COL_DIM2, NUM_ROW_DIM2 * NUM_COL_DIM2);
+        pdbVectorRHS = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2, (size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2);
         generateData(pdbVectorRHS->c_ptr(), NUM_ROW_DIM2, NUM_COL_DIM2);
-        pdbVectorProduct = makeObject<pdb::Vector<double>>(NUM_ROW_DIM1 * NUM_COL_DIM2);
+        pdbVectorProduct = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM2);
     } else if ((mode == "stdGSLMult") || (mode == "stdEigenMult")) {
-        stdVectorLHS = new std::vector<double>(NUM_ROW_DIM1 * NUM_COL_DIM1);
+        stdVectorLHS = new std::vector<double>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1);
         generateData(stdVectorLHS->data(), NUM_ROW_DIM1, NUM_COL_DIM1);
-        stdVectorRHS = new std::vector<double>(NUM_ROW_DIM2 * NUM_COL_DIM2);
+        stdVectorRHS = new std::vector<double>((size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2);
         generateData(stdVectorRHS->data(), NUM_ROW_DIM2, NUM_COL_DIM2);
-        stdVectorProduct = new std::vector<double>(NUM_ROW_DIM1 * NUM_COL_DIM2);
+        stdVectorProduct = new std::vector<double>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM2);
     } else if (mode == "All") {
         makeObjectAllocatorBlock ((size_t)4*(size_t)1024*(size_t)1024*(size_t)1024, true);
-        nativeArrayLHS = new double[NUM_ROW_DIM1*NUM_COL_DIM1]();
+        nativeArrayLHS = new double[(size_t)NUM_ROW_DIM1*(size_t)NUM_COL_DIM1]();
         generateData(nativeArrayLHS, NUM_ROW_DIM1, NUM_COL_DIM1);
-        nativeArrayRHS = new double[NUM_ROW_DIM2*NUM_COL_DIM2]();
+        nativeArrayRHS = new double[(size_t)NUM_ROW_DIM2*(size_t)NUM_COL_DIM2]();
         generateData(nativeArrayRHS, NUM_ROW_DIM2, NUM_COL_DIM2);
-        nativeProduct = new double[NUM_ROW_DIM1*NUM_COL_DIM2]();
+        nativeProduct = new double[(size_t)NUM_ROW_DIM1*(size_t)NUM_COL_DIM2]();
 
-        pdbVectorLHS = makeObject<pdb::Vector<double>>(NUM_ROW_DIM1 * NUM_COL_DIM1, NUM_ROW_DIM1 * NUM_COL_DIM1);
+        pdbVectorLHS = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1, (size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1);
         generateData(pdbVectorLHS->c_ptr(), NUM_ROW_DIM1, NUM_COL_DIM1);
-        pdbVectorRHS = makeObject<pdb::Vector<double>>(NUM_ROW_DIM2 * NUM_COL_DIM2, NUM_ROW_DIM2 * NUM_COL_DIM2);
+        pdbVectorRHS = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2, (size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2);
         generateData(pdbVectorRHS->c_ptr(), NUM_ROW_DIM2, NUM_COL_DIM2);
-        pdbVectorProduct = makeObject<pdb::Vector<double>>(NUM_ROW_DIM1 * NUM_COL_DIM2);
+        pdbVectorProduct = makeObject<pdb::Vector<double>>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM2);
 
-        stdVectorLHS = new std::vector<double>(NUM_ROW_DIM1 * NUM_COL_DIM1);
+        stdVectorLHS = new std::vector<double>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM1);
         generateData(stdVectorLHS->data(), NUM_ROW_DIM1, NUM_COL_DIM1);
-        stdVectorRHS = new std::vector<double>(NUM_ROW_DIM2 * NUM_COL_DIM2);
+        stdVectorRHS = new std::vector<double>((size_t)NUM_ROW_DIM2 * (size_t)NUM_COL_DIM2);
         generateData(stdVectorRHS->data(), NUM_ROW_DIM2, NUM_COL_DIM2);
-        stdVectorProduct = new std::vector<double>(NUM_ROW_DIM1 * NUM_COL_DIM2);
+        stdVectorProduct = new std::vector<double>((size_t)NUM_ROW_DIM1 * (size_t)NUM_COL_DIM2);
     }
 
     // for timing
