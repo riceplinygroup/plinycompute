@@ -16,7 +16,7 @@
  *                                                                           *
  *****************************************************************************/
 
-#define NUM_ROW_DIM1 10000
+#define NUM_ROW_DIM1 1000
 #define NUM_COL_DIM1 1000
 #define NUM_ROW_DIM2 1000
 #define NUM_COL_DIM2 1000
