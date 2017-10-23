@@ -25,3 +25,6 @@ make pdb-server -j
 
 # build the worker
 make pdb-cluster -j
+
+# set the permission
+chmod -R 777 .
