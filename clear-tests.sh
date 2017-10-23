@@ -17,14 +17,21 @@
 # grab the root directory
 PDB_ROOT=$(pwd)
 
-# build the tests
-printf "Building the tests!\n"
-sleep 1
+# prompt if we should do the cleanup
 cd ${PDB_ROOT}/tools/docker/build-tests-image
-./build-command.sh
 
-# run the tests
-printf "Running the tests!\n"
-sleep 1
-cd ${PDB_ROOT}/tools/docker/compose
-./run-cluster.sh
+printf "Do you want to remove the test build data?\n"
+
+options=("Yes" "No")
+select opt in "${options[@]}"
+do
+    case $opt in
+        "Yes")
+            ./clean-tests.sh; cd ${PDB_ROOT}; exit
+            ;;
+        "No")
+            cd ${PDB_ROOT}; exit
+            ;;
+        *) echo invalid option;;
+    esac
+done

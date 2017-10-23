@@ -14,17 +14,18 @@
 #  limitations under the License.
 #  ========================================================================    
 
-# grab the root directory
-PDB_ROOT=$(pwd)
+# set the pdb directory
+PDB_DIR=$(readlink -f ../../../)
 
-# build the tests
-printf "Building the tests!\n"
-sleep 1
-cd ${PDB_ROOT}/tools/docker/build-tests-image
-./build-command.sh
+# do the cleanup
+rm -rf ${PDB_DIR}/Testing
+rm -rf ${PDB_DIR}/CMakeFiles
+rm -rf ${PDB_DIR}/bin/*
+rm -rf ${PDB_DIR}/libraries/*
+rm -rf ${PDB_DIR}/logs/*
+rm -rf ${PDB_DIR}/cmake_install.cmake
+rm -rf ${PDB_DIR}/CMakeCache.txt
+rm -rf ${PDB_DIR}/CTestTestfile.cmake
+rm -rf ${PDB_DIR}/Makefile
 
-# run the tests
-printf "Running the tests!\n"
-sleep 1
-cd ${PDB_ROOT}/tools/docker/compose
-./run-cluster.sh
+printf "Removed!\n"
