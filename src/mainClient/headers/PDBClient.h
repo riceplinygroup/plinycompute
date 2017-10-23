@@ -121,14 +121,6 @@ namespace pdb {
                 std::string& errMsg,
                 size_t pageSize=DEFAULT_PAGE_SIZE);
 
-        /* Creates a set with a given type (using a template) for an existing database */
-        template <class DataType>
-        bool createSet (
-                const std :: string& databaseName,
-                const std :: string& setName,
-                std :: string &errMsg,
-                size_t pageSize = DEFAULT_PAGE_SIZE);
-
         /* Creates a temporary set with a given type for an existing database (only goes through storage) */
         bool createTempSet(
                 const std::string& databaseName,

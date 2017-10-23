@@ -28,20 +28,8 @@ namespace pdb {
             const std::string& setName,
             std::string& errMsg) {
 
-        return createSet<DataType>(databaseName, setName,
-                                  errMsg, DEFAULT_PAGE_SIZE);
-    }
-
-
-    template <class DataType>
-    bool PDBClient::createSet(
-            const std::string& databaseName,
-            const std::string& setName,
-            std::string& errMsg,
-            size_t pageSize) {
-
         return distributedStorageClient.createSet<DataType>(databaseName, setName,
-                                  errMsg, pageSize);
+                                  errMsg, DEFAULT_PAGE_SIZE);
     }
 
     template <class DataType>

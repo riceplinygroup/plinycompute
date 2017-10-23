@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the int set in that database
-        if (!pdbClient.createSet<int>("test79_db", "test79_set1", errMsg, DEFAULT_PAGE_SIZE)) {
+        if (!pdbClient.createSet<int>("test79_db", "test79_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the StringIntPair set in that database
-        if (!pdbClient.createSet<StringIntPair>("test79_db", "test79_set2", errMsg, DEFAULT_PAGE_SIZE)) {
+        if (!pdbClient.createSet<StringIntPair>("test79_db", "test79_set2", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the String set in that database
-        if (!pdbClient.createSet<String>("test79_db", "test79_set3", errMsg, DEFAULT_PAGE_SIZE)) {
+        if (!pdbClient.createSet<String>("test79_db", "test79_set3", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
 
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<int>("test79_db", "output_set1", errMsg, DEFAULT_PAGE_SIZE)) {
+    if (!pdbClient.createSet<int>("test79_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
 
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<String>("test79_db", "output_set2", errMsg, DEFAULT_PAGE_SIZE)) {
+    if (!pdbClient.createSet<String>("test79_db", "output_set2", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {

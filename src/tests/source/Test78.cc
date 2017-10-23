@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the int set in that database
-        if (!pdbClient.createSet<int>("test78_db", "test78_set1", errMsg, DEFAULT_PAGE_SIZE)) {
+        if (!pdbClient.createSet<int>("test78_db", "test78_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the StringIntPair set in that database
-        if (!pdbClient.createSet<StringIntPair>("test78_db", "test78_set2", errMsg, DEFAULT_PAGE_SIZE)) {
+        if (!pdbClient.createSet<StringIntPair>("test78_db", "test78_set2", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!pdbClient.createSet<SumResult>("test78_db", "output_set1", errMsg, DEFAULT_PAGE_SIZE)) {
+    if (!pdbClient.createSet<SumResult>("test78_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
