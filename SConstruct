@@ -635,7 +635,7 @@ common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
-
+common_env.Program('bin/TestMatrix', ['build/tests/TestMatrix.cc'] + all)
 
 
 #Testing
@@ -977,6 +977,8 @@ lda2=common_env.Alias('lda2', [
   'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libScanIntSet.so', 
   'libraries/libLDADocument.so', 'libraries/libScanLDADocumentSet.so', 'libraries/libLDADocIDAggregate.so', 'libraries/libLDAInitialTopicProbSelection.so', 'libraries/libLDAInitialWordTopicProbSelection.so', 'libraries/libLDADocWordTopicJoin.so', 'libraries/libLDADocAssignmentMultiSelection.so', 'libraries/libLDADocTopicAggregate.so', 'libraries/libLDADocTopicProbSelection.so', 'libraries/libIntDoubleVectorPair.so', 'libraries/libLDATopicAssignmentMultiSelection.so', 'libraries/libLDATopicWordAggregate.so', 'libraries/libLDATopicWordProbMultiSelection.so', 'libraries/libLDAWordTopicAggregate.so', 'libraries/libWriteTopicsPerWord.so', 'libraries/libDocAssignment.so', 'libraries/libTopicAssignment.so', 'libraries/libLDATopicWordProb.so', 'libraries/libWriteLDADocWordTopicAssignment.so', 'libraries/libLDADocWordTopicAssignment.so', 'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libLDADocWordTopicAssignmentIdentity.so', 'libraries/libScanTopicsPerWord.so', 'libraries/libScanIntDoubleVectorPairSet.so'
 ])
+
+matrixBench=common_env.Alias('matrixBench', ['bin/TestMatrix'])
 
 mlBench=common_env.Alias('mlBench', [
   'bin/CatalogServerTests',
