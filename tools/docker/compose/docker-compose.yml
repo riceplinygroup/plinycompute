@@ -32,7 +32,7 @@ services:
        - seccomp:unconfined
   frontend:
      build: ../frontend-image
-     entrypoint: "make test"
+     entrypoint: "/bin/bash -c 'make test; chmod -R 777 .'"
      hostname: "frontend"
      volumes:
        - "${PDB_DIR}:/pdb"
