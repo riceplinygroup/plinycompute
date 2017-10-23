@@ -14,13 +14,14 @@
 #  limitations under the License.
 #  ========================================================================    
 
-# copy configurations
-cp -r ../../../scripts ./scripts
-cp -r ../../../conf ./conf
+# make the build files
+cmake .
 
-# build the pdb image
-docker build . -t dimitrijejankov/pdb
+# build the tests
+make build-tests -j
 
-# remove the copied configurations
-rm -rf ./scripts
-rm -rf ./conf
+# build the master
+make pdb-server -j
+
+# build the worker
+make pdb-cluster -j

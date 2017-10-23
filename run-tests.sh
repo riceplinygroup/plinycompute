@@ -14,13 +14,13 @@
 #  limitations under the License.
 #  ========================================================================    
 
-# copy configurations
-cp -r ../../../scripts ./scripts
-cp -r ../../../conf ./conf
+# grab the root directory
+PDB_ROOT=$(pwd)
 
-# build the pdb image
-docker build . -t dimitrijejankov/pdb
+# build the tests
+cd ${PDB_ROOT}/tools/docker/build-tests-image
+./build-command.sh
 
-# remove the copied configurations
-rm -rf ./scripts
-rm -rf ./conf
+# run the tests
+cd ${PDB_ROOT}/tools/docker/compose
+./run-cluster.sh

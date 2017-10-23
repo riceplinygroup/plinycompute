@@ -1,6 +1,6 @@
-#line 2 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.c"
+#line 2 "/pdb/src/linearAlgebraDSL/source/LALexer.c"
 
-#line 4 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.c"
+#line 4 "/pdb/src/linearAlgebraDSL/source/LALexer.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -490,8 +490,8 @@ static yyconst flex_int16_t yy_chk[168] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
-#line 2 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 1 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
+#line 2 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 #include "LALexer.h"
 #include <stdio.h>  // For fileno()
 #include <stdlib.h> // For malloc()
@@ -500,7 +500,7 @@ static yyconst flex_int16_t yy_chk[168] =
 #define LALEXPRINTFLAG 0
 
 #define YY_NO_INPUT 1
-#line 504 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.c"
+#line 504 "/pdb/src/linearAlgebraDSL/source/LALexer.c"
 
 #define INITIAL 0
 
@@ -773,10 +773,10 @@ YY_DECL
 		}
 
 	{
-#line 18 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 18 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 
 
-#line 780 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.c"
+#line 780 "/pdb/src/linearAlgebraDSL/source/LALexer.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -836,87 +836,87 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 20 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 20 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 ;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 22 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("load token!\n");} return (TOKEN_LOAD); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 23 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 23 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("zeros token!\n");} return (TOKEN_ZEROS); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 24 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 24 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("ones token!\n");} return (TOKEN_ONES); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 25 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 25 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("identity token!\n");} return (TOKEN_IDENTITY); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 26 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 26 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("comma token!\n");} return (TOKEN_COMMA); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 27 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 27 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("rowMax token!\n");} return (TOKEN_ROWMAX); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 28 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 28 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("rowMin token!\n");} return (TOKEN_ROWMIN); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 29 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 29 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("rowSum token!\n");} return (TOKEN_ROWSUM); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 30 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 30 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("colMax token!\n");} return (TOKEN_COLMAX); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 31 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 31 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("colMin token!\n");} return (TOKEN_COLMIN); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 32 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 32 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("colSum token!\n");} return (TOKEN_COLSUM); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 33 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 33 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("max token!\n");} return (TOKEN_MAX); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 34 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 34 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("min token!\n");} return (TOKEN_MIN); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 35 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 35 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("duplicateRow token!\n");} return (TOKEN_DUPLICATEROW); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 36 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 36 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("duplicateCol token!\n");} return (TOKEN_DUPLICATECOL); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 38 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 38 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { 
                             yylval->doubleVal = atof(yytext);
                             if(LALEXPRINTFLAG){printf("double token! <%lf>\n", yylval->doubleVal);}
@@ -925,7 +925,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 44 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 44 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { 
                             yylval->intVal = atoi( yytext );
                             if(LALEXPRINTFLAG){printf("integer token! <%d>\n",yylval->intVal);}
@@ -934,7 +934,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 50 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 50 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { 
                             if(LALEXPRINTFLAG){printf("yytext: <%s>\n",yytext);}
                             yylval->stringVal = strdup (yytext);
@@ -944,58 +944,58 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 60 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 60 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("assign token!\n");} return (TOKEN_ASSIGN); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 61 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 61 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("add token!\n");} return (TOKEN_ADD); } 
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 62 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 62 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("minus token!\n");} return (TOKEN_MINUS); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 63 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 63 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("transposemultiply token!\n");} return (TOKEN_TRANSPOSEMULTIPLY); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 64 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 64 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("scalemultiply token!\n");} return (TOKEN_SCALEMULTIPLY); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 65 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 65 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("multiply token!\n");} return (TOKEN_MULTIPLY); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 66 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 66 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("inv token!\n");} return (TOKEN_INV); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 67 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 67 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("transpose token!\n");} return (TOKEN_TRANSPOSE); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 68 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 68 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf("( token!\n");} return (TOKEN_LEFT_BRACKET); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 69 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 69 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { if(LALEXPRINTFLAG){printf(") token!\n");} return (TOKEN_RIGHT_BRACKET); }
 	YY_BREAK
 case 30:
 /* rule 30 can match eol */
 YY_RULE_SETUP
-#line 72 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 72 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 { 
                             if(LALEXPRINTFLAG){printf("yytext: <%s>\n",yytext);}
                             yylval->stringVal = strdup (yytext);
@@ -1005,15 +1005,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 79 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 79 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 ;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 80 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 80 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 ECHO;
 	YY_BREAK
-#line 1017 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.c"
+#line 1017 "/pdb/src/linearAlgebraDSL/source/LALexer.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2156,7 +2156,7 @@ void LAfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 80 "/home/dimitrije/Documents/New Folder/ObjectQueryModel/src/linearAlgebraDSL/source/LALexer.l"
+#line 80 "/pdb/src/linearAlgebraDSL/source/LALexer.l"
 
 
 

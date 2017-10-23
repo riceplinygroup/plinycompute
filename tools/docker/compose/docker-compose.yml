@@ -30,3 +30,13 @@ services:
      hostname: "worker_2"
      security_opt:
        - seccomp:unconfined
+  frontend:
+     build: ../frontend-image
+     entrypoint: "make test"
+     hostname: "frontend"
+     volumes:
+       - "${PDB_DIR}:/pdb"
+     security_opt:
+       - seccomp:unconfined
+     links:
+       - master

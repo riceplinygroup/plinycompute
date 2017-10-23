@@ -11,6 +11,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${PROJECT_SOURCE_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/libraries")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/libraries")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake")
+set(CTEST_BINARY_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 # set the standard
 set(CMAKE_CXX_STANDARD 14)
@@ -261,13 +262,15 @@ target_link_libraries(pdb-server pdb-shared)
 
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/sharedLibraries/source/*.cc")
+add_custom_target(shared-libraries)
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
     add_library(${fileName} MODULE ${file})
     target_link_libraries(${fileName} pdb-shared)
+    add_dependencies(shared-libraries ${fileName})
 endforeach()
 
-# build tests
+# add the targets to build tests
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/tests/source/*.cc")
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
@@ -275,3 +278,12 @@ foreach(file ${files})
     target_link_libraries(${fileName} pdb-shared)
     target_link_libraries(${fileName} ${GSL_LIBRARIES})
 endforeach()
+
+# enable tests
+enable_testing()
+
+# add the costum target for building tests
+add_custom_target(build-tests)
+
+# include tests that are in tools/cmake/tests directory
+include(tools/cmake/tests/Tests.cmake)
