@@ -24,6 +24,7 @@
 #include "InterfaceFunctions.h"
 #include "SharedEmployee.h"
 #include "Configuration.h"
+#include "PDBClient.h"
 
 #include <boost/program_options.hpp>
 
@@ -32,7 +33,6 @@ namespace po = boost::program_options;
 
 using namespace std;
 using namespace pdb;
-
 
 
 int main (int numArgs, const char *args[]) {

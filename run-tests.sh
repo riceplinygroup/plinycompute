@@ -14,19 +14,13 @@
 #  ======================================================================== 
 #!/usr/bin/env bash
 
-# copy the binaries
-cp -r ../../../bin ../cluster-image/bin
+# grab the root directory
+PDB_ROOT=$(pwd)
 
-# set environment variable
-export PDB_DIR=$(readlink -f ../../../)
+# build the tests
+cd ${PDB_ROOT}/tools/docker/build-tests-image
+./build-command.sh
 
-# rebuild the images
-docker-compose rm
-docker-compose build
-
-# remove the binaries
-rm -rf ../cluster-image/libraries
-rm -rf ../cluster-image/bin
-
-# start the cluster
-docker-compose up
+# run the tests
+cd ${PDB_ROOT}/tools/docker/compose
+./run-cluster.sh

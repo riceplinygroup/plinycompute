@@ -7,8 +7,4 @@ RUN mkdir /profile-info
 WORKDIR /pdb
 
 # add the binaries
-ADD pdb-cluster /pdb
-ADD pdb-server /pdb
-ADD MasterServerTest /pdb
-# ADD CatalogServerTests /pdb
-# ADD GetListNodesTest /pdb
+ADD bin /pdb

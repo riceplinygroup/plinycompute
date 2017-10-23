@@ -14,19 +14,8 @@
 #  ======================================================================== 
 #!/usr/bin/env bash
 
-# copy the binaries
-cp -r ../../../bin ../cluster-image/bin
+# build the test builder image
+docker build . -t dimitrijejankov/pdb-test-builder
 
-# set environment variable
-export PDB_DIR=$(readlink -f ../../../)
-
-# rebuild the images
-docker-compose rm
-docker-compose build
-
-# remove the binaries
-rm -rf ../cluster-image/libraries
-rm -rf ../cluster-image/bin
-
-# start the cluster
-docker-compose up
+# run the image
+docker run -v $(readlink -f ../../../):/pdb dimitrijejankov/pdb-test-builder

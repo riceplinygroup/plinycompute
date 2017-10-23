@@ -14,19 +14,14 @@
 #  ======================================================================== 
 #!/usr/bin/env bash
 
-# copy the binaries
-cp -r ../../../bin ../cluster-image/bin
+# make the build files
+cmake .
 
-# set environment variable
-export PDB_DIR=$(readlink -f ../../../)
+# build the tests
+make build-tests -j
 
-# rebuild the images
-docker-compose rm
-docker-compose build
+# build the master
+make pdb-server -j
 
-# remove the binaries
-rm -rf ../cluster-image/libraries
-rm -rf ../cluster-image/bin
-
-# start the cluster
-docker-compose up
+# build the worker
+make pdb-cluster -j
