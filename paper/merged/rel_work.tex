@@ -3,11 +3,11 @@
 
 The PC project was inspired by works from database engines, distributed in-memory processing
 frameworks,  programming languages and compilers, which can be
-categorized into two classes for convenience of discussions: systems and techniques with a managed
-runtime, and without a managed runtime.
+categorized into two classes for convenience of discussions: systems and techniques with managed
+runtimes, and without managed runtimes.
 
 
-\subsection {Optimizations with Managed Runtime}
+\subsection {System and Optimizations with Managed Runtimes}
 
 Most big data query processing and analytics
 systems developed in recent are implemented in
@@ -116,7 +116,7 @@ compiler to generate native vectorized
 pipeline code with thread-local and tunable memory management for executing
 user defined queries based on complex objects.
 
-\subsection {Systems without Managed Runtime}
+\subsection {Systems without Managed Runtimes}
 Despite the decreasing performance gap between Java/Scala and C/C++,
 OS and many tools or libraries are developed in C/C++. For example,
 a large number of popular numerical processing libraries such as
@@ -170,8 +170,11 @@ mainly supports processing of numerical data with a
 limited set of types, so for example,  it is
 difficult to apply Tensorflow to decision support tasks such as
 TPCH or other tasks that require a complex object representation. In
-addition, it provides a much lower level interfaces compared with PC's
-declarative interface. 
+addition, it provides a much lower level interface based on tensors,
+variables and sessions, compared with PC's
+declarative interface. Tensorflow can serve as an alternative backend of
+PC for developing
+numerical processing and deep learning tools.
 
 
 
