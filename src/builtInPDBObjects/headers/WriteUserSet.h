@@ -115,6 +115,9 @@ public:
 
     // to return the output type
     std::string getOutputType() override {
+        if (outputType == "") {
+           outputType = getTypeName<OutputClass>();
+        }
         return outputType;
     }
 
@@ -184,7 +187,7 @@ public:
 protected:
     String dbName;
     String setName;
-    String outputType;
+    String outputType="";
 };
 }
 
