@@ -20,14 +20,12 @@
 #define TOP_K_CC
 
 #include "PDBDebug.h"
+#include "PDBClient.h"
 #include "TopKTest.h"
 #include "EmpWithVector.h"
 #include "ScanEmpWithVector.h"
 #include "WriteEmpWithVector.h"
-#include "QueryClient.h"
 #include "QueryOutput.h"
-#include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "Set.h"
 
 using namespace pdb;
@@ -72,17 +70,26 @@ int main(int argc, char* argv[]) {
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
     // for connecting to the catalog; necessary to use non-built-in PDB types
-    pdb::CatalogClient catalogClient(8108, masterIP, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIP,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            8108,
+            masterIP,
+            clientLogger);
 
     // if we register the types we are going to use to execute the query
     if (registerSharedLibs) {
 
         std::string errMsg;
         bool result = true;
-        result = result && catalogClient.registerType("libraries/libEmpWithVector.so", errMsg);
-        result = result && catalogClient.registerType("libraries/libTopKTest.so", errMsg);
-        result = result && catalogClient.registerType("libraries/libScanEmpWithVector.so", errMsg);
-        result = result && catalogClient.registerType("libraries/libWriteEmpWithVector.so", errMsg);
+        result = result && pdbClient.registerType("libraries/libEmpWithVector.so", errMsg);
+        result = result && pdbClient.registerType("libraries/libTopKTest.so", errMsg);
+        result = result && pdbClient.registerType("libraries/libScanEmpWithVector.so", errMsg);
+        result = result && pdbClient.registerType("libraries/libWriteEmpWithVector.so", errMsg);
         if (!result) {
             std::cout << "Registering type failed: " << errMsg << "\n";
             exit(1);
@@ -93,28 +100,25 @@ int main(int argc, char* argv[]) {
     std::string errMsg;
 
     // this will allow us to add data
-    pdb::DistributedStorageManagerClient client(8108, masterIP, clientLogger);
 
     if (numOfMb > 0) {
 
         if (createNewDBAndSet) {
 
-            if (!client.createDatabase("topK_db", errMsg)) {
+            if (!pdbClient.createDatabase("topK_db", errMsg)) {
                 cout << "Not able to create database: " + errMsg;
                 exit(-1);
             } else {
                 cout << "Created database.\n";
             }
 
-            if (!client.createSet<EmpWithVector>("topK_db", "topK_set", errMsg)) {
+            if (!pdbClient.createSet<EmpWithVector>("topK_db", "topK_set", errMsg)) {
                 cout << "Not able to create data set: " + errMsg;
                 exit(-1);
             } else {
                 cout << "Created data set.\n";
             }
         }
-
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIP, clientLogger);
 
         for (int i = 0; i < numOfMb; i++) {
 
@@ -147,7 +151,7 @@ int main(int argc, char* argv[]) {
                 } catch (NotEnoughSpace& e) {
 
                     // add the next MB of data
-                    if (!dispatcherClient.sendData<EmpWithVector>(
+                    if (!pdbClient.sendData<EmpWithVector>(
                             std::pair<std::string, std::string>("topK_set", "topK_db"),
                             storeMe,
                             errMsg)) {
@@ -164,10 +168,10 @@ int main(int argc, char* argv[]) {
     }
 
     // now we create the output set
-    if (!client.removeSet("topK_db", "topKOutput_set", errMsg)) {
+    if (!pdbClient.removeSet("topK_db", "topKOutput_set", errMsg)) {
         cout << "Not able to delete output data set: " + errMsg;
     }
-    if (!client.createSet<TopKQueue<double, Handle<EmpWithVector>>>(
+    if (!pdbClient.createSet<TopKQueue<double, Handle<EmpWithVector>>>(
             "topK_db", "topKOutput_set", errMsg)) {
         cout << "Not able to create output data set: " + errMsg;
     }
@@ -191,15 +195,14 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(myQuery);
 
     // execute the query
-    QueryClient myClient(8108, "localhost", clientLogger, true);
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 0;
     }
 
     // now iterate through the result
     SetIterator<TopKQueue<double, Handle<EmpWithVector>>> result =
-        myClient.getSetIterator<TopKQueue<double, Handle<EmpWithVector>>>("topK_db",
+        pdbClient.getSetIterator<TopKQueue<double, Handle<EmpWithVector>>>("topK_db",
                                                                           "topKOutput_set");
     for (auto& a : result) {
         std::cout << "Got back " << a->size() << " items from the top-k query.\n";

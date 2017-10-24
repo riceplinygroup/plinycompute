@@ -518,7 +518,7 @@ common_env.Program('bin/storeLotsOfEmployee', ['build/tests/StoreLotsOfEmployee.
 common_env.Program('bin/storeSharedEmployeeInDBTest', ['build/tests/StoreSharedEmployeeInDBTest.cc'] + all)
 common_env.Program('bin/test1', ['build/tests/Test1.cc'] + all)
 common_env.Program('bin/test2', ['build/tests/Test2.cc'] + all)
-common_env.Program('bin/topK', ['build/tests/TopK.cc'] + all)
+common_env.Program('bin/topK', ['build/tests/TopK.cc'] + all + pdb_client)
 common_env.Program('bin/test3', ['build/tests/Test3.cc'] + all)
 common_env.Program('bin/test4', ['build/tests/Test4.cc'] + all)
 common_env.Program('bin/test4queue', ['build/tests/Test4Queue.cc'] + all)
@@ -628,13 +628,13 @@ common_env.Program('bin/testLA14_Inverse', ['build/tests/TestLA14_Inverse.cc'] +
 common_env.Program('bin/testLA15_ScaleMultiply', ['build/tests/TestLA15_ScaleMultiply.cc'] + all + pdb_client)
 common_env.Program('bin/testLA16_RowSum', ['build/tests/TestLA16_RowSum.cc'] + all + pdb_client)
 common_env.Program('bin/testLA17_ColSum', ['build/tests/TestLA17_ColSum.cc'] + all + pdb_client)
-common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
-common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
+common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all + pdb_client)
+common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all + pdb_client)
 
 common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all + pdb_client)
-common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
-common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all)
-common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
+common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all + pdb_client)
+common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all + pdb_client)
+common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all + pdb_client)
 common_env.Program('bin/TestMatrix', ['build/tests/TestMatrix.cc'] + all)
 
 
