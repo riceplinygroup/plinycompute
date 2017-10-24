@@ -36,10 +36,12 @@ and aims to
 optimize for UDFs by utilizing code
 generation technique to integrate UDF code with the framework
 code. 
-Weld~\cite{palkar2017weld} is a recent system proposing
+Weld~\cite{palkar2017weld} is a recent system developed in Scala and
+Python. It proposes
 to have a common runtime for data anlytics libraries by asking library
 developers to express their work using a new intermediate
-representation so that application developers can use unified APIs to
+representation (IR) and compiles this IR into multi-threaded code using
+LLVM, then application developers can use unified APIs to
 call different libraries from Weld.  
 
 \vspace{5pt}
