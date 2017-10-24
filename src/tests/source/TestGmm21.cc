@@ -26,6 +26,7 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
+#include "PDBClient.h"
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 
@@ -219,9 +220,16 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -243,7 +251,7 @@ int main(int argc, char* argv[]) {
 
     if (whetherToAddData == true) {
         // now, create a new database
-        if (!temp.createDatabase("gmm_db", errMsg)) {
+        if (!pdbClient.createDatabase("gmm_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -251,8 +259,8 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<DoubleVector>(
-                "gmm_db", "gmm_input_set", errMsg, size_t(16) * size_t(1024) * size_t(1024))) {
+        if (!pdbClient.createSet<DoubleVector>(
+                "gmm_db", "gmm_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -261,9 +269,6 @@ int main(int argc, char* argv[]) {
     }
 
     // Step 2. Add data
-
-    DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
 
     if (whetherToAddData == true) {
         if (randomData == true) {
@@ -299,10 +304,10 @@ int main(int argc, char* argv[]) {
 
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -313,10 +318,10 @@ int main(int argc, char* argv[]) {
                     COUT << "Added " << storeMe->size() << " Total: " << addedData << std::endl;
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -329,7 +334,7 @@ int main(int argc, char* argv[]) {
             }  // End while
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
 
 
         } else {  // Load from file
@@ -396,10 +401,10 @@ int main(int argc, char* argv[]) {
                     // happens.
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -410,14 +415,14 @@ int main(int argc, char* argv[]) {
                     COUT << "Added " << storeMe->size() << " Total: " << numData << std::endl;
 
 
-                    temp.flushData(errMsg);
+                    pdbClient.flushData(errMsg);
                 } catch (pdb::NotEnoughSpace& n) {
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -445,18 +450,18 @@ int main(int argc, char* argv[]) {
 
 
     // register this query class
-    catalogClient.registerType("libraries/libGmmAggregate.so", errMsg);
-    catalogClient.registerType("libraries/libGmmModel.so", errMsg);
-    catalogClient.registerType("libraries/libGmmNewComp.so", errMsg);
-    catalogClient.registerType("libraries/libGmmAggregateOutputType.so", errMsg);
-    catalogClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
-    catalogClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
-    catalogClient.registerType("libraries/libGmmSampleSelection.so", errMsg);
-    catalogClient.registerType("libraries/libGmmDataCountAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libGmmAggregate.so", errMsg);
+    pdbClient.registerType("libraries/libGmmModel.so", errMsg);
+    pdbClient.registerType("libraries/libGmmNewComp.so", errMsg);
+    pdbClient.registerType("libraries/libGmmAggregateOutputType.so", errMsg);
+    pdbClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
+    pdbClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
+    pdbClient.registerType("libraries/libGmmSampleSelection.so", errMsg);
+    pdbClient.registerType("libraries/libGmmDataCountAggregate.so", errMsg);
 
 
-    catalogClient.registerType("libraries/libSumResult.so", errMsg);
-    catalogClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+    pdbClient.registerType("libraries/libSumResult.so", errMsg);
+    pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
 
 
     //***********************************************************************************
@@ -467,7 +472,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output date
 
     PDB_COUT << "to create a new set to store the data count" << std::endl;
-    if (!temp.createSet<SumResult>("gmm_db", "gmm_data_count_set", errMsg)) {
+    if (!pdbClient.createSet<SumResult>("gmm_db", "gmm_data_count_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -476,7 +481,7 @@ int main(int argc, char* argv[]) {
 
 
     PDB_COUT << "to create a new set to store the initial model" << std::endl;
-    if (!temp.createSet<DoubleVector>("gmm_db", "gmm_initial_model_set", errMsg)) {
+    if (!pdbClient.createSet<DoubleVector>("gmm_db", "gmm_initial_model_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -485,8 +490,8 @@ int main(int argc, char* argv[]) {
 
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<GmmAggregateOutputType>(
-            "gmm_db", "gmm_output_set", errMsg, size_t(64) * size_t(1024) * size_t(1024))) {
+    if (!pdbClient.createSet<GmmAggregateOutputType>(
+            "gmm_db", "gmm_output_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -499,8 +504,6 @@ int main(int argc, char* argv[]) {
     //***********************************************************************************
 
     // connect to the query client
-    QueryClient myClient(8108, "localhost", clientLogger, true);
-
 
     auto iniBegin = std::chrono::high_resolution_clock::now();
 
@@ -536,14 +539,14 @@ int main(int argc, char* argv[]) {
         std::cout << "Let's execute the Sampling!" << std::endl;
 
 
-        if (!myClient.executeComputations(errMsg, myWriteSet)) {
+        if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
             COUT << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
 
         std::cout << "Sampling done!: " << std::endl;
         SetIterator<DoubleVector> sampleResult =
-            myClient.getSetIterator<DoubleVector>("gmm_db", "gmm_initial_model_set");
+                pdbClient.getSetIterator<DoubleVector>("gmm_db", "gmm_initial_model_set");
 
         for (Handle<DoubleVector> a : sampleResult) {
             std::cout << "Scanning result from sampling:" << std::endl;
@@ -559,7 +562,7 @@ int main(int argc, char* argv[]) {
             mySamples.push_back(myDoubles);
         }
         std::cout << "Now we have " << mySamples.size() << " samples" << std::endl;
-        temp.clearSet("gmm_db", "gmm_initial_model_set", "pdb::DoubleVector", errMsg);
+        pdbClient.clearSet("gmm_db", "gmm_initial_model_set", "pdb::DoubleVector", errMsg);
     }
 
 
@@ -580,11 +583,11 @@ int main(int argc, char* argv[]) {
     Handle <Computation> myWriter = makeObject<WriteSumResultSet>("gmm_db", "gmm_data_count_set");
     myWriter->setInput(myDataCount);
 
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         COUT << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
-    SetIterator <SumResult> dataCountResult = myClient.getSetIterator <SumResult> ("gmm_db",
+    SetIterator <SumResult> dataCountResult = pdbClient.getSetIterator <SumResult> ("gmm_db",
     "gmm_data_count_set");
     for (Handle<SumResult> a : dataCountResult) {
         dataCount = a->getTotal();
@@ -738,7 +741,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, gmmIteration)) {
+        if (!pdbClient.executeComputations(errMsg, gmmIteration)) {
             COUT << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -749,7 +752,7 @@ int main(int argc, char* argv[]) {
 
         // Read output and update Means, Weights and Covars in Model
         SetIterator<GmmAggregateOutputType> result =
-            myClient.getSetIterator<GmmAggregateOutputType>("gmm_db", "gmm_output_set");
+                pdbClient.getSetIterator<GmmAggregateOutputType>("gmm_db", "gmm_output_set");
 
         std::cout << "ITERATION OUTPUT " << currentIter << " , FROM " << iter << " ITERATIONS"
                   << std::endl;
@@ -768,7 +771,7 @@ int main(int argc, char* argv[]) {
 
         model = currentModel;
 
-        temp.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputType", errMsg);
+        pdbClient.clearSet("gmm_db", "gmm_output_set", "pdb::GmmAggregateOutputType", errMsg);
 
         COUT << std::endl;
         COUT << std::endl;
@@ -867,16 +870,16 @@ int main(int argc, char* argv[]) {
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("gmm_db", "gmm_output_set");
-        myClient.deleteSet("gmm_db", "gmm_initial_model_set");
+        pdbClient.deleteSet("gmm_db", "gmm_output_set");
+        pdbClient.deleteSet("gmm_db", "gmm_initial_model_set");
 
-        // myClient.deleteSet ("gmm_db", "gmm_initial_model_set");
-        // myClient.deleteSet ("gmm_db", "gmm_data_count_set");
+        // pdbClient.deleteSet ("gmm_db", "gmm_initial_model_set");
+        // pdbClient.deleteSet ("gmm_db", "gmm_data_count_set");
     } else {
-        if (!temp.removeSet("gmm_db", "gmm_output_set", errMsg)) {
+        if (!pdbClient.removeSet("gmm_db", "gmm_output_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
-        } else if (!temp.removeSet("gmm_db", "gmm_initial_model_set", errMsg)) {
+        } else if (!pdbClient.removeSet("gmm_db", "gmm_initial_model_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
         }

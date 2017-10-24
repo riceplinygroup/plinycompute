@@ -26,6 +26,7 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
+#include "PDBClient.h"
 #include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 
@@ -221,9 +222,16 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -245,7 +253,7 @@ int main(int argc, char* argv[]) {
 
     if (whetherToAddData == true) {
         // now, create a new database
-        if (!temp.createDatabase("gmm_db", errMsg)) {
+        if (!pdbClient.createDatabase("gmm_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -253,7 +261,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
+        if (!pdbClient.createSet<DoubleVector>("gmm_db", "gmm_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -264,9 +272,6 @@ int main(int argc, char* argv[]) {
     // Step 2. Add data
 
     auto begin = std::chrono::high_resolution_clock::now();
-
-    DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
 
     if (whetherToAddData == true) {
         if (randomData == true) {
@@ -302,10 +307,10 @@ int main(int argc, char* argv[]) {
 
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -316,10 +321,10 @@ int main(int argc, char* argv[]) {
                     COUT << "Added " << storeMe->size() << " Total: " << addedData << std::endl;
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -332,7 +337,7 @@ int main(int argc, char* argv[]) {
             }  // End while
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
 
 
         } else {  // Load from file
@@ -399,10 +404,10 @@ int main(int argc, char* argv[]) {
                     // happens.
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
@@ -413,14 +418,14 @@ int main(int argc, char* argv[]) {
                     numData += storeMe->size();
                     COUT << "Added " << storeMe->size() << " Total: " << numData << std::endl;
 
-                    temp.flushData(errMsg);
+                    pdbClient.flushData(errMsg);
                 } catch (pdb::NotEnoughSpace& n) {
                     // Record<Vector<Handle<Object>>> * myRecord = (Record<Vector<Handle<Object>>> *
                     // )getRecord(storeMe);
-                    // if (!dispatcherClient.sendBytes<DoubleVector>(std::pair<std::string,
+                    // if (!pdbClient.sendBytes<DoubleVector>(std::pair<std::string,
                     // std::string>("gmm_input_set", "gmm_db"), (char *)myRecord,
                     // myRecord->numBytes(), errMsg)) {
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("gmm_input_set", "gmm_db"),
                             storeMe,
                             errMsg)) {
