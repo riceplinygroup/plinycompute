@@ -42,32 +42,32 @@ to have a common runtime for data anlytics libraries by asking library
 developers to express their work using a new intermediate
 representation (IR) and compiles this IR into multi-threaded code using
 LLVM, then application developers can use unified APIs to
-call different libraries from Weld.  
+call different libraries from Weld. 
 
 \vspace{5pt}
 \texttt {Optimized Memory Management.} 
-Apache Flink~\cite{alexandrov2014stratosphere},
-Apache Spark~\cite{zaharia2012resilient}, 
-Spark SQL~\cite{armbrust2015spark} and Deca~\cite{lu2016lifetime} all have
-ability to group data into byte arrays or even store data off-heap to
-alleviate the garbage collection overhead. 
+Apache Flink~\cite{alexandrov2014stratosphere} and Apache
+Spark~\cite{zaharia2012resilient} are both distributed in-memory
+dataflow systems. They both provide high level language interfaces like Java and Scala.
+Spark SQL~\cite{armbrust2015spark} is a relational system built on top
+of Spark. Those system all have the
+ability to alleviate the garbage collection overhead  by store dataset
+into byte arrays or even store dataset off-heap.
 
-Flink~\cite{alexandrov2014stratosphere} assigns memory budgets to its data processing operators. Upon
+Apache Flink~\cite{alexandrov2014stratosphere} assigns memory budgets to its data processing operators. Upon
 initialization, a computation requests its memory budget from the
 memory manager and receives a corresponding set of byte arrays as memory segments. So
 each operation will have its own memory pool that it can manually
 manage. 
 
-SparkSQL~\cite{armbrust2015spark} serializes simple data objects (or
+Apache SparkSQL~\cite{armbrust2015spark} serializes simple data objects (or
 relational table in SparkSQL) into byte arrays and store the serialized bytes
 in a main-memory columnar storage. Spark Tungsten~\cite{tungsten}
 optimizes Spark execution backend by grouping execution
 data such as hash-based aggregation and shuffle data
 to byte arrays and data can be allocated in off-heap mode via
 Java APIs such as sun.misc.Unsafe to
-further reduce GC overhead. 
-
-Deca~\cite{lu2016lifetime} is a memory management framework aiming at
+further reduce GC overhead. Deca~\cite{lu2016lifetime} is a memory management framework aiming at
 reducing GC overhead. It stores
 various Spark data types, e.g. UDF variables, user data and
 shuffle data into different
@@ -103,7 +103,13 @@ converted from a Dataset through $ DataFrame =
 Dataset[Row] $. Dataset/Dataframe enables relational-style processing
 through a relational query optimizer called Catalyst and
 also enables Java intermediate code generation to reduce virtual
-function call overhead through Tungsten~\cite{tungsten}.
+function call overhead through Tungsten~\cite{tungsten}. 
+
+However while
+such techniques can boost performance significantly, they move the
+systems closer to relational processing, and tend to limit the
+expressiveness of data representation and the flexibility of
+programming model.
 
 
 \vspace{5pt}
