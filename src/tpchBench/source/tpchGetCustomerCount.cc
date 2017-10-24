@@ -116,12 +116,16 @@ int main(int argc, char* argv[]) {
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
-    pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-    pdb::DispatcherClient dispatcherClient =
-        DispatcherClient(masterPort, masterHostname, clientLogger);
-    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
+    PDBClient pdbClient(
+            masterPort, masterHostname,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            masterPort,
+            masterHostname,
+            clientLogger);
 
     string errMsg;
 
@@ -131,7 +135,7 @@ int main(int argc, char* argv[]) {
     // WE CHECK THE NUBMER OF STORED CUSTOMERS
 
     // now, create the sets for storing Customer Data
-    if (!distributedStorageManagerClient.createSet<SumResultWriteSet>(
+    if (!pdbClient.createSet<SumResultWriteSet>(
             "TPCH_db", "output_setCustomer", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
@@ -162,7 +166,7 @@ int main(int argc, char* argv[]) {
     // execute the query
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!queryClient.executeComputations(errMsg, myWriteSet)) {
+    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -176,7 +180,7 @@ int main(int argc, char* argv[]) {
     // Printing results to double check
     std::cout << "to print result..." << std::endl;
     SetIterator<SumResult> result =
-        queryClient.getSetIterator<SumResult>("TPCH_db", "output_setCustomer");
+            pdbClient.getSetIterator<SumResult>("TPCH_db", "output_setCustomer");
 
     std::cout << "Query results: ";
     int count = 0;
@@ -188,7 +192,7 @@ int main(int argc, char* argv[]) {
 
 
     // CLEAN UP. Remove the Customer output set
-    if (!distributedStorageManagerClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
+    if (!pdbClient.removeSet("TPCH_db", "output_setCustomer", errMsg)) {
         cout << "Not able to remove the set: " + errMsg;
         exit(-1);
     } else {
