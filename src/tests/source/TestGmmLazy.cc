@@ -539,7 +539,8 @@ int main(int argc, char* argv[]) {
     while (mySamples.size() < nSamples) {
         std::cout << "Needed to sample due to insufficient sample size." << std::endl;
         Handle<Computation> mySampleScanSet =
-            makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
+            //makeObject<ScanDoubleVectorSet>("gmm_db", "gmm_input_set");
+makeObject<ScanUserSet<DoubleVector>>("gmm_db", "gmm_input_set");
         Handle<Computation> myDataSample = makeObject<GmmSampleSelection>(fraction);
         myDataSample->setInput(mySampleScanSet);
         Handle<Computation> myWriteSet =
