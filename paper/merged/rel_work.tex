@@ -50,8 +50,8 @@ Apache Flink~\cite{alexandrov2014stratosphere} and Apache
 Spark~\cite{zaharia2012resilient} are both distributed in-memory
 dataflow systems. They both provide high level language interfaces like Java and Scala.
 Spark SQL~\cite{armbrust2015spark} is a relational system built on top
-of Spark. Those system all have the
-ability to alleviate the garbage collection overhead  by store dataset
+of Spark. Those systems all have the
+ability to alleviate the garbage collection overhead  by storing dataset
 into byte arrays or even store dataset off-heap.
 
 Apache Flink~\cite{alexandrov2014stratosphere} assigns memory budgets to its data processing operators. Upon
@@ -106,10 +106,10 @@ also enables Java intermediate code generation to reduce virtual
 function call overhead through Tungsten~\cite{tungsten}. 
 
 However while
-such techniques can boost performance significantly, they move the
+such techniques can boost performance significantly, they also move the
 systems closer to relational processing, and tend to limit the
-expressiveness of data representation and the flexibility of
-programming model.
+expressiveness of data representations and the flexibility of
+programming models.
 
 
 \vspace{5pt}
