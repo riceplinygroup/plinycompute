@@ -86,14 +86,17 @@ int main(int argc, char* argv[]) {
 
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
+    PDBClient pdbClient(
+            masterPort, masterHostname,
+            clientLogger,
+            false,
+            true);
 
     string errMsg;
 
     //	 flush to disk
     cout << "Flush data to disk" << endl;
-    distributedStorageManagerClient.flushData(errMsg);
+    pdbClient.flushData(errMsg);
     cout << errMsg << endl;
 }
 

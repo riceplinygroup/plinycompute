@@ -115,12 +115,19 @@ int main() {
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
-    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
+    PDBClient pdbClient(
+            masterPort, masterHostname,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            masterPort,
+            masterHostname,
+            clientLogger);
 
     // now, create the sets for storing Customer Data
-    if (!distributedStorageManagerClient.createSet<SumResult>(
+    if (!pdbClient.createSet<SumResult>(
             "TPCH_db", "t_output_set_1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
@@ -159,7 +166,7 @@ int main() {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!queryClient.executeComputations(errMsg, myWriteSet)) {
+    if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -180,7 +187,7 @@ int main() {
 #ifndef CHECK_RESULTS
 
     SetIterator<SumResult> result =
-        queryClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
+            pdbClient.getSetIterator<SumResult>("TPCH_db", "t_output_set_1");
 
     std::cout << "Query results: ";
     int count = 0;
@@ -218,7 +225,7 @@ int main() {
 
 #endif
     // Remove the output set
-    if (!distributedStorageManagerClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
+    if (!pdbClient.removeSet("TPCH_db", "t_output_set_1", errMsg)) {
         cout << "Not able to remove the set: " + errMsg;
         exit(-1);
     } else {

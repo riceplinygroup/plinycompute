@@ -600,12 +600,16 @@ int main(int argc, char* argv[]) {
     // register the shared employee class
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient distributedStorageManagerClient(
-        masterPort, masterHostname, clientLogger);
-    pdb::CatalogClient catalogClient(masterPort, masterHostname, clientLogger);
-    pdb::DispatcherClient dispatcherClient =
-        DispatcherClient(masterPort, masterHostname, clientLogger);
-    pdb::QueryClient queryClient(masterPort, masterHostname, clientLogger, true);
+    PDBClient pdbClient(
+            masterPort, masterHostname,
+            clientLogger,
+            false,
+            true);
+
+    CatalogClient catalogClient(
+            masterPort,
+            masterHostname,
+            clientLogger);
 
     string errMsg;
 
@@ -620,9 +624,9 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, dispatcherClient, noOfCopiesEachRound);
+            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesEachRound);
             // flush to disk
-            distributedStorageManagerClient.flushData(errMsg);
+            pdbClient.flushData(errMsg);
             cout << errMsg << endl;
         }
 
@@ -636,9 +640,9 @@ int main(int argc, char* argv[]) {
         {
             pdb::makeObjectAllocatorBlock((size_t)2 * GB, true);
             // Generate the data
-            dataGenerator(scaleFactor, dispatcherClient, noOfCopiesPartialRound);
+            dataGenerator(scaleFactor, pdbClient.getDispatcherClient(), noOfCopiesPartialRound);
             // flush to disk
-            distributedStorageManagerClient.flushData(errMsg);
+            pdbClient.flushData(errMsg);
             cout << errMsg << endl;
         }
 
