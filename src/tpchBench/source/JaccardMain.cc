@@ -26,10 +26,7 @@
 #include "PDBVector.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
-
-#include "DispatcherClient.h"
+#include "PDBClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include "TopKQueue.h"

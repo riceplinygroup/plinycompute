@@ -27,8 +27,6 @@
 #include "Query.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
 
 /*#include "WriteKMeansSet.h"
 #include "KMeansAggregate.h"

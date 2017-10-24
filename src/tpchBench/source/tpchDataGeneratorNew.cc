@@ -42,9 +42,7 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
+#include "PDBClient.h"
 #include "DataTypes.h"
 #include "InterfaceFunctions.h"
 
@@ -64,9 +62,6 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
