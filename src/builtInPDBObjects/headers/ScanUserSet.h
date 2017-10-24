@@ -222,6 +222,9 @@ public:
     }
 
     std::string getOutputType() override {
+        if (outputType == "") {
+            outputType = getTypeName<OutputClass>();
+        }
         return this->outputType;
     }
 
