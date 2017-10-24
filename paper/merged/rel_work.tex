@@ -99,8 +99,8 @@ in nature binary data representation encoded from JVM objects to
 abstract an object  into a row with fields/columns. Internally,
 Spark distinguishes DataSet and Dataframe as strongly typed representation and
 untyped representation respectively, and a Dataframe can be
-converted from a Dataset through DataFrame =
-Dataset[Row]. Dataset/Dataframe enables relational-style processing
+converted from a Dataset through $ DataFrame =
+Dataset[Row] $. Dataset/Dataframe enables relational-style processing
 through a relational query optimizer called Catalyst and
 also enables Java intermediate code generation to reduce virtual
 function call overhead through Tungsten~\cite{tungsten}.
