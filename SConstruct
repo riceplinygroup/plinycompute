@@ -433,14 +433,14 @@ common_env.SharedLibrary('libraries/libCountCustomer.so', ['build/tpchBench/Coun
 common_env.SharedLibrary('libraries/libSupplierInfo.so', ['build/tpchBench/SupplierInfo.cc'] + all)
 
 
-common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all)
-common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all)
-common_env.Program('bin/tpchJaccard', ['build/tpchBench/JaccardMain.cc'] + all)
-common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all)
-common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all)
-common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all)
-common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc'] + all)
+common_env.Program('bin/tpchDataGenerator', ['build/tpchBench/tpchDataGenerator.cc'] + all + pdb_client)
+common_env.Program('bin/tpchDataGeneratorNew', ['build/tpchBench/tpchDataGeneratorNew.cc'] + all + pdb_client)
+common_env.Program('bin/tpchQuery', ['build/tpchBench/tpchQuery.cc'] + all + pdb_client)
+common_env.Program('bin/tpchJaccard', ['build/tpchBench/JaccardMain.cc'] + all + pdb_client)
+common_env.Program('bin/tpchGetCustomerCount', ['build/tpchBench/tpchGetCustomerCount.cc'] + all + pdb_client)
+common_env.Program('bin/tpchRegisterAndCreateSets', ['build/tpchBench/tpchRegisterAndCreateSets.cc'] + all + pdb_client)
+common_env.Program('bin/tpchDataGeneratorAll', ['build/tpchBench/tpchDataGeneratorAll.cc'] + all + pdb_client)
+common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc'] + all + pdb_client)
 
 
 # K-means
@@ -631,7 +631,7 @@ common_env.Program('bin/testLA17_ColSum', ['build/tests/TestLA17_ColSum.cc'] + a
 common_env.Program('bin/testLA20_Parser', ['build/tests/TestLA20_Parser.cc'] + all)
 common_env.Program('bin/testLA21_Instance', ['build/tests/TestLA21_Instance.cc'] + all)
 
-common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all)
+common_env.Program('bin/tpchTestData', ['build/tpchBench/TestTPCHData.cc'] + all + pdb_client)
 common_env.Program('bin/TestKMeans', ['build/tests/TestKMeans.cc'] + all)
 common_env.Program('bin/KMeansDataLoader', ['build/tests/TestKMeansLoadData.cc'] + all)
 common_env.Program('bin/TestLDA', ['build/tests/TestLDA.cc'] + all)
