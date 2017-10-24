@@ -500,9 +500,9 @@ common_env.SharedLibrary('libraries/libGmmAggregateOutputLazy.so', ['build/libra
 common_env.SharedLibrary('libraries/libGmmAggregateDatapoint.so', ['build/libraries/GMM2/GmmAggregateDatapoint.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmAggregateNewComp.so', ['build/libraries/GMM2/GmmAggregateNewComp.cc'] + all)
 
-common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all)
-common_env.Program('bin/TestGmmLoadData', ['build/tests/TestGmmLoadData.cc'] + all)
-common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all)
+common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all + pdb_client)
+common_env.Program('bin/TestGmmLoadData', ['build/tests/TestGmmLoadData.cc'] + all + pdb_client)
+common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all + pdb_client)
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
 #common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
