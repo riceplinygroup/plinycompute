@@ -129,7 +129,7 @@ public:
     // to return the i-th input type
     std::string getIthInputType(int i) override {
         if (i == 0) {
-            return outputType;
+            return this->getOutputType();
         } else {
             return "";
         }
