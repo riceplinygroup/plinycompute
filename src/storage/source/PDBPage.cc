@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBPage.cc
- * Author: Jia
- *
- */
 
 #ifndef PDB_Page_C
 #define PDB_Page_C

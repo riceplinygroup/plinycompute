@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PartitionedFile.cc
- *
- *  Created on: Dec 16, 2015
- *      Author: Jia
- */
 
 #include "PartitionedFile.h"
 #include <stdio.h>
@@ -103,12 +97,6 @@ PartitionedFile::PartitionedFile(NodeID nodeId,
     this->setId = setId;
     this->metaPartitionPath = metaPartitionPath;
     this->logger = logger;
-    // this->pageSize = getPageSizeInMeta();
-
-
-    // Initialize meta FILE instances;
-    this->metaFile = nullptr;
-    this->usingDirect = false;
     this->cleared = false;
 
 
@@ -180,7 +168,6 @@ bool PartitionedFile::openData() {
  */
 bool PartitionedFile::openDataDirect() {
     int numPartitions = this->dataPartitionPaths.size();
-    // cout << "numPartitions="<<numPartitions<<"\n";
     int i;
     int handle;
     for (i = 0; i < numPartitions; i++) {
@@ -736,7 +723,6 @@ void PartitionedFile::buildMetaDataFromMetaPartition(SharedMemPtr shm) {
 
     // parse file type
     char* cur = buf;
-    // FileType fileType = (*(FileType *) cur);
     cur = cur + sizeof(FileType);
 
     // parse and set version;

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- *  LocalitySet.cc
- *
- *  Created on: May 29, 2016
- *  Author: Jia
- */
 
 #ifndef LOCALITY_SET_CC
 #define LOCALITY_SET_CC
@@ -47,14 +41,10 @@ LocalitySet::~LocalitySet() {
 }
 
 void LocalitySet::addCachedPage(PDBPagePtr page) {
-    // cout << "to add page to cache with pageId=" << page->getPageID() << ", setId="<<
-    // page->getSetID() << "\n";
     cachedPages->push_back(page);
 }
 
 void LocalitySet::updateCachedPage(PDBPagePtr page) {
-    // cout << "to update page in cache with pageId=" << page->getPageID() << ", setId=" <<
-    // page->getSetID() << "\n";
     for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
         if ((*it) == page) {
             cachedPages->erase(it);
@@ -65,8 +55,6 @@ void LocalitySet::updateCachedPage(PDBPagePtr page) {
 }
 
 void LocalitySet::removeCachedPage(PDBPagePtr page) {
-    // cout << "to remove page from cache with pageId=" << page->getPageID() << ", setId=" <<
-    // page->getSetID() << "\n";
     for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
         if ((*it) == page) {
             cachedPages->erase(it);
@@ -83,7 +71,6 @@ PDBPagePtr LocalitySet::selectPageForReplacement() {
              ++it) {
             if ((*it)->getRefCount() == 0) {
                 retPage = (*it);
-                // cachedPages->erase(it);
                 break;
             }
         }
@@ -91,7 +78,6 @@ PDBPagePtr LocalitySet::selectPageForReplacement() {
         for (list<PDBPagePtr>::iterator it = cachedPages->begin(); it != cachedPages->end(); ++it) {
             if ((*it)->getRefCount() == 0) {
                 retPage = (*it);
-                // cachedPages->erase(it);
                 break;
             }
         }
@@ -106,7 +92,6 @@ vector<PDBPagePtr>* LocalitySet::selectPagesForReplacement() {
         delete retPages;
         return nullptr;
     }
-    // cout << "totalPages="<<totalPages<<"\n";
     int numPages = 0;
     if (this->replacementPolicy == MRU) {
         for (list<PDBPagePtr>::reverse_iterator it = cachedPages->rbegin();

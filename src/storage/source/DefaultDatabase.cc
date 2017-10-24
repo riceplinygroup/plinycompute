@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   DefaultDatabase.cc
- * Author: Jia
- *
- */
 
 
 #ifndef DEFAULT_DATABASE_CC
@@ -90,7 +85,6 @@ bool DefaultDatabase::addType(string name, UserTypeID id) {
     unsigned int i;
     for (i = 0; i < this->dataDBPaths->size(); i++) {
         string dataTypePath = encodeTypePath(this->dataDBPaths->at(i), id, name);
-        // cout<<"AddType: dataTypePath:"<<dataTypePath<<"\n";
         dataTypePaths->push_back(dataTypePath);
     }
     TypePtr type = make_shared<UserType>(this->nodeId,
@@ -126,7 +120,6 @@ bool DefaultDatabase::removeType(UserTypeID typeId) {
     this->logger->writeInt(typeId);
     map<UserTypeID, TypePtr>::iterator it = types->find(typeId);
     if (it != types->end()) {
-        // this->logger->writeLn("DefaultDatabase: Type found, removing it...");
         pthread_mutex_lock(&this->typeOpLock);
         this->clearType(typeId, it->second->getName());
         this->types->erase(it);  // will erase invoke destructor of element???
@@ -146,7 +139,6 @@ void DefaultDatabase::clearType(UserTypeID typeId, string typeName) {
     string typePath;
     for (i = 0; i < this->dataDBPaths->size(); i++) {
         typePath = encodeTypePath(this->dataDBPaths->at(i), typeId, typeName);
-        // remove(typePath.c_str());
         boost::filesystem::remove_all(typePath.c_str());
     }
 }
@@ -164,20 +156,7 @@ TypePtr DefaultDatabase::getType(UserTypeID typeId) {
 // flush data from memory to disk files
 // flush is now fully managed by PageCache, so do nothing here
 void DefaultDatabase::flush() {
-    /*
-    this->logger->writeLn("DefaultDatabase: flushing Database with DatabaseID:");
-    this->logger->writeInt(this->dbId);
-    //coarse-grained lock to synchronize type removal and type flushing
-    pthread_mutex_lock(&this->typeOpLock);
-    for (std::map<UserTypeID, TypePtr>::iterator it = this->types->begin();
-            it != types->end(); ++it) {
-        TypePtr type = it->second;
-        type->flush();
-    }
-    pthread_mutex_unlock(&this->typeOpLock);
-    */
 }
-
 // returns database id
 DatabaseID DefaultDatabase::getDatabaseID() {
     return this->dbId;
@@ -213,10 +192,6 @@ bool DefaultDatabase::initializeFromMetaDBDir(path metaDBDir) {
                     name = dirName.substr(dirName.find('_') + 1, dirName.length() - 1);
                     // parse type id
                     typeId = stoul(dirName.substr(0, dirName.find('_')));
-                    // cout << "DefaultDatabase: detect type at path: " << path << "\n";
-                    // cout << "Type name: " << name << "\n";
-                    // cout << "Type ID:" << typeId << "\n";
-                    this->addTypeByPartitionedFiles(name, typeId, path);
                 }
             }
         } else {

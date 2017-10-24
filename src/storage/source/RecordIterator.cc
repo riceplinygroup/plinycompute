@@ -18,7 +18,6 @@
 #ifndef OBJECT_ITERATOR_CC
 #define OBJECT_ITERATOR_CC
 
-// by Jia, Sept 2017
 
 #include "RecordIterator.h"
 
@@ -28,7 +27,6 @@ RecordIterator::RecordIterator(PDBPagePtr page) {
     this->page = page;
     this->numObjectsIterated = 0;
     this->numObjectsInCurPage = page->getEmbeddedNumObjects();
-    // std :: cout << "there are " << numObjectsInCurPage << " objects" << std :: endl;
     this->curPosInPage = (char*)page->getBytes();
 }
 

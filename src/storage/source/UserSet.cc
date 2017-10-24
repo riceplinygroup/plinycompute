@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * UserSet.cc
- *
- *  Created on: Dec 21, 2015
- *      Author: Jia
- */
 
 #ifndef USER_SET_CC
 #define USER_SET_CC
@@ -97,7 +91,7 @@ UserSet::UserSet(size_t pageSize,
     this->setName = setName;
     this->file = file;
     if (this->file->getNumFlushedPages() == 0) {
-        this->lastFlushedPageId = (unsigned int)(-1);  // 0xFFFFFFFF
+        this->lastFlushedPageId = (unsigned int)(-1);  
     } else {
         this->lastFlushedPageId = file->getLastFlushedPageID();
         this->seqId.initialize(this->lastFlushedPageId + 1);

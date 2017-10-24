@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * UserType.cc
- *
- *  Created on: Dec 23, 2015
- *      Author: Jia
- */
-
 #include "UserType.h"
 #include "PartitionedFile.h"
 
@@ -84,21 +77,7 @@ UserType::~UserType() {
 
 
 void UserType::flush() {
-    /*
- SetPtr curSet;
- this->logger->writeLn("Type: flushing type with UserTypeID: ");
- this->logger->writeInt(this->id);
- map<SetID, SetPtr>::iterator bufferIter;
- for (bufferIter = sets->begin(); bufferIter != sets->end(); bufferIter++) {
-     this->logger->writeLn("SetID:");
-     this->logger->writeInt(bufferIter->first);
-     curSet = bufferIter->second;
-     curSet->flush();
- }
-    */
 }
-
-
 /**
  * Compute the path to store the UserType data for persistence.
  */
@@ -132,7 +111,6 @@ int UserType::addSet(string setName, SetID setId, size_t pageSize) {
                                         this->logger,
                                         pageSize);
 
-    // cout<<"creating set...\n";
     SetPtr set = make_shared<UserSet>(
         pageSize, logger, shm, nodeId, dbId, id, setId, setName, file, this->cache);
     if (set == 0) {
@@ -156,7 +134,6 @@ int UserType::removeSet(SetID setId) {
         this->logger->writeLn("UserType: removing input buffer for set:");
         this->logger->writeInt(setId);
         this->logger->writeLn("\n");
-        // setIter->second->clear();
         setIter->second->getFile()->clear();
         pthread_mutex_lock(&setLock);
         this->sets->erase(setIter);
@@ -254,91 +231,5 @@ bool UserType::initializeFromMetaTypeDir(path metaTypeDir) {
 // This function is mainly to provide backward compatibility for SequenceFile instances.
 bool UserType::initializeFromTypeDir(path typeDir) {
 
-    /*
-        //traverse all set files in type directory
-        //for each set file, invoke addSet to initialize PDBFile object and CircularInputBuffer
-        if (exists(typeDir)) {
-            if (is_directory(typeDir)) {
-                vector<path> setFiles;
-                copy(directory_iterator(typeDir), directory_iterator(),
-                        back_inserter(setFiles));
-                vector<path>::iterator iter;
-                std::string path;
-                std::string dirName;
-                std::string name;
-                SetID setId;
-                for (iter = setFiles.begin(); iter != setFiles.end(); iter++) {
-                    if (is_regular_file(*iter)) {
-                        //find a set
-                        path = std::string(iter->c_str());
-                        this->logger->writeLn("PDBType: find a set at path:");
-                        this->logger->writeLn(path.c_str());
-
-                        dirName = path.substr(path.find_last_of('/') + 1,
-                                path.length() - 1);
-                        name = dirName.substr(dirName.find('_') + 1,
-                                dirName.length() - 1);
-                        this->logger->writeLn("PDBType: setName:");
-                        this->logger->writeLn(name.c_str());
-
-                        setId = stoul(dirName.substr(0, dirName.find('_')));
-                        this->logger->writeLn("PDBType: setId:");
-                        this->logger->writeInt(setId);
-
-                        if (this->sets->find(setId) != this->sets->end()) {
-                            this->logger->writeLn("PDBType: set exists.");
-                            return false;
-                        }
-                        cout << "Type: detect set at path: " << path << "\n";
-                        cout << "Set name: " << name << "\n";
-                        cout << "Set ID:" << setId << "\n";
-                        //create SequenceFile instance
-                        PDBFilePtr file = make_shared<SequenceFile>(this->nodeId,
-                                this->dbId, this->id, setId, path, this->logger,
-                                this->conf->getPageSize());
-                        file->getAndSetNumFlushedPages();
-                        this->logger->writeLn("UserType: numFlushedPages:");
-                        this->logger->writeInt(file->getNumFlushedPages());
-                        cout << "Set contains " << file->getNumFlushedPages()
-                                << " pages.\n";
-                        if (file->getNumFlushedPages() > 0) {
-                            size_t metaPageSize = file->getPageSizeInMeta();
-                            if (this->conf->getPageSize() != metaPageSize) {
-                                cout
-                                        << "Error: Inconsistent page sizes: flushed file page size =
-       "
-                                        << metaPageSize
-                                        << ", and current page size = "
-                                        << this->conf->getPageSize() << ".\n";
-                                exit(1);
-                            }
-                        }
-
-                        //create a Set instance from file
-                        SetPtr set = make_shared<UserSet>(
-                                this->conf->getPageSize(),
-                                 logger, this->shm,
-                                nodeId, dbId, id, setId, name,
-                                file, this->cache);
-                        // add buffer to map
-                        if (set == 0) {
-                            this->logger->writeLn("UserType: out of memory.");
-                            exit(1);
-                        }
-                        this->logger->writeLn("UserType: set added.");
-                        this->sets->insert(
-                                pair<SetID, SetPtr>(setId, set));
-                        this->numSets++;
-                        return true;
-                    }
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-        return true;
-    */
     return false;
 }

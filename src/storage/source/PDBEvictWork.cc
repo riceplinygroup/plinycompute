@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBEvictWork.cc
- * Author: Jia
- *
- */
-
-
 #ifndef PDB_EVICT_WORK_CC
 #define PDB_EVICT_WORK_CC
 

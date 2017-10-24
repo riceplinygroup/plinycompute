@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageCircularBufferIterator.cc
- * Author: Jia
- *
- */
 
 #ifndef PAGECIRCULARBUFFERITERATOR_CC
 #define PAGECIRCULARBUFFERITERATOR_CC

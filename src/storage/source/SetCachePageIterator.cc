@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SetCachePageIterator.cc
- * Author: Jia
- *
- */
 
 
 #ifndef SET_CACHE_PAGE_ITERATOR_CC
@@ -40,7 +35,6 @@
 SetCachePageIterator::SetCachePageIterator(PageCachePtr cache, UserSet* set) {
     this->cache = cache;
     this->set = set;
-    // set->cleanDirtyPageSet();
     this->iter = this->set->getDirtyPageSet()->begin();
 }
 
@@ -58,21 +52,14 @@ PDBPagePtr SetCachePageIterator::end() {
 }
 
 PDBPagePtr SetCachePageIterator::next() {
-    // this->set->getLogger()->writeLn("SetCachePageIterator: to get lock for evictionLock()...");
-    // std :: cout << "to get lock!" << std :: endl;
     this->cache->evictionLock();
-    // std :: cout << "got lock!" << std :: endl;
-    // this->set->getLogger()->writeLn("SetCachePageIterator: got lock for evictionLock()...");
     if (this->iter != this->set->getDirtyPageSet()->end()) {
-        // std :: cout << "has next!" << std :: endl;
         if (this->iter->second.inCache == true) {
             CacheKey key;
             key.dbId = this->set->getDbID();
             key.typeId = this->set->getTypeID();
             key.setId = this->set->getSetID();
             key.pageId = this->iter->first;
-            // this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
-            // this->set->getLogger()->writeInt(key.pageId);
             PDB_COUT << "SetCachePageIterator: in cache: curPageId=" << key.pageId << "\n";
 #ifdef USE_LOCALITY_SET
             PDBPagePtr page = this->cache->getPage(key, this->set);
@@ -80,19 +67,13 @@ PDBPagePtr SetCachePageIterator::next() {
             PDBPagePtr page = this->cache->getPage(key, nullptr);
 #endif
             this->cache->evictionUnlock();
-            // this->set->getLogger()->writeLn("SetCachePageIterator: unlocked for
-            // evictionLock()...");
             ++iter;
             return page;
         } else {
             this->cache->evictionUnlock();
-            // this->set->getLogger()->writeLn("SetCachePageIterator: unlocked for
-            // evictionLock()...");
             // the page is already flushed to file, so load from file
             PageID pageId = this->iter->first;
             PDB_COUT << "SetCachePageIterator: not in cache: curPageId=" << pageId << "\n";
-            // this->set->getLogger()->writeLn("SetCachePageIterator: curPageId=");
-            // this->set->getLogger()->writeInt(pageId);
             FileSearchKey searchKey = this->iter->second;
 #ifdef USE_LOCALITY_SET
             PDBPagePtr page = this->cache->getPage(this->set->getFile(),
@@ -110,15 +91,9 @@ PDBPagePtr SetCachePageIterator::next() {
                                                    nullptr);
 #endif
             // remove iter
-            // this->set->getLogger()->writeLn("SetCachePageIterator: to get lock for
-            // lockDirtyPageSet()...");
             this->set->lockDirtyPageSet();
-            // this->set->getLogger()->writeLn("SetCachePageIterator: got lock for
-            // lockDirtyPageSet()...");
             this->iter = this->set->getDirtyPageSet()->erase(this->iter);
             this->set->unlockDirtyPageSet();
-            // this->set->getLogger()->writeLn("SetCachePageIterator: unlock for
-            // lockDirtyPageSet()...");
             return page;
         }
     }

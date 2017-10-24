@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File: FileSetPageIterator.cc
- * Author: Jia
- *
- * Created on May 27, 2016, 8:08 PM
- */
 
 #ifndef FILESETPAGEITERATOR_CC
 #define FILESETPAGEITERATOR_CC

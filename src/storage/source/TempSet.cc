@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   TempSet.cc
- * Author: Jia
- *
- */
 
 
 #ifndef TEMP_SET_CC
@@ -70,7 +65,7 @@ TempSet::TempSet(SetID setId,
     }
     file = make_shared<PartitionedFile>(
         0, 0, 0, setId, this->encodePath(metaTempPath, setName), dataPaths, logger, pageSize);
-    this->lastFlushedPageId = (unsigned int)(-1);  // 0xFFFFFFF
+    this->lastFlushedPageId = (unsigned int)(-1);  
     this->setFile(file);
     this->getFile()->openAll();
 }
