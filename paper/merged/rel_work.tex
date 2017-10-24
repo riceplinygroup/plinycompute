@@ -112,7 +112,7 @@ low-level native
 C++-based query engine, (2) it builds a unique PC Object Model on top of
 native C++ to move objects around a distributed system with no
 serialization/deserialization costs, (3) it uses a unique TCAP
-compiler to generate native vectorized
+compiler to generate optimized, native, and vectorized
 pipeline code with thread-local and tunable memory management for executing
 user defined queries based on complex objects.
 
@@ -154,11 +154,14 @@ on modern hardware. Voodoo~\cite{pirk2016voodoo} uses a new
 declarative algebra as the compilation target for query plans to
 enable tuning for hardware specifics like caches, SIMD registers,
 GPU and so on. It requires a relational frontend, and serves as an alternative backend for
-relational databases like MonetDB and Hyper. While PC TCAP shares
+relational databases like MonetDB and Hyper. While PC TCAP compilation
+and processing shares
 similarity in
-vectorized processing and code generation techniques with those
-systems and can leverage Voodoo's hardware tuning concept, PC is different with those relational processing systems in that all query processing
-is based on a high performance object model, and can support efficient
+code generation and vectorized processing in those
+systems and PC can leverage Voodoo's hardware tuning concept, PC is
+different with those relational processing systems in that in PC all query processing
+is based on a high performance and high expressive object model.
+PC can support efficient
 processing of complex objects and user defined
 dataflows to facilitate tool or library development with more flexible
 programming models.
