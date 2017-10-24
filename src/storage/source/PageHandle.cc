@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageHandle.cc
- * Author: Jia
- *
- */
 
 #ifndef PAGE_HANDLE_CC
 #define PAGE_HANDLE_CC
@@ -61,7 +56,6 @@ void PageHandle::unpin() {
     }
     // temp page
     if ((this->page->getDbID() == 0) && (this->page->getTypeID() == 0)) {
-        // cout << "PageHandle: page->getPageID()="<<page->getPageID()<<"\n";
         proxy->unpinTempPage(page->getSetID(), page);
     }
     // user page

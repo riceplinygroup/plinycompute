@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBObject.cc
- * Author: Jia
- *
- */
 
 #ifndef PDB_Object_C
 #define PDB_Object_C

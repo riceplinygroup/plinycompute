@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PDBFlushConsumerWork.cc
- *
- *  Created on: Dec 27, 2015
- *      Author: Jia
- */
-
 #include "PDBDebug.h"
 #include "PDBFlushConsumerWork.h"
 #include "PageCircularBuffer.h"
@@ -51,10 +44,6 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
         if ((page = flushBuffer->popPageFromHead()) != nullptr) {
             // got a page from flush buffer
             // find the set of the page
-            // this->server->getLogger()->writeLn("Got a page with PageID=");
-            // this->server->getLogger()->writeInt(page->getPageID());
-            // this->server->getLogger()->writeLn("PartitionId=");
-            // this->server->getLogger()->writeInt(this->partitionId);
             PDB_COUT << "Got a page with PageID " << page->getPageID()
                      << " for partition:" << this->partitionId << "\n";
             PDB_COUT << "page dbId=" << page->getDbID() << "\n";
@@ -73,27 +62,11 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
             key.typeId = page->getTypeID();
             key.setId = page->getSetID();
             key.pageId = page->getPageID();
-            // cout << "to get lock\n";
-            // this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for
-            // flushLock()...");
             this->server->getCache()->flushLock();
-            // this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for
-            // flushLock()...");
-            // cout << "got lock!\n";
             if ((set != nullptr) && (page->getRawBytes() != nullptr)) {
 
                 // append the page to the partition
-                // cout<<"start flushing at partition:"<<this->partitionId<<"\n";
-                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: to get lock for
-                // lockDirtyPageSet()...");
-                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: got lock for
-                // lockDirtyPageSet()...");
-                // auto begin = std::chrono::high_resolution_clock::now();
                 int ret = set->getFile()->appendPage(this->partitionId, page);
-                // auto end = std::chrono::high_resolution_clock::now();
-                // std::cout << "append page latency:"<<
-                // std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count() << " ns."
-                // << std::endl;
                 if (ret < 0) {
                     PDB_COUT << "Can't write page with below info:\n";
                     PDB_COUT << "Got a page with PageID " << page->getPageID()
@@ -102,19 +75,13 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                     PDB_COUT << "page typeId=" << page->getTypeID() << "\n";
                     PDB_COUT << "page setId=" << page->getSetID() << "\n";
                 }
-                // std :: cout << "lockDirtyPageSet() for set with id=" << set->getSetID() << std ::
-                // endl;
                 set->lockDirtyPageSet();
-                if (isTempSet == false) {
+                if (isTempSet == false) {                    
                     PDB_COUT << "to write meta" << std::endl;
                     set->getFile()->writeMeta();
                 }
                 set->removePageFromDirtyPageSet(page->getPageID(), this->partitionId, ret);
                 set->unlockDirtyPageSet();
-                // std :: cout << "unlockDirtyPageSet() for set with id=" << set->getSetID() << std
-                // :: endl;
-                // this->server->getLogger()->writeLn("PDBFlushConsumerWork: unlocked for
-                // lockDirtyPageSet()...");
                 PDB_COUT << "page with PageID " << page->getPageID()
                          << " appended to partition with PartitionID " << this->partitionId << "\n";
             }
@@ -133,14 +100,6 @@ void PDBFlushConsumerWork::execute(PDBBuzzerPtr callerBuzzer) {
                 page->setOffset(0);
                 page->setRawBytes(nullptr);
             }
-/*
-else {
-    //cout << "page->getRefCount()="<<page->getRefCount()<<"\n";
-    if(page->isInEviction()==false) {
-        cout << "page is not in eviction!\n";
-    }
-}
-*/
 // remove the page from cache!
 #ifndef UNPIN_FOR_NON_ZERO_REF_COUNT
             if ((page->getRefCount() == 0) && (page->isInEviction() == true)) {
@@ -156,13 +115,6 @@ else {
             this->server->getCache()->flushUnlock();
             this->server->getLogger()->writeLn(
                 "PDBFlushConsumerWork: unlocked for flushUnlock()...");
-            /*
-                                     if(set!=nullptr) {
-                                            if((set->getLastFlushedPageId()==(unsigned int)(-1)) ||
-               (key.pageId > set->getLastFlushedPageId())) {
-                                                set->setLastFlushedPageId(key.pageId);
-                                            }
-                        }*/
         }
     }
     PDB_COUT << "flushing thread stopped running for partition: " << partitionId << "\n";

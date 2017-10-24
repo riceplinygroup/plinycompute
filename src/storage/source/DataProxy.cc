@@ -92,7 +92,6 @@ bool DataProxy::addTempSet(string setName, SetID& setId, bool needMem, int numTr
                 return addTempSet(setName, setId, needMem, numTries + 1);
             }
         }
-        // std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
 
         // receive the StorageAddSetResult message
         {
@@ -130,7 +129,6 @@ bool DataProxy::addTempSet(string setName, SetID& setId, bool needMem, int numTr
                 return addTempSet(setName, setId, needMem, numTries + 1);
             }
         }
-        // std :: cout << "sent StorageAddTempSet object to server." << std :: endl;
 
         // receive the StorageAddSetResult message
         {

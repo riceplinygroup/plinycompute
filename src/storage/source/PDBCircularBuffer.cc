@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBCircularBUffer.cc
- * Author: Jia
- *
- */
 
 #ifndef PDB_CIRCULAR_BUFFER_CC
 #define PDB_CIRCULAR_BUFFER_CC

@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PartitionPageIterator.cc
- * Author: Jia
- *
- */
 
 #include "PDBDebug.h"
 #include "PartitionPageIterator.h"
@@ -43,7 +38,6 @@ PartitionPageIterator::PartitionPageIterator(PageCachePtr cache,
         this->sequenceFile = nullptr;
         this->partitionedFile = dynamic_pointer_cast<PartitionedFile>(file);
         this->numPages = partitionedFile->getMetaData()->getPartition(partitionId)->getNumPages();
-        // cout<<"numPages in partition:"<<partitionId<<" ="<<this->numPages<<"\n";
     }
     this->numIteratedPages = 0;
 }
@@ -52,7 +46,6 @@ PartitionPageIterator::PartitionPageIterator(PageCachePtr cache,
  * To return the next page. If there is no more page, return nullptr.
  */
 PDBPagePtr PartitionPageIterator::next() {
-    // std :: cout << "using PartitionPageIterator to find next page" << std :: endl;
     PDBPagePtr pageToReturn;
     if (this->numIteratedPages >= this->numPages) {
         return nullptr;
@@ -63,8 +56,6 @@ PDBPagePtr PartitionPageIterator::next() {
         } else {
             PageID curPageId =
                 this->partitionedFile->loadPageId(this->partitionId, this->numIteratedPages);
-            //                  cache->getLogger()->writeLn("ParatitionedPageIterator:curPageID=");
-            //                  cache->getLogger()->writeInt(curPageId);
             PDB_COUT << "PartitionedPageIterator: curTypeId=" << this->partitionedFile->getTypeId()
                      << ",curSetId=" << this->partitionedFile->getSetId()
                      << ",curPageId=" << curPageId << "\n";

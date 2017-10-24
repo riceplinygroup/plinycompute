@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SequenceFile.cc
- * Author: Jia
- *
- */
 
 
 #include "SequenceFile.h"

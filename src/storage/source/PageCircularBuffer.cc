@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageCircularBuffer.cc
- * Author: Jia
- *
- */
 
 
 #ifndef PAGE_CIRCULAR_BUFFER_CC

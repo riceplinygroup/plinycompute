@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBFlushProducerWork.cc
- * Author: Jia
- *
- */
-
 #ifndef PDB_FLUSH_WORK_CC
 #define PDB_FLUSH_WORK_CC
 
@@ -32,7 +26,6 @@ PDBFlushProducerWork::PDBFlushProducerWork(pdb::PangeaStorageServer* server) {
 
 void PDBFlushProducerWork::execute(PDBBuzzerPtr callerBuzzer) {
     server->getLogger()->writeLn("PDBFlushWork: started!");
-    // this->server->flush();
     callerBuzzer->buzz(PDBAlarm::WorkAllDone);
 }
 

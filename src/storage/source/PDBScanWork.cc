@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBScanWork.cc
- * Author: Jia
- *
- */
 
 #ifndef PDBSCANWORK_CC
 #define PDBSCANWORK_CC
@@ -113,20 +108,13 @@ bool PDBScanWork::acceptPagePinnedAck(pdb::PDBCommunicatorPtr myCommunicator,
 
 // do the actual work
 void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
-    //    thread::id id = this_thread::get_id();
-    //    stringstream ss;
-    //    ss << id;
-    //    string loggerName = string("scanWork-")+ss.str();
-    //    pdb :: PDBLoggerPtr logger = make_shared<pdb :: PDBLogger>(loggerName);
     pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>("pdbScanWorks.log");
     logger->debug("PDBScanWork: running...");
-    // std :: cout << "PDBScanWork: running..." << std :: endl;
     PDBPagePtr page;
     string errMsg, info;
     bool wasError;
 
     logger->debug("PDBScanWork: connect to backend...");
-    // create a new connection to backend server
     pthread_mutex_lock(&connection_mutex);
     pdb::PDBCommunicatorPtr communicatorToBackEnd = make_shared<pdb::PDBCommunicator>();
     int retry = 0;
@@ -141,13 +129,10 @@ void PDBScanWork::execute(PDBBuzzerPtr callerBuzzer) {
             pthread_mutex_unlock(&connection_mutex);
             return;
         }
-        // std :: cout << "PDBScanWork: Connect to local server failed, wait a while and retry..."
-        // << std :: endl;
         sleep(0);
     }
     pthread_mutex_unlock(&connection_mutex);
     if (retry > 0) {
-        // std :: cout << "PDBScanWork: Connected to local server" << std :: endl;
     }
 
     logger->debug("PDBScanWork: pin pages...");

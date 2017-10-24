@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageCache.cc
- * Author: Jia
- *
- */
 
 #ifndef PAGE_CACHE_CC
 #define PAGE_CACHE_CC
@@ -670,14 +665,13 @@ bool PageCache::evictPage(CacheKey key, bool tryFlushOrNot) {
                 std::cout << "going to unpin a dirty page...\n";
 #endif
                 // update counter
-                // page->updateCounterInRawBytes();
                 page->setInFlush(true);
                 page->setInEviction(true);
                 // flush the page
                 // first we release the lock so that the flushing thread can run.
                 this->flushBuffer->addPageToTail(page);
 
-            } else if /*((page->isDirty() == false) &&*/ (page->isInFlush() == false) {
+            } else if (page->isInFlush() == false) {
 #ifdef PROFILING_CACHE
                 std::cout << "going to unpin a clean page...\n";
 #endif
@@ -746,7 +740,6 @@ void PageCache::evict() {
 #ifdef PROFILING_CACHE
     std::cout << "Storage server: starting cache eviction to get more room with used size= "
               << this->size << "!\n";
-// std :: cout << "current size is " << this->size << std :: endl;
 #endif
     pthread_mutex_lock(&this->evictionMutex);
     this->inEviction = true;

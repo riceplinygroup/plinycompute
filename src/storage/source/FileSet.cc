@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * FileSet.cc
- *
- * Created on: May 26, 2016
- * Author: Jia
- */
-
 #ifndef FILESET_CC
 #define FILESET_CC
 

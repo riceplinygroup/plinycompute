@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageScanner.cc
- * Author: Jia
- *
- */
 
 
 #ifndef PAGESCANNER_CC
@@ -182,8 +177,6 @@ bool PageScanner::recvPagesLoop(pdb::Handle<pdb::StoragePagePinned> pinnedPage,
         else {
             char* rawData = (char*)this->shm->getPointer(offset);
             page = make_shared<PDBPage>(rawData, offset, 0);
-            // std :: cout << "BackEndServer: add page with " << page->getEmbeddedNumObjects()  <<
-            // "to circular buffer...\n";
             logger->debug(string("BackEndServer: add page scanner page to circular buffer...\n"));
             if (this->buffer != nullptr) {
                 this->buffer->addPageToTail(page);
