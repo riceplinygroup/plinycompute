@@ -8,7 +8,7 @@ following questions:
 
 \begin {enumerate}
 \item How useful is PC in building tools and libraries for big data analytics?
-\item How efficient is PC in manipulating highly nested and complex objects?
+\item How efficient and easy is PC in manipulating highly nested and complex objects?
 \item How well is PC in performing complex computations like real
   machine learning applications?
 \end {enumerate}
@@ -112,7 +112,7 @@ In above DSL expression, \texttt{'*} represents a transposeMultiply computation,
 \texttt{\^{}-1} represents an inverse computation, and \texttt{ \%*\%}
 represents a multiply computation. 
 
-\texttt{LilLinAlg} contains a compiler
+\texttt{LilLinAlg} contained a compiler
 to automatically translate the user program like above into a PC query graph that
 connects (and optimizes) the partial PC query graphs corresponding to
 each compuation to form the final query graph. Then it submits the
@@ -232,12 +232,12 @@ technology developed for the system, including one awarded a VLDB best paper awa
 \texttt{LilLinAlg} was developed in six weeks, and it is faster (though to be fair, SystemML has a much broader
 set of capabilities than \texttt{LilLinAlg}).
 
-For productivity provided with the PC platform, we compare
+For productivity provided with the PC platform, we compared
 \texttt{LilLinAlg} with Spark MLLib linalg
-package~\cite{bosagh2016matrix}. Both linear algebra packages offer similar
-functionalities. PC has a DSL interface, is based on lower level
-libraries like Eigen for numerical processing, and the developer has
-coded 3500+
+package~\cite{bosagh2016matrix}. Both packages offer similar linear algebra
+functionalities. PC \texttt{LilLinAlg} has a DSL interface, is based on lower level
+libraries like Eigen for numerical processing, and the developer 
+wrote 3500+
 lines of C++ code and 300+ lines of yacc/lex code. Spark linalg
 package has no DSL and provides a lower level API-based interface. It
 is based on JNI invocation to native BLAS implementations for
@@ -253,19 +253,102 @@ high-level language interface like Scala in Spark.
 For an example of the raw performance of the PC object model and its ability to power large-scale 
 object-oriented computations, we use the TPC-H benchmark data set \cite{council2008tpc}
 and de-normalize
-the data into a large set of \texttt{Customer} objects. Each
+the data into a large set of complex \texttt{Customer} objects. Each
 \texttt{Customer} object contains, among
 other data, a list
 or \texttt{Order} objects, and each \texttt{Order} object contains a list of \texttt{Lineitem} objects,
 each of which has a \texttt{Part} and \texttt{Supplier} object.  
-We run two computations. First, we compute, for each supplier,
+We run two computations to manipulate such complex objects. First, we compute, for each supplier,
 the set of parts that the supplier has sold to each customer (stored
 as a map from customer name to a list of part identifiers).
 Second, we compute the $k$ customers whose set of \texttt{Part} items purchased is closest to
 a query set, according to Jaccard similarity.
+The goal is to demonstrate the efficiency of the PC
+Object model through comparison with equivalent implementations in Spark 2.1.0 platform.
+
+\subsubsection{Implementation}
+The \texttt{Customer}s per \texttt{Supplier} query consists of
+following user-defined computations:  
+
+\vspace{5pt}
+1. \texttt{CustomerMultiSelection} is derived from the
+declarative \texttt{MultiSelectionComp} interface to perform a flatmap
+transformation and map each \texttt{Customer} object to one or more
+\texttt{SupplierInfo} objects. Each \texttt{SupplierInfo} contains a
+String member to specify the name of the supplier, a String member to
+specify the name of the customer, an int member to specify a PartID, and
+also a Map container that maps each customer name to a list of PartIDs
+of \texttt{Part} items that are
+ordered by this customer from this supplier. During the processing of
+\texttt{CustomerMultiSelection}, the Map container is always empty and
+it is mainly used for other computations.
+
+The
+\texttt{CustomerMultiSelection} customizes the flatmap logic as
+following: for each \texttt{Customer} Object, it scans its list of
+\texttt{Order} Object, and for each \texttt{Order} Object, it scans
+its list of \texttt{LineItem} Object, then for each \texttt{LineItem}
+Object, it creates a \texttt{SupplierInfo} Object using the customer
+name of this \texttt{Customer} Object, supplier name of the
+\texttt{Supplier} Object embeded in the \texttt{LineItem} Object, and
+also the PartID of the \texttt{Part} Object that is also associated with
+the \texttt{LineItem} Object. As mentioned, we leave the Map container
+empty now.
+
+\vspace{5pt}
+2. \texttt{CustomerSupplierPartGroupBy} is derived from the declarative
+\texttt{AggregateComp} interface to perform an aggregation on the
+dataset of \texttt{SupplierInfo} objects. This customized computation
+defines how to extract a Key (i.e. get the supplier name attribute
+through method invocation) and a Value (i.e. a Handle to the \texttt{SupplierInfo} itself) from a
+\texttt{SupplierInfo} object. 
+
+The customerized computation also needs
+to define how to aggregate the Values that share the same Key,  by
+overloading operator+ of the Value type. For this query, we define the aggregation
+logic for $lhsSupplierInfo + rhsSupplierInfo$ as following: if
+$rhs$ has an empty Map container, it directly adds the
+customerName to PartID mapping in the $rhs$ to the Map container in $lhs$, and
+return $lhs$, which is to perform $V \rightarrow U$ aggregation;
+and if $rhs$ has non-empty Map container, it iterates the Map
+container in $rhs$ and adds each mapping to $lhs$'s MapContainer,
+which is to perform $U \rightarrow U$ aggregation. In this fashion, we can
+avoid create unnecessary Map container objects.
+
+\vspace{5pt}
+3. \texttt{CountAggregation} is the final aggregation to get the count of customers in the Map
+container of each aggregated $SupplierInfo$ object. We add this
+aggregation is mainly to be consistent with our Spark implementation
+which requires an action in the end to trigger Spark to execute the
+whole query graph.
+
+\vspace{5pt}
+The complete query graph is like following:
+
+
+\begin{code}
+Handle<Computation> myReader = 
+        makeObject<ObjectReader<Customer>>("TPCH_db", "tpch_bench_set1");
+Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
+myFlatten->setInput(myReader);
+myFlatten->setAllocatorPolicy(noReuseAllocator);
+Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+myGroupBy->setInput(myFlatten);
+Handle<Computation> myWriteSet = 
+        makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
+myWriteSet->setInput(myGroupBy);
+pcContext.executeComputations (myWriter);
+\end{code}
+
+
+
+\subsubsection{Experiments}
 Because the data are object-oriented, it
 is not possible to use Spark's Dataset/DataFrame abstraction to implement this computation, and so
-we compare algorithmically equivalent Spark RDD (using Spark 2.1.0) and PC implementations.
+we compare algorithmically equivalent Spark RDD (using Spark 2.1.0)
+and PC implementations.
+
+\subsubsection{Results}
 Results are in Table \ref{fig:TPC}, run on the same 10-worker cluster.  
 
 \begin{table}[h!]
@@ -304,9 +387,8 @@ Among other costs, it ignores
 the cost Spark would incur at a later time to free the objects stored
 in RAM.
 
-\vspace{5pt}
-\noindent
-\textbf{Summary.} The components of the TPC-H database are defined to
+\subsubsection{Discussions} 
+The components of the TPC-H database are defined to
 consist of eight separate and individual tables. After translated to
 object-oriented data representation, a denormalized object is highly
 nested and requires significant amount of dereference
