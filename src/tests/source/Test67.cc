@@ -242,9 +242,9 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    catalogClient.registerType("libraries/libSillySelection.so", errMsg);
-    catalogClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-    catalogClient.registerType("libraries/libSillyAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libSillySelection.so", errMsg);
+    pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillyAggregation.so", errMsg);
 
 
     // create all of the computation objects

@@ -40,7 +40,6 @@
 #include "PDBClient.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
 #include "DataTypes.h"
@@ -69,7 +68,6 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "DispatcherClient.h"
 #include "LambdaCreationFunctions.h"

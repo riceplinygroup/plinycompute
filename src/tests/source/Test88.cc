@@ -107,17 +107,23 @@ int main(int argc, char* argv[]) {
 
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
-    DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    CatalogClient catalogClient(8108, masterIp, clientLogger);
-
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
     string errMsg;
 
     if (whetherToAddData == true) {
 
 
         // now, create a new database
-        if (!temp.createDatabase("test88_db", errMsg)) {
+        if (!pdbClient.createDatabase("test88_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -125,7 +131,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<Supervisor>("test88_db", "test88_set", errMsg)) {
+        if (!pdbClient.createSet<Supervisor>("test88_db", "test88_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -204,7 +210,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     // std :: cout << "We comes to " << i << " here" << std :: endl;
-                    if (!dispatcherClient.sendData<Supervisor>(
+                    if (!pdbClient.sendData<Supervisor>(
                             std::pair<std::string, std::string>("test88_set", "test88_db"),
                             storeMe,
                             errMsg)) {
@@ -218,7 +224,7 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
         }
     }
 
@@ -226,7 +232,7 @@ int main(int argc, char* argv[]) {
     if (strcmp(argv[5], "JustStoreData") != 0) {
 
         PDB_COUT << "to create a new set for storing output data" << std::endl;
-        if (!temp.createSet<DepartmentEmployees>("test88_db", "output_set", errMsg)) {
+        if (!pdbClient.createSet<DepartmentEmployees>("test88_db", "output_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -237,8 +243,8 @@ int main(int argc, char* argv[]) {
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
         // register this query class
-        catalogClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
-        catalogClient.registerType("libraries/libEmployeeGroupBy.so", errMsg);
+        pdbClient.registerType("libraries/libScanSupervisorSet.so", errMsg);
+        pdbClient.registerType("libraries/libEmployeeGroupBy.so", errMsg);
 
         // create all of the computation objects
         Handle<Computation> myScanSet = makeObject<ScanSupervisorSet>("test88_db", "test88_set");
@@ -249,7 +255,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, myAgg)) {
+        if (!pdbClient.executeComputations(errMsg, myAgg)) {
             std::cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -266,7 +272,7 @@ int main(int argc, char* argv[]) {
         if (printResult == true) {
             std::cout << "to print result..." << std::endl;
             SetIterator<DepartmentEmployees> result =
-                myClient.getSetIterator<DepartmentEmployees>("test88_db", "output_set");
+                pdbClient.getSetIterator<DepartmentEmployees>("test88_db", "output_set");
             std::cout << "Query results: ";
             int count = 0;
             for (auto a : result) {
@@ -281,9 +287,9 @@ int main(int argc, char* argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet("test88_db", "output_set");
+            pdbClient.deleteSet("test88_db", "output_set");
         } else {
-            if (!temp.removeSet("test88_db", "output_set", errMsg)) {
+            if (!pdbClient.removeSet("test88_db", "output_set", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit(-1);
             } else {
