@@ -111,9 +111,17 @@ int main(int argc, char* argv[]) {
 
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
-    DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108,
+            masterIp,
+            clientLogger,
+            false,
+            true);
 
-    CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -121,7 +129,7 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!temp.createDatabase("test77_db", errMsg)) {
+        if (!pdbClient.createDatabase("test77_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -129,7 +137,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the int set in that database
-        if (!temp.createSet<int>("test77_db", "test77_set1", errMsg)) {
+        if (!pdbClient.createSet<int>("test77_db", "test77_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -137,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create the String set in that database
-        if (!temp.createSet<String>("test77_db", "test77_set2", errMsg)) {
+        if (!pdbClient.createSet<String>("test77_db", "test77_set2", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -163,7 +171,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "got to " << i << " when producing data for input set 1.\n";
-        if (!dispatcherClient.sendData<int>(
+        if (!pdbClient.sendData<int>(
                 std::pair<std::string, std::string>("test77_set1", "test77_db"), storeMe, errMsg)) {
             std::cout << "Failed to send data to dispatcher server" << std::endl;
             return -1;
@@ -172,7 +180,7 @@ int main(int argc, char* argv[]) {
         std::cout << "input set 1: total=" << i << std::endl;
 
         // to write back all buffered records
-        temp.flushData(errMsg);
+        pdbClient.flushData(errMsg);
 
 
         // Step 3. Add data to set2
@@ -194,7 +202,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "got to " << i << " when producing data for input set 2.\n";
-        if (!dispatcherClient.sendData<String>(
+        if (!pdbClient.sendData<String>(
                 std::pair<std::string, std::string>("test77_set2", "test77_db"),
                 storeMeStr,
                 errMsg)) {
@@ -205,12 +213,12 @@ int main(int argc, char* argv[]) {
         std::cout << "input set 2: total=" << i << std::endl;
 
         // to write back all buffered records
-        temp.flushData(errMsg);
+        pdbClient.flushData(errMsg);
     }
 
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<StringIntPair>("test77_db", "output_set1", errMsg)) {
+    if (!pdbClient.createSet<StringIntPair>("test77_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -237,7 +245,7 @@ int main(int argc, char* argv[]) {
     myWriter->setInput(myJoin);
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -253,7 +261,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<StringIntPair> result =
-            myClient.getSetIterator<StringIntPair>("test77_db", "output_set1");
+                pdbClient.getSetIterator<StringIntPair>("test77_db", "output_set1");
 
         std::cout << "Query results: ";
         int count = 0;
@@ -266,9 +274,9 @@ int main(int argc, char* argv[]) {
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("test77_db", "output_set1");
+        pdbClient.deleteSet("test77_db", "output_set1");
     } else {
-        if (!temp.removeSet("test77_db", "output_set1", errMsg)) {
+        if (!pdbClient.removeSet("test77_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {
