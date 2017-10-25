@@ -2,7 +2,7 @@
 \section{Experiments}
 
 In this section, we describe our experimental evaluation of the
-performance of the PC distributed computation framework for a set of
+performance of the PC distributed computation system for a set of
 representative big data analytics problems. The aim is to answer
 following questions:
 
@@ -45,13 +45,14 @@ PC's utilities and performance:
   data points into a pre-defined number of clusters.
 \end {itemize}
 
-\subsection {Construction of a linear algebra library}
+\subsection {Construction of a distributed linear algebra library}
 Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
 whether PC is actually useful for that task.  Thus, we asked
 a graduate student who knew nothing of PC to use the system to build a small Matlab-like 
 programming language and library for distributed matrix operations.
 We called this implementation \texttt{LilLinAlg}.
+
 Our goal was to determine the 
 performance and functionality that an expert programmer (but PC novice) could deliver in a short
 timeframe, compared to a set of established distributed Big Data matrix implementations:
@@ -61,6 +62,71 @@ implementation shipped with Spark), and SystemML \cite{boehm2014hybrid, ghoting2
 (a matrix and machine learning implementation developed
 over the last seven years by a team at IBM, built on top of Spark and Hadoop).
 The student spent about six weeks in this effort.
+
+\subsubsection {Implementation}
+In \texttt{LilLinAlg}, a distributed matrix is a PC dataset of dense matrix
+blocks that is backed by one or more pages which can be buffered/cached in PC's distributed buffer pool and
+persisted to PC's distributed user-level file system. Each dense matrix
+block in the PC dataset is encapsulated as a MatrixBlock object that contains a
+Vector of doubles and meta data that specifies the row and column
+dimensions of this matrix block. All MatrixBlock in one distributed
+matrix Set have equivalent row and column dimensions that can be
+specified when a user claims a new distributed matrix dataset. A
+MatrixBlock should be small enough to fit to a page (by default, page size
+is 256 mega bytes).
+
+\texttt{LilLinAlg} implemented common distributed matrix
+computations on top of the PC platform, including $transpose$,
+$inverse$, $add$, $substract$, $multiply$, $transposeMultiply$, $scaleMultiply$, $MinElement$,
+$MaxElement$, $RowSum$, $ColumnSum$, $DuplicateRow$, $DuplicateCol$
+and many more. Each computation can be translated to a partial PC query
+graph. Taking $multiply$ for example, it will be translated to a partial
+PC query graph that consists of a join and an aggregation like following:
+
+\begin{code}
+Handle <Computation> query1 = makeObject <LAMultiplyJoin> ();
+query1->setInput (0, leftChild->evaluate(instance));
+query1->setInput (1, rightChild->evaluate(instance));
+Handle <Computation> query2 = makeObject <LAMultiplyAggregate> ();
+query2->setInput(query1);
+\end{code}
+
+Here, the LAMultiplyJoin and LAMultiplyAggregate are both user-defined Computation classes that are
+derived from the JoinComp class and AggregateComp class, which are
+part of PC's declarative interface,  respectively. \texttt{LilLinAlg}
+implemented the distributed matrix multiplication logic manipulating
+two distributed matrixes (each is a dataset consists multiple
+MatrixBlock objects that can be distributed across the cluster) through these
+two user-defined classes. The LAMultiplyJoin
+and LAMultiplyAggregate invoke numerical processing libraries such as
+Eigen to manipulate MatrixBlock objects. Because each
+MatrixBlock is backed by a Vector<double> Object, the pointer to the
+raw array data is directly passed to Eigen library for processing.
+
+\texttt{LilLinAlg} also provided a linear algebra DSL for user to
+easily express the linear algebra tasks in mathematical language. For
+example, a least squares linear regression task can be easily coded as
+\texttt{X = load(myMatrix.data); beta = (X '* X)\^{}-1 \%*\% (X '*
+  y)}. 
+In above DSL expression, \texttt{'*} represents a transposeMultiply computation,
+\texttt{\^{}-1} represents an inverse computation, and \texttt{ \%*\%}
+represents a multiply computation. 
+
+\texttt{LilLinAlg} contains a compiler
+to automatically translate the user program like above into a PC query graph that
+connects (and optimizes) the partial PC query graphs corresponding to
+each compuation to form the final query graph. Then it submits the
+final query graph to the underlying PC platform for execution. 
+
+In PC, the query
+graph is automatically compiled to TCAP, which is then analyzed, optimized and compiled to native
+code that gets executed in the PC distributed framework.
+
+
+
+
+
+\subsubsection {Experiments}
 
 We ran three different computations:
 a Gram matrix computation (given a matrix $\textbf{X}$, compute
@@ -73,13 +139,20 @@ $\textbf{x}'$ and matrix $\textbf{X}$, find the $k$ rows in the matrix that mini
 $d_{\textbf{A}}^2(\textbf{x}_i, \textbf{x}') = 
 (\textbf{x}_i - \textbf{x}')^T\textbf{A}(\textbf{x}_i - \textbf{x}')$).  All experiments used
 ten Amazon
-EC2 m2.4xlarge workers.  For
+EC2 m2.4xlarge workers.  
+For
 all three computations, 
-$10^6$ data points were used.  Results are given in 
-Table \ref{fig:LR} (for Gram and regression, SystemML V0.9 on Hadoop,
+$10^6$ data points were used.  For Gram matrix and linear regression, SystemML V0.9 on Hadoop,
 and Spark 1.6.1 was used; for
-nearest neighbor, SystemML V1.0 on Spark and Spark 2.1.0 was used).
+nearest neighbor, SystemML V1.0 on Spark and Spark 2.1.0 was used. We
+use the same SciDB version 14.8 for all three
+experiments.
 
+
+\subsubsection {Results}
+
+Results are given in 
+Table \ref{fig:LR}.
 
 \begin{table}[h!]
 \begin{center}
@@ -111,9 +184,9 @@ technology developed for the system, including one awarded a VLDB best paper awa
 \texttt{LilLinAlg} was developed in six weeks, and it is faster (though to be fair, SystemML has a much broader
 set of capabilities than \texttt{LilLinAlg}).
 
-\vspace{5pt}
-\noindent
-\textbf{Summary.} This set of experiments demonstrated that a
+
+\subsubsection{Discussion} 
+This set of experiments demonstrated that a
 domain-expert who has a few years' C++ programming experiences can fully control and
 exploit the bare-metal computing power of PC through PC's highly
 declarative and highly tunable interfaces.
