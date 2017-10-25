@@ -323,24 +323,61 @@ which requires an action in the end to trigger Spark to execute the
 whole query graph.
 
 \vspace{5pt}
-The complete query graph is like following:
-
+The complete query graph is like following. 
 
 \begin{code}
-Handle<Computation> myReader = 
+    Handle<Computation> myReader = 
         makeObject<ObjectReader<Customer>>("TPCH_db", "tpch_bench_set1");
-Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
-myFlatten->setInput(myReader);
-myFlatten->setAllocatorPolicy(noReuseAllocator);
-Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
-myGroupBy->setInput(myFlatten);
-Handle<Computation> myWriteSet = 
+    Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
+    myFlatten->setInput(myReader);
+    {\bf myFlatten->setAllocatorPolicy(noReuseAllocator);}
+    Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
+    myGroupBy->setInput(myFlatten);
+    Handle<Computation> myWriteSet = 
         makeObject<CountAggregation>("TPCH_db", "t_output_set_1");
-myWriteSet->setInput(myGroupBy);
-pcContext.executeComputations (myWriter);
+    myWriteSet->setInput(myGroupBy);
+    pcContext.executeComputations (myWriter);
 \end{code}
 
+As highlighted in above code,  we find
+that because the computation for \texttt{CustomerMultiSelection} needs
+to allocate a lot of \texttt{SupplierInfo} Objects, reducing the CPU
+overhead for memory allocation by setting the allocator policy to
+noReuse can speed up the processing time by $2\times$.
 
+\vspace{5pt}
+The top-$k$ Jaccard stresses the PC Object Model in a similar way to
+go through the list of \texttt{Order} Objects for each
+\texttt{Customer} Objects, and then for each \texttt{Order} Object, go
+through the list of \texttt{LineItem} Objects, and for
+each\texttt{LineItem} Object, it gets the associated \texttt{Part}
+Object to extract a PartID. 
+The difference is that it implements a new user-defined computation
+called \texttt{TopJaccard} to customize another declarative interface,
+\texttt{TopKComp}. Compared with \texttt{CustomerMultiSelection}, it
+requires less allocation of memory, because it transforms each
+\texttt{Customer} Object into a CustomerID which is an Integer, and
+also a Vector of Integers as the list PartIDs, which is much simpler
+than a list of  \texttt{SupplierInfo} Objects. In addition, the
+\texttt{TopJaccard} bounds the intermediate data size to top K
+elements, which cause it generate less shuffle data compared with the
+\texttt{CustomerSupplierPartGroupBy} computation.
+
+\vspace{5pt}
+The example of query graph for top-$k$ Jaccard query is as following:
+
+\begin{code}
+    Handle<Vector<int>> listOfPartIDs = 
+          makeObject<Vector<int>>(199, 22, 34, 567, 1200, 37, 46, 459);
+    Handle<Computation> myReader = 
+         makeObject<ObjectReader<Customer>>("TPCH_db", "tpch_bench_set1");
+    Handle<Computation> myTopK = makeObject<TopJaccard>(k, *listOfPartIDs);
+    myTopK->setInput(myReader);
+    Handle<Computation> myWriter = makeObject<Writer
+          <TopKQueue<double, Handle<AllParts>>>>("TPCH_db", "result");
+    myWriter->setInput(myTopK);
+    pcContext.executeComputations (myWriter);
+\end{code}
 
 \subsubsection{Experiments}
 Because the data are object-oriented, it
