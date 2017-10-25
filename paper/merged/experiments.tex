@@ -498,11 +498,12 @@ buffered across jobs.
 
 In addition, as shown in Table \ref{fig:LOC}, the C++ implementations of two queries in
 PC platform have slightly fewer lines of source code compared with
-Spark Java implementations. This also demonstrated that with a
-declarative interfaces, implementing TPC-H like decision support
-queries can be easy even for using a low-level language like C++.
-
- 
+Spark Java implementations. While it is partially because we do not
+need to write code for serializing and deserializing Objects (i.e. we did not
+count kyro code, but we counted the user code for encoding and
+registering a Kyro Object.), this also demonstrated that with a
+declarative interface, implementing decision support
+queries on complex and nested Objects can be easy even for using a low-level language like C++.
 
 \subsection {Machine Learning}
 \vspace{5pt}
