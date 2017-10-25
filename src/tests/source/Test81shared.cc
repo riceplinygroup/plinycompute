@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     if (whetherToAddData == true) {
         // Step 1. Create Database and Set
         // now, register a type for user data
-        catalogClient.registerType("libraries/libSharedEmployee.so", errMsg);
+        pdbClient.registerType("libraries/libSharedEmployee.so", errMsg);
 
         // now, create a new database
         if (!temp.createDatabase("by8_db", errMsg)) {
@@ -186,9 +186,9 @@ int main(int argc, char* argv[]) {
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
     // register this query class
-    catalogClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
-    catalogClient.registerType("libraries/libEmployeeIdentitySelection.so", errMsg);
-    catalogClient.registerType("libraries/libWriteEmployeeSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
+    pdbClient.registerType("libraries/libEmployeeIdentitySelection.so", errMsg);
+    pdbClient.registerType("libraries/libWriteEmployeeSet.so", errMsg);
 
     // connect to the query client
     Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("by8_db", "input_set");

@@ -306,11 +306,11 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    catalogClient.registerType("libraries/libSillyJoin.so", errMsg);
-    catalogClient.registerType("libraries/libScanIntSet.so", errMsg);
-    catalogClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
-    catalogClient.registerType("libraries/libScanStringSet.so", errMsg);
-    catalogClient.registerType("libraries/libWriteStringSet.so", errMsg);
+    pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
+    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
+    pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test76_db", "test76_set1");
     Handle<Computation> myScanSet2 = makeObject<ScanStringIntPairSet>("test76_db", "test76_set2");

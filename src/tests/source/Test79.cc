@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 1.\n";
-                    if (!dispatcherClient.sendData<int>(
+                    if (!pdbClient.sendData<int>(
                             std::pair<std::string, std::string>("test79_set1", "test79_db"),
                             storeMe,
                             errMsg)) {
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 2.\n";
-                    if (!dispatcherClient.sendData<StringIntPair>(
+                    if (!pdbClient.sendData<StringIntPair>(
                             std::pair<std::string, std::string>("test79_set2", "test79_db"),
                             storeMe,
                             errMsg)) {
@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
 
                 } catch (pdb::NotEnoughSpace& n) {
                     std::cout << "got to " << i << " when producing data for input set 3.\n";
-                    if (!dispatcherClient.sendData<String>(
+                    if (!pdbClient.sendData<String>(
                             std::pair<std::string, std::string>("test79_set3", "test79_db"),
                             storeMe,
                             errMsg)) {

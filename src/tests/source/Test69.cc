@@ -214,9 +214,9 @@ int main(int argc, char* argv[]) {
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
         // register this query class
-        catalogClient.registerType("libraries/libEmployeeSelection.so", errMsg);
-        catalogClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
-        catalogClient.registerType("libraries/libWriteStringSet.so", errMsg);
+        pdbClient.registerType("libraries/libEmployeeSelection.so", errMsg);
+        pdbClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
+        pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
         // connect to the query client
             Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
         Handle<Computation> myQuery = makeObject<EmployeeSelection>();

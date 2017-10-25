@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    catalogClient.registerType("libraries/libDoubleVectorAggregation.so", errMsg);
+    pdbClient.registerType("libraries/libDoubleVectorAggregation.so", errMsg);
 
     // create all of the computation objects
     Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("test83_db", "test83_set");

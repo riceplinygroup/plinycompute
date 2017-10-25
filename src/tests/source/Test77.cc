@@ -221,10 +221,10 @@ int main(int argc, char* argv[]) {
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     // register this query class
-    catalogClient.registerType("libraries/libCartesianJoin.so", errMsg);
-    catalogClient.registerType("libraries/libScanIntSet.so", errMsg);
-    catalogClient.registerType("libraries/libScanStringSet.so", errMsg);
-    catalogClient.registerType("libraries/libWriteStringIntPairSet.so", errMsg);
+    pdbClient.registerType("libraries/libCartesianJoin.so", errMsg);
+    pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
+    pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
+    pdbClient.registerType("libraries/libWriteStringIntPairSet.so", errMsg);
     // create all of the computation objects
     Handle<Computation> myScanSet1 = makeObject<ScanIntSet>("test77_db", "test77_set1");
     myScanSet1->setBatchSize(100);
