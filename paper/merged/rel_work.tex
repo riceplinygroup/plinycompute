@@ -22,10 +22,9 @@ those systems, including code generation, GC tuning, off-heap memory and structu
 
 
 \vspace{5pt}
-\texttt{Code Generation.} This technique gained popularity in modern
-in-memory query processing systems. The basic idea is that a system implemented in high level language
+\texttt{Code Generation.} The basic idea is that a system implemented in high level language
 can generate native query execution code that manually manages
-memory and avoid virtual function call overheads. Hyper~\cite{neumann2011efficiently} proposes a code
+memory and also avoids virtual function call overheads. Hyper~\cite{neumann2011efficiently} proposes a code
 generation strategy for query compilation to translate relational
 algebra to LLVM assembler for execution.  LegoBase~\cite{klonatos2014building} switches the interface
 from declarative SQL to high-level language (Scala) and uses a query engine
