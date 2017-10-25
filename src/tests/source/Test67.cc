@@ -22,9 +22,7 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "LambdaCreationFunctions.h"
@@ -113,9 +111,16 @@ int main(int argc, char* argv[]) {
 
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
-    DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -123,7 +128,7 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!temp.createDatabase("test67_db", errMsg)) {
+        if (!pdbClient.createDatabase("test67_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -131,7 +136,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<Supervisor>("test67_db", "test67_set", errMsg)) {
+        if (!pdbClient.createSet<Supervisor>("test67_db", "test67_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -140,7 +145,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         if (numOfMb > 0) {
@@ -207,7 +211,7 @@ int main(int argc, char* argv[]) {
                     }
 
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!dispatcherClient.sendData<Supervisor>(
+                    if (!pdbClient.sendData<Supervisor>(
                             std::pair<std::string, std::string>("test67_set", "test67_db"),
                             storeMe,
                             errMsg)) {
@@ -221,19 +225,18 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
         }
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<DepartmentTotal>("test67_db", "output_set1", errMsg)) {
+    if (!pdbClient.createSet<DepartmentTotal>("test67_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
         cout << "Created set.\n";
     }
 
-    QueryClient myClient(8108, "localhost", clientLogger, true);
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
@@ -284,7 +287,7 @@ int main(int argc, char* argv[]) {
         // and delete the sets
         myClient.deleteSet("test67_db", "output_set1");
     } else {
-        if (!temp.removeSet("test67_db", "output_set1", errMsg)) {
+        if (!pdbClient.removeSet("test67_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

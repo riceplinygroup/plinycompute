@@ -22,9 +22,7 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
@@ -108,9 +106,17 @@ int main(int argc, char* argv[]) {
 
     PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
 
-    DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108,
+            masterIp,
+            clientLogger,
+            false,
+            true);
 
-    CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -118,7 +124,7 @@ int main(int argc, char* argv[]) {
 
 
         // now, create a new database
-        if (!temp.createDatabase("test83_db", errMsg)) {
+        if (!pdbClient.createDatabase("test83_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -126,7 +132,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<DoubleVector>("test83_db", "test83_set", errMsg)) {
+        if (!pdbClient.createSet<DoubleVector>("test83_db", "test83_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -135,7 +141,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         double total = 0;
         if (numOfMb > 0) {
@@ -171,7 +176,7 @@ int main(int argc, char* argv[]) {
                             ((*storeMe)[i])->print();
                         }
                     }
-                    if (!dispatcherClient.sendData<DoubleVector>(
+                    if (!pdbClient.sendData<DoubleVector>(
                             std::pair<std::string, std::string>("test83_set", "test83_db"),
                             storeMe,
                             errMsg)) {
@@ -185,19 +190,18 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
         }
     }
     // now, create a new set in that database to store output data
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<DoubleVector>("test83_db", "output_set1", errMsg)) {
+    if (!pdbClient.createSet<DoubleVector>("test83_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
         cout << "Created set.\n";
     }
 
-    QueryClient myClient(8108, "localhost", clientLogger, true);
 
     // this is the object allocation block where all of this stuff will reside
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
@@ -211,7 +215,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!myClient.executeComputations(errMsg, myAgg)) {
+    if (!pdbClient.executeComputations(errMsg, myAgg)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -226,7 +230,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<DoubleVector> result =
-            myClient.getSetIterator<DoubleVector>("test83_db", "test83_set");
+            pdbClient.getSetIterator<DoubleVector>("test83_db", "test83_set");
 
         std::cout << "Query results: ";
         int count = 0;
@@ -245,7 +249,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<DoubleVectorResult> result =
-            myClient.getSetIterator<DoubleVectorResult>("test83_db", "output_set1");
+            pdbClient.getSetIterator<DoubleVectorResult>("test83_db", "output_set1");
 
         std::cout << "Query results: ";
         int count = 0;
@@ -259,9 +263,9 @@ int main(int argc, char* argv[]) {
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("test83_db", "output_set1");
+        pdbClient.deleteSet("test83_db", "output_set1");
     } else {
-        if (!temp.removeSet("test83_db", "output_set1", errMsg)) {
+        if (!pdbClient.removeSet("test83_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

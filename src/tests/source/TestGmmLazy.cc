@@ -52,8 +52,6 @@
 #include "GMM2/GmmAggregateOutputLazy.h"
 #include "GMM2/GmmAggregateNewComp.h"
 
-
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include "DoubleVector.h"

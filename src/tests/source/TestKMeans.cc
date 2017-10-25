@@ -26,8 +26,7 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
+#include "PDBClient.h"
 
 #include "Sampler.h"
 
@@ -43,7 +42,6 @@
 #include "KMeansNormVectorMap.h"
 #include "WriteKMeansDoubleVectorSet.h"
 
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include "KMeansDoubleVector.h"
@@ -206,9 +204,16 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -230,21 +235,21 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        catalogClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        catalogClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
+        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
         // register this query class
-        catalogClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
         // now, create a new database
-        if (!temp.createDatabase("kmeans_db", errMsg)) {
+        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -252,7 +257,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<double[]>("kmeans_db", "kmeans_input_set", errMsg)) {
+        if (!pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -264,21 +269,21 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        catalogClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        catalogClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
+        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
         // register this query class
-        catalogClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libScanKMeansDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansDoubleVectorSet.so", errMsg);
         // now, create a new database
-        if (!temp.createDatabase("kmeans_db", errMsg)) {
+        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -286,7 +291,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<double[NUM_KMEANS_DIMENSIONS]>(
+        if (!pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
                 "kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
@@ -296,8 +301,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
 
         if (numOfMb >= 0) {
             if (addDataFromFile) {
@@ -350,7 +353,7 @@ int main(int argc, char* argv[]) {
 
                         end = true;
 
-                        if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                                 std::pair<std::string, std::string>("kmeans_input_set",
                                                                     "kmeans_db"),
                                 storeMe,
@@ -360,9 +363,9 @@ int main(int argc, char* argv[]) {
                         }
                         std::cout << "Dispatched " << storeMe->size() << " data in the last patch!"
                                   << std::endl;
-                        temp.flushData(errMsg);
+                        pdbClient.flushData(errMsg);
                     } catch (pdb::NotEnoughSpace& n) {
-                        if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                                 std::pair<std::string, std::string>("kmeans_input_set",
                                                                     "kmeans_db"),
                                 storeMe,
@@ -384,7 +387,7 @@ int main(int argc, char* argv[]) {
     // now, create a new set in that database to store output data
 
     PDB_COUT << "to create a new set to store the norm vectors" << std::endl;
-    if (!temp.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+    if (!pdbClient.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -393,7 +396,7 @@ int main(int argc, char* argv[]) {
 
 
     PDB_COUT << "to create a new set to store the data count" << std::endl;
-    if (!temp.createSet<SumResult>("kmeans_db", "kmeans_data_count_set", errMsg)) {
+    if (!pdbClient.createSet<SumResult>("kmeans_db", "kmeans_data_count_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -402,7 +405,7 @@ int main(int argc, char* argv[]) {
 
 
     PDB_COUT << "to create a new set to store the initial model" << std::endl;
-    if (!temp.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set", errMsg)) {
+    if (!pdbClient.createSet<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -411,7 +414,7 @@ int main(int argc, char* argv[]) {
 
 
     PDB_COUT << "to create a new set for storing output data" << std::endl;
-    if (!temp.createSet<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set", errMsg)) {
+    if (!pdbClient.createSet<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set", errMsg)) {
         COUT << "Not able to create set: " + errMsg;
         exit(-1);
     } else {
@@ -420,10 +423,6 @@ int main(int argc, char* argv[]) {
 
     // Step 3. To execute a Query
     // for allocations
-
-
-    // connect to the query client
-    QueryClient myClient(8108, "localhost", clientLogger, true);
 
     auto iniBegin = std::chrono::high_resolution_clock::now();
 
@@ -440,7 +439,7 @@ int main(int argc, char* argv[]) {
         makeObject<WriteKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
     myNormVectorWriter->setInput(myNormVectorMap);
 
-    if (!myClient.executeComputations(errMsg, myNormVectorWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myNormVectorWriter)) {
         COUT << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -454,12 +453,12 @@ int main(int argc, char* argv[]) {
         makeObject<WriteSumResultSet>("kmeans_db", "kmeans_data_count_set");
     myWriter->setInput(myDataCount);
 
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         COUT << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
     SetIterator<SumResult> dataCountResult =
-        myClient.getSetIterator<SumResult>("kmeans_db", "kmeans_data_count_set");
+            pdbClient.getSetIterator<SumResult>("kmeans_db", "kmeans_data_count_set");
     for (Handle<SumResult> a : dataCountResult) {
 
         dataCount = a->getTotal();
@@ -488,12 +487,12 @@ int main(int argc, char* argv[]) {
             makeObject<WriteKMeansDoubleVectorSet>("kmeans_db", "kmeans_initial_model_set");
         myWriteSet->setInput(myDataSample);
 
-        if (!myClient.executeComputations(errMsg, myWriteSet)) {
+        if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
             COUT << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
         SetIterator<KMeansDoubleVector> sampleResult =
-            myClient.getSetIterator<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set");
+            pdbClient.getSetIterator<KMeansDoubleVector>("kmeans_db", "kmeans_initial_model_set");
 
         for (Handle<KMeansDoubleVector> a : sampleResult) {
             Handle<KMeansDoubleVector> myDoubles = makeObject<KMeansDoubleVector>();
@@ -505,7 +504,7 @@ int main(int argc, char* argv[]) {
             mySamples.push_back(myDoubles);
         }
         std::cout << "Now we have " << mySamples.size() << " samples" << std::endl;
-        temp.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::KMeansDoubleVector", errMsg);
+        pdbClient.clearSet("kmeans_db", "kmeans_initial_model_set", "pdb::KMeansDoubleVector", errMsg);
     }
     Sampler::randomizeInPlace(mySamples);
     // take k samples
@@ -548,7 +547,6 @@ int main(int argc, char* argv[]) {
 
 
     // Start k-means iterations
-    // QueryClient myClient (8108, "localhost", clientLogger, true);
 
     for (int n = 0; n < iter; n++) {
 
@@ -580,14 +578,14 @@ int main(int argc, char* argv[]) {
             makeObject<ScanKMeansDoubleVectorSet>("kmeans_db", "kmeans_norm_vector_set");
         // Handle<Computation> myScanSet = makeObject<ScanDoubleVectorSet>("kmeans_db",
         // "kmeans_input_set");
-        Handle<Computation> myQuery = makeObject<KMeansAggregate>(my_model);
+        Handle<Computation> myQuery = pdb::makeObject<KMeansAggregate>(my_model);
         myQuery->setInput(myScanSet);
         // myQuery->setAllocatorPolicy(noReuseAllocator);
         myQuery->setOutput("kmeans_db", "kmeans_output_set");
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, myQuery)) {
+        if (!pdbClient.executeComputations(errMsg, myQuery)) {
             COUT << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -597,7 +595,7 @@ int main(int argc, char* argv[]) {
 
         // update the model
         SetIterator<KMeansAggregateOutputType> result =
-            myClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
+            pdbClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
         kk = 0;
         bool converge = true;
         if (ifFirst) {
@@ -686,7 +684,7 @@ int main(int argc, char* argv[]) {
         if (converge == true) {
             std::cout << "It converges...." << std::endl;
         }
-        temp.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
+        pdbClient.clearSet("kmeans_db", "kmeans_output_set", "pdb::KMeansAggregateOutputType", errMsg);
         auto iterEnd = std::chrono::high_resolution_clock::now();
         COUT << "Server-side Time Duration for Iteration-: " << n << " is:"
              << std::chrono::duration_cast<std::chrono::duration<float>>(end - begin).count()
@@ -708,7 +706,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
 
         SetIterator<KMeansAggregateOutputType> result =
-            myClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
+            pdbClient.getSetIterator<KMeansAggregateOutputType>("kmeans_db", "kmeans_output_set");
 
 
         COUT << std::endl;
@@ -740,22 +738,22 @@ int main(int argc, char* argv[]) {
          << " secs." << std::endl;
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("kmeans_db", "kmeans_output_set");
-        myClient.deleteSet("kmeans_db", "kmeans_initial_model_set");
-        myClient.deleteSet("kmeans_db", "kmeans_data_count_set");
-        myClient.deleteSet("kmeans_db", "kmeans_norm_vector_set");
+        pdbClient.deleteSet("kmeans_db", "kmeans_output_set");
+        pdbClient.deleteSet("kmeans_db", "kmeans_initial_model_set");
+        pdbClient.deleteSet("kmeans_db", "kmeans_data_count_set");
+        pdbClient.deleteSet("kmeans_db", "kmeans_norm_vector_set");
 
     } else {
-        if (!temp.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
+        if (!pdbClient.removeSet("kmeans_db", "kmeans_output_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
-        } else if (!temp.removeSet("kmeans_db", "kmeans_initial_model_set", errMsg)) {
+        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_initial_model_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
-        } else if (!temp.removeSet("kmeans_db", "kmeans_data_count_set", errMsg)) {
+        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_data_count_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
-        } else if (!temp.removeSet("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
+        } else if (!pdbClient.removeSet("kmeans_db", "kmeans_norm_vector_set", errMsg)) {
             COUT << "Not able to remove set: " + errMsg;
             exit(-1);
         } else {

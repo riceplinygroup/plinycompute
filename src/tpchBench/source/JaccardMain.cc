@@ -105,9 +105,6 @@ int main(int argc, char* argv[]) {
         cout << "Created set result.\n";
     }
 
-    // connect to the query client
-    QueryClient myClient(8108, "localhost", clientLogger, true);
-
     // Some meta data
 
     // Initialize the (wordID, topic prob vector)
@@ -117,7 +114,7 @@ int main(int argc, char* argv[]) {
     Handle<Computation> myWriter = makeObject<JaccardResultWriter>("TPCH_db", "result");
     myWriter->setInput(myTopK);
     auto begin = std::chrono::high_resolution_clock::now();
-    if (!myClient.executeComputations(errMsg, myWriter)) {
+    if (!pdbClient.executeComputations(errMsg, myWriter)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -131,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     // now iterate through the result
     SetIterator<TopKQueue<double, Handle<AllParts>>> result =
-        myClient.getSetIterator<TopKQueue<double, Handle<AllParts>>>("TPCH_db", "result");
+            pdbClient.getSetIterator<TopKQueue<double, Handle<AllParts>>>("TPCH_db", "result");
     std::map<int, int> resultMap;
 
     for (auto& a : result) {

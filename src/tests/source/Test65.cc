@@ -23,9 +23,6 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "LambdaCreationFunctions.h"

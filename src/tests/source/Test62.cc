@@ -27,13 +27,10 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "ScanEmployeeSet.h"
 #include "WriteStringSet.h"
 #include "EmployeeSelection.h"
 #include "SharedEmployee.h"
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include <ctime>

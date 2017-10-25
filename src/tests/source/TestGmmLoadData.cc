@@ -52,7 +52,6 @@
 
 #include "KMeansDoubleVector.h"
 
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include "DoubleVector.h"
