@@ -21,7 +21,6 @@
 
 #include "StorageClient.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "PDBVector.h"
 #include "InterfaceFunctions.h"
 #include "SharedEmployee.h"

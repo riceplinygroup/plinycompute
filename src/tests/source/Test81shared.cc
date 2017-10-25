@@ -28,7 +28,6 @@
 #include "Query.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "ScanEmployeeSet.h"
 #include "WriteEmployeeSet.h"
 #include "EmployeeIdentitySelection.h"

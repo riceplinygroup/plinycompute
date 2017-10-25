@@ -29,7 +29,6 @@
 #include "Query.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "ScanBuiltinEmployeeSet.h"
 #include "WriteBuiltinEmployeeSet.h"
 #include "AllSelectionWithCreation.h"
