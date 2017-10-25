@@ -112,9 +112,16 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -123,10 +130,10 @@ int main(int argc, char* argv[]) {
 
         // Step 1. Create Database and Set
         // now, register a type for user data
-        catalogClient.registerType("libraries/libSharedEmployee.so", errMsg);
+        pdbClient.registerType("libraries/libSharedEmployee.so", errMsg);
 
         // now, create a new database
-        if (!temp.createDatabase("chris_db", errMsg)) {
+        if (!pdbClient.createDatabase("chris_db", errMsg)) {
             cout << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -134,7 +141,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<SharedEmployee>("chris_db", "chris_set", errMsg)) {
+        if (!pdbClient.createSet<SharedEmployee>("chris_db", "chris_set", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -173,7 +180,7 @@ int main(int argc, char* argv[]) {
                         total++;
                     }
                 } catch (pdb::NotEnoughSpace& n) {
-                    if (!dispatcherClient.sendData<SharedEmployee>(
+                    if (!pdbClient.sendData<SharedEmployee>(
                             std::pair<std::string, std::string>("chris_set", "chris_db"),
                             storeMe,
                             errMsg)) {
@@ -187,14 +194,14 @@ int main(int argc, char* argv[]) {
             std::cout << "total=" << total << std::endl;
 
             // to write back all buffered records
-            temp.flushData(errMsg);
+            pdbClient.flushData(errMsg);
         }
     }
 
     if (strcmp(argv[5], "JustStoreData") != 0) {
         // now, create a new set in that database to store output data
         PDB_COUT << "to create a new set for storing output data" << std::endl;
-        if (!temp.createSet<String>("chris_db", "output_set1", errMsg)) {
+        if (!pdbClient.createSet<String>("chris_db", "output_set1", errMsg)) {
             cout << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -218,7 +225,7 @@ int main(int argc, char* argv[]) {
 
         auto begin = std::chrono::high_resolution_clock::now();
 
-        if (!myClient.executeComputations(errMsg, myWriteSet)) {
+        if (!pdbClient.executeComputations(errMsg, myWriteSet)) {
             std::cout << "Query failed. Message was: " << errMsg << "\n";
             return 1;
         }
@@ -233,7 +240,7 @@ int main(int argc, char* argv[]) {
         // print the resuts
         if (printResult == true) {
             std::cout << "to print result..." << std::endl;
-            SetIterator<String> result = myClient.getSetIterator<String>("chris_db", "output_set1");
+            SetIterator<String> result = pdbClient.getSetIterator<String>("chris_db", "output_set1");
             std::cout << "Query results: ";
             int count = 0;
             for (auto a : result) {
@@ -246,9 +253,9 @@ int main(int argc, char* argv[]) {
 
         if (clusterMode == false) {
             // and delete the sets
-            myClient.deleteSet("chris_db", "output_set1");
+            pdbClient.deleteSet("chris_db", "output_set1");
         } else {
-            if (!temp.removeSet("chris_db", "output_set1", errMsg)) {
+            if (!pdbClient.removeSet("chris_db", "output_set1", errMsg)) {
                 cout << "Not able to remove set: " + errMsg;
                 exit(-1);
             } else {

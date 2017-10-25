@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 
     auto begin = std::chrono::high_resolution_clock::now();
 
-    if (!myClient.executeComputations(errMsg, myAgg)) {
+    if (!pdbClient.executeComputations(errMsg, myAgg)) {
         std::cout << "Query failed. Message was: " << errMsg << "\n";
         return 1;
     }
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
     if (printResult == true) {
         std::cout << "to print result..." << std::endl;
         SetIterator<DepartmentTotal> result =
-            myClient.getSetIterator<DepartmentTotal>("test67_db", "output_set1");
+                pdbClient.getSetIterator<DepartmentTotal>("test67_db", "output_set1");
 
         std::cout << "Query results: ";
         int count = 0;
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
 
     if (clusterMode == false) {
         // and delete the sets
-        myClient.deleteSet("test67_db", "output_set1");
+        pdbClient.deleteSet("test67_db", "output_set1");
     } else {
         if (!pdbClient.removeSet("test67_db", "output_set1", errMsg)) {
             cout << "Not able to remove set: " + errMsg;
