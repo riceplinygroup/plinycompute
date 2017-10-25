@@ -59,8 +59,8 @@ memory manager and receives a corresponding set of byte arrays as memory segment
 each operation will have its own memory pool that it can manually
 manage. 
 
-Apache SparkSQL~\cite{armbrust2015spark} serializes simple data objects (or
-relational table in SparkSQL) into byte arrays and store the serialized bytes
+Apache SparkSQL~\cite{armbrust2015spark} serializes 
+relational table into byte arrays and store the serialized bytes
 in a main-memory columnar storage. Spark Tungsten~\cite{tungsten}
 optimizes Spark execution backend by grouping execution
 data such as hash-based aggregation and shuffle data
