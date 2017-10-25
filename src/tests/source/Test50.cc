@@ -20,7 +20,6 @@
 #define TEST_50_H
 
 #include "PDBString.h"
-#include "DistributedStorageManagerClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "DataTypes.h"

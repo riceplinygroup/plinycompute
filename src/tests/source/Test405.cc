@@ -19,7 +19,6 @@
 #define TEST_405_CC
 
 #include "PDBServer.h"
-#include "DistributedStorageManagerClient.h"
 #include "CatalogClient.h"
 #include "PDBClient.h"
 

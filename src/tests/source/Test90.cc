@@ -23,7 +23,6 @@
 #include "Handle.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "OptimizedSupervisor.h"
 #include "OptimizedEmployee.h"
 #include "LambdaCreationFunctions.h"

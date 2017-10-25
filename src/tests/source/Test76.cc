@@ -23,7 +23,6 @@
 #include "Handle.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"

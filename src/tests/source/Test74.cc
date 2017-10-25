@@ -22,7 +22,6 @@
 #include "Handle.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "DistributedStorageManagerClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "LambdaCreationFunctions.h"
