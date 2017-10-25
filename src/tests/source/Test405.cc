@@ -20,7 +20,6 @@
 
 #include "PDBServer.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "CatalogClient.h"
 #include "PDBClient.h"
 

@@ -22,9 +22,7 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "LambdaCreationFunctions.h"
@@ -136,7 +134,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         if (numOfMb > 0) {
@@ -236,8 +233,7 @@ int main(int argc, char* argv[]) {
             cout << "Created set.\n";
         }
 
-        QueryClient myClient(8108, "localhost", clientLogger, true);
-
+    
         // this is the object allocation block where all of this stuff will reside
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
         // register this query class

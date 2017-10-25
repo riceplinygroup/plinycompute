@@ -22,9 +22,7 @@
 
 #include "Handle.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "Supervisor.h"
 #include "Employee.h"
 #include "LambdaCreationFunctions.h"
@@ -136,7 +134,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         if (numOfMb > 0) {
@@ -254,8 +251,7 @@ int main(int argc, char* argv[]) {
 
 
     for (int i = 0; i < 10; i++) {
-        QueryClient myClient(8108, "localhost", clientLogger, true);
-
+    
         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
 
         // create all of the computation objects
@@ -294,7 +290,6 @@ int main(int argc, char* argv[]) {
 
         temp.clearSet("test89_db", "output_set", "pdb::DepartmentEmployeeAges", errMsg);
     }
-    QueryClient myClient(8108, "localhost", clientLogger, true);
     if (clusterMode == false) {
         // and delete the sets
         myClient.deleteSet("test89_db", "output_set");

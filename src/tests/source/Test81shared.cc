@@ -27,13 +27,11 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "ScanEmployeeSet.h"
 #include "WriteEmployeeSet.h"
 #include "EmployeeIdentitySelection.h"
 #include "SharedEmployee.h"
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include <ctime>
@@ -128,7 +126,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         if (numOfMb > 0) {
@@ -194,7 +191,6 @@ int main(int argc, char* argv[]) {
     catalogClient.registerType("libraries/libWriteEmployeeSet.so", errMsg);
 
     // connect to the query client
-    QueryClient myClient(8108, "localhost", clientLogger, true);
     Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("by8_db", "input_set");
     std::cout << "Scan declared successfully" << std::endl;
     Handle<Computation> myQuery = makeObject<EmployeeIdentitySelection>();

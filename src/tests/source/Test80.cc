@@ -28,13 +28,11 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "ScanBuiltinEmployeeSet.h"
 #include "WriteBuiltinEmployeeSet.h"
 #include "AllSelectionWithCreation.h"
 #include "Employee.h"
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include <ctime>
@@ -138,7 +136,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
 
         int total = 0;
@@ -204,7 +201,6 @@ int main(int argc, char* argv[]) {
     catalogClient.registerType("libraries/libScanBuiltinEmployeeSet.so", errMsg);
     catalogClient.registerType("libraries/libWriteBuiltinEmployeeSet.so", errMsg);
     // connect to the query client
-    QueryClient myClient(8108, "localhost", clientLogger, true);
     Handle<Computation> myScanSet = makeObject<ScanBuiltinEmployeeSet>("chris_db", "chris_set");
     Handle<Computation> myQuery = makeObject<AllSelectionWithCreation>();
     myQuery->setInput(myScanSet);

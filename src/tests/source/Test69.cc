@@ -28,13 +28,11 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
 #include "ScanEmployeeSet.h"
 #include "WriteStringSet.h"
 #include "EmployeeSelection.h"
 #include "SharedEmployee.h"
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include <ctime>
@@ -145,7 +143,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         int total = 0;
         int numFranks = (int)((double)selectionRatio * (double)(100));
@@ -213,8 +210,7 @@ int main(int argc, char* argv[]) {
         catalogClient.registerType("libraries/libScanEmployeeSet.so", errMsg);
         catalogClient.registerType("libraries/libWriteStringSet.so", errMsg);
         // connect to the query client
-        QueryClient myClient(8108, "localhost", clientLogger, true);
-        Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
+            Handle<Computation> myScanSet = makeObject<ScanEmployeeSet>("chris_db", "chris_set");
         Handle<Computation> myQuery = makeObject<EmployeeSelection>();
         myQuery->setInput(myScanSet);
         Handle<Computation> myWriteSet = makeObject<WriteStringSet>("chris_db", "output_set1");

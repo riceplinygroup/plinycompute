@@ -40,13 +40,13 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
     // Step 1. Create Database and Set
-//    pdb::DistributedStorageManagerClient temp(8108, "localhost", clientLogger);
 
     PDBClient pdbClient(
-            8108, masterIp,
+            8108, "localhost",
             clientLogger,
             false,
             false);
+
     string errMsg;
 
     // now, create a new database
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     // now, create a new set in that database
     if (!pdbClient.createSet<pdb::Vector<pdb::Handle<pdb::Employee>>>(
-            "chris_db", "output_set1", errMsg, DEFAULT_PAGE_SIZE)) {
+            "chris_db", "output_set1", errMsg)) {
         cout << "Not able to create set: " + errMsg;
         exit(-1);
     } else {

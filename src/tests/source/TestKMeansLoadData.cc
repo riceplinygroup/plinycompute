@@ -26,8 +26,7 @@
 #include "PDBString.h"
 #include "Query.h"
 #include "Lambda.h"
-#include "QueryClient.h"
-#include "DistributedStorageManagerClient.h"
+#include "PDBClient.h"
 
 #include "Sampler.h"
 
@@ -43,7 +42,6 @@
 #include "KMeansNormVectorMap.h"
 #include "WriteDoubleVectorSet.h"
 
-#include "DispatcherClient.h"
 #include "Set.h"
 #include "DataTypes.h"
 #include "DoubleVector.h"
@@ -206,9 +204,16 @@ int main(int argc, char* argv[]) {
 
     pdb::PDBLoggerPtr clientLogger = make_shared<pdb::PDBLogger>("clientLog");
 
-    pdb::DistributedStorageManagerClient temp(8108, masterIp, clientLogger);
+    PDBClient pdbClient(
+            8108, masterIp,
+            clientLogger,
+            false,
+            true);
 
-    pdb::CatalogClient catalogClient(8108, masterIp, clientLogger);
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
 
     string errMsg;
 
@@ -219,21 +224,21 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        catalogClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        catalogClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
+        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
         // register this query class
-        catalogClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
+        pdbClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
         // now, create a new database
-        if (!temp.createDatabase("kmeans_db", errMsg)) {
+        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -241,7 +246,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<double[]>("kmeans_db", "kmeans_input_set", errMsg)) {
+        if (!pdbClient.createSet<double[]>("kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
         } else {
@@ -253,21 +258,21 @@ int main(int argc, char* argv[]) {
         // Step 1. Create Database and Set
         // now, register a type for user data
         // TODO: once sharedLibrary is supported, add this line back!!!
-        catalogClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansCentroid.so", errMsg);
-        catalogClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregateOutputType.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansCentroid.so", errMsg);
+        pdbClient.registerType("libraries/libWriteSumResultSet.so", errMsg);
         // register this query class
-        catalogClient.registerType("libraries/libKMeansAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
-        catalogClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
-        catalogClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
-        catalogClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
-        catalogClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleVectorSet.so", errMsg);
+        pdbClient.registerType("libraries/libScanDoubleArraySet.so", errMsg);
+        pdbClient.registerType("libraries/libWriteKMeansSet.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansDataCountAggregate.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansSampleSelection.so", errMsg);
+        pdbClient.registerType("libraries/libKMeansNormVectorMap.so", errMsg);
+        pdbClient.registerType("libraries/libWriteDoubleVectorSet.so", errMsg);
         // now, create a new database
-        if (!temp.createDatabase("kmeans_db", errMsg)) {
+        if (!pdbClient.createDatabase("kmeans_db", errMsg)) {
             COUT << "Not able to create database: " + errMsg;
             exit(-1);
         } else {
@@ -275,7 +280,7 @@ int main(int argc, char* argv[]) {
         }
 
         // now, create a new set in that database
-        if (!temp.createSet<double[NUM_KMEANS_DIMENSIONS]>(
+        if (!pdbClient.createSet<double[NUM_KMEANS_DIMENSIONS]>(
                 "kmeans_db", "kmeans_input_set", errMsg)) {
             COUT << "Not able to create set: " + errMsg;
             exit(-1);
@@ -285,8 +290,6 @@ int main(int argc, char* argv[]) {
 
 
         // Step 2. Add data
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
-
 
         if (numOfMb >= 0) {
             if (addDataFromFile) {
@@ -339,7 +342,7 @@ int main(int argc, char* argv[]) {
 
                         end = true;
 
-                        if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                                 std::pair<std::string, std::string>("kmeans_input_set",
                                                                     "kmeans_db"),
                                 storeMe,
@@ -349,9 +352,9 @@ int main(int argc, char* argv[]) {
                         }
                         std::cout << "Dispatched " << storeMe->size() << " data in the last patch!"
                                   << std::endl;
-                        temp.flushData(errMsg);
+                        pdbClient.flushData(errMsg);
                     } catch (pdb::NotEnoughSpace& n) {
-                        if (!dispatcherClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
+                        if (!pdbClient.sendData<double[NUM_KMEANS_DIMENSIONS]>(
                                 std::pair<std::string, std::string>("kmeans_input_set",
                                                                     "kmeans_db"),
                                 storeMe,

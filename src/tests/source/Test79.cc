@@ -22,9 +22,7 @@
 #include "Handle.h"
 #include "Lambda.h"
 #include "PDBClient.h"
-#include "QueryClient.h"
 #include "DistributedStorageManagerClient.h"
-#include "DispatcherClient.h"
 #include "LambdaCreationFunctions.h"
 #include "UseTemporaryAllocationBlock.h"
 #include "Pipeline.h"
@@ -165,7 +163,6 @@ int main(int argc, char* argv[]) {
         }
 
 
-        DispatcherClient dispatcherClient = DispatcherClient(8108, masterIp, clientLogger);
 
         // Step 2. Add data to set1
         int total = 0;
