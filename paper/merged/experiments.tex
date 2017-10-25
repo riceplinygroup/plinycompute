@@ -45,6 +45,10 @@ PC's utilities and performance:
   data points into a pre-defined number of clusters.
 \end {itemize}
 
+
+
+
+
 \subsection {Construction of a distributed linear algebra library}
 Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
@@ -379,14 +383,41 @@ The example of query graph for top-$k$ Jaccard query is as following:
     pcContext.executeComputations (myWriter);
 \end{code}
 
+We also implemented equivalent TPC-H object model and queries in Spark. Because the data are object-oriented, it
+is not possible to use Spark's Dataset/DataFrame abstraction to
+implement this computation, so we mainly implemented TPC-H object model the two queries
+using Spark RDD APIs in Java language.
+
+
 \subsubsection{Experiments}
-Because the data are object-oriented, it
-is not possible to use Spark's Dataset/DataFrame abstraction to implement this computation, and so
-we compare algorithmically equivalent Spark RDD (using Spark 2.1.0)
-and PC implementations.
+For this set of experiments, we mainly compare with algorithmically
+equivalent  implementation on Spark version
+2.1.0, using its high-level Java and RDD interfaces. As mentioned, we
+find that the DataSet APIs in the same Spark version is insufficient
+to support our required manipulation on the complex and nested
+\texttt{Customer} objects.
+
+On both platforms, we create a synthetic set of various number of \texttt{Customer}
+Objects using a small TPC-H dataset created by DBGen using scale
+factor 0.2. For both queries, we run the query against 2.4 million,
+4.8 million, 9.6 million, 14.4 million, 19.2 million and 24 million
+\texttt{Customer} Objects respectively. 
+
+To measure the time on Spark for reading from in-RAM
+deserialized RDD, we first apply a $distinct().count()$ operation to
+the RDD of \texttt{Customer} Objects to make sure \texttt{Customer}
+Objects are fully deserialized, before running each targeting query,
+\texttt{Customer}s per \texttt{Supplier} or top-$k$ Jaccard. Then we
+only report the latency for executing the targeting query.
+
+Each experiment is run on the same 10-worker cluster as
+afore-mentioned. On Spark platform, all data is
+serielized using Kryo, parameters such as data partition size and parallelism are fully tuned to obtain
+optimal performance. For Spark, 
+
 
 \subsubsection{Results}
-Results are in Table \ref{fig:TPC}, run on the same 10-worker cluster.  
+
 
 \begin{table}[h!]
 \begin{center}
@@ -396,13 +427,13 @@ Kryo data size: &41.5GB & 83.1GB & 167.2GB &251.1GB &333.2 &416.2GB \\
 \hline
 & \multicolumn{6}{c|}{\texttt{Customer}s per \texttt{Supplier}} \\
 \hline
-PlinyCompute: hot PDB & 00:11&	00:19&	00:35&	00:51&	01:08&	01:21 \\
+PlinyCompute: hot Storage & 00:11&	00:19&	00:35&	00:51&	01:08&	01:21 \\
 Spark: hot HDFS & 01:04&	01:53&	03:24&	04:54&	06:25&	08:16\\
 Spark: in-RAM deserialized RDD & 00:16& 	00:29& 	00:56& 	01:21& 	02:18& 	03:56\\
 \hline
 & \multicolumn{6}{c|}{top-$k$ Jaccard} \\
 \hline
-PlinyCompute: hot PDB & 00:03&	00:03&	00:04&	00:05&	00:05&	00:06 \\
+PlinyCompute: hot Storage & 00:03&	00:03&	00:04&	00:05&	00:05&	00:06 \\
 Spark: hot HDFS & 00:56&	01:38&	03:01 & 04:01&	05:22&	06:34\\
 Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \hline
@@ -412,17 +443,41 @@ Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \end{center}
 \end{table}
 
-We see that in a somewhat fair comparison, when PC data are
-stored in a hot Pliny Database (PDB for short; PDB is PC's backend storage system) and Spark data
+Results are in Table \ref{fig:TPC},  and we see that when PC data are
+stored in the PC's distributed Storage system and Spark data
 are stored in
-a hot HDFS, the computation is $6\times$ to $66\times$ faster in PC.  We say ``somewhat'' fair
-because at the end of the computation, Spark is left with a large number of objects that still need to be 
-garbage collected by the JVM---a cost not included in the computation. If the data are already
+a hot HDFS, the computation is $6\times$ to $66\times$ faster in PC.  
+
+If the data are already
 fully deserialized and stored as an RDD, PC is 
-between 50\% and $26\times$ faster.  However, we point out that this is not an apples-to-apples comparison.
-Among other costs, it ignores
-the cost Spark would incur at a later time to free the objects stored
-in RAM.
+between 50\% and $26\times$ faster.
+
+From the results, we see that the processing time differences of the
+two queries are more significant in PC compared with Spark. That's
+mainly because for the \texttt{Customer}s per \texttt{Supplier} query,
+it requires to allocate significantly more Objects than the top-$k$
+Jaccard query: for each \texttt{Customer} Object, a
+Vector$<$Handle$<$SupplierInfo$>$$>$ Object needs to be created in the
+flatmap transformation, and to aggregate each \texttt{SupplierInfo}
+Object, either a Map container needs to be created for a new Supplier,
+or a Vector container needs to be created for a new Customer in each
+Supplier, or a new PartID needs to be inserted into the Vector
+container which may cause Vector to increase size by creating a new
+larger Vector. Although we tune the allocation policy to alleviate
+this allocation overhead, we can't reduce the deallocation
+overhead. In top-$k$ Jaccard, less allocation/deallocation overhead
+are involved.
+
+As to Spark, because we tune the executor memory pool to be large
+enough, the memory usage is low and JVM garbage collection activity is infrequent during query
+processing. 
+Therefore, compared with PC, Spark performance is less
+sensitive to frequent creation of new Objects. 
+
+This also indicate that PC may need new memory allocation policy to
+avoid deallocation overhead when memory usage is low or to reduce
+deallocation overhead by reusing objects.
+
 
 \subsubsection{Discussions} 
 The components of the TPC-H database are defined to
@@ -436,10 +491,18 @@ tests for manipulating complex objects.
 The experimental results showed that
 compared with Java objects, the PC
 object model had a significant performance improvement, which were
-brought by the native code advantage and PC object model features such
-as no serialization/deserialization overhead for moving data. It
-also proved that the costs associated with PC object model such as
-vtable fixing can be minimized via careful engineering.
+brought by a couple of PC features such
+as no serialization/deserialization overhead for moving data, and
+relational syle of processing data in local storage, and can be
+buffered across jobs.
+
+In addition, as shown in Table \ref{fig:LOC}, the C++ implementations of two queries in
+PC platform have slightly fewer lines of source code compared with
+Spark Java implementations. This also demonstrated that with a
+declarative interfaces, implementing TPC-H like decision support
+queries can be easy even for using a low-level language like C++.
+
+ 
 
 \subsection {Machine Learning}
 \vspace{5pt}
@@ -587,5 +650,23 @@ synergizing with C++ compiler and link-time optimizing tool chains.
 
 
 
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Applications & LOC on PlinyCompute & LOC on Spark\\
+\hline
+Linear Algebra Package &3505& 3130 (scala)\\
+TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
+TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
+LDA &1038  &314 (Scala with Breeze)\\
+GMM&932 & 474 (Scala with Breeze)\\
+KMeans &695  &670 (Scala)\\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark: Lines of Source Code Comparison.}
+\label{fig:LOC}
+\end{center}
+\end{table}
 
 
