@@ -562,16 +562,18 @@ chose to implement the high-dimensional word-based representation,
 where the $w_{j,k}$ values and $z_{j,k}^{(i)}$ values need to be managed as
 individual elements. 
 
+
 As illustrated in Figure~\ref{fig:lda-query-graph}, in each iteration the query graph contains
 one three-way JoinComp, three MultiSelectionComp and three
 AggregateComp among other operation. 
 
 
+\vspace{5pt}
 In the PC implementation, the document database is modeled into a
 dataset of $<docID, wordID, count>$ triples. In initialization stages, a
 topic distribution will be created for each document $d_j$, denoted as
 $\theta_j$, and also a topic
-distribution will be computed for each word $w_k$, denoted as $z_k$. 
+distribution will be computed for each word $w_k$, denoted as $/phi_k$. 
 
 In the three-way JoinComp, which is the
 most expensive operation, each $<<d_j, w_k, count>, \theta_j, \phi_k>$
