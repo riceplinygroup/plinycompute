@@ -1,17 +1,18 @@
 \section{Object Model Tuning}
 
 \noindent
-The PC \texttt{Object} model is designed for zero-cost data movement, the result being that there is often no (de-)serialization cost
-for moving PC \texttt{Object}'s accross processes.  But memory management can still be costly.  Deallocating and cleaning
+The PC \texttt{Object} model is designed for zero-cost data movement, the result being that there is often no serialization or deserialization
+cost
+when moving PC \texttt{Object}'s accross processes.  But memory management can still be costly.  Deallocating and cleaning
 up complex objects (in particular, instances of container classes) can require significant CPU resources, which, depending upon the 
 circumstance, may be un-necessary.  In-keeping with the assertion that application programmers shold be in
-control of performance-critical policies, it is possible to explicitly control how memory is reclaimed and re-used during computations.
-
-\subsection{Allocator Policies}
+control of performance-critical policies, it is possible to explicitly control how memory is reclaimed and re-used during PC computations.
+This a facilitated through a set of \emph{allocation policies} that a programmer can choose from.
 
 When the reference count for a PC \texttt{Object} located in a managed allocation block goes to zero, it is deallocated.  The exact
-meaning of ``deallocated'' is controllable by the programmer, via a call to \texttt{setAllocatorPolicy}.  Currently, PC ships with
-three (de)allocator policies:
+meaning of ``deallocated'' is controllable by the programmer, via a call to the \texttt{setAllocatorPolicy} on each computatio object
+that is created (\texttt{JoinComp}, \texttt{SelectionComp}, etc.).  Currently, PC ships with
+three allocator policies:
 
 \begin{enumerate}
 
@@ -22,13 +23,26 @@ attempting to allcate new space on the end of the page, if that fails.
 \item No re-use.  The space containing deallocated \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though \texttt{Object}s
 are reference-counted, and a destructor is called for each unreachable \texttt{Object}.
 On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary \texttt{Object}s will result in a lot of wasted space.
-\item Full re-use.  This policy uses a heavy-duty allocator, similar to what one would expect would ship with \texttt{malloc}.  Compared to lightweight
-re-use, full re-use will attempt to combine adjacent unused chunks into larger chunks, and will try to use the best fit among unused chunks to service
-allocation requests.
+\item Recycling.  This is layered on top of lightweight re-use.  When the recycling allocator is used, any time a fixed-length
+PC \texttt{Object} is deallocated, it is
+added to a list of ojects all having the same type.  All calls to \texttt{makeObject} with the zero-argument constructor will
+pull an object off of the list of recyclable objects for the appropriate type.  
+If an object is available for recycling, it is returned.  If not, or if any other constructor other than the zero-argument constructor is called, 
+then the lightweight re-use allocator is used to allocate space for the requested
+object.
 
 \end{enumerate}
 
-It is also possible for a programmer to supply the following policies, on a per-\texttt{Object} bases, during \texttt{Object} allocation:
+Note that
+variable-length objects are never recycled.  There are just a few of these types in PC, and they are typically
+used internally to implement the built-in PC container
+types, and not by PC application programmers.  For example, PC's variable-length
+\texttt{Array} class is used to implement the standard PC \texttt{Vector} container.  
+These are not recycled because recycling allocations of such objects would need to match both on type and on size.  Matching on both at once would 
+be computationally expensive, and could also allow long lists of objects to build up, waiting to be re-used.
+
+In addition to policies that can be set on a per-computation basis,
+it is also possible for a programmer to supply the following policies, on a per-\texttt{Object} bases, during \texttt{Object} allocation:
 
 \begin{enumerate}
 

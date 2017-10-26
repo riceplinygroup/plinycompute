@@ -102,6 +102,7 @@ a \texttt{Map} object that it aggregates its local data to; those are merged int
 receives of these \texttt{Map} objects happen without (de-)serialization, with zero CPU cost, aside from the CPU cycles needed to transmit the bytes.
 
 \subsection{PlinyCompute's Computational Engine}
+\label{sec:engine}
 
 Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
 two competing paradigms for processing data
@@ -275,19 +276,21 @@ vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors 
 PC calls the various user-suppled lambda term construction functions for each of the \texttt{Computation} objects in an
 input graph, and compiles all of those lambda terms into a DAG of pipeline stages.  
 This entire computation is represented using a text-based internal representation that we call
-\emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution.
+\emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
+will discuss subsequently.
 
-Each pipeline stage
+As mentioned in Section \ref{sec:engine}, PC's vectorized execution engine repeatedly pushes 
+so-called \emph{vector lists} through a series of pipeline stages.  A vector list is (not surprisingly) a list of vectors, where each pipeline stage
 takes as input a vector list,
 and produces a 
-new vector list that consists of zero or more vectors from the input vector list, as well as a new vector, appended at the end of the list.
+new vector list that consists of zero or more vectors from the input vector list, as well as a new vector or vectors, appended at the end of the list.
 Pipeline stages are constructed in such a way that there are no virtual function calls on a per-row basis, aside from any virtual function calls that may be
 present (explicitly or perhaps implicitly in the form of memory management) in the user's code.
-Those pipeline stages are stitched together into a DAG.
-This entire computation is represented using a text-based internal representation that we call
-\emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution.
+The TCAP language describes both the pipeline stages required to perform a PC computation, as well as the schema for each of the vector lists that
+will be produced during the PC computation, and how each of the pipeline stages add or remove vectors from the vector lists that are pushed through
+the computation.
 
-To see how this works in practice, consider a variant of the \texttt{getSelection ()}:
+To see how this works through an example, consider a variant of the \texttt{getSelection ()}:
 
 \begin{codesmall} 
 Lambda <bool> getSelection (Handle <Dep> arg1, Handle <Emp> arg2, Handle <Sup> arg3) {
@@ -295,21 +298,20 @@ Lambda <bool> getSelection (Handle <Dep> arg1, Handle <Emp> arg2, Handle <Sup> a
 	       makeLambdaFromMethod (arg2, getDeptName);  }
 \end{codesmall}
 
-\noindent PC may compile the lambda term resulting from \texttt{getSelection ()} into the following TCAP code:
+\noindent PC may compile the lambda term resulting from a call to \texttt{getSelection ()} into the following TCAP code:
 
 \begin{codesmall}
-WDNm_1(dep,emp,sup,nm1) <= 
-  APPLY(In(dep), In(dep,emp,sup), 'Join_2212', 'att_acc_1');
+WDNm_1(dep,emp,sup,nm1) <= APPLY(In(dep), In(dep,emp,sup), 'Join_2212', 'att_acc_1', 
+  [('type', 'attAccess'), ('attName', 'deptName')]);
 
-WDNm_2(dep,emp,sup,nm1,nm2) <= 
-   APPLY(WDNm_1(emp), WDNm_1(dep,emp,sup,nm1), 'Join_2212', 'method_call_2');
+WDNm_2(dep,emp,sup,nm1,nm2) <= APPLY(WDNm_1(emp), WDNm_1(dep,emp,sup,nm1), 'Join_2212',
+  'method_call_2', [('type', 'methodCall'), ('methodName', 'getDeptName')]);
 
-WBl_1(dep,emp,sup,bl) <= 
-   APPLY(WDNm_2(nm1,nm2),WDNm_2(dep,emp,sup), 'Join_2212', '==_3');
+WBl_1(dep,emp,sup,bl) <= APPLY(WDNm_2(nm1,nm2),WDNm_2(dep,emp,sup), 'Join_2212', '==_3', 
+  [('type', 'equalityCheck')]);
 
-Flt_1(dep,emp,sup) <= FILTER(WBl_1(bl), WBl_1(dep,emp,sup), 'Join_2212');
+Flt_1(dep,emp,sup) <= FILTER(WBl_1(bl), WBl_1(dep,emp,sup), 'Join_2212', []);
 \end{codesmall}
-
 
 \noindent
 These four TCAP statements correspond to a pipeline of four stages,
@@ -318,13 +320,31 @@ as shown above in Figure \ref{fig:TCAP}.
 This particular TCAP code begins with an \texttt{APPLY} operation, which is a five-tuple, consisting of: (1) the vector list and constituent
 vector(s) for the \texttt{APPLY} to operate on, (2) the vector(s) from that vector list to copy
 from the input to the output, (3) the name of the computation that the operation was compiled from, (4) the name of the compiled code (pipeline stage)
-that the operation is to execute.
-Specifically, in this case, \texttt{APPLY} takes
-a vector list called \texttt{Input}.  To produce the output vector list (called \texttt{WDNm\_1}), the vectors referred to
-as \texttt{dep}, \texttt{emp}, and \texttt{sup} are simply copied (via a shallow copy) from \texttt{In}.
-Further, the pipeline stage referred to by \texttt{Join\_2212.member\_1} will be executed via a vectorized application to the input
-vector \texttt{dep}.  The result is then put into a new vector called 
+that the operation is to execute, plus (5) a key-value map that stores specific information about the operation that may be used 
+later during optimization.
+
+Specifically, in this case, the first \texttt{APPLY} in the TCAP computation describes the following.  It describes a pipeline stage that
+takes as input 
+a vector list called \texttt{Input}, which is made of the constituent vectors, referred to using 
+the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
+To produce the output vector list (called \texttt{WDNm\_1}), the vectors
+\texttt{dep}, \texttt{emp}, and \texttt{sup} should simply copied (via a shallow copy) from \texttt{In}.
+In addition, the compiled code referred to by \texttt{Join\_2212.member\_1} will be executed via a vectorized application to the input
+vector \texttt{dep}.  The result will then be then put into a new vector called 
 \texttt{WDNm\_1.name1}.
+The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
+will be called \texttt{WDNm\_1}.  
+
+Next, this TCAP program
+specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the method call \texttt{getDeptName ()} on the attribute \texttt{emp}; this is 
+done via application of the compiled code referred to by \texttt{Join\_2212.method\_call\_1}.  The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
+and \texttt{nm1} are simply shallow-copied to the output vector set.
+
+After this an equality check is performed to create \texttt{WBl\_1.bl} (a vector of booleans) and then the result is filtered based upon this column.
+
+Note that in each TCAP operation, the key-value map is only informational and does not affect the execution of the TCAP.  However, this
+information can be vital during optimization.  As we will discuss subsequently, 
+multiple calls to the same method can be detected using information stored in TCAP key-value maps, and the redundant calls eliminated.
 
 \subsection{Template Metaprogramming}
 
@@ -462,12 +482,13 @@ public:
 And then build up a computation using these pieces:
 
 \begin{code}
-Handle <Computation> myReader = makeObject <ObjectReader <DataPoint>> ("myDB", "mySet");
+Handle <Computation> myReader = 
+    makeObject <ObjectReader <DataPoint>> ("myDB", "mySet");
 Handle <Computation> myAgg = makeObject <GetNewCentroids> ();
 myAgg->centroids = ... // initialize the model
 myAgg->setInput (myReader);
 Handle <Computation> myWriter =  makeObject <Writer <Centroid>> ("myDB", "myOutSet");
-myWriter->setInput (myAgg);
+    myWriter->setInput (myAgg);
 pcContext.executeComputations (myWriter);
 \end{code}
 
