@@ -239,7 +239,7 @@ public:
     /**
      * getModifiedMetadata gets the version of the catalog as a string
      */
-    void getModifiedMetadata(string dateAsString);
+    void getModifiedMetadata(Handle<CatalogPrintMetadata> &itemMetadata);
 
     /**
      * getMetadataFromCatalog retrieves all Metadata from Sqlite for a given category and
