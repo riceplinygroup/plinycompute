@@ -415,30 +415,30 @@ using Spark RDD APIs in Java language.
 
 
 \subsubsection{Experiments}
-For this set of experiments, we mainly compare with algorithmically
+For this set of experiments, we compared with algorithmically
 equivalent  implementation on Spark version
 2.1.0, using its high-level Java and RDD interfaces. As mentioned, we
 find that the DataSet APIs in the same Spark version is insufficient
 to support our required manipulation on the complex and nested
 \texttt{Customer} objects.
 
-On both platforms, we create a synthetic set of various number of \texttt{Customer}
+On both platforms, we created a synthetic set of various number of \texttt{Customer}
 Objects using a small TPC-H dataset created by DBGen using scale
 factor 0.2. For both queries, we run the query against 2.4 million,
 4.8 million, 9.6 million, 14.4 million, 19.2 million and 24 million
 \texttt{Customer} Objects respectively. 
 
 To measure the time on Spark for reading from in-RAM
-deserialized RDD, we first apply a $distinct().count()$ operation to
+deserialized RDD, we applied a $distinct().count()$ operation to
 the RDD of \texttt{Customer} Objects to make sure \texttt{Customer}
-Objects are fully deserialized, before running each targeting query,
+Objects are fully deserialized, before running each targeting query:
 \texttt{Customer}s per \texttt{Supplier} or top-$k$ Jaccard. Then we
 only report the latency for executing the targeting query.
 
 Each experiment is run on the same 10-worker cluster as
 afore-mentioned. On Spark platform, all data is
 serielized using Kryo, parameters such as data partition size and parallelism are fully tuned to obtain
-optimal performance. For Spark, 
+optimal performance. 
 
 
 \subsubsection{Results}
