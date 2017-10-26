@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   }
 
   // and shut down the server
-  pdbClient.flushData(errMsg);
+  temp.flushData(errMsg);
 
   return 0;
 }

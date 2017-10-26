@@ -958,9 +958,9 @@ int16_t CatalogServer::addObjectType(int16_t typeIDFromMasterCatalog,
     so_handle = dlopen(tempFile.c_str(), RTLD_LOCAL | RTLD_LAZY);
     if (!so_handle) {
         const char* dlsym_error = dlerror();
-        dlclose(so_handle);
         errMsg = "Cannot process shared library. " + string(dlsym_error) + '\n';
         std::cout << "CatalogServer: " << errMsg << std::endl;
+        dlclose(so_handle);
         return -1;
     }
 

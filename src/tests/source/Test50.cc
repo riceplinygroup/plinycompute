@@ -21,14 +21,7 @@
 
 #include "PDBString.h"
 #include "Supervisor.h"
-#include "Employee.h"
-#include "DataTypes.h"
-#include <ctime>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <chrono>
-#include <fcntl.h>
+#include "PDBClient.h"
 
 /* This test uses data and selection of builtInType to demonstrate a distributed query with
  * distributed storage */

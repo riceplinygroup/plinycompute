@@ -219,32 +219,67 @@ add_library(program-options OBJECT ${PROGRAM_OPTIONS_SOURCE} ${BUILT_IN_OBJECT_T
 add_library(system OBJECT ${SYSTEM_SOURCE})
 add_library(pdb-client OBJECT ${PDB_CLIENT_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
 add_library(object-model OBJECT ${OBJECT_MODEL_SOURCE} ${BUILT_IN_OBJECT_TYPE_ID} ${BUILT_IN_PDB_OBJECTS})
-add_library(pdb-shared $<TARGET_OBJECTS:sql-lite>
-        $<TARGET_OBJECTS:server-functionalities>
-        $<TARGET_OBJECTS:communication>
+
+# used to build the pdb-cluster and pdb-server
+add_library(pdb-server-common $<TARGET_OBJECTS:boost-filesystem>
         $<TARGET_OBJECTS:catalog>
         $<TARGET_OBJECTS:dispatcher>
-        $<TARGET_OBJECTS:lib-pdb-server>
-        $<TARGET_OBJECTS:object-model>
-        $<TARGET_OBJECTS:query-execution>
-        $<TARGET_OBJECTS:query-planning>
-        $<TARGET_OBJECTS:query-intermediary-rep>
-        $<TARGET_OBJECTS:work>
-        $<TARGET_OBJECTS:memory>
-        $<TARGET_OBJECTS:storage>
         $<TARGET_OBJECTS:distribution-manager>
+        $<TARGET_OBJECTS:communication>
         $<TARGET_OBJECTS:lambdas>
         $<TARGET_OBJECTS:logical-plan>
         $<TARGET_OBJECTS:linear-algebra>
-        $<TARGET_OBJECTS:boost-filesystem>
+        $<TARGET_OBJECTS:lib-pdb-server>
+        $<TARGET_OBJECTS:memory>
+        $<TARGET_OBJECTS:object-model>
         $<TARGET_OBJECTS:program-options>
-        $<TARGET_OBJECTS:system>)
+        $<TARGET_OBJECTS:query-execution>
+        $<TARGET_OBJECTS:query-planning>
+        $<TARGET_OBJECTS:query-intermediary-rep>
+        $<TARGET_OBJECTS:sql-lite>
+        $<TARGET_OBJECTS:server-functionalities>
+        $<TARGET_OBJECTS:system>
+        $<TARGET_OBJECTS:storage>
+        $<TARGET_OBJECTS:work>)
+
+# used to link the shared libraries that the shared librarires use
+add_library(pdb-shared-common $<TARGET_OBJECTS:object-model>
+        $<TARGET_OBJECTS:lambdas>
+        $<TARGET_OBJECTS:lib-pdb-server>
+        $<TARGET_OBJECTS:logical-plan>)
+
+# used to link the shared libraries that the test use
+add_library(pdb-tests-common $<TARGET_OBJECTS:boost-filesystem>
+        $<TARGET_OBJECTS:catalog>
+        $<TARGET_OBJECTS:dispatcher>
+        $<TARGET_OBJECTS:distribution-manager>
+        $<TARGET_OBJECTS:communication>
+        $<TARGET_OBJECTS:lambdas>
+        $<TARGET_OBJECTS:logical-plan>
+        $<TARGET_OBJECTS:linear-algebra>
+        $<TARGET_OBJECTS:lib-pdb-server>
+        $<TARGET_OBJECTS:memory>
+        $<TARGET_OBJECTS:object-model>
+        $<TARGET_OBJECTS:program-options>
+        $<TARGET_OBJECTS:query-execution>
+        $<TARGET_OBJECTS:query-planning>
+        $<TARGET_OBJECTS:query-intermediary-rep>
+        $<TARGET_OBJECTS:sql-lite>
+        $<TARGET_OBJECTS:server-functionalities>
+        $<TARGET_OBJECTS:system>
+        $<TARGET_OBJECTS:storage>
+        $<TARGET_OBJECTS:work>)
 
 # link the dependent libraries so that they are made of the public interface
-target_link_libraries(pdb-shared PRIVATE ${SNAPPY_LIBRARY})
-target_link_libraries(pdb-shared PUBLIC ${UUID_LIBRARY})
-target_link_libraries(pdb-shared PRIVATE ${CMAKE_DL_LIBS})
-target_link_libraries(pdb-shared PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(pdb-server-common PRIVATE ${SNAPPY_LIBRARY})
+target_link_libraries(pdb-server-common PUBLIC ${UUID_LIBRARY})
+target_link_libraries(pdb-server-common PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pdb-server-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+target_link_libraries(pdb-tests-common PRIVATE ${SNAPPY_LIBRARY})
+target_link_libraries(pdb-tests-common PUBLIC ${UUID_LIBRARY})
+target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_DL_LIBS})
+target_link_libraries(pdb-tests-common PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 # form the parsers for the logical plan and linear algebra
 add_library(logical-plan-parser OBJECT ${LogicalPlanFlexOutput} ${LogicalPlanParserOutput})
@@ -253,12 +288,12 @@ add_library(linear-algebra-parser OBJECT ${LinearAlgebraDSLFlexOutput} ${LinearA
 # set the pdb-cluster build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/mainServer/source/MasterMain.cc)
 add_executable(pdb-cluster ${SOURCE_FILES_PDB_CLUSTER} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
-target_link_libraries(pdb-cluster pdb-shared)
+target_link_libraries(pdb-cluster pdb-server-common)
 
 # set the pdb-server build target
 set(SOURCE_FILES_PDB_CLUSTER ${PROJECT_SOURCE_DIR}/src/mainServer/source/WorkerMain.cc $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser>)
 add_executable(pdb-server ${SOURCE_FILES_PDB_CLUSTER})
-target_link_libraries(pdb-server pdb-shared)
+target_link_libraries(pdb-server pdb-server-common)
 
 # compile all the objects
 file(GLOB files "${PROJECT_SOURCE_DIR}/src/sharedLibraries/source/*.cc")
@@ -266,7 +301,7 @@ add_custom_target(shared-libraries)
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
     add_library(${fileName} MODULE ${file})
-    target_link_libraries(${fileName} pdb-shared)
+    target_link_libraries(${fileName} pdb-shared-common)
     add_dependencies(shared-libraries ${fileName})
 endforeach()
 
@@ -275,7 +310,7 @@ file(GLOB files "${PROJECT_SOURCE_DIR}/src/tests/source/*.cc")
 foreach(file ${files})
     get_filename_component(fileName "${file}" NAME_WE)
     add_executable(${fileName} ${file} $<TARGET_OBJECTS:logical-plan-parser> $<TARGET_OBJECTS:linear-algebra-parser> $<TARGET_OBJECTS:pdb-client> $<TARGET_OBJECTS:linear-algebra-parser>)
-    target_link_libraries(${fileName} pdb-shared)
+    target_link_libraries(${fileName} pdb-tests-common)
     target_link_libraries(${fileName} ${GSL_LIBRARIES})
 endforeach()
 

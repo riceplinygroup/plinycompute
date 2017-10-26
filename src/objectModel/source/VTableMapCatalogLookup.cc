@@ -99,7 +99,7 @@ void* VTableMap::getVTablePtrUsingCatalog(int16_t objectTypeID) {
         if (theVTable->logger != nullptr)
             theVTable->logger->error("Cannot load Stored Data Type library: " + sharedLibraryFile +
                                      " error " + (std::string)dlsym_error + '\n');
-
+        std::cout << "Error == " <<(std::string)dlsym_error << std::endl;
         // if we were able to open it
     } else {
         const char* dlsym_error = dlerror();
