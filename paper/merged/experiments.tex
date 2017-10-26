@@ -221,7 +221,7 @@ A star ($*$) indicates running in local mode.}
 \end{center}
 \end{table}
 
-\subsubsection {Discussions}
+\subsubsection {Discussion}
 This set of experiments demonstrated that a
 domain-expert who has a few years' C++ programming experiences can fully control and
 exploit the bare-metal computing power of PC through PC's highly
@@ -479,7 +479,7 @@ avoid deallocation overhead when memory usage is low or to reduce
 deallocation overhead by reusing objects.
 
 
-\subsubsection{Discussions} 
+\subsubsection{Discussion} 
 The components of the TPC-H database are defined to
 consist of eight separate and individual tables. After translated to
 object-oriented data representation, a denormalized object is highly
@@ -511,7 +511,7 @@ experiments, results of three common machine learning algorithms: LDA,
 GMM and KMeans. We design this set of benchmarks mainly to test how
 well is PC in handling complex dataflows and computations.
 
-\subsubsection {Implementation}
+\subsubsection {Implementations}
 \noindent
 \texttt {LDA.} We first describe our experience writing a word-based,
 non-collapsed LDA implementation \cite{jermaineExperimental} on top of
@@ -543,8 +543,17 @@ chose to implement the high-dimensional word-based representation,
 where the $w_{j,k}$ values and $z_{j,k}^{(i)}$ values need to be managed as
 individual elements. 
 
-As illustrated in Fig.~\ref{}, in each iteration the query graph contains
+As illustrated in Fig.~\ref{fig:lda-query-graph}, in each iteration the query graph contains
 two joins and two aggregations among other operations.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{lda-query-graph.pdf}
+  \caption{\label{fig:lda-query-graph} LDA's query graph. Computation
+    connected by dash lines will only run once for
+    initialization. Computation connected by solid lines will run iteratively.}
+\end{figure}
+
 
 The LDA offering in the Spark MLLib is based on Expectation
 Maximization and Online Variational Bayes, which is very different
