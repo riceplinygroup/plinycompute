@@ -515,8 +515,10 @@ void PDBCatalog::testCatalogPrint() {
 }
 
 
-void PDBCatalog::getModifiedMetadata(string dateAsString) {
+void PDBCatalog::getModifiedMetadata(Handle<CatalogPrintMetadata> &itemMetadata) {
     string errorMessage;
+
+    string dateAsString = itemMetadata->getTimeStamp().c_str();
 
     Handle<Vector<CatalogNodeMetadata>> _registeredNodesMetadata =
         makeObject<Vector<CatalogNodeMetadata>>();

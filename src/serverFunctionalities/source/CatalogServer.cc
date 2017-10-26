@@ -172,12 +172,10 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
 
                 std::string errMsg;
 
-                // item is a timestamp
-                string timeStamp = request->getTimeStamp().c_str();
-                PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp " << timeStamp
+                PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp " << request->getTimeStamp().c_str()
                          << endl;
                 const UseTemporaryAllocationBlock block{1024 * 1024};
-                bool res = getFunctionality<CatalogServer>().printCatalog(timeStamp);
+                bool res = getFunctionality<CatalogServer>().printCatalog(request);
 
                 // make the response
                 const UseTemporaryAllocationBlock tempBlock{1024};
@@ -1624,8 +1622,12 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 }
 
 // invokes a method to retrieve metadata that has changed since a given timestamp
-bool CatalogServer::printCatalog(string timeStamp) {
-    pdbCatalog->getModifiedMetadata(timeStamp);
+bool CatalogServer::printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint) {
+
+    string categoryToPrint = metadataToPrint->getCategoryToPrint().c_str();
+    string timeStamp = metadataToPrint->getTimeStamp().c_str();
+
+    pdbCatalog->getModifiedMetadata(metadataToPrint);
     cout << "************Objects************" << endl;
     VTableMap::listVtableLabels();
     PDB_COUT << "************VTablePtrs************" << endl;

@@ -43,19 +43,22 @@ class CatalogPrintMetadata : public Object {
 public:
     CatalogPrintMetadata() {}
 
-    CatalogPrintMetadata(String itemName, String timeStamp)
-        : itemName(itemName), timeStamp(timeStamp) {}
+    CatalogPrintMetadata(String itemName, String timeStamp, String categoryIn)
+        : itemName(itemName), timeStamp(timeStamp), category(categoryIn) {}
 
     // Copy constructor
     CatalogPrintMetadata(const CatalogPrintMetadata& pdbItemToCopy) {
         itemName = pdbItemToCopy.itemName;
         timeStamp = pdbItemToCopy.timeStamp;
+        category = pdbItemToCopy.category;
+
     }
 
     // Copy constructor
     CatalogPrintMetadata(const Handle<CatalogPrintMetadata>& pdbItemToCopy) {
         itemName = pdbItemToCopy->getItemName();
         timeStamp = pdbItemToCopy->getTimeStamp();
+        category = pdbItemToCopy->getCategoryToPrint();
     }
 
 
@@ -67,13 +70,21 @@ public:
         return timeStamp;
     }
 
+    String getCategoryToPrint() {
+        return category;
+    }
+
 
     ENABLE_DEEP_COPY
 
 private:
+    // the category to print (databases, sets, nodes, udts)
+    // udts are user-defined types
+    String category;
     // the item Name to print
     String itemName;
-    // the starting timeStamp to include
+    // the starting timeStamp to include, will retrieve
+    // only metadata created after a given timeline
     String timeStamp;
 };
 

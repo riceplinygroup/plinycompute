@@ -136,7 +136,7 @@ public:
     int16_t addObjectType(int16_t typeID, string& soFile, string& errMsg);
 
     /* Print the content of the catalog metadata that have changed since a given timestamp */
-    bool printCatalog(string timeStamp);
+    bool printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint);
 
     /* Print the contents of the catalog metadata */
     bool printCatalog();
