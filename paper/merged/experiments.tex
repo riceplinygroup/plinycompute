@@ -210,11 +210,11 @@ speedup compared with Spark version 1.6.0, and up to $5\times$ speedup compared
 with SciDB version 14.8.
 
 We need point out that, although SystemML and Spark MLLib are
-Java/Scala based, for their versions used
+Java/Scala-based, for their versions used
 in all experiments, native
 numerical librarires such as OpenBLAS are installed and invoked, so as to
 the computation tasks, there is not much lanugage advantages that can
-be taken by PC. Most performance benefits are from reduced
+be taken by PC, as shown in Table~\ref{fig:matrixMult}. Most performance benefits are from reduced
 serialization/deserialization time with the PC object model, TCAP optimization and PC
 backend's relational syle of processing objects.
 
