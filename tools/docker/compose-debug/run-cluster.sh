@@ -15,9 +15,10 @@
 #  ========================================================================    
 
 # copy the binaries
-mkdir ../cluster-image/libraries
-cp -r ../../../libraries/* ../cluster-image/libraries
-cp -r ../../../bin/* ../cluster-image/
+cp -r ../../../bin ../cluster-image/bin
+
+# set environment variable
+export PDB_DIR=$(readlink -f ../../../)
 
 # rebuild the images
 docker-compose rm
@@ -25,7 +26,7 @@ docker-compose build
 
 # remove the binaries
 rm -rf ../cluster-image/libraries
-find ../cluster-image/ -type f -executable -delete
+rm -rf ../cluster-image/bin
 
 # start the cluster
 docker-compose up
