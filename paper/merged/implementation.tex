@@ -161,8 +161,8 @@ determined at run-time to maximize memory utilization, network utilization and C
 We now briefly describe how PC implements a distributed equi-join of $n$ different sets using a hash-partition strategy.  
 That is, imagine that $t$ = $\langle t_1, t_2, ..., t_n \rangle$ is a
 tuple formed by taking one item from each of the $n$ sets.  Let $key(t_i)$ denote the join key of $t_i$.  Then an $n$-way equi-join requires that
-in order for $$ to be in the output set, it must be the case that
-$key(t_i) = key(t_j)$ forall $i, j \in \{1...n\}$. 
+in order for $t$ to be in the output set, it must be the case that
+$key(t_i) = key(t_j)$ forall $i, j$. 
 
 In PC, such an operation is broken into $2n$ job stages. The first $n$ job stages repartition each of the $n$ sets, so that all of the data with the same join key value
 must be co-located on the same machine.  The next $n - 1$ job stages hash all of the entries in $n - 1$ of those sets.  The last job stage scans the last set and
