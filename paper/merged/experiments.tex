@@ -92,8 +92,8 @@ blocks that is backed by one or more pages which can be buffered/cached in PC's 
 persisted to PC's distributed user-level file system. Each dense matrix
 block in the PC dataset is encapsulated as a MatrixBlock object that contains a
 Vector of doubles and meta data that specifies the row and column
-dimensions of this matrix block. All MatrixBlock in one distributed
-matrix Set have equivalent row and column dimensions that can be
+dimensions of this MatrixBlock object. All MatrixBlock objects in one distributed
+matrix dataset have equivalent row and column dimensions that can be
 specified when a user claims a new distributed matrix dataset. A
 MatrixBlock should be small enough to fit to a page (by default, page size
 is 256 mega bytes).
@@ -118,11 +118,12 @@ Here, the LAMultiplyJoin and LAMultiplyAggregate are both user-defined Computati
 derived from the JoinComp class and AggregateComp class, which are
 part of PC's declarative interface,  respectively. \texttt{LilLinAlg}
 implemented the distributed matrix multiplication logic manipulating
-two distributed matrixes (each is a dataset consists multiple
+two distributed matrixes (each is a dataset consists of multiple
 MatrixBlock objects that can be distributed across the cluster) through these
 two user-defined classes. The LAMultiplyJoin
-and LAMultiplyAggregate invoke numerical processing libraries such as
-Eigen to manipulate MatrixBlock objects. Because each
+and LAMultiplyAggregate invoke Eigen numerical processing
+library~\cite{eigen} to manipulate MatrixBlock objects, e.g. add or
+multiply two individual MatrixBlock object. Because each
 MatrixBlock is backed by a Vector<double> Object, the pointer to the
 raw array data is directly passed to Eigen library for efficient processing.
 
@@ -174,7 +175,8 @@ For experiments on the PC platform, we mainly tuned the page size of the
 distributed matrix dataset for different dimensions to make sure the
 matrix can be fully distributed across the cluster:
 we use 4 mega bytes page size for 10 dimensions, 16 mega bytes page
-size for 100 dimensions, and 64 mega bytes for 1000 dimensions. In addition, PC's query optimizer dynamically decided to use
+size for 100 dimensions, and 64 mega bytes for 1000 dimensions. 
+In addition, PC's query optimizer dynamically decided to use
 broadcast join when one input dataset of the join is smaller than two
 giga bytes, and to use hash partition join when both input datasets of
 the join is larger than two giga bytes.
@@ -195,26 +197,26 @@ dimensions are tested.
 Results are given in 
 Table \ref{fig:LR}. It shows for the most complex task, the nearest
 neighbor computation, for both 100 and 1000 dimensions, PC
-\texttt{LilLinAlg} provided the best performance compared with latest
+\texttt{LilLinAlg} provided the best performance compared with the latest
 SystemML, Spark and SciDB. It achieved $1.5\times$ speedup compared with
-the next winner, the Spark-based
+the Spark-based
 SystemML V1.0 with the latest version. For 10 dimension, PC performs slower
 than SystemML, because SystemML runs small computation in local
 mode. PC also achieved more than $10\times$ speedup compared with
 Spark version 2.1.0, and $6\times$ speedup compared with SciDB version
 14.8. 
 
-For Gram Matrix and Linear Regression with high dimensions, PC achieved up to
+For Gram matrix and Linear Regression with high dimensions, PC achieved up to
 $4\times$ speedup compared with the the Hadoop-based SystemML V0.9, up to $27\times$
 speedup compared with Spark version 1.6.0, and up to $5\times$ speedup compared
 with SciDB version 14.8.
 
 We need point out that, although SystemML and Spark MLLib are
-Java/Scala-based, for their versions used
-in all experiments, native
-numerical librarires such as OpenBLAS are installed and invoked, so as to
+Java/Scala-based, they invoke native
+numerical processing librarires such as OpenBLAS~\cite{OpenBLAS}, so as to
 the computation tasks, there is not much lanugage advantages that can
-be taken by PC, as shown in Table~\ref{fig:matrixMult}. Most performance benefits are from reduced
+be taken by PC, as shown in Table~\ref{fig:matrixMult}. 
+Most performance benefits are from reduced
 serialization/deserialization time with the PC object model, TCAP optimization and PC
 backend's relational syle of processing objects.
 
@@ -259,7 +261,7 @@ For productivity provided with the PC platform, we compared
 \texttt{LilLinAlg} with Spark MLLib linalg
 package~\cite{bosagh2016matrix}. Both packages offer similar linear algebra
 functionalities. PC \texttt{LilLinAlg} has a DSL interface, is based on lower level
-libraries like Eigen for numerical processing, and the developer 
+libraries like Eigen~\cite{eigen} for numerical processing, and the developer 
 wrote 3500+
 lines of C++ code and 300+ lines of yacc/lex code. Spark linalg
 package has no DSL and provides a lower level API-based interface. It
@@ -279,7 +281,7 @@ and de-normalize
 the data into a large set of complex \texttt{Customer} objects. Each
 \texttt{Customer} object contains, among
 other data, a list
-or \texttt{Order} objects, and each \texttt{Order} object contains a list of \texttt{Lineitem} objects,
+of \texttt{Order} objects, and each \texttt{Order} object contains a list of \texttt{Lineitem} objects,
 each of which has a \texttt{Part} and \texttt{Supplier} object.  
 We run two computations to manipulate such complex objects. First, we compute, for each supplier,
 the set of parts that the supplier has sold to each customer (stored
@@ -296,40 +298,41 @@ following user-defined computations:
 \vspace{5pt}
 1. \texttt{CustomerMultiSelection} is derived from the
 declarative \texttt{MultiSelectionComp} interface to perform a flatmap
-transformation and map each \texttt{Customer} object to one or more
+and transform each \texttt{Customer} object to one or more
 \texttt{SupplierInfo} objects. Each \texttt{SupplierInfo} contains a
-String member to specify the name of the supplier, a String member to
-specify the name of the customer, an int member to specify a PartID, and
-also a Map container that maps each customer name to a list of PartIDs
-of \texttt{Part} items that are
+String to specify the name of the supplier, a String to
+specify the name of the customer, an Integer member to specify a PartID, and
+also a Handle to a Map container that maps each customer name to a list of PartIDs
+that are
 ordered by this customer from this supplier. During the processing of
-\texttt{CustomerMultiSelection}, the Map container is always empty and
-it is mainly used for other computations.
+\texttt{CustomerMultiSelection}, the Handle to the Map container is
+set to NULL.
 
 The
 \texttt{CustomerMultiSelection} customizes the flatmap logic as
-following: for each \texttt{Customer} Object, it scans its list of
-\texttt{Order} Object, and for each \texttt{Order} Object, it scans
-its list of \texttt{LineItem} Object, then for each \texttt{LineItem}
+following: for each \texttt{Customer} Objects, it scans its list of
+\texttt{Order} Objects, and for each \texttt{Order} Object, it scans
+its list of \texttt{LineItem} Objects, then for each \texttt{LineItem}
 Object, it creates a \texttt{SupplierInfo} Object using the customer
 name of this \texttt{Customer} Object, supplier name of the
 \texttt{Supplier} Object embeded in the \texttt{LineItem} Object, and
 also the PartID of the \texttt{Part} Object that is also associated with
-the \texttt{LineItem} Object. As mentioned, we leave the Map container
-empty now.
+the \texttt{LineItem} Object. As mentioned, we do not instantiate the Map container
+now.
 
 \vspace{5pt}
 2. \texttt{CustomerSupplierPartGroupBy} is derived from the declarative
 \texttt{AggregateComp} interface to perform an aggregation on the
 dataset of \texttt{SupplierInfo} objects. This customized computation
-defines how to extract a Key (i.e. get the supplier name attribute
-through method invocation) and a Value (i.e. a Handle to the \texttt{SupplierInfo} itself) from a
+defines how to extract a Key (i.e. the supplier name attribute
+) and a Value (i.e. a Handle to the \texttt{SupplierInfo} itself) from a
 \texttt{SupplierInfo} object. 
 
 The customerized computation also needs
 to define how to aggregate the Values that share the same Key,  by
 overloading operator+ of the Value type. For this query, we define the aggregation
-logic for $lhsSupplierInfo + rhsSupplierInfo$ as following: if
+logic for $lhsSupplierInfo + rhsSupplierInfo$ as following: if $lhs$
+has an empty Map container, the Map container will be instantiated; if
 $rhs$ has an empty Map container, it directly adds the
 customerName to PartID mapping in the $rhs$ to the Map container in $lhs$, and
 return $lhs$, which is to perform $V \rightarrow U$ aggregation;
@@ -339,10 +342,11 @@ which is to perform $U \rightarrow U$ aggregation. In this fashion, we can
 avoid create unnecessary Map container objects.
 
 \vspace{5pt}
-3. \texttt{CountAggregation} is the final aggregation to get the count of customers in the Map
-container of each aggregated $SupplierInfo$ object. We add this
-aggregation is mainly to be consistent with our Spark implementation
-which requires an action in the end to trigger Spark to execute the
+3. \texttt{CountAggregation} is the final aggregation to count number
+of customers in the Map
+container in each distinct $SupplierInfo$ object. We add this
+aggregation mainly to be consistent with our Spark implementation
+that requires an action in the end to trigger Spark to execute the
 whole query graph.
 
 \vspace{5pt}
@@ -353,7 +357,7 @@ The complete query graph is like following.
         makeObject<ObjectReader<Customer>>("TPCH_db", "tpch_bench_set1");
     Handle<Computation> myFlatten = makeObject<CustomerMultiSelection>();
     myFlatten->setInput(myReader);
-    {\bf myFlatten->setAllocatorPolicy(noReuseAllocator);}
+    $myFlatten->setAllocatorPolicy(noReuseAllocator);$
     Handle<Computation> myGroupBy = makeObject<CustomerSupplierPartGroupBy>();
     myGroupBy->setInput(myFlatten);
     Handle<Computation> myWriteSet = 
@@ -366,7 +370,8 @@ As highlighted in above code,  we find
 that because the computation for \texttt{CustomerMultiSelection} needs
 to allocate a lot of \texttt{SupplierInfo} Objects, reducing the CPU
 overhead for memory allocation by setting the allocator policy to
-noReuse can speed up the processing time by $2\times$.
+noReuse can speed up the processing time by $2\times$ to $5\times$ for
+different number of \texttt{Customer} Objects.
 
 \vspace{5pt}
 The top-$k$ Jaccard stresses the PC Object Model in a similar way to
@@ -375,16 +380,16 @@ go through the list of \texttt{Order} Objects for each
 through the list of \texttt{LineItem} Objects, and for
 each\texttt{LineItem} Object, it gets the associated \texttt{Part}
 Object to extract a PartID. 
-The difference is that it implements a new user-defined computation
-called \texttt{TopJaccard} to customize another declarative interface,
-\texttt{TopKComp}. Compared with \texttt{CustomerMultiSelection}, it
+The difference is that it implements a \texttt{TopJaccard} class to customize the
+\texttt{TopComp} declarative interface. Compared with \texttt{CustomerMultiSelection}, it
 requires less allocation of memory, because it transforms each
-\texttt{Customer} Object into a CustomerID which is an Integer, and
+\texttt{Customer} Object into a CustomerID that is an Integer, and
 also a Vector of Integers as the list PartIDs, which is much simpler
-than a list of  \texttt{SupplierInfo} Objects. In addition, the
+than a list of  \texttt{SupplierInfo} Objects that are output from the
+\texttt{MultiSelectionComp} interface. In addition, compared with the
+\texttt{CustomerSupplierPartGroupBy} computation, the
 \texttt{TopJaccard} bounds the intermediate data size to top K
-elements, which cause it generate less shuffle data compared with the
-\texttt{CustomerSupplierPartGroupBy} computation.
+elements, which also acause it generate less data. 
 
 \vspace{5pt}
 The example of query graph for top-$k$ Jaccard query is as following:
@@ -402,7 +407,8 @@ The example of query graph for top-$k$ Jaccard query is as following:
     pcContext.executeComputations (myWriter);
 \end{code}
 
-We also implemented equivalent TPC-H object model and queries in Spark. Because the data are object-oriented, it
+We also implemented equivalent TPC-H object model and queries in
+Spark. Because the data are object-oriented and highly nested, it
 is not possible to use Spark's Dataset/DataFrame abstraction to
 implement this computation, so we mainly implemented TPC-H object model the two queries
 using Spark RDD APIs in Java language.
@@ -662,7 +668,8 @@ based on computed new labels. Iteration repeats until centroids
 converge.
 
 \vspace{5pt}
-In addition, both LDA and GMM use GNU Scientific Library (GSL) for sampling a dirichlet
+In addition, both LDA and GMM implementations on the PC platform 
+use GNU Scientific Library (GSL) for sampling a dirichlet
 distribution and numerical
 processings respectively. Spark implementation is mainly based on
 breeze package for those functionalities. We installed OpenBLAS in the
@@ -818,8 +825,10 @@ Breeze-native &179ms  &3:40\\
 \hline
 \end{tabular}
 \caption{Single thread matrix multiplication benchmark, which shows
-  Java is as fast as C++ through invoking native code. (ms means
-  milliseconds, other numbers are in hh:mm:ss format.)}
+  Java is as fast as C++ through invoking native code. (for
+  $1000\times1000$ matrix multiplication, time are recorded in
+  milliseconds, and for $10000\times10000$ matrix multiplication, time are
+  recorded in hh:mm:ss format.)}
 \label{fig:matrixMult}
 \end{center}
 \end{table}
