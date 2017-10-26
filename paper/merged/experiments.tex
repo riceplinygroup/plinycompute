@@ -45,6 +45,25 @@ PC's utilities and performance:
   data points into a pre-defined number of clusters.
 \end {itemize}
 
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Applications & LOC on PlinyCompute & LOC on Spark\\
+\hline
+Linear Algebra Package &3505& 3130 (scala)\\
+TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
+TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
+LDA &1038  &314 (Scala)\\
+GMM&932 & 474 (Scala with breeze)\\
+KMeans &695  &670 (Scala)\\
+\hline
+\end{tabular}
+\caption{PlinyCompute vs. Spark: Lines of Source Code Comparison.}
+\label{fig:LOC}
+\end{center}
+\end{table}
+
 
 
 
@@ -543,7 +562,7 @@ chose to implement the high-dimensional word-based representation,
 where the $w_{j,k}$ values and $z_{j,k}^{(i)}$ values need to be managed as
 individual elements. 
 
-As illustrated in Fig.~\ref{fig:lda-query-graph}, in each iteration the query graph contains
+As illustrated in Figure~\ref{fig:lda-query-graph}, in each iteration the query graph contains
 one three-way JoinComp, three MultiSelectionComp and three
 AggregateComp among other operation. 
 
@@ -640,6 +659,14 @@ first computed to avoid unnecessary distance computation. Then an aggregation is
 based on computed new labels. Iteration repeats until centroids
 converge.
 
+\vspace{5pt}
+In addition, both LDA and GMM use GNU Scientific Library (GSL) for sampling a dirichlet
+distribution and numerical
+processings respectively. Spark implementation is mainly based on
+breeze package for those functionalities. We installed OpenBLAS in the
+cluster, so breeze will invoke native code for numerical processing
+through JNI. 
+
 
 \subsubsection {Experiments}
 
@@ -673,7 +700,7 @@ and Object file for RDD API).
 
 \subsubsection {Results}
 
-LDA Results (per iteration) are illustrated in Tab.~\ref{fig:LDA}:
+LDA Results (per iteration) are illustrated in Table~\ref{fig:LDA}:
 
 \begin{table}[h!]
 \begin{center}
@@ -700,7 +727,7 @@ join as well as which intermediate results to materialize are
 automated. 
 
 \vspace{5pt}
-For GMM, as illustrated in Tab.~\ref{fig:Gmm}, PC achieved a 
+For GMM, as illustrated in Table~\ref{fig:Gmm}, PC achieved a 
 $3\times$ speedup compared with Spark MLLib's GMM Dataset implementation for all cases.
 
 \begin{table}[h!]
@@ -723,7 +750,7 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 
 
 \vspace{5pt}
-As illustrated in Tab.~\ref{fig:KMeans}, for KMeans workload, PC achieved a $2\times$ to
+As illustrated in Table~\ref{fig:KMeans}, for KMeans workload, PC achieved a $2\times$ to
 $4\times$ speedup compared with Spark MLLib implementation of KMeans
 using RDD API. 
 
@@ -760,34 +787,56 @@ Spark \texttt{mllib Dataset API} &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
 For iterative and complex machine learning
 benchmarks, compared with equivalent and carefully tuned implementations on the latest
 Spark platform, PC still achieved $2 \times$ to $4 \times$
-speedup. On one side this demonstrated PC's utility in handling
-complex and iterative computations. On the other side, we've found that due to the complexity in mathematical and statistical
-computations in those workloads, in many cases performance comparison is reduced to comparisons of
-language efficiency and compiler supports. So it also indicates that PC has a
-potential to achieve even larger performance gain by better
+speedup. This demonstrated PC's utility in handling
+complex and iterative computations. 
+
+\vspace{5pt}
+People may have
+the question that due to the complexity in mathematical and statistical
+computations in those workloads, whether it is possible that performance comparison is reduced to comparisons of
+language and libraries, and C/C++ libraries may have better
+performance. To address this question, we did an experiment for comparing C++ and Java librariesfor
+single thread matrix multiplication in the same AWS m2.4xlarge machine, which shows that through invoking
+native libraries, Java Breeze has slightly better performance than Eigen and much
+better performance than GSL, as shown in Table~\ref{fig:matrixMult}. But we agree that PC has a
+potential to achieve even larger performance gain by using better
+libraries and better
 synergizing with C++ compiler and link-time optimizing tool chains.
-
-
-
-\subsection{Summary}
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c||c|c|c||}
 \hline
-Applications & LOC on PlinyCompute & LOC on Spark\\
+Matrix Dimensions (For both LHS and RHS) & $1000\times1000$ & $10000\times10000$ \\
 \hline
-Linear Algebra Package &3505& 3130 (scala)\\
-TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
-TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
-LDA &1038  &314 (Scala)\\
-GMM&932 & 474 (Scala with Breeze)\\
-KMeans &695  &670 (Scala)\\
+\hline
+GSL &1033ms &26:18  \\
+Eigen &123ms  &3:57\\
+Breeze-native &179ms  &3:40\\
 \hline
 \end{tabular}
-\caption{PlinyCompute vs. Spark: Lines of Source Code Comparison.}
-\label{fig:LOC}
+\caption{Single thread matrix multiplication benchmark, which shows
+  Java is as fast as C++ through invoking native code. (ms means
+  milliseconds, other numbers are in hh:mm:ss format.)}
+\label{fig:matrixMult}
 \end{center}
 \end{table}
+
+\vspace{5pt}
+As shown in Table~\ref{fig:LOC}, we use similar (or even fewer) number of lines of C++
+code to develop Linear Algebra package, TPCH queries and KMeans on PC
+platform by using
+its declarative interface, compared with developing equivalent Scala
+and Java implementations on Spark. But for LDA and GMM, to express the
+same computation logic, PC requires $2\times$ to $3\times$ more
+lines of code. There are several reasons: (1) Using GSL for dirichlet
+sampling and numerical processing requires more code than their Scala
+equivalent; (2) For many functions that are required by GMM, e.g. pdf (probability
+density function),  we manually coded them but Spark use breeze
+library for those functions; (3) Some logic (e.g. dirichlet sampling) are used
+multiple times in PC without wrapping into a function like in our
+Scala implementation.
+
+
 
 
