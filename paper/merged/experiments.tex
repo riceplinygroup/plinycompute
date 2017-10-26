@@ -823,17 +823,17 @@ Breeze-native &179ms  &3:40\\
 \end{table}
 
 \vspace{5pt}
-As shown in Table~\ref{fig:LOC}, we use similar (or even fewer) number of lines of C++
+As shown in Table~\ref{fig:LOC}, we used similar (or even fewer) number of lines of C++
 code to develop Linear Algebra package, TPCH queries and KMeans on PC
 platform by using
 its declarative interface, compared with developing equivalent Scala
 and Java implementations on Spark. But for LDA and GMM, to express the
-same computation logic, PC requires $2\times$ to $3\times$ more
+same computation logic, PC required $2\times$ to $3\times$ more
 lines of code. There are several reasons: (1) Using GSL for dirichlet
 sampling and numerical processing requires more code than their Scala
 equivalent; (2) For many functions that are required by GMM, e.g. pdf (probability
 density function),  we manually coded them but Spark use breeze
-library for those functions; (3) Some logic (e.g. dirichlet sampling) are used
+library for those functions; (3) Some logic (e.g. dirichlet sampling) were used
 multiple times in PC without wrapping into a function like in our
 Scala implementation.
 
