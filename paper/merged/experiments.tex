@@ -620,6 +620,7 @@ update the model parameters using the new ``responsibility'' score. A complex
 aggregation will run in each iteration to complete the two steps. The algorithm repeats
 the two steps until log likelihood or parameters converges. 
 
+
 \vspace{5pt}
 \noindent
 \texttt {KMeans.} We developed a KMeans implementation on PC, which
@@ -663,7 +664,9 @@ Spark platforms.
 For each experiment, we carefully tune PC page sizes, buffer pool
 size, thread number, and Spark
 partition size, executor heap size and core number to make sure all
-resources are fully utilized.
+resources are fully utilized. All input data for Spark is serialized
+using Kryo, and read through a binary format (Parquet for Dataset API,
+and Object file for RDD API).
 
 
 
@@ -685,7 +688,7 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \label{fig:LDA}
 \end{center}
 \end{table}
-\vspace{-10pt}
+
 While Spark performed well, the 
 amount of work required to arrive at a good solution 
 was significant, representing about a week of tuning.  First, among other things, our Spark expert had to force a 
@@ -698,7 +701,7 @@ automated.
 
 \vspace{5pt}
 For GMM, as illustrated in Tab.~\ref{fig:Gmm}, PC achieved a 
-$3\times$ speedup compared with Spark MLLib for all cases.
+$3\times$ speedup compared with Spark MLLib's GMM Dataset implementation for all cases.
 
 \begin{table}[h!]
 \begin{center}
@@ -721,7 +724,16 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 
 \vspace{5pt}
 As illustrated in Tab.~\ref{fig:KMeans}, for KMeans workload, PC achieved a $2\times$ to
-$4\times$ speedup compared with Spark MLLib. 
+$4\times$ speedup compared with Spark MLLib implementation of KMeans
+using RDD API. 
+
+The implementation using Dataset API had similar
+performance with using RDD API for $10^7$ data points and $10^8$ data
+points, but much slower for $10^9$ data points. We've found that
+in MLLib's Dataset implementation for KMeans, input data read from
+parquet file in libSVM format will first be stored as a Dataset, and
+then will be converted to RDD for processing. It seems such conversion
+becomes the performance bottleneck when there are $10^9$ data points.
 
 \begin{table}[h!]
 \begin{center}
@@ -734,7 +746,8 @@ Dimensionality & $10$ & $100$ & $1000$ & $10$ & $100$ & $1000$\\
 Number of points & $10^9$ & $10^8$ & $10^7$ & $10^9$ & $10^8$ & $10^7$\\
 \hline
 PlinyCompute &3:59 & 1:12 & 00:57 &00:37 & 00:09 & 00:06\\
-Spark \texttt{mllib} &9:06  &4:18 &3:20 &01:02 & 00:28 & 00:23\\
+Spark \texttt{mllib RDD API} &9:06  &4:18 &3:20 &01:02 & 00:28 & 00:23\\
+Spark \texttt{mllib Dataset API} &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
 \hline
 \end{tabular}
 \caption{PlinyCompute vs. Spark for KMeans. Times in MM:SS, averaged over five iterations.}
