@@ -359,7 +359,7 @@ int main(int numArgs, const char* args[]) {
 
         // creates an object to send request for printing all metadata
         pdb::Handle<pdb::CatalogPrintMetadata> printObject =
-            pdb::makeObject<CatalogPrintMetadata>("", "0");
+            pdb::makeObject<CatalogPrintMetadata>("", "", "0");
 
         //        cout << "timestamp=" << printObject->getItemName() << endl;
 

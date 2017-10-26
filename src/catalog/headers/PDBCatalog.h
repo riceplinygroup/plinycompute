@@ -46,6 +46,7 @@
 #include "CatalogStandardDatabaseMetadata.h"
 #include "CatalogStandardNodeMetadata.h"
 #include "CatalogStandardUserTypeMetadata.h"
+#include "CatalogPrintMetadata.h"
 #include "Handle.h"
 #include "InterfaceFunctions.h"
 #include "Object.h"
