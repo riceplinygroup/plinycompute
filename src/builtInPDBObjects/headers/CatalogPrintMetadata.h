@@ -43,7 +43,7 @@ class CatalogPrintMetadata : public Object {
 public:
     CatalogPrintMetadata() {}
 
-    CatalogPrintMetadata(String itemName, String timeStamp, String categoryIn)
+    CatalogPrintMetadata(String itemName, String timeStamp, String categoryIn="")
         : itemName(itemName), timeStamp(timeStamp), category(categoryIn) {}
 
     // Copy constructor
