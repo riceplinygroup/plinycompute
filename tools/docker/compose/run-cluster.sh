@@ -17,9 +17,6 @@
 # copy the binaries
 cp -r ../../../bin ../cluster-image/bin
 
-# set environment variable
-export PDB_DIR=$(readlink -f ../../../)
-
 # rebuild the images
 docker-compose rm
 docker-compose build

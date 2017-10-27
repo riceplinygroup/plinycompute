@@ -14,18 +14,15 @@
 #  ======================================================================== 
 #!/usr/bin/env bash
 
-# set the pdb directory
-PDB_DIR=$(readlink -f ../../../)
-
 # do the cleanup
-rm -rf ${PDB_DIR}/Testing
-rm -rf ${PDB_DIR}/CMakeFiles
-rm -rf ${PDB_DIR}/bin/*
-rm -rf ${PDB_DIR}/libraries/*
-rm -rf ${PDB_DIR}/logs/*
-rm -rf ${PDB_DIR}/cmake_install.cmake
-rm -rf ${PDB_DIR}/CMakeCache.txt
-rm -rf ${PDB_DIR}/CTestTestfile.cmake
-rm -rf ${PDB_DIR}/Makefile
+rm -rf ${PDB_ROOT}/Testing
+rm -rf ${PDB_ROOT}/CMakeFiles
+rm -rf ${PDB_ROOT}/bin/*
+rm -rf ${PDB_ROOT}/libraries/*
+rm -rf ${PDB_ROOT}/logs/*
+rm -rf ${PDB_ROOT}/cmake_install.cmake
+rm -rf ${PDB_ROOT}/CMakeCache.txt
+rm -rf ${PDB_ROOT}/CTestTestfile.cmake
+rm -rf ${PDB_ROOT}/Makefile
 
 printf "Removed!\n"
