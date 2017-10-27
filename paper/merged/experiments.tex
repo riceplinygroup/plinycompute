@@ -211,14 +211,6 @@ $4\times$ speedup compared with the the Hadoop-based SystemML V0.9, up to $27\ti
 speedup compared with Spark version 1.6.0, and up to $5\times$ speedup compared
 with SciDB version 14.8.
 
-We need point out that, although SystemML and Spark MLLib are
-Java/Scala-based, they invoke native
-numerical processing librarires such as OpenBLAS~\cite{OpenBLAS}, so as to
-the computation tasks, there is not much lanugage advantages that can
-be taken by PC, as shown in Table~\ref{fig:matrixMult}. 
-Most performance benefits are from reduced
-serialization/deserialization time with the PC object model, TCAP optimization and PC
-backend's relational syle of processing objects.
 
 
 \begin{table}[h!]
@@ -239,6 +231,39 @@ SciDB   &00:03 &00:17 &03:20 &00:15 &00:33 &06:04 &00:28 &02:56 & 06:24 \\
 \caption{Linear algebra benchmark. Format is MM:SS.
 A star ($*$) indicates running in local mode.}
 \label{fig:LR}
+\end{center}
+\end{table}
+
+
+We need point out that, although SystemML and Spark MLLib are
+Java/Scala-based, they invoke native
+numerical processing librarires such as OpenBLAS~\cite{OpenBLAS}, so as to
+the computation tasks, there is not much lanugage advantages that can
+be taken by PC, as shown in Table~\ref{fig:matrixMult}. 
+Most performance benefits are from reduced
+serialization/deserialization time with the PC object model, TCAP optimization and PC
+backend's relational syle of processing objects.
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c||c|c|c||}
+\hline
+Matrix Dimensions (For both LHS and RHS) & $1000\times1000$ & $10000\times10000$ \\
+\hline
+\hline
+GSL &1033ms &26:18  \\
+Eigen &123ms  &3:57\\
+Breeze-native &179ms  &3:40\\
+\hline
+\end{tabular}
+\caption{Single thread matrix multiplication benchmark tested in
+  m2.4xlarge instance by setting thread number  to 1 for all
+  packages. It shows that
+  Java is as fast as C++ through invoking native code. (for
+  $1000\times1000$ matrix multiplication, processing time are recorded in
+  milliseconds, and for $10000\times10000$ matrix multiplication, processing time are
+  recorded in hh:mm:ss format.)}
+\label{fig:matrixMult}
 \end{center}
 \end{table}
 
@@ -333,11 +358,12 @@ to define how to aggregate the Values that share the same Key,  by
 overloading operator+ of the Value type. For this query, we define the aggregation
 logic for $lhsSupplierInfo + rhsSupplierInfo$ as following: if $lhs$
 has an empty Map container, the Map container will be instantiated; if
-$rhs$ has an empty Map container, it directly adds the
-customerName to PartID mapping in the $rhs$ to the Map container in $lhs$, and
-return $lhs$, which is to perform $V \rightarrow U$ aggregation;
+$rhs$ has an empty Map container, it directly extracts the
+customerName and PartID from the $rhs$ and add them to the Map container in $lhs$, and
+returns $lhs$, which is to perform $V \rightarrow U$ aggregation;
 and if $rhs$ has non-empty Map container, it iterates the Map
-container in $rhs$ and adds each mapping to $lhs$'s MapContainer,
+container in $rhs$ and adds each mapping to $lhs$'s MapContainer, and
+returns $lhs$,
 which is to perform $U \rightarrow U$ aggregation. In this fashion, we can
 avoid create unnecessary Map container objects.
 
@@ -370,26 +396,33 @@ As highlighted in above code,  we find
 that because the computation for \texttt{CustomerMultiSelection} needs
 to allocate a lot of \texttt{SupplierInfo} Objects, reducing the CPU
 overhead for memory allocation by setting the allocator policy to
-noReuse can speed up the processing time by $2\times$ to $5\times$ for
+``no Reuse'' can speed up the processing time by $2\times$ to $5\times$ for
 different number of \texttt{Customer} Objects.
 
 \vspace{5pt}
-The top-$k$ Jaccard stresses the PC Object Model in a similar way to
-go through the list of \texttt{Order} Objects for each
-\texttt{Customer} Objects, and then for each \texttt{Order} Object, go
+For top-$k$ Jaccard, We implemented  a \texttt{TopJaccard} class to customize the \texttt{TopComp}
+declarative interface.
+Similar with \texttt{Customer}s per \texttt{Supplier}, for each
+\texttt{Customer} Object, it requires to
+go through the list of \texttt{Order} Objects, and then for each \texttt{Order} Object, go
 through the list of \texttt{LineItem} Objects, and for
 each\texttt{LineItem} Object, it gets the associated \texttt{Part}
-Object to extract a PartID. 
-The difference is that it implements a \texttt{TopJaccard} class to customize the
-\texttt{TopComp} declarative interface. Compared with \texttt{CustomerMultiSelection}, it
-requires less allocation of memory, because it transforms each
+Object to extract a PartID. For each
+\texttt{Customer} Object, it outputs a pair of a similarity score and
+an \texttt{AllParts} Object that contains the CustomerID and a list of PartIDs as the
+intermediate output, which are pre-aggregated through combiner
+threads to only output $k$ pairs with the highest similarity scores
+from each thread. All outputs are sent to and aggregated in one Worker
+node to generate the final output.
+
+Compared with the PC implementation of \texttt{Customer}s per \texttt{Supplier}, 
+top-$k$ Jaccard requires less allocation of memory, because it transforms each
 \texttt{Customer} Object into a CustomerID that is an Integer, and
 also a Vector of Integers as the list PartIDs, which is much simpler
 than a list of  \texttt{SupplierInfo} Objects that are output from the
-\texttt{MultiSelectionComp} interface. In addition, compared with the
-\texttt{CustomerSupplierPartGroupBy} computation, the
-\texttt{TopJaccard} bounds the intermediate data size to top K
-elements, which also acause it generate less data. 
+\texttt{CustomerMultiSelection}. For the aggregation part, the
+intermediate data size is bounded to top K
+elements, which also cause it generate less data as well as less computation. 
 
 \vspace{5pt}
 The example of query graph for top-$k$ Jaccard query is as following:
@@ -437,7 +470,7 @@ only report the latency for executing the targeting query.
 
 Each experiment is run on the same 10-worker cluster as
 afore-mentioned. On Spark platform, all data is
-serielized using Kryo, parameters such as data partition size and parallelism are fully tuned to obtain
+serialized using Kryo, parameters such as data partition size and parallelism are fully tuned to obtain
 optimal performance. 
 
 
@@ -469,13 +502,13 @@ Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \end{table}
 
 Results are in Table \ref{fig:TPC},  and we see that when PC data are
-stored in the PC's distributed Storage system and Spark data
+stored in the PC's distributed Storage system with a hot buffer pool and Spark data
 are stored in
 a hot HDFS, the computation is $6\times$ to $66\times$ faster in PC.  
 
-If the data are already
-fully deserialized and stored as an RDD, PC is 
-between 50\% and $26\times$ faster.
+If the Spark data are already
+fully deserialized and stored as an RDD in memory, PC is 
+between $1.5\times$ and $26\times$ faster.
 
 From the results, we see that the processing time differences of the
 two queries are more significant in PC compared with Spark. That's
@@ -489,7 +522,7 @@ or a Vector container needs to be created for a new Customer in each
 Supplier, or a new PartID needs to be inserted into the Vector
 container which may cause Vector to increase size by creating a new
 larger Vector. Although we tune the allocation policy to alleviate
-this allocation overhead, we can't reduce the deallocation
+this allocation overhead, the space efficiency is worsen, and we can't reduce the deallocation
 overhead. In top-$k$ Jaccard, less allocation/deallocation overhead
 are involved.
 
@@ -518,17 +551,14 @@ compared with Java objects, the PC
 object model had a significant performance improvement, which were
 brought by a couple of PC features such
 as no serialization/deserialization overhead for moving data, and
-relational syle of processing data in local storage, and can be
+relational syle of processing data in local storage (through shared memory), and can be
 buffered across jobs.
 
 In addition, as shown in Table \ref{fig:LOC}, the C++ implementations of two queries in
 PC platform have slightly fewer lines of source code compared with
-Spark Java implementations. While it is partially because we do not
-need to write code for serializing and deserializing Objects (i.e. we did not
-count kyro code, but we counted the user code for encoding and
-registering a Kyro Object.), this also demonstrated that with a
+Spark Java implementations. This also demonstrated that with a
 declarative interface, implementing decision support
-queries on complex and nested Objects can be easy even for using a low-level language like C++.
+queries on complex and nested objects can be easy even for using a low-level language like C++.
 
 \subsection {Machine Learning}
 In this section, we describe and discuss the implementation,
@@ -541,7 +571,7 @@ well is PC in handling complex dataflows and computations.
 \texttt {LDA.} We first describe our experience writing a word-based,
 non-collapsed LDA implementation \cite{jermaineExperimental} on top of
 PC.  LDA is a probabilistic model with a generative process and a set
-of latent topics: Given the word distribution for topic $t$ is denoted
+of latent topics: Given the word distribution for topic $t$ denoted
 as $\phi_{t}$, if the
 $k$-th word in document $d_j$ (denoted as $w_{j,k}$), then
 $Pr[w_{j,k}=\omega]=\phi_{t,w}$. Each document $d_j$ also has a topic
@@ -552,19 +582,19 @@ put over each $\phi_{t}$ distribution with concentration parameter
 ($\beta$).
 
 The
-``collapsed'' LDA Gibbs sampler, which means tht one or more variables
+``collapsed'' LDA Gibbs sampler, which means that one or more variables
 can be integrated out in the derivation of the Gibbs sampler, is the
 standard way to learn an LDA model. We chose to implement
 LDA using non-collapsed Gibbs sampler mainly because it makes the
 problem more challenging ~\cite{jermaineExperimental}.  A
-non-collapsed sampled can be defined as follows:
+non-collapsed sampler can be described as follows:
 $Pr[z_{j,k}^{(i)}=t] \propto \theta_{j,t}^{(i-1)} \times \phi_{t, w_{j,k}}^{(i-1)}$.
 
 
 In addition,
 compared with the low-dimensional document-based representation, to
 make the computation even more challenging, we
-chose to implement the high-dimensional word-based representation,
+chose to implement the word-based representation,
 where the $w_{j,k}$ values and $z_{j,k}^{(i)}$ values need to be managed as
 individual elements. 
 
@@ -577,35 +607,34 @@ AggregateComp among other operation.
 \vspace{5pt}
 In the PC implementation, the document database is modeled into a
 dataset of $<docID, wordID, count>$ triples. In initialization stages, a
-topic distribution will be created for each document $d_j$, denoted as
-$\theta_j$, and also a topic
-distribution will be computed for each word $w_k$, denoted as $\phi_k$. 
+topic distribution will be created for each document, and also a topic
+distribution will be created for each word. 
 
 In the three-way JoinComp, which is the
-most expensive operation, each $<<d_j, w_k, count>, \theta_j, \phi_k>$
-triple will be joined. The posterior probability of $w_k$ being
-generated by each topic $t$ will be computed by $\theta_{j,t}\times
-\phi_{t,k}$. Then a multinomial distribution is computed to
-update the topic assignments to the doc, and update word assignment
+most expensive operation, each $<docID, wordID, count>$ 
+triple will be joined with the topic distribution for the document
+associated with $docID$, and the topic distribution for the word
+associated with $wordID$. The word's posterior probability of being
+generated by each topic will be computed and a multinomial
+distribution is also used for sampling to
+update the topic assignments to the doc, and update word assignments
 to each topic. 
 
 Then $DocAssignmentMultiSelection$ and
 $DocTopicAggregate$ work together to aggregate the updated topic
-assignment for each doc. After that,
-$DocTopicProbSelection$ is applied to obtain a new topic distribution $\theta_j$
-for each doc $d_j$ by sampling topics from dirichlet distribution.
+assignment for each document. After that,
+$DocTopicProbSelection$ is applied to obtain a new topic distribution
+for each document by sampling topics from dirichlet distribution.
 
 Similarly $TopicAssignmentMultiSelection$ and $TopicWordAggregate$,
 work together to aggregate the word
 assignment for each topic. Then $WordTopicAggregate$ will obtain a new
-topic distribution $\phi_k$ for each word $w_k$ by sampling topics from
+topic distribution for each word by sampling topics from
 dirichlet distribution.
 
 In the end, the new topic distributions for documents and for words,
 together with the document database ($<docID, wordID, count>$ triples)
 will be joined again to start a new round of iteration.
-
-
 
 
 \begin{figure}
@@ -620,14 +649,14 @@ will be joined again to start a new round of iteration.
 \vspace{5pt}
 The LDA offering in the Spark MLLib is based on Expectation
 Maximization and Online Variational Bayes, which is very different
-with our implementation. Therefore we asked a Spark expert to carefully implement an algorithmatically
+with our implementation on PC. Therefore we asked a Spark expert to carefully implement an algorithmatically
 equivalent LDA in Spark using combined RDD and DataSet        
 APIs. 
 
 For GMM and KMeans, instead of implementing
 our own Spark applications, we chose to use Spark MLLib
-implementations of those two workloads, and we implement those two
-workloads in PC to be consistent with their Spark equivalents.
+implementations of those two workloads, and we implemented those two
+workloads on PC to be consistent with their Spark equivalents. 
 
 \vspace{5pt}
 \noindent
@@ -645,7 +674,7 @@ iteration: an estimation step to determine ``responsibility'' score
 for assigning each data point to each Gaussian $k$ using the current model; and a maximization step to
 update the model parameters using the new ``responsibility'' score. A complex
 aggregation will run in each iteration to complete the two steps. The algorithm repeats
-the two steps until log likelihood or parameters converges. 
+the two steps until log likelihood or parameters converge. 
 
 
 \vspace{5pt}
@@ -679,26 +708,25 @@ through JNI.
 
 \subsubsection {Experiments}
 
-On the 10-worker cluster aforementioned, we run experiments for LDA,
+On the 10-worker cluster aforementioned, we ran experiments for LDA,
 GMM and KMeans on both PC and Spark 2.1.0 platforms. 
 
 For LDA,  we
-create a synthetic document database with 2.5 million documents from
+created a synthetic document database with 2.5 million documents from
 20 newsgroups data set by concatenate postings
 end-on-end~\cite{jermaineExperimental}. We also use a dictionary size
-of 20000 words and a model size of 100 topics. For GMM, we generate
+of 20000 words and a model size of 100 topics. For GMM, we generated
 random data for three test cases: $10^7$ data
 points with 100 dimenisons, and $10^6$ data points with 300 and 500
-dimensions, respectively. For each test case, same random data is used
+dimensions, respectively. For each test case, same random data was used
 for comparing PC and Spark performance. For KMeans, we
-generate randome data for $10^9$ data
+generate random data for $10^9$ data
 points with 10 dimenisons, $10^8$ data points with 100 dimensions,  and $10^7$
 data points with 1000
-dimensions. Similar with GMM, for each test case, same random data is used on both PC and
+dimensions. Similar with GMM, for each test case, same data is used on both PC and
 Spark platforms.
 
-For each experiment, we carefully tune PC page sizes, buffer pool
-size, thread number, and Spark
+For each experiment, we carefully tune Spark
 partition size, executor heap size and core number to make sure all
 resources are fully utilized. All input data for Spark is serialized
 using Kryo, and read through a binary format (Parquet for Dataset API,
@@ -737,7 +765,8 @@ automated.
 
 \vspace{5pt}
 For GMM, as illustrated in Table~\ref{fig:Gmm}, PC achieved a 
-$3\times$ speedup compared with Spark MLLib's GMM Dataset implementation for all cases.
+$3\times$ speedup compared with Spark MLLib's GMM implementation
+(using RDD APIs) for all cases. 
 
 \begin{table}[h!]
 \begin{center}
@@ -804,34 +833,14 @@ People may have
 the question that due to the complexity in mathematical and statistical
 computations in those workloads, whether it is possible that performance comparison is reduced to comparisons of
 language and libraries, and C/C++ libraries may have better
-performance. To address this question, we did an experiment for comparing C++ and Java librariesfor
+performance. To address this question, we did an experiment for
+comparing C++ and Java libraries for
 single thread matrix multiplication in the same AWS m2.4xlarge machine, which shows that through invoking
 native libraries, Java Breeze has slightly better performance than Eigen and much
 better performance than GSL, as shown in Table~\ref{fig:matrixMult}. But we agree that PC has a
 potential to achieve even larger performance gain by using better
 libraries and better
 synergizing with C++ compiler and link-time optimizing tool chains.
-
-\begin{table}[h!]
-\begin{center}
-\begin{tabular}{|c||c|c|c||}
-\hline
-Matrix Dimensions (For both LHS and RHS) & $1000\times1000$ & $10000\times10000$ \\
-\hline
-\hline
-GSL &1033ms &26:18  \\
-Eigen &123ms  &3:57\\
-Breeze-native &179ms  &3:40\\
-\hline
-\end{tabular}
-\caption{Single thread matrix multiplication benchmark, which shows
-  Java is as fast as C++ through invoking native code. (for
-  $1000\times1000$ matrix multiplication, time are recorded in
-  milliseconds, and for $10000\times10000$ matrix multiplication, time are
-  recorded in hh:mm:ss format.)}
-\label{fig:matrixMult}
-\end{center}
-\end{table}
 
 \vspace{5pt}
 As shown in Table~\ref{fig:LOC}, we used similar (or even fewer) number of lines of C++
