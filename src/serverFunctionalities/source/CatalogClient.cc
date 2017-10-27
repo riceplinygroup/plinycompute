@@ -656,7 +656,7 @@ bool CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
             errMsg = "Error printing catalog metadata.";
             return false;
         },
-        itemToSearch);
+        itemToPrint);
 }
 
 
