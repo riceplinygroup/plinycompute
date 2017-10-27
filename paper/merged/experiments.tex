@@ -79,7 +79,7 @@ We called this implementation \texttt{LilLinAlg}.
 Our goal was to determine the 
 performance and functionality that an expert programmer (but PC novice) could deliver in a short
 timeframe, compared to a set of established distributed Big Data matrix implementations:
-SciDB \cite{brown2010overview, stonebraker2011architecture} (built from the ground up by an MIT team over the last nine years), MLLib \cite{meng2016mllib} 
+SciDB \cite{brown2010overview, stonebraker2011architecture} (built from the ground up by an MIT team over the last nine years), Mllib \cite{meng2016mllib} 
 (the Big Data matrix
 implementation shipped with Spark), and SystemML \cite{boehm2014hybrid, ghoting2011systemml, boehm2016systemml}
 (a matrix and machine learning implementation developed
@@ -235,7 +235,7 @@ A star ($*$) indicates running in local mode.}
 \end{table}
 
 
-We need point out that, although SystemML and Spark MLLib are
+We need point out that, although SystemML and Spark Mllib are
 Java/Scala-based, they invoke native
 numerical processing librarires such as OpenBLAS~\cite{OpenBLAS}. So as to
 the computation tasks, there is not much lanugage advantages that can
@@ -283,7 +283,7 @@ technology developed for the system, including one awarded a VLDB best paper awa
 set of capabilities than \texttt{LilLinAlg}).
 
 For productivity provided with the PC platform, we compared
-\texttt{LilLinAlg} with Spark MLLib linalg
+\texttt{LilLinAlg} with Spark Mllib linalg
 package~\cite{bosagh2016matrix}. Both packages offer similar linear algebra
 functionalities. PC \texttt{LilLinAlg} has a DSL interface, is based on lower level
 libraries like Eigen~\cite{eigen} for numerical processing, and the developer 
@@ -647,14 +647,14 @@ will be joined again to start a new round of iteration.
 
 
 \vspace{5pt}
-The LDA offering in the Spark MLLib is based on Expectation
+The LDA offering in the Spark Mllib is based on Expectation
 Maximization and Online Variational Bayes, which is very different
 with our implementation on PC. Therefore we asked a Spark expert to carefully implement an algorithmatically
 equivalent LDA in Spark using combined RDD and DataSet        
 APIs. 
 
 For GMM and KMeans, instead of implementing
-our own Spark applications, we chose to use Spark MLLib
+our own Spark applications, we chose to use Spark Mllib
 implementations of those two workloads, and we implemented those two
 workloads on PC to be consistent with their Spark equivalents. 
 
@@ -680,8 +680,8 @@ the two steps until log likelihood or parameters converge.
 \vspace{5pt}
 \noindent
 \texttt {KMeans.} We developed a KMeans implementation on PC, which
-is equivalent with the KMeans implementation in Spark MLLib. Spark
-MLLib KMeans implementation has two initialization approach: KMeans++
+is equivalent with the KMeans implementation in Spark Mllib. Spark
+Mllib KMeans implementation has two initialization approach: KMeans++
 and random initialization using sampling. For both experiments, we use
 random initialization by sampling $K$ data points as initial
 cluster centroids. For initialization, both implementations also compute $L^2$ norm for each data
@@ -714,8 +714,12 @@ GMM and KMeans on both PC and Spark 2.1.0 platforms.
 For LDA,  we
 created a synthetic document database with 2.5 million documents from
 20 newsgroups data set by concatenate postings
-end-on-end~\cite{jermaineExperimental}. We also use a dictionary size
-of 20000 words and a model size of 100 topics. For GMM, we generated
+end-on-end~\cite{jermaineExperimental}. There are more than 739
+million <docID, wordID, count> triples in the document set, forming
+the input to the LDA application. We also use a dictionary size
+of 20000 words and a model size of 100 topics. 
+
+For GMM, we generated
 random data for three test cases: $10^7$ data
 points with 100 dimenisons, and $10^6$ data points with 300 and 500
 dimensions, respectively. For each test case, same random data was used
@@ -765,7 +769,7 @@ automated.
 
 \vspace{5pt}
 For GMM, as illustrated in Table~\ref{fig:Gmm}, PC achieved a 
-$3\times$ speedup compared with Spark MLLib's GMM implementation
+$3\times$ speedup compared with Spark Mllib's GMM implementation
 (using RDD APIs) for all cases. 
 
 \begin{table}[h!]
@@ -789,13 +793,13 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 
 \vspace{5pt}
 As illustrated in Table~\ref{fig:KMeans}, for KMeans workload, PC achieved a $2\times$ to
-$4\times$ speedup compared with Spark MLLib implementation of KMeans
+$4\times$ speedup compared with Spark Mllib implementation of KMeans
 using RDD API. 
 
 The implementation using Dataset API had similar
 performance with using RDD API for $10^7$ data points and $10^8$ data
 points, but much slower for $10^9$ data points. We've found that
-in MLLib's Dataset implementation for KMeans, input data read from
+in Mllib's Dataset implementation for KMeans, input data read from
 parquet file in libSVM format will first be stored as a Dataset, and
 then will be converted to RDD for processing. It seems such conversion
 becomes the performance bottleneck when there are $10^9$ data points.
