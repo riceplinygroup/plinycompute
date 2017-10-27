@@ -192,18 +192,18 @@ namespace pdb {
                 std :: string &errMsg);
 
         /* Lists the Databases registered in the catalog. */
-        bool listRegisteredDatabases (std :: string &errMsg);
+        void listRegisteredDatabases (std :: string &errMsg);
 
         /* Lists the Sets for a given database registered in the catalog. */
-        bool listRegisteredSetsForADatabase (
+        void listRegisteredSetsForADatabase (
                 std :: string databaseName,
                 std :: string &errMsg);
 
         /* Lists the Nodes registered in the catalog. */
-        bool listNodesInCluster (std :: string &errMsg);
+        void listNodesInCluster (std :: string &errMsg);
 
         /* Lists user-defined types registered in the catalog. */
-        bool listUserDefinedTypes (std :: string &errMsg);
+        void listUserDefinedTypes (std :: string &errMsg);
 
         /****
          * Methods for invoking Dispatcher-related operations
