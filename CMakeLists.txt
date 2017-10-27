@@ -18,7 +18,8 @@ set(CMAKE_CXX_STANDARD 14)
 
 # check the operating system and add the appropriate flags
 if (APPLE)
-    SET(CMAKE_CXX_FLAGS "-Wall -g")
+    SET(CMAKE_CXX_FLAGS "-g -fPIC -Wno-deprecated-declarations")
+    SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -undefined dynamic_lookup")
 elseif (UNIX AND NOT APPLE)
     SET(CMAKE_CXX_FLAGS "-g -fPIC -Wno-deprecated-declarations")
 endif ()
@@ -103,8 +104,7 @@ set(SOURCE_FILES_SQL_LITE ${PROJECT_SOURCE_DIR}/src/sqlite/source/sqlite3.c)
 
 # specify the hearder files
 file(GLOB PDB_HEADERS "${PROJECT_SOURCE_DIR}/src/*/headers/*.h")
-add_library(HEADER_ONLY_TARGET STATIC "${PDB_HEADERS}")
-set_target_properties(HEADER_ONLY_TARGET PROPERTIES LINKER_LANGUAGE CXX)
+add_custom_target(HEADER_ONLY_TARGET SOURCES "${PDB_HEADERS}")
 
 # generate lexers
 FIND_PACKAGE(FLEX REQUIRED)
