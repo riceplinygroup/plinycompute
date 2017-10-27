@@ -43,8 +43,14 @@ class CatalogPrintMetadata : public Object {
 public:
     CatalogPrintMetadata() {}
 
-    CatalogPrintMetadata(String itemName, String timeStamp, String categoryIn="")
-        : itemName(itemName), timeStamp(timeStamp), category(categoryIn) {}
+    CatalogPrintMetadata(
+            String itemName,
+            String timeStamp,
+            String categoryIn)
+             : itemName(itemName),
+                timeStamp(timeStamp),
+                category(categoryIn) {}
+                
 
     // Copy constructor
     CatalogPrintMetadata(const CatalogPrintMetadata& pdbItemToCopy) {
@@ -74,6 +80,13 @@ public:
         return category;
     }
 
+    String getMetadataToPrint() {
+        return metadataToPrint;
+    }
+
+    String setMetadataToPrint(string &metadataIn) {
+        return metadataToPrint = String(metadataIn);
+    }
 
     ENABLE_DEEP_COPY
 
@@ -86,6 +99,8 @@ private:
     // the starting timeStamp to include, will retrieve
     // only metadata created after a given timeline
     String timeStamp;
+    // a string with the metadata to print
+    String metadataToPrint;
 };
 
 } /* namespace pdb */

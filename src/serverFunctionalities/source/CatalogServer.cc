@@ -179,7 +179,7 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
 
                 // make the response
                 const UseTemporaryAllocationBlock tempBlock{1024};
-                Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
+                Handle<CatalogPrintMetadata> response = makeObject<CatalogPrintMetadata>(request);
 
                 // return the result
                 res = sendUsingMe->sendObject(response, errMsg);
@@ -1624,8 +1624,28 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
 // invokes a method to retrieve metadata that has changed since a given timestamp
 bool CatalogServer::printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint) {
 
+    string itemKey = metadataToPrint->getItemName().c_str();
     string categoryToPrint = metadataToPrint->getCategoryToPrint().c_str();
     string timeStamp = metadataToPrint->getTimeStamp().c_str();
+
+    bool res;
+    string resultToPrint;
+    string errorMsg;
+
+    if (categoryToPrint.compare("databases")==0)
+        resultToPrint =
+                pdbCatalog->listRegisteredDatabases(resultToPrint, errorMsg);
+    if (categoryToPrint.compare("sets")==0)
+        resultToPrint =
+                pdbCatalog->listRegisteredSetsForADatabase(resultToPrint, itemKey, errorMsg);
+    if (categoryToPrint.compare("nodes")==0)
+        resultToPrint =
+                pdbCatalog->listNodesInCluster(resultToPrint, errorMsg);
+    if (categoryToPrint.compare("udts")==0)
+        resultToPrint =
+                pdbCatalog->listUserDefinedTypes(resultToPrint, errorMsg);
+
+    metadataToPrint->setMetadataToPrint(resultToPrint);
 
     pdbCatalog->getModifiedMetadata(metadataToPrint);
     cout << "************Objects************" << endl;
