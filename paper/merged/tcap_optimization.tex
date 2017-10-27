@@ -89,7 +89,7 @@ JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt1), JK2_3(emp,bl1), 'Sel_43', '<_1',
 JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), JK2_4(emp), 'Sel_43', '&&_1', 
   [('type', 'bool_and')]);
 
-JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43’, []);
+JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43', []);
   
 \end{codesmall}
 
@@ -160,7 +160,8 @@ on the result of a join;
 depends only upon \texttt{emp});
 
 \vspace{-5 pt}
-\item Then $b_i$ can be pushed down to towards that join input, and a new \texttt{FILTER} introduced.
+\item Then $b_i$ can be pushed down to that join input, and a new
+  \texttt{FILTER} is introduced.
 \end{itemize}
 
 \noindent In this case, after the transformation, we would have:

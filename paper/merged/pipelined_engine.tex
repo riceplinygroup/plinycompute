@@ -33,9 +33,12 @@ container loctated on an output page, for later use (which may require shuffling
 For example, the pipe sink associated with aggregation
 writes a vector of key \texttt{Object}s and a vector of value \texttt{Object}s to a PC \texttt{Map}, performing pre-aggregation when
 applicable.
-Each pipeline ends in a pipe sink, though only a few TCAP operatoins require pipe sinks: \texttt{JOIN} (where either one or both inputs are pipe
-sinks, depending upon the join algorithm chosen), \texttt{AGG}, and \texttt{OUTPUT} in out current implementation. 
-Two different decompositions of a TCAP program into indicidual pipelines are shown in Figure \ref{fig:TCAP}.
+Each pipeline ends in a pipe sink, though only a few TCAP operations require pipe sinks: \texttt{JOIN} (where either one or both inputs are pipe
+sinks, depending upon the join algorithm chosen), \texttt{AGG}, and
+\texttt{OUTPUT}. In our current implementation, if one operation's
+output has multiple consumers (is input of more than one other operations), the output will also be
+materialized to a pipe sink.
+Two different decompositions of a TCAP program into individual pipelines are shown in Figure \ref{fig:TCAP}.
 
 
 
@@ -108,8 +111,9 @@ of the output page.  Thus, in the case that the returned object has \texttt{Hand
 copy will not be invoked because those \texttt{Handle}s will physically reside on a memory location outside of the current
 allocation block (as described previously, deep copies of the target of a \texttt{Handle}
 happen only when a \texttt{Handle} is copied to the current allocation block).  
-It is only when/if a subsequent operation copies the result (and the \texttt{Handle}s is contains)
-to the output page (corresponding to the current allocation block) that a deep copy happens.  Thus, intermediate data are \emph{lazily copied} to 
+It is only when/if a subsequent operation copies the result (and the \texttt{Handle}s are contained)
+to the output page (corresponding to the current allocation block)
+that a deep copy happens.  Thus, intermediate data are \emph{lazily copied} to 
 the output page, once \texttt{Handle} to the data is copied to the output page, which tends to avoid un-necessary allocations.
 
 \vspace{5 pt}

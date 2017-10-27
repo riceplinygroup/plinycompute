@@ -73,7 +73,8 @@ portion of the allocation block is transferred in its entirety with
 no pre-processing and zero CPU cost, aside from the cycles required to perform the data transfer.  
 This illustrates the principle of \emph{zero cost data movement}.
 
-To achieve high performance, all memory management is taken care of by the PC Object model.
+To achieve high performance, all memory management except buffer pool
+page management is taken care of by the PC Object model.
 If the next line of code executed were:
 \texttt{
 myVec = nullptr;}
@@ -100,6 +101,7 @@ Finally, we note that the PC Object model is not used exclusively or even primar
 is used \emph{internally}, with PC's computational engine as well.  For example, aggregation is implemented using PC's built-in \texttt{Map} class.  Each thread maintains
 a \texttt{Map} object that it aggregates its local data to; those are merged into maps that are sent to various workers around the PC cluster.  All sends and
 receives of these \texttt{Map} objects happen without (de-)serialization, with zero CPU cost, aside from the CPU cycles needed to transmit the bytes.
+
 
 \subsection{PlinyCompute's Computational Engine}
 \label{sec:engine}
@@ -273,7 +275,7 @@ vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors 
 \subsection{TCAP and Vectorized Execution} \label{sec:vectorized}
 
 
-PC calls the various user-suppled lambda term construction functions for each of the \texttt{Computation} objects in an
+PC calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in an
 input graph, and compiles all of those lambda terms into a DAG of pipeline stages.  
 This entire computation is represented using a text-based internal representation that we call
 \emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
@@ -336,8 +338,9 @@ The resulting vector list (consisting of the vectors shallow copied from the inp
 will be called \texttt{WDNm\_1}.  
 
 Next, this TCAP program
-specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the method call \texttt{getDeptName ()} on the attribute \texttt{emp}; this is 
-done via application of the compiled code referred to by \texttt{Join\_2212.method\_call\_1}.  The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
+specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
+method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
+done via application of the compiled code referred to by \texttt{Join \_2212.method\_call\_1}.  The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
 and \texttt{nm1} are simply shallow-copied to the output vector set.
 
 After this an equality check is performed to create \texttt{WBl\_1.bl} (a vector of booleans) and then the result is filtered based upon this column.
