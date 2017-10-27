@@ -506,7 +506,7 @@ common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all + pdb
 #common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
 #common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
-common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all)
+common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all + pdb_client)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all + pdb_client)
 common_env.Program('bin/getListNodesTest', ['build/tests/GetListNodesTest.cc'] + all)
 common_env.Program('bin/MasterServerTest', ['build/tests/MasterServerTest.cc'] + all)

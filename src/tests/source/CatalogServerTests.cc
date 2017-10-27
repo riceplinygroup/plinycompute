@@ -15,105 +15,131 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-
-#ifndef CATALOG_SERVER_TESTS_CC
-#define CATALOG_SERVER_TESTS_CC
-
-#include "PDBServer.h"
+#include "ScanStringIntPairSet.h"
+#include "PDBClient.h"
 #include "CatalogServer.h"
-#include "PangeaStorageServer.h"
-#include "DistributedStorageManagerServer.h"
 
 int main(int argc, char *argv[]) {
 
-  bool isMasterCatalog = false;
-
-  // the ip of the master node
-  string masterIP = "master";
-  int masterPort = 8108;
-
-  string localIP = "worker_3";
-  int localPort = 8111;
-
-  string nodeName = "compute1";
-  string nodeType = "worker";
-
-  if (argc < 8) {
-    cout << "bin/CatalogServerTests isMasterCatalog masterIP masterPort localIP localPort nodeName nodeType" << endl;
-    cout
-        << "where isMasterCatalog takes a value of 0 to indicate that this is not a node with the master catalog, 1 otherwise"
-        << endl;
-    cout << "       masterIP is the IP address of the node with the master catalog" << endl;
-    cout << "       masterPort is the port of the node with the master catalog" << endl;
-    cout << "       localIP is the IP address of this node" << endl;
-    cout << "       localPort is the port of this node" << endl;
-    cout << "       nodeName is an arbitrary name given to this node, e.g. compute_1" << endl;
-    cout << "       nodeType is a string that can take two values 'master' or 'worker'" << endl;
-
-    cout << " example: bin/CatalogServerTests 1 111.123.123.123 8108 222.222.222.222 8108 compute_1 master"
-         << endl;
-  } else {
-    isMasterCatalog = static_cast<bool>(atoi(argv[1]));
-    masterIP = argv[2];
-    masterPort = atoi(argv[3]);
-    localIP = argv[4];
-    localPort = atoi(argv[5]);
-    nodeName = argv[6];
-    nodeType = argv[7];
+  PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
+  std::string masterIp = "localhost";
+  if (argc > 1) {
+      masterIp = argv[1];
   }
-  cout << "is master catalog " << isMasterCatalog << endl;
-  // This code replaces /bin/test15
-  // allocates 24Mb
-  makeObjectAllocatorBlock(1024 * 1024 * 24, true);
-
-  std::cout << "Starting up a catalog/storage server!!\n";
-
-  pdb::PDBLoggerPtr myLogger = make_shared<pdb::PDBLogger>("frontendLogFile.log");
-  pdb::PDBServer frontEnd(masterPort, 10, myLogger);
-  frontEnd.addFunctionality<pdb::CatalogServer>("CatalogDir", isMasterCatalog, masterIP, masterPort);
-  // for this test make the catalog a master server
-  frontEnd.addFunctionality<pdb::CatalogClient>(masterPort, masterIP, myLogger);
-
-  ConfigurationPtr conf = make_shared<Configuration>();
-  pdb::PDBLoggerPtr logger = make_shared<pdb::PDBLogger>(conf->getLogFile());
-  SharedMemPtr shm = make_shared<SharedMem>(1024 * 1024 * 24, logger);
-
-  frontEnd.addFunctionality<pdb::PangeaStorageServer>(shm, frontEnd.getWorkerQueue(), logger, conf);
-  frontEnd.getFunctionality<pdb::PangeaStorageServer>().startFlushConsumerThreads();
-
-  string errMsg = " ";
-  pdb::Handle<pdb::CatalogNodeMetadata> nodeData =
-      pdb::makeObject<pdb::CatalogNodeMetadata>(String(localIP + ":" + std::to_string(localPort)),
-                                                String(localIP),
-                                                localPort,
-                                                String(nodeName),
-                                                String(nodeType),
-                                                1);
-
-  // if it's not the master catalog node, use a client to remotely register this node metadata
-  if (!isMasterCatalog) {
-    pdb::CatalogClient catClient(
-        masterPort, masterIP, make_shared<pdb::PDBLogger>("clientCatalogLog"));
-
-    if (!catClient.registerNodeMetadata(nodeData, errMsg)) {
-      std::cout << "Not able to register node metadata: " + errMsg << std::endl;
-      std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."
-                << std::endl;
-    } else {
-      std::cout << "Node metadata successfully added.\n";
-    }
-  } else {
-    // if it's the master catalog node, register the metadata in the local catalog
-    if (frontEnd.getFunctionality<pdb::CatalogServer>().addNodeMetadata(nodeData, errMsg)) {
-      std::cout << "Not able to register node metadata: " + errMsg << std::endl;
-      std::cout << "Please change the parameters: nodeIP, port, nodeName, nodeType, status."
-                << std::endl;
-    } else {
-      std::cout << "Node metadata successfully added.\n";
-    }
+  std::cout << "Master IP Address is " << masterIp << std::endl;
+  if (argc > 2) {
+      masterIp = argv[2];
   }
 
-  frontEnd.startServer(nullptr);
+  PDBClient pdbClient(
+          8108,
+          masterIp,
+          clientLogger,
+          false,
+          true);
+
+  CatalogClient catalogClient(
+          8108,
+          masterIp,
+          clientLogger);
+
+  string errMsg;
+
+  pdbClient.listNodesInCluster(errMsg);
+  pdbClient.listRegisteredDatabases(errMsg);
+
+  if (!pdbClient.createDatabase("catalog_test_db", errMsg)) {
+      cout << "Not able to create database: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredDatabases(errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  if (!pdbClient.createSet<int>("catalog_test_db", "catalog_test_db_set1", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  if (!pdbClient.createSet<StringIntPair>("catalog_test_db", "catalog_test_db_set2", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  if (!pdbClient.createSet<String>("catalog_test_db", "catalog_test_db_set3", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredDatabases(errMsg);
+
+  if (!pdbClient.createDatabase("catalog_test_db2", errMsg)) {
+      cout << "Not able to create database: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredDatabases(errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  if (!pdbClient.createSet<int>("catalog_test_db2", "catalog_test_db2_set1", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  if (!pdbClient.createSet<StringIntPair>("catalog_test_db2", "catalog_test_db2_set2", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  if (!pdbClient.createSet<String>("catalog_test_db2", "catalog_test_db2_set3", errMsg)) {
+      cout << "Not able to create set: " + errMsg;
+      exit(-1);
+  }
+
+  pdbClient.removeSet("catalog_test_db", "catalog_test_db_set1", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  pdbClient.removeSet("catalog_test_db", "catalog_test_db_set2", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  pdbClient.removeSet("catalog_test_db", "catalog_test_db_set3", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+
+  pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set1", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set2", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set3", errMsg);
+  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+
+  pdbClient.removeDatabase("catalog_test_db", errMsg);
+  pdbClient.listRegisteredDatabases(errMsg);
+
+  pdbClient.removeDatabase("catalog_test_db2", errMsg);
+  pdbClient.listRegisteredDatabases(errMsg);
+
+  pdbClient.listUserDefinedTypes(errMsg);
+
+  pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
+  pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
+  pdbClient.listUserDefinedTypes(errMsg);
+
+  pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
+  pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
+
+  pdbClient.listUserDefinedTypes(errMsg);
+  pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
+  pdbClient.listUserDefinedTypes(errMsg);
+
 }
 
-#endif
