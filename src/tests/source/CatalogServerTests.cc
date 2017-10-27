@@ -23,23 +23,25 @@ int main(int argc, char *argv[]) {
 
   PDBLoggerPtr clientLogger = make_shared<PDBLogger>("clientLog");
   std::string masterIp = "localhost";
+  int port =8108;
+
   if (argc > 1) {
       masterIp = argv[1];
   }
-  std::cout << "Master IP Address is " << masterIp << std::endl;
   if (argc > 2) {
-      masterIp = argv[2];
+      port = atoi(argv[2]);
   }
+  std::cout << "Master IP Address is " << masterIp << ":" << port << std::endl;
 
   PDBClient pdbClient(
-          8108,
+          port,
           masterIp,
           clientLogger,
           false,
           true);
 
   CatalogClient catalogClient(
-          8108,
+          port,
           masterIp,
           clientLogger);
 
