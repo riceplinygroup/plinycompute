@@ -642,25 +642,21 @@ bool CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
     pdb::Handle<pdb::CatalogPrintMetadata> itemToPrint =
             pdb::makeObject<CatalogPrintMetadata>("","",categoryToPrint);
 
-    return simpleRequest<CatalogPrintMetadata, SimpleRequestResult, bool>(
+    return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, bool>(
         myLogger,
         port,
         address,
         false,
         1024,
-        [&](Handle<SimpleRequestResult> result) {
+        [&](Handle<CatalogPrintMetadata> result) {
             if (result != nullptr) {
-                if (!result->getRes().first) {
-                    errMsg = "Error printing catalog metadata: " + result->getRes().second;
-                    myLogger->error("Error printing catalog metadata: " + result->getRes().second);
-                    return false;
-                }
+                cout << result->getMetadataToPrint() << endl;
                 return true;
             }
             errMsg = "Error printing catalog metadata.";
             return false;
         },
-        itemToPrint);
+        itemToSearch);
 }
 
 
