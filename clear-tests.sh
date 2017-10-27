@@ -15,7 +15,7 @@
 #  ========================================================================    
 
 # grab the root directory
-PDB_ROOT=$(pwd)
+export PDB_ROOT=$(pwd)
 
 # prompt if we should do the cleanup
 cd ${PDB_ROOT}/tools/docker/build-tests-image

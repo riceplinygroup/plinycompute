@@ -15,7 +15,7 @@
 #  ========================================================================    
 
 # grab the root directory
-PDB_ROOT=$(pwd)
+export PDB_ROOT=$(pwd)
 
 # build the tests
 printf "Building the tests!\n"
