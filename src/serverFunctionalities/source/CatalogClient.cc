@@ -639,25 +639,60 @@ bool CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> 
         itemToSearch);
 }
 
+// sends a request to the Catalog Server to print all metadata newer than a given timestamp
+bool CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
+                                         std::string& errMsg) {
+
+    pdb::Handle<pdb::CatalogPrintMetadata> itemToPrint =
+            pdb::makeObject<CatalogPrintMetadata>("","",categoryToPrint);
+
+    return simpleRequest<CatalogPrintMetadata, SimpleRequestResult, bool>(
+        myLogger,
+        port,
+        address,
+        false,
+        1024,
+        [&](Handle<SimpleRequestResult> result) {
+            if (result != nullptr) {
+                if (!result->getRes().first) {
+                    errMsg = "Error printing catalog metadata: " + result->getRes().second;
+                    myLogger->error("Error printing catalog metadata: " + result->getRes().second);
+                    return false;
+                }
+                return true;
+            }
+            errMsg = "Error printing catalog metadata.";
+            return false;
+        },
+        itemToPrint);
+}
+
+
 // sends a request to the Catalog Server to print the databases registered in the catalog.
-bool CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
-    return true;
+void CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
+
+    string category = "databases";
+    printCatalogMetadata(category, errMsg);
+
 }
 
 // sends a request to the Catalog Server to print the sets for a given
 // database registered in the catalog.
-bool CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
-    return true;
+void CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
+    string category = "sets";
+    printCatalogMetadata(category, errMsg);
 }
 
 // sends a request to the Catalog Server to print the nodes registered in the catalog.
-bool CatalogClient::listNodesInCluster (std :: string &errMsg) {
-    return true;
+void CatalogClient::listNodesInCluster (std :: string &errMsg) {
+    string category = "nodes";
+    printCatalogMetadata(category, errMsg);
 }
 
 // sends a request to the Catalog Server to print the user-defined types registered in the catalog.
-bool CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
-    return true;
+void CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
+    string category = "udts";
+    printCatalogMetadata(category, errMsg);
 }
 
 

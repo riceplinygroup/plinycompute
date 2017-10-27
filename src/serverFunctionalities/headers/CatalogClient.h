@@ -165,9 +165,14 @@ public:
      */
     bool removeNodeFromDB(std::string nodeIP, std::string databaseName, std::string& errMsg);
 
-    /* Sends a request to the Catalog Server to prints the content of the metadata stored in the
+    /* Sends a request to the Catalog Server to print the content of the metadata stored in the
      * catalog */
     bool printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
+                              std::string& errMsg);
+
+    /* Sends a request to the Catalog Server to print a category of metadata stored in the
+     * catalog */
+    bool printCatalogMetadata(std::string &categoryToPrint,
                               std::string& errMsg);
 
     /* Returns true if this Catalog Client points to a remote
@@ -182,16 +187,16 @@ public:
     bool closeCatalogSQLite(std::string& errMsg);
 
     /* Lists the Databases registered in the catalog. */
-    bool listRegisteredDatabases (std :: string &errMsg);
+    void listRegisteredDatabases (std :: string &errMsg);
 
     /* Lists the Sets for a given database registered in the catalog. */
-    bool listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
+    void listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
 
     /* Lists the Nodes registered in the catalog. */
-    bool listNodesInCluster (std :: string &errMsg);
+    void listNodesInCluster (std :: string &errMsg);
 
     /* Lists the user-defined types registered in the catalog. */
-    bool listUserDefinedTypes (std :: string &errMsg);
+    void listUserDefinedTypes (std :: string &errMsg);
 
 private:
     /* True if this Catalog Client points to the Master Catalog Server */

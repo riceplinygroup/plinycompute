@@ -643,54 +643,31 @@ void PDBCatalog::printsAllCatalogMetadata() {
 }
 
 /* Lists the Databases registered in the catalog. */
-void PDBCatalog::listRegisteredDatabases (std :: string &errMsg) {
-
-    cout << "\nDatabases (" + std::to_string((int)(*registeredDatabasesMetadata).size()) << ")"
-         << endl;
-    cout << "----------------------------" << endl;
-
+void PDBCatalog::listRegisteredDatabases (std :: string &outputString, std :: string &errMsg) {
     for (int i = 0; i < (*registeredDatabasesMetadata).size(); i++) {
-        cout << (*registeredDatabasesMetadata)[i].printShort() << endl;
+        outputString += (*registeredDatabasesMetadata)[i].printShort() + "\n";
     }
 }
 
 /* Lists the Sets for a given database registered in the catalog. */
-void PDBCatalog::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
-
-    cout << "\nDatabase " + databaseName + "has " + std::to_string((int)(*registeredSetsMetadata).size()) << " sets." << endl;
-    cout << "----------------------------" << endl;
-
+void PDBCatalog::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &outputString, std :: string &errMsg) {
     for (int i = 0; i < (*registeredSetsMetadata).size(); i++) {
-        cout << (*registeredSetsMetadata)[i].printShort() << endl;
+        outputString += (*registeredSetsMetadata)[i].printShort() + "\n";
     }
-
 }
 
 /* Lists the Nodes registered in the catalog. */
-void PDBCatalog::listNodesInCluster (std :: string &errMsg) {
-
-    cout << "\nNodes in the cluster (" + std::to_string((int)(*registeredNodesMetadata).size())
-         << ")" << endl;
-    cout << "----------------------------" << endl;
-
+void PDBCatalog::listNodesInCluster (std :: string &outputString, std :: string &errMsg) {
     for (int i = 0; i < (*registeredNodesMetadata).size(); i++) {
-        cout << (*registeredNodesMetadata)[i].printShort() << endl;
+        outputString += (*registeredNodesMetadata)[i].printShort() + "\n";
     }
-
 }
 
 /* Lists the user-defined types registered in the catalog. */
-void PDBCatalog::listUserDefinedTypes (std :: string &errMsg) {
-
-    cout << "\nUser-defined types (" +
-            std::to_string((int)(*registeredUserDefinedTypesMetadata).size())
-         << ")" << endl;
-    cout << "----------------------------" << endl;
-
+void PDBCatalog::listUserDefinedTypes (std :: string &outputString, std :: string &errMsg) {
     for (int i = 0; i < (*registeredUserDefinedTypesMetadata).size(); i++) {
-        cout << (*registeredUserDefinedTypesMetadata)[i].printShort() << endl;
+        outputString += (*registeredUserDefinedTypesMetadata)[i].printShort() + "\n";
     }
-
 }
 
 template <class CatalogMetadataType>
