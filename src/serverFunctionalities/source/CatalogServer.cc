@@ -1633,13 +1633,25 @@ bool CatalogServer::printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint) 
     string errorMsg;
 
     if (categoryToPrint.compare("databases")==0)
-                pdbCatalog->listRegisteredDatabases(resultToPrint, errorMsg);
+        pdbCatalog->listRegisteredDatabases(
+            resultToPrint,
+            errorMsg);
+
     if (categoryToPrint.compare("sets")==0)
-                pdbCatalog->listRegisteredSetsForADatabase(resultToPrint, itemKey, errorMsg);
+        pdbCatalog->listRegisteredSetsForADatabase(
+            resultToPrint,
+            itemKey,
+            errorMsg);
+
     if (categoryToPrint.compare("nodes")==0)
-                pdbCatalog->listNodesInCluster(resultToPrint, errorMsg);
+        pdbCatalog->listNodesInCluster(
+            resultToPrint,
+            errorMsg);
+
     if (categoryToPrint.compare("udts")==0)
-                pdbCatalog->listUserDefinedTypes(resultToPrint, errorMsg);
+        pdbCatalog->listUserDefinedTypes(
+            resultToPrint,
+            errorMsg);
 
     metadataToPrint->setMetadataToPrint(resultToPrint);
 
