@@ -262,35 +262,35 @@ namespace pdb {
                 errMsg);
     }
 
-    bool PDBClient::printCatalogMetadata (
+    string PDBClient::printCatalogMetadata (
             pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch,
             std :: string &errMsg) {
-
-        return catalogClient.printCatalogMetadata (
-                itemToSearch,
-                errMsg) ;
+return string("");
+        //return catalogClient.printCatalogMetadata (
+          //      itemToSearch,
+            //    errMsg) ;
     }
 
-    void PDBClient::listRegisteredDatabases (std :: string &errMsg) {
-        catalogClient.listRegisteredDatabases (errMsg);
+    string PDBClient::listRegisteredDatabases (std :: string &errMsg) {
+        return catalogClient.listRegisteredDatabases (errMsg);
     }
 
-    void PDBClient::listRegisteredSetsForADatabase (
+    string PDBClient::listRegisteredSetsForADatabase (
             std :: string databaseName,
             std :: string &errMsg) {
 
-        catalogClient.listRegisteredSetsForADatabase (
+        return catalogClient.listRegisteredSetsForADatabase (
                 databaseName,
                 errMsg);
     }
 
-    void PDBClient::listNodesInCluster (std :: string &errMsg) {
+     string PDBClient::listNodesInCluster (std :: string &errMsg) {
 
-        catalogClient.listNodesInCluster (errMsg);
+     return catalogClient.listNodesInCluster (errMsg);
     }
 
-    void PDBClient::listUserDefinedTypes (std :: string &errMsg) {
-        catalogClient.listUserDefinedTypes (errMsg);
+    string PDBClient::listUserDefinedTypes (std :: string &errMsg) {
+        return catalogClient.listUserDefinedTypes (errMsg);
     }
 
     /****
