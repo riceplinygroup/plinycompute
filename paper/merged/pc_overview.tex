@@ -28,8 +28,15 @@ All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 no distinction between the in-memory representation of data and the on-disk (or in-network) representation of
 data. Thus there is no (de-)serialization cost to move data to/from disk and network, and memory management costs are very low. Depending upon choices made by the
 programmer, ``deallocating'' a page of records
-may mean simply writing over the page with a new page of records.  In computer systems design, this is often referred to as \emph{region-based allocation} \cite{tofte1997region, grossman2002region}, and is often
-the fastest way to manage memory.
+may mean simply writing over the page with a new page of records.  
+In computer systems design, this is often referred to as
+\emph{region-based allocation} \cite{tofte1997region,
+  grossman2002region}, and is often the fastest way to manage
+memory. In PC Cluster, the Pangea storage server adopts this strategy to
+allocate pages from buffer pool for caching/buffering user data or
+intermediate data generated through query processing. The Pangea
+buffer pool works closely with PC Object model in query processing to
+provide pages for manipulating PC Objects.
 
 To illustrate use of the PC Object model from a user's perspective,
 imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
@@ -81,7 +88,10 @@ myVec = nullptr;}
 then all of the memory associated with the \texttt{Vector} of \texttt{DataPoint} objects would be automatically
 freed, since PC Objects are reference counted.  This can
 be expensive, however, since the PC Object infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
-Recognizing that low-level data manipulations dominate big data compute times, PlinyCompute gives a programmer nearly complete control over most aspects of memory management.
+Recognizing that low-level data manipulations dominate big data
+compute times, PlinyCompute gives a programmer nearly complete control
+over most aspects of memory management.
+
 If the 
 programmer had instead used: 
 
@@ -90,17 +100,29 @@ storeMe->data = makeObject <Vector <double>> (ObjectPolicy :: noRefCount);
 \end{code}
 
 
-\noindent then the memory associated with \texttt{storeMe->data} would not be reference counted, and hence not reclaimed when no longer reachable.  
+\noindent then the memory associated with \texttt{storeMe->data} would
+not be reference counted, and hence not reclaimed when no longer
+reachable.  
+
 This may mean lower memory utilization,
 but the benefit is nearly zero-CPU-cost memory management within the block.
 PC gives the developer the ability to manage the tradeoff.
-This illustrates another key principle behind the design of PlinyCompute: \emph{Since PC is targeted towards tool and library development, PC assumes the programmer
-knows what s/he is doing.  In the small, PC gives the programmer all of the tools s/he needs to make things fast}.
+This illustrates another key principle behind the design of
+PlinyCompute: \emph{Since PC is targeted towards tool and library
+  development, PC assumes the programmer knows what s/he is doing.  In
+  the small, PC gives the programmer all of the tools s/he needs to make things fast}.
 
-Finally, we note that the PC Object model is not used exclusively or even primarily for application programming.  The PC Object model
-is used \emph{internally}, with PC's computational engine as well.  For example, aggregation is implemented using PC's built-in \texttt{Map} class.  Each thread maintains
-a \texttt{Map} object that it aggregates its local data to; those are merged into maps that are sent to various workers around the PC cluster.  All sends and
-receives of these \texttt{Map} objects happen without (de-)serialization, with zero CPU cost, aside from the CPU cycles needed to transmit the bytes.
+Finally, we note that the PC Object model is not used exclusively or
+even primarily for application programming.  The PC Object model
+is used \emph{internally}, with PC's computational engine as well.
+For example, aggregation is implemented using PC's built-in
+\texttt{Map} class.  Each thread maintains
+a \texttt{Map} object that it aggregates its local data to; those are
+merged into maps that are sent to various workers around the PC
+cluster.  All sends and receives of these \texttt{Map} objects happen
+without (de-)serialization, with zero CPU cost, aside from the CPU
+cycles needed to transmit the bytes.
+
 
 
 \subsection{PlinyCompute's Computational Engine}
@@ -193,7 +215,7 @@ a lambda abstraction taking as input a \texttt{Handle} to an \texttt{Object}, an
 
 \vspace{-5pt}
 \item 
-\texttt{makeLambdaFromMethod ()}, which is similar similar, but returns a function calling a method on the pointed-to variable;
+\texttt{makeLambdaFromMethod ()}, which is similar, but returns a function calling a method on the pointed-to variable;
 
 \vspace{-5pt}
 \item \texttt{makeLambda ()}, which returns a function calling
@@ -300,7 +322,7 @@ Lambda <bool> getSelection (Handle <Dep> arg1, Handle <Emp> arg2, Handle <Sup> a
 	       makeLambdaFromMethod (arg2, getDeptName);  }
 \end{codesmall}
 
-\noindent PC may compile the lambda term resulting from a call to \texttt{getSelection ()} into the following TCAP code:
+\noindent PC compiles the lambda term resulting from a call to \texttt{getSelection ()} into the following TCAP code:
 
 \begin{codesmall}
 WDNm_1(dep,emp,sup,nm1) <= APPLY(In(dep), In(dep,emp,sup), 'Join_2212', 'att_acc_1', 
@@ -330,9 +352,9 @@ takes as input
 a vector list called \texttt{Input}, which is made of the constituent vectors, referred to using 
 the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
-\texttt{dep}, \texttt{emp}, and \texttt{sup} should simply copied (via a shallow copy) from \texttt{In}.
+\texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied (via a shallow copy) from \texttt{In}.
 In addition, the compiled code referred to by \texttt{Join\_2212.member\_1} will be executed via a vectorized application to the input
-vector \texttt{dep}.  The result will then be then put into a new vector called 
+vector \texttt{dep}.  The result will then be put into a new vector called 
 \texttt{WDNm\_1.name1}.
 The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
 will be called \texttt{WDNm\_1}.  
@@ -340,10 +362,15 @@ will be called \texttt{WDNm\_1}.
 Next, this TCAP program
 specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
 method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
-done via application of the compiled code referred to by \texttt{Join \_2212.method\_call\_1}.  The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
+done via application of the compiled code referred to by \texttt{Join
+  \_2212.method\_call\_1}.  
+The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
 and \texttt{nm1} are simply shallow-copied to the output vector set.
 
-After this an equality check is performed to create \texttt{WBl\_1.bl} (a vector of booleans) and then the result is filtered based upon this column.
+After this an equality check is performed to create \texttt{WBl\_1.bl}
+(a vector of booleans) and then the result is filtered based upon this
+column.
+
 
 Note that in each TCAP operation, the key-value map is only informational and does not affect the execution of the TCAP.  However, this
 information can be vital during optimization.  As we will discuss subsequently, 
@@ -357,7 +384,7 @@ calls.
 In PC's C++ binding, this is accomplished by using the C++ language's extensive \emph{template metaprogramming} 
 capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generic functionality.
 When a C++ template class or
-function is instantiated with a type, the instantiated template 
+function is instantiated with a type, %the instantiated template 
 the C++ compiler actually generates optimized native code for that specific new type, at compile time.  
 This is quite different from languages
 such as Java, that must typically rely on slow virtual

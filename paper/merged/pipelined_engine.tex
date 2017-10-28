@@ -15,7 +15,9 @@ potential pipelinings are shown in (b) and (c).}
 
 This section describes some of the details regarding PC's pipelined execution engine.  We begin by considering how a TCAP
 program is used to build a set of pipelines, and then focus on interaction between pipelined execution and the PC Object model
-and memory management.
+and memory management. The description in this section is mainly focused on a
+single-thread scenario. We will introduce parallel and distributed
+processing in Sec~\ref{sec:implementation}.
 
 \vspace{5 pt}
 \noindent
@@ -29,7 +31,7 @@ A pipeline is a list of TCAP operations that are executed in sequence over a vec
 transformation over the vector list; at all times as the vector list is pushed through the pipeline, it remains buffered in RAM.  
 At the end of a pipeline is a \emph{pipe sink}, where one or more of the
 vectors in a vector list is written out to a PC \texttt{Object}
-container loctated on an output page, for later use (which may require shuffling or broadcasting the container across a PC cluster).  
+container located on an output page, for later use (which may require shuffling or broadcasting the container across a PC cluster).  
 For example, the pipe sink associated with aggregation
 writes a vector of key \texttt{Object}s and a vector of value \texttt{Object}s to a PC \texttt{Map}, performing pre-aggregation when
 applicable.
@@ -81,7 +83,7 @@ Lambda <Handle <Emp>> getProjection (Handle <Sup> arg) {
 When the code corresponding to this lambda term is executed as a pipeline,
 we wish to ensure that there is no need to move the \texttt{Emp} object created within the native C++ lambda to an output page.
 To guarantee this,
-PC obtains from Pangaea a page for writing output objects for each thread, and places the current \texttt{Object} allocation block
+PC obtains from Pangea a page for writing output objects for each thread, and places the current \texttt{Object} allocation block
 onto this page. 
 When the call to \texttt{makeObject} within the lambda is executed, it will create the output \texttt{Emp} object
 directly on the output page.  Any allocations triggered by the construction of the \texttt{Emp} will also be directly on the output page.
@@ -126,7 +128,7 @@ processing induces four types of pages, each of which has a different lifetime d
 
 \item The first page type is an \emph{input page} that store the base data that will be processed by the pipeline.
 To push vector lists into a pipeline, PC first loads a page containing a PC container (such as a PC \texttt{Vector}) of 
-input data from Pangaea, and then repeatedly creates vectors of \texttt{Handle}s to the \texttt{Object}s on
+input data from Pangea, and then repeatedly creates vectors of \texttt{Handle}s to the \texttt{Object}s on
 the the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated
 on the current  allocation block, as they store only intermediate data).  PC wraps
 each vector produced in a vector list, and sends the vector list into the pipeline.  This process is repeated until the input page is consumed.
@@ -152,8 +154,8 @@ At this point, a new live output page is obtained for use
 as the current allocation block.  However, since the previous live output page still contains valid intermediate data, it cannot be written out.  This 
 page becomes a \emph{zombie output page} and remains that way until it cannot possibly hold any intermediate data, at which point it can be flushed.
 
-Note that there can be at most \emph{two} zombie output pages,
-because pipelines are restricted 
+Note that there can be at most \emph{two} zombie output pages for a pipeline,
+because a pipeline is restricted 
 to have just one sink.  
 When a zombie output page is created, the vector list whose processing is
 responsible for its creation may create references to intermediate data allocated to the new, live output page, and then processing of that

@@ -129,15 +129,22 @@ supplies two \emph{lambda term construction functions}: one that constructs a la
 predicate over those five input sets, 
 and a second that constructs a lambda term describing the relational projection over those five sets
 using the same API.  These lambda terms are constructed using PC's built-in lambda abstraction families as well as higher-order composition functions.
- PC's T-CAP compiler 
-accepts such a specification, and compiles it into a functional, domain specific language called \emph{T-CAP} that implements
-the join.  Logically, T-CAP operates over
+ PC's TCAP compiler 
+accepts such a specification, and compiles it into a functional, domain specific language called \emph{TCAP} that implements
+the join.  Logically, TCAP operates over
 sets of columns of PC Objects. 
 
-\item The \emph{PC backend}, which consists of an optimizer for T-CAP programs---all PC computations are optimized using a simple rule-based
-optimizer; we plan to shift to a cost-based optimizer in the future---as well as a high-performance distributed, vectorized T-CAP processing engine.
-The backend is intimately connected to the PC Object model, 
-and has been designed to work closely with the PC Object model to minimize memory-related costs during computation.
+\item The \emph{PC Cluster}, which is a distributed query processing
+  system for big data analytics. It consists of an optimizer for TCAP
+  programs, through which all PC computations are optimized using a rule-based
+optimizer; we plan to shift to a cost-based optimizer in the
+future. Among other components, it also consists of a
+high-performance distributed, vectorized TCAP processing engine and a distributed
+storage server called Pangea, which contains a distributed buffer
+pool used for caching/buffering data in pages and a user-level file system
+for persisting data (pages) to disks. 
+The TCAP processing engine and Pangea buffer pool are intimately connected to the PC Object model, 
+and have been designed to work closely with the PC Object model to minimize memory-related costs during computation.
 
 
 \end{itemize}
@@ -145,7 +152,7 @@ and has been designed to work closely with the PC Object model to minimize memor
 \vspace{5 pt}
 \noindent
 \textbf{Our contributions.}
-Taken together, these components allow a competent systems programmer to write exceedingly high-performance distributed codes.
+Taken together, these components allow a competent system programmer to write exceedingly high-performance distributed codes.
 In this paper, we describe the design and implementation of PlinyCompute.  We experimentally show the performance benefits of the PC Object model, 
 demonstrating how even simple data transformations are much faster using the PC Object model compared to similar computations within the 
 Apache ecosystem.
