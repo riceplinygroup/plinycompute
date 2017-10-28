@@ -204,7 +204,7 @@ next full section of the paper).
 Once the number of reachable objects on an inactive, managed allocation block falls to zero, the block is automatically deallocated.  
 In that sense, PC resembles a smart-pointer based memory management system.  
 
-Since the fundamental goal of PB Object model design is 
+Since the fundamental goal of PC Object model design is 
 zero-cost data movement---an allocation block should be transferable across processes and immediately usable with no pre- or post-processing---one
 potential problem is dangling \texttt{Handle}s.  Specifically: What happens when there is a \texttt{Handle} located in one allocation block that points to a PC
 \texttt{Object} located in another allocation block?  The \texttt{Handle} may be valid, but when the \texttt{Handle}'s allocation block is moved to a new process where
