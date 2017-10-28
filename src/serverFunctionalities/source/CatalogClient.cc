@@ -612,8 +612,9 @@ bool CatalogClient::registerNodeMetadata(pdb::Handle<pdb::CatalogNodeMetadata> n
 
 
 // sends a request to the Catalog Server to print all metadata newer than a given timestamp
-string CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
-                                         std::string& errMsg) {
+string CatalogClient::printCatalogMetadata(
+        pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
+        std::string& errMsg) {
 
     PDB_COUT << "itemToSearch " << itemToSearch->getItemName().c_str() << endl;
     PDB_COUT << "from TimeStamp " << itemToSearch->getTimeStamp().c_str() << endl;
@@ -635,9 +636,10 @@ string CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata
         itemToSearch);
 }
 
-// sends a request to the Catalog Server to print all metadata newer than a given timestamp
-string CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
-                                         std::string& errMsg) {
+// sends a request to the Catalog Server to print all metadata for a given category
+string CatalogClient::printCatalogMetadata(
+        std::string &categoryToPrint,
+        std::string& errMsg) {
 
     pdb::Handle<pdb::CatalogPrintMetadata> itemToPrint =
             pdb::makeObject<CatalogPrintMetadata>("","0",categoryToPrint);
@@ -659,30 +661,31 @@ string CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
         itemToPrint);
 }
 
-
-// sends a request to the Catalog Server to print the databases registered in the catalog.
-string CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
+string CatalogClient::listRegisteredDatabases (
+        std :: string &errMsg) {
 
     string category = "databases";
     return printCatalogMetadata(category, errMsg);
-
 }
 
-// sends a request to the Catalog Server to print the sets for a given
-// database registered in the catalog.
-string CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
+string CatalogClient::listRegisteredSetsForADatabase (
+        std :: string databaseName,
+        std :: string &errMsg) {
+
     string category = "sets";
     return printCatalogMetadata(category, errMsg);
 }
 
-// sends a request to the Catalog Server to print the nodes registered in the catalog.
-string CatalogClient::listNodesInCluster (std :: string &errMsg) {
+string CatalogClient::listNodesInCluster (
+        std :: string &errMsg) {
+
     string category = "nodes";
     return printCatalogMetadata(category, errMsg);
 }
 
-// sends a request to the Catalog Server to print the user-defined types registered in the catalog.
-string CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
+string CatalogClient::listUserDefinedTypes (
+        std :: string &errMsg) {
+
     string category = "udts";
     return printCatalogMetadata(category, errMsg);
 }

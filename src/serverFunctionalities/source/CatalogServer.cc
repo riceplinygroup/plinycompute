@@ -197,6 +197,7 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
                 // ask the catalog server for the type ID given the type name
                 int16_t typeID = getFunctionality<CatalogServer>().searchForObjectTypeName(
                     request->getObjectTypeName());
+
                 PDB_COUT << "searchForObjectTypeName for " + request->getObjectTypeName() + " is " +
                         std::to_string(typeID)
                          << endl;
@@ -1623,7 +1624,6 @@ bool CatalogServer::printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint) 
     string categoryToPrint = metadataToPrint->getCategoryToPrint().c_str();
     string timeStamp = metadataToPrint->getTimeStamp().c_str();
 
-    bool res;
     string resultToPrint;
     string errorMsg;
 

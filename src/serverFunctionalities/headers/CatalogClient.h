@@ -181,22 +181,29 @@ public:
     bool getPointsToMasterCatalog();
 
     /* Sets to true if this Catalog Client points to the Master Catalog Server */
-    void setPointsToMasterCatalog(bool pointsToMaster);
+    void setPointsToMasterCatalog(
+            bool pointsToMaster);
 
     /* Sends a request to the Catalog Server to close the SQLite DB Handler */
-    bool closeCatalogSQLite(std::string& errMsg);
+    bool closeCatalogSQLite(
+            std::string& errMsg);
 
     /* Lists the Databases registered in the catalog. */
-    string listRegisteredDatabases (std :: string &errMsg);
+    string listRegisteredDatabases (
+            std :: string &errMsg);
 
     /* Lists the Sets for a given database registered in the catalog. */
-    string listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg);
+    string listRegisteredSetsForADatabase (
+            std :: string databaseName,
+            std :: string &errMsg);
 
     /* Lists the Nodes registered in the catalog. */
-    string listNodesInCluster (std :: string &errMsg);
+    string listNodesInCluster (
+            std :: string &errMsg);
 
     /* Lists the user-defined types registered in the catalog. */
-    string listUserDefinedTypes (std :: string &errMsg);
+    string listUserDefinedTypes (
+            std :: string &errMsg);
 
 private:
     /* True if this Catalog Client points to the Master Catalog Server */
