@@ -265,10 +265,12 @@ namespace pdb {
     string PDBClient::printCatalogMetadata (
             pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch,
             std :: string &errMsg) {
-return string("");
+
+        return string("");
+
         //return catalogClient.printCatalogMetadata (
-          //      itemToSearch,
-            //    errMsg) ;
+        //      itemToSearch,
+        //    errMsg) ;
     }
 
     string PDBClient::listRegisteredDatabases (std :: string &errMsg) {
@@ -284,9 +286,8 @@ return string("");
                 errMsg);
     }
 
-     string PDBClient::listNodesInCluster (std :: string &errMsg) {
-
-     return catalogClient.listNodesInCluster (errMsg);
+    string PDBClient::listNodesInCluster (std :: string &errMsg) {
+        return catalogClient.listNodesInCluster (errMsg);
     }
 
     string PDBClient::listUserDefinedTypes (std :: string &errMsg) {
