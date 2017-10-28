@@ -36,7 +36,7 @@ applicable.
 Each pipeline ends in a pipe sink, though only a few TCAP operations require pipe sinks: \texttt{JOIN} (where either one or both inputs are pipe
 sinks, depending upon the join algorithm chosen), \texttt{AGG}, and
 \texttt{OUTPUT}. In our current implementation, if one operation's
-output has multiple consumers (is input of more than one other operations), the output will also be
+output has multiple consumers (the output is the input of more than one operations), the output will also be
 materialized to a pipe sink.
 Two different decompositions of a TCAP program into individual pipelines are shown in Figure \ref{fig:TCAP}.
 
@@ -119,7 +119,7 @@ the output page, once \texttt{Handle} to the data is copied to the output page, 
 \vspace{5 pt}
 \noindent
 \textbf{Memory Dependencies During Pipelined Processing.}
-All data produced via calls to \texttt{makeObject} are written to allocation blocks housed on memory pages served to PC by Pangaea.  PC's pipelined
+All data produced via calls to \texttt{makeObject} are written to allocation blocks housed on in-memory pages served to PC by Pangaea.  PC's pipelined
 processing induces four types of pages, each of which has a different lifetime during which it must be buffered in RAM:
 
 \begin{enumerate}
@@ -145,7 +145,7 @@ of the pipeline.
 \item Zero or one \emph{zombie output pages} that are full and store output data, but must
 be pinned in RAM because they also store intermediate data.  This may happen when one or more vector lists make it all the way through the pipeline,
 causing output data to be written by 
-the sink node at the end of the pipeline.  Then, the next vector list only makes it part way though the pipeline before the live
+the sink node at the end of the pipeline.  Then, the next vector list only makes it part way through the pipeline before the live
 output page
 fills and an out-of-memory fault occurs.  
 At this point, a new live output page is obtained for use
@@ -155,16 +155,16 @@ page becomes a \emph{zombie output page} and remains that way until it cannot po
 Note that there can be at most \emph{two} zombie output pages,
 because pipelines are restricted 
 to have just one sink.  
-When a zombie output page is created, the vector list whose processing it
+When a zombie output page is created, the vector list whose processing is
 responsible for its creation may create references to intermediate data allocated to the new, live output page, and then processing of that
 vector list begins
 to fill the live output page with output data.  This may induce a second
 out-of-memory fault, creating a second zombie output page.  However, since the vector list whose processing induced the fault is being
-processed by the pipeline's sink, \emph{it cannot be used produce additional intermediate data whose references will be held by the vector list} 
+processed by the pipeline's sink, \emph{it cannot be used to produce additional intermediate data whose references will be held by the vector list} 
 and can only produce output data.  Thus, any additional pages it is used to produce
 cannot contain a mix of output and intermediate data.  Further, note that once a vector list makes it all the way through the pipeline, all of its references
 to data are destroyed, so no pages can possibly
-store valid intermediate data and hence all zombie output pages can be flushed---and hnce the number of zombie output pages is capped at two.
+store valid intermediate data and hence all zombie output pages can be flushed---and hence the number of zombie output pages is capped at two.
 
 \item Finally, there are zero or more 
 \emph{zombie pages} that store only intermediate data.  These are similar to zombie output pages, but they do not store any output data; they
