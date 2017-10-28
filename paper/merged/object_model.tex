@@ -230,7 +230,8 @@ inactive.  The submatrix \texttt{myMatrix} is allocated to the new active block.
 Hence, the assignment of \texttt{data} to \texttt{myMatrix->value} is cross-allocation block, and a deep copy automatically happens to ensure that
 the current block is zero-cost copyable.  
 
-The reader may question whether this actually saves anything.  After all, the list of \texttt{double}s still deep copied, just not at serialization time.
+The reader may question whether this actually saves anything.  After
+all, the list of \texttt{double}s are still deep copied, just not at serialization time.
 This is true, but in practice, such cross-block assignments are rare, and a programmer who understands the cost can often avoid them, making sure to allocate
 data that must be kept together to the same block.
 Again, this is in-keeping with PC's design philosophy: trust the ability of the programmer to do the right thing, in the small.
