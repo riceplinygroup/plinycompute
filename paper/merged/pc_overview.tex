@@ -525,6 +525,8 @@ pcContext.executeComputations (myWriter);
 \noindent After execution, the set of updated centroids would be stored in \texttt{myDB.mySet}.
 Performing this computation inside of a loop, where the centroids are repeatedly updated until convergence, completes the implementation.
 
-In our experience, PC codes are larger and somewhat more work to develop than equivalent codes using Spark's Scala binding, for
-example, but require about the same effort to develop as a non-distributed, object-oriented, C++ code.
+In our experience, for many applications such as Linear Algebra
+Library, TPCH queries, or KMeans, PC codes requires similar work to develop than equivalent codes using Spark's Scala binding, for
+example, but require much lower effort to develop than using
+object-oriented, C++ code without a declarative interface.
 
