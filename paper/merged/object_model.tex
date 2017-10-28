@@ -4,7 +4,7 @@ At the core of the system is the PC Object model, which allows
 programmers to create, manipulate, and store persistent objects.
 In keeping with our vision of granting programmers fine-grained control over how data are managed in the small, the PC Object model
 is much lower level than what is found in systems targeted more towards application programming, yet still provides a great deal of
-key functionality.
+key functionalities.
 
 \subsection{PC Objects}
 
@@ -18,9 +18,8 @@ data management was the flat relational model, which
 can achieve very good performance.
 Flatness generally means 
 that there is typically no distinction between the in-memory representation of data, and the on-disk (or in-network) representation of
-data. Thus there is no (de-)serialization cost to move data to/from disk and network, and memory management costs are very low. ``Deallocating'' a page of records
-means simply writing over the page with a new page of records.  In computer systems design, this is often referred to as \emph{region-based deallocation}, and is often
-the fastest way to reclaim memory.
+data. Thus there is no (de-)serialization cost to move data to/from
+disk and network, and memory management costs are very low. 
 
 The downside is that flat relations are very limiting to a programmer.  Modern, object-based 
 data analytics systems 
@@ -57,7 +56,7 @@ In the sparse sub-matrix, the \texttt{pair <int, int>} indexes a non-zero entry 
 
 But while the PC Object model provides a rich, object-oriented programming model, it also provides the good performance characteristic
 of a flat relational model.
-The key principal underlying the PC Object model is \emph{zero-cost data movement}.  That is, once a data object
+The key principle underlying the PC Object model is \emph{zero-cost data movement}.  That is, once a data object
 has been allocated and populated, moving the object to disk or across the network should be a simple matter of copying memory; there
 should be no CPU cost.
 
@@ -117,7 +116,7 @@ to one page, which may be stored on disk, then sent across a network to another 
 must function correctly without being repaired or otherwise modified to match the address space of the new process, which can be costly.  
 An actual C-style pointer
 cannot survive translation from one process to another, as the program will be mapped to a different location in memory.
-In contrast, as long as the target of an offset pointer is stored in the same same page, an offset pointer will be valid if the
+In contrast, as long as the target of an offset pointer is stored in the same page, an offset pointer will be valid if the
 page is copied in its entirety, including all \texttt{Handle}s and their targets.
 
 \subsection{Dynamic Dispatch}
@@ -152,7 +151,7 @@ the catalog server.  This library exposes a special \texttt{getVTablePtr ()} fun
 in the \texttt{.so} file (creating such
 a shared library file is relatively easy for the user, as the \texttt{getVTablePtr ()} function can be created using a macro provided by PC).
 
-Whenever there a \texttt{vTable} pointer lookup, the request first goes to the PC process' \texttt{vTable} lookup table.  When this 
+Whenever there is a \texttt{vTable} pointer lookup, the request first goes to the PC process' \texttt{vTable} lookup table.  When this 
 lookup fails (because the process has not yet seen a \texttt{vTable} pointer for that class
 type) the request then goes to the PC cluster's catalog server, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
 \texttt{.so} file is then 
@@ -184,9 +183,12 @@ When a user (or the PC system software) calls
 \texttt{makeObjectAllocationBlock ()}, the newly created allocation block becomes the active block, and if the previously-active allocation block has any
 reachable objects on it, it becomes an inactive, managed block.
 
-\item Finally, there are zero or more \emph{inactive}, \emph{un-managed} blocks.  These are blocks with reachable PC objects that are \emph{not} managed
-by the PC object model.  These tend to be pages of objects that have been loaded into RAM from disk or across the network for processing during a
-distributed computation.  Such blocks are paged in and out in much the same way as a relational database would page data in and out.
+\item Finally, there are zero or more \emph{inactive},
+  \emph{un-managed} blocks.  These are blocks with reachable PC
+  objects that are \emph{not} managed by the PC object model.  These tend to be pages of objects that have
+been loaded into RAM from disk or across the network for processing
+during a distributed computation.  Such blocks are paged in and out of Pangea
+buffer pool in much the same way as a relational database would page data in and out.
 Rather than the PC object model being responsible for managing such blocks, PC's compute engine manages such blocks.
 Further, since managed blocks are only managed by their ``home'' thread, a managed block is effectively un-managed when viewed from
 any other thread.
@@ -238,7 +240,7 @@ Again, this is in-keeping with PC's design philosophy: trust the ability of the 
 
 \subsection{The PC Object Model and Multiple Threads}
 
-While smart-pointer-based memory-management
+While smart-pointer-based memory management
 systems are often significantly faster than garbage collected systems, such systems still have their bottlenecks.  One of the bottlenecks is concurrency
 control.
 Since an object can have pointers across multiple threads, smart pointer counters must be locked before increment/decrement, which
@@ -250,8 +252,8 @@ the reference count will not be changed because from the copying thread's point-
 This can, in theory, result in a problematic case where one thread has a \texttt{Handle} to an object that has been deallocated on the other thread (since
 the reference count on the home thread will not be updated to reflect the off-thread reference).  But in practice, it tends not to be a problem.  PC application
 programmers typically do not write explicitly multi-threaded code, so most cross-thread references happen as the result of computations staged by the 
-PC execution engine.  The PC execution engine typically manage pages carefully so as to ensure that 
-it is not possible for pages to be swapped out while references to them can still exist.
+PC execution engine.  The PC execution engine typically uses pages carefully so as to ensure that 
+it is not possible for pages to be unpinned while references to them can still exist.
 
 %\subsection{Data Loading}
 %
