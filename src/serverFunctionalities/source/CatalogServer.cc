@@ -168,21 +168,16 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
     forMe.registerHandler(
         CatalogPrintMetadata_TYPEID,
         make_shared<SimpleRequestHandler<CatalogPrintMetadata>>(
-            [&](Handle<CatalogPrintMetadata> request, PDBCommunicatorPtr sendUsingMe) {
+            [&](Handle<CatalogPrintMetadata> itemToPrint, PDBCommunicatorPtr sendUsingMe) {
 
                 std::string errMsg;
 
-                PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp " << request->getTimeStamp().c_str()
+                PDB_COUT << "--->Testing CatalogPrintMetadata handler with timeStamp " << itemToPrint->getTimeStamp().c_str()
                          << endl;
-                const UseTemporaryAllocationBlock block{1024 * 1024};
-                bool res = getFunctionality<CatalogServer>().printCatalog(request);
-
-                // make the response
-                const UseTemporaryAllocationBlock tempBlock{1024};
-                Handle<CatalogPrintMetadata> response = makeObject<CatalogPrintMetadata>(request);
+                bool res = getFunctionality<CatalogServer>().printCatalog(itemToPrint);
 
                 // return the result
-                res = sendUsingMe->sendObject(response, errMsg);
+                res = sendUsingMe->sendObject(itemToPrint, errMsg);
                 return make_pair(res, errMsg);
             }));
 
@@ -1655,12 +1650,12 @@ bool CatalogServer::printCatalog(Handle<CatalogPrintMetadata> &metadataToPrint) 
 
     metadataToPrint->setMetadataToPrint(resultToPrint);
 
-    pdbCatalog->getModifiedMetadata(metadataToPrint);
-    cout << "************Objects************" << endl;
-    VTableMap::listVtableLabels();
-    PDB_COUT << "************VTablePtrs************" << endl;
-    VTableMap::listVtableEntries();
-    cout << "************End************" << endl;
+    //pdbCatalog->getModifiedMetadata(metadataToPrint);
+    //cout << "************Objects************" << endl;
+    //VTableMap::listVtableLabels();
+    //PDB_COUT << "************VTablePtrs************" << endl;
+    //VTableMap::listVtableEntries();
+    //cout << "************End************" << endl;
     return true;
 }
 

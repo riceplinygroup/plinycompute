@@ -15,6 +15,8 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#include <iostream>
+
 #include "ScanStringIntPairSet.h"
 #include "PDBClient.h"
 #include "CatalogServer.h"
@@ -47,101 +49,103 @@ int main(int argc, char *argv[]) {
 
   string errMsg;
 
-  pdbClient.listNodesInCluster(errMsg);
-  pdbClient.listRegisteredDatabases(errMsg);
+  string res = pdbClient.listNodesInCluster(errMsg);
+  std::cout << res << std::endl;
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
 
   if (!pdbClient.createDatabase("catalog_test_db", errMsg)) {
-      cout << "Not able to create database: " + errMsg;
+      std::cout << "Not able to create database: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredDatabases(errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   if (!pdbClient.createSet<int>("catalog_test_db", "catalog_test_db_set1", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   if (!pdbClient.createSet<StringIntPair>("catalog_test_db", "catalog_test_db_set2", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   if (!pdbClient.createSet<String>("catalog_test_db", "catalog_test_db_set3", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredDatabases(errMsg);
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
 
   if (!pdbClient.createDatabase("catalog_test_db2", errMsg)) {
-      cout << "Not able to create database: " + errMsg;
+      std::cout << "Not able to create database: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredDatabases(errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   if (!pdbClient.createSet<int>("catalog_test_db2", "catalog_test_db2_set1", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   if (!pdbClient.createSet<StringIntPair>("catalog_test_db2", "catalog_test_db2_set2", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   if (!pdbClient.createSet<String>("catalog_test_db2", "catalog_test_db2_set3", errMsg)) {
-      cout << "Not able to create set: " + errMsg;
+      std::cout << "Not able to create set: " + errMsg;
       exit(-1);
   }
 
   pdbClient.removeSet("catalog_test_db", "catalog_test_db_set1", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   pdbClient.removeSet("catalog_test_db", "catalog_test_db_set2", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   pdbClient.removeSet("catalog_test_db", "catalog_test_db_set3", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db", errMsg) << std::endl;
 
   pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set1", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set2", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   pdbClient.removeSet("catalog_test_db2", "catalog_test_db2_set3", errMsg);
-  pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg);
+  std::cout << pdbClient.listRegisteredSetsForADatabase("catalog_test_db2", errMsg) << std::endl;
 
   pdbClient.removeDatabase("catalog_test_db", errMsg);
-  pdbClient.listRegisteredDatabases(errMsg);
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
 
   pdbClient.removeDatabase("catalog_test_db2", errMsg);
-  pdbClient.listRegisteredDatabases(errMsg);
+  std::cout << pdbClient.listRegisteredDatabases(errMsg) << std::endl;
 
-  pdbClient.listUserDefinedTypes(errMsg);
+  std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
 
   pdbClient.registerType("libraries/libSillyJoin.so", errMsg);
   pdbClient.registerType("libraries/libScanIntSet.so", errMsg);
-  pdbClient.listUserDefinedTypes(errMsg);
+  std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
 
   pdbClient.registerType("libraries/libScanStringIntPairSet.so", errMsg);
   pdbClient.registerType("libraries/libScanStringSet.so", errMsg);
 
-  pdbClient.listUserDefinedTypes(errMsg);
+  std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
   pdbClient.registerType("libraries/libWriteStringSet.so", errMsg);
-  pdbClient.listUserDefinedTypes(errMsg);
+  std::cout << pdbClient.listUserDefinedTypes(errMsg) << std::endl;
 
 }
+
 

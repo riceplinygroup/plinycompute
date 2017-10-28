@@ -612,79 +612,79 @@ bool CatalogClient::registerNodeMetadata(pdb::Handle<pdb::CatalogNodeMetadata> n
 
 
 // sends a request to the Catalog Server to print all metadata newer than a given timestamp
-bool CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
+string CatalogClient::printCatalogMetadata(pdb::Handle<pdb::CatalogPrintMetadata> itemToSearch,
                                          std::string& errMsg) {
 
     PDB_COUT << "itemToSearch " << itemToSearch->getItemName().c_str() << endl;
     PDB_COUT << "from TimeStamp " << itemToSearch->getTimeStamp().c_str() << endl;
 
-    return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, bool>(
+    return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, string>(
         myLogger,
         port,
         address,
-        false,
+        "",
         1024,
         [&](Handle<CatalogPrintMetadata> result) {
             if (result != nullptr) {
-                cout << result->getMetadataToPrint() << endl;
-                return true;
+                string res = result->getMetadataToPrint();
+                return res;
             }
             errMsg = "Error printing catalog metadata.";
-            return false;
+            return errMsg;
         },
         itemToSearch);
 }
 
 // sends a request to the Catalog Server to print all metadata newer than a given timestamp
-bool CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
+string CatalogClient::printCatalogMetadata(std::string &categoryToPrint,
                                          std::string& errMsg) {
 
     pdb::Handle<pdb::CatalogPrintMetadata> itemToPrint =
-            pdb::makeObject<CatalogPrintMetadata>("","",categoryToPrint);
+            pdb::makeObject<CatalogPrintMetadata>("","0",categoryToPrint);
 
-    return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, bool>(
+    return simpleRequest<pdb::CatalogPrintMetadata, CatalogPrintMetadata, string>(
         myLogger,
         port,
         address,
-        false,
+        "",
         1024,
         [&](Handle<CatalogPrintMetadata> result) {
             if (result != nullptr) {
-                cout << result->getMetadataToPrint() << endl;
-                return true;
+                string resultToPrint = result->getMetadataToPrint();
+                return resultToPrint;
             }
             errMsg = "Error printing catalog metadata.";
-            return false;
+            return errMsg;
         },
         itemToPrint);
 }
 
 
 // sends a request to the Catalog Server to print the databases registered in the catalog.
-void CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
+string CatalogClient::listRegisteredDatabases (std :: string &errMsg) {
 
     string category = "databases";
-    printCatalogMetadata(category, errMsg);
+    return printCatalogMetadata(category, errMsg);
 
 }
 
 // sends a request to the Catalog Server to print the sets for a given
 // database registered in the catalog.
-void CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
+string CatalogClient::listRegisteredSetsForADatabase (std :: string databaseName, std :: string &errMsg) {
     string category = "sets";
-    printCatalogMetadata(category, errMsg);
+    return printCatalogMetadata(category, errMsg);
 }
 
 // sends a request to the Catalog Server to print the nodes registered in the catalog.
-void CatalogClient::listNodesInCluster (std :: string &errMsg) {
+string CatalogClient::listNodesInCluster (std :: string &errMsg) {
     string category = "nodes";
-    printCatalogMetadata(category, errMsg);
+    return printCatalogMetadata(category, errMsg);
 }
 
 // sends a request to the Catalog Server to print the user-defined types registered in the catalog.
-void CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
+string CatalogClient::listUserDefinedTypes (std :: string &errMsg) {
     string category = "udts";
-    printCatalogMetadata(category, errMsg);
+    return printCatalogMetadata(category, errMsg);
 }
 
 

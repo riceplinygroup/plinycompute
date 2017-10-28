@@ -363,12 +363,6 @@ int main(int numArgs, const char* args[]) {
 
         //        cout << "timestamp=" << printObject->getItemName() << endl;
 
-        if (!pdbClient.printCatalogMetadata(printObject, errMsg)) {
-            std::cout << "Not able to print metadata due to error: " + errMsg << std::endl;
-        } else {
-            std::cout << "List metadata.\n";
-        }
-
 
         cout << "Done.\n";
     }

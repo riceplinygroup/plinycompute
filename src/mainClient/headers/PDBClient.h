@@ -187,23 +187,23 @@ namespace pdb {
                 std :: string &errMsg);
 
         /* Prints the content of the catalog. */
-        bool printCatalogMetadata (
+        string printCatalogMetadata (
                 pdb :: Handle<pdb :: CatalogPrintMetadata> itemToSearch,
                 std :: string &errMsg);
 
         /* Lists the Databases registered in the catalog. */
-        void listRegisteredDatabases (std :: string &errMsg);
+        string listRegisteredDatabases (std :: string &errMsg);
 
         /* Lists the Sets for a given database registered in the catalog. */
-        void listRegisteredSetsForADatabase (
+        string listRegisteredSetsForADatabase (
                 std :: string databaseName,
                 std :: string &errMsg);
 
         /* Lists the Nodes registered in the catalog. */
-        void listNodesInCluster (std :: string &errMsg);
+        string listNodesInCluster (std :: string &errMsg);
 
         /* Lists user-defined types registered in the catalog. */
-        void listUserDefinedTypes (std :: string &errMsg);
+        string listUserDefinedTypes (std :: string &errMsg);
 
         /****
          * Methods for invoking Dispatcher-related operations
