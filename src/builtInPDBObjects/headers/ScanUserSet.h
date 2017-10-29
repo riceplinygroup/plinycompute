@@ -32,6 +32,8 @@
 
 namespace pdb {
 
+
+//to scan a user set
 template <class OutputClass>
 class ScanUserSet : public Computation {
 

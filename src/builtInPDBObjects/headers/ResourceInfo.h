@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * ResourceInfo.h
- *
- *  Created on: Sept 19, 2016
- *      Author: Jia
- */
 
 #ifndef RESOURCE_INFO_H
 #define RESOURCE_INFO_H

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * StorageGetSetPages.h
- *
- *  Created on: Feb 29, 2016
- *      Author: Jia
- */
 
 #ifndef SRC_BUILTINPDBOBJECTS_HEADERS_GETSETPAGES_H_
 #define SRC_BUILTINPDBOBJECTS_HEADERS_GETSETPAGES_H_

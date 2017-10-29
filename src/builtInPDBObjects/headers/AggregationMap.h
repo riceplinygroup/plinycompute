@@ -20,7 +20,6 @@
 
 // PRELOAD %AggregationMap<Nothing>%
 
-// by Jia, Jun 2017
 
 #include "PDBMap.h"
 

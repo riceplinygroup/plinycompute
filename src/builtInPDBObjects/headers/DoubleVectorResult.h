@@ -18,7 +18,6 @@
 #ifndef DOUBLE_VECTOR_RESULT_H
 #define DOUBLE_VECTOR_RESULT_H
 
-// by Jia, May 2017
 
 #include "Object.h"
 #include "DoubleVector.h"

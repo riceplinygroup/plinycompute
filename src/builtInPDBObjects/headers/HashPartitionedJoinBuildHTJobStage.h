@@ -18,7 +18,6 @@
 #ifndef HASH_PARTITIONED_JOIN_BUILDHT_STAGE_H
 #define HASH_PARTITIONED_JOIN_BUILDHT_STAGE_H
 
-// by Jia, May 2017
 
 #include "AbstractJobStage.h"
 #include "SetIdentifier.h"
