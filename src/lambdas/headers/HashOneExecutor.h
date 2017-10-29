@@ -24,7 +24,6 @@
 #include "TupleSet.h"
 #include <vector>
 
-// by Jia, May 2017
 
 namespace pdb {
 
@@ -73,7 +72,6 @@ public:
 
     TupleSetPtr process(TupleSetPtr input) override {
 
-        // std :: cout << "HashOneExecutor: to process a tuple set" << std :: endl;
 
         // set up the output tuple set
         myMachine.setup(input, output);
@@ -84,7 +82,6 @@ public:
             output->addColumn(outAtt, outColumn, true);
         }
 
-        // std :: cout << "HashOneExecutor: added a column at " << outAtt << std :: endl;
 
         // get the output column
         std::vector<size_t>& outColumn = output->getColumn<size_t>(outAtt);
@@ -95,7 +92,6 @@ public:
             outColumn[i] = 1;
         }
 
-        // std :: cout << "HashOneExecutor: added 1 to " << numRows << " rows" << std :: endl;
 
         return output;
     }

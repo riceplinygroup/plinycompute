@@ -19,7 +19,6 @@
 #ifndef SINK_SHUFFLER_H
 #define SINK_SHUFFLER_H
 
-// by Jia, May 2017
 
 
 #include "Object.h"

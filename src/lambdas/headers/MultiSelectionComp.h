@@ -19,7 +19,6 @@
 #ifndef MULTISELECTION_COMP_H
 #define MULTISELECTION_COMP_H
 
-// by Jia, May 2017
 
 #include "Computation.h"
 #include "ComputePlan.h"
