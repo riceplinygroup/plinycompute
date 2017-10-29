@@ -314,8 +314,6 @@ private:
     pdb::String createdOn;
     pdb::String lastModified;
 
-    // Handle <Map <String, String>> mapOfSets = makeObject <Map <String, String>> ();
-
     // a map where the key is the name of a set and the value is a vector with
     // all nodes where that set has information stored
     Handle<Map<String, Vector<String>>> setsInDB = makeObject<Map<String, Vector<String>>>();
@@ -328,11 +326,9 @@ private:
     pdb::Handle<pdb::Vector<String>> listOfNodes = makeObject<Vector<String>>();
 
     // Contains information about sets in the cluster containing data for a given database
-    // this might change, check with Jia if this is needed or not
     pdb::Handle<pdb::Vector<String>> listOfSets = makeObject<Vector<String>>();
 
     // Contains information about types in the cluster containing data for a given database
-    // this might change, check with Jia if this is needed or not
     pdb::Handle<pdb::Vector<String>> listOfTypes = makeObject<Vector<String>>();
 
     // Contains all users' permissions for a given database

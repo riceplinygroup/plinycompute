@@ -91,7 +91,8 @@ CatalogClient::~CatalogClient() {
     pthread_mutex_destroy(&workingMutex);
 }
 
-void CatalogClient::registerHandlers(PDBServer& forMe) { /* no handlers for a catalog client!! */
+/* no handlers for a catalog client!! */
+void CatalogClient::registerHandlers(PDBServer& forMe) {
 }
 
 // sends a request to a Catalog Server to register a Data Type defined in a Shared Library

@@ -33,8 +33,7 @@ using namespace std;
 
 namespace pdb {
 
-// This class calls defines an object for closing the SQLite DB Handler
-
+// Encapsulates a request for closing the SQLite DB Handler
 class CatalogCloseSQLiteDBHandler : public Object {
 public:
     CatalogCloseSQLiteDBHandler() {}

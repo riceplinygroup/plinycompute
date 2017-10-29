@@ -338,11 +338,6 @@ public:
                                  string& errorName);
 
     /**
-     * Prints all metadata registered in the catalog, used for debugging purposes
-     */
-    void testCatalogPrint();
-
-    /**
      * getListOfDatabases returns a Vector of metadata for all Databases registered
      * in the catalog. The information is retrieved from memory rather than disk (SQLite).
      *
@@ -534,12 +529,6 @@ private:
     void setUriPath(string thePath) {
         uriPath = thePath;
     }
-
-    /**
-     * Generates a random string that can be used for creating a random folder to temporarily
-     * placed the shared library files
-     **/
-    string genRandomString(int len);
 
     /**
      * Deletes all shared library files from the temp directory (is called by the destructor)

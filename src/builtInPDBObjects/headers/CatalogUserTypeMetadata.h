@@ -39,7 +39,7 @@ namespace pdb {
 
 /**
  *   CatalogUserTypeMetadata encapsulates information for a given user-defined object
- *   (either a data type or metric), including:
+ *   including:
  *
  *   1) objectID: numeric identifier assigned automatically by the catalog
  *   2) objectType: (data_types or metrics)
