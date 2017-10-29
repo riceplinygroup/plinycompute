@@ -51,7 +51,7 @@ also exploits whole-stage code generation to generate JVM intermediate
 code mainly to reduce type parsing overhead and virtual function call
 overhead. Compared with those systems, PC is a native system that
 manages memory manually and
-relies on template meta-programming and vectorized pipeline processing
+relies on template metaprogramming and vectorized pipeline processing
 to avoid or reduce overheads associated with generic types and virtual
 function calls.
 
@@ -195,7 +195,7 @@ C++-based MPP
 SQL query engine that relies on Hadoop for scalability and the
 flexibility in interface and data schema. Impala compiles SQL text
 into LLVM assembler to reduce type parsing costs and virtual function
-call overhead, while PC exploits C++'s templated meta programing and
+call overhead, while PC exploits C++'s template metaprograming and
 vectorized pipeline processing to avoid those problems. In addition,
 Impala is using a relational data model, although it can read/write
 semi-structured data in storage formats like Arvo, Parquet, RC and so
@@ -212,9 +212,9 @@ support nested data as a first class citizen. To integrate
 with user applications, the relational data described by standard SQL needs to
 be translated to protocol buffers or user languages through the
 GoogleSQL library that contains a compiler front-end and a library of
-scalar functions. In PC (and also systems like Spark and Flink), query processing and user applications are
+scalar functions. In PC, query processing and user applications are
 naturally and
-seamlessly integrated based on the ObjectModel without need of any
+seamlessly integrated in an object-oriented style without need of any
 significant investments in tooling and processing.
 
 Tensorflow~\cite{abadi2016tensorflow} is a
