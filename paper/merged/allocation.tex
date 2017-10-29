@@ -25,7 +25,7 @@ are reference-counted, and a destructor is called for each unreachable \texttt{O
 On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary \texttt{Object}s will result in a lot of wasted space.
 \item Recycling.  This is layered on top of lightweight re-use.  When the recycling allocator is used, any time a fixed-length
 PC \texttt{Object} is deallocated, it is
-added to a list of ojects all having the same type.  All calls to \texttt{makeObject} with the zero-argument constructor will
+added to a list of objects all having the same type.  All calls to \texttt{makeObject} with the zero-argument constructor will
 pull an object off of the list of recyclable objects for the appropriate type.  
 If an object is available for recycling, it is returned.  If not, or if any other constructor other than the zero-argument constructor is called, 
 then the lightweight re-use allocator is used to allocate space for the requested
