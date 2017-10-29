@@ -25,7 +25,10 @@ those systems, including code generation, GC tuning, off-heap memory and structu
 \texttt{Code Generation.} The basic idea is that a system implemented in high level language
 can generate native query execution code that manually manages
 memory and also avoids virtual function call
-overheads. Hyper~\cite{neumann2011efficiently} is a relational system,
+overheads. DryadLinq~\cite{yu2008dryadlinq} allows user to express distributed dataflow
+computations in high-level language like C\# and strongly typed .NET
+objects, and compile those computations into .NET assembler to run in
+the cluster. Hyper~\cite{neumann2011efficiently} is a relational system,
 and it proposes a code
 generation strategy for query compilation to translate relational
 algebra to LLVM assembler for execution.  LegoBase~\cite{klonatos2014building} switches the interface
@@ -129,7 +132,7 @@ user defined queries based on complex objects.
 Despite the decreasing performance gap between Java/Scala and C/C++,
 OS and many tools or libraries are developed in C/C++. For example,
 a large number of popular numerical processing libraries such as
-various BLAS implementations~\cite{barrachina2008evaluation}, Eigen~\cite{Eigen}, GSL~\cite{GSL}
+various BLAS implementations~\cite{barrachina2008evaluation}, Eigen~\cite{eigen}, GSL
 and etc, are all implemented in C/C++. 
 %Even for the BLAS standard, there are multiple
 %implementations such as Intel's MKL, cuBLAS, MAGMA, and openBLAS. 
@@ -147,7 +150,7 @@ development environment.
 
 \vspace{5pt} 
 \texttt{High Performance Computing (HPC).} HPC
-systems such as OpenMP~\cite{dagum1998openmp}, Cilk~\cite{blumofe1996cilk},  Intel's Array Building
+systems such as Charm++~\cite{kale1993charm++}, OpenMP~\cite{dagum1998openmp}, Cilk~\cite{blumofe1996cilk},  Intel's Array Building
 Blocks~\cite{newburn2011intel}, and Threading Building Blocks~\cite{reinders2007intel} stretch from
 low-level interfaces like MPI~\cite{gropp1996high}, and create powerful control flow, computation
 and communication abstractions for multi-core and distributed
@@ -157,7 +160,11 @@ or applications to write code for strategies and policies of using
 those static abstractions. 
 
 \vspace{5pt} 
-\texttt{Query Processing.} VectorWise~\cite{zukowski2012vectorwise}, which was commercialized as the MonetDB/X100 project, makes use of
+\texttt{Query Processing.} Vertica/C-Store~\cite{stonebraker2005c} proposes
+to store and process relational tables by
+column to optimize for ``read-performance'', which is critical in
+analytics processing.
+VectorWise~\cite{zukowski2012vectorwise}, which was commercialized as the MonetDB/X100 project, makes use of
 vectorized query execution to amortize the virtual function call overhead and also to exploit SIMD support
 on modern hardware. Voodoo~\cite{pirk2016voodoo} uses a new
 declarative algebra as the compilation target for query plans to
@@ -169,14 +176,28 @@ similarity in
 code generation and vectorized processing with those
 systems and PC can leverage Voodoo's hardware tuning concept, PC is
 different with those relational processing systems in that in PC all query processing
-is based on a high performance and high expressive object model.
+is based on a high performance and highly expressive object model.
 PC can support efficient
 processing of complex objects and user defined
 dataflows to facilitate tool or library development with more flexible
 programming models.
 
 \vspace{5pt} 
-\texttt{Cloud Frameworks.} Tensorflow~\cite{abadi2016tensorflow} is a
+\texttt{Cloud Frameworks.} Spanner~\cite{bacon2017spanner} is a
+distributd data management system that backs the operational services
+at Google. It started out as a key-value store and evolved into a
+relational database system with a SQL query processor. It implements a
+dialect of SQL, called standard SQL, which use ARRAY and STRUCT to
+support nested data as a first class citizen. To integrate
+with user applications, the relational data described by standard SQL needs to
+be translated to protocol buffers or user languages through the
+GoogleSQL library that contains a compiler front-end and a library of
+scalar functions. In PC (and also systems like Spark and Flink), query processing and user applications are
+naturally and
+seamlessly integrated based on the ObjectModel without need of any
+significant investments in tooling and processing.
+
+Tensorflow~\cite{abadi2016tensorflow} is a
 distributed computing framework mainly designed for deep learning. It
 mainly supports processing of numerical data with a
 limited set of types, so for example,  it is
