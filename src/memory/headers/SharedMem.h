@@ -15,15 +15,10 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SharedMem.h
- * Author: Jia
- *
- * Created on October 11, 2015, 9:21 PM
- */
 
 #ifndef SHAREDMEM_H
 #define SHAREDMEM_H
+
 #include <pthread.h>
 #include "PDBLogger.h"
 #include "SlabAllocator.h"
@@ -37,6 +32,9 @@ using namespace std;
 class SharedMem;
 typedef shared_ptr<SharedMem> SharedMemPtr;
 
+
+//this class wraps a shared memory buffer pool for allocating pages
+//this class uses mmap system call
 
 class SharedMem {
 public:
