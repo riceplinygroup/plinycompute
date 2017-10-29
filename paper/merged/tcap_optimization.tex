@@ -58,7 +58,7 @@ If \texttt{getSalary} simply accesses a data member, the additional call is cost
 computation.  Hence, the second call should automatically be removed as being redundant 
 (by definition, all method calls evaluated during computation should
 be purely functional, and so they must return the same value when called a second time).
-The rule TCAP optimization rule leading to its removal is:
+The TCAP optimization rule leading to its removal is:
 
 \begin{itemize}
 \vspace{-5 pt}
