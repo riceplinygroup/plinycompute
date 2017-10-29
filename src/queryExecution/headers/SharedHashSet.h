@@ -18,7 +18,6 @@
 #ifndef SHARED_HASH_SET
 #define SHARED_HASH_SET
 
-// by Jia, May 2017
 
 #include "AbstractHashSet.h"
 

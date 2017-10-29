@@ -18,7 +18,6 @@
 #ifndef PIPELINE_STAGE_H
 #define PIPELINE_STAGE_H
 
-// by Jia, Mar 2017
 
 #include "PDBVector.h"
 #include "SimpleRequest.h"

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * StandardResourceInfo.h
- *
- *  Created on: Dec 14, 2016
- *      Author: Jia
- */
 
 #ifndef STANDARD_RESOURCE_INFO_H
 #define STANDARD_RESOURCE_INFO_H

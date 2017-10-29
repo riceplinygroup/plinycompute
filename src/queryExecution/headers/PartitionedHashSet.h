@@ -18,7 +18,6 @@
 #ifndef PARTITIONED_HASH_SET
 #define PARTITIONED_HASH_SET
 
-// by Jia, May 2017
 
 #include "AbstractHashSet.h"
 #include <pthread.h>

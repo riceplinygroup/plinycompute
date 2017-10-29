@@ -18,7 +18,6 @@
 #ifndef CLUSTER_AGG_COMP
 #define CLUSTER_AGG_COMP
 
-// by Jia, Mar 2017
 
 
 #include "AbstractAggregateComp.h"
@@ -258,17 +257,7 @@ public:
         std::vector<std::string> columnNames;
         std::string addedColumnName;
         int lambdaLabel = 0;
-        // std :: cout << "To extract key for aggregation" << std :: endl;
-        // std :: cout << "inputTupleSetName = " << inputTupleSetName << std :: endl;
 
-        for (int i = 0; i < inputColumnNames.size(); i++) {
-            // std :: cout << "inputColumns[" << i << "]=" << inputColumnNames[i] << std :: endl;
-        }
-
-        for (int i = 0; i < inputColumnsToApply.size(); i++) {
-            // std :: cout << "inputColumnsToApply[" << i << "]=" << inputColumnsToApply[i] << std
-            // :: endl;
-        }
         std::vector<std::string> columnsToApply;
         for (int i = 0; i < inputColumnsToApply.size(); i++) {
             columnsToApply.push_back(inputColumnsToApply[i]);
@@ -290,16 +279,6 @@ public:
         std::vector<std::string> columnsToKeep;
         columnsToKeep.push_back(addedColumnName);
 
-        // std :: cout << "To extract value for aggregation" << std :: endl;
-        // std :: cout << "inputTupleSetName = " << tupleSetName << std :: endl;
-        for (int i = 0; i < columnsToKeep.size(); i++) {
-            // std :: cout << "inputColumns[" << i << "]=" << columnsToKeep[i] << std :: endl;
-        }
-
-        for (int i = 0; i < columnsToApply.size(); i++) {
-            // std :: cout << "inputColumnsToApply[" << i << "]=" << columnsToApply[i] << std ::
-            // endl;
-        }
 
         tcapString += "\n/* Extract value for aggregation */\n";
         tcapString += valueLambda.toTCAPString(tupleSetName,
@@ -316,13 +295,6 @@ public:
                                                false);
         std::string newTupleSetName =
             "aggOutFor" + getComputationType() + "_" + std::to_string(computationLabel);
-        /*tcapString += newTupleSetName += "(aggOut) <= AGGREGATE (" + outputTupleSetName + " ("+
-        outputColumnNames[0];
-        for (int i = 1; i < outputColumnNames.size(); i++) {
-             tcapString + ", ";
-             tcapString + outputColumnNames[i];
-        }
-        tcapString += "), '";*/
         tcapString += "\n/* Apply aggregation */\n";
         std::string addedOutputColumnName1 = "aggOutFor" + std::to_string(computationLabel);
         tcapString += newTupleSetName + "(" + addedOutputColumnName1 + ") <= AGGREGATE (" +

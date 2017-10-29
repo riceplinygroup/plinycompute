@@ -18,7 +18,6 @@
 #ifndef AGGOUT_PROCESSOR_H
 #define AGGOUT_PROCESSOR_H
 
-// by Jia, Mar 13 2017
 
 #include "UseTemporaryAllocationBlock.h"
 #include "InterfaceFunctions.h"

@@ -18,9 +18,6 @@
 #ifndef ABSTRACT_AGG_COMP
 #define ABSTRACT_AGG_COMP
 
-// by Jia, Mar 13 2017
-
-
 #include "Computation.h"
 #include "DataTypes.h"
 #include "SimpleSingleTableQueryProcessor.h"

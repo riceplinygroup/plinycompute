@@ -18,7 +18,6 @@
 #ifndef PIPELINE_STAGE_CC
 #define PIPELINE_STAGE_CC
 
-// by Jia, Sept 2016
 
 #include "AbstractAggregateComp.h"
 #include "StorageAddData.h"
@@ -953,9 +952,6 @@ void PipelineStage::runPipeline(HermesExecutionServer* server,
                       << std::endl;
             std::cout << out << std::endl;
 #endif
-            // getAllocator().cleanInactiveBlocks((size_t)((size_t)32*(size_t)1024*(size_t)1024));
-            // getAllocator().cleanInactiveBlocks((size_t)((size_t)128*(size_t)1024*(size_t)1024));
-            // getAllocator().cleanInactiveBlocks((size_t)DEFAULT_NET_PAGE_SIZE);
             callerBuzzer->buzz(PDBAlarm::WorkAllDone, counter);
 
         }
@@ -1000,8 +996,6 @@ void PipelineStage::runPipeline(HermesExecutionServer* server,
                         std::cout << "Initialize join source page reference count to "
                                   << page->getRefCount() << std::endl;
                         for (int j = 0; j < numPartitions; j++) {
-                            // std :: cout << "add page to the " << j << "-th buffer" << std ::
-                            // endl;
                             sourceBuffers[j]->addPageToTail(page);
                         }
                     }
@@ -1549,9 +1543,6 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
             int numMaps = 0;
 
             // set non-reuse policy
-            // getAllocator().setPolicy(noReuseAllocator);
-
-            // UseTemporaryAllocationBlockPtr blockPtr = nullptr;
             char* output = nullptr;
             char* buffer = nullptr;
             Handle<Object> myMaps = nullptr;
@@ -1573,18 +1564,6 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                     Record<Vector<Handle<Vector<Handle<Object>>>>>* record =
                         (Record<Vector<Handle<Vector<Handle<Object>>>>>*)(page->getBytes());
                     if (record != nullptr) {
-                        /* Handle<Vector<Handle<Vector<Handle<JoinMap<JoinTupleBase>>>>>>
-                        objectsToShuffle1 = record1->getRootObject();
-                        std :: cout << "objectsToShuffle1->size()=" << objectsToShuffle1->size() <<
-                        std :: endl;
-                        for (int j = 0; j < objectsToShuffle1->size(); j++) {
-                            Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> & myVec =
-                        (*objectsToShuffle1)[j];
-                            for (int k = 0; k < myVec->size(); k++) {
-                                std :: cout << "(*((*objectsToShuffle1)[j]))[k]->size()=" <<
-                        (*((*objectsToShuffle1)[j]))[k]->size() << std :: endl;
-                            }
-                        }*/
                         Handle<Vector<Handle<Vector<Handle<Object>>>>> objectsToShuffle =
                             record->getRootObject();
                         Handle<Vector<Handle<Object>>>& objectToShuffle = (*objectsToShuffle)[i];
@@ -1595,15 +1574,6 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                                 bool success = shuffler->writeOut(theOtherMaps[j], myMaps);
                                 if (success == false) {
                                     // output page is full, send it out
-                                    // Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps =
-                                    // unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object>
-                                    // (myMaps);
-                                    /*std :: cout << "myMaps.size()=" << maps->size() << std ::
-                                    endl;
-                                    for (int j = 0; j < maps->size(); j++) {
-                                        std :: cout << "myMaps[" << j << "].size()=" <<
-                                    (*maps)[j]->size() << std :: endl;
-                                    }*/
                                     getRecord(myMaps);
                                     Record<Object>* myRecord = (Record<Object>*)output;
                                     size_t numBytes = myRecord->numBytes();
@@ -1637,10 +1607,7 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                                     numPages++;
                                     // free the output page and reload a new output page
                                     myMaps = nullptr;
-                                    // maps = nullptr;
                                     buffer = (char*)calloc(conf->getNetPageSize(), 1);
-                                    // blockPtr= std :: make_shared<UseTemporaryAllocationBlock>
-                                    // (buffer, DEFAULT_NET_PAGE_SIZE);
                                     makeObjectAllocatorBlock(buffer, conf->getNetPageSize(), true);
                                     // redo for current map;
                                     myMaps = shuffler->createNewOutputContainer();
@@ -1676,21 +1643,6 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                     exit(-1);
                 }
                 memcpy(sendBuffer, output, numBytes);
-                // Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> maps =
-                // unsafeCast<Vector<Handle<JoinMap<JoinTupleBase>>>, Object> (myMaps);
-                /*std :: cout << "myMaps.size()=" << maps->size() << std :: endl;
-                for (int j = 0; j < maps->size(); j++) {
-                    std :: cout << "myMaps[" << j << "].size()=" << (*maps)[j]->size() << std ::
-                endl;
-                }*/
-                /*Handle<Vector<Handle<JoinMap<JoinTupleBase>>>> myMaps1 = ((Record
-                   <Vector<Handle<JoinMap<JoinTupleBase>>>> *) (output))->getRootObject();
-                   std :: cout << "myMaps1->size()=" << myMaps1->size() << std :: endl;
-                   for (int i = 0; i < myMaps1->size(); i++) {
-                       std :: cout << "(*myMaps1)[" << i << "].size()=" << (*myMaps1)[i]->size() <<
-                   std :: endl;
-                   }
-                */
                 out = getAllocator().printInactiveBlocks();
                 std::cout << "inactive blocks before sending data in this worker:" << std::endl;
                 std::cout << out << std::endl;
@@ -1716,9 +1668,6 @@ void PipelineStage::runPipelineWithHashPartitionSink(HermesExecutionServer* serv
                 numPages++;
                 myMaps = nullptr;
             }
-            /*if (blockPtr != nullptr) {
-                blockPtr = nullptr;
-            }*/
             if (output != nullptr) {
                 free(output);
                 output = nullptr;

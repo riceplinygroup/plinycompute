@@ -18,7 +18,6 @@
 #ifndef ABSTRACT_HASH_SET
 #define ABSTRACT_HASH_SET
 
-// by Jia, May 2017
 
 #include <memory>
 
