@@ -46,7 +46,14 @@ to have a common runtime for data anlytics libraries by asking library
 developers to express their work using a new intermediate
 representation (IR) and compiles this IR into multi-threaded code using
 LLVM, then application developers can use unified APIs to
-call different libraries from Weld. 
+call different libraries from Weld. Since version 2.0, Spark~\cite{zaharia2012resilient}
+also exploits whole-stage code generation to generate JVM intermediate
+code mainly to reduce type parsing overhead and virtual function call
+overhead. Compared with those systems, PC is a native system that
+manages memory manually and
+relies on template meta-programming and vectorized pipeline processing
+to avoid or reduce overheads associated with generic types and virtual
+function calls.
 
 \vspace{5pt}
 \texttt {Optimized Memory Management.} 
@@ -183,7 +190,20 @@ dataflows to facilitate tool or library development with more flexible
 programming models.
 
 \vspace{5pt} 
-\texttt{Cloud Frameworks.} Spanner~\cite{bacon2017spanner} is a
+\texttt{Cloud Frameworks.} Impala~\cite{bittorf2015impala} is a
+C++-based MPP
+SQL query engine that relies on Hadoop for scalability and the
+flexibility in interface and data schema. Impala compiles SQL text
+into LLVM assembler to reduce type parsing costs and virtual function
+call overhead, while PC exploits C++'s templated meta programing and
+vectorized pipeline processing to avoid those problems. In addition,
+Impala is using a relational data model, although it can read/write
+semi-structured data in storage formats like Arvo, Parquet, RC and so
+on from/to external storage like HDFS, the
+serialization/deserialization and data movement overhead is
+significant. PC's Object Model can eliminate such overheads.
+
+Spanner~\cite{bacon2017spanner} is a
 distributd data management system that backs the operational services
 at Google. It started out as a key-value store and evolved into a
 relational database system with a SQL query processor. It implements a
