@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * FileSet.h
- *
- * Created on: May 26, 2016
- * Author: Jia
- */
 
 
 #ifndef FILESET_H

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageCircularBuffer.h
- * Author: Jia
- *
- * Created on November 16, 2015, 11:19 AM
- */
 
 #ifndef PAGECIRCULARBUFFER_H
 #define PAGECIRCULARBUFFER_H

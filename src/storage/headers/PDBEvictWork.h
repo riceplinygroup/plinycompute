@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBEvictWork.h
- * Author: Jia
- *
- * Created on October 28, 2015, 9:46 PM
- */
 
 #ifndef PDBEVICTWORK_H
 #define PDBEVICTWORK_H

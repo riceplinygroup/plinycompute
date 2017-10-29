@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SequenceID.h
- * Author: Jia
- *
- * Created on September 28, 2015, 10:10 PM
- */
 
 #ifndef SEQUENCEID_H
 #define SEQUENCEID_H

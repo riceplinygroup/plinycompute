@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SetCachePageIterator.h
- * Author: Jia
- *
- * Created on October 15, 2015, 1:20 PM
- */
 
 #ifndef SETCACHEPAGEITERATOR_H
 #define SETCACHEPAGEITERATOR_H

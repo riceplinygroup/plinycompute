@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBPage.h
- * Author: Jia
- *
- * Created on September 27, 2015, 2:22 PM
- */
 
 #ifndef PDBPAGE_H
 #define PDBPAGE_H

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * UserSet.h
- *
- *  Created on: Dec 21, 2015
- *      Author: Jia
- */
 
 #ifndef SRC_CPP_MAIN_DATABASE_HEADERS_USERSET_H_
 #define SRC_CPP_MAIN_DATABASE_HEADERS_USERSET_H_

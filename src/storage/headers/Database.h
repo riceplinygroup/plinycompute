@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   Database.h
- * Author: Jia
- *
- * Created on September 27, 2015, 12:57 PM
- */
 
 #ifndef DATABASE_H
 #define DATABASE_H

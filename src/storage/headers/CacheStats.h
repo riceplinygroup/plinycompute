@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   CacheStats.h
- * Author: Jia
- *
- * Created on October 27, 2015, 10:19 PM
- */
 
 #ifndef CACHESTATS_H
 #define CACHESTATS_H

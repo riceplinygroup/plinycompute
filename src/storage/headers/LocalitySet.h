@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- *  LocalitySet.h
- *
- *  Created on: May 29, 2016
- *  Author: Jia
- */
 
 #ifndef LOCALITY_SET_H
 #define LOCALITY_SET_H

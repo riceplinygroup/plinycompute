@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   TempSet.h
- * Author: Jia
- *
- * Created on November 28, 2015, 6:58 PM
- */
 
 
 #ifndef TEMP_SET_H

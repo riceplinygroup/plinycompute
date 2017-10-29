@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBFlushProducerWork.h
- * Author: Jia
- *
- * Created on October 22, 2015, 9:03 PM
- */
 
 #ifndef PDBFLUSHPRODUCERWORK_H
 #define PDBFLUSHPRODUCERWORK_H
@@ -31,6 +25,8 @@
 using namespace std;
 class PDBFlushProducerWork;
 typedef shared_ptr<PDBFlushProducerWork> PDBFlushProducerWorkPtr;
+
+//this class put pages to the flushing queue
 
 class PDBFlushProducerWork : public pdb::PDBWork {
 public:

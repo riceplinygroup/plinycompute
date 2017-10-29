@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PageCache.h
- * Author: Jia
- *
- * Created on October 27, 2015, 3:58 PM
- */
 
 #ifndef PAGECACHE_H
 #define PAGECACHE_H

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File: FileSetPageIterator.h
- * Author: Jia
- *
- * Created on May 26, 2016, 8:17 PM
- */
 
 #ifndef FILESETPAGEITERATOR_H
 #define FILESETPAGEITERATOR_H
