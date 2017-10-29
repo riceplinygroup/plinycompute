@@ -18,7 +18,6 @@
 #ifndef DOUBLE_VECTOR_H
 #define DOUBLE_VECTOR_H
 
-// by Jia, May 2017
 
 #include "Object.h"
 #include "Handle.h"
@@ -35,6 +34,8 @@
 
 namespace pdb {
 
+
+//this class wraps a double vector
 class DoubleVector : public Object {
 
 public:

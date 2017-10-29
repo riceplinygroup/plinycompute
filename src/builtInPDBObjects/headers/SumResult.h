@@ -18,7 +18,6 @@
 #ifndef SUM_RESULT_H
 #define SUM_RESULT_H
 
-// by Jia, May 2017
 
 #include "Object.h"
 

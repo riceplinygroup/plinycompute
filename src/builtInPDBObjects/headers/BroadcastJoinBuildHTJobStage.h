@@ -18,7 +18,6 @@
 #ifndef BROADCAST_JOIN_BUILDHT_STAGE_H
 #define BROADCAST_JOIN_BUILDHT_STAGE_H
 
-// by Jia, May 2017
 
 #include "AbstractJobStage.h"
 #include "SetIdentifier.h"

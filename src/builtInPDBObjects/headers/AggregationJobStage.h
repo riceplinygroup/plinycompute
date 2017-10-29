@@ -18,7 +18,6 @@
 #ifndef AGGREGATION_JOBSTAGE_H
 #define AGGREGATION_JOBSTAGE_H
 
-// by Jia, Mar 5th, 2017
 
 #include "PDBDebug.h"
 #include "Object.h"

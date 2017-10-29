@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * StorageBytesPinned.h
- *
- *  Created on: Feb 29, 2016
- *      Author: Jia
- */
 
 #ifndef SRC_BUILTINPDBOBJECTS_HEADERS_BYTESPINNED_H_
 #define SRC_BUILTINPDBOBJECTS_HEADERS_BYTESPINNED_H_

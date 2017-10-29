@@ -18,7 +18,6 @@
 #ifndef STORAGE_EXPORT_SET
 #define STORAGE_EXPORT_SET
 
-// by Jia, Apr 2017
 
 #include "Object.h"
 #include "PDBString.h"

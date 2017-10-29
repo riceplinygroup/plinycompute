@@ -18,7 +18,6 @@
 #ifndef KMEANS_DOUBLE_VECTOR_H
 #define KMEANS_DOUBLE_VECTOR_H
 
-// by Jia, May 2017
 
 #include "Object.h"
 #include "Handle.h"
@@ -38,6 +37,8 @@
 
 
 namespace pdb {
+
+//this class encapsulates a double vector based on native array
 
 class KMeansDoubleVector : public Object {
 

@@ -22,6 +22,8 @@
 
 namespace pdb {
 
+//wraps the container for shuffle data for Aggregation
+
 template <class KeyType, class ValueType>
 AggregationMap<KeyType, ValueType>::AggregationMap(uint32_t initSize) {
 

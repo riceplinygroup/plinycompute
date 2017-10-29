@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * StorageCleanup.h
- *
- *  Created on: Nov 16, 2016
- *      Author: Jia
- */
 
 #ifndef SRC_BUILTINPDBOBJECTS_HEADERS_CLEANUP_H_
 #define SRC_BUILTINPDBOBJECTS_HEADERS_CLEANUP_H_

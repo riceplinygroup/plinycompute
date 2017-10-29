@@ -19,7 +19,6 @@
 #ifndef SET_IDENTIFIER_H
 #define SET_IDENTIFIER_H
 
-// by Jia, Oct 2016
 
 #include "Object.h"
 #include "Handle.h"
