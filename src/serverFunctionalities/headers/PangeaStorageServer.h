@@ -19,7 +19,6 @@
 #ifndef PANGEA_STORAGE_SERVER_H
 #define PANGEA_STORAGE_SERVER_H
 
-// by Jia, Sept 2016
 
 
 #include "ServerFunctionality.h"
@@ -47,7 +46,7 @@ namespace pdb {
 class PangeaStorageServer;
 typedef std::shared_ptr<PangeaStorageServer> PangeaStorageServerPtr;
 
-
+//this class encapsulates the PangeaStorageServer functionality.
 class PangeaStorageServer : public ServerFunctionality {
 
 public:
