@@ -15,11 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   DataProxy.cc
- * Author: Jia
- *
- */
 
 
 #ifndef DATA_PROXY_H
@@ -111,8 +106,6 @@ bool DataProxy::addTempSet(string setName, SetID& setId, bool needMem, int numTr
             }
             if (success == true) {
                 setId = ack->getTempSetID();
-                // std :: cout << "Received StorageAddTempSetResult object from the server" << std
-                // :: endl;
             }
             return success;
         }
@@ -141,8 +134,6 @@ bool DataProxy::addTempSet(string setName, SetID& setId, bool needMem, int numTr
             }
             if (success == true) {
                 setId = ack->getTempSetID();
-                // std :: cout << "Received StorageAddTempSetResult object from the server" << std
-                // :: endl;
             }
             return success;
         }
@@ -349,7 +340,6 @@ bool DataProxy::pinBytes(DatabaseID dbId,
                          void* bytes,
                          bool needMem,
                          int numTries) {
-    // std :: cout << "Num bytes to pin: " << sizeOfBytes << std :: endl;
     if (numTries == MAX_RETRIES) {
         return false;
     }
@@ -405,8 +395,6 @@ bool DataProxy::pinBytes(DatabaseID dbId,
             }
             void* dest = this->shm->getPointer(ack->getSharedMemOffset());
             memcpy(dest, bytes, sizeOfBytes);
-            // std :: cout << "shared memory offset is " << ack->getSharedMemOffset() << std ::
-            // endl;
             return success;
         }
     } else {
