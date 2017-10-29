@@ -19,7 +19,6 @@
 #ifndef COMBINED_SHUFFLE_SINK_H
 #define COMBINED_SHUFFLE_SINK_H
 
-// by Jia, Mar 2017
 
 #include "ComputeSink.h"
 #include "TupleSetMachine.h"
@@ -129,8 +128,6 @@ public:
                 } catch (NotEnoughSpace& n) {
                     // if we got here, then we ran out of space, and so we need to delete the
                     // already-processed
-                    // std :: cout << "not enough space in shuffle sink to get new value" << std ::
-                    // endl;
                     // data so that we can try again...
                     keyColumn.erase(keyColumn.begin(), keyColumn.begin() + i);
                     valueColumn.erase(valueColumn.begin(), valueColumn.begin() + i);
@@ -143,8 +140,6 @@ public:
                     // if we could not fit the value...
                 } catch (NotEnoughSpace& n) {
 
-                    // std :: cout << "not enough space in shuffle sink to set value" << std ::
-                    // endl;
                     // then we need to erase the key from the map
                     myMap.setUnused(keyColumn[i]);
 
@@ -168,8 +163,6 @@ public:
                     // to put the new value into the hash table
                 } catch (NotEnoughSpace& n) {
 
-                    // std :: cout << "not enough space in shuffle sink to update value" << std ::
-                    // endl;
                     // restore the old value
                     temp = copy;
 

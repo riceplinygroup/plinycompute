@@ -18,10 +18,10 @@
 #ifndef ABSTRACT_JOBSTAGE_H
 #define ABSTRACT_JOBSTAGE_H
 
-// by Jia, Mar 2017
 
 namespace pdb {
 
+//this class encapsulates the common interface for JobStages
 class AbstractJobStage : public Object {
 
 public:

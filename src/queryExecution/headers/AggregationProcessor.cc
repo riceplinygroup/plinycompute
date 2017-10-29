@@ -42,18 +42,13 @@ void AggregationProcessor<KeyType, ValueType>::initialize() {
 template <class KeyType, class ValueType>
 void AggregationProcessor<KeyType, ValueType>::loadInputObject(Handle<Object>& objectToProcess) {
     curMap = unsafeCast<AggregationMap<KeyType, ValueType>, Object>(objectToProcess);
-    // std :: cout << id << ": curMap size = " << curMap->size() << std :: endl;
     HashPartitionID hashIdForCurrentMap = curMap->getHashPartitionId();
-    // PDB_COUT << "this map's partitionId is " << hashIdForCurrentMap << std :: endl;
     if (curMap->getHashPartitionId() == id) {
-        // PDB_COUT << "this map has my id = " << id << std :: endl;
         count = 0;
         if (begin != nullptr) {
-            // PDB_COUT << "we delete the begin iterator of last input page" << std :: endl;
             delete begin;
         }
         if (end != nullptr) {
-            // PDB_COUT << "we delete the end iterator of last input page" << std :: endl;
             delete end;
         }
         begin = new PDBMapIterator<KeyType, ValueType>(curMap->getArray(), true);
@@ -134,8 +129,6 @@ bool AggregationProcessor<KeyType, ValueType>::fillNextOutputPage() {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                // std :: cout << id << ": Aggregation processed " << count << " elements in this
-                // map" << std :: endl;
                 count = 0;
                 return false;
             }
@@ -143,7 +136,6 @@ bool AggregationProcessor<KeyType, ValueType>::fillNextOutputPage() {
             ValueType curValue = (*(*begin)).value;
             // if the key is not there
             if (outputData->count(curKey) == 0) {
-                // PDB_COUT << id << ": Aggregation got a new key" << std :: endl;
                 ValueType* temp = nullptr;
                 temp = &((*outputData)[curKey]);
                 try {
@@ -158,7 +150,6 @@ bool AggregationProcessor<KeyType, ValueType>::fillNextOutputPage() {
                 }
                 // the key is there
             } else {
-                // PDB_COUT << id << ": Aggregation got an old key" << std :: endl;
                 // get the value and copy of it
                 ValueType& temp = (*outputData)[curKey];
                 ValueType copy = temp;

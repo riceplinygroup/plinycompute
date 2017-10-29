@@ -18,7 +18,6 @@
 #ifndef HASH_SET_MANAGER
 #define HASH_SET_MANAGER
 
-// by Jia, May 2017
 
 #include "AbstractHashSet.h"
 

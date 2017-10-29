@@ -90,7 +90,6 @@ void CombinerProcessor<KeyType, ValueType>::loadOutputPage(void* pageToWriteTo,
         currentMap->setHashPartitionId(i);
         outputData->push_back(currentMap);
     }
-    // std :: cout << "curPartPos=" << curPartPos << std :: endl;
     curOutputMap = (*outputData)[curPartPos];
 }
 
@@ -115,9 +114,6 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
         while (true) {
 
             if (!((*begin) != (*end))) {
-                // std :: cout << "CombinerProcess: processed a map partition in current input page
-                // with curPartId=" << curPartId << ", and curPartPos=" << curPartPos << std ::
-                // endl;
                 if (curPartPos < numNodePartitions - 1) {
                     curPartPos++;
                     PDB_COUT << "curPartPos=" << curPartPos << std::endl;
@@ -131,8 +127,6 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
                         end = new PDBMapIterator<KeyType, ValueType>(curMap->getArray());
 
                         if ((*begin) != (*end)) {
-                            // std :: cout << "Combiner processor: now we have a new output map with
-                            // index in outputData being " << curPartPos << std :: endl;
                             curOutputMap = (*outputData)[curPartPos];
                         } else {
                             PDB_COUT << "this is strage: map size > 0 but begin == end"
@@ -152,9 +146,8 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
             }
             KeyType curKey = (*(*begin)).key;
             ValueType curValue = (*(*begin)).value;
-            // std :: cout << "combine the " << count << "-th element" << std :: endl;
-            // if the key is not there
             if (curOutputMap->count(curKey) == 0) {
+            // if the key is not there
 
                 ValueType* temp = nullptr;
                 try {
@@ -162,8 +155,6 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
 
                 } catch (NotEnoughSpace& n) {
 
-                    // std :: cout << "Info: Combiner page is too small, exception 1 thrown" << std
-                    // :: endl;
                     throw n;
                 }
                 try {
@@ -173,8 +164,6 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
                     count++;
                     // if we couldn't fit the value
                 } catch (NotEnoughSpace& n) {
-                    // std :: cout << "Info: Combiner page is too small, exception 2 thrown" << std
-                    // :: endl;
                     curOutputMap->setUnused(curKey);
 
                     throw n;
@@ -196,8 +185,6 @@ bool CombinerProcessor<KeyType, ValueType>::fillNextOutputPage() {
                     // if we got here, it means we run out of RAM and we need to restore the old
                     // value in the destination hash map
                 } catch (NotEnoughSpace& n) {
-                    // std :: cout << "Info: Combiner page is too small, exception 3 thrown" << std
-                    // :: endl;
                     temp = copy;
                     throw n;
                 }

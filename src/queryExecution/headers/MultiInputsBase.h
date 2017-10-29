@@ -18,7 +18,6 @@
 #ifndef MULTI_INPUTS_BASE
 #define MULTI_INPUTS_BASE
 
-// by Jia, May 2017
 
 namespace pdb {
 

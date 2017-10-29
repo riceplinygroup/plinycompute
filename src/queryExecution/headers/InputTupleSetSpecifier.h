@@ -18,7 +18,6 @@
 #ifndef INPUT_TUPLESET_SPECIFIER_HEADER
 #define INPUT_TUPLESET_SPECIFIER_HEADER
 
-// by Jia, Mar 2017
 
 namespace pdb {
 

@@ -19,7 +19,6 @@
 #ifndef SHUFFLE_SINK_H
 #define SHUFFLE_SINK_H
 
-// by Jia, Mar 2017
 
 #include "ComputeSink.h"
 #include "TupleSetMachine.h"
@@ -156,11 +155,6 @@ public:
                 }
             }
         }
-        /*int i;
-        for (i = 0; i < numPartitions; i++) {
-             Map <KeyType, ValueType> & myMap = *((*writeMe)[i]);
-             std :: cout << "partition-" << i << ": " << myMap.size() << " elements" << std :: endl;
-        }*/
     }
 
     ~ShuffleSink() {}

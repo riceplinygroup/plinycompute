@@ -18,7 +18,6 @@
 #ifndef TUPLESET_SPECIFIER_HEADER
 #define TUPLESET_SPECIFIER_HEADER
 
-// by Jia, Mar 2017
 
 namespace pdb {
 
