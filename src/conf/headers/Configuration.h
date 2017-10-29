@@ -15,13 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   Configuration.h
- * Author: Jia
- *
- * Created on September 27, 2015, 12:42 PM
- */
-
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 

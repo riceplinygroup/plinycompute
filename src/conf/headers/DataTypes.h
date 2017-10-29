@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   DataTypes.h
- * Author: Jia
- *
- * Created on September 27, 2015, 1:23 PM
- */
 
 #ifndef PDB_DATA_TYPES_H
 #define PDB_DATA_TYPES_H
