@@ -331,13 +331,10 @@ void PangeaStorageServer::writeBackRecords(pair<std::string, std::string> databa
                     makeObject<Vector<Handle<Object>>>(numObjectsInRecord - pos);
 
                 // write the objects to the vector
-                // std :: cout << "We save space for the remaining data in this record" << std ::
-                // endl;
                 auto& allObjects = *(allRecs[allRecs.size() - 1]->getRootObject());
                 for (; pos < numObjectsInRecord; pos++) {
                     extraData->push_back(allObjects[pos]);
                 }
-                // std :: cout << "Putting the records back complete.\n";
 
                 // destroy the record that we were copying from
                 numBytesToProcess -= allRecs[allRecs.size() - 1]->numBytes();
@@ -434,75 +431,7 @@ bool PangeaStorageServer::exportToHDFSFile(std::string dbName,
                                            std::string path,
                                            std::string format,
                                            std::string& errMsg) {
-    // hdfsFS fs = hdfsConnect (hdfsNameNodeIp, hdfsNameNodePort);
-
-    /*
-    struct hdfsBuilder * builder = hdfsNewBuilder();
-    hdfsBuilderSetNameNode(builder, hdfsNameNodeIp);
-    hdfsBuilderSetNameNodePort(builder, hdfsNameNodePort);
-    hdfsFS fs = hdfsBuilderConnect(builder);
-    hdfsFile myFile = hdfsOpenFile(fs, path.c_str(), O_WRONLY|O_CREAT, 0, 0, 0);
-    if (!writeFile) {
-        errMsg = "Error opening file for writing: " + path;
-        return false;
-    }
-
-    SetPtr setToExport = getFunctionality<PangeaStorageServer>().getSet(std :: make_pair (dbName,
-    setName));
-    if (setToExport == nullptr) {
-        errMsg = "Error in exportToFile: set doesn't exist: " + dbName + ":" + setName;
-        return false;
-    }
-
-    bool isHeadWritten = false;
-    setToExport->setPinned(true);
-    std :: vector<PageIteratorPtr> * pageIters = setToExport->getIterators();
-    int numIterators = pageIters->size();
-    for (int i = 0; i < numIterators; i++) {
-        PageIteratorPtr iter = pageIters->at(i);
-        while (iter->hasNext()) {
-            PDBPagePtr nextPage = iter->next();
-            if (nextPage != nullptr) {
-                Record <Vector<Handle<Object>>> * myRec = (Record <Vector<Handle<Object>>> *)
-    (nextPage->getBytes());
-                Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject ();
-                int vecSize = inputVec->size();
-                for ( int j = 0; j < vecSize; j++) {
-                    Handle<ExportableObject> objectToExport = unsafeCast<ExportableObject,
-    Object>((*inputVec)[j]);
-                    if (isHeadWritten == false) {
-                        std :: string header = objectToExport->toSchemaString();
-                        if (header != "") {
-                            hdfsWrite(fs, myFile, header.c_str(), header.length()+1);
-                        }
-                        isHeadWritten = true;
-                    }
-                    std :: string value = objectToExport->toValueString();
-                    if (value != "") {
-                        hdfsWrite(fs, myFile, value.c_str(), value.length()+1);
-                    }
-
-                }
-                //to evict this page
-                PageCachePtr cache = getFunctionality <PangeaStorageServer> ().getCache ();
-                CacheKey key;
-                key.dbId = nextPage->getDbID();
-                key.typeId = nextPage->getTypeID();
-                key.setId = nextPage->getSetID();
-                key.pageId = nextPage->getPageID();
-                cache->decPageRefCount(key);
-                cache->evictPage(key);//try to modify this to something like evictPageWithoutFlush()
-    or clear set in the end.
-            }
-        }
-    }
-    setToExport->setPinned(false);
-    delete pageIters;
-    hdfsFlush(fs, myFile);
-    hdfsCloseFile(fs, myFile);
-    return true;
-    */
-
+    //TODO
     return false;
 }
 
@@ -585,9 +514,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                         errMsg = "Set " + request->getDatabase() + ":" + request->getSetName() +
                             ":" + request->getTypeName() + " already exists\n";
                     } else {
-                        // int16_t typeID =
-                        // getFunctionality<CatalogServer>().searchForObjectTypeName
-                        // (request->getTypeName());
                         int16_t typeID = VTableMap::getIDByName(request->getTypeName(), false);
                         PDB_COUT << "TypeID =" << typeID << std::endl;
                         if (typeID == -1) {
@@ -1021,8 +947,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                     everythingOK = false;
                 }
                 // if we made it here, the type is correct, as is the database and the set
-                // else if (typeID != getFunctionality <CatalogServer> ().searchForObjectTypeName
-                // (request->getType ())) {
                 else if (typeID != VTableMap::getIDByName(request->getType(), false)) {
                     everythingOK = false;
                 }
@@ -1196,7 +1120,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                                 if (page != nullptr) {
                                     PDB_COUT << "to send the " << numPagesSent << "-th page"
                                              << std::endl;
-                                    // const UseTemporaryAllocationBlock block{128*1024*1024};
                                     res = sendUsingMe->sendBytes(
                                         page->getRawBytes(), page->getRawSize(), errMsg);
                                     page->unpin();
@@ -1255,7 +1178,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
         make_shared<SimpleRequestHandler<StoragePinPage>>(
             [&](Handle<StoragePinPage> request, PDBCommunicatorPtr sendUsingMe) {
                 PDBLoggerPtr logger = make_shared<PDBLogger>("storagePinPage.log");
-                // NodeID nodeId = request->getNodeID();
                 DatabaseID dbId = request->getDatabaseID();
                 UserTypeID typeId = request->getUserTypeID();
                 SetID setId = request->getSetID();
@@ -1313,7 +1235,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                               << ", setId = " << setId << std::endl;
                     std::cout << errMsg << std::endl;
                     logger->error(errMsg);
-                    // exit(-1);
                 }
                 return make_pair(res, errMsg);
             }));
@@ -1324,13 +1245,11 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
         make_shared<SimpleRequestHandler<StoragePinBytes>>(
             [&](Handle<StoragePinBytes> request, PDBCommunicatorPtr sendUsingMe) {
                 PDBLoggerPtr logger = make_shared<PDBLogger>("storagePinPage.log");
-                // NodeID nodeId = request->getNodeID();
                 DatabaseID dbId = request->getDatabaseID();
                 UserTypeID typeId = request->getUserTypeID();
                 SetID setId = request->getSetID();
                 size_t sizeOfBytes = request->getSizeOfBytes();
 
-                // PDB_COUT << "to pin bytes in set with setId=" << setId << std :: endl;
                 bool res;
                 string errMsg;
 
@@ -1377,12 +1296,10 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
 
             PDBLoggerPtr logger = make_shared<PDBLogger>("storageUnpinPage.log");
 
-            // NodeID nodeId = request->getNodeID();
             DatabaseID dbId = request->getDatabaseID();
             UserTypeID typeId = request->getUserTypeID();
             SetID setId = request->getSetID();
             PageID pageId = request->getPageID();
-            // bool wasDirty = msg->getWasDirty();
 
             CacheKey key;
             key.dbId = dbId;
@@ -1390,16 +1307,9 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             key.setId = setId;
             key.pageId = pageId;
 
-            // std :: cout << "Frontend to unpin page with dbId=" << dbId << ", typeId=" << typeId
-            // << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
-            // logger->debug(std :: string("Frontend to unpin page with dbId=")+std ::
-            // to_string(dbId)+std :: string(", typeId=")+std :: to_string(typeId)+std :: string(",
-            // setId=")+std :: to_string(setId)+std :: string(", pageId=")+std ::
-            // to_string(pageId));
 
             bool res;
             std::string errMsg;
-            // std :: cout << "page added to flush buffer" << std :: endl;
             if (getFunctionality<PangeaStorageServer>().getCache()->decPageRefCount(key) == false) {
                 res = false;
                 errMsg = "Fatal Error: Page doesn't exist for unpinning page.";
@@ -1412,20 +1322,15 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 getFunctionality<PangeaStorageServer>().getCache()->evictPage(key);
 #endif
                 res = true;
-                // std :: cout << "Frontend unpinned page with dbId=" << dbId << ", typeId=" <<
-                // typeId << ", setId=" << setId << ", pageId=" << pageId << std :: endl;
             }
 
-            // std :: cout << "Making response object.\n";
             logger->debug(std::string("Making response object.\n"));
             const UseTemporaryAllocationBlock block{1024};
             Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
             // return the result
-            // std :: cout << "Sending response object.\n";
             logger->debug(std::string("Sending response object.\n"));
             res = sendUsingMe->sendObject(response, errMsg);
-            // std :: cout << "response sent for StorageUnpinPage.\n";
             logger->debug(std::string("response sent for StorageUnpinPage.\n"));
 
             return make_pair(res, errMsg);
@@ -1440,7 +1345,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
         make_shared<SimpleRequestHandler<StorageGetSetPages>>([&](
             Handle<StorageGetSetPages> request, PDBCommunicatorPtr sendUsingMe) {
 
-            // NodeID nodeId = request->getNodeID();
             DatabaseID dbId = request->getDatabaseID();
             UserTypeID typeId = request->getUserTypeID();
             SetID setId = request->getSetID();
@@ -1464,7 +1368,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
             set->setPinned(true);
             int numIterators = iterators->size();
 
-            // std :: cout << "Buzzer is created in PDBScanWork\n";
             PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& counter) {
                 counter++;
                 PDB_COUT << "counter = " << counter << std::endl;
@@ -1479,12 +1382,10 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                     iterators->at(i), &getFunctionality<PangeaStorageServer>(), counter);
                 worker->execute(scanWork, tempBuzzer);
             }
-            // std :: cout << "Frontend number of iterataors:" << numIterators << std :: endl;
 
             while (counter < numIterators) {
                 tempBuzzer->wait();
             }
-            // std :: cout << "Frontend to send NoMorePage message." << std :: endl;
             set->setPinned(false);
             delete iterators;
 
@@ -1566,17 +1467,14 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                         communicatorToBackend->getNextObject<SimpleRequestResult>(res, errMsg);
                     }
 
-                    // std :: cout << "Making response object.\n";
                     {
                         const UseTemporaryAllocationBlock block{1024};
                         Handle<SimpleRequestResult> response =
                             makeObject<SimpleRequestResult>(res, errMsg);
 
                         // return the result
-                        // std :: cout << "Sending response object.\n";
                         res = sendUsingMe->sendObject(response, errMsg);
                     }
-                    // std :: cout << "All Done!" << std :: endl;
                     return make_pair(res, errMsg);
                 }
 
@@ -1608,7 +1506,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 res = false;
                 errMsg = "Fatal Error: Input set doesn't exist!";
                 std::cout << errMsg << std::endl;
-                // return make_pair(res, errMsg);
             }
 
             if (setOut == nullptr) {
@@ -1644,7 +1541,6 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 if (!communicatorToBackend->sendObject<BackendTestSetCopy>(msg, errMsg)) {
                     res = false;
                     std::cout << errMsg << std::endl;
-                    // return make_pair(res, errMsg);
                 } else {
                     const UseTemporaryAllocationBlock myBlock{
                         communicatorToBackend->getSizeOfNextObject()};
@@ -1652,17 +1548,14 @@ void PangeaStorageServer::registerHandlers(PDBServer& forMe) {
                 }
             }
 
-            // std :: cout << "Making response object.\n";
             {
                 const UseTemporaryAllocationBlock block{1024};
                 Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
                 // return the result
-                // std :: cout << "Sending response object.\n";
                 res = sendUsingMe->sendObject(response, errMsg);
             }
 
-            // std :: cout << "All Done!" << std :: endl;
             return make_pair(res, errMsg);
 
         }));
@@ -1739,11 +1632,9 @@ void PangeaStorageServer::createRootDirs() {
     } else {
         while ((curPos = strDataRootPaths.find(',')) != string::npos) {
             curDataRootPath = strDataRootPaths.substr(startPos, curPos);
-            // cout<<"Cur data root path: "<<curDataRootPath<<"\n";
             this->conf->createDir(curDataRootPath);
             dataRootPaths.push_back(curDataRootPath);
             strDataRootPaths = strDataRootPaths.substr(curPos + 1, strDataRootPaths.length() + 1);
-            // cout<<"Next data root path(s): "<<strDataRootPaths<<"\n";
         }
         this->conf->createDir(strDataRootPaths);
         dataRootPaths.push_back(strDataRootPaths);
@@ -1848,14 +1739,10 @@ bool PangeaStorageServer::removeDatabase(std::string dbName) {
 
 // return database
 DefaultDatabasePtr PangeaStorageServer::getDatabase(DatabaseID dbId) {
-    // this->logger->writeLn("Searching for database:");
-    // this->logger->writeInt(dbId);
     map<DatabaseID, DefaultDatabasePtr>::iterator it = this->dbs->find(dbId);
     if (it != this->dbs->end()) {
         return it->second;
     }
-    // this->logger->writeLn("Database doesn't exist:");
-    // this->logger->writeInt(dbId);
     return nullptr;
 }
 
@@ -2124,10 +2011,8 @@ TempSetPtr PangeaStorageServer::getTempSet(SetID setId) {
 
 // returns a specified set
 SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID setId) {
-    // cout << "to get database...\n";
     if ((dbId == 0) && (typeId == 0)) {
         SetPtr set = this->getTempSet(setId);
-        // this->getCache()->pin(set, MRU, Write);
         return set;
     }
     DefaultDatabasePtr db = this->getDatabase(dbId);
@@ -2136,16 +2021,13 @@ SetPtr PangeaStorageServer::getSet(DatabaseID dbId, UserTypeID typeId, SetID set
         return nullptr;
     }
 
-    // cout << "to get type...\n";
     TypePtr type = db->getType(typeId);
     if (type == nullptr) {
         this->logger->writeLn("PDBStorage: Type doesn't exist.");
         return nullptr;
     }
 
-    // cout << "to get set...\n";
     SetPtr set = type->getSet(setId);
-    // this->getCache()->pin(set, MRU, Write);
     return set;
 }
 

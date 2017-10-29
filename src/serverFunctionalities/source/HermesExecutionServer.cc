@@ -286,13 +286,11 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         }
 
         res = true;
-        // std :: cout << "Making response object.\n";
         const UseTemporaryAllocationBlock block{1024};
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
         // return the result
         res = sendUsingMe->sendObject(response, errMsg);
-        // std :: cout << "Sending response object.\n";
         return make_pair(res, errMsg);
 
       }));
@@ -309,8 +307,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         std::string errMsg;
         if (getCurPageScanner() == nullptr) {
           // initialize a pipeline network
-          // int numThreads =
-          // getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
           NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
           pdb::PDBLoggerPtr logger = getFunctionality<HermesExecutionServer>().getLogger();
           SharedMemPtr shm = getFunctionality<HermesExecutionServer>().getSharedMem();
@@ -330,13 +326,11 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         PDB_COUT << "to send back reply" << std::endl;
 
 
-        // std :: cout << "Making response object.\n";
         const UseTemporaryAllocationBlock block{1024};
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
         // return the result
         res = sendUsingMe->sendObject(response, errMsg);
-        // std :: cout << "Sending response object.\n";
         return make_pair(res, errMsg);
 
       }));
@@ -347,8 +341,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
       make_shared<SimpleRequestHandler<BroadcastJoinBuildHTJobStage>>([&](
           Handle<BroadcastJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
 
-        // getAllocator().cleanInactiveBlocks((size_t)(67108844));
-        // getAllocator().cleanInactiveBlocks((size_t)(12582912));
         getAllocator().cleanInactiveBlocks((size_t) ((size_t) 32 * (size_t) 1024 * (size_t) 1024));
         getAllocator().cleanInactiveBlocks((size_t) ((size_t) 256 * (size_t) 1024 * (size_t) 1024));
 
@@ -495,35 +487,23 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         while (iter->hasNext()) {
           page = iter->next();
           if (page != nullptr) {
-            // std :: cout << "####Scanner got a non-null page with Id = " <<
-            // page->getPageID() << "for merging with Map" << std :: endl;
             // to get the map on the page
             RecordIteratorPtr recordIter = make_shared<RecordIterator>(page);
             while (recordIter->hasNext() == true) {
               Record<Object> *record = recordIter->next();
               if (record != nullptr) {
                 Handle<Object> theOtherMap = record->getRootObject();
-                // Handle<JoinMap<Object>> theCastedMap = unsafeCast<JoinMap<Object>,
-                // Object>(theOtherMap);
                 // to merge the two maps
-                // std :: cout << "####To merge the map with size = " <<
-                // theCastedMap->size() << std :: endl;
                 merger->writeOut(theOtherMap, myMap);
               }
             }
 
-            // std :: cout << "####To unpin the page with id = " << page->getPageID() << std
-            // :: endl;
             proxy->unpinUserPage(
                 nodeId, page->getDbID(), page->getTypeID(), page->getSetID(), page);
-            // std :: cout << "####Unpined page with id = " << page->getPageID() << std ::
-            // endl;
 
-          } /*else {
-                     PDB_COUT << "####Scanner got a null page" << std :: endl;
-                }*/
+          }
+               
         }
-        // PDB_COUT << "To get record" << std :: endl;
         getRecord(myMap);
 
         getAllocator().setPolicy(AllocatorPolicy::defaultAllocator);
@@ -548,8 +528,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
       AggregationJobStage_TYPEID,
       make_shared<SimpleRequestHandler<AggregationJobStage>>([&](
                                                                  Handle<AggregationJobStage> request, PDBCommunicatorPtr sendUsingMe) {
-                                                               // getAllocator().cleanInactiveBlocks((size_t)(67108844));
-                                                               // getAllocator().cleanInactiveBlocks((size_t)(12582912));
                                                                getAllocator().cleanInactiveBlocks((size_t) ((size_t) 32 * (size_t) 1024 * (size_t) 1024));
                                                                getAllocator().cleanInactiveBlocks((size_t) ((size_t) 256 * (size_t) 1024 * (size_t) 1024));
                                                                const UseTemporaryAllocationBlock block{32 * 1024 * 1024};
@@ -660,8 +638,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                    std::string out = getAllocator().printInactiveBlocks();
                                                                    logger->warn(out);
                                                                    PDB_COUT << out << std::endl;
-                                                                   // getAllocator().cleanInactiveBlocks((size_t)(67108844));
-                                                                   // getAllocator().cleanInactiveBlocks((size_t)(12582912));
                                                                    getAllocator().cleanInactiveBlocks(
                                                                        (size_t) ((size_t) 32 * (size_t) 1024 * (size_t) 1024));
                                                                    getAllocator().cleanInactiveBlocks(
@@ -683,10 +659,7 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                    std::string errMsg;
 
                                                                    // get aggregate computation
-                                                                   // std :: cout << i << ": to get aggregation computation" << std :: endl;
                                                                    Handle<AbstractAggregateComp> aggComputation = request->getAggComputation();
-                                                                   // std :: cout << i << ": to deep copy aggregation computation object" << std ::
-                                                                   // endl;
                                                                    Handle<AbstractAggregateComp> newAgg =
                                                                        deepCopyToCurrentAllocationBlock<AbstractAggregateComp>(aggComputation);
 
@@ -701,8 +674,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                      while (myIter->hasNext()) {
                                                                        PDBPagePtr page = myIter->next();
                                                                        if (page != nullptr) {
-                                                                         // std :: cout << "aggregation without materialization: got one
-                                                                         // non-null page" << std :: endl;
                                                                          Record<Vector<Handle<Object>>> *myRec =
                                                                              (Record<Vector<Handle<Object>>> *) page->getBytes();
                                                                          Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
@@ -711,20 +682,13 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                            inputSize = inputData->size();
                                                                          }
                                                                          for (int j = 0; j < inputSize; j++) {
-                                                                           // std :: cout << i << ": AggregationProcessor: got an object "
-                                                                           // << j << " in "<< inputData->size() << " objects" << std ::
-                                                                           // endl;
                                                                            aggregateProcessor->loadInputObject((*inputData)[j]);
                                                                            if (aggregateProcessor->needsProcessInput() == false) {
                                                                              continue;
                                                                            }
                                                                            if (outBytes == nullptr) {
                                                                              // create a new partition
-                                                                             // std :: cout << "aggregation without materialization: add
-                                                                             // output page" << std :: endl;
                                                                              outBytes = aggregationSet->addPage();
-                                                                             // std :: cout << "add a new page to hash set for
-                                                                             // partition-" << i << std :: endl;
                                                                              if (outBytes == nullptr) {
                                                                                std::cout << "insufficient memory in heap" << std::endl;
                                                                                exit(-1);
@@ -778,8 +742,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
 
                                                                      // aggregation page size
                                                                      size_t aggregationPageSize = conf->getHashPageSize();
-                                                                     // std :: cout << "aggregation page size is " << aggregationPageSize << std
-                                                                     // :: endl;
                                                                      // allocate one output page
                                                                      void *aggregationPage = nullptr;
 
@@ -789,13 +751,8 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                      aggOutProcessor->initialize();
                                                                      PageCircularBufferIteratorPtr myIter = hashIters[i];
                                                                      while (myIter->hasNext()) {
-                                                                       // std :: cout << i << ": AggregationProcessor: got a page" << std ::
-                                                                       // endl;
                                                                        PDBPagePtr page = myIter->next();
                                                                        if (page != nullptr) {
-                                                                         // std :: cout << i << ": AggregationProcessor: got a non-null page
-                                                                         // for aggregation with pageId="<< page->getPageID() << ", reference
-                                                                         // count =" << page->getRefCount() << std :: endl;
                                                                          Record<Vector<Handle<Object>>> *myRec =
                                                                              (Record<Vector<Handle<Object>>> *) page->getBytes();
                                                                          Handle<Vector<Handle<Object>>> inputData = myRec->getRootObject();
@@ -805,23 +762,17 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                            inputSize = inputData->size();
                                                                          }
                                                                          for (int j = 0; j < inputSize; j++) {
-                                                                           // std :: cout << i << ": AggregationProcessor: got an object"
-                                                                           // << std :: endl;
                                                                            aggregateProcessor->loadInputObject((*inputData)[j]);
                                                                            if (aggregateProcessor->needsProcessInput() == false) {
                                                                              continue;
                                                                            }
                                                                            if (aggregationPage == nullptr) {
-                                                                             // std :: cout << i << ": AggregationProcessor: we allocated
-                                                                             // an output page" << std :: endl;
                                                                              aggregationPage =
                                                                                  (void *) malloc(aggregationPageSize * sizeof(char));
                                                                              aggregateProcessor->loadOutputPage(aggregationPage,
                                                                                                                 aggregationPageSize);
                                                                            }
                                                                            if (aggregateProcessor->fillNextOutputPage()) {
-                                                                             // std :: cout << i <<": AggregationProcessor: we have
-                                                                             // filled an output page" << std :: endl;
                                                                              std::cout
                                                                                  << "WARNING: aggregation for partition-" << i
                                                                                  << " can't finish in one aggregation page with size="
@@ -836,13 +787,9 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                                      "insufficient, results are not fully aggregated!"));
                                                                              // write to output set
                                                                              // load input page
-                                                                             // std :: cout << i << ": AggOutProcessor: we now have an
-                                                                             // input page" << std :: endl;
                                                                              aggOutProcessor->loadInputPage(aggregationPage);
                                                                              // get output page
                                                                              if (output == nullptr) {
-                                                                               // std :: cout << i << ": AggOutProcessor: we now pin an
-                                                                               // output page" << std :: endl;
                                                                                proxy->addUserPage(outputSet->getDatabaseId(),
                                                                                                   outputSet->getTypeId(),
                                                                                                   outputSet->getSetId(),
@@ -871,7 +818,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                                                                output->getSize());
                                                                              }
                                                                              aggregateProcessor->clearOutputPage();
-                                                                             // aggOutProcessor->clearInputPage();
                                                                              free(aggregationPage);
                                                                              break;
                                                                            }
@@ -879,13 +825,7 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                          // aggregateProcessor->clearInputPage();
                                                                          // unpin the input page
                                                                          page->decRefCount();
-                                                                         // std :: cout << i << ": processed an input page with pageId = " <<
-                                                                         // page->getPageID() << ", reference count=" << page->getRefCount()
-                                                                         // << std :: endl;
                                                                          if (page->getRefCount() == 0) {
-                                                                           // std :: cout << i << ": to unpin the input page: with dbId="<<
-                                                                           // page->getDbID() << ", setId=" << page->getSetID() << ",
-                                                                           // pageId=" << page->getPageID() << std :: endl;
                                                                            proxy->unpinUserPage(nodeId,
                                                                                                 page->getDbID(),
                                                                                                 page->getTypeID(),
@@ -899,13 +839,9 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                        aggregateProcessor->finalize();
                                                                        aggregateProcessor->fillNextOutputPage();
                                                                        // load input page
-                                                                       // std :: cout << i <<": AggOutProcessor: we now have the last input
-                                                                       // page" << std :: endl;
                                                                        aggOutProcessor->loadInputPage(aggregationPage);
                                                                        // get output page
                                                                        if (output == nullptr) {
-                                                                         // std :: cout << i << ": AggOutProcessor: we now pin an output
-                                                                         // page" << std :: endl;
                                                                          proxy->addUserPage(outputSet->getDatabaseId(),
                                                                                             outputSet->getTypeId(),
                                                                                             outputSet->getSetId(),
@@ -915,8 +851,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                        }
                                                                        while (aggOutProcessor->fillNextOutputPage()) {
                                                                          aggOutProcessor->clearOutputPage();
-                                                                         // std :: cout << i << ": AggOutProcessor: we now filled an output
-                                                                         // page and unpin it" << std :: endl;
                                                                          // unpin the output page
                                                                          proxy->unpinUserPage(nodeId,
                                                                                               outputSet->getDatabaseId(),
@@ -937,15 +871,12 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                        aggOutProcessor->finalize();
                                                                        aggOutProcessor->fillNextOutputPage();
                                                                        aggOutProcessor->clearOutputPage();
-                                                                       // std :: cout << i <<": AggOutProcessor: we now filled an output page
-                                                                       // and unpin it" << std :: endl;
                                                                        proxy->unpinUserPage(nodeId,
                                                                                             outputSet->getDatabaseId(),
                                                                                             outputSet->getTypeId(),
                                                                                             outputSet->getSetId(),
                                                                                             output);
                                                                        // free aggregation page
-                                                                       // aggOutProcessor->clearInputPage();
                                                                        aggregateProcessor->clearOutputPage();
                                                                        free(aggregationPage);
                                                                      }  // aggregationPage != nullptr
@@ -1045,14 +976,11 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                                                                    while (iter->hasNext()) {
                                                                      page = iter->next();
                                                                      if (page != nullptr) {
-                                                                       // std :: cout << "Scanner got a non-null page" << std :: endl;
                                                                        int k;
                                                                        for (k = 0; k < numPartitions; k++) {
                                                                          page->incRefCount();
                                                                        }
                                                                        for (k = 0; k < numPartitions; k++) {
-                                                                         // std :: cout << "add page to the " << k << "-th buffer" << std ::
-                                                                         // endl;
                                                                          hashBuffers[k]->addPageToTail(page);
                                                                        }
                                                                      }
@@ -1106,10 +1034,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
       HashPartitionedJoinBuildHTJobStage_TYPEID,
       make_shared<SimpleRequestHandler<HashPartitionedJoinBuildHTJobStage>>([&](
           Handle<HashPartitionedJoinBuildHTJobStage> request, PDBCommunicatorPtr sendUsingMe) {
-        // getAllocator().cleanInactiveBlocks((size_t)(67108844));
-        // getAllocator().cleanInactiveBlocks((size_t)(12582912));
-        // getAllocator().cleanInactiveBlocks((size_t)((size_t)32 * (size_t)1024 *
-        // (size_t)1024));
         getAllocator().cleanInactiveBlocks((size_t) ((size_t) 256 * (size_t) 1024 * (size_t) 1024));
         const UseTemporaryAllocationBlock block{32 * 1024 * 1024};
         bool success;
@@ -1228,15 +1152,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
 #endif
             PDB_COUT << "hashSetSize = " << hashSetSize << std::endl;
             getAllocator().setPolicy(AllocatorPolicy::noReuseAllocator);
-            // to get the sink merger
-            /*std :: string sourceTupleSetSpecifier = request->getSourceTupleSetSpecifier();
-            std :: string targetTupleSetSpecifier = request->getTargetTupleSetSpecifier();
-            std :: string targetComputationSpecifier =
-            request->getTargetComputationSpecifier();
-            Handle<ComputePlan> myComputePlan = request->getComputePlan();
-            SinkMergerPtr merger = myComputePlan->getMerger(sourceTupleSetSpecifier,
-            targetTupleSetSpecifier, targetComputationSpecifier);
-            */
             Handle<Object> myMap = merger->createNewOutputContainer();
 
             // setup an output page to store intermediate results and final output
@@ -1245,8 +1160,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
             while (myIter->hasNext()) {
               page = myIter->next();
               if (page != nullptr) {
-                // std :: cout << i << "####Scanner got a non-null page with Id = " <<
-                // page->getPageID() << "for merging with Map" << std :: endl;
                 // to get the map on the page
                 RecordIteratorPtr recordIter = make_shared<RecordIterator>(page);
                 while (recordIter->hasNext()) {
@@ -1257,23 +1170,13 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
                   }
                 }
                 // unpin the input page
-                // PDB_COUT << "####To unpin the page with id = " << page->getPageID()
-                // << std :: endl;
                 page->decRefCount();
-                // std :: cout << i << ": processed an input page with pageId = " <<
-                // page->getPageID() << ", reference count=" << page->getRefCount() <<
-                // std :: endl;
                 if (page->getRefCount() == 0) {
-                  // std :: cout << i << ": to unpin the input page: with dbId="<<
-                  // page->getDbID() << ", setId=" << page->getSetID() << ", pageId="
-                  // << page->getPageID() << std :: endl;
                   proxy->unpinUserPage(nodeId,
                                        page->getDbID(),
                                        page->getTypeID(),
                                        page->getSetID(),
                                        page);
-                  // PDB_COUT << "####Unpined page with id = " << page->getPageID() <<
-                  // std :: endl;
                 }
 
               } else {
@@ -1375,14 +1278,11 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
             while (iter->hasNext()) {
               page = iter->next();
               if (page != nullptr) {
-                // PDB_COUT << "Scanner got a non-null page" << std :: endl;
                 int k;
                 for (k = 0; k < numPartitions; k++) {
                   page->incRefCount();
                 }
                 for (k = 0; k < numPartitions; k++) {
-                  // PDB_COUT << "add page to the " << k << "-th buffer" << std ::
-                  // endl;
                   hashBuffers[k]->addPageToTail(page);
                 }
               }
@@ -1435,8 +1335,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
       TupleSetJobStage_TYPEID,
       make_shared<SimpleRequestHandler<TupleSetJobStage>>([&](Handle<TupleSetJobStage> request,
                                                               PDBCommunicatorPtr sendUsingMe) {
-        // getAllocator().cleanInactiveBlocks((size_t)(67108844));
-        // getAllocator().cleanInactiveBlocks((size_t)(12582912));
         getAllocator().cleanInactiveBlocks((size_t) ((size_t) 32 * (size_t) 1024 * (size_t) 1024));
 
         getAllocator().cleanInactiveBlocks((size_t) ((size_t) 256 * (size_t) 1024 * (size_t) 1024));
@@ -1574,10 +1472,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         DatabaseID dbIdOut = request->getDatabaseOut();
         UserTypeID typeIdOut = request->getTypeIdOut();
         SetID setIdOut = request->getSetIdOut();
-        // std :: cout << "Backend received BackendTestSetCopy message to copy from <dbId=" <<
-        // dbIdIn <<", typeId=" << typeIdIn <<", setId=" << setIdIn
-        //          << "> to < dbId=" << dbIdOut << ", typeId=" << typeIdOut << ", setId=" <<
-        //          setIdOut << ">" <<std :: endl;
 
         int numThreads = getFunctionality<HermesExecutionServer>().getConf()->getNumThreads();
         NodeID nodeId = getFunctionality<HermesExecutionServer>().getNodeID();
@@ -1628,7 +1522,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         proxy->addTempSet("intermediateData", tempSetId);
         PDB_COUT << "temp set created with setId = " << tempSetId << std::endl;
 
-        // std :: cout << "Buzzer is created in TestCopyWork!\n";
         PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int &counter) {
           counter++;
           PDB_COUT << "counter = " << counter << std::endl;
@@ -1638,7 +1531,6 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
         for (int i = 0; i < numThreads; i++) {
           PDBWorkerPtr worker =
               getFunctionality<HermesExecutionServer>().getWorkers()->getWorker();
-          // std :: cout << "to run the " << i << "-th work..." << std :: endl;
           // starting processing threads;
           TestCopyWorkPtr testCopyWork =
               make_shared<TestCopyWork>(iterators.at(i),
@@ -1713,13 +1605,11 @@ void HermesExecutionServer::registerHandlers(PDBServer &forMe) {
           std::cout << errMsg << std::endl;
         }
 
-        // std :: cout << "Making response object.\n";
         const UseTemporaryAllocationBlock block{1024};
         Handle<SimpleRequestResult> response = makeObject<SimpleRequestResult>(res, errMsg);
 
         // return the result
         res = sendUsingMe->sendObject(response, errMsg);
-        // std :: cout << "Sending response object.\n";
         return make_pair(res, errMsg);
 
       }));
