@@ -174,7 +174,6 @@ bool PDBCatalog::deleteItemInVector(int& index, Handle<CatalogUserTypeMetadata>&
 }
 
 void errorLogCallback(void* pArg, int iErrCode, const char* zMsg) {
-
     fprintf(stderr, "(%d) %s\n", iErrCode, zMsg);
 }
 
@@ -224,10 +223,8 @@ PDBCatalog::PDBCatalog(PDBLoggerPtr logger, string location) {
     }
 
     listUsersInCluster = makeObject<Vector<Handle<CatalogUserTypeMetadata>>>();
-
     registeredNodesMetadata = makeObject<Vector<CatalogNodeMetadata>>();
     registeredSetsMetadata = makeObject<Vector<CatalogSetMetadata>>();
-    ;
     registeredDatabasesMetadata = makeObject<Vector<CatalogDatabaseMetadata>>();
     registeredUserDefinedTypesMetadata = makeObject<Vector<CatalogUserTypeMetadata>>();
 
@@ -371,9 +368,6 @@ void PDBCatalog::open() {
 
         PDB_COUT << "Database catalog successfully open." << endl;
 
-        PDB_COUT << " *********Print Metadata " << endl;
-        PDB_COUT << " *********Print Metadata " << endl;
-
     } else {
         // cout << "EXISTS!!! " << endl;
     }
@@ -487,34 +481,6 @@ void PDBCatalog::loadsMetadataIntoMemory() {
     cout << "=========================================" << endl;
 }
 
-void PDBCatalog::testCatalogPrint() {
-    for (auto& a : *catalogContents) {
-        cout << "List of: " << a.key << endl;
-        if (string(a.key.c_str()).compare("nodes") == 0) {
-            Handle<Vector<CatalogNodeMetadata>> nodesMetadata;
-            nodesMetadata = unsafeCast<Vector<CatalogNodeMetadata>>(a.value);
-            for (int i = 0; i < nodesMetadata->size(); i++) {
-                cout << (*nodesMetadata)[i].printShort() << endl;
-            }
-        }
-        if (string(a.key.c_str()).compare("dbs") == 0) {
-            Handle<Vector<CatalogDatabaseMetadata>> dbMetadata;
-            dbMetadata = unsafeCast<Vector<CatalogDatabaseMetadata>>(a.value);
-            for (int i = 0; i < dbMetadata->size(); i++) {
-                cout << (*dbMetadata)[i].printShort() << endl;
-            }
-        }
-        if (string(a.key.c_str()).compare("sets") == 0) {
-            Handle<Vector<CatalogSetMetadata>> setMetadata;
-            setMetadata = unsafeCast<Vector<CatalogSetMetadata>>(a.value);
-            for (int i = 0; i < setMetadata->size(); i++) {
-                cout << (*setMetadata)[i].printShort() << endl;
-            }
-        }
-    }
-}
-
-
 void PDBCatalog::getModifiedMetadata(Handle<CatalogPrintMetadata> &itemMetadata) {
     string errorMessage;
 
@@ -524,12 +490,10 @@ void PDBCatalog::getModifiedMetadata(Handle<CatalogPrintMetadata> &itemMetadata)
         makeObject<Vector<CatalogNodeMetadata>>();
     Handle<Vector<CatalogSetMetadata>> _registeredSetsMetadata =
         makeObject<Vector<CatalogSetMetadata>>();
-    ;
     Handle<Vector<CatalogDatabaseMetadata>> _registeredDatabasesMetadata =
         makeObject<Vector<CatalogDatabaseMetadata>>();
     Handle<Vector<CatalogUserTypeMetadata>> _registeredUserDefinedTypesMetadata =
         makeObject<Vector<CatalogUserTypeMetadata>>();
-    ;
 
     // retrieves metadata from the sqlite DB and populates containers
     if (getMetadataFromCatalog(true,
@@ -712,17 +676,12 @@ bool PDBCatalog::getMetadataFromCatalog(bool onlyModified,
                     (Record<CatalogMetadataType>*)malloc(numBytes);
 
                 memcpy(recordBytes, sqlite3_column_blob(statement, 1), numBytes);
-                // cout << "retrieving " << key << " with timeStamp= " <<
-                // sqlite3_column_int(statement, 2) << endl;
 
                 // get the object
                 Handle<CatalogMetadataType> returnedObject = recordBytes->getRootObject();
 
                 string itemId = returnedObject->getItemKey().c_str();
                 this->logger->debug("itemId=" + itemId);
-                // TODO keep only one container Handle<Vector<PDBCatalog>, the other two don't work
-                //                    returnedValues->push_back(returnedObject);
-                //                    itemList.insert(make_pair(itemId,*returnedObject));
                 returnedItems->push_back(*returnedObject);
                 free(recordBytes);
 
@@ -826,8 +785,6 @@ bool PDBCatalog::registerUserDefinedObject(int16_t typeCode,
 
         // Inserts newly added object into containers
         addItemToVector(objectToRegister, totalRegisteredTypes);
-        pair<map<string, Object>::iterator, bool> result;
-        pair<map<int16_t, Object>::iterator, bool> result2;
 
         if (rc != SQLITE_OK) {
             errorMessage =
@@ -908,7 +865,6 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
     Record<CatalogUserTypeMetadata>* recordBytes =
         (Record<CatalogUserTypeMetadata>*)malloc(numBytes);
 
-    // JiaNote: we should check whether malloc is successful!
     if (recordBytes == nullptr) {
         PDB_COUT << "FATAL ERROR: Out of memory!" << std::endl;
 
@@ -917,11 +873,6 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
     }
 
     memcpy(recordBytes, sqlite3_column_blob(pStmt, 1), numBytes);
-    // cout << "retrieving " << key << " with timeStamp= " << sqlite3_column_int(statement, 2) <<
-    // endl;
-
-    // get the object
-    // JiaNote: we need to do deep copy like this!!!
     Handle<CatalogUserTypeMetadata> returnedObject = recordBytes->getRootObject();
     returnedItem = deepCopyToCurrentAllocationBlock<CatalogUserTypeMetadata>(returnedObject);
 
@@ -954,22 +905,6 @@ bool PDBCatalog::retrievesDynamicLibrary(string itemId,
     pthread_mutex_unlock(&(registerMetadataMutex));
     free(recordBytes);
     return true;
-}
-
-string PDBCatalog::genRandomString(int len) {
-    srand(time(0));
-    string str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    int pos;
-    while (str.size() != len) {
-        pos = ((rand() % (str.size() - 1)));
-        str.erase(pos, 1);
-    }
-    return str;
-}
-
-int PDBCatalog::createsTempPath() {
-    tempPath = genRandomString(18);
-    return mkdir(tempPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 void PDBCatalog::deleteTempSoFiles(string filePath) {
@@ -1175,10 +1110,6 @@ bool PDBCatalog::deleteMetadataInCatalog(pdb::Handle<CatalogMetadataType> metada
                                          string& errorMessage) {
 
     pthread_mutex_lock(&(registerMetadataMutex));
-
-    // This cout causes the program to hang
-    // cout << "Deleting metadata" << metadataValue->printShort() << endl;
-
     // gets the key and index for this item in order to update the sqlite table and
     // update the container in memory
     String metadataKey = metadataValue->getItemKey();
@@ -1250,12 +1181,6 @@ int PDBCatalog::getLastId(int& metadataCategory) {
             lastId = registeredSetsMetadata->size();
             break;
         }
-
-            //            default :
-            //            {
-            //                lastId = -1;
-            //                break;
-            //            }
     }
     return lastId;
 }
@@ -1330,7 +1255,7 @@ string PDBCatalog::itemName2ItemId(int& metadataCategory, string& key) {
         }
 
         case PDBCatalogMsgType::CatalogPDBRegisteredObject: {
-            // User-defined types and metrics are stored in a different type of map
+            // User-defined types are stored in a different type of map
             return registeredUserDefinedTypes[key].getObjectID().c_str();
             break;
         }
@@ -1447,7 +1372,6 @@ void PDBCatalog::getListOfDatabases(Handle<Vector<CatalogDatabaseMetadata>>& dat
             }
         }
     }
-    //        databasesInCatalog = registeredDatabasesMetadata;
 }
 
 void PDBCatalog::getListOfSets(Handle<Vector<CatalogSetMetadata>>& setsInCatalog,
@@ -1462,7 +1386,6 @@ void PDBCatalog::getListOfSets(Handle<Vector<CatalogSetMetadata>>& setsInCatalog
             }
         }
     }
-    //        setsInCatalog = registeredSetsMetadata;
 }
 
 void PDBCatalog::getListOfNodes(Handle<Vector<CatalogNodeMetadata>>& nodesInCatalog,

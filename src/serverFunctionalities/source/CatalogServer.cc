@@ -371,14 +371,9 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
             } else {
                 // if this is not the Master catalog, retrieves .so bytes from the remote master
                 // catalog
-
-                // JiaNote: It is possible this request is from a backend process, in that case, it
-                // is possible that
-                // frontend catalog server already has that shared library file
                 if (allTypeCodes.count(typeId) == 0) {
                     // process the case where the type is not registered in this local catalog
-                    // Allocates 124Mb for sending .so libraries
-                    // TODO change this constant
+                    // Allocates 150Mb for sending .so libraries
                     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                     Handle<CatalogUserTypeMetadata> response =
@@ -391,13 +386,11 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
                              << endl;
 
                     // uses a dummyObjectFile since this is just making a remote call to the Catalog
-                    // Master Server
-                    // and what matters is the returned bytes.
+                    // Master Server and what matters is the returned bytes.
                     string dummyObjectFile = string("temp.so");
 
-                    // retrieves from remote catalog the Shared Library bytes in "putsResultHere"
-                    // and
-                    // metadata in the "response" object
+                    // retrieves from remote catalog the Shared Library bytes in "returnedBytes"
+                    // and metadata in the "response" object
                     res = catalogClientConnectionToMasterCatalogServer.getSharedLibraryByTypeName(
                         typeId, typeName, dummyObjectFile, response, returnedBytes, errMsg);
 
@@ -434,7 +427,6 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
                         // if retrieval was successful prepare and send object to caller
                         PDB_COUT << "     before sending response Vtable fixed!!!!" << endl;
 
-                        // TODO change this constant
                         const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                         // prepares Object to be sent to caller
@@ -456,14 +448,8 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
                     }  // end retrieval fail/successful
                 } else {
                     // process the case where the type is already registered in this local catalog
-
-                    // JiaNote: I already have the shared library file, because the catalog client
-                    // may come from a backend process
-                    // JiaNote: I copied following code from Master Catalog code path in this
-                    // handler
-                    // Allocates 124Mb for sending .so libraries
-                    // TODO change this constant
-                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
+                    // Allocates 150Mb for sending .so libraries
+                    const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 150};
 
                     Handle<CatalogUserTypeMetadata> response =
                         makeObject<CatalogUserTypeMetadata>();
@@ -472,9 +458,8 @@ void CatalogServer::registerHandlers(PDBServer& forMe) {
                     PDB_COUT << "Resolved typeName" << typeName
                              << " for typeId=" << std::to_string(typeId) << endl;
 
-                    // retrieves from local catalog the Shared Library bytes in "putsResultHere" and
-                    // metadata
-                    // in the "response" object
+                    // retrieves from local catalog the Shared Library bytes in "returnedBytes" and
+                    // metadata in the "response" object
                     res = getFunctionality<CatalogServer>().getSharedLibraryByTypeName(
                         typeName, response, returnedBytes, errMsg);
 
@@ -921,10 +906,6 @@ bool CatalogServer::getSharedLibraryByTypeName(std::string typeName,
         PDB_COUT << "Item with key " << typeName << " was not found! " << endl;
         return false;
     }
-
-    // copy bytes to output parameter Not needed anymore
-    //            std::copy(returnedBytes.begin(), returnedBytes.end(),
-    //            std::back_inserter(putResultHere));
 }
 
 // returns the typeId of a Type given it's name, if not found returns -1
@@ -1226,7 +1207,7 @@ bool CatalogServer::addSet(int16_t typeIdentifier,
     metadataObject->setItemKey(setKeyCatalog);
     metadataObject->setItemName(setNameCatalog);
 
-    // gets the Set Id
+    // retrieves the Set Id
     catalogType = PDBCatalogMsgType::CatalogPDBDatabase;
     String _dbId = String(pdbCatalog->itemName2ItemId(catalogType, databaseName));
 
@@ -1242,7 +1223,8 @@ bool CatalogServer::addSet(int16_t typeIdentifier,
 
     catalogType = PDBCatalogMsgType::CatalogPDBSet;
 
-    // stores metadata in the Catalog
+    // adds metadata to the catalog if this is a new item,
+    // otherwise updates existing metadata
     if (isSetRegistered(dbName, setName) == false) {
         pdbCatalog->addMetadataToCatalog(metadataObject, metadataItem, catalogType, errMsg);
     } else {
@@ -1515,12 +1497,9 @@ CatalogServer::CatalogServer(std::string catalogDirectoryIn,
     catalogClientConnectionToMasterCatalogServer = CatalogClient(
         masterPort, masterIP, make_shared<pdb::PDBLogger>("clientCatalogToServerLog"));
 
-    // JiaNote: to use temporary allocation block in constructors of server functionalities
-    // TODO change this constant
     const UseTemporaryAllocationBlock tempBlock{1024 * 1024 * 128};
     _allNodesInCluster = makeObject<Vector<CatalogNodeMetadata>>();
     _setTypes = makeObject<Vector<CatalogSetMetadata>>();
-    ;
     _allDatabases = makeObject<Vector<CatalogDatabaseMetadata>>();
     _udfsValues = makeObject<Vector<CatalogUserTypeMetadata>>();
 
