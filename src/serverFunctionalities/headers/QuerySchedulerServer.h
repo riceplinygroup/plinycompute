@@ -18,7 +18,6 @@
 #ifndef QUERY_SCHEDULER_SERVER_H
 #define QUERY_SCHEDULER_SERVER_H
 
-// by Jia, Sept 2016
 
 #include "ServerFunctionality.h"
 #include "ResourceInfo.h"
@@ -41,6 +40,14 @@
 #include <vector>
 
 namespace pdb {
+
+// this class is working on Master node to schedule JobStages dynamically from TCAP logical plan
+// So far following JobStages are supported:
+// -- TupleSetJobStage
+// -- AggregationJobStage
+// -- BroadcastJoinBuildHTJobStage
+// -- HashPartitionJoinBuildHTJobStage
+
 
 class QuerySchedulerServer : public ServerFunctionality {
 

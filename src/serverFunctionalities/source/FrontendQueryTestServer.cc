@@ -15,6 +15,9 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
+#ifndef FRONTEND_SERVER_CC
+#define FRONTEND_SERVER_CC
+
 
 #include <cstddef>
 #include <iostream>
@@ -219,7 +222,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             std::cout << "BroadcastJoinBuildHTJobStage: print inactive blocks:" << std::endl;
             std::cout << out << std::endl;
 #endif
-            // getAllocator().cleanInactiveBlocks((size_t)(1048576));
             PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
             if (communicatorToBackend->connectToLocalServer(
                     getFunctionality<PangeaStorageServer>().getLogger(),
@@ -536,7 +538,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             std::cout << "TupleSetJobStage: print inactive blocks:" << std::endl;
             std::cout << out << std::endl;
 #endif
-            // getAllocator().cleanInactiveBlocks((size_t)(1048576));
             PDBCommunicatorPtr communicatorToBackend = make_shared<PDBCommunicator>();
             if (communicatorToBackend->connectToLocalServer(
                     getFunctionality<PangeaStorageServer>().getLogger(),
@@ -824,7 +825,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                                   << std::endl;
                         errMsg = std::string("Output set doesn't exist");
                         success = false;
-                        // return std :: make_pair (false, std :: string("Set doesn't exist"));;
                     }
                 } else {
                     std::cout << "ERROR: Output set doesn't exist on this machine, please create "
@@ -832,7 +832,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                               << std::endl;
                     errMsg = std::string("Output set doesn't exist");
                     success = false;
-                    // return std :: make_pair (false, std :: string("Set doesn't exist"));;
                 }
 
 
@@ -842,13 +841,10 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                     std::cout << "ERROR: output set exists, please remove it first" << std::endl;
                     errMsg = std::string("ERROR: output set exists, please remove it first");
                     success = false;
-                    // return std :: make_pair (false, std :: string("Output set exists, please
-                    // remove it first"));;
                 }
             }
             if (success == true) {
                 // restructure the output information
-                // makeObjectAllocatorBlock(24*1024*1024, true);
                 Handle<SetIdentifier> output =
                     makeObject<SetIdentifier>(outDatabaseName, outSetName);
                 PDB_COUT << "Created SetIdentifier object for output with setName=" << outSetName
@@ -861,27 +857,18 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 PDB_COUT << "Output is set" << std::endl;
 
                 // copy operators
-                // std :: cout << "get operator vector" << std :: endl;
                 Vector<Handle<ExecutionOperator>> operators = request->getOperators();
-                // std :: cout << "got operator vector" << std :: endl;
                 for (int i = 0; i < operators.size(); i++) {
-                    // std :: cout << "deep copy the " << i << "-th operator" << std :: endl;
                     Handle<QueryBase> newSelection =
                         deepCopyToCurrentAllocationBlock<QueryBase>(operators[i]->getSelection());
-                    // std :: cout << "deep copy done" << std :: endl;
                     Handle<ExecutionOperator> curOperator;
-                    // std :: cout << "to get operator name" << std :: endl;
                     if (operators[i]->getName() == "ProjectionOperator") {
-                        // std :: cout << "to make new projection operator object" << std :: endl;
                         curOperator = makeObject<ProjectionOperator>(newSelection);
                     } else if (operators[i]->getName() == "FilterOperator") {
-                        // std :: cout << "to make new filter operator object" << std :: endl;
                         curOperator = makeObject<FilterOperator>(newSelection);
                     }
                     PDB_COUT << curOperator->getName() << std::endl;
                     newRequest->addOperator(curOperator);
-                    // std :: cout << "the " << i << "-th operator is copied to vector" << std ::
-                    // endl;
                 }
 
                 newRequest->print();
@@ -1047,19 +1034,12 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
             vector<PageIteratorPtr>* pageIters = loopingSet->getIterators();
             // loop through all pages
             int numIterators = pageIters->size();
-            // PDB_COUT << "Number pages to send " << std::to_string(loopingSet->getNumPages()) <<
-            // std::endl;
-            // PDB_COUT << "Number of iterators" << numIterators << std :: endl;
             for (int i = 0; i < numIterators; i++) {
-                // PDB_COUT << "the " << i << "-th iterator" << std :: endl;
                 PageIteratorPtr iter = pageIters->at(i);
                 while (iter->hasNext()) {
                     PDBPagePtr nextPage = iter->next();
-                    // PDB_COUT << "Got a page!" << std :: endl;
                     // send the relevant page.
                     if (nextPage != nullptr) {
-                        // PDB_COUT << "Page is not null!! Sending out next page!" << std::endl;
-                        // PDB_COUT << "check the page at server side" << std :: endl;
                         Record<Vector<Handle<Object>>>* myRec =
                             (Record<Vector<Handle<Object>>>*)(nextPage->getBytes());
                         Handle<Vector<Handle<Object>>> inputVec = myRec->getRootObject();
@@ -1082,8 +1062,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                         }
 
                         int vecSize = inputVec->size();
-                        // std :: cout << "in the page to sent: vector size =" << vecSize << std ::
-                        // endl;
                         if (vecSize != 0) {
                             const UseTemporaryAllocationBlock tempBlock{2048};
 #ifdef ENABLE_COMPRESSION
@@ -1109,7 +1087,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                                 return std::make_pair(false, errMsg);
                             }
 #endif
-                            // std :: cout << "Page sent to client!" << std :: endl;
                             // see whether or not the client wants to see more results
                             bool success;
                             if (sendUsingMe->getObjectTypeID() != DoneWithResult_TYPEID) {
@@ -1154,7 +1131,6 @@ void FrontendQueryTestServer::registerHandlers(PDBServer& forMe) {
                 return std::make_pair(false, "could not send done message: " + errMsg);
             }
             // we got to here means success!!  We processed the query, and got all of the results
-            // std :: cout << "sent DoneWithResult" << std :: endl;
             return std::make_pair(true, std::string("query completed!!"));
         }));
 }
@@ -1279,3 +1255,5 @@ void FrontendQueryTestServer::doSelection(std::string setNameToUse, Handle<Query
     }
 }
 }
+
+#endif

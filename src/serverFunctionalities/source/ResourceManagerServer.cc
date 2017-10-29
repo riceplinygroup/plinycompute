@@ -18,7 +18,6 @@
 #ifndef RESOURCE_MANAGER_SERVER_CC
 #define RESOURCE_MANAGER_SERVER_CC
 
-// by Jia, Sept 2016
 #include "PDBDebug.h"
 #include "ResourceManagerServer.h"
 #include "InterfaceFunctions.h"
@@ -76,7 +75,6 @@ void ResourceManagerServer::initialize(std::string pathToServerList) {
     int maxNodeNum = 1000;
     makeObjectAllocatorBlock(2 * 1024 * 1024, true);
     this->resources = makeObject<Vector<Handle<ResourceInfo>>>(maxNodeNum);
-    // makeObjectAllocatorBlock (1*1024*1024, true);
     this->nodes = makeObject<Vector<Handle<NodeDispatcherData>>>(maxNodeNum);
     analyzeNodes(pathToServerList);
     if (pseudoClusterMode == false) {

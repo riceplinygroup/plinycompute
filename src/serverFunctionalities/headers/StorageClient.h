@@ -31,6 +31,9 @@ class StorageClient;
 
 namespace pdb {
 
+
+//this class encapsulates a StorageClient to talk with PangeaStorageServer
+
 class StorageClient : public ServerFunctionality {
 
 public:

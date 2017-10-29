@@ -18,7 +18,6 @@
 #ifndef QUERY_SCHEDULER_SERVER_CC
 #define QUERY_SCHEDULER_SERVER_CC
 
-// by Jia, Sept 2016
 
 #include "PDBDebug.h"
 #include "InterfaceFunctions.h"
@@ -745,7 +744,6 @@ void QuerySchedulerServer::parseOptimizedQuery(pdb_detail::QueryGraphIrPtr query
                         Handle<JobStage> newStage = makeObject<JobStage>(jobStageId);
                         newStage->setOutput(input);
                         stage->setParentStage(newStage);
-                        // this->currentPlan.push_back(stage);
                         stageMap[stage->getStageId()] = stage;
 
                         PDB_COUT << "stage with id=" << stage->getStageId() << " is added to map"
@@ -917,7 +915,6 @@ void QuerySchedulerServer::schedule() {
 }
 
 void QuerySchedulerServer::collectStats() {
-    // std :: cout << "to collect stats" << std :: endl;
     this->statsForOptimization = make_shared<Statistics>();
     int counter = 0;
     PDBBuzzerPtr tempBuzzer = make_shared<PDBBuzzer>([&](PDBAlarm myAlarm, int& counter) {
@@ -1164,12 +1161,9 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
                                     sourceConsumerIndex,
                                     jobStageId);
                                 if (jobStages.size() > 0) {
-                                    // std :: cout << "get " << jobStages.size() << " stages" << std
-                                    // :: endl;
                                     this->tcapAnalyzerPtr->incrementConsumerIndex(sourceName);
                                     break;
                                 } else {
-                                    // std :: cout << "get 0 jobStage" << std :: endl;
                                     if (hasConsumers == false) {
                                         std::cout << "we didn't meet a penalized set and we remove "
                                                      "source "
@@ -1179,7 +1173,6 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
                                 }
                             }
 #ifdef PROFILING
-                            // std :: cout << "JobStageId " << jobStageId-1 << std :: endl;
                             auto dynamicPlanEnd = std::chrono::high_resolution_clock::now();
                             std::cout << "Time Duration for Dynamic Planning: "
                                       << std::chrono::duration_cast<std::chrono::duration<float>>(
@@ -1229,11 +1222,6 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
                                       << " seonds." << std::endl;
                             auto removeSetBegin = std::chrono::high_resolution_clock::now();
 #endif
-                            // to remember the intermediate sets:
-                            /*PDB_COUT << "to remember intermediate sets" << std :: endl;
-                            for ( int i = 0; i < intermediateSets.size(); i++ ) {
-                                this->interGlobalSets.push_back(intermediateSets[i]);
-                            }*/
 
                             // to remove the intermediate sets:
                             for (int i = 0; i < intermediateSets.size(); i++) {
@@ -1275,37 +1263,6 @@ void QuerySchedulerServer::registerHandlers(PDBServer& forMe) {
                                              .count()
                                       << " seconds." << std::endl;
 #endif
-                            /*
-                                               auto begin = this->interGlobalSets.begin();
-                                               auto end = this->interGlobalSets.end();
-                                               while (begin != end) {
-                                                    std :: string errMsg;
-                                                    Handle<SetIdentifier> intermediateSet = *begin;
-                                                    //check whether intermediateSet is a source set
-                               and has consumer number > 0
-                                                    std :: string key =
-                               intermediateSet->getDatabase()+":"+intermediateSet->getSetName();
-                                                    unsigned int numConsumers =
-                               this->tcapAnalyzerPtr->getNumConsumers(key);
-                                                    if (numConsumers == 0) {
-                                                         bool res =
-                               dsmClient.removeTempSet(intermediateSet->getDatabase(),
-                               intermediateSet->getSetName(), "IntermediateData", errMsg);
-                                                         if (res != true) {
-                                                             std :: cout << "can't remove temp set:
-                               " <<errMsg << std :: endl;
-                                                         } else {
-                                                             std :: cout << "Removed set with
-                               database=" << intermediateSet->getDatabase() << ", set=" <<
-                               intermediateSet->getSetName() << std :: endl;
-                                                         }
-                                                         begin = this->interGlobalSets.erase(begin);
-                                                         begin = this->interGlobalSets.erase(begin);
-                                                    } else {
-                                                         begin++;
-                                                    }
-                                               }
-                            */
                         }
                         // to remove remaining intermediate sets:
                         PDB_COUT << "to remove intermediate sets" << std::endl;
