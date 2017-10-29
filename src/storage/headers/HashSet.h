@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * HashSet.h
- *
- * Created on: May 30, 2016
- * Author: Jia
- */
 
 /*
  * HashSet is an in-memory set for implementing Pangaea hash map.

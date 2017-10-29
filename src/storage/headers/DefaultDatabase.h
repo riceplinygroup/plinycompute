@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   DefaultDatabase.h
- * Author: Jia
- *
- * Created on September 28, 2015, 8:31 PM
- */
 
 #ifndef DEFAULTDATABASE_H
 #define DEFAULTDATABASE_H

@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBObject.h
- * Author: Jia
- *
- * Created on September 27, 2015, 1:20 PM
- */
 
 #ifndef PDBOBJECT_H
 #define PDBOBJECT_H

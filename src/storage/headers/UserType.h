@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   UserType.h
- * Author: Jia
- *
- * Created on September 27, 2015, 2:41 PM
- */
 
 #ifndef USERTYPE_H
 #define USERTYPE_H

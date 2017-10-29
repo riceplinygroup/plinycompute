@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   SequenceFile.h
- * Author: Jia
- *
- * Created on October 20, 2015, 7:32 PM
- */
 
 #ifndef SEQUENCEFILE_H
 #define SEQUENCEFILE_H

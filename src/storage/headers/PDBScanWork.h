@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PDBScanWork.h
- *
- *  Created on: Dec 25, 2015
- *      Author: Jia
- */
 
 #ifndef SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_
 #define SRC_CPP_MAIN_STORAGE_HEADERS_PDBSCANWORK_H_

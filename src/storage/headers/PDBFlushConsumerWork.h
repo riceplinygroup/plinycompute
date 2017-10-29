@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * PDBFlushConsumerWork.h
- *
- *  Created on: Dec 27, 2015
- *      Author: Jia
- */
 
 #ifndef SRC_CPP_MAIN_STORAGE_HEADERS_PDBFLUSHCONSUMERWORK_H_
 #define SRC_CPP_MAIN_STORAGE_HEADERS_PDBFLUSHCONSUMERWORK_H_
@@ -31,6 +25,9 @@
 using namespace std;
 class PDBFlushConsumerWork;
 typedef shared_ptr<PDBFlushConsumerWork> PDBFlushConsumerWorkPtr;
+
+
+//this class flushes pages to disk
 
 class PDBFlushConsumerWork : public pdb::PDBWork {
 public:

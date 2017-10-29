@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   TestCopyWork.h
- * Author: Jia
- *
- * Created on November 16, 2015, 10:22 AM
- */
 
 #ifndef TESTCOPYWORK_H
 #define TESTCOPYWORK_H

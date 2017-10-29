@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   TestScanWork.h
- * Author: Jia (modified from Chris' BackEndQueryOneRunWork class.)
- *
- * Created on November 16, 2015, 10:22 AM
- */
 
 #ifndef TESTSCANWORK_H
 #define TESTSCANWORK_H

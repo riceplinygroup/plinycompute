@@ -18,7 +18,6 @@
 #ifndef RECORD_ITERATOR_H
 #define RECORD_ITERATOR_H
 
-// by Jia, 2017
 
 #include "PDBPage.h"
 #include "Record.h"

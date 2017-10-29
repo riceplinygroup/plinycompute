@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   DataProxy.h
- * Author: Jia
- *
- * Created on November 28, 2015, 11:29 PM
- */
 
 #ifndef DATAPROXY_H
 #define DATAPROXY_H

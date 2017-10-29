@@ -15,12 +15,6 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-/*
- * File:   PDBFile.h
- * Author: Jia
- *
- * Created on October 19, 2015, 4:51 PM
- */
 
 #ifndef PDBFILE_H
 #define PDBFILE_H
