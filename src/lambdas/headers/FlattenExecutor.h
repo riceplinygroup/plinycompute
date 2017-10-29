@@ -24,7 +24,6 @@
 #include "TupleSet.h"
 #include <vector>
 
-// by Jia, May 2017
 
 namespace pdb {
 
@@ -117,8 +116,6 @@ public:
             size_t myVecSize = myVec.size();
             for (int j = 0; j < myVecSize; j++) {
                 outColumn[overallCounter] = myRawData[j];
-                // std :: cout << "flattened " << j << "-th object in the " << i << "-th vector" <<
-                // std :: endl;
                 overallCounter++;
             }
         }

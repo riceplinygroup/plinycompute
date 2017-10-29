@@ -19,7 +19,6 @@
 #ifndef SINK_MERGER_H
 #define SINK_MERGER_H
 
-// by Jia, May 2017
 
 
 #include "Object.h"
