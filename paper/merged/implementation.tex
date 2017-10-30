@@ -122,7 +122,7 @@ of pipelined stages, where each stage corresponds to a TCAP operation.
 A replica of the list of pipelined stages is
 created for each of the $N$ so-called \emph{pipelining threads} dedicated to implementing
 the producing stage on each of the backend worker processes.  
-The thread assigned to each of those pipelines begins by allocating a PC \texttt{Vector <Handle <Map <Object, Object>>} on an output page.  This page will serve
+The thread assigned to each of those pipelines begins by allocating a PC \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} on an output page.  This page will serve
 as the \emph{pipe sink}.  The pipe sink is
 the location where the data produced by the pipeline are stored.  In
 this way the PC object model is used to store the results
@@ -133,7 +133,7 @@ the system begins assigning input pages to each of the pipelining
 threads.  Each input page was itself produced as a the result of a
 previous \texttt{JobStage}, or else created by user, both of which needs to be
 loaded from the storage.  Hence all pages are themselves organized using the PC object model.  Thus, each input
-page will itself contain a \texttt{Vector <Handle <Object>>},
+page will itself contain a \texttt{Vector <Handle <Object}\texttt{>}\texttt{>},
 or another standard PC container type.  During the producing stage, vectors of PC \texttt{Handle}s are repeatedly
 loaded from each input page, and each is used to create a vector list that is pushed through the list of pipeline stages.
 
@@ -141,7 +141,7 @@ Ultimately, pushing a vector list through the pipeline stages results in an outp
 associated with those keys that need to be aggregated.  
 For each (key, value)
 pair, first the key is hashed to a particular \emph{hash partition}---the hash partition determines which of the \texttt{Map}
-objects in the \texttt{Vector <Handle <Map <Object, Object>>} stored on the output page will receive the pair, and which machine will house the final aggregation
+objects in the \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>} stored on the output page will receive the pair, and which machine will house the final aggregation
 for all instances of the key.  Once the hash partition has been determined,
 the pair is added to the associated \texttt{Map} in the pipe sink
 (if a particular key is already there, the
@@ -150,7 +150,7 @@ existing value is added to the new value, and the result is used to replace the 
 At the same time, 
 $K$ different \emph{combining threads} are running in each backend worker process.  
 When a page containing a \texttt{Vector <Handle <Map <Object,
-  Object>>} becomes full, the thread running the associated
+  Object}\texttt{>}\texttt{>}\texttt{>} becomes full, the thread running the associated
 \texttt{PipelineJobStage} allocates a new pipe sink,
 and the filled page is added to the queue of completed pages to be processed.  There is one such queue
 associated with each of the $K$ combining threads.
@@ -163,7 +163,7 @@ aggregating all of the \texttt{Map}s produced by local pipelining threads that w
 The result is a 
 \texttt{Map} containing data for that one hash partition.  Since each combining
 thread can be assigned more than one hash partition that will be sent to the same destination machine,
-the combining thread also produces a \texttt{Vector <Handle <Map <Object, Object>>} that is referred to as a \emph{combining sink}.
+the combining thread also produces a \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} that is referred to as a \emph{combining sink}.
 Each \texttt{Map} in the \texttt{Vector} is associated with one hash partition.
 This object is stored on a thread-local \emph{combiner page} whose size is automatically tuned by the system.
 
@@ -174,7 +174,7 @@ backend worker processes tasked with processing the set of hash partitions on th
 This communication is referred to as a \emph{shuffle}.  
 Compression is used to reduce the shuffle data size and save on network cost.
 When a worker node receives a page during the shuffle, one of a pool of \emph{scanning threads} will look at the 
-\texttt{Vector <Handle <Map <Object, Object>>} object contained in the page, and then add a pointer to the page
+\texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} object contained in the page, and then add a pointer to the page
 to the each of the queues associated with the $M$ \emph{aggregation threads}.  These are the threads
 that are tasked with final processing of all of the various hash partitions.
 Each aggregation thread is responsible for aggregating exactly 
@@ -211,8 +211,8 @@ In more detail, the three types of stages are:
 {\bf 1. The data repartition stages.} This class of \texttt{JobStage}s are
 \texttt{PipelineJobStage}s. It is similar to the producing stage in distributed
 aggregation, with one key difference.
-Rather than using a \texttt{Vector <Handle <Map <Object, Object>>>} to store (key, value) pairs where the value is the result obtained by aggregating a set of
-data with the same key, the pipe sink used is instead a \texttt{Vector <Handle <Map <unsigned\_t, Vector <Object>>>>} data structure.  Here, the
+Rather than using a \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} to store (key, value) pairs where the value is the result obtained by aggregating a set of
+data with the same key, the pipe sink used is instead a \texttt{Vector <Handle <Map <unsigned\_t, Vector <Object}\texttt{>}\texttt{>}\texttt{>}\texttt{>} data structure.  Here, the
 \texttt{unsigned\_t} is a hash value produced by a TCAP \texttt{HASH} operation over the input object's join key, and the \texttt{Vector <Object>} is a list of objects
 with the same hash value.  
 When a new object with the same hash key is found during pipelined processing or during combining, rather than aggregating, the new object is instead inserted
@@ -235,7 +235,7 @@ hashed as part of join stage 2), and output results to the next
 \texttt{JobStage} (through shuffling) or an Output sink (e.g. write to storage
 as final results). Now imagine that we are processing the last data set, after shuffling.  At this point,
 all of the other sets have been
-stored in \texttt{Map <unsigned\_t, Vector <Object>>} objects.  As we process the final set,
+stored in \texttt{Map <unsigned\_t, Vector <Object}\texttt{>}\texttt{>} objects.  As we process the final set,
 the hash value for each ofject is used to probe the \texttt{Map}
 associated with each of the other $n-1$ sets.  If a match is found in each one of those other $n-1$ sets, then
 one or more entries in the output vector list are created to store the matches.  The resulting vector sets are then pushed through a pipeline that post-processes
