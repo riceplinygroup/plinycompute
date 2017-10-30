@@ -45,7 +45,7 @@ C code for execution. TupleWare~\cite{crotty2015tupleware} supports
 multiple high-level languages (any language with an LLVM compiler) 
 and aims to
 optimize for UDFs by utilizing code
-generatione to integrate UDF code with the engine 
+generation to integrate UDF code with the engine 
 code. 
 Weld~\cite{palkar2017weld} is a recent system developed in Scala and
 Python. It proposes
@@ -109,7 +109,7 @@ maps each object type to one of a limited set of
 fundamental data types, such as Java primitive types, an array type,
 a Hadoop Writable type, a Flink fixed-length tuple, and so on. Each
 fundamental data type is associated with a serializer.  Certain data
-types provides comparators to efficiently compare binary
+types provide comparators to efficiently compare binary
 representations and extract fixed-length binary key prefixes without
 deserializing the whole object.
 
