@@ -13,7 +13,7 @@ comfortable with lower-level systems concepts, including memory management.
 How useful is PC for this task?
 \item PC's core design goals were ``declarative in the large,
 high-performance in the small.'' The latter goal---high performance in the small---was largely realized via the 
-PC object model.  We wish to answer the question: Can the PC Object model be used to build 
+PC object model.  We wish to answer the question: Can the PC object model be used to build 
 object-oriented computations
 that efficiently manipulate highly nested and complex objects?
 \item Finally, machine learning (ML) is an important component of many libraries---and ML will only increase in importance
@@ -97,7 +97,7 @@ The student spent about six weeks in this effort.
 
 \subsubsection{\texttt{lilLinAlg} Implementation}
 
-In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC Objects, where each 
+In \texttt{lilLinAlg}, a distributed matrix is stored as a set of PC \texttt{Object}s, where each 
 object in the set is a \texttt{MatrixBlock}, storing a contiguous rectangular sub-block of the matrix:
 
 \begin{code}
@@ -317,8 +317,8 @@ and towards a relational model of programming (with Datasets and DataFrames)
 
 Our solution is to allow objects, but to move away from allowing a managed environment to control 
 issues such as allocation, deallocation, and data placement.  This is the approach taken in the design and implementation
-of the PC Object model.  Thus, the question we address in this particular set of experiments is: can the PC 
-Object model facilitate efficient computations of heavily nested, complex objects?
+of the PC object model.  Thus, the question we address in this particular set of experiments is: can the PC 
+object model facilitate efficient computations of heavily nested, complex objects?
 
 \subsubsection{Data Set}
 
@@ -585,11 +585,11 @@ by linear algebra operations (such as repeated vector-matrix multiplications).
 We
 implemented GMM using EM on top of PC.  All linear algebra in our PC implementation was performed using
 the GSL library~\cite{gsl}.  
-Our PC implementation uses a single \texttt{AggregationComp} object, which contains inside of it the current
-version of the learned GMM model.  As this  \texttt{AggregationComp} is executed, a soft assignment of each
+Our PC implementation uses a single \texttt{AggregateComp} object, which contains inside of it the current
+version of the learned GMM model.  As this  \texttt{AggregateComp} is executed, a soft assignment of each
 data point to each Gaussian is performed, and based off of this assignment, updates to each of the Gaussians
 are accumulated.  The result of the aggregation is sent back to the \texttt{main} program where the actual update
-to the model happens; the result is broadcasted in a new \texttt{AggregationComp} object, and the process begins again.
+to the model happens; the result is broadcasted in a new \texttt{AggregateComp} object, and the process begins again.
 
 It turns out that an algorithmically equivalent implementation exists in Spark \texttt{mllib}.
 Both implementations even use the same random initialization algorithm.
@@ -756,7 +756,7 @@ our answer to this question by pointing out that SciDB is written in C++, and no
 relevant to all of our findings.
 But even when the question is relevant, we assert that the only real difference Java on a modern JVM and C++ is that the latter
 gives the system developer more control, which the developer may use to produce a faster system (this is precisely
-what we have attempted to do with our development of the PC Object model, for example).  
+what we have attempted to do with our development of the PC object model, for example).  
 There is nothing inherent in C++ that makes it faster than Java if this extra flexibility is not used properly, 
 especially in the age of
 JIT compilation and generational garbage collectors.  
