@@ -24,7 +24,7 @@ four software components:
 \item The \emph{catalog manager}, serving system meta-data (including the master copy of
 the mapping between type codes and PC \texttt{Object} types) and compiled, shared libraries
 for performing computations over PC \texttt{Object}s;
-\item The \emph{Pangea distributed storage manager}, 
+\item The \emph{distributed storage manager}, 
 the centralized server that manages PC's storage subsystem; 
 \item The \emph{TCAP optimizer} which is responsible for optimizing
   programs that have been compiled into PC's domain-specific TCAP
@@ -57,7 +57,7 @@ The worker front-end process runs following components:
 \item The \emph{local catalog manager} that requests and 
 buffers data served from the master server's catalog manager.  The local catalog manager is also responsible for fetching and dynamically loading
 code as needed when a virtual method call is made over a PC \texttt{Object} (see Section \ref{sec:dyn_dis} of the paper).
-\item The \emph{local Pangea storage server}, that manages a
+\item The \emph{local storage server}, that manages a
   shared-memory buffer pool used for buffering and caching data sets.  It also manages
 a  user-level file system that is used to persist a portion of one or more data sets stored by PC (the partitioning of data sets to storage servers is managed
 by the master server's distributed storage manager).  The storage server also manages temporary data that must be spilled to secondary storage.
@@ -66,7 +66,7 @@ data stored in it can be read by the backend process (forked from
 the frontend process) via zero-copy access. Compared with distributed
 computation framework such as Spark~\cite{zaharia2010spark} and Flink~\cite{alexandrov2014stratosphere, carbone2015apache}, which rely on
 external storage systems such as HDFS~\cite{borthakur2008hdfs} and Alluxio~\cite{li2014tachyon}, a significant
-performance advantage of having Pangea is that data can be cached in memory
+performance advantage of having a buffer pool is that data can be cached in memory
 across different applications, rather than needs to load from external
 storages (which often requires data movement) each time.
 \item And finally, the \emph{message proxy} which is responsible for communicating with the worker backend process, and which acts as a bridge between the
@@ -132,7 +132,7 @@ Once the pipe sinks have been allocated,
 the system begins assigning input pages to each of the pipelining 
 threads.  Each input page was itself produced as a the result of a
 previous \texttt{JobStage}, or else created by user, both of which needs to be
-loaded from Pangea.  Hence all pages are themselves organized using the PC object model.  Thus, each input
+loaded from the storage.  Hence all pages are themselves organized using the PC object model.  Thus, each input
 page will itself contain a \texttt{Vector <Handle <Object>>},
 or another standard PC container type.  During the producing stage, vectors of PC \texttt{Handle}s are repeatedly
 loaded from each input page, and each is used to create a vector list that is pushed through the list of pipeline stages.
