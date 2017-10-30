@@ -138,12 +138,10 @@ sets of columns of PC \texttt{Object}s.
   system for big data analytics. It consists of an optimizer for TCAP
   programs, through which all PC computations are optimized using a rule-based
 optimizer; we plan to shift to a cost-based optimizer in the
-future. Among other components, it also consists of a
-high-performance distributed, vectorized TCAP processing engine and a distributed
-storage server called Pangea, which contains a distributed buffer
-pool used for caching/buffering data in pages and a user-level file system
-for persisting data (pages) to disks. 
-The TCAP processing engine and Pangea buffer pool are intimately connected to the PC object model, 
+future. Among other components such as a distributed storage that
+contains a buffer pool to buffer writes or cache data in pages, it also consists of a
+high-performance distributed, vectorized TCAP processing engine. 
+The TCAP processing engine is intimately connected to the PC object model, 
 and have been designed to work closely with the PC object model to minimize memory-related costs during computation.
 
 
