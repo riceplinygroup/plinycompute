@@ -58,12 +58,12 @@ The worker front-end process runs following components:
 buffers data served from the master server's catalog manager.  The local catalog manager is also responsible for fetching and dynamically loading
 code as needed when a virtual method call is made over a PC \texttt{Object} (see Section \ref{sec:dyn_dis} of the paper).
 \item The \emph{local storage server}, that manages a
-  shared-memory buffer pool used for buffering and caching data sets.  It also manages
-a  user-level file system that is used to persist a portion of one or more data sets stored by PC (the partitioning of data sets to storage servers is managed
+  shared-memory buffer pool used for buffering and caching datasets.  It also manages
+a  user-level file system that is used to persist a portion of one or more datasets stored by PC (the partitioning of datasets to storage servers is managed
 by the master server's distributed storage manager).  The storage server also manages temporary data that must be spilled to secondary storage.
 The shared memory buffer pool is created via a \texttt{mmap} system call so that
 data stored in it can be read by the backend process (forked from
-the frontend process) via zero-copy access. Compared with distributed
+the front-end process) via zero-copy access. Compared with distributed
 computation framework such as Spark~\cite{zaharia2010spark} and Flink~\cite{alexandrov2014stratosphere, carbone2015apache}, which rely on
 external storage systems such as HDFS~\cite{borthakur2008hdfs} and Alluxio~\cite{li2014tachyon}, a significant
 performance advantage of having a buffer pool is that data can be cached in memory
@@ -233,7 +233,7 @@ As a reult of this class of \texttt{JobStage}s, the contents of $n - 1$ of the i
 This \texttt{JobStage} is also a \texttt{PipelineJobStage}. It runs over the last set (the one that was not 
 hashed as part of join stage 2), and output results to the next
 \texttt{JobStage} (through shuffling) or an Output sink (e.g. write to storage
-as final results). Now imagine that we are processing the last data set, after shuffling.  At this point,
+as final results). Now imagine that we are processing the last dataset, after shuffling.  At this point,
 all of the other sets have been
 stored in \texttt{Map <unsigned\_t, Vector <Object}\texttt{>}\texttt{>} objects.  As we process the final set,
 the hash value for each ofject is used to probe the \texttt{Map}

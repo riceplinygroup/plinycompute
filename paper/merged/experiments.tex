@@ -319,11 +319,11 @@ issues such as allocation, deallocation, and data placement.  This is the approa
 of the PC object model.  Thus, the question we address in this particular set of experiments is: can the PC 
 object model facilitate efficient computations of heavily nested, complex objects?
 
-\subsubsection{Data Set}
+\subsubsection{Data Representation}
 
 To do this, we implement two different complex object computations on top of PC and on top of Spark.
-Both of these computations are over large data sets that store an instance of the TPC-H database \cite{council2008tpc}.
-But rather than storing the data set relationally, we denormalized the data into a set of nested objects. 
+Both of these computations are over large datasets that store an instance of the TPC-H database \cite{council2008tpc}.
+But rather than storing the dataset relationally, we denormalized the data into a set of nested objects. 
 The simplest objects used in the denormalized TPC-H schema are 
 \texttt{Part} objects, which do not look very different from the records in the  \texttt{part} schema of the TPC-H database.
 In PC, these are defined as:
@@ -437,13 +437,13 @@ as the object to be associated with that value (in this case, the \texttt{custke
 \texttt{partid}s sold to that customer).
 
 For both PC and for Spark, and for both computations, we created 
-TPC-H data set of various sizes: 2.4 million,
+TPC-H dataset of various sizes: 2.4 million,
 4.8 million, 9.6 million, 14.4 million, 19.2 million and 24 million
 \texttt{Customer} Objects respectively.  For the ``top-$k$
 closest customer part sets'' computation, $k$ was chosen to be $\frac{1024}{2.4 \times 10^6}$ times the size
 of the data.
 
-For both Spark computations, we performed two runs at each data set size.
+For both Spark computations, we performed two runs at each dataset size.
 For the first, we stored the data in HDFS, and measure the time to execute the query starting with a
 read from HDFS.
 For the second, we made sure that the data were de-serialized and stored in RAM by Spark.
@@ -454,7 +454,7 @@ serialized using Kryo, and parameters such as data partition size and parallelis
 optimal performance. 
 
 For PC, we run only one version of the computation, where the various \texttt{Customer} objects are stored in
-PC's storage system.  Since all data sets are small enough to be cached in RAM, there is no I/O time to
+PC's storage system.  Since all datasets are small enough to be cached in RAM, there is no I/O time to
 retrieve data.
 
 \subsubsection{Results and Discussion}
@@ -567,7 +567,7 @@ maximization and online variational Bayes.
 Therefore, we had a Spark expert 
 carefully implement an algorithmically
 equivalent word-based, non-collapsed LDA Gibbs sampler on top of Spark.  His implementation used both
-Spark's RDD and DataSet        
+Spark's RDD and Dataset        
 APIs as appropriate.
 The required statistical computations use the
 \texttt{breeze} package. 
@@ -575,7 +575,7 @@ The required statistical computations use the
 
 \vspace{5pt}
 \noindent
-\textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a data set are modeled
+\textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a dataset are modeled
 as having been produced by a set of Gaussians (multi-dimensional Normal distributions). Learning a GMM using
 the expectation maximization (EM) algorithm is one of the classical ML algorithms.
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
@@ -611,9 +611,9 @@ we ran all ML experiments using PC and Spark 2.1.0.
 
 For LDA,  we
 created a semi-synthetic document database with 2.5 million documents from
-20 Newsgroups data set by concatenating random pairs of newsgroup postings
+20 Newsgroups dataset by concatenating random pairs of newsgroup postings
 end-on-end. There are more than 739
-million \texttt{(docID, wordID, count)} triples in the data set.
+million \texttt{(docID, wordID, count)} triples in the dataset.
 We use a dictionary size
 of 20,000 words and a model size of 100 topics. 
 
@@ -660,8 +660,8 @@ broadcast join.  Then, it was necessary to force Spark to
 persist the result of one of the joins for later use.  Finally, it was necessary to hand-code a 
 Multinomial sampler (avoiding the use of \texttt{breeze}) to obtain an implementation that was competitive with PC.
 This last bit of tuning (of course) can't be blamed on Spark, but the experience overall is illustrative: forcing 
-a particular join and forcing a particular persist are \emph{data set specific} optimizations.  They may work for one
-data set but be a poor choice for another, and require a tool end-user to actually change library code to achieve
+a particular join and forcing a particular persist are \emph{workload specific} optimizations.  They may work for one
+workload but be a poor choice for another, and require a tool end-user to actually change library code to achieve
 performance.  In contrast, like a database system, PC is fully declarative in-the-large.
 Decisions such as using a broadcast join instead of a full hash
 join as well as which intermediate results to materialize (and which to pipeline or discard) are fully automated.
@@ -699,7 +699,7 @@ points, but much slower for $10^9$ data points. It turns out that
 the Spark \texttt{mllib} Dataset implementation first reads the data 
 from a parquet file in the libSVM format, string the data in a Dataset.  But then, the data
 are converted into an RDD for processing, likely due to the relatively inflexible Dataset API.
-This conversion becomes a bottleneck for the largest data sets.
+This conversion becomes a bottleneck for the largest datasets.
 
 \begin{table}[h!]
 \begin{center}
