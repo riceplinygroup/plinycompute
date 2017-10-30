@@ -129,7 +129,7 @@ Each type code begins with a bit that denotes whether or not the referenced type
 virtual functions and for which a \texttt{memmove} suffices to perform a copy) or a type descended from PC's \texttt{Object} base class.
 In the case of a simple type, the remaining bits encode the size of the referenced object.  
 
-In the case of a PC \texttt{Object} or its descendents, the
+In the case of a PC \texttt{Object} or its descendants, the
 type code is a unique identifier for the PC-\texttt{Object}-descended type of the object that the \texttt{Handle} points to.
 In every major C++ compiler (GCC, clang, Intel, and Microsoft), virtual functions
 are implemented using a virtual function table, or \texttt{vTable} object, a pointer to which is located at the beginning
@@ -230,10 +230,10 @@ myMatrix->value = data; // deep copy of data happens!!
 At the second \texttt{makeObjectAllocatorBlock}, the original allocation block, holding the list of \texttt{double}s pointed to by \texttt{data}, becomes
 inactive.  The submatrix \texttt{myMatrix} is allocated to the new active block.  
 Hence, the assignment of \texttt{data} to \texttt{myMatrix->value} is cross-allocation block, and a deep copy automatically happens to ensure that
-the current block is zero-cost copyable.  
+the current block is zero-cost copy-able.  
 
 The reader may question whether this actually saves anything.  After
-all, the list of \texttt{double}s are still deep copied, just not at serialization time.
+all, the list of \texttt{double}s is still deep copied, just not at serialization time.
 This is true, but in practice, such cross-block assignments are rare, and a programmer who understands the cost can often avoid them, making sure to allocate
 data that must be kept together to the same block.
 Again, this is in-keeping with PC's design philosophy: trust the ability of the programmer to do the right thing, in the small.

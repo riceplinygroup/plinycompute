@@ -3,7 +3,7 @@
 \noindent
 The PC object model is designed for zero-cost data movement, the result being that there is often no serialization or deserialization
 cost
-when moving PC \texttt{Object}'s accross processes.  But memory management can still be costly.  Deallocating and cleaning
+when moving PC \texttt{Object}'s across processes.  But memory management can still be costly.  Deallocating and cleaning
 up complex objects (in particular, instances of container classes) can require significant CPU resources, which, depending upon the 
 circumstance, may be un-necessary.  In-keeping with the assertion that application programmers should be in
 control of performance-critical policies, it is possible to explicitly control how memory is reclaimed and re-used during PC computations.
@@ -16,10 +16,10 @@ three allocator policies:
 
 \begin{enumerate}
 
-\item Lightweight re-use.  This is the default policly.  When a PC \texttt{Object} is deallocated, its space in the allocation block is made available for re-use by
-adding the space to a pool of similarly-sized, recycled memory chunks (specifically, all recycled chunks are organized into buckets, where a chunk of size
+\item Lightweight re-use.  This is the default policy.  When a PC \texttt{Object} is deallocated, its space in the allocation block is made available for re-use by
+adding the space to a pool of similarly-sized, recycled memory chunks (all recycled chunks are organized into buckets, where a chunk of size
 $n$ goes into bucket $\log_2 (n)$).  A request for RAM in a block is fulfilled by first scanning the recycled chunks in the appropriate bucket, then
-attempting to allcate new space on the end of the page, if that fails.
+attempting to allocate new space on the end of the block, if that fails.
 \item No re-use.  The space containing deallocated PC \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though PC \texttt{Object}s
 are reference-counted, and a destructor is called for each unreachable PC \texttt{Object}.
 On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary PC \texttt{Object}s will result in a lot of wasted space.
@@ -46,12 +46,12 @@ it is also possible for a programmer to supply the following policies, on a per-
 
 \begin{enumerate}
 
-\item No reference counting.  This \texttt{Object} is not reference counted, and it is not included in the total count of \texttt{Object}s on an allocation
-block.  If each \texttt{Object} on an allocation block
+\item No reference counting.  This PC \texttt{Object} is not reference counted, and it is not included in the total count of objects on an allocation
+block.  If each PC \texttt{Object} on an allocation block
 is allocated in this way, this results in pure, region-based memory management, and is exceedingly lightweight.
 \item Full reference counting.  This is the default.
-\item Unique ownership.  The \texttt{Object} is not reference counted, but there can only be one \texttt{Handle} object referencing the uniquely-owned
-object at a time.  When that \texttt{Handle} is destroyed, the object is deallocated.
+\item Unique ownership.  The PC \texttt{Object} is not reference counted, but there can be one \texttt{Handle} object referencing the uniquely-owned
+object.  When that \texttt{Handle} is destroyed, the object is deallocated.
 
 \end{enumerate}
 

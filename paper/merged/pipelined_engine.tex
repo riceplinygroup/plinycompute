@@ -24,7 +24,7 @@ processing in Sec~\ref{sec:implementation}.
 \textbf{Breaking a TCAP DAG into Individual Pipelines.}
 The previous section discussed the problem of logical optimization for TCAP programs---optimization that takes into account the semantics
 of the various operations, but does not consider actual implementation.  
-Executing a TCAP program using PC's vectorized execution engine requires phyical planning as well.  The single most important physical 
+Executing a TCAP program using PC's vectorized execution engine requires physical planning as well.  The single most important physical 
 optimization involves choosing how to break a TCAP program into a set of individual \emph{pipelines}, and then choosing an execution order
 for those pipelines.
 A pipeline is a list of TCAP operations that are executed in sequence over a vector list, with each operation performing some
@@ -133,7 +133,7 @@ processing induces four types of pages, each of which has a different lifetime d
 \item The first page type is an \emph{input page} that store the base data that will be processed by the pipeline.
 To push vector lists into a pipeline, PC first loads a page containing a PC container (such as a PC \texttt{Vector}) of 
 input data from the buffer pool, and then repeatedly creates vectors of \texttt{Handle}s to the objects on
-the the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated
+the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated
 on the current  allocation block, as they store only intermediate data).  PC wraps
 each vector produced in a vector list, and sends the vector list into the pipeline.  This process is repeated until the input page is consumed.
 The input page must be buffered as long as a vector list originally created using its data is making its way through the pipeline.  
