@@ -83,7 +83,7 @@ Lambda <Handle <Emp>> getProjection (Handle <Sup> arg) {
 When the code corresponding to this lambda term is executed as a pipeline,
 we wish to ensure that there is no need to move the \texttt{Emp} object created within the native C++ lambda to an output page.
 To guarantee this,
-PC obtains from Pangea a page for writing output objects for each thread, and places the current object allocation block
+PC obtains from the buffer pool a page for writing output objects for each thread, and places the current object allocation block
 onto this page. 
 When the call to \texttt{makeObject} within the lambda is executed, it will create the output \texttt{Emp} object
 directly on the output page.  Any allocations triggered by the construction of the \texttt{Emp} will also be directly on the output page.
@@ -120,14 +120,16 @@ the output page, once \texttt{Handle} to the data is copied to the output page, 
 \vspace{5 pt}
 \noindent
 \textbf{Memory Dependencies During Pipelined Processing.}
-All data produced via calls to \texttt{makeObject} are written to allocation blocks housed on in-memory pages served to PC by Pangaea.  PC's pipelined
+All data produced via calls to \texttt{makeObject} are written to
+allocation blocks housed on in-memory pages served to PC by the buffer
+pool.  PC's pipelined
 processing induces four types of pages, each of which has a different lifetime during which it must be buffered in RAM:
 
 \begin{enumerate}
 
 \item The first page type is an \emph{input page} that store the base data that will be processed by the pipeline.
 To push vector lists into a pipeline, PC first loads a page containing a PC container (such as a PC \texttt{Vector}) of 
-input data from Pangea, and then repeatedly creates vectors of \texttt{Handle}s to the objects on
+input data from the buffer pool, and then repeatedly creates vectors of \texttt{Handle}s to the objects on
 the the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated
 on the current  allocation block, as they store only intermediate data).  PC wraps
 each vector produced in a vector list, and sends the vector list into the pipeline.  This process is repeated until the input page is consumed.
