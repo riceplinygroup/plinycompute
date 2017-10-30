@@ -7,8 +7,8 @@ This paper describes \emph{PlinyCompute}, a system for development of
 high-performance, data-intensive, distributed computing tools and libraries.
 Currently, there is a big gap in performance and functionality between 
 high-performance computing platforms such as OpenMP and MPI, which provide little direct support for
-managing very large data sets, and dataflow platforms such as Spark and Flink.  Spark and Flink
-are built to process large data sets but are themselves constructed on top of the
+managing very large datasets, and dataflow platforms such as Spark and Flink.  Spark and Flink
+are built to process large datasets but are themselves constructed on top of the
 Java Virtual Machine (JVM), and hence must
 at least partially cede concerns such as 
 memory management (including layout and de/allocation) and virtual method/function dipatch to the JVM. Since memory management 

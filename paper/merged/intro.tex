@@ -8,7 +8,7 @@ Big Data systems such as Spark \cite{zaharia2010spark} and Flink \cite{alexandro
 have effectively solved what we affectionately call the ``data munging'' problem.  That is, 
 these systems do an excellent job supporting the rapid
 and robust development of problem-specific,
-distributed/parallel codes that transform a raw data set into structured 
+distributed/parallel codes that transform a raw dataset into structured 
 or semi-structured form, and then
 extract actionable information from the transformed data.
 But while existing Big Data systems offer
@@ -63,7 +63,7 @@ This proposal is concerned with the design and implementation of
 high-performance, data-intensive, distributed computing codes, especially tools and libraries.
 PlinyCompute, or PC for short, is designed to fill the gap between 
 HPC softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
-managing very large data sets, and dataflow platforms such as Spark and Flink, which 
+managing very large datasets, and dataflow platforms such as Spark and Flink, which 
 may give up significant performance through their reliance on a managed runtime to handle
 memory management (including layout and de/allocation) and key computational considerations
 such as virtual method/function dispatch to the JVM. 
@@ -82,7 +82,7 @@ totally under control of the system.
 This is particularly important for tool and library development because the same tool should run well regardless of the data
 it is applied to---the classical idea of \emph{data independence} in database system design \cite{stonebraker1990third}.
 A relatively naive library user cannot be expected to tune a library implementation of an algorithm to run
-well on his or her particular data set, and yet with existing systems, this sort of tuning
+well on his or her particular dataset, and yet with existing systems, this sort of tuning
 is absolutely necessary.  For example, we find
 that a high quality LDA implementation\footnote{LDA \cite{blei2003latent} is a popular text mining algorithm.}
 on top of Spark is around $25\times$ slower than the algorithmically equivalent LDA
