@@ -515,9 +515,9 @@ bool TCAPAnalyzer::analyze(
   Handle<Computation> myComputation =
       this->logicalPlan->getNode(mySpecifier).getComputationHandle();
 
-  if (myComputation->getAllocatorPolicy() ==
-      AllocatorPolicy::noReuseAllocator) {
-    myPolicy = AllocatorPolicy::noReuseAllocator;
+  if (myComputation->getAllocatorPolicy() !=
+      AllocatorPolicy::defaultAllocator) {
+    myPolicy = myComputation->getAllocatorPolicy();
   }
 
   if (numConsumersForCurNode == 0) {
