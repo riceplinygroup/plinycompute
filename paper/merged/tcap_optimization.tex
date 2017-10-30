@@ -12,7 +12,7 @@ the decision to compile all computations expressed in PC's lambda calculus into 
 TCAP resembles relational algebra, and it is similarly amenable to rule- and cost-based optimization
 using a combination of methods from relational query optimization and classical compiler construction.
 Currently, the optimizations implemented in PC are rule-based (such as pushing down selections).  We plan to work on cost-based optimization
-in the future---this is a challenging research problem because of a lack of statistics over the data, which are arbitrary PC Objects.
+in the future---this is a challenging research problem because of a lack of statistics over the data, which are arbitrary PC \texttt{Object}s.
 
 PC's optimizer is currently implemented
 in Prolog; a series of transformations are fired iteratively to improve the plan until the plan cannot be improved further.

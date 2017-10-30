@@ -14,7 +14,7 @@ potential pipelinings are shown in (b) and (c).}
 \label{sec:pipelined}
 
 This section describes some of the details regarding PC's pipelined execution engine.  We begin by considering how a TCAP
-program is used to build a set of pipelines, and then focus on interaction between pipelined execution and the PC Object model
+program is used to build a set of pipelines, and then focus on interaction between pipelined execution and the PC object model
 and memory management. The description in this section is mainly focused on a
 single-thread scenario. We will introduce parallel and distributed
 processing in Sec~\ref{sec:implementation}.
@@ -83,7 +83,7 @@ Lambda <Handle <Emp>> getProjection (Handle <Sup> arg) {
 When the code corresponding to this lambda term is executed as a pipeline,
 we wish to ensure that there is no need to move the \texttt{Emp} object created within the native C++ lambda to an output page.
 To guarantee this,
-PC obtains from Pangea a page for writing output objects for each thread, and places the current \texttt{Object} allocation block
+PC obtains from Pangea a page for writing output objects for each thread, and places the current object allocation block
 onto this page. 
 When the call to \texttt{makeObject} within the lambda is executed, it will create the output \texttt{Emp} object
 directly on the output page.  Any allocations triggered by the construction of the \texttt{Emp} will also be directly on the output page.
@@ -104,8 +104,7 @@ Likewise, the system should do the same.  It is most critical that PC avoid movi
 Reconsider the example of Section \ref{sec:vectorized}.  The user-specified \texttt{getSelection ()} describes
 a computation that invokes \texttt{Emp::getDeptName ()}, checking whether it equals the extracted value of
 \texttt{Dep.deptName}.  During pipelined execution, care is taken \emph{not} to store these intermediate results
-on the output page.  The vector that results from extracting \texttt{Dep.deptName} from each input 
-\texttt{Object}s is allocated outside of the output page, and stores C-style pointers to each \texttt{Dep.deptName}
+on the output page.  The vector that results from extracting \texttt{Dep.deptName} from each input object is allocated outside of the output page, and stores C-style pointers to each \texttt{Dep.deptName}
 value that are simply dereferenced when the vector is used by subsequent pipeline stages.  
 If \texttt{getDeptName ()} returns a reference, its output is treated similarly.  If 
 \texttt{getDeptName ()} returns actual data (and not a reference), then that data is stored in a vector \emph{outside}
@@ -128,7 +127,7 @@ processing induces four types of pages, each of which has a different lifetime d
 
 \item The first page type is an \emph{input page} that store the base data that will be processed by the pipeline.
 To push vector lists into a pipeline, PC first loads a page containing a PC container (such as a PC \texttt{Vector}) of 
-input data from Pangea, and then repeatedly creates vectors of \texttt{Handle}s to the \texttt{Object}s on
+input data from Pangea, and then repeatedly creates vectors of \texttt{Handle}s to the objects on
 the the page (the little `v' is intentional; these vectors are \emph{not} PC \texttt{Object}s themselves, as we do not want them to be allocated
 on the current  allocation block, as they store only intermediate data).  PC wraps
 each vector produced in a vector list, and sends the vector list into the pipeline.  This process is repeated until the input page is consumed.
