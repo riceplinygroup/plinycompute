@@ -24,31 +24,31 @@
 #ifndef PDBCATALOGMSGTYPE_H
 #define PDBCATALOGMSGTYPE_H
 
-
-// this lists all of the identifiers for the different types of Catalog Related Metadata
+// this lists all of the identifiers for the different types of Catalog Related
+// Metadata
 
 enum PDBCatalogMsgType {
-    CatalogPDBNode,  // 0
+  CatalogPDBNode, // 0
 
-    CatalogPDBRegisteredObject,  // 1
+  CatalogPDBRegisteredObject, // 1
 
-    CatalogPDBDatabase,  // 2
+  CatalogPDBDatabase, // 2
 
-    CatalogPDBUser,  // 3
+  CatalogPDBUser, // 3
 
-    CatalogGetPDBRegisteredObject,  // 4
+  CatalogGetPDBRegisteredObject, // 4
 
-    GetSerializedCatalog,  // 5
+  GetSerializedCatalog, // 5
 
-    SerializedCatalog,  // 6
+  SerializedCatalog, // 6
 
-    GetCatalogMetadataAsString,  // 7
+  GetCatalogMetadataAsString, // 7
 
-    CatalogPDBSet,  // 8
+  CatalogPDBSet, // 8
 
-    CatalogPDBPermissions,  // 9
+  CatalogPDBPermissions, // 9
 
-    CatalogDataTypeId  // 10
+  CatalogDataTypeId // 10
 
 };
 

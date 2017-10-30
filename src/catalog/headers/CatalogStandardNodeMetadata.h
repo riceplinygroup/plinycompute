@@ -25,88 +25,83 @@
 #ifndef SRC_CATALOG_CATALOGSTANDARDNODEMETADATA_H_
 #define SRC_CATALOG_CATALOGSTANDARDNODEMETADATA_H_
 
+#include "CatalogNodeMetadata.h"
 #include <iostream>
 #include <string>
-#include "CatalogNodeMetadata.h"
 
 using namespace std;
 
 // This class serves to store information about a node in a cluster of PDB.
 // It also provides methods for maintaining their associated metadata.
-// Clients of this class will access this information using a handler to the catalog.
+// Clients of this class will access this information using a handler to the
+// catalog.
 
 class CatalogStandardNodeMetadata {
 public:
-    CatalogStandardNodeMetadata();
+  CatalogStandardNodeMetadata();
 
-    CatalogStandardNodeMetadata(string nodeIdValue,
-                                string nodeIPValue,
-                                int nodePortValue,
-                                string nodeNameValue,
-                                string nodeTypeValue,
-                                int nodeStatusValue);
+  CatalogStandardNodeMetadata(string nodeIdValue, string nodeIPValue,
+                              int nodePortValue, string nodeNameValue,
+                              string nodeTypeValue, int nodeStatusValue);
 
+  // Copy constructor
+  CatalogStandardNodeMetadata(const CatalogStandardNodeMetadata &pdbNodeToCopy);
 
-    // Copy constructor
-    CatalogStandardNodeMetadata(const CatalogStandardNodeMetadata& pdbNodeToCopy);
+  ~CatalogStandardNodeMetadata();
 
-    ~CatalogStandardNodeMetadata();
+  void setValues(string nodeIdValue, string nodeIPValue, int nodePortValue,
+                 string nodeNameValue, string nodeTypeValue,
+                 int nodeStatusValue);
 
-    void setValues(string nodeIdValue,
-                   string nodeIPValue,
-                   int nodePortValue,
-                   string nodeNameValue,
-                   string nodeTypeValue,
-                   int nodeStatusValue);
+  string getItemKey();
 
-    string getItemKey();
+  string getNodeIP();
 
-    string getNodeIP();
+  string getItemId();
 
-    string getItemId();
+  string getItemName();
 
-    string getItemName();
+  string getNodeType();
 
-    string getNodeType();
+  int getNodePort();
 
-    int getNodePort();
+  int getNodeStatus();
 
-    int getNodeStatus();
+  void setItemKey(string &itemKeyIn);
 
-    void setItemKey(string& itemKeyIn);
+  void setItemIP(pdb::String &itemIPIn);
 
-    void setItemIP(pdb::String& itemIPIn);
+  void setItemId(string &itemIdIn);
 
-    void setItemId(string& itemIdIn);
+  void setItemName(string &itemNameIn);
 
-    void setItemName(string& itemNameIn);
+  void setNodePort(int &portIn);
 
-    void setNodePort(int& portIn);
+  string printShort();
 
-    string printShort();
+  void toStandardMetadata(pdb::Handle<pdb::CatalogNodeMetadata> &convertedItem);
 
-    void toStandardMetadata(pdb::Handle<pdb::CatalogNodeMetadata>& convertedItem);
-
-    friend std::ostream& operator<<(std::ostream& out, CatalogStandardNodeMetadata& node) {
-        out << "\nCluster Node Metadata" << endl;
-        out << "-------------------" << endl;
-        out << "       Node Id: " << node.getItemId().c_str() << endl;
-        out << "       Node IP: " << node.getNodeIP().c_str() << endl;
-        out << "     Node Port: " << node.getNodePort() << endl;
-        out << "     Node Name: " << node.getItemName().c_str() << endl;
-        out << "     Node Type: " << node.getNodeType().c_str() << endl;
-        out << "-------------------\n" << endl;
-        return out;
-    }
+  friend std::ostream &operator<<(std::ostream &out,
+                                  CatalogStandardNodeMetadata &node) {
+    out << "\nCluster Node Metadata" << endl;
+    out << "-------------------" << endl;
+    out << "       Node Id: " << node.getItemId().c_str() << endl;
+    out << "       Node IP: " << node.getNodeIP().c_str() << endl;
+    out << "     Node Port: " << node.getNodePort() << endl;
+    out << "     Node Name: " << node.getItemName().c_str() << endl;
+    out << "     Node Type: " << node.getNodeType().c_str() << endl;
+    out << "-------------------\n" << endl;
+    return out;
+  }
 
 private:
-    string nodeId;
-    string nodeIP;
-    int nodePort;
-    string nodeName;
-    string nodeType;
-    int nodeStatus;
-    string nodeAddress;
+  string nodeId;
+  string nodeIP;
+  int nodePort;
+  string nodeName;
+  string nodeType;
+  int nodeStatus;
+  string nodeAddress;
 };
 
 #endif /* SRC_CATALOG_CATALOGSTANDARDNODEMETADATA_H_ */

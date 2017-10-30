@@ -28,8 +28,8 @@
 class CatalogStandardPermissionsMetadata {
 
 public:
-    CatalogStandardPermissionsMetadata();
-    ~CatalogStandardPermissionsMetadata();
+  CatalogStandardPermissionsMetadata();
+  ~CatalogStandardPermissionsMetadata();
 };
 
 #endif /* SRC_CATALOG_CATALOGSTANDARDPERMISSIONSMETADATA_H_ */
