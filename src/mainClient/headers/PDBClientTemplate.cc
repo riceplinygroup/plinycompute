@@ -22,39 +22,34 @@
 
 namespace pdb {
 
-    template <class DataType>
-    bool PDBClient::createSet(
-            const std::string& databaseName,
-            const std::string& setName,
-            std::string& errMsg) {
+template <class DataType>
+bool PDBClient::createSet(const std::string &databaseName,
+                          const std::string &setName, std::string &errMsg) {
 
-        return distributedStorageClient.createSet<DataType>(databaseName, setName,
-                                  errMsg, DEFAULT_PAGE_SIZE);
-    }
+  return distributedStorageClient.createSet<DataType>(
+      databaseName, setName, errMsg, DEFAULT_PAGE_SIZE);
+}
 
-    template <class DataType>
-    bool PDBClient::sendData(
-            std::pair<std::string, std::string> setAndDatabase,
-            Handle<Vector<Handle<DataType>>> dataToSend,
-            std::string& errMsg) {
+template <class DataType>
+bool PDBClient::sendData(std::pair<std::string, std::string> setAndDatabase,
+                         Handle<Vector<Handle<DataType>>> dataToSend,
+                         std::string &errMsg) {
 
-        return dispatcherClient.sendData<DataType>(setAndDatabase, dataToSend, errMsg);
-    }
+  return dispatcherClient.sendData<DataType>(setAndDatabase, dataToSend,
+                                             errMsg);
+}
 
+template <class... Types>
+bool PDBClient::executeComputations(std::string &errMsg,
+                                    Handle<Computation> firstParam,
+                                    Handle<Types>... args) {
+  return queryClient.executeComputations(errMsg, firstParam, args...);
+}
 
-    template <class... Types>
-    bool PDBClient::executeComputations(std::string& errMsg,
-                             Handle<Computation> firstParam,
-                             Handle<Types>... args) {
-        return queryClient.executeComputations(errMsg, firstParam, args...);
-    }
-
-    template <class Type>
-    SetIterator<Type> PDBClient::getSetIterator(std::string databaseName, std::string setName){
-        return queryClient.getSetIterator<Type>(databaseName, setName);
-    }
-
-
-
+template <class Type>
+SetIterator<Type> PDBClient::getSetIterator(std::string databaseName,
+                                            std::string setName) {
+  return queryClient.getSetIterator<Type>(databaseName, setName);
+}
 }
 #endif
