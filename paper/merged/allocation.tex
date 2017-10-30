@@ -1,7 +1,7 @@
 \section{Object Model Tuning}
 
 \noindent
-The PC \texttt{Object} model is designed for zero-cost data movement, the result being that there is often no serialization or deserialization
+The PC object model is designed for zero-cost data movement, the result being that there is often no serialization or deserialization
 cost
 when moving PC \texttt{Object}'s accross processes.  But memory management can still be costly.  Deallocating and cleaning
 up complex objects (in particular, instances of container classes) can require significant CPU resources, which, depending upon the 
@@ -16,13 +16,13 @@ three allocator policies:
 
 \begin{enumerate}
 
-\item Lightweight re-use.  This is the default policly.  When an \texttt{Object} is deallocated, its space in the allocation block is made available for re-use by
+\item Lightweight re-use.  This is the default policly.  When a PC \texttt{Object} is deallocated, its space in the allocation block is made available for re-use by
 adding the space to a pool of similarly-sized, recycled memory chunks (specifically, all recycled chunks are organized into buckets, where a chunk of size
 $n$ goes into bucket $\log_2 (n)$).  A request for RAM in a block is fulfilled by first scanning the recycled chunks in the appropriate bucket, then
 attempting to allcate new space on the end of the page, if that fails.
-\item No re-use.  The space containing deallocated \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though \texttt{Object}s
-are reference-counted, and a destructor is called for each unreachable \texttt{Object}.
-On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary \texttt{Object}s will result in a lot of wasted space.
+\item No re-use.  The space containing deallocated PC \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though PC \texttt{Object}s
+are reference-counted, and a destructor is called for each unreachable PC \texttt{Object}.
+On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary PC \texttt{Object}s will result in a lot of wasted space.
 \item Recycling.  This is layered on top of lightweight re-use.  When the recycling allocator is used, any time a fixed-length
 PC \texttt{Object} is deallocated, it is
 added to a list of objects all having the same type.  All calls to \texttt{makeObject} with the zero-argument constructor will
@@ -42,7 +42,7 @@ These are not recycled because recycling allocations of such objects would need 
 be computationally expensive, and could also allow long lists of objects to build up, waiting to be re-used.
 
 In addition to policies that can be set on a per-computation basis,
-it is also possible for a programmer to supply the following policies, on a per-\texttt{Object} bases, during \texttt{Object} allocation:
+it is also possible for a programmer to supply the following policies, on a per-\texttt{Object} bases, during PC \texttt{Object} allocation:
 
 \begin{enumerate}
 

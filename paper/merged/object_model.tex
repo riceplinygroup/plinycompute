@@ -58,7 +58,7 @@ But while the PC object model provides a rich, object-oriented programming model
 of a flat relational model.
 The key principle underlying the PC object model is \emph{zero-cost data movement}.  That is, once a data object
 has been allocated and populated, moving the object to disk or across the network should be a simple matter of copying memory; there
-should be no CPU cost.
+should be no CPU cost for serialization and deserialization.
 
 At first glance, it would seem to be impossible to offer zero-cost data movement while allowing a programmer to create and manipulate such objects.  
 Pointers and container classes 
