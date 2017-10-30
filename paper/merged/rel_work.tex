@@ -28,7 +28,8 @@ We briefly discuss some of those efforts now.
 \textbf{Code Generation.} The basic idea is that a system implemented in high level language
 can generate native query execution code that manually manages
 memory and also avoids virtual function call
-overheads. DryadLinq~\cite{yu2008dryadlinq} allows a user to express distributed dataflow
+overheads. DryadLinq~\cite{yu2008dryadlinq} allows a user to express
+distributed data flow
 computations in a high-level language like C\# and strongly typed .NET
 objects, and it compiles those computations into .NET assembler.
 the cluster. 
@@ -55,7 +56,7 @@ LLVM.  Then, application developers can use unified APIs to
 call different libraries from Weld. Since version 2.0, Spark~\cite{zaharia2012resilient}
 also exploits whole-stage code generation to generate JVM 
 code.  The goal is mainly to reduce type parsing and virtual function call
-overhead. PC uses a form of code generation (template meta-programming) but 
+overhead. PC uses a form of code generation (template metaprogramming) but 
 the emphasis is quite different, in the sense that the goal is to allow for
 efficient distributed programming with complex objects.
 
