@@ -1,5 +1,39 @@
 
 \section{Conclusions}
 
-Recap the paper and talk about future work.  Mention building 
-asyncronous compute capabilities into PlinyCompute.
+This paper has described PlinyCompute, or PC for short.  PC is a system for the development of high performance
+distributed data processing tools and libraries.  PC is designed to inhabit the space between
+high-performance computing platforms such as OpenMP and MPI, which provide little direct support
+for managing very large data sets, and dataflow platforms such as Spark and Flink, which rely on 
+a managed runtime to provide low-level services such as allocation and deallocation of data objects and memory management.
+PC's guiding design principle is ``declarative in the large,
+high performance in the small''.
+In the large, PC presents the capable systems programmer with a very high-level, declarative interface, relying on automatic,
+relational-database style optimization.  This is crucial for tool and library development, since the same tool should run well
+regardless of the characteristics of the data and of the compute platform.  But in the small, PC relies on the PC object model.
+The PC object model is an
+API for storing and manipulating persistent data, and has been co-designed with PC’s memory management
+system and computational engine to provide maximum performance.
+One of the key ideas behind the PC object model is the \emph{page as a heap principle}. All PC
+Objects are allocated and manipulated in-place, on a system- (or user-) allocated page. There is no distinction
+between the in-memory representation of data and the on-disk (or in-network) representation of data.
+Thus there is no (de-)serialization cost to move data to/from disk and network, and memory management
+costs are very low.
+
+We have performed a reasonably extensive set of benchmark experiments that indicate that these ideas can result in 
+a system that is very high performance and yet offers a relatively simple and usable object oriented API.  In particular, 
+we have given strong evidence that PC \emph{is} particularly well-suited to tool and library development. 
+For example, we asked a PhD
+student (who at the outset knew nothing of PC) to use the system to build a small Matlab-like programming
+language and library for distributed matrix operations called
+\texttt{lilLinAlg}.  The resulting tool outperformed many other, long-lived tools
+for the same purpose, such as SciDB, \texttt{mllib}, and SystemML.  SystemML in particular has resulted 
+in several research papers,
+including one awarded a VLDB best paper award \cite{boehm2016systemml}.
+\texttt{lilLinAlg} was developed in six weeks by a single PhD student.
+One may conjecture that had SystemML been built on a platform such as PC rather than on Spark, it might be significantly
+faster than it is now.
+
+Many avenues for future work remain.  In particular, there is significant scope for expanding the functionality and
+usability of the PC object model, including relaxing the strict requirement that all handles point within a page.  This
+would allow pointer-like objects to point off a page, perhaps even off of a machine.  
