@@ -30,7 +30,7 @@ called \texttt{lilLinAlg} on top of PC, and evaluated \texttt{lilLinAlg}'s perfo
 computations that could reasonably be expressed in linear algebra: distributed Gram matrix construction, 
 distributed least squares linear regression, and distributed nearest neighbor search.
 
-\item To test the utility of the PC object model, we first denormalized the TPC-H database \cite{} into an object-oriented 
+\item To test the utility of the PC object model, we first denormalized the TPC-H database \cite{council2008tpc} into an object-oriented 
 representation, and then benchmarked two reasonably complex 
 analytical computations---the
 the first computes the list of customers and the parts they construct for each supplier, and the
@@ -63,8 +63,16 @@ node and the rest ten machines served as worker nodes.
 
 Since Apache Spark is most widely-used Big Data system both for applications programming and for tool and library
 development, most
-(though not all) of our comparisons were with Spark (version XX.XX). The Spark cluster that we used... \textbf{Chris note:} can we say something
-here about the Spark configuration?
+(though not all) of our comparisons were with Spark (version
+2.1.0). The configuration of the Spark cluster such as
+executor memory, number of cores for each executor, number of
+executors, data partitions and so on are carefully tuned for each
+experiment.  For all experiments, we store kryo-serialized data in
+HDFS. We do not clear OS buffer cache, so HDFS data can be buffered or
+cached in OS buffer cache. For each experiment we read HDFS data
+through a binary format (Parquet for the Dataset API,
+and an Object file for the RDD API).
+
 
 \subsection {Distributed Linear Algebra}
 
@@ -234,7 +242,7 @@ size for every experiment. In SystemML, we also carefully chose to
 use the parallel for loop, which boosted performance significantly.
 
 For fairness, for each of the distributed linear algebra tools, 
-we do not count the time required to load data from an external source into the system
+we do not count the time required to load data from client into the system
 (for example, 
 for \texttt{lilLinAlg}, we do not count the time required to load data from text and into PC).
 
@@ -438,8 +446,7 @@ of the data.
 
 For both Spark computations, we performed two runs at each data set size.
 For the first, we stored the data in HDFS, and measure the time to execute the query starting with a
-read from HDFS (note that in each case, the data set was small enough to be entirely buffered in RAM by HDFS, so
-reading from HDFS incurs no I/O time to access physical storage).
+read from HDFS.
 For the second, we made sure that the data were de-serialized and stored in RAM by Spark.
 To do this, applied a $distinct().count()$ operation to
 an RDD storing \texttt{Customer} objects (thus ensuring full deserialization) before running each query.
@@ -448,7 +455,7 @@ serialized using Kryo, and parameters such as data partition size and parallelis
 optimal performance. 
 
 For PC, we run only one version of the computation, where the various \texttt{Customer} objects are stored in
-PC's storage system.  Again, since all data sets are small enough to be stored in RAM, there is no I/O time to
+PC's storage system.  Since all data sets are small enough to be cached in RAM, there is no I/O time to
 retrieve data.
 
 \subsubsection{Results and Discussion}
@@ -484,7 +491,7 @@ When Spark data
 are stored in
 a hot HDFS, the two computations are $6\times$ to $66\times$ faster in PC.  
 This is an apples-to-apples comparison, because in both systems, the data are being fetched from system storage, where they
-are buffered in RAM.
+can be buffered in OS buffer cache or PC buffer pool respectively.
 
 If the Spark data are already
 fully deserialized and stored as an RDD in memory, then PC is still 
@@ -496,7 +503,7 @@ hidden costs that are not reflected in this time.  For example, those in-RAM RDD
 time if a different data set is deserialized into RAM.  That cost is not included in the running times reported here.
 
 One of the most striking---and surprising---results was that Spark had about the same performance for both computations.  This is
-a bit surmising because the top-$k$ computation seems, on the face of it, much easier 
+a bit surprising because the top-$k$ computation seems, on the face of it, much easier 
 than the ``parts per supplier per customer'' computation.  $k$ was between 1,024 and 10,240, so (in theory) that should be
 a hard limit on the number of customer's whose data are moved off of each machine during a shuffle 
 (since it is impossible for more than $k$
@@ -526,11 +533,11 @@ word-based,
 non-collapsed Gibbs sampler \cite{jermaineExperimental}.  The LDA implementation
 is \emph{non-collapsed} because it does not integrate out the word-probability-per-topic
 and topic-probability-per-document random variables. In general, collapsed implementations
-that do integrate out these values are more common, but they such collapsed implementations
+that do integrate out these values are more common, but such collapsed implementations
 cannot be made ergodic in a distributed setting
 (where ergodicity implies theoretical correctness in some sense).
 Our implementation is
-\emph{word based} because the fundamental data objects it operates over are \texttt{(docID, wordID, count)}  on top of
+\emph{word based} because the fundamental data objects it operates over are \texttt{(docID, wordID, count)} 
 triples.  This generally results in a more challenging
 implementation from the platform's point-of-view because it requires a many-to-one join between words
 and the topic-probability-per-document vectors.  In our experiments, there are approximately
@@ -544,7 +551,7 @@ in Figure~\ref{fig:lda-query-graph}.  Each iteration requires a
 three-way \texttt{JoinComp}, three \texttt{MultiSelectionComp}s, and three
 \texttt{AggregateComp}s, among others. 
 
-Our PC LDA computation makes use of the GSL library to perform all necessary random sampling (non-collapsed LDA requires 
+Our PC LDA computation makes use of the GSL library~\cite{gsl} to perform all necessary random sampling (non-collapsed LDA requires 
 sampling from both Multinomial and Dirichlet distributions).
 
 \begin{figure}
@@ -573,16 +580,16 @@ The require statistical computations use the
 as having been produced by a set of Gaussians (multi-dimensional Normal distributions). Learning a GMM using
 the EM algorithm is one of the classical ML algorithms.
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
-by linear algebra operations (such as repeated vector-matrix multiples).
+by linear algebra operations (such as repeated vector-matrix multiplications).
 
 We
 implemented GMM using EM on top of PC.  All linear algebra in our PC implementation was performed using
-the GSL library.  
+the GSL library~\cite{gsl}.  
 Our PC implementation uses a single \texttt{AggregationComp} object, which contains inside of it the current
 version of the learned GMM model.  As this  \texttt{AggregationComp} is executed, a soft assignment of each
 data point to each Gaussian is performed, and based off of this assignment, updates to each of the Gaussians
 are accumulated.  The result of the aggregation is sent back to the \texttt{main} program where the actual update
-to the model happens; the result is broadcast in a new \texttt{AggregationComp} object, and the process begins again.
+to the model happens; the result is broadcasted in a new \texttt{AggregationComp} object, and the process begins again.
 
 It turns out that an algorithmically equivalent implementation exists in Spark \texttt{mllib}.
 Both implementations even use the same random initialization algorithm.

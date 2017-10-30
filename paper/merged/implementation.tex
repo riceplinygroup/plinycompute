@@ -78,9 +78,9 @@ Because worker backend processes are the only processes that are actually allowe
 user-supplied data) it means that the worker backend processes are
 where all computations in PC are actually performed.  One or more computation in PC corresponds 
 to a set of the 
-JobStages, that are created by the master server's distributed query scheduler, 
+\texttt{JobStage}s, that are created by the master server's distributed query scheduler, 
 for executing the computations and required communications
-that link together the various JobStages to implement distributed
+that link together the various \texttt{JobStage}s to implement distributed
 computations such as joins and aggregations. 
 For example, considering a query graph that consists of a \texttt{Reader}, a standalone \texttt{SelectionComp} following
 the \texttt{Reader}, and a
@@ -130,7 +130,7 @@ from the producing stage, so that they can be sent over the network and used at 
 Once the pipe sinks have been allocated,
 the system begins assigning input pages to each of the pipelining 
 threads.  Each input page was itself produced as a the result of a
-previous JobStage, or else created by user, both of which needs to be
+previous \texttt{JobStage}, or else created by user, both of which needs to be
 loaded from Pangea.  Hence all pages are themselves organized using the PC \texttt{Object} model.  Thus, each input
 page will itself contain a \texttt{Vector <Handle <Object>>},
 or another standard PC container type.  During the producing stage, vectors of PC \texttt{Handle}s are repeatedly
@@ -196,18 +196,18 @@ tuple formed by taking one item from each of the $n$ sets.  Let $key(t_i)$ denot
 in order for $t$ to be in the output set, it must be the case that
 $key(t_i) = key(t_j)$ forall $i, j$. 
 
-In PC, such an operation is broken into $2n$ JobStages. The first $n$
-JobStages are \texttt{PipelineJobStage}s hashing and repartitioning each of the $n$ sets, so that all of the data with the same join key value
-must be co-located on the same machine.  The next $n - 1$ JobStages
+In PC, such an operation is broken into $2n$ \texttt{JobStage}s. The first $n$
+\texttt{JobStage}s are \texttt{PipelineJobStage}s hashing and repartitioning each of the $n$ sets, so that all of the data with the same join key value
+must be co-located on the same machine.  The next $n - 1$ \texttt{JobStage}s
 are \texttt{BuildHashTableJobStage}s that build hash tables for all of the
-entries in $n - 1$ of those sets.  The last JobStage is also a 
+entries in $n - 1$ of those sets.  The last \texttt{JobStage} is also a 
 \texttt{PipelineJobStage} that scans the last set and
 probes the constructed hash tables.  
 
 In more detail, the three types of stages are:
 
 \vspace{5pt}
-{\bf 1. The data repartition stages.} This class of JobStages are
+{\bf 1. The data repartition stages.} This class of \texttt{JobStage}s are
 \texttt{PipelineJobStage}s. It is similar to the producing stage in distributed
 aggregation, with one key difference.
 Rather than using a \texttt{Vector <Handle <Map <Object, Object>>>} to store (key, value) pairs where the value is the result obtained by aggregating a set of
@@ -220,18 +220,18 @@ Note that after the data repartition job stages completes, all of the data from 
 key will be co-located on the same machine.
 
 \vspace{5pt}
-{\bf 2. The hash table building stages.} These JobStages are
+{\bf 2. The hash table building stages.} These \texttt{JobStage}s are
 \texttt{BuildHashTableJobStage}s, which are similar to the consuming job stage in aggregation, 
 except that again, rather than aggregating, the goal is to build up \texttt{Vector}s of objects, stored in various \texttt{Map} data structures (one for each
 aggregation thread), where the \texttt{Vector} of objects associated with a particular 
 \texttt{unsigned\_t} contains \emph{all} of the objects in a set whose join key hashes to that particular \texttt{unsigned\_t} value.
-As a reult of this class of JobStages, the contents of $n - 1$ of the input sets will be stored precisely as required.
+As a reult of this class of \texttt{JobStage}s, the contents of $n - 1$ of the input sets will be stored precisely as required.
 
 \vspace{5pt}
 {\bf 3. The hash join stage.} 
-This JobStage is also a \texttt{PipelineJobStage}. It runs over the last set (the one that was not 
+This \texttt{JobStage} is also a \texttt{PipelineJobStage}. It runs over the last set (the one that was not 
 hashed as part of join stage 2), and output results to the next
-JobStage (through shuffling) or an Output sink (e.g. write to storage
+\texttt{JobStage} (through shuffling) or an Output sink (e.g. write to storage
 as final results). Now imagine that we are processing the last data set, after shuffling.  At this point,
 all of the other sets have been
 stored in \texttt{Map <unsigned\_t, Vector <Object>>} objects.  As we process the final set,
