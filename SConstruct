@@ -45,8 +45,6 @@ elif  common_env['PLATFORM'] == 'posix':
     common_env.Append(CXXFLAGS = '-std=c++14 -g -Oz -march=native -Wno-deprecated-declarations')
     #common_env.Append(CXXFLAGS = '-std=c++14 -g  -Oz -ldl -lstdc++ -Wno-deprecated-declarations')
     common_env.Append(LINKFLAGS = '-pthread -ldl -lgsl -lgslcblas -lm -lsnappy -lstdc++')
-    if 'lda' in COMMAND_LINE_TARGETS:
-       common_env.Append(LINKFLAGS = '-lgsl -lgslcblas -lm -lsnappy')    
     common_env.Replace(CXX = "clang++")
 
 common_env.Append(CCFLAGS='-DINITIALIZE_ALLOCATOR_BLOCK')
@@ -705,38 +703,6 @@ cgmm=common_env.Alias('cgmm', [
   'libraries/libGmmAggregateDatapoint.so'
 ])
 
-lda=common_env.Alias('lda', [
-  'bin/CatalogTests',
-  'bin/pdb-cluster',
-  'bin/pdb-server',
-  'bin/TestLDA',
-  # LDA 
-  'libraries/libLDADocIDAggregate.so',
-  'libraries/libScanLDADocumentSet.so',
-  'libraries/libLDAInitialTopicProbSelection.so',
-  'libraries/libWriteIntDoubleVectorPairSet.so',
-  'libraries/libIntDoubleVectorPair.so',
-  'libraries/libIntIntVectorPair.so',
-  'libraries/libLDAInitialWordTopicProbSelection.so',
-  'libraries/libLDADocWordTopicJoin.so',
-  'libraries/libLDADocWordTopicAssignment.so',
-  'libraries/libLDADocTopicAggregate.so',
-  'libraries/libLDADocTopicProbSelection.so',
-  'libraries/libLDADocWordTopicMultiSelection.so',
-  'libraries/libLDATopicWordAggregate.so',
-  'libraries/libLDATopicWordProbMultiSelection.so',
-  'libraries/libLDAWordTopicAggregate.so',
-  'libraries/libLDADocWordTopicCount.so',
-  'libraries/libLDATopicWordProb.so',
-  'libraries/libLDADocument.so',
-  'libraries/libWriteLDADocWordTopicAssignmentSet.so',
-#  "libraries/libWriteLDATopicWordProbSet.so",
-  "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-  "libraries/libLDADocWordTopicAssignmentIdentity",
-  "libraries/libScanIntSet.so"
-])
-
 
 tpch=common_env.Alias('tpch', [
   'bin/CatalogTests',
@@ -969,7 +935,7 @@ libLATest=common_env.Alias('libLATest', [
 jaccard=common_env.Alias('jaccard', [
   'libraries/libCustomer.so', 'libraries/libLineItem.so', 'libraries/libOrder.so', 'libraries/libPart.so', 'libraries/libSupplier.so', 'libraries/libScanCustomerSet.so', 'libraries/libTopJaccard.so', 'libraries/libAllParts.so', 'libraries/libJaccardResultWriter.so', 'bin/tpchJaccard'])
 
-lda2=common_env.Alias('lda2', [
+lda=common_env.Alias('lda2', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
