@@ -124,14 +124,15 @@ created for each of the $N$ so-called \emph{pipelining threads} dedicated to imp
 the producing stage on each of the backend worker processes.  
 The thread assigned to each of those pipelines begins by allocating a PC \texttt{Vector <Handle <Map <Object, Object>>} on an output page.  This page will serve
 as the \emph{pipe sink}.  The pipe sink is
-the location where the data produced by the pipeline are stored.  In this way the PC \texttt{Object} model is used to store the results
+the location where the data produced by the pipeline are stored.  In
+this way the PC object model is used to store the results
 from the producing stage, so that they can be sent over the network and used at the other side with no serialization/deserialization.
 
 Once the pipe sinks have been allocated,
 the system begins assigning input pages to each of the pipelining 
 threads.  Each input page was itself produced as a the result of a
 previous \texttt{JobStage}, or else created by user, both of which needs to be
-loaded from Pangea.  Hence all pages are themselves organized using the PC \texttt{Object} model.  Thus, each input
+loaded from Pangea.  Hence all pages are themselves organized using the PC object model.  Thus, each input
 page will itself contain a \texttt{Vector <Handle <Object>>},
 or another standard PC container type.  During the producing stage, vectors of PC \texttt{Handle}s are repeatedly
 loaded from each input page, and each is used to create a vector list that is pushed through the list of pipeline stages.
