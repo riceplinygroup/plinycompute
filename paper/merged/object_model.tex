@@ -1,8 +1,8 @@
 \section{The PC Object Model} \label{sec:ObjectModel}
 
-At the core of the system is the PC Object model, which allows 
+At the core of the system is the PC object model, which allows 
 programmers to create, manipulate, and store persistent objects.
-In keeping with our vision of granting programmers fine-grained control over how data are managed in the small, the PC Object model
+In keeping with our vision of granting programmers fine-grained control over how data are managed in the small, the PC object model
 is much lower level than what is found in systems targeted more towards application programming, yet still provides a great deal of
 key functionalities.
 
@@ -25,11 +25,11 @@ The downside is that flat relations are very limiting to a programmer.  Modern, 
 data analytics systems 
 (such as Spark via its RDD interface \cite{zaharia2012resilient}) offer far more flexibility, at the (possible) cost of significant performance degradation.  
 PC attempts to combine this flexibility with excellent performance.
-The PC Object model provides a fully object-oriented interface, supporting the standard functionality expected in a modern, object-oriented type system,
-including generic programming (the PC Object model supports generic Map and Vector types), pointers (or, more specifically,
+The PC object model provides a fully object-oriented interface, supporting the standard functionality expected in a modern, object-oriented type system,
+including generic programming (the PC object model supports generic Map and Vector types), pointers (or, more specifically,
 ``pointer-like'' objects called PC \texttt{Handle} objects), inheritance, and dynamic dispatch for runtime polymorphism.  
 
-For example, imagine that the goal is implementing a distributed linear algebra system on top of the PC Object model, where huge matrices are ``chunked'' into
+For example, imagine that the goal is implementing a distributed linear algebra system on top of the PC object model, where huge matrices are ``chunked'' into
 smaller sub-matrices.  A sub-matrix may be stored via our current, C++ binding, using the following object:
 
 \begin{code}
@@ -54,24 +54,24 @@ public:
 
 In the sparse sub-matrix, the \texttt{pair <int, int>} indexes a non-zero entry in the the chunk by its row and column.
 
-But while the PC Object model provides a rich, object-oriented programming model, it also provides the good performance characteristic
+But while the PC object model provides a rich, object-oriented programming model, it also provides the good performance characteristic
 of a flat relational model.
-The key principle underlying the PC Object model is \emph{zero-cost data movement}.  That is, once a data object
+The key principle underlying the PC object model is \emph{zero-cost data movement}.  That is, once a data object
 has been allocated and populated, moving the object to disk or across the network should be a simple matter of copying memory; there
 should be no CPU cost.
 
 At first glance, it would seem to be impossible to offer zero-cost data movement while allowing a programmer to create and manipulate such objects.  
 Pointers and container classes 
 generally lead to high memory (de)allocation costs and high object (de)serialization costs, resulting in high CPU cost.
-The PC Object model avoids this 
+The PC object model avoids this 
 by using a ``page-as-a-heap'' memory allocation model.  
-The PC Object model provides a call of the form:
+The PC object model provides a call of the form:
 
 \begin{code}
 makeObjectAllocationBlock (ptr, blockSize);
 \end{code}
 
-After such a call, \emph{all subsequent PC object allocations by the thread creating the object allocation block will be performed directly to the memory
+After such a call, \emph{all subsequent PC Object allocations by the thread creating the object allocation block will be performed directly to the memory
 region starting at location} \texttt{ptr}.
 Typically, when it runs a computation, PC's computation engine will obtain a page from its memory pool to buffer output data, calling
 PC's
@@ -122,7 +122,7 @@ page is copied in its entirety, including all \texttt{Handle}s and their targets
 \subsection{Dynamic Dispatch}
 \label{sec:dyn_dis}
 
-Supporting dynamic dispatch for virtual function calls is fundamental to the PC Object model.
+Supporting dynamic dispatch for virtual function calls is fundamental to the PC object model.
 In PC, dynamic dispatch is facilitated by the type code stored within each
 \texttt{Handle} object.
 Each type code begins with a bit that denotes whether or not the referenced type is a simple type (which, by definition, cannot have any
@@ -143,7 +143,7 @@ then placed at the head of the object.
 
 Obtaining a pointer to a class' \texttt{vTable} object is not straightforward.
 A user may run code on his/her machine that creates
-a PC Object, and then ship that PC Object into the cloud.  At the other end, it arrives at a PC process that has never seen that type of object before and hence
+a PC \texttt{Object}, and then ship that PC \texttt{Object} into the cloud.  At the other end, it arrives at a PC process that has never seen that type of object before and hence
 does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the PC catalog
 server before they are loaded into the cloud.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
@@ -156,7 +156,7 @@ lookup fails (because the process has not yet seen a \texttt{vTable} pointer for
 type) the request then goes to the PC cluster's catalog server, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
 \texttt{.so} file is then 
 dynamically loaded into the process' address space, \texttt{getVTablePtr ()} is called, 
-and the resulting \texttt{vTable} pointer inserted into the lookup table, and then copied into the PC Object that is being referenced.  
+and the resulting \texttt{vTable} pointer inserted into the lookup table, and then copied into the PC \texttt{Object} that is being referenced.  
 
 In this way, PC provides something akin to the automated,
 dynamic loading of classes (via Java Virtual Machine \texttt{.class} files) that is
@@ -185,7 +185,7 @@ reachable objects on it, it becomes an inactive, managed block.
 
 \item Finally, there are zero or more \emph{inactive},
   \emph{un-managed} blocks.  These are blocks with reachable PC
-  objects that are \emph{not} managed by the PC object model.  These tend to be pages of objects that have
+  \texttt{Object}s that are \emph{not} managed by the PC object model.  These tend to be pages of objects that have
 been loaded into RAM from disk or across the network for processing
 during a distributed computation.  Such blocks are paged in and out of Pangea
 buffer pool in much the same way as a relational database would page data in and out.
@@ -206,7 +206,7 @@ next full section of the paper).
 Once the number of reachable objects on an inactive, managed allocation block falls to zero, the block is automatically deallocated.  
 In that sense, PC resembles a smart-pointer based memory management system.  
 
-Since the fundamental goal of PC Object model design is 
+Since the fundamental goal of PC object model design is 
 zero-cost data movement---an allocation block should be transferable across processes and immediately usable with no pre- or post-processing---one
 potential problem is dangling \texttt{Handle}s.  Specifically: What happens when there is a \texttt{Handle} located in one allocation block that points to a PC
 \texttt{Object} located in another allocation block?  The \texttt{Handle} may be valid, but when the \texttt{Handle}'s allocation block is moved to a new process where
