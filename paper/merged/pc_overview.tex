@@ -2,7 +2,7 @@
 \section{Overview of PlinyCompute}
 
 We give an overview of PlinyCompute, focusing on the core components of the
-system: the PC \texttt{Object} model, 
+system: the PC object model, 
 the PC API and TCAP compiler, and execution engine, and we concretize these ideas by
 describing the implementation of a simple $k$-means clustering algorithm.
 
@@ -12,16 +12,16 @@ There is growing evidence that the CPU cost associated with manipulating data, e
 (de-)allocation,  
 dominate the time needed to complete typical big data processing tasks \cite{ousterhout2015making}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
-PC requires programmers to store and manipulate data using the \emph{PC Object model}.
-The PC Object model is an API for storing and manipulating persistent
+PC requires programmers to store and manipulate data using the \emph{PC object model}.
+The PC object model is an API for storing and manipulating persistent
 data, and has been co-designed with PC's memory management system and computational engine to provide
 maximum performance.  
 
 In PC's C++ binding, individual PC \texttt{Object}s correspond to C++ objects, and so the C++ compiler specifies the memory layout.
-However, where PC objects are stored in RAM and on disk, and how they are allocated and deallocated, when and where they are moved, is
+However, where PC \texttt{Object}s are stored in RAM and on disk, and how they are allocated and deallocated, when and where they are moved, is
 tightly controlled by PC itself.
 
-The PC Object model provides a fully object-oriented interface, and yet manages to avoid many of the costs associated with complex object manipulation
+The PC object model provides a fully object-oriented interface, and yet manages to avoid many of the costs associated with complex object manipulation
 by following the \emph{page as a heap} principle.  
 All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 (or user-) allocated page.  There is
@@ -35,12 +35,12 @@ In computer systems design, this is often referred to as
 memory. In PC Cluster, the Pangea storage server adopts this strategy to
 allocate pages from buffer pool for caching/buffering user data or
 intermediate data generated through query processing. The Pangea
-buffer pool works closely with PC Object model in query processing to
-provide pages for manipulating PC Objects.
+buffer pool works closely with PC object model in query processing to
+provide pages for manipulating PC \texttt{Object}s.
 
-To illustrate use of the PC Object model from a user's perspective,
+To illustrate use of the PC object model from a user's perspective,
 imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
-Using the PC Object model's C++ binding, we might represent each data point using the 
+Using the PC object model's C++ binding, we might represent each data point using the 
 \texttt{DataPoint} class:
 
 \begin{codesmall}
@@ -81,13 +81,13 @@ no pre-processing and zero CPU cost, aside from the cycles required to perform t
 This illustrates the principle of \emph{zero cost data movement}.
 
 To achieve high performance, all memory management except buffer pool
-page management is taken care of by the PC Object model.
+page management is taken care of by the PC object model.
 If the next line of code executed were:
 \texttt{
 myVec = nullptr;}
 then all of the memory associated with the \texttt{Vector} of \texttt{DataPoint} objects would be automatically
-freed, since PC Objects are reference counted.  This can
-be expensive, however, since the PC Object infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
+freed, since PC \texttt{Object}s are reference counted.  This can
+be expensive, however, since the PC \texttt{Object} infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
 Recognizing that low-level data manipulations dominate big data
 compute times, PlinyCompute gives a programmer nearly complete control
 over most aspects of memory management.
@@ -112,8 +112,8 @@ PlinyCompute: \emph{Since PC is targeted towards tool and library
   development, PC assumes the programmer knows what s/he is doing.  In
   the small, PC gives the programmer all of the tools s/he needs to make things fast}.
 
-Finally, we note that the PC Object model is not used exclusively or
-even primarily for application programming.  The PC Object model
+Finally, we note that the PC object model is not used exclusively or
+even primarily for application programming.  The PC object model
 is used \emph{internally}, with PC's computational engine as well.
 For example, aggregation is implemented using PC's built-in
 \texttt{Map} class.  Each thread maintains
@@ -188,7 +188,7 @@ Each of these is an abstract type descending from PC's \texttt{Computation} clas
 Where PC differs from other systems is that a programmer customizes these operations by writing code that composes together various C++ codes 
 using a 
 domain-specific lambda calculus.
-For example, to implement a \texttt{SelectionComp} over PC Objects of type \texttt{DataPoint}, a programmer
+For example, to implement a \texttt{SelectionComp} over PC \texttt{Object}s of type \texttt{DataPoint}, a programmer
 must implement the lambda term construction function \texttt{getSelection (Handle <DataPoint>)} which returns a lambda term
 describing how \texttt{DataPoint} objects
 should be processed.
@@ -211,7 +211,7 @@ include:
 
 \vspace{-5pt}
 \item \texttt{makeLambdaFromMember ()}, which returns 
-a lambda abstraction taking as input a \texttt{Handle} to an \texttt{Object}, and returns a function returning one of the pointed-to object's member variables;
+a lambda abstraction taking as input a \texttt{Handle} to a PC \texttt{Object}, and returns a function returning one of the pointed-to object's member variables;
 
 \vspace{-5pt}
 \item 
