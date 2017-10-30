@@ -114,7 +114,7 @@ representations and extract fixed-length binary key prefixes without
 deserializing the whole object.
 
 Spark~\cite{tungsten} has introduced the Dataset/Dataframe representations
-to complement the more OO 
+to complement the more object-oriented
 RDD representation~\cite{zaharia2012resilient}. Datasets/Dataframes are
 binary data representations used to encode JVM objects relationally (as a
 row with various fields/columns). 
@@ -188,7 +188,7 @@ with user applications, the relational data described by standard SQL needs to
 be translated to protocol buffers or user languages through the
 GoogleSQL library that contains a compiler front-end and a library of
 scalar functions. PC takes a fundamentally different approach, as all code is 
-object oriented rather an a mix of SQL and other high (or medium) level languages.
+object-oriented rather an a mix of SQL and other high (or medium) level languages.
 
 Tensorflow~\cite{abadi2016tensorflow} is a
 distributed computing framework mainly designed for deep learning. It
