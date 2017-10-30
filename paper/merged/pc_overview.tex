@@ -181,7 +181,7 @@ PC \texttt{Object}s. The PC toolkit consists of a set of
 operations 
 that are not unlike the operations provided by systems such as Spark and Flink, though they are less numerous and generally higher-level:
 \texttt{SelectionComp} (equivalent to relational selection and projection), \texttt{JoinComp} (equivalent to a join of arbitrary arity and arbitrary predicate), 
-\texttt{AggComp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
+\texttt{AggregateComp} (aggregation), \texttt{MultiSelectComp} (relational selection with a set-valued projection function) and a few others.  
 Each of these is an abstract type descending from PC's \texttt{Computation} class.
 
 Where PC differs from other systems is that a programmer customizes these operations by writing code that composes together various C++ codes 
@@ -467,7 +467,7 @@ long DataPoint :: getClose (Vector <Vector <double>> &centroids) {...}
 \end{code}
 
 \noindent
-Next, a programmer using PC would define an \texttt{AggComp} class using PC's lambda calculus, since, after all, the $k$-means algorithm is essentially 
+Next, a programmer using PC would define an \texttt{AggregateComp} class using PC's lambda calculus, since, after all, the $k$-means algorithm is essentially 
 an aggregation:
 
 \begin{code}
