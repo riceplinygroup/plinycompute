@@ -595,8 +595,6 @@ It turns out that an algorithmically equivalent implementation exists in Spark \
 Both implementations even use the same random initialization algorithm.
 There are only slight differences between the two; for example, PC computes uses the standard ``log space'' trick to
 compute the soft assignment and avoid underflow, whereas \texttt{mllib} uses thresholding.  
-We installed OpenBLAS in the cluster, and \texttt{breeze} (used by the Spark \texttt{mllib} implementation)
-invokes OpenBLAS' native code for numerical processing through JNI.
 
 \vspace{5pt}
 \noindent
