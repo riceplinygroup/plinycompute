@@ -78,6 +78,11 @@ int main(int argc, char* argv[]) {
     pdb::PDBClient pdbClient(
             8108, masterIp, clientLogger, false, true);
 
+    CatalogClient catalogClient(
+            8108,
+            masterIp,
+            clientLogger);
+
     string errMsg;
     std::vector<std::string> v = {"libraries/libCustomer.so",
                                   "libraries/libLineItem.so",
