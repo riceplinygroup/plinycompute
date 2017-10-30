@@ -41,7 +41,7 @@ to a query set.
   iterative machine learning algorithms on top of PC: Latent Dirichlet Allocation (LDA) which is used for
   textual topic mining;
   Gaussian mixture model (GMM) learning which is used to cluster data using a mixture of high-dimensional Normal
-  distributions, and the simplest, $k$-means clustering (chosen because of its ubiquity as a Big Data ML benchmark.
+  distributions, and the simplest, $k$-means clustering (chosen because of its ubiquity as a Big Data ML benchmark).
 \end {enumerate}
 
 \vspace{5 pt}
@@ -67,11 +67,11 @@ development, most
 2.1.0). The configuration of the Spark cluster such as
 executor memory, number of cores for each executor, number of
 executors, data partitions and so on are carefully tuned for each
-experiment.  For all experiments, we store kryo-serialized data in
-HDFS. We do not clear OS buffer cache, so HDFS data can be buffered or
-cached in OS buffer cache. For each experiment we read HDFS data
-through a binary format (Parquet for the Dataset API,
-and an Object file for the RDD API).
+experiment.  For all experiments, we store Kryo-serialized data in
+HDFS. We do not clear the OS buffer cache, so HDFS data can be buffered or
+cached in the OS buffer cache. For each experiment we read HDFS data
+via a binary format (Parquet for the Spark Dataset API,
+and a Java Object file for the Spark RDD API).
 
 
 \subsection {Distributed Linear Algebra}
@@ -88,7 +88,7 @@ Our goal was to determine the
 performance and functionality that an expert programmer (but PC novice) could deliver in a short
 time-frame, compared to a set of established distributed Big Data linear algebra implementations:
 SciDB \cite{brown2010overview, stonebraker2011architecture} (built from the ground up by a team
-consisting of MIT students and professional developers over the last nine years), mllib \cite{meng2016mllib} 
+consisting of MIT students and professional developers over the last nine years), \texttt{mllib} \cite{meng2016mllib} 
 (the Big Data matrix
 implementation shipped with Spark), and SystemML \cite{boehm2014hybrid, ghoting2011systemml, boehm2016systemml}
 (a matrix and machine learning implementation developed
@@ -137,7 +137,7 @@ a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixData} 
 computations, including \texttt{transpose},
 \texttt{inverse}, \texttt{add}, \texttt{subtract}, \texttt{multiply}, \texttt{transposeMultiply}, 
 \texttt{scaleMultiply}, \texttt{minElement},
-\texttt{MaxElement}, \texttt{rowSum}, \texttt{columnSum}, \texttt{duplicateRow}, \texttt{duplicateCol}, 
+\texttt{maxElement}, \texttt{rowSum}, \texttt{columnSum}, \texttt{duplicateRow}, \texttt{duplicateCol}, 
 and many more.  However, \texttt{lilLinAlg} programmers do not call these operations directly, rather,
 \texttt{lilLinAlg} implements its own Matlab-like DSL.  
 Given a computation in the DSL, \texttt{lilLinAlg} first parses the computation into an abstract syntax tree (AST), and then
@@ -155,12 +155,12 @@ query2->setInput(query1);
 
 \noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyJoin} are 
 both user-defined \texttt{Computation} classes that are
-derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} classes; these classes are chosen 
+derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} classes, respectively; these classes are chosen 
 because distributed matrix multiply
 is basically a join followed by an aggregation.
 Internally, the \texttt{LAMultiplyJoin}
 and \texttt{LAMultiplyAggregate} invoke the Eigen numerical processing
-library~\cite{eigen} internally to manipulate \texttt{MatrixBlock} objects.
+library~\cite{eigen} to manipulate \texttt{MatrixBlock} objects.
 For example, \texttt{LAMultiplyJoin} must efficiently multiply the sub-matrices stored inside of two matrix blocks.
 To accomplish this, inside of the \texttt{getProjection ()} operation for
 \texttt{LAMultiplyJoin} is a native C++ lambda that contains the following code:
@@ -182,7 +182,6 @@ the \texttt{resultMatrixBlock} object.
 The Eigen package then works with those raw bytes directly,
 and the overloaded \texttt{*} operator will write its result to that location.
 
-\noindent
 \texttt{lilLinAlg}'s DSL looks a lot like Matlab and allows very short and easy-to-read codes.
 For example, 
 a least squares linear regression over a large input matrix can be easily coded as
@@ -313,7 +312,7 @@ Programming with objects is attractive as a programming paradigm, but (as we hav
 often costly in terms of performance, particularly
 for distributed computing.  One answer is to simply disallow complex objects.  The 
 developers of Apache Spark, for example, have attempted to move away from object programming
-and towards a relational model of programming (with Datasets and DataFrames) 
+and towards a relational model of programming (with Datasets and Dataframes) 
 
 Our solution is to allow objects, but to move away from allowing a managed environment to control 
 issues such as allocation, deallocation, and data placement.  This is the approach taken in the design and implementation
@@ -368,7 +367,7 @@ class Customer : public Object {
    Vector <Handle <Order>> orders;
    int custkey;
    String name;
-   /* seven more members... */}l
+   /* seven more members... */};
 \end{codesmall}
 
 \subsubsection{Implementation and Experiments}
@@ -393,8 +392,8 @@ The second \texttt{Computation}, called
 groups all of those \texttt{SupplierInfo} objects according to the name of the supplier, computing, for each
 supplier, the map from customer name to \texttt{Vector} of \texttt{partkey}s.
 
-Our Spark algorithmically equivalent
-implementation for the ``parts per supplier per customer'' computation was carefully tuned and in the
+On Spark we implemented an algorithmically equivalent
+carefully-tuned code that in the
 end was not dis-similar from the PC
 version.  We used
 Spark version
@@ -431,8 +430,8 @@ myWriter->setInput(myTopK);
 pcContext.executeComputations (myWriter);
 \end{code}
 
-\noindent The one query-specific \texttt{Computation} object that was implemented for the ``top-$k$ 
-closest customer part sets'' computation is the \texttt{TopJaccard} class, which
+\noindent The one query-specific \texttt{Computation} object that was implemented for the top-$k$ 
+closest customer part sets computation is the \texttt{TopJaccard} class, which
 is responsible for extracting a value to drive the top-$k$ computation (in this case, the Jaccard similarity) as well
 as the object to be associated with that value (in this case, the \texttt{custkey} and the list of 
 \texttt{partid}s sold to that customer).
@@ -448,7 +447,7 @@ For both Spark computations, we performed two runs at each data set size.
 For the first, we stored the data in HDFS, and measure the time to execute the query starting with a
 read from HDFS.
 For the second, we made sure that the data were de-serialized and stored in RAM by Spark.
-To do this, applied a $distinct().count()$ operation to
+To do this, we applied a \texttt{distinct().count()} operation to
 an RDD storing \texttt{Customer} objects (thus ensuring full deserialization) before running each query.
 All data were
 serialized using Kryo, and parameters such as data partition size and parallelism are fully tuned to obtain
@@ -527,7 +526,7 @@ GMM and $k$-means.
 The first algorithm we implemented was a Gibbs sampler for
 Latent Dirichlet Allocation, or LDA.  LDA is a common text mining algorithm.
 While LDA implementations are common, we
-chose a particular form of implementation because it is most challenging:
+chose a particularly challenging form of LDA learning:
 a 
 word-based,
 non-collapsed Gibbs sampler \cite{jermaineExperimental}.  The LDA implementation
@@ -544,8 +543,6 @@ and the topic-probability-per-document vectors.  In our experiments, there are a
 700 million such triples, and each vector is around 1KB.  Hence, the many-to-one join between them results in
 700GB of data.  If the platform does not manage this carefully, performance will suffer.
 
-Word-based,
-non-collapsed LDA is a challenging and involved computation.
 The full PC LDA implementation requires fifteen different \texttt{Computation} object, as shown in 
 in Figure~\ref{fig:lda-query-graph}.  Each iteration requires a 
 three-way \texttt{JoinComp}, three \texttt{MultiSelectionComp}s, and three
@@ -570,7 +567,7 @@ carefully implement an algorithmically
 equivalent word-based, non-collapsed LDA Gibbs sampler on top of Spark.  His implementation used both
 Spark's RDD and DataSet        
 APIs as appropriate.
-The require statistical computations use the
+The required statistical computations use the
 \texttt{breeze} package. 
 
 
@@ -578,12 +575,11 @@ The require statistical computations use the
 \noindent
 \textbf{Gaussian Mixture Model.} A Gaussian mixture model (GMM) is a generative, statistical model where a data set are modeled
 as having been produced by a set of Gaussians (multi-dimensional Normal distributions). Learning a GMM using
-the EM algorithm is one of the classical ML algorithms.
+the expectation maximization (EM) algorithm is one of the classical ML algorithms.
 EM is particularly interesting for a distributed benchmark because in theory, the running time should be dominated
 by linear algebra operations (such as repeated vector-matrix multiplications).
 
-We
-implemented GMM using EM on top of PC.  All linear algebra in our PC implementation was performed using
+All linear algebra in our EM-on-PC implementation was performed using
 the GSL library~\cite{gsl}.  
 Our PC implementation uses a single \texttt{AggregateComp} object, which contains inside of it the current
 version of the learned GMM model.  As this  \texttt{AggregateComp} is executed, a soft assignment of each
@@ -667,9 +663,8 @@ data set but be a poor choice for another, and require a tool end-user to actual
 performance.  In contrast, like a database system, PC is fully declarative in-the-large.
 Decisions such as using a broadcast join instead of a full hash
 join as well as which intermediate results to materialize (and which to pipeline or discard) are fully automated.
-automated. 
 
-The results for GMM, are illustrated in Table~\ref{fig:Gmm}. Here, PC achieved a 
+The results for GMM are illustrated in Table~\ref{fig:Gmm}. Here, PC achieved a 
 $3\times$ speedup compared with Spark Mllib's GMM implementation
 (using RDD APIs) for all cases.  We will discuss the significance of this finding in the next subsection, where we discuss
 some of the issues surrounding Java vs. C++.  
@@ -751,11 +746,13 @@ than does GSL, which was used in those
 implementations.
 
 Our last question is: PC may be faster, but how much of that is related to ``declarative in the large, high performance in 
-the small?"   Isn't C++ simply faster than Java, and might that explain a lot of the advantage realized by PC?  Well, we begin
+the small?"   Isn't C++ simply faster than Java, and might that explain a lot of the advantage realized by PC?  We begin
 our answer to this question by pointing out that SciDB is written in C++, and not Java, so the C++ vs. Java question is not 
 relevant to all of our findings.
-But even when the question is relevant, we assert that the only real difference Java on a modern JVM and C++ is that the latter
-gives the system developer more control, which the developer may use to produce a faster system (this is precisely
+But even when the question is relevant, we assert that the most significant
+difference Java on a modern JVM and C++ is that the latter
+gives the system developer more control over issues such as memory management, 
+which the developer may use to produce a faster system (this is precisely
 what we have attempted to do with our development of the PC object model, for example).  
 There is nothing inherent in C++ that makes it faster than Java if this extra flexibility is not used properly, 
 especially in the age of
@@ -766,17 +763,19 @@ built-in \emph{advantages} vs. our C++ implementations.
 Our of curiosity, we ran a simple micro-benchmark on an AWS \texttt{m2.4xlarge} machine, where we compared the various
 packages for statistical/scientific computing used throughout these experiments.
 In this benchmark, we run a single-thread matrix multiplication
-to compare Java \texttt{breeze} (used in all of our in-house Spark implementations) 
+to compare Java \texttt{breeze} (used in all Spark implementations) 
 with Eigen (used by PC's \texttt{lilLinAlg}) and GSL (used in all of our PC ML implementations).
 The results are shown in Table~\ref{fig:matrixMult}.  
 Here we find that Java Breeze has slightly better performance than Eigen and \emph{much}
 better performance than GSL.  
+Thus, in one way, our C++ implementations were at a significant disadvantage compared to Java.
 
 The point is that achieving excellent performance on complex, distributed computations is never a simple matter
 of ``use C++, not Java''.  Many factors go into having a superior implementation, and those tend to even things out,
 as some of those factors 
-go \emph{against} PC---such as the slower libraries PC used.  We argue that the reason that PC was consistently faster
-than its competitors are the design principles underlying the system.
+go \emph{against} PC.  We argue that the reason that PC was consistently faster
+than its competitors are the design principles underlying the system---which indeed was enabled by the choice of language---and 
+not the programming language itself.
 
 \begin{table}[h!]
 \begin{center}
