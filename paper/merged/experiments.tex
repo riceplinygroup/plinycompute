@@ -32,7 +32,7 @@ distributed least squares linear regression, and distributed nearest neighbor se
 
 \item To test the utility of the PC object model, we first denormalized the TPC-H database \cite{council2008tpc} into an object-oriented 
 representation, and then benchmarked two reasonably complex 
-analytical computations---the
+analytical computations ---the
 the first computes the list of customers and the parts they construct for each supplier, and the
 second is a top-$k$ similarity query that searches for the customers whose set of purchased items is most similar
 to a query set.
@@ -67,11 +67,11 @@ development, most
 2.1.0). The configuration of the Spark cluster such as
 executor memory, number of cores for each executor, number of
 executors, data partitions and so on are carefully tuned for each
-experiment.  For all experiments, we store Kryo-serialized data in
-HDFS. We do not clear the OS buffer cache, so HDFS data can be buffered or
+experiment. We do not clear the OS buffer cache, so HDFS data can be buffered or
 cached in the OS buffer cache. For each experiment we read HDFS data
 via a binary format (Parquet for the Spark Dataset API,
-and a Java Object file for the Spark RDD API).
+and a Java Object file for the Spark RDD API).  In all of the
+experiments, data are serialized in kryo format. 
 
 
 \subsection {Distributed Linear Algebra}
@@ -376,7 +376,7 @@ The first computation is the \emph{parts per supplier per customer} computation 
 compute, for each supplier,
 the complete list of \texttt{partkey}s that the supplier has sold to each of the supplier's customer's.
 For each supplier, the result is a an object that contains the supplier's name (as a \texttt{String}) and
-an object of type \texttt{Map <String, Handle <Vector <int>>>}.  In this
+an object of type \texttt{Map <String, Handle <Vector <int}\texttt{>}\texttt{>}\texttt{>}.  In this
 object, the \texttt{String} is the name of the customer, and the \texttt{Vector} stores the list of
 \texttt{partkey}s sold to that customer.
 
@@ -495,11 +495,13 @@ can be buffered in OS buffer cache or PC buffer pool respectively.
 If the Spark data are already
 fully deserialized and stored as an RDD in memory, then PC is still 
 between $1.5\times$ and $26\times$ faster
-for both computations.
-Since in PC there is no distinction between serialized and deserialized data, there is no analogous case in PC.  While this
-may be representative of certain Spark use cases---when the same RDD is repeatedly used for querying---there are a lot of
-hidden costs that are not reflected in this time.  For example, those in-RAM RDDs may need to be garbage collected at a later
-time if a different data set is deserialized into RAM.  That cost is not included in the running times reported here.
+for both computations. Since in PC there is no distinction between
+serialized and deserialized data, there is no analogous case in PC. 
+
+%While this
+%may be representative of certain Spark use cases---when the same RDD is repeatedly used for querying---there are a lot of
+%hidden costs that are not reflected in this time.  For example, those in-RAM RDDs may need to be garbage collected at a later
+%time if a different data set is deserialized into RAM.  That cost is not included in the running times reported here.}
 
 One of the most striking---and surprising---results was that Spark had about the same performance for both computations.  This is
 a bit surprising because the top-$k$ computation seems, on the face of it, much easier 
@@ -509,7 +511,7 @@ a hard limit on the number of customer's whose data are moved off of each machin
 customers processed on any machine to be in the top $k$).  One explanation could be not that Spark is surprisingly slow on the
 top-$k$, but that PC is relatively slow on the ``parts per supplier per customer'' computation.  Profiling reveals that PC spends
 a lot of time on \texttt{String} operations (looking up particular customers in the
-\texttt{Map <String, Handle <Vector <int>>>}, for example).  
+\texttt{Map <String, Handle <Vector <int}\texttt{>}\texttt{>}\texttt{>}, for example).  
 Because PC \texttt{String}s have the same representation in-RAM and on-disk, they are purposely designed to take little
 space---they do not cache hash values, for example (unlike Java \texttt{Strings}).  This might explain why PC's speedup is
 less significant on that computation.
