@@ -103,8 +103,8 @@ avoid unnecessary calls to \texttt{makeObject ()}, specifically avoiding those c
 Likewise, the system should do the same.  It is most critical that PC avoid moving intermediate data to an output page during pipeline execution.
 Reconsider the example of Section \ref{sec:vectorized}.  The user-specified \texttt{getSelection ()} describes
 a computation that invokes \texttt{Emp::getDeptName ()}, checking whether it equals the extracted value of
-\texttt{Dep.deptName}.  During pipelined execution, care is taken \emph{not} to store these intermediate results
-on the output page.  The vector that results from extracting \texttt{Dep.deptName} from each input object is allocated outside of the output page, and stores C-style pointers to each \texttt{Dep.deptName}
+\texttt{Dep::deptName}.  During pipelined execution, care is taken \emph{not} to store these intermediate results
+on the output page.  The vector that results from extracting \texttt{Dep::deptName} from each input object is allocated outside of the output page, and stores C-style pointers to each \texttt{Dep::deptName}
 value that are simply dereferenced when the vector is used by subsequent pipeline stages.  
 If \texttt{getDeptName ()} returns a reference, its output is treated similarly.  If 
 \texttt{getDeptName ()} returns actual data (and not a reference), then that data is stored in a vector \emph{outside}
