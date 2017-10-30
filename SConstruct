@@ -445,6 +445,7 @@ common_env.Program('bin/tpchFlushToDisk', ['build/tpchBench/tpchFlushToDisk.cc']
 common_env.SharedLibrary('libraries/libScanDoubleArraySet.so', ['build/libraries/ScanDoubleArraySet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregate.so', ['build/libraries/KMeansAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libScanDoubleVectorSet.so', ['build/libraries/ScanDoubleVectorSet.cc'] + all)
+common_env.SharedLibrary('libraries/libScanKMeansDoubleVectorSet.so', ['build/libraries/ScanKMeansDoubleVectorSet.cc'] + all)
 common_env.SharedLibrary('libraries/libWriteKMeansSet.so', ['build/libraries/WriteKMeansSet.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansAggregateOutputType.so', ['build/libraries/KMeansAggregateOutputType.cc'] + all)
 common_env.SharedLibrary('libraries/libKMeansCentroid.so', ['build/libraries/KMeansCentroid.cc'] + all)
@@ -935,13 +936,36 @@ libLATest=common_env.Alias('libLATest', [
 jaccard=common_env.Alias('jaccard', [
   'libraries/libCustomer.so', 'libraries/libLineItem.so', 'libraries/libOrder.so', 'libraries/libPart.so', 'libraries/libSupplier.so', 'libraries/libScanCustomerSet.so', 'libraries/libTopJaccard.so', 'libraries/libAllParts.so', 'libraries/libJaccardResultWriter.so', 'bin/tpchJaccard'])
 
-lda=common_env.Alias('lda2', [
+lda=common_env.Alias('lda', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',
   'bin/TestLDA', 
-  'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libScanIntSet.so', 
-  'libraries/libLDADocument.so', 'libraries/libScanLDADocumentSet.so', 'libraries/libLDADocIDAggregate.so', 'libraries/libLDAInitialTopicProbSelection.so', 'libraries/libLDAInitialWordTopicProbSelection.so', 'libraries/libLDADocWordTopicJoin.so', 'libraries/libLDADocAssignmentMultiSelection.so', 'libraries/libLDADocTopicAggregate.so', 'libraries/libLDADocTopicProbSelection.so', 'libraries/libIntDoubleVectorPair.so', 'libraries/libLDATopicAssignmentMultiSelection.so', 'libraries/libLDATopicWordAggregate.so', 'libraries/libLDATopicWordProbMultiSelection.so', 'libraries/libLDAWordTopicAggregate.so', 'libraries/libWriteTopicsPerWord.so', 'libraries/libDocAssignment.so', 'libraries/libTopicAssignment.so', 'libraries/libLDATopicWordProb.so', 'libraries/libWriteLDADocWordTopicAssignment.so', 'libraries/libLDADocWordTopicAssignment.so', 'libraries/libWriteIntDoubleVectorPairSet.so', 'libraries/libLDADocWordTopicAssignmentIdentity.so', 'libraries/libScanTopicsPerWord.so', 'libraries/libScanIntDoubleVectorPairSet.so'
+  'libraries/libWriteIntDoubleVectorPairSet.so', 
+  'libraries/libScanIntSet.so', 
+  'libraries/libLDADocument.so', 
+  'libraries/libScanLDADocumentSet.so', 
+  'libraries/libLDADocIDAggregate.so', 
+  'libraries/libLDAInitialTopicProbSelection.so', 
+  'libraries/libLDAInitialWordTopicProbSelection.so', 
+  'libraries/libLDADocWordTopicJoin.so', 
+  'libraries/libLDADocAssignmentMultiSelection.so', 
+  'libraries/libLDADocTopicAggregate.so', 
+  'libraries/libLDADocTopicProbSelection.so', 
+  'libraries/libIntDoubleVectorPair.so', 
+  'libraries/libLDATopicAssignmentMultiSelection.so', 
+  'libraries/libLDATopicWordAggregate.so', 
+  'libraries/libLDATopicWordProbMultiSelection.so', 
+  'libraries/libLDAWordTopicAggregate.so', 
+  'libraries/libWriteTopicsPerWord.so', 
+  'libraries/libDocAssignment.so', 
+  'libraries/libTopicAssignment.so', 
+  'libraries/libLDATopicWordProb.so', 
+  'libraries/libWriteLDADocWordTopicAssignment.so', 
+  'libraries/libLDADocWordTopicAssignment.so', 
+  'libraries/libLDADocWordTopicAssignmentIdentity.so', 
+  'libraries/libScanTopicsPerWord.so', 
+  'libraries/libScanIntDoubleVectorPairSet.so'
 ])
 
 matrixBench=common_env.Alias('matrixBench', ['bin/TestMatrix'])
@@ -964,27 +988,30 @@ mlBench=common_env.Alias('mlBench', [
   'libraries/libKMeansAggregateOutputType.so',
   'libraries/libKMeansCentroid.so',
 #LDA
-  'libraries/libLDADocIDAggregate.so',
-  'libraries/libScanLDADocumentSet.so',
-  'libraries/libLDAInitialTopicProbSelection.so',
-  'libraries/libWriteIntDoubleVectorPairSet.so',
-  'libraries/libIntDoubleVectorPair.so',
-  'libraries/libIntIntVectorPair.so',
-  'libraries/libLDAInitialWordTopicProbSelection.so',
-  'libraries/libLDADocWordTopicJoin.so',
-  'libraries/libLDADocWordTopicAssignment.so',
-  'libraries/libLDADocTopicAggregate.so',
-  'libraries/libLDADocTopicProbSelection.so',
-  'libraries/libLDADocWordTopicMultiSelection.so',
-  'libraries/libLDATopicWordAggregate.so',
-  'libraries/libLDATopicWordProbMultiSelection.so',
-  'libraries/libLDAWordTopicAggregate.so',
-  'libraries/libLDADocWordTopicCount.so',
-  'libraries/libLDATopicWordProb.so',
-  'libraries/libLDADocument.so',
-  'libraries/libWriteLDADocWordTopicAssignmentSet.so',
-  "libraries/libScanIntDoubleVectorPairSet.so",
-  "libraries/libLDADocTopicFromCountAggregate.so",
-  "libraries/libScanIntSet.so"
+  'libraries/libWriteIntDoubleVectorPairSet.so', 
+  'libraries/libScanIntSet.so', 
+  'libraries/libLDADocument.so', 
+  'libraries/libScanLDADocumentSet.so', 
+  'libraries/libLDADocIDAggregate.so', 
+  'libraries/libLDAInitialTopicProbSelection.so', 
+  'libraries/libLDAInitialWordTopicProbSelection.so', 
+  'libraries/libLDADocWordTopicJoin.so', 
+  'libraries/libLDADocAssignmentMultiSelection.so', 
+  'libraries/libLDADocTopicAggregate.so', 
+  'libraries/libLDADocTopicProbSelection.so', 
+  'libraries/libIntDoubleVectorPair.so', 
+  'libraries/libLDATopicAssignmentMultiSelection.so', 
+  'libraries/libLDATopicWordAggregate.so', 
+  'libraries/libLDATopicWordProbMultiSelection.so', 
+  'libraries/libLDAWordTopicAggregate.so', 
+  'libraries/libWriteTopicsPerWord.so', 
+  'libraries/libDocAssignment.so', 
+  'libraries/libTopicAssignment.so', 
+  'libraries/libLDATopicWordProb.so', 
+  'libraries/libWriteLDADocWordTopicAssignment.so', 
+  'libraries/libLDADocWordTopicAssignment.so', 
+  'libraries/libLDADocWordTopicAssignmentIdentity.so', 
+  'libraries/libScanTopicsPerWord.so', 
+  'libraries/libScanIntDoubleVectorPairSet.so'
 ])
 Default(main)
