@@ -130,7 +130,7 @@ from the producing stage, so that they can be sent over the network and used at 
 
 Once the pipe sinks have been allocated,
 the system begins assigning input pages to each of the pipelining 
-threads.  Each input page was itself produced as a the result of a
+threads.  Each input page was itself produced as the result of a
 previous \texttt{JobStage}, or else created by user, both of which needs to be
 loaded from the storage.  Hence all pages are themselves organized using the PC object model.  Thus, each input
 page will itself contain a \texttt{Vector <Handle <Object}\texttt{>}\texttt{>},
@@ -226,7 +226,7 @@ key will be co-located on the same machine.
 except that again, rather than aggregating, the goal is to build up \texttt{Vector}s of objects, stored in various \texttt{Map} data structures (one for each
 aggregation thread), where the \texttt{Vector} of objects associated with a particular 
 \texttt{unsigned\_t} contains \emph{all} of the objects in a set whose join key hashes to that particular \texttt{unsigned\_t} value.
-As a reult of this class of \texttt{JobStage}s, the contents of $n - 1$ of the input sets will be stored precisely as required.
+As a result of this class of \texttt{JobStage}s, the contents of $n - 1$ of the input sets will be stored precisely as required.
 
 \vspace{5pt}
 {\bf 3. The hash join stage.} 
@@ -236,7 +236,7 @@ hashed as part of join stage 2), and output results to the next
 as final results). Now imagine that we are processing the last dataset, after shuffling.  At this point,
 all of the other sets have been
 stored in \texttt{Map <unsigned\_t, Vector <Object}\texttt{>}\texttt{>} objects.  As we process the final set,
-the hash value for each ofject is used to probe the \texttt{Map}
+the hash value for each object is used to probe the \texttt{Map}
 associated with each of the other $n-1$ sets.  If a match is found in each one of those other $n-1$ sets, then
 one or more entries in the output vector list are created to store the matches.  The resulting vector sets are then pushed through a pipeline that post-processes
 the data in the vector list, likely checking to see if this was an actual match (and not just an accidental hash collision) and perhaps performing the processing
