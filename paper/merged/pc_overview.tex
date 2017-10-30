@@ -34,8 +34,8 @@ In computer systems design, this is often referred to as
   grossman2002region}, and is often the fastest way to manage
 memory. 
 TCAP query processing engine follows this strategy by pinning a page from the buffer
-pool for object creation and manipulation, and unpinning a page once
-it finishes manipulating on the objects.
+pool for object creation and manipulation, and unpinning the page once
+it finishes manipulating on the objects allocated in that page.
 
 To illustrate use of the PC object model from a user's perspective,
 imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
