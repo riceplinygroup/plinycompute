@@ -141,7 +141,7 @@ Ultimately, pushing a vector list through the pipeline stages results in an outp
 associated with those keys that need to be aggregated.  
 For each (key, value)
 pair, first the key is hashed to a particular \emph{hash partition}---the hash partition determines which of the \texttt{Map}
-objects in the \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>} stored on the output page will receive the pair, and which machine will house the final aggregation
+objects in the \texttt{Vector <Handle <Map <Object, Object}\texttt{>}\texttt{>}\texttt{>} stored on the output page will receive the pair, and which machine will house the final aggregation
 for all instances of the key.  Once the hash partition has been determined,
 the pair is added to the associated \texttt{Map} in the pipe sink
 (if a particular key is already there, the
