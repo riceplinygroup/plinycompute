@@ -32,11 +32,10 @@ may mean simply writing over the page with a new page of records.
 In computer systems design, this is often referred to as
 \emph{region-based allocation} \cite{tofte1997region,
   grossman2002region}, and is often the fastest way to manage
-memory. In PC Cluster, the Pangea storage server adopts this strategy to
-allocate pages from buffer pool for caching/buffering user data or
-intermediate data generated through query processing. The Pangea
-buffer pool works closely with PC object model in query processing to
-provide pages for manipulating PC \texttt{Object}s.
+memory. 
+TCAP query processing engine follows this strategy by pinning a page from the buffer
+pool for object creation and manipulation, and unpinning a page once
+it finishes manipulating on the objects.
 
 To illustrate use of the PC object model from a user's perspective,
 imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
