@@ -111,7 +111,7 @@ designing a Big Data system from the ground up around special-purpose
 memory and object management system.
 
 This hybrid approach---declarative and yet trusting the programmer
-to utilize PC's Object model effectively
+to utilize PC's object model effectively
 in the small---results in a system that is ideal for the 
 development of data-oriented tools and libraries.
 
@@ -120,7 +120,7 @@ Currently, PC exists as a prototype system, consisting of around
 The system consists of three main components: 
 
 \begin{itemize}
-\item The \emph{PC Object model}, which is a toolkit for building high-performance, persistent data structures that can be 
+\item The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
 processed and manipulated by PC.  
 
 \item The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
@@ -132,7 +132,7 @@ using the same API.  These lambda terms are constructed using PC's built-in lamb
  PC's TCAP compiler 
 accepts such a specification, and compiles it into a functional, domain specific language called \emph{TCAP} that implements
 the join.  Logically, TCAP operates over
-sets of columns of PC Objects. 
+sets of columns of PC \texttt{Object}s. 
 
 \item The \emph{PC Cluster}, which is a distributed query processing
   system for big data analytics. It consists of an optimizer for TCAP
@@ -143,8 +143,8 @@ high-performance distributed, vectorized TCAP processing engine and a distribute
 storage server called Pangea, which contains a distributed buffer
 pool used for caching/buffering data in pages and a user-level file system
 for persisting data (pages) to disks. 
-The TCAP processing engine and Pangea buffer pool are intimately connected to the PC Object model, 
-and have been designed to work closely with the PC Object model to minimize memory-related costs during computation.
+The TCAP processing engine and Pangea buffer pool are intimately connected to the PC object model, 
+and have been designed to work closely with the PC object model to minimize memory-related costs during computation.
 
 
 \end{itemize}
@@ -153,8 +153,8 @@ and have been designed to work closely with the PC Object model to minimize memo
 \noindent
 \textbf{Our contributions.}
 Taken together, these components allow a competent system programmer to write exceedingly high-performance distributed codes.
-In this paper, we describe the design and implementation of PlinyCompute.  We experimentally show the performance benefits of the PC Object model, 
-demonstrating how even simple data transformations are much faster using the PC Object model compared to similar computations within the 
+In this paper, we describe the design and implementation of PlinyCompute.  We experimentally show the performance benefits of the PC object model, 
+demonstrating how even simple data transformations are much faster using the PC object model compared to similar computations within the 
 Apache ecosystem.
 In-keeping with PC being targeted at high-performance
 library and tool development,
