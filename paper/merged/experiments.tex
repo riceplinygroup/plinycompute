@@ -132,7 +132,7 @@ private:
 \texttt{MatrixData} stores the actual contents of the matrix.
 The actual data stored in a \texttt{MatrixData} object should be small enough to fit completely in 
 a PC page (by default, PC's page size is 256MB).  A typical \texttt{MatrixData} object stores a
-1,000 by 1,000 sub-matrix that is 8MB in size.
+1,000 by 1,000 sub-matrix that is eight megabytes in size.
 
 \texttt{lilLinAlg} uses the \texttt{MatrixBlock} object to implement a set of common distributed matrix
 computations, including \texttt{transpose},
@@ -229,7 +229,7 @@ For \texttt{lilLinAlg}, this consisted mainly of efforts to choose the correct p
 \texttt{MatrixBlock} objects.  The task was balancing the ability to fully distribute the computations
 (which requires a large number of small \texttt{MatrixBlock} objects) versus making sure that the computations
 themselves were efficient (which requires large \texttt{MatrixBlock} objects).  We settled on 
-a four MB page size for ten dimensions, a 16 MB page
+a 4MB page size for ten dimensions, a 16 MB page
 size for $10^2$ dimensions, and a 64 MB page size for $10^3$ dimensions. 
 PC's query optimizer dynamically decided to use a
 broadcast join to implement matrix operations when one input to the join is smaller than 
@@ -607,7 +607,7 @@ first computed to avoid unnecessary distance computations.
 
 \subsubsection {Experiments}
 
-On the aforementioned 11-node cluster, 
+On the aforementioned eleven-node cluster, 
 we ran all ML experiments using PC and Spark 2.1.0.
 
 For LDA,  we
@@ -624,7 +624,7 @@ points with 100 dimensions, and $10^6$ data points with 300 and 500
 dimensions, respectively. For each test case, the same random data was used
 for comparing PC and Spark performance. For $k$-means, we
 generate random data for $10^9$ data
-points with 10 dimensions, $10^8$ data points with 100 dimensions,  and $10^7$
+points with ten dimensions, $10^8$ data points with 100 dimensions,  and $10^7$
 data points with 1000
 dimensions. Again, the same data is used on both PC and
 Spark platforms.
