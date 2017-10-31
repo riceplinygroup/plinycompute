@@ -26,7 +26,7 @@ on top of existing Big Data systems is understandable.
 The  developer of a distributed data processing tool must worry about data persistence, movement of
 data to/from secondary storage, data
 and task distribution, resource allocation, load balancing, fault tolerance, and many other factors.
-While classical high-performance computing
+While classical high-performance computing (HPC)
 tools such as MPI \cite{gropp1996high} do not provide support for all of these concerns,
 existing Big Data systems 
 address them quite well.
@@ -67,7 +67,7 @@ This paper is concerned with the design and implementation of
 \emph{PlinyCompute}, a system for development of
 high-performance, data-intensive, distributed computing codes, especially tools and libraries.
 PlinyCompute, or PC for short, is designed to fill the gap between
-High Performance Computing (HPC) softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
+HPC softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
 managing very large datasets, and dataflow platforms such as Spark and Flink, which 
 may give up significant performance through their reliance on a managed runtime to handle
 memory management (including layout and de/allocation) and key computational considerations
