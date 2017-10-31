@@ -96,7 +96,7 @@ well on his or her particular dataset, and yet with existing systems, this sort 
 is absolutely necessary.  For example, we find
 that a high quality LDA implementation\footnote{LDA \cite{blei2003latent} is a popular text mining algorithm.}
 on top of Spark is around $25\times$ slower than the algorithmically equivalent LDA
-implementation on top of PC.  Through careful, dataset-specific tuning (including choosing specific join algorithms and
+implementation on top of PC.  Through workload-specific tuning (including choosing specific join algorithms and
 forcing pipelining of certain results) it is possible to get that gap down to $2.5\times$.  But this requires modification of the
 code itself, which is beyond the vast majority of end-users.
 
@@ -111,8 +111,9 @@ model, which is exclusively responsible for PC data layout and within-page memor
 The PC object model is tightly coupled with
 PC's execution engine, and has been specifically designed for efficient distributed computing.  
 All dynamic PC \texttt{Object} allocation is \emph{in-place}, directly on a page, obviating
-the need for PC \texttt{Object} serialization and deserialization before data are transferred to/from storage or over a network.
-Further, PC gives a programmer fine-grained control of the systems
+the need for PC \texttt{Object} serialization and deserialization
+before data are transferred to/from storage or over a network.
+Further, PC gives a programmer fine-grained control of the system
 memory management and PC \texttt{Object} re-use policies.
 
 This hybrid approach---declarative and yet trusting the programmer
@@ -129,7 +130,7 @@ The system consists of three main components:
 processed and manipulated by PC.  
 
 \item The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
-dataflow platform.  Rather, a programmer 
+dataflow platform such as Spark.  Rather, a programmer 
 supplies two \emph{lambda term construction functions}: one that constructs a lambda term describing the selection
 predicate over those five input sets, 
 and a second that constructs a lambda term describing the relational projection over those five sets
@@ -160,8 +161,8 @@ minimize memory-related costs during computation.
 Taken together, these components allow a competent system programmer
 to write exceedingly high-performance distributed codes.
 In this paper, we describe the design and implementation of PlinyCompute.  We experimentally show the performance benefits of the PC object model, 
-demonstrating how even simple data transformations are much faster using the PC object model compared to similar computations within the 
-Apache ecosystem.
+%demonstrating how even simple data transformations are much faster using the PC object model compared to similar computations within the 
+%Apache ecosystem.
 In-keeping with PC being targeted at high-performance
 library and tool development,
 we benchmark several library-style softwares written on top of PC.  We begin with a small domain specific language
