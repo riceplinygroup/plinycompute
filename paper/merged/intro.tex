@@ -102,11 +102,12 @@ high performance.
 All data processed by PC are managed by
 the PC object
 model, which is exclusively responsible for PC data layout and within-page memory management.  
-The PC \texttt{Object} model is tightly coupled with
+The PC object model is tightly coupled with
 PC's execution engine, and has been specifically designed for efficient distributed computing.  
 All dynamic PC \texttt{Object} allocation is \emph{in-place}, directly on a page, obviating
 the need for PC \texttt{Object} serialization and deserialization before data are transferred to/from storage or over a network.
-Further, PC gives a programmer fine-grained control of the systems memory management and PC \texttt{Object} re-use policies.
+Further, PC gives a programmer fine-grained control of the systems
+memory management and PC \texttt{Object} re-use policies.
 
 This hybrid approach---declarative and yet trusting the programmer
 to utilize PC's object model effectively
