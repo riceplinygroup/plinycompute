@@ -10,7 +10,8 @@ describing the implementation of a simple $k$-means clustering algorithm.
 
 There is growing evidence that the CPU cost associated with manipulating data, especially data (de-)serialization and memory 
 (de-)allocation,  
-dominate the time needed to complete typical big data processing tasks \cite{ousterhout2015making}.
+dominate the time needed to complete typical big data processing tasks
+\cite{ousterhout2015making, shi2015clash}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
 PC requires programmers to store and manipulate data using the \emph{PC object model}.
 The PC object model is an API for storing and manipulating persistent
@@ -88,7 +89,7 @@ then all of the memory associated with the \texttt{Vector} of \texttt{DataPoint}
 freed, since PC \texttt{Object}s are reference counted.  This can
 be expensive, however, since the PC \texttt{Object} infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
 Recognizing that low-level data manipulations dominate big data
-compute times, PlinyCompute gives a programmer nearly complete control
+compute times \cite{ousterhout2015making, shi2015clash}, PlinyCompute gives a programmer nearly complete control
 over most aspects of memory management.
 
 If the 
