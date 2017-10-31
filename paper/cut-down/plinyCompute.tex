@@ -127,30 +127,32 @@ high-performance computing platforms such as OpenMP and MPI, which provide littl
 managing very large datasets, and dataflow platforms such as Spark and Flink.  Spark and Flink
 are built to process large datasets but are themselves constructed on top of the
 Java Virtual Machine (JVM), and hence must
-at least partially cede concerns such as 
-memory management (including layout and de/allocation) and virtual method/function dispatch to the JVM. Since memory management 
-and the frequency of virtual function calls are
-among the most important factors determining system performance,
-this can have a very high cost.
+at least partially cede performance-critical concerns such as 
+memory management (including layout and de/allocation) and virtual
+method/function dispatch to the JVM. 
+%Since memory management 
+%and the frequency of virtual function calls are
+%among the most important factors determining system performance,
+%this can have a very high cost.
 
 PlinyCompute (or PC for short) is designed to occupy the space between these two 
 existing classes of systems, providing high-performance, distributed, data-oriented computing with an expressive,
-object oriented programming interface.
+object-oriented programming interface.
 PC differs from other systems in that \emph{in the large}, it presents the programmer with a very high-level,
 declarative interface, relying on automatic, relational-database style optimization to figure out how to stage
-distributed computations.  However, \emph{in the small}, PlinyCompute presents the capable systems programmer with a
-persistent object data model and API (the ``PC object model'') and associated memory management system
+distributed computations.  However, \emph{in the small}, PlinyCompute
+presents the capable systems programmer with an object data model and API (the ``PC object model'') and associated memory management system
 that has been designed from the ground-up for
-high performance distributed, data-oriented computing.
-PC's execution engine is not merely implemented on top of
-PC object model.  Rather, the two have been co-designed to offer the best possible efficiency.
+high performance distributed, data-intensive computing.
+%PC's execution engine is not merely implemented on top of
+%PC object model.  Rather, the two have been co-designed to offer the best possible efficiency.
 This hybrid approach---declarative in the large, trusting the programmer's ability
 to utilize PC object model efficiently
-in the small---results in a system that is ideal for the development of reusable, data-oriented tools and libraries.
+in the small---results in a system that is ideal for the development of reusable, data-intensive tools and libraries.
 Through extensive benchmarking, we show that implementing non-trivial, library-style computations 
 on top of PC can result in a speedup of 2$\times$ to
 more than 
-50$\times$ or more compared to an identical implementation on Spark.
+50$\times$ or more compared to equivalent implementations on Spark.
 \end{abstract}
 
 
