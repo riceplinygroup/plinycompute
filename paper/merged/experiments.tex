@@ -229,7 +229,7 @@ For \texttt{lilLinAlg}, this consisted mainly of efforts to choose the correct p
 \texttt{MatrixBlock} objects.  The task was balancing the ability to fully distribute the computations
 (which requires a large number of small \texttt{MatrixBlock} objects) versus making sure that the computations
 themselves were efficient (which requires large \texttt{MatrixBlock} objects).  We settled on 
-a 4MB page size for ten dimensions, a 16 MB page
+a four MB page size for ten dimensions, a 16 MB page
 size for $10^2$ dimensions, and a 64 MB page size for $10^3$ dimensions. 
 PC's query optimizer dynamically decided to use a
 broadcast join to implement matrix operations when one input to the join is smaller than 
@@ -812,7 +812,7 @@ Eigen &123 ms  &3:57\\
 \hline
 \end{tabular}
 \caption{Single thread matrix multiplication benchmark tested in
-  \texttt{m2.4xlarge} instance by setting thread number  to 1 for all
+  \texttt{m2.4xlarge} instance by setting thread number  to one for all
   packages. It shows that
   Java is as fast as C++ through invoking native code. (for
   $1000\times1000$ matrix multiplication, processing times are recorded in
