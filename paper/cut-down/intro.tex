@@ -125,11 +125,14 @@ Currently, PC exists as a prototype system, consisting of around
 150,000 lines of C++ code, with a much smaller amount of Prolog code.
 The system consists of three main components: 
 
-\begin{itemize}
-\item The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
-processed and manipulated by PC.  
+\vspace{8pt}
+\noindent
+The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
+manipulated by PC.  
 
-\item The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
+\vspace {5pt}
+\noindent
+The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
 dataflow platform such as Spark.  Rather, a programmer 
 supplies two \emph{lambda term construction functions}: one that constructs a lambda term describing the selection
 predicate over those five input sets, 
@@ -140,7 +143,9 @@ accepts such a specification, and compiles it into a functional, domain specific
 the join.  Logically, TCAP operates over
 sets of columns of PC \texttt{Object}s. 
 
-\item The \emph{PC Cluster}, which is a distributed query processing
+\vspace{5pt}
+\noindent
+The \emph{PC Cluster}, which is a distributed query processing
   system for big data analytics. It consists of an optimizer for TCAP
   programs, through which all PC computations are optimized using a rule-based
 optimizer; we plan to shift to a cost-based optimizer in the
@@ -153,9 +158,9 @@ minimize memory-related costs during computation.
 
 
 
-\end{itemize}
+%\end{itemize}
 
-\vspace{5 pt}
+\vspace{8 pt}
 \noindent
 \textbf{Our contributions.}
 Taken together, these components allow a competent system programmer
