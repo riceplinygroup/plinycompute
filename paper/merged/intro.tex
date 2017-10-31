@@ -51,18 +51,23 @@ most details regarding memory management
 from the system designer, including memory deallocation, reuse, and movement, as well as pointers,
 object serialization and deserialization.
 Since managing and utilizing memory are 
-perhaps the most important factors determining system performance, reliance
+one of the most important factors determining big data system performance, reliance
 on a managed environment can mean an order-of-magnitude increase in CPU cost for some computations.  
 This cost may be acceptable if the person using the system
 is a programmer uncomfortable with the basics of memory management who is
 building an application to complete a specific data munging task.  
-But it is unacceptable for high-performance tool or library development by an expert.
+But it is unacceptable for high-performance tool or library
+development by an expert. There have been notable efforts to engineer around the limitations of a managed environment and still provide
+high performance---Spark's Dataset and
+Dataframe abstractions come to mind---but such efforts are necessarily limited compared to
+designing a Big Data system from the ground up around special-purpose
+memory and object management system.
 
 This paper is concerned with the design and implementation of
 \emph{PlinyCompute}, a system for development of
 high-performance, data-intensive, distributed computing codes, especially tools and libraries.
 PlinyCompute, or PC for short, is designed to fill the gap between
-High Performance Computing (shorted as HPC) softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
+High Performance Computing (HPC) softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
 managing very large datasets, and dataflow platforms such as Spark and Flink, which 
 may give up significant performance through their reliance on a managed runtime to handle
 memory management (including layout and de/allocation) and key computational considerations
@@ -89,26 +94,6 @@ on top of Spark is around $25\times$ slower than the algorithmically equivalent 
 implementation on top of PC.  Through careful, dataset-specific tuning (including choosing specific join algorithms and
 forcing pipelining of certain results) it is possible to get that gap down to $2.5\times$.  But this requires modification of the
 code itself, which is beyond the vast majority of end-users.
-
-However, we assert that if one were to develop a system purely for Big Data \emph{tool development} 
-by a capable systems programmer,
-it would not look like Hadoop, Spark, or Flink.
-Existing systems have largely been built using high-level programming languages and managed runtimes such as the Java 
-virtual machine.  Virtual machines abstract away
-most details regarding memory management
-from the system designer, including memory deallocation, reuse, and movement, as well as pointers,
-object serialization and deserialization.
-Since managing and utilizing memory are perhaps the most important factors determining system performance, reliance
-on a managed environment can mean an order-of-magnitude increase in CPU cost for some computations.  
-This cost may be acceptable, even desirable, if the person using the system
-is a programmer uncomfortable with the basics of memory management who is
-building an application to complete a specific data munging task.  But it is unacceptable for high-performance tool
-or library development by an expert.
-There have been notable efforts to engineer around the limitations of a managed environment and still provide
-high performance---Spark's Dataset and
-Dataframe abstractions come to mind---but such efforts are necessarily limited compared to
-designing a Big Data system from the ground up around special-purpose
-memory and object management system.
 
 This hybrid approach---declarative and yet trusting the programmer
 to utilize PC's object model effectively
