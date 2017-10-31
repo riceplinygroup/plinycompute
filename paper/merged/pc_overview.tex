@@ -14,8 +14,7 @@ dominate the time needed to complete typical big data processing tasks
 \cite{ousterhout2015making, shi2015clash}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
 PC requires programmers to store and manipulate data using the \emph{PC object model}.
-The PC object model is an API for storing and manipulating persistent
-data, and has been co-designed with PC's memory management system and computational engine to provide
+The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and computational engine to provide
 maximum performance.  
 
 In PC's C++ binding, individual PC \texttt{Object}s correspond to C++ objects, and so the C++ compiler specifies the memory layout.
@@ -28,8 +27,8 @@ All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 (or user-) allocated page.  There is
 no distinction between the in-memory representation of data and the on-disk (or in-network) representation of
 data. Thus there is no (de-)serialization cost to move data to/from disk and network, and memory management costs are very low. Depending upon choices made by the
-programmer, ``deallocating'' a page of records
-may mean simply writing over the page with a new page of records.  
+programmer, ``deallocating'' a page of objects
+may mean simply writing over the page with a new page of objects.  
 In computer systems design, this is often referred to as
 \emph{region-based allocation} \cite{tofte1997region,
   grossman2002region}, and is often the fastest way to manage
@@ -51,7 +50,7 @@ public:
 \end{codesmall}
 
 \noindent
-To create a load such data into a PC compute cluster, we might write the following code:
+To create a load of such data into a PC compute cluster, we might write the following code:
 
 \begin{codesmall}
 makeObjectAllocatorBlock (1024 * 1204);
