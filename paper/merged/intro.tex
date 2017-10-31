@@ -63,6 +63,19 @@ Dataframe abstractions come to mind---but such efforts are necessarily limited c
 designing a Big Data system from the ground up around special-purpose
 memory and object management system.
 
+In contrast, \emph{in the small}, PlinyCompute presents a capable programmer with a
+persistent object data model and API (the ``Object model'') and associated memory management system
+designed from the ground-up for
+high performance.
+All data processed by PC are managed by
+the PC Object
+model, which is exclusively responsible for PC data layout and within-page memory management.  
+The PC Object model is tightly coupled with
+PC's execution engine, and has been specifically designed for efficient distributed computing.  
+All dynamic PC Object allocation is \emph{in-place}, directly on a page, obviating
+the need for PC Object serialization and deserialization before data are transferred to to/from storage or over a network.
+Further, PC gives a programmer fine-grained control of the systems memory management and PC Object re-use policies.
+
 This paper is concerned with the design and implementation of
 \emph{PlinyCompute}, a system for development of
 high-performance, data-intensive, distributed computing codes, especially tools and libraries.
