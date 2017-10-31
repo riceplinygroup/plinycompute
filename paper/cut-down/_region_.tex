@@ -1,0 +1,218 @@
+\message{ !name(rel_work.tex)}
+\message{ !name(rel_work.tex) !offset(-2) }
+
+\section{Related Work}
+
+The PC project was inspired by works from database engines, distributed in-memory processing
+frameworks,  programming languages and compilers, which can be
+categorized into two classes for convenience of discussions: systems and techniques with managed
+runtimes, and without managed runtimes.
+
+
+\subsection {Systems and Optimizations with Managed Runtimes}
+
+Most big data query processing and analytics
+systems developed in recent are implemented in
+high-level programming languages such as Java and Scala  ~\cite{dean2008mapreduce, yu2008dryadlinq,
+  neumann2011efficiently, zaharia2012resilient,
+  alexandrov2014stratosphere, klonatos2014building,
+  crotty2015tupleware, armbrust2015spark}, and rely on a managed
+runtime such as JVM for memory, object and virtual function call management. Numerous research
+works propose techniques aiming at
+reducing the overhead incurred by the managed runtime employed in
+those systems, including code generation, GC tuning, off-heap memory and structured objects.
+
+
+\vspace{5pt}
+\texttt{Code Generation.} The basic idea is that a system implemented in high level language
+can generate native query execution code that manually manages
+memory and also avoids virtual function call
+overheads. DryadLinq~\cite{yu2008dryadlinq} allows user to express distributed dataflow
+computations in high-level language like C\# and strongly typed .NET
+objects, and compile those computations into .NET assembler to run in
+the cluster. Hyper~\cite{neumann2011efficiently} is a relational system,
+and it proposes a code
+generation strategy for query compilation to translate relational
+algebra to LLVM assembler for execution.  LegoBase~\cite{klonatos2014building} switches the interface
+from declarative SQL to high-level language (Scala) and uses a query engine
+written in Scala as a code generator to emit specialized and low-level
+C code for execution. TupleWare~\cite{crotty2015tupleware} supports
+high-level language (any language with an LLVM compiler) interfaces
+and aims to
+optimize for UDFs by utilizing code
+generation technique to integrate UDF code with the framework
+code. 
+Weld~\cite{palkar2017weld} is a recent system developed in Scala and
+Python. It proposes
+to have a common runtime for data anlytics libraries by asking library
+developers to express their work using a new intermediate
+representation (IR) and compiles this IR into multi-threaded code using
+LLVM, then application developers can use unified APIs to
+call different libraries from Weld. 
+
+\vspace{5pt}
+\texttt {Optimized Memory Management.} 
+Apache Flink~\cite{alexandrov2014stratosphere} and Apache
+Spark~\cite{zaharia2012resilient} are both distributed in-memory
+dataflow systems. They both provide high level language interfaces like Java and Scala.
+Spark SQL~\cite{armbrust2015spark} is a relational system built on top
+of Spark. Those systems all have the
+ability to alleviate the garbage collection overhead  by storing data
+into byte arrays or even storing data off-heap.
+
+Apache Flink~\cite{alexandrov2014stratosphere} assigns memory budgets to its data processing operators. Upon
+initialization, a computation requests its memory budget from the
+memory manager and receives a corresponding set of byte arrays as memory segments. So
+each operation will have its own memory pool that it can manually
+manage. 
+
+Apache SparkSQL~\cite{armbrust2015spark} serializes 
+relational table into byte arrays and store the serialized bytes
+in a main-memory columnar storage. Spark Tungsten~\cite{tungsten}
+optimizes Spark execution backend by grouping execution
+data such as hash-based aggregation and shuffle data
+to byte arrays and data can be allocated in off-heap mode via
+Java APIs such as sun.misc.Unsafe to
+further reduce GC overhead. Deca~\cite{lu2016lifetime} is a memory management framework aiming at
+reducing GC overhead. It stores
+various Spark data types, e.g. UDF variables, user data and
+shuffle data into different
+off-heap containers so that objects in each container can have similar
+lifetime and can be recycled together.
+
+\vspace{5pt}
+\texttt {Relational Processing on Binary or Structured Objects.} The idea is to convert or
+serialize a Java Object into a binary representation and directly
+operate on this binary representation. One significant benefit is to reduce serialization and
+deserialization overhead, which are proved to be expensive~\cite{ousterhout2015making}. 
+Besides that, binary data representation is also more space efficient. In addition, binary objects
+with similar lifetimes can be easily stored in consecutive byte
+arrays, and applying this to long-living objects can significantly reduce GC overhead.
+
+Apache Flink~\cite{alexandrov2014stratosphere} uses reflection-based
+techniques to analyze Java/Scala object type information, and
+map each object type to one of a limited set of
+fundamental data types, such as Java primitive type, array type,
+Hadoop Writable type, Flink fixed-length tuples and so on. Each
+fundamental data type is associated with a serializer and certain data
+types provides comparators to efficiently compare binary
+representations and extract fixed-length binary key prefixes without
+deserializing the whole object.
+
+In recent, Spark~\cite{tungsten} introduces Dataset/Dataframe representations
+in addition to RDD~\cite{zaharia2012resilient}. Dataset/Dataframe is
+in nature binary data representation encoded from JVM objects to
+abstract an object  into a row with fields/columns. Internally,
+Spark distinguishes DataSet and Dataframe as strongly typed representation and
+untyped representation respectively, and a Dataframe can be
+converted from a Dataset through $ DataFrame =
+Dataset[Row] $. Dataset/Dataframe enables relational-style processing
+through a relational query optimizer called Catalyst and
+also enables Java intermediate code generation to reduce virtual
+function call overhead through Tungsten~\cite{tungsten}. 
+
+However while
+such techniques can boost performance significantly, they also move the
+systems closer to relational processing, and tend to limit the
+expressiveness of data representations and the flexibility of
+programming models.
+
+
+\vspace{5pt}
+Compared with these works, 
+PC distinguishes itself in following aspects:
+(1) it combines a highly declarative object-oriented interface with a
+low-level native
+C++-based query engine, (2) it builds a unique PC Object Model on top of
+native C++ to move objects around a distributed system with no
+serialization/deserialization costs, (3) it uses a unique TCAP
+compiler to generate optimized, native, and vectorized
+pipeline code with thread-local and tunable memory management for executing
+user defined queries based on complex objects.
+
+\subsection {Related Native Systems}
+Despite the decreasing performance gap between Java/Scala and C/C++,
+OS and many tools or libraries are developed in C/C++. For example,
+a large number of popular numerical processing libraries such as
+various BLAS implementations~\cite{barrachina2008evaluation}, Eigen~\cite{eigen}, GSL
+and etc, are all implemented in C/C++. 
+%Even for the BLAS standard, there are multiple
+%implementations such as Intel's MKL, cuBLAS, MAGMA, and openBLAS. 
+On one hand, to
+develop those libraries or tools, developers prefer to have some ``tunability'' to control critical apsects of performance such as
+memory management, because they have the greatest knowledge about the
+application's performance and behavior. On the other hand,
+developers need declarative interfaces and automatic code generation
+to reduce their burdens. PC is designed to strike a balance between
+the two ends. 
+
+In this section, we mainly describe existing native big
+data systems and explain why they are not suitable as tool/library
+development environment.
+
+\vspace{5pt} 
+\texttt{High Performance Computing (HPC).} HPC
+systems such as Charm++~\cite{kale1993charm++}, OpenMP~\cite{dagum1998openmp}, Cilk~\cite{blumofe1996cilk},  Intel's Array Building
+Blocks~\cite{newburn2011intel}, and Threading Building Blocks~\cite{reinders2007intel} stretch from
+low-level interfaces like MPI~\cite{gropp1996high}, and create powerful control flow, computation
+and communication abstractions for multi-core and distributed
+platforms. However while those frameworks provide developers the most
+``tunability'', the fundamental problem is that they expect users
+or applications to write code for strategies and policies of using
+those static abstractions. 
+
+\vspace{5pt} 
+\texttt{Query Processing.} Vertica/C-Store~\cite{stonebraker2005c} proposes
+to store and process relational tables by
+column to optimize for ``read-performance'', which is critical in
+analytics processing.
+VectorWise~\cite{zukowski2012vectorwise}, which was commercialized as the MonetDB/X100 project, makes use of
+vectorized query execution to amortize the virtual function call overhead and also to exploit SIMD support
+on modern hardware. Voodoo~\cite{pirk2016voodoo} uses a new
+declarative algebra as the compilation target for query plans to
+enable tuning for hardware specifics like caches, SIMD registers,
+GPU and so on. It requires a relational frontend, and serves as an alternative backend for
+relational databases like MonetDB and Hyper. While PC TCAP compilation
+and processing shares
+similarity in
+code generation and vectorized processing with those
+systems and PC can leverage Voodoo's hardware tuning concept, PC is
+different with those relational processing systems in that in PC all query processing
+is based on a high performance and highly expressive object model.
+PC can support efficient
+processing of complex objects and user defined
+dataflows to facilitate tool or library development with more flexible
+programming models.
+
+\vspace{5pt} 
+\texttt{Cloud Frameworks.} Spanner~\cite{bacon2017spanner} is a
+distributd data management system that backs the operational services
+at Google. It started out as a key-value store and evolved into a
+relational database system with a SQL query processor. It implements a
+dialect of SQL, called standard SQL, which use ARRAY and STRUCT to
+support nested data as a first class citizen. To integrate
+with user applications, the relational data described by standard SQL needs to
+be translated to protocol buffers or user languages through the
+GoogleSQL library that contains a compiler front-end and a library of
+scalar functions. In PC (and also systems like Spark and Flink), query processing and user applications are
+naturally and
+seamlessly integrated based on the ObjectModel without need of any
+significant investments in tooling and processing.
+
+Tensorflow~\cite{abadi2016tensorflow} is a
+distributed computing framework mainly designed for deep learning. It
+mainly supports processing of numerical data with a
+limited set of types, so for example,  it is
+difficult to apply Tensorflow to decision support tasks such as
+TPCH or other tasks that require complex object representations. In
+addition, it provides a much lower level interface based on tensors,
+variables and sessions, compared with PC's
+declarative interface. 
+%Tensorflow can serve as an alternative backend of
+%PC for developing
+%numerical processing and deep learning tools.
+
+
+
+
+\message{ !name(rel_work.tex) !offset(-218) }

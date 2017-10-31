@@ -1,0 +1,40 @@
+
+\lstnewenvironment{code}
+  {\lstset{
+        aboveskip=5pt,
+        belowskip=5pt,
+        %aboveskip=9pt,
+        %belowskip=9pt,
+        escapechar=!,
+        mathescape=true,
+        language=C++,
+        basicstyle=\linespread{0.94}\ttfamily\small,
+	morekeywords={createSet, sendData, makeLambdaFromMember,
+		execute, setInput, setOutput, makeLambda, makeLambdaFromMethod, 
+		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},	
+        showstringspaces=true}
+        \vspace{0pt}%
+        \noindent\minipage{0.47\textwidth}}
+  {\endminipage\vspace{0pt}}
+
+
+
+\lstnewenvironment{codesmall}
+  {\lstset{
+        aboveskip=5pt,
+        belowskip=5pt,
+        %aboveskip=9pt,
+        %belowskip=9pt,
+        escapechar=!,
+        mathescape=true,
+        language=C++,
+        basicstyle=\linespread{0.94}\ttfamily\footnotesize,
+	morekeywords={createSet, sendData, makeLambdaFromMember,
+		hash, join, APPLY, FILTER, execute, setInput, setOutput, makeLambda, makeLambdaFromMethod, 
+		Handle, Vector, Map, pair, makeObjectAllocatorBlock, push_back, Object, makeObject},	
+        showstringspaces=true}
+        \vspace{0pt}%
+        \noindent\minipage{0.47\textwidth}}
+  {\endminipage\vspace{0pt}}
+
+

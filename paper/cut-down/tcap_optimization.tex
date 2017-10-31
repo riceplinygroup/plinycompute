@@ -1,0 +1,237 @@
+
+\section{Optimizing TCAP}
+\label{sec:optimizer}
+
+One of the key ideas driving the design and implementation of PlinyCompute is that \emph{all} PC computations should be optimized, both to
+match programmer expectation---programmers generally expect
+that changes in the way that boolean expressions are composed should not affect system runtime---and 
+to protect against poor programmer choices when constructing the query graph.
+
+Optimizability is one of the drivers for
+the decision to compile all computations expressed in PC's lambda calculus into TCAP.  
+TCAP resembles relational algebra, and it is similarly amenable to rule- and cost-based optimization
+using a combination of methods from relational query optimization and classical compiler construction.
+Currently, the optimizations implemented in PC are rule-based (such as pushing down selections).  We plan to work on cost-based optimization
+in the future---this is a challenging research problem because of a lack of statistics over the data, which are arbitrary PC \texttt{Object}s.
+
+PC's optimizer is currently implemented
+in Prolog; a series of transformations are fired iteratively to improve the plan until the plan cannot be improved further.
+For an example of the sort of optimization present in PC, consider the task of removing redundant method calls.  Imagine that a user
+supplies a \texttt{SelectionComp} with the following \texttt{getSelection ()}:
+
+\begin{codesmall} 
+Lambda <bool> getSelection (Handle 
+     <Emp> emp) {
+        return makeLambdaFromMethod
+             (emp, getSalary) > 50000 &&
+		makeLambdaFromMethod (emp, 
+                   getSalary) < 10000;
+}	
+\end{codesmall}
+
+\noindent PC would compile this into the following TCAP:
+
+\begin{codesmall}
+JK2_1(emp,mt1) <= APPLY(In(emp), In(emp), 
+     'Sel_43', 'method_call_1',
+  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+
+JK2_2(emp,bl1) <= APPLY(JK2_1(mt1), 
+     JK2_1(emp), 'Sel_43', '>_1', 
+  [('type', 'const_comparison'), ('op', '>')]);
+
+JK2_3(emp,bl1,mt2) <= APPLY(JK2_2(emp), 
+    JK2_2(emp,bl1), 'Sel_v3', 'method_call_2',
+  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+
+JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt2), 
+    JK2_3(emp,bl1), 'Sel_43', '<_1',
+  [('type', 'const comparison'), ('op', '<')]);
+
+JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), 
+    JK2_4(emp), 'Sel_43', '&&_1', 
+  [('type', 'bool_and')]);
+
+JK2_6(emp) <= FILTER(JK2_5(bl3), 
+   JK2_5(emp), 'Sel_43', []);
+\end{codesmall}
+
+\noindent
+This TCAP program first calls the method \texttt{getSalary ()} on \texttt{In::emp} to produce a new vector list \texttt{JK2\_2}, storing the result
+of the method call in \texttt{JK2\_1.mt1}.  After comparing \texttt{JK2\_2.bl1} to \texttt{50000}, the result of the method call is dropped.
+The method is then called once again on \texttt{JK2\_2.emp} and the result compared with \texttt{100000} to produce \texttt{JK2\_4}, at which 
+point the two boolean vectors are ``anded'' and the result is filtered.
+
+Obviously, there is a redundancy here as the method \texttt{getSalary ()} will be called twice.
+If \texttt{getSalary} simply accesses a data member, the additional call is costless.  But in the general case a method call may run an arbitrary
+computation.  Hence, the second call should automatically be removed as being redundant 
+(by definition, all method calls evaluated during computation should
+be purely functional, and so they must return the same value when called a second time).
+The TCAP optimization rule leading to its removal is:
+
+\vspace{5pt}
+
+\noindent
+(1) If two \texttt{APPLY} operations are both of type \texttt{methodCall} and both invoke the same \texttt{methodName};
+
+\noindent
+(2) And one \texttt{APPLY} operation is the ancestor of the other in the TCAP graph;
+
+\noindent
+(3) And both \texttt{APPLY} operations operate over the same data object;
+
+\noindent
+(4) Then the second \texttt{APPLY} operation can be removed, and the
+result of the first \texttt{APPLY} carried through the graph.
+
+\vspace{5pt}
+
+\noindent
+In our example, the
+optimized
+TCAP program is:
+
+\begin{codesmall}
+JK2_1(emp,mt1) <= APPLY(In(emp), 
+    In(emp), 'Sel_43', 'method_call_1',
+   [('type', 'methodCall'), ('methodName', 'getSalary')]);
+
+JK2_2(emp,mt1,bl1) <= APPLY(JK2_1(mt1), 
+   JK2_1(emp,mt1), 'Sel_43', '>_1', 
+  [('type', 'const comparison'), ('op', '>')]);
+
+JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt1), 
+   JK2_3(emp,bl1), 'Sel_43', '<_1', 
+  [('type', 'const comparison'), ('op', '<')]);
+
+JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2),
+   JK2_4(emp), 'Sel_43', '&&_1', 
+  [('type', 'bool_and')]);
+
+JK2_6(emp) <= FILTER(JK2_5(bl3), 
+  JK2_5(emp), 'Sel_43', []);
+  
+\end{codesmall}
+
+\noindent
+For another example of a rule-based TCAP optimization, 
+consider the classical technique of pushing selection predicates past joins.  Imagine that a user supplied the following
+\texttt{getSelection ()} for a \texttt{JoinComp} operation:
+
+\begin{codesmall} 
+Lambda <bool> getSelection (Handle <Emp> emp, 
+    Handle <Emp> sup) {
+        return makeLambdaFromMethod (emp, 
+            getSalary) > 50000 &&
+		(makeLambdaFromMethod (emp, getSupervisor) == 
+                 makeLambdaFromMember (sup, name));
+}	
+\end{codesmall}
+
+\noindent
+Since all selection predicates are by default evaluated \emph{after} the join, 
+this would be compiled to the following TCAP code:
+
+\begin{codesmall}
+JK2_1(sup,mt1) <= APPLY(InSup(sup), InSup(sup),
+   'Join_42', 'att_access_1', 
+  [('type', 'attAccess'), ('attName', 'name')]);
+
+JK2_2(sup,hash1) <= HASH(JK2_1(mt1), 
+   JK2_1(sup), 'Join_42', []);
+
+JK2_3(emp,mt2) <= APPLY(InEmp(emp), 
+   InEmp(emp), 'Join_42', 'method_call_1', 
+  [('type', 'methodCall'), ('methodName', 'getSupervisor')]);
+
+JK2_4(emp,hash2) <= HASH(JK2_3(mt2),
+   JK2_3(emp), 'Join_42', []);
+
+JK2_5(sup,emp) <= JOIN(JK2_2(hash1), JK2_2(sup), 
+  JK2_4(hash2), JK2_4(emp), 'Join_42', []);
+
+JK2_6(sup,emp,mt3) <= APPLY(JK2_5(emp), 
+   JK2_5(sup,emp), 'Join_42', 'method_call_2',
+  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+
+JK2_7(sup,emp,bool1) <= APPLY(JK2_6(mt2), 
+   JK2_7(sup,emp), 'Join_42', '>_1', 
+  [('type', 'const comparison'), ('op', '>')]);
+
+/* additional code here to check whether 
+  getSupervisor == name... 
+   result goes into JK2_10.bool2 */
+
+JK2_11(sup,emp,bool3) <= APPLY(JK2_10(bl1,bl2), 
+    JK2_10(sup,emp), 'Join_42', '&&_1', 
+   [('type', 'bool_and')]);
+
+JK2_12(sup,emp) <= FILTER(JK2_11(bool2),
+    JK2_11(sup,emp), 'Join_42', []);
+\end{codesmall}
+ 
+\noindent
+This code first uses \texttt{emp.getSupervisor ()} and \texttt{sup.name} to obtain the join keys. These are hashed, and 
+a hash join is run (this is the \texttt{JOIN} operation).  After the hash join,
+the result of calling \texttt{emp.getSupervisor ()} is compared with
+\texttt{sup.name}.  If these two values are equal and the salary exceeds \texttt{50000}, the result tuple is accepted.
+
+Clearly, it should be possible to first filter based off of the salary exceeding \texttt{50000} before the hash join is ever run.  Hence, one of
+the rule-based optimizations available to PC is that:
+
+\begin{itemize}
+
+\item If there is a boolean predicate of the form $(b_1 \wedge b_2 \wedge ...)$ that operations
+on the result of a join;
+
+\item And some $b_i$ refers to values that depend only on one of the join inputs (in this case, \texttt{emp.getSupervisor ()}
+\texttt{>} \texttt{50000};
+depends only upon \texttt{emp});
+
+\item Then $b_i$ can be pushed down to that join input, and a new
+  \texttt{FILTER} is introduced.
+\end{itemize}
+
+\noindent In this case, after the transformation, we would have:
+
+\begin{codesmall}
+JK2_1(sup,mt1) <= APPLY(InSup(sup), 
+   InSup(sup), 'Join_42', 'att_access_1', 
+  [('type', 'attAccess'), ('attName', 'name')]);
+
+JK2_2(sup,hash1) <= HASH(JK2_1(mt1), 
+   JK2_1(sup), 'Join_42', []);
+
+JK2_6(emp,mt3) <= APPLY(InEmp(emp), 
+   InEmp(emp), 'Join_42', 'method_call_2', 
+  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+
+JK2_7(emp,bool1) <= APPLY(JK2_6(mt2),
+   JK2_7(emp), 'Join_42', '>_1', 
+  [('type', 'const comparison'), ('op', '>')]);
+
+JK_2_7_1(emp) <= FILTER(JK2_7(bool1),
+   JK2_7(emp), 'Join_42', []);
+
+JK2_3(emp,mt2) <= APPLY(JK_2_7_1(emp), 
+   JK_2_7_1(emp), 'Join_42', 'method_call_1', 
+  [('type', 'methodCall'), ('methodName', 'getSupervisor')]);
+
+JK2_4(emp,hash2) <= HASH(JK2_3(mt2), 
+   JK2_3(emp), 'Join_42', []);
+
+JK2_5(sup,emp) <= JOIN(JK2_2(hash1),
+   JK2_2(sup), JK2_4(hash2), 
+  JK2_4(emp), 'Join_42', []);
+
+/* additional code here to check whether 
+     getSupervisor == name... 
+       result goes into JK2_10.bool2 */
+
+JK2_11(sup,emp,bool3) <= APPLY(JK2_10(bl1,bl2), 
+   JK2_10(sup,emp), 'Join_42', '&&_1', 
+  [('type', 'bool_and')]);
+
+JK2_12(sup,emp) <= FILTER(JK2_11(bool2), 
+  JK2_11(sup,emp), 'Join_42', []);
+\end{codesmall}
