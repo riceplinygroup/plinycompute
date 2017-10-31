@@ -5,12 +5,13 @@
 \section{Introduction}
 
 Big Data systems such as Spark \cite{zaharia2010spark} and Flink \cite{alexandrov2014stratosphere, carbone2015apache}
-have effectively solved what we affectionately call the ``data munging'' problem.  That is, 
+have effectively solved what we call the ``data munging'' problem.  That is, 
 these systems do an excellent job supporting the rapid
 and robust development of problem-specific,
 distributed/parallel codes that transform a raw dataset into structured 
-or semi-structured form, and then
-extract actionable information from the transformed data.
+or semi-structured form.
+%, and then
+%extract actionable information from the transformed data.
 But while existing Big Data systems offer
 excellent support for data munging,
 there is a class of application for which 
@@ -26,7 +27,7 @@ on top of existing Big Data systems is understandable.
 The  developer of a distributed data processing tool must worry about data persistence, movement of
 data to/from secondary storage, data
 and task distribution, resource allocation, load balancing, fault tolerance, and many other factors.
-While classical high-performance computing
+While classical high-performance computing (HPC)
 tools such as MPI \cite{gropp1996high} do not provide support for all of these concerns,
 existing Big Data systems 
 address them quite well.
@@ -50,7 +51,7 @@ virtual machine.  Virtual machines abstract away
 most details regarding memory management
 from the system designer, including memory deallocation, reuse, and movement, as well as pointers,
 object serialization and deserialization.
-Since managing and utilizing memory are 
+Since managing and utilizing memory is 
 one of the most important factors determining big data system performance, reliance
 on a managed environment can mean an order-of-magnitude increase in CPU cost for some computations.  
 This cost may be acceptable if the person using the system
