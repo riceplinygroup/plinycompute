@@ -56,11 +56,11 @@ one of the most important factors determining big data system performance, relia
 on a managed environment can mean an order-of-magnitude increase in
 CPU cost for some computations~\cite{blackburn2006dacapo}.  
 This cost may be acceptable if the person using the system
-is a programmer uncomfortable with the basics of memory management who is
-building an application to complete a specific data munging task.  
+is a programmer uncomfortable with the basics of memory management. 
+%who is building an application to complete a specific data munging task.  
 But it is unacceptable for high-performance tool or library
 development by an expert. There have been notable efforts to engineer around the limitations of a managed environment and still provide
-high performance---Spark's Dataset and
+high performance---code generation and Spark's Dataset and
 Dataframe abstractions come to mind---but such efforts are necessarily limited compared to
 designing a Big Data system from the ground up around special-purpose
 memory and object management system.
@@ -69,7 +69,7 @@ This paper is concerned with the design and implementation of
 \emph{PlinyCompute}, a system for development of
 high-performance, data-intensive, distributed computing codes, especially tools and libraries.
 PlinyCompute, or PC for short, is designed to fill the gap between
-High Performance Computing (HPC) softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
+HPC softwares such as OpenMP \cite{dagum1998openmp} and MPI \cite{gropp1996high}, which provide little direct support for
 managing very large datasets, and dataflow platforms such as Spark and Flink, which 
 may give up significant performance through their reliance on a managed runtime to handle
 memory management (including layout and de/allocation) and key computational considerations
