@@ -112,7 +112,7 @@ private:
 \noindent where \texttt{MatrixMeta} and \texttt{MatrixData} are defined as:
 
 \begin{code}
-class MatrixMeta : public pdb::Object {
+class MatrixMeta : public Object {
 private:
     int blockRowIndex; // row index of this block
     int blockColIndex; // col index of this block
@@ -122,7 +122,7 @@ private:
 
 class MatrixData : public Object {
 private:
-    pdb::Handle<pdb::Vector <double>> rawData;
+    Handle<Vector <double>> rawData;
     int rowNums; // number of rows in this block
     int colNums; // number of cols in this block
 };
