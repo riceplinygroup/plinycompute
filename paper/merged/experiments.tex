@@ -156,8 +156,8 @@ query2->setInput(query1);
 
 \noindent Here, \texttt{LAMultiplyJoin} and \texttt{LAMultiplyJoin} are 
 both user-defined \texttt{Computation} classes that are
-derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} classes, respectively; these classes are chosen 
-because distributed matrix multiply
+derived from PC's \texttt{JoinComp} class and \texttt{AggregateComp} class, respectively; these classes are chosen 
+because distributed matrix multiplication
 is basically a join followed by an aggregation.
 Internally, the \texttt{LAMultiplyJoin}
 and \texttt{LAMultiplyAggregate} invoke the Eigen numerical processing
@@ -206,7 +206,7 @@ responses $\textbf{y}$, compute
 $\hat{\pmb{\beta}} = (\textbf{X}^{T} \textbf{X})^{-1} \textbf{X}^{T} \textbf{y}$), and nearest
 neighbor search in a Riemannian metric space \cite{lebanon2006metric} encoded by matrix $\textbf{A}$ (that is,
 given a query vector
-$\textbf{x}'$ and matrix $\textbf{X}$, find the $k$ rows in the matrix that minimize 
+$\textbf{x}'$ and matrix $\textbf{X}$, find the $i$-th row in the matrix that minimizes 
 $d_{\textbf{A}}^2(\textbf{x}_i, \textbf{x}') = 
 (\textbf{x}_i - \textbf{x}')^T\textbf{A}(\textbf{x}_i - \textbf{x}')$).  
 For each computation we used three different data dimensionalities: ten, $10^2$, and $10^3$.  This refers to
