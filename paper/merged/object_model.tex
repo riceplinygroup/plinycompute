@@ -56,11 +56,11 @@ In the sparse sub-matrix, the \texttt{pair <int, int>} indexes a non-zero entry 
 
 But while the PC object model provides a rich, object-oriented programming model, it also provides the good performance characteristic
 of a flat relational model.
-The key principle underlying the PC object model is \emph{zero-cost data movement}.  That is, once a data object
+The key principle underlying the PC object model is \emph{minimal-cost data movement}.  That is, once a data object
 has been allocated and populated, moving the object to disk or across the network should be a simple matter of copying memory; there
 should be no CPU cost for serialization and deserialization.
 
-At first glance, it would seem to be impossible to offer zero-cost data movement while allowing a programmer to create and manipulate such objects.  
+At first glance, it would seem to be impossible to offer minimal-cost data movement while allowing a programmer to create and manipulate such objects.  
 Pointers and container classes 
 generally lead to high memory (de)allocation costs and high object (de)serialization costs, resulting in high CPU cost.
 The PC object model avoids this 
@@ -83,7 +83,7 @@ an object allocation block out of a new (empty) page, writing the full page out 
 No serialization or deserialization or any sort of post-processing of the page are needed, 
 because all object allocations have taken place exclusively to the current allocation block.  
 
-In order to guarantee zero-cost data movement,
+In order to guarantee minimal-cost data movement,
 one rule that a PC programmer must follow is that any object that will be loaded into the cloud must either be of a ``simple'' type (a simple type
 must contain no raw C-style pointers and no member variables that contain pointers, including no 
 virtual functions, and a \texttt{memmove}
@@ -110,7 +110,7 @@ the physical address of the object being pointed to is from the physical locatio
 object that is pointed to.  
 
 PC uses an offset pointer rather than a classical, C-style pointer in order to support
-zero-cost data movement.  
+minimal-cost data movement.  
 A \texttt{Handle} may begin its life allocated
 to one page, which may be stored on disk, then sent across a network to another process.  At the new process, the pointer
 must function correctly without being repaired or otherwise modified to match the address space of the new process, which can be costly.  
@@ -207,7 +207,7 @@ Once the number of reachable objects on an inactive, managed allocation block fa
 In that sense, PC resembles a smart-pointer based memory management system.  
 
 Since the fundamental goal of PC object model design is 
-zero-cost data movement---an allocation block should be transferable across processes and immediately usable with no pre- or post-processing---one
+minimal-cost data movement---an allocation block should be transferable across processes and immediately usable with no pre- or post-processing---one
 potential problem is dangling \texttt{Handle}s.  Specifically: What happens when there is a \texttt{Handle} located in one allocation block that points to a PC
 \texttt{Object} located in another allocation block?  The \texttt{Handle} may be valid, but when the \texttt{Handle}'s allocation block is moved to a new process where
 the target block is not located, the\texttt{Handle} cannot be dereferenced without a runtime error. 
@@ -230,7 +230,7 @@ myMatrix->value = data; // deep copy of data happens!!
 At the second \texttt{makeObjectAllocatorBlock}, the original allocation block, holding the list of \texttt{double}s pointed to by \texttt{data}, becomes
 inactive.  The submatrix \texttt{myMatrix} is allocated to the new active block.  
 Hence, the assignment of \texttt{data} to \texttt{myMatrix->value} is cross-allocation block, and a deep copy automatically happens to ensure that
-the current block is zero-cost copy-able.  
+the current block is minimal-cost copy-able and movable.  
 
 The reader may question whether this actually saves anything.  After
 all, the list of \texttt{double}s is still deep copied, just not at serialization time.

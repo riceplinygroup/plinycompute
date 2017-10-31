@@ -1,7 +1,7 @@
 \section{Object Model Tuning}
 
 \noindent
-The PC object model is designed for zero-cost data movement, the result being that there is often no serialization or deserialization
+The PC object model is designed for minimal-cost data movement, the result being that there is often no serialization or deserialization
 cost
 when moving PC \texttt{Object}'s across processes.  But memory management can still be costly.  Deallocating and cleaning
 up complex objects (in particular, instances of container classes) can require significant CPU resources, which, depending upon the 

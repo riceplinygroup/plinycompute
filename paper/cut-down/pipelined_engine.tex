@@ -58,7 +58,7 @@ Of all memory-related issues,
 data placement is paramount.  Because PC is designed to operate over
 complex objects, data movement can be 
 expensive.  To maintain the principle of
-zero-cost data movement, \texttt{Handle}s pointing to out-of-block data are not allowed in PC.
+minimal-cost data movement, \texttt{Handle}s pointing to out-of-block data are not allowed in PC.
 Thus, copying a PC \texttt{Handle} from one memory block to another requires a deep copy of the target of the \texttt{Handle} to the new block.  
 And since a
 \texttt{Handle} may be declared as pointing to a super-type of its

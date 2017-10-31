@@ -76,8 +76,8 @@ address, so they can be moved from process to process and remain valid.
 When the data are dispatched via \texttt{sendData ()},
 the occupied
 portion of the allocation block is transferred in its entirety with
-no pre-processing and zero CPU cost, aside from the cycles required to perform the data transfer.  
-This illustrates the principle of \emph{zero cost data movement}.
+no pre-processing and almost zero CPU cost, aside from the cycles required to perform the data transfer.  
+This illustrates the principle of \emph{minimal cost data movement}.
 
 To achieve high performance, all memory management except buffer pool
 page management is taken care of by the PC object model.
@@ -104,7 +104,7 @@ not be reference counted, and hence not reclaimed when no longer
 reachable.  
 
 This may mean lower memory utilization,
-but the benefit is nearly zero-CPU-cost memory management within the block.
+but the benefit is nearly minimal-CPU-cost memory management within the block.
 PC gives the developer the ability to manage the tradeoff.
 This illustrates another key principle behind the design of
 PlinyCompute: \emph{Since PC is targeted towards tool and library
@@ -119,7 +119,7 @@ For example, aggregation is implemented using PC's built-in
 a \texttt{Map} object that it aggregates its local data to; those are
 merged into maps that are sent to various workers around the PC
 cluster.  All sends and receives of these \texttt{Map} objects happen
-without (de-)serialization, with zero CPU cost, aside from the CPU
+without (de-)serialization, with almost zero CPU cost, aside from the CPU
 cycles needed to transmit the bytes.
 
 
