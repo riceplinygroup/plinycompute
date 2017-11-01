@@ -16,16 +16,20 @@ that is created (\texttt{JoinComp}, \texttt{SelectionComp}, etc.).  Currently, P
 three allocator policies:
 
 \vspace{5pt}
-
+\noindent
 \textbf{Lightweight re-use.}  This is the default policy.  When a PC \texttt{Object} is deallocated, its space in the allocation block is made available for re-use by
 adding the space to a pool of similarly-sized, recycled memory chunks (all recycled chunks are organized into buckets, where a chunk of size
 $n$ goes into bucket $\log_2 (n)$).  A request for RAM in a block is fulfilled by first scanning the recycled chunks in the appropriate bucket, then
 attempting to allocate new space on the end of the block, if that fails.
 
+\vspace{5pt}
+\noindent
 \textbf{No re-use.}  The space containing deallocated PC \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though PC \texttt{Object}s
 are reference-counted, and a destructor is called for each unreachable PC \texttt{Object}.
 Although this is the most efficient allocation policy, frequent allocations of temporary PC \texttt{Object}s will result in a lot of wasted space.
 
+\vspace{5pt}
+\noindent
 \textbf{Recycling.}  This is layered on top of lightweight re-use.  When the recycling allocator is used, any time a fixed-length
 PC \texttt{Object} is deallocated, it is
 added to a list of objects all having the same type.  All calls to \texttt{makeObject} with the zero-argument constructor will
@@ -35,7 +39,7 @@ then the lightweight re-use allocator is used to allocate space for the requeste
 object.
 
 \vspace{5pt}
-
+\noindent
 Note that
 variable-length objects are never recycled.  There are just a few of these types in PC, and they are typically
 used internally to implement the built-in PC container
@@ -48,16 +52,18 @@ In addition to policies that can be set on a per-computation basis,
 it is also possible for a programmer to supply the following policies, on a per-\texttt{Object} bases, during PC \texttt{Object} allocation:
 
 \vspace{5pt}
-
+\noindent
 \textbf{No reference counting.}  This PC \texttt{Object} is not reference counted, and it is not included in the total count of objects on an allocation
 block.  If each PC \texttt{Object} on an allocation block
 is allocated in this way, this results in pure, region-based memory management, and is exceedingly lightweight.
 
+\vspace{5pt}
+\noindent
 \textbf{Full reference counting.}  This is the default.
 
+\vspace{5pt}
+\noindent
 \textbf{Unique ownership.}  The PC \texttt{Object} is not reference counted, but there can be one \texttt{Handle} object referencing the uniquely-owned
 object.  When that \texttt{Handle} is destroyed, the object is deallocated.
-
-\vspace{5pt}
 
 
