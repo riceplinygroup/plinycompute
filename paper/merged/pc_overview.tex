@@ -77,7 +77,7 @@ When the data are dispatched via \texttt{sendData ()},
 the occupied
 portion of the allocation block is transferred in its entirety with
 no pre-processing and almost zero CPU cost, aside from the cycles required to perform the data transfer.  
-This illustrates the principle of \emph{minimal cost data movement}.
+This illustrates the principle of \emph{zero cost data movement}.
 
 To achieve high performance, all memory management except buffer pool
 page management is taken care of by the PC object model.
@@ -104,7 +104,7 @@ not be reference counted, and hence not reclaimed when no longer
 reachable.  
 
 This may mean lower memory utilization,
-but the benefit is nearly minimal-CPU-cost memory management within the block.
+but the benefit is nearly zero-CPU-cost memory management within the block.
 PC gives the developer the ability to manage the tradeoff.
 This illustrates another key principle behind the design of
 PlinyCompute: \emph{Since PC is targeted towards tool and library
@@ -381,7 +381,7 @@ In PC,
 each vectorized pipeline stage (such as \texttt{Join\_2212.member\_1}) is executed as fully-compiled native code, with no virtual function
 calls.
 In PC's C++ binding, this is accomplished by using the C++ language's extensive \emph{template metaprogramming} 
-capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generic functionality.
+capabilities \cite{josuttis2012c++}.  Templates are the C++ language's way of providing generics functionality.
 When a C++ template class or
 function is instantiated with a type, %the instantiated template 
 the C++ compiler actually generates optimized native code for that specific new type, at compile time.  

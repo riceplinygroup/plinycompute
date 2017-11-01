@@ -66,12 +66,30 @@ development, most
 (though not all) of our comparisons were with Spark (version
 2.1.0). The configuration of the Spark cluster such as
 executor memory, number of cores for each executor, number of
-executors, data partitions and so on are carefully tuned for each
-experiment. We do not clear the OS buffer cache, so HDFS data can be buffered or
+executors and so on are carefully tuned for each
+experiment, as shown in Table~\ref{sparkConf}. We do not clear the OS buffer cache, so HDFS data can be buffered or
 cached in the OS buffer cache. For each experiment we read HDFS data
 via a binary format (Parquet for the Spark Dataset API,
 and a Java Object file for the Spark RDD API).  In all of the
 experiments, data are serialized in Kryo format. 
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c||c|c|c|c|}
+\hline
+Configuration & Number of Executors & Memory per Executor & Cores per Executor& Driver Memory\\
+\hline
+\texttt{lilLinAlg} &10 & 60GB & 8 & 50GB \\
+TPC-H &10 & 50GB & 7 & 50GB \\
+LDA &20 & 26.5GB + 4GB off-heap &4 & 55GB\\
+GMM&80 & 70GB & 1 & 55GB\\
+$k$-means &10 &60GB & 8 & 50GB\\
+\hline
+\end{tabular}
+\caption{Workload-specific Spark Configurations for Different Experiments.}
+\label{fig:sparkConf}
+\end{center}
+\end{table}
 
 
 \subsection {Distributed Linear Algebra}
@@ -265,7 +283,7 @@ distributed fashion across multiple machines calls into question the viability o
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c||c|c|c||c|c|c||c|c|c||}
+\begin{tabular}{|c||c|c|c||c|c|c||c|c|c|}
 \hline
 & \multicolumn{3}{c||}{Gram Matrix} & \multicolumn{3}{c||}{Linear Regression} & \multicolumn{3}{c||}{Nearest Neighbor} \\
 \hline
@@ -674,7 +692,7 @@ some of the issues surrounding Java vs. C++.
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c||c|c|c||}
+\begin{tabular}{|c||c|c|c|}
 \hline
 Dimensionality & $100$ & $300$ & $500$ \\
 Number of points & $10^7$ & $10^6$ & $10^6$ \\
@@ -704,7 +722,7 @@ This conversion becomes a bottleneck for the largest datasets.
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c||c|c|c||c|c|c||}
+\begin{tabular}{|c||c|c|c||c|c|c|}
 \hline
 & \multicolumn{3}{c||}{Initialization Latency} & \multicolumn{3}{c||}{Average
                                          Iteration Latency} \\
@@ -782,7 +800,7 @@ not the programming language itself.
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c|c|c|}
+\begin{tabular}{|c||c|c|}
 \hline
 Applications & SLOC on PlinyCompute & SLOC on Spark\\
 \hline
@@ -801,7 +819,7 @@ $k$-means &695  &670 (Scala)\\
 
 \begin{table}[h!]
 \begin{center}
-\begin{tabular}{|c||c|c|c||}
+\begin{tabular}{|c||c|c|c|}
 \hline
 Matrix Dimensions & $1000\times1000$ & $10000\times10000$ \\
 \hline
