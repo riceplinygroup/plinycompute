@@ -1,4 +1,5 @@
-\section{Object Model Tuning}
+\subsection{Object Model Tuning}
+\label{sec:allocation}
 
 \noindent
 The PC object model is designed for minimal-cost data movement, the result being that there is often no serialization or deserialization
@@ -23,7 +24,7 @@ attempting to allocate new space on the end of the block, if that fails.
 
 \textbf{No re-use.}  The space containing deallocated PC \texttt{Object}s is not-reused.  Hence, it is very similar to classical, region-based allocation---though PC \texttt{Object}s
 are reference-counted, and a destructor is called for each unreachable PC \texttt{Object}.
-On the positive side, this allocation policy is very fast.  On the negative side, frequent allocations of temporary PC \texttt{Object}s will result in a lot of wasted space.
+Although this is the most efficient allocation policy, frequent allocations of temporary PC \texttt{Object}s will result in a lot of wasted space.
 
 \textbf{Recycling.}  This is layered on top of lightweight re-use.  When the recycling allocator is used, any time a fixed-length
 PC \texttt{Object} is deallocated, it is

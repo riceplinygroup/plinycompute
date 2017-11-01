@@ -3,8 +3,9 @@
 
 We give an overview of PlinyCompute, focusing on the core components of the
 system: the PC object model, 
-the PC API and TCAP compiler, and execution engine, and we concretize these ideas by
-describing the implementation of a $k$-means clustering algorithm.
+the PC API and TCAP compiler, and execution engine. 
+%and we concretize these ideas by
+%describing the implementation of a $k$-means clustering algorithm.
 
 \subsection{The PC Object Model}
 
@@ -77,7 +78,7 @@ When the data are dispatched via \texttt{sendData ()},
 the occupied
 portion of the allocation block is transferred in its entirety with
 no pre-processing and zero CPU cost, aside from the cycles required to perform the data transfer.  
-This illustrates the principle of \emph{zero serialization data movement}.
+This illustrates the principle of \emph{zero cost data movement}.
 
 To achieve high performance, all memory management except buffer pool
 page management is taken care of by the PC object model.
@@ -89,9 +90,7 @@ freed, since PC \texttt{Object}s are reference counted.  This can
 be expensive, however, since the PC \texttt{Object} infrastructure must traverse a potentially large graph of \texttt{Handle} objects to perform the deallocation.  
 Recognizing that low-level data manipulations dominate big data
 compute times~\cite{ousterhout2015making, shi2015clash}, PlinyCompute gives a programmer nearly complete control
-over most aspects of memory management.
-
-If the 
+over most aspects of memory management. If the 
 programmer had instead used: 
 
 \begin{codesmall}
@@ -101,8 +100,7 @@ storeMe->data = makeObject <Vector <double>>
 
 
 \noindent then the memory associated with \texttt{storeMe->data} would
-not be reference counted, and hence not reclaimed when no longer
-reachable.  
+not be reference counted, and hence not reclaimed when unreachable.  
 
 This may mean lower memory utilization,
 but the benefit is nearly zero-cost memory management within the block.
@@ -372,14 +370,16 @@ done via application of the compiled code referred to by \texttt{Join
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
 and \texttt{nm1} are simply shallow-copied to the output vector set.
 
-After this an equality check is performed to create \texttt{WBl\_1.bl}
-(a vector of booleans) and then the result is filtered based upon this
+Then an equality check is performed to create \texttt{WBl\_1.bl}
+(a vector of booleans) and the result is filtered based upon this
 column.
 
 
-Note that in each TCAP operation, the key-value map is only informational and does not affect the execution of the TCAP.  However, this
-information can be vital during optimization.  As we will discuss subsequently, 
-multiple calls to the same method can be detected using information stored in TCAP key-value maps, and the redundant calls eliminated.
+Note that in each TCAP operation, the key-value map is only
+informational and does not affect its execution.  However, this
+information can be vital during optimization.  For example, 
+multiple calls to the same method can be detected using information
+stored in the key-value maps, and the redundant calls can be eliminated.
 
 \subsection{Template Metaprogramming}
 
@@ -408,7 +408,7 @@ WBl_1(dep,emp,sup,bl) <=
 Here, the pipeline stage \texttt{Join\_2212.==\_3} that is specified by the \texttt{APPLY} operation
 actually refers to a function generated as a by-product of the
 PC's \texttt{==} operation
-in the line of code
+in the line of code:
 
 \begin{codesmall} 
 return makeLambdaFromMember (arg1, deptName) == 
