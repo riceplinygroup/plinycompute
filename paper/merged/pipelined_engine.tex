@@ -100,7 +100,7 @@ reclaim and reuse the memory.
 Some of the burden of avoiding unwanted allocations is placed on a PC programmer. A programmer should
 avoid unnecessary calls to \texttt{makeObject ()}, specifically avoiding those calls that allocate data that can never possibly make it to an output object.
 
-Likewise, the system should do the same.  It is most critical that PC avoid moving intermediate data to an output page during pipeline execution.
+Likewise, the system should do the same.  It is most critical that PC avoids moving intermediate data to an output page during pipeline execution.
 Reconsider the example of Section \ref{sec:vectorized}.  The user-specified \texttt{getSelection ()} describes
 a computation that invokes \texttt{Emp::getDeptName ()}, checking whether it equals the extracted value of
 \texttt{Dep::deptName}.  During pipelined execution, care is taken \emph{not} to store these intermediate results
@@ -167,7 +167,7 @@ vector list begins
 to fill the live output page with output data.  This may induce a second
 out-of-memory fault, creating a second zombie output page.  However, since the vector list whose processing induced the fault is being
 processed by the pipeline's sink, \emph{it cannot be used to produce additional intermediate data whose references will be held by the vector list} 
-and can only produce output data.  Thus, any additional pages it is used to produce
+and can only produce output data.  Thus, any additional pages the pipeline is used to produce
 cannot contain a mix of output and intermediate data.  Further, note that once a vector list makes it all the way through the pipeline, all of its references
 to data are destroyed, so no pages can possibly
 store valid intermediate data and hence all zombie output pages can be flushed---and hence the number of zombie output pages is capped at two.

@@ -3,7 +3,6 @@
 % http://www.vldb.org/pvldb/vol7/p853-klonatos.pdf
 
 \section{Introduction}
-
 Big Data systems such as Spark \cite{zaharia2010spark} and Flink \cite{alexandrov2014stratosphere, carbone2015apache}
 have effectively solved what we affectionately call the ``data munging'' problem.  That is, 
 these systems do an excellent job supporting the rapid
@@ -81,7 +80,8 @@ it presents the programmer with a very high-level,
 declarative interface, relying on automatic, 
 relational-database style optimization \cite{chaudhuri1998overview} to figure out how to stage
 distributed computations.  
-PC's declarative interface is higher-level than competing systems, in that decisions such as choice of join ordering and which
+PC's declarative interface is higher-level than other Big Data systems
+such as Spark and Flink, in that decisions such as choice of join ordering and which
 join algorithms to run are
 totally under control of the system. 
 This is particularly important for tool and library development because the same tool should run well regardless of the data
@@ -103,7 +103,9 @@ All data processed by PC are managed by
 the PC object
 model, which is exclusively responsible for PC data layout and within-page memory management.  
 The PC object model is tightly coupled with
-PC's execution engine, and has been specifically designed for efficient distributed computing.  
+PC's execution engine, and has been specifically designed for
+efficient distributed computing in a distributed environment called PC
+Cluster.  
 All dynamic PC \texttt{Object} allocation is \emph{in-place}, directly on a page, obviating
 the need for PC \texttt{Object} serialization and deserialization before data are transferred to/from storage or over a network.
 Further, PC gives a programmer fine-grained control of the systems
@@ -119,10 +121,10 @@ Currently, PC exists as a prototype system, consisting of around
 The system consists of three main components: 
 
 \begin{itemize}
-\item The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
+\item The \textbf{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
 processed and manipulated by PC.  
 
-\item The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
+\item The \textbf{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
 dataflow platform.  Rather, a programmer 
 supplies two \emph{lambda term construction functions}: one that constructs a lambda term describing the selection
 predicate over those five input sets, 
@@ -133,14 +135,16 @@ accepts such a specification, and compiles it into a functional, domain specific
 the join.  Logically, TCAP operates over
 sets of columns of PC \texttt{Object}s. 
 
-\item The \emph{PC Cluster}, which is a distributed query processing
-  system for big data analytics. It consists of an optimizer for TCAP
+\item The \textbf{PC Cluster}, which is a distributed query processing
+  system for big data analytics that is based on PC object model, PC
+  API and TCAP language. It consists of an optimizer for TCAP
   programs, through which all PC computations are optimized using a rule-based
 optimizer; we plan to shift to a cost-based optimizer in the
-future. Among other components such as a distributed storage that
+future. Among other components such as a catalog server that serves
+system metadata, a distributed storage that
 contains a buffer pool to buffer writes or cache data in pages, it also consists of a
-high-performance distributed, vectorized TCAP processing engine. 
-The TCAP processing engine is intimately connected to the PC object model, 
+high-performance distributed, vectorized \emph{TCAP execution engine}. 
+The TCAP execution engine is intimately connected to the PC object model, 
 and has been designed to work closely with the PC object model to
 minimize memory-related costs during computation.
 
@@ -165,3 +169,17 @@ within the Apache ecosystem.
 We also compare the performance of several standard machine learning codes written on top of PC, comparing them with similar
 codes written within the Apache ecosystem.  
 
+\vspace{5 pt}
+\noindent
+\textbf{Roadmap.} We first present an overview of the key components
+described in the paper: the PC object model, 
+TCAP and vectorized processing, PC's execution engine and so on. Then we describe each part
+in more detail. In Sec~\ref{sec:ObjectModel} and Sec~\ref{sec:allocation}, we describe the design,
+implementation, and user interfaces of the PC object model, which is
+the core and foundation to all other components. In
+Sec~\ref{sec:optimizer} and Sec~\ref{sec:pipelined}, we introduce more
+details in optimizing and processing TCAP code. In
+Sec~\ref{sec:implementation}, we describe the other components in a PC
+Cluster, which is the PC distributed computation framework, and how
+they work together with PC's distributed execution engine to manipulate PC \texttt{Object}s and process TCAP
+to complete distributed computations.

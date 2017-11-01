@@ -14,7 +14,7 @@ dominate the time needed to complete typical big data processing tasks
 \cite{ousterhout2015making, shi2015clash}.
 To avoid these potential pitfalls while at the same time giving the user a high degree of flexibility,
 PC requires programmers to store and manipulate data using the \emph{PC object model}.
-The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and computational engine to provide
+The PC object model is an API for storing and manipulating objects, and has been co-designed with PC's memory management system and execution engine to provide
 maximum performance.  
 
 In PC's C++ binding, individual PC \texttt{Object}s correspond to C++ objects, and so the C++ compiler specifies the memory layout.
@@ -22,7 +22,7 @@ However, where PC \texttt{Object}s are stored in RAM and on disk, and how they a
 tightly controlled by PC itself.
 
 The PC object model provides a fully object-oriented interface, and yet manages to avoid many of the costs associated with complex object manipulation
-by following the \emph{page as a heap} principle.  
+by following the \emph{page-as-a-heap} principle.  
 All PC \texttt{Object}s are allocated and manipulated in-place, on a system-
 (or user-) allocated page.  There is
 no distinction between the in-memory representation of data and the on-disk (or in-network) representation of
@@ -33,11 +33,11 @@ In computer systems design, this is often referred to as
 \emph{region-based allocation} \cite{tofte1997region,
   grossman2002region}, and is often the fastest way to manage
 memory. 
-TCAP query processing engine follows this strategy by pinning a page from the buffer
+TCAP processing follows this strategy by pinning a page from the buffer
 pool for object creation and manipulation, and unpinning the page once
 it finishes manipulating on the objects allocated in that page.
 
-To illustrate use of the PC object model from a user's perspective,
+To illustrate the use of the PC object model from a user's perspective,
 imagine that we wish to perform a computation over a number of one-dimensional feature vectors.  
 Using the PC object model's C++ binding, we might represent each data point using the 
 \texttt{DataPoint} class:
@@ -70,7 +70,7 @@ pcContext.sendData <DataPoint> ("Mydb", "Myset", myVec);
 \noindent
 Here, the programmer starts out by creating a one megabyte \emph{allocation block} where all new objects will be written,
 and then allocates data directly to that allocation block via a call to \texttt{makeObject ()}.  Each call to  \texttt{makeObject ()}
-returns PC's pointer-like object, called a \texttt{Handle}.  PC \texttt{Handle}s use offsets rather than an absolute memory
+returns a PC's pointer-like object, called a \texttt{Handle}.  PC \texttt{Handle}s use offsets rather than an absolute memory
 address, so they can be moved from process to process and remain valid.  
 
 When the data are dispatched via \texttt{sendData ()},
@@ -113,10 +113,10 @@ PlinyCompute: \emph{Since PC is targeted towards tool and library
 
 Finally, we note that the PC object model is not used exclusively or
 even primarily for application programming.  The PC object model
-is used \emph{internally}, with PC's computational engine as well.
+is used \emph{internally}, integrated with PC's execution engine as well.
 For example, aggregation is implemented using PC's built-in
 \texttt{Map} class.  Each thread maintains
-a \texttt{Map} object that it aggregates its local data to; those are
+a \texttt{Map} object that the thread aggregates its local data to; those are
 merged into maps that are sent to various workers around the PC
 cluster.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization, with almost zero CPU cost, aside from the CPU
@@ -271,7 +271,7 @@ Note that the programmer does \emph{not} specify an ordering for the joins, and 
 analyzes the lambda term returned by \texttt{getSelection ()} and
 makes such decisions automatically.
 
-In general, a programmer can choose to expose the details of a computation to PC, but making extensive use of PC's lambda
+In general, a programmer can choose to expose the details of a computation to PC, by making extensive use of PC's lambda
 calculus, or not.  A programmer could, for example, hide the entire selection predicate within a native C++ lambda.
 If the programmer chose to do this, PC would be unable to optimize the compute plan---the system relies on the willingness of the 
 programmer to expose intent via the lambda term construction function.
@@ -287,7 +287,7 @@ existing vectors of PC \texttt{Object}s, first via a call to \texttt{Join\_2122.
 of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then, second
 via a call to \texttt{Join\_2122.method\_call\_2 ()}, which invokes \texttt{Dep :: getDeptName ()} on each of the \texttt{Emp} objects
 in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit vector \texttt{bl} is formed by checking the equality of those two 
-vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors are filtered.}
+vectors via a call to \texttt{Join\_2122.==\_3 ()}, and finally all of the vectors are filtered.}
 \vspace{-15 pt}
   \label{fig:TCAP}
 \end{figure}
@@ -352,7 +352,7 @@ a vector list called \texttt{Input}, which is made of the constituent vectors, r
 the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
 \texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied (via a shallow copy) from \texttt{In}.
-In addition, the compiled code referred to by \texttt{Join\_2212.member\_1} will be executed via a vectorized application to the input
+In addition, the compiled code referred to by \texttt{Join\_2212.att\_acc\_1} will be executed via a vectorized application to the input
 vector \texttt{dep}.  The result will then be put into a new vector called 
 \texttt{WDNm\_1.name1}.
 The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
@@ -362,7 +362,7 @@ Next, this TCAP program
 specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
 method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
 done via application of the compiled code referred to by \texttt{Join
-  \_2212.method\_call\_1}.  
+  \_2212.method\_call\_2}.  
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
 and \texttt{nm1} are simply shallow-copied to the output vector set.
 
@@ -492,7 +492,7 @@ The declaration \texttt{AggregateComp <Centroid, long, Avg, DataPoint>} means th
 aggregated into objects of type \texttt{Centroid}.  To process each data point, the aggregation will use the lambdas constructed by
 \texttt{getKeyProjection} and \texttt{getValueProjection}.  
 In this case, for example,
-\texttt{getKeyProjection} builds a lambda which simply invokes the native C++ lambda given in the code---this
+\texttt{getKeyProjection} builds a lambda, which simply invokes the native C++ lambda given in the code---this
 native C++ lambda returns the identity of the centroid closest to the data point.
 
 To build a computation using this aggregation class, a programmer would need to specify the \texttt{Centroid} class (the result of this aggregation):
