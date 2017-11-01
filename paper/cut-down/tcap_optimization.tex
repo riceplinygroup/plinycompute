@@ -2,9 +2,10 @@
 \section{Optimizing TCAP}
 \label{sec:optimizer}
 
-One of the key ideas driving the design and implementation of PlinyCompute is that \emph{all} PC computations should be optimized, both to
-match programmer expectation---programmers generally expect
-that changes in the way that boolean expressions are composed should not affect system runtime---and 
+One of the key ideas driving the design and implementation of PlinyCompute is that \emph{all} PC computations should be optimizable, both to
+match programmer expectation
+that changes in the way that boolean expressions are composed should
+not affect system runtime, and 
 to protect against poor programmer choices when constructing the query graph.
 
 Optimizability is one of the drivers for
@@ -12,7 +13,7 @@ the decision to compile all computations expressed in PC's lambda calculus into 
 TCAP resembles relational algebra, and it is similarly amenable to rule- and cost-based optimization
 using a combination of methods from relational query optimization and classical compiler construction.
 Currently, the optimizations implemented in PC are rule-based (such as pushing down selections).  We plan to work on cost-based optimization
-in the future---this is a challenging research problem because of a lack of statistics over the data, which are arbitrary PC \texttt{Object}s.
+in the future, which is a challenging research problem because of lack of statistics over the arbitrary PC \texttt{Object}s.
 
 PC's optimizer is currently implemented
 in Prolog; a series of transformations are fired iteratively to improve the plan until the plan cannot be improved further.
@@ -20,40 +21,34 @@ For an example of the sort of optimization present in PC, consider the task of r
 supplies a \texttt{SelectionComp} with the following \texttt{getSelection ()}:
 
 \begin{codesmall} 
-Lambda <bool> getSelection (Handle 
-     <Emp> emp) {
-        return makeLambdaFromMethod
-             (emp, getSalary) > 50000 &&
-		makeLambdaFromMethod (emp, 
-                   getSalary) < 10000;
+Lambda <bool> getSelection (Handle  <Emp> emp) {
+   return makeLambdaFromMethod
+      (emp, getSalary) > 50000 &&
+      makeLambdaFromMethod (emp, getSalary) < 10000;
 }	
 \end{codesmall}
 
 \noindent PC would compile this into the following TCAP:
 
 \begin{codesmall}
-JK2_1(emp,mt1) <= APPLY(In(emp), In(emp), 
-     'Sel_43', 'method_call_1',
-  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+JK2_1(emp,mt1) <= APPLY(In(emp), In(emp), 'Sel_43',
+'method_call_1',[('type', 'methodCall'),('methodName',
+'getSalary')]);
 
-JK2_2(emp,bl1) <= APPLY(JK2_1(mt1), 
-     JK2_1(emp), 'Sel_43', '>_1', 
-  [('type', 'const_comparison'), ('op', '>')]);
+JK2_2(emp,bl1) <= APPLY(JK2_1(mt1), JK2_1(emp), 
+'Sel_43','>_1',[('type','const_comparison'),('op','>')]);
 
-JK2_3(emp,bl1,mt2) <= APPLY(JK2_2(emp), 
-    JK2_2(emp,bl1), 'Sel_v3', 'method_call_2',
-  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+JK2_3(emp,bl1,mt2) <= APPLY(JK2_2(emp), JK2_2(emp,bl1), 
+'Sel_v3', 'method_call_2',[('type','methodCall'), 
+('methodName', 'getSalary')]);
 
-JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt2), 
-    JK2_3(emp,bl1), 'Sel_43', '<_1',
-  [('type', 'const comparison'), ('op', '<')]);
+JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt2), JK2_3(emp,bl1), 
+'Sel_43','<_1',[('type','const comparison'),('op','<')]);
 
-JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), 
-    JK2_4(emp), 'Sel_43', '&&_1', 
-  [('type', 'bool_and')]);
+JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), JK2_4(emp), 
+'Sel_43', '&&_1',[('type','bool_and')]);
 
-JK2_6(emp) <= FILTER(JK2_5(bl3), 
-   JK2_5(emp), 'Sel_43', []);
+JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp), 'Sel_43',[]);
 \end{codesmall}
 
 \noindent
@@ -92,24 +87,20 @@ optimized
 TCAP program is:
 
 \begin{codesmall}
-JK2_1(emp,mt1) <= APPLY(In(emp), 
-    In(emp), 'Sel_43', 'method_call_1',
-   [('type', 'methodCall'), ('methodName', 'getSalary')]);
+JK2_1(emp,mt1) <= APPLY(In(emp), In(emp),'Sel_43', 
+'method_call_1',[('type','methodCall'),('methodName',
+'getSalary')]);
 
-JK2_2(emp,mt1,bl1) <= APPLY(JK2_1(mt1), 
-   JK2_1(emp,mt1), 'Sel_43', '>_1', 
-  [('type', 'const comparison'), ('op', '>')]);
+JK2_2(emp,mt1,bl1) <= APPLY(JK2_1(mt1),JK2_1(emp,mt1), 
+'Sel_43','>_1',[('type','const comparison'),('op','>')]);
 
-JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt1), 
-   JK2_3(emp,bl1), 'Sel_43', '<_1', 
-  [('type', 'const comparison'), ('op', '<')]);
+JK2_4(emp,bl1,bl2) <= APPLY(JK2_3(mt1),JK2_3(emp,bl1),
+'Sel_43','<_1',[('type','const comparison'),('op','<')]);
 
-JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2),
-   JK2_4(emp), 'Sel_43', '&&_1', 
-  [('type', 'bool_and')]);
+JK2_5(emp,bl3) <= APPLY(JK2_4(bl1,bl2), JK2_4(emp), 
+'Sel_43','&&_1',[('type', 'bool_and')]);
 
-JK2_6(emp) <= FILTER(JK2_5(bl3), 
-  JK2_5(emp), 'Sel_43', []);
+JK2_6(emp) <= FILTER(JK2_5(bl3), JK2_5(emp),'Sel_43',[]);
   
 \end{codesmall}
 
@@ -121,10 +112,9 @@ consider the classical technique of pushing selection predicates past joins.  Im
 \begin{codesmall} 
 Lambda <bool> getSelection (Handle <Emp> emp, 
     Handle <Emp> sup) {
-        return makeLambdaFromMethod (emp, 
-            getSalary) > 50000 &&
-		(makeLambdaFromMethod (emp, getSupervisor) == 
-                 makeLambdaFromMember (sup, name));
+    return makeLambdaFromMethod (emp, getSalary) > 50000 
+    && (makeLambdaFromMethod (emp, getSupervisor) == 
+           makeLambdaFromMember (sup, name));
 }	
 \end{codesmall}
 
@@ -133,41 +123,37 @@ Since all selection predicates are by default evaluated \emph{after} the join,
 this would be compiled to the following TCAP code:
 
 \begin{codesmall}
-JK2_1(sup,mt1) <= APPLY(InSup(sup), InSup(sup),
-   'Join_42', 'att_access_1', 
-  [('type', 'attAccess'), ('attName', 'name')]);
+JK2_1(sup,mt1) <= APPLY(InSup(sup), InSup(sup),'Join_42',
+'att_access_1',[('type','attAccess'),('attName','name')]);
 
-JK2_2(sup,hash1) <= HASH(JK2_1(mt1), 
-   JK2_1(sup), 'Join_42', []);
+JK2_2(sup,hash1) <= HASH(JK2_1(mt1),JK2_1(sup),
+'Join_42',[]);
 
-JK2_3(emp,mt2) <= APPLY(InEmp(emp), 
-   InEmp(emp), 'Join_42', 'method_call_1', 
-  [('type', 'methodCall'), ('methodName', 'getSupervisor')]);
+JK2_3(emp,mt2) <= APPLY(InEmp(emp), InEmp(emp),
+'Join_42','method_call_1',[('type', 'methodCall'), 
+('methodName','getSupervisor')]);
 
-JK2_4(emp,hash2) <= HASH(JK2_3(mt2),
-   JK2_3(emp), 'Join_42', []);
+JK2_4(emp,hash2) <= HASH(JK2_3(mt2),JK2_3(emp),
+'Join_42',[]);
 
 JK2_5(sup,emp) <= JOIN(JK2_2(hash1), JK2_2(sup), 
-  JK2_4(hash2), JK2_4(emp), 'Join_42', []);
+JK2_4(hash2),JK2_4(emp),'Join_42',[]);
 
-JK2_6(sup,emp,mt3) <= APPLY(JK2_5(emp), 
-   JK2_5(sup,emp), 'Join_42', 'method_call_2',
-  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+JK2_6(sup,emp,mt3) <= APPLY(JK2_5(emp),JK2_5(sup,emp),
+'Join_42','method_call_2',[('type','methodCall'), 
+('methodName','getSalary')]);
 
-JK2_7(sup,emp,bool1) <= APPLY(JK2_6(mt2), 
-   JK2_7(sup,emp), 'Join_42', '>_1', 
-  [('type', 'const comparison'), ('op', '>')]);
+JK2_7(sup,emp,bool1) <= APPLY(JK2_6(mt2),JK2_7(sup,emp),
+'Join_42','>_1',[('type','const comparison'),('op','>')]);
 
-/* additional code here to check whether 
-  getSupervisor == name... 
-   result goes into JK2_10.bool2 */
+/* additional code here to check whether getSupervisor == 
+name... result goes into JK2_10.bool2 */
 
 JK2_11(sup,emp,bool3) <= APPLY(JK2_10(bl1,bl2), 
-    JK2_10(sup,emp), 'Join_42', '&&_1', 
-   [('type', 'bool_and')]);
+JK2_10(sup,emp),'Join_42','&&_1',[('type','bool_and')]);
 
 JK2_12(sup,emp) <= FILTER(JK2_11(bool2),
-    JK2_11(sup,emp), 'Join_42', []);
+JK2_11(sup,emp), 'Join_42', []);
 \end{codesmall}
  
 \noindent
@@ -195,43 +181,38 @@ depends only upon \texttt{emp});
 \noindent In this case, after the transformation, we would have:
 
 \begin{codesmall}
-JK2_1(sup,mt1) <= APPLY(InSup(sup), 
-   InSup(sup), 'Join_42', 'att_access_1', 
-  [('type', 'attAccess'), ('attName', 'name')]);
+JK2_1(sup,mt1) <= APPLY(InSup(sup),InSup(sup),'Join_42',
+'att_access_1',[('type','attAccess'),('attName','name')]);
 
-JK2_2(sup,hash1) <= HASH(JK2_1(mt1), 
-   JK2_1(sup), 'Join_42', []);
+JK2_2(sup,hash1) <= HASH(JK2_1(mt1),JK2_1(sup),
+'Join_42',[]);
 
-JK2_6(emp,mt3) <= APPLY(InEmp(emp), 
-   InEmp(emp), 'Join_42', 'method_call_2', 
-  [('type', 'methodCall'), ('methodName', 'getSalary')]);
+JK2_6(emp,mt3) <= APPLY(InEmp(emp),InEmp(emp),
+'Join_42','method_call_2',[('type','methodCall'),
+('methodName','getSalary')]);
 
-JK2_7(emp,bool1) <= APPLY(JK2_6(mt2),
-   JK2_7(emp), 'Join_42', '>_1', 
-  [('type', 'const comparison'), ('op', '>')]);
+JK2_7(emp,bool1) <= APPLY(JK2_6(mt2),JK2_7(emp),
+'Join_42','>_1',[('type','const comparison'),('op','>')]);
 
-JK_2_7_1(emp) <= FILTER(JK2_7(bool1),
-   JK2_7(emp), 'Join_42', []);
+JK_2_7_1(emp) <= FILTER(JK2_7(bool1),JK2_7(emp),
+'Join_42',[]);
 
-JK2_3(emp,mt2) <= APPLY(JK_2_7_1(emp), 
-   JK_2_7_1(emp), 'Join_42', 'method_call_1', 
-  [('type', 'methodCall'), ('methodName', 'getSupervisor')]);
+JK2_3(emp,mt2) <= APPLY(JK_2_7_1(emp),JK_2_7_1(emp),
+'Join_42', 'method_call_1',[('type','methodCall'),
+('methodName','getSupervisor')]);
 
-JK2_4(emp,hash2) <= HASH(JK2_3(mt2), 
-   JK2_3(emp), 'Join_42', []);
+JK2_4(emp,hash2) <= HASH(JK2_3(mt2),JK2_3(emp),
+'Join_42',[]);
 
-JK2_5(sup,emp) <= JOIN(JK2_2(hash1),
-   JK2_2(sup), JK2_4(hash2), 
-  JK2_4(emp), 'Join_42', []);
+JK2_5(sup,emp) <= JOIN(JK2_2(hash1),JK2_2(sup),
+JK2_4(hash2),JK2_4(emp),'Join_42',[]);
 
-/* additional code here to check whether 
-     getSupervisor == name... 
-       result goes into JK2_10.bool2 */
+/* additional code here to check whether getSupervisor 
+== name... result goes into JK2_10.bool2 */
 
-JK2_11(sup,emp,bool3) <= APPLY(JK2_10(bl1,bl2), 
-   JK2_10(sup,emp), 'Join_42', '&&_1', 
-  [('type', 'bool_and')]);
+JK2_11(sup,emp,bool3) <= APPLY(JK2_10(bl1,bl2),JK2_10(sup,
+emp),'Join_42','&&_1',[('type','bool_and')]);
 
-JK2_12(sup,emp) <= FILTER(JK2_11(bool2), 
-  JK2_11(sup,emp), 'Join_42', []);
+JK2_12(sup,emp) <= FILTER(JK2_11(bool2),JK2_11(sup,emp),
+'Join_42',[]);
 \end{codesmall}
