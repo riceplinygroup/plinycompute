@@ -356,7 +356,7 @@ the names \texttt{dep}, \texttt{emp}, and \texttt{sup}.
 To produce the output vector list (called \texttt{WDNm\_1}), the vectors
 \texttt{dep}, \texttt{emp}, and \texttt{sup} should be simply copied
 (via a shallow copy similar with pointer assignment) from \texttt{In}.
-In addition, the compiled code referred to by \texttt{Join\_2212.member\_1} will be executed via a vectorized application to the input
+In addition, the compiled code referred to by \texttt{Join\_2212.att_acc\_1} will be executed via a vectorized application to the input
 vector \texttt{dep}.  The result will then be put into a new vector called 
 \texttt{WDNm\_1.name1}.
 The resulting vector list (consisting of the vectors shallow copied from the input as well as the new vector \texttt{WDNm\_1.name1})
@@ -366,7 +366,7 @@ Next, this TCAP program
 specifies that \texttt{WDNm\_1} is processed by \texttt{APPLY}ing the
 method call \texttt{getDept Name()} on the attribute \texttt{emp}; this is 
 done via application of the compiled code referred to by \texttt{Join
-  \_2212.method\_call\_1}.  
+  \_2212.method\_call\_2}.  
 The vectors \texttt{dep}, \texttt{emp}, \texttt{sup}
 and \texttt{nm1} are simply shallow-copied to the output vector set.
 
