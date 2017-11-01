@@ -146,13 +146,13 @@ a PC \texttt{Object}, and then ships that PC \texttt{Object} into the
 PC Cluster.  At the other end, it arrives at a PC worker process that has never seen that type of object before and hence
 does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the catalog
-server before they are loaded into the distributed storage system.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
-the catalog server.  This library exposes a special \texttt{getVTablePtr ()} function that returns a pointer to the \texttt{vTable} for the class contained
+manager before they are loaded into the distributed storage system.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
+the catalog manager.  This library exposes a special \texttt{getVTablePtr ()} function that returns a pointer to the \texttt{vTable} for the class contained
 in the \texttt{.so} file.
 
 A \texttt{vTable} pointer lookup first goes to the PC process' \texttt{vTable} lookup table.  When this 
 lookup fails (because the process has not yet seen a \texttt{vTable} pointer for that class
-type) the request then goes to the catalog server, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
+type) the request then goes to the catalog manager, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
 \texttt{.so} file is then 
 dynamically loaded into the process' address space, the \texttt{vTable} pointer is located in the library,
 and returned to the requester.
