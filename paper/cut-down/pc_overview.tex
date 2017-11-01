@@ -240,7 +240,7 @@ programmer to expose intent via the lambda term construction function.
 
 PC's execution engine is tasked with optimizing and executing TCAP programs (pronounced ``tee-cap'').  
 PC's TCAP compiler
-which calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in a
+calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in a
 user-supplied computation,
 and compiles all of those lambda terms into a DAG of small, atomic computations---a TCAP program.
 A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
