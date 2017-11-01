@@ -1,12 +1,11 @@
-\section{The PC Object Model} \label{sec:ObjectModel}
+\section{The Object Model in Detail} \label{sec:ObjectModel}
 
-At the core of the system is the PC object model, which allows 
-programmers to create, manipulate, and store objects.
-In keeping with our vision of granting programmers fine-grained control over how data are managed in the small, the PC object model
-is much lower level than what is found in systems targeted more towards application programming, yet still provides a great deal of
-key functionalities.
+%The PC object model grants programmers fine-grained control over how data are managed in the small, 
+%and 
+%yet still provides a great deal of
+%key functionalities.
 
-\subsection{PC Objects}
+\subsection{Using PC Objects}
 
 Arguably, the choice of how individual data items are to be represented and manipulated
 in a data analytics or management system is one of the most
@@ -26,7 +25,8 @@ data analytics systems
 (such as Spark via its Resillient Distributed Dataset (RDD) interface \cite{zaharia2012resilient}) offer far more flexibility, at the (possible) cost of significant performance degradation.  
 PC attempts to combine this flexibility with excellent performance.
 The PC object model provides a fully object-oriented interface, supporting the standard functionality expected in a modern, object-oriented type system,
-including generic programming (the PC object model supports generic Map and Vector types), pointers (or, more specifically,
+including generic programming (the PC object model supports generic \texttt{Map} and \texttt{Vector} types), 
+pointers (or, more specifically,
 ``pointer-like'' objects called PC \texttt{Handle} objects), inheritance, and dynamic dispatch for runtime polymorphism.  
 
 For example, imagine that the goal is implementing a distributed linear algebra system on top of the PC object model, where huge matrices are ``chunked'' into
@@ -120,18 +120,14 @@ to another process.  The \texttt{Handle} pointer
 can function correctly at the new process.  
 An actual C-style pointer
 cannot survive translation from one process to another, as the program will be mapped to a different location in memory.
-In contrast, as long as the target of an offset pointer is stored in the same page, an offset pointer will be valid if the
-page is copied in its entirety, including all \texttt{Handle}s and their targets.
 
 \subsection{Dynamic Dispatch}
 \label{sec:dyn_dis}
 
-Supporting dynamic dispatch for virtual function calls is fundamental to the PC object model.
-In PC, dynamic dispatch is facilitated by the type code stored within each
+In PC, dynamic dispatch for virtual function calls is facilitated by the type code stored within each
 \texttt{Handle} object.
 Each type code begins with a bit that denotes whether or not the referenced type is a simple type (which, by definition, cannot have any
 virtual functions and for which a \texttt{memmove} suffices to perform a copy) or a type descended from PC's \texttt{Object} base class.
-In the case of a simple type, the remaining bits encode the size of the referenced object.  
 
 In the case of a PC \texttt{Object} or its descendants, the
 type code is a unique identifier for the PC-\texttt{Object}-descended type of the object that the \texttt{Handle} points to.
@@ -141,9 +137,8 @@ of each C++ object having a virtual function.  Unfortunately, the
 \texttt{vTable} pointer is a native, C-style pointer, and it does not automatically translate when an
 object is moved across processes.  To handle this, in
 PC's C++ binding, whenever a \texttt{Handle} object is dereferenced, 
-a lookup on the
-type code is performed transparently to the application programmer.  This lookup retrieves a process-specific pointer to that class' \texttt{vTable} object, which is
-then placed at the head of the object.
+a lookup using the
+type code retrieves a process-specific pointer to that class' \texttt{vTable} object.
 
 Obtaining a pointer to a class' \texttt{vTable} object is not straightforward.
 A user may run code on his/her machine that creates
@@ -153,18 +148,14 @@ does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the catalog
 server before they are loaded into the distributed storage system.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
 the catalog server.  This library exposes a special \texttt{getVTablePtr ()} function that returns a pointer to the \texttt{vTable} for the class contained
-in the \texttt{.so} file (creating such
-a shared library file is relatively easy for the user, as the \texttt{getVTablePtr ()} function can be created using a macro provided by PC).
+in the \texttt{.so} file.
 
-Whenever there is a \texttt{vTable} pointer lookup, the request first goes to the PC process' \texttt{vTable} lookup table.  When this 
+A \texttt{vTable} pointer lookup first goes to the PC process' \texttt{vTable} lookup table.  When this 
 lookup fails (because the process has not yet seen a \texttt{vTable} pointer for that class
 type) the request then goes to the catalog server, which responds to the process with a copy of the appropriate \texttt{.so} file.  This 
 \texttt{.so} file is then 
-dynamically loaded into the process' address space, \texttt{getVTablePtr ()} is called, 
-and the resulting \texttt{vTable} pointer inserted into the lookup
-table, and then copied into the PC \texttt{Object} that is being
-referenced. Then all objects of this type can be moved around with
-zero cost for serialization and deserialization. 
+dynamically loaded into the process' address space, the \texttt{vTable} pointer is located in the library,
+and returned to the requester.
 
 In this way, PC provides something akin to the automated,
 dynamic loading of classes (via JVM \texttt{.class} files) that is
@@ -176,7 +167,7 @@ as the object type is registered first.
 \subsection{Allocation, Deallocation, and Assignment}
 
 There are three types of allocation blocks in PC, where an ``allocation block'' is a block of memory where PC \texttt{Object}s can be
-allocated, or where they are located.
+allocated.
 
 \vspace{5pt}
 \noindent
@@ -203,8 +194,6 @@ been loaded into RAM from disk or across the network for processing
 during a distributed computation.  Such blocks are paged in and out of the
 buffer pool in much the same way as a relational database would page data in and out.
 Rather than the PC object model being responsible for managing such blocks, PC's compute engine manages such blocks.
-Further, since managed blocks are only managed by their ``home'' thread, a managed block is effectively un-managed when viewed from
-any other thread.
 
 \vspace{5pt}
 
@@ -218,8 +207,6 @@ deallocated (at least, this is the default behavior; it is possible
 for a programmer to override this behavior for speed, if desired, as
 we describe in Section~\ref{sec:allocation}).  
 Once the number of reachable objects on an inactive, managed allocation block falls to zero, the block is automatically deallocated.  
-In that sense, PC resembles a smart-pointer based memory management system.  
-
 Since the fundamental goal of PC object model design is 
 zero-cost data movement---an allocation block should be
 transferable across processes and machines immediately usable with no pre- or post-processing---one
@@ -256,23 +243,17 @@ Again, this is in-keeping with PC's design philosophy: trust the ability of the 
 
 \subsection{The PC Object Model and Multiple Threads}
 
-While smart-pointer-based memory management
-systems are often significantly faster than garbage collected
-systems~\cite{hertz2005quantifying}, such systems still have their
-bottlenecks, such as concurrency
-control.
-Since an object can have pointers across multiple threads, smart pointer counters must be locked before increment/decrement, which
-can have a significant impact on performance.  PC, however, does not need to lock reference counts (or active object counts) because only managed blocks maintain
-object reference counts and active object counts,
-and a block can only be managed by one single thread.  
+PC does not need to lock reference counts during multi-threaded execution
+because 
+a block can only be managed by one single thread.  
 If a thread copies a \texttt{Handle} object referencing an object housed on another thread's managed block, 
 the reference count will not be changed because from the copying thread's point-of-view, the allocation block is not managed.
 This can, in theory, result in a problematic case where one thread has a \texttt{Handle} to an object that has been deallocated on the other thread (since
 the reference count on the home thread will not be updated to reflect
-the off-thread reference).  But in practice, it tends not to be a
+the off-thread reference).  But in practice, this is not
 problem.  Parallel and distributed processing is transparent to PC application
 programmers, so most cross-thread references happen as the result of computations staged by the 
-PC execution engine.  The PC execution engine typically uses pages carefully so as to ensure that 
+PC execution engine.  The PC execution engine uses pages carefully so as to ensure that 
 it is not possible for pages to be unpinned while references to them can still exist.
 
 %\subsection{Data Loading}

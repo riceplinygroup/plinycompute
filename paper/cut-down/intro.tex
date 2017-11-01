@@ -8,10 +8,8 @@ Big Data systems such as Spark \cite{zaharia2010spark} and Flink \cite{alexandro
 have effectively solved what we call the ``data munging'' problem.  That is, 
 these systems do an excellent job supporting the rapid
 and robust development of problem-specific,
-distributed/parallel codes that transform a raw dataset into structured 
-or semi-structured form.
-%, and then
-%extract actionable information from the transformed data.
+distributed/parallel codes that 
+extract actionable information from the structured or unstructured data.
 But while existing Big Data systems offer
 excellent support for data munging,
 there is a class of application for which 
@@ -46,8 +44,8 @@ Big Data codes
 by a capable systems programmer,
 it would not look like existing systems such as Spark and Flink,
 which have largely 
-been built using high-level programming languages and managed runtimes such as the Java 
-virtual machine.  Virtual machines abstract away
+been built using high-level programming languages and managed runtimes such as the JVM. 
+Virtual machines abstract away
 most details regarding memory management
 from the system designer, including memory deallocation, reuse, and movement, as well as pointers,
 object serialization and deserialization.
@@ -55,15 +53,9 @@ Since managing and utilizing memory is
 one of the most important factors determining big data system performance, reliance
 on a managed environment can mean an order-of-magnitude increase in
 CPU cost for some computations~\cite{blackburn2006dacapo}.  
-This cost may be acceptable if the person using the system
-is a programmer uncomfortable with the basics of memory management. 
-%who is building an application to complete a specific data munging task.  
-But it is unacceptable for high-performance tool or library
-development by an expert. There have been notable efforts to engineer around the limitations of a managed environment and still provide
-high performance---code generation and Spark's Dataset and
-Dataframe abstractions come to mind---but such efforts are necessarily limited compared to
-designing a Big Data system from the ground up around special-purpose
-memory and object management system.
+This cost may be unacceptable 
+for high-performance tool
+development by an expert. 
 
 This paper is concerned with the design and implementation of
 \emph{PlinyCompute}, a system for development of
@@ -74,8 +66,6 @@ managing very large datasets, and dataflow platforms such as Spark and Flink, wh
 may give up significant performance through their reliance on a managed runtime to handle
 memory management (including layout and de/allocation) and key computational considerations
 such as virtual method/function dispatch to the JVM. 
-
-
 
 \vspace{5 pt}
 \noindent
@@ -93,13 +83,8 @@ This is particularly important for tool and library development because the same
 it is applied to---the classical idea of \emph{data independence} in database system design \cite{stonebraker1990third}.
 A relatively naive library user cannot be expected to tune a library implementation of an algorithm to run
 well on his or her particular dataset, and yet with existing systems, this sort of tuning
-is absolutely necessary.  For example, we find
-that a high quality LDA implementation\footnote{LDA \cite{blei2003latent} is a popular text mining algorithm.}
-on top of Spark is around $25\times$ slower than the algorithmically equivalent LDA
-implementation on top of PC.  Through workload-specific tuning (including choosing specific join algorithms and
-forcing pipelining of certain results) it is possible to get that gap down to $2.5\times$.  But this requires modification of the
+may require modification of the
 code itself, which is beyond the vast majority of end-users.
-
 
 In contrast, \emph{in the small}, PlinyCompute presents a capable programmer with a
 persistent object data model and API (the ``PC object model'') and associated memory management system
@@ -121,18 +106,15 @@ to utilize PC object model effectively
 in the small---results in a system ideal for the 
 development of data-oriented tools and libraries.
 
-Currently, PC exists as a prototype system, consisting of around
-150,000 lines of C++ code, with a much smaller amount of Prolog code.
 The system consists of three main components: 
 
-\vspace{8pt}
+\vspace{3pt}
 \noindent
-The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures that can be 
-manipulated by PC.  
+(1) The \emph{PC object model}, which is a toolkit for building high-performance, persistent data structures.
 
-\vspace {5pt}
+\vspace {3pt}
 \noindent
-The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
+(2) The \emph{PC API and TCAP compiler}.  In the large, PC codes are declarative and look a lot like classical relational calculus \cite{codd1971data}.  For example, to specify a join over five sets of objects, a PC programmer does not build a join DAG over the five inputs, as in a standard
 dataflow platform such as Spark.  Rather, a programmer 
 supplies two \emph{lambda term construction functions}: one that constructs a lambda term describing the selection
 predicate over those five input sets, 
@@ -143,18 +125,18 @@ accepts such a specification, and compiles it into a functional, domain specific
 the join.  Logically, TCAP operates over
 sets of columns of PC \texttt{Object}s. 
 
-\vspace{5pt}
+\vspace{3pt}
 \noindent
-The \emph{PC Cluster}, which is a distributed query processing
-  system for big data analytics, where a Master node distributes data
-  and computations to worker nodes for storing or processing. It consists of an optimizer for TCAP
-  programs, through which all PC computations are optimized using a rule-based
-optimize. Among other components such as a catalog server that is
-serving system meta-data, and a
+(3) The \emph{PC Cluster}, which is a distributed query processing
+  system for big data analytics.
+  It consists of an optimizer for TCAP
+  programs, 
+a catalog server tasked with
+serving system meta-data, a
 distributed storage system that
-contains a buffer pool to buffer writes or cache data in pages, it also consists of a
+contains a buffer pool to buffer writes or cache data in pages, and a
 high-performance distributed, vectorized TCAP processing engine. 
-The TCAP processing engine is intimately connected to the PC object model, 
+The TCAP processing engine 
 and has been designed to work closely with the PC object model to
 minimize memory-related costs during computation.
 
@@ -165,18 +147,10 @@ minimize memory-related costs during computation.
 \vspace{8 pt}
 \noindent
 \textbf{Our contributions.}
-Taken together, these components allow a competent system programmer
-to write exceedingly high-performance distributed codes.
-In this paper, we describe the design and implementation of PlinyCompute.  We experimentally show the performance benefits of the PC object model, 
-%demonstrating how even simple data transformations are much faster using the PC object model compared to similar computations within the 
-%Apache ecosystem.
-In-keeping with PC being targeted at high-performance
-library and tool development,
-we benchmark several library-style softwares written on top of PC.  We begin with a small domain specific language
-for distributed linear algebra that we implemented on top of PC, called \texttt{LilLinAlg}.  \texttt{LilLinAlg} was implemented in about six weeks by a developer
+We describe the design and implementation of PlinyCompute.  
+Currently, PC consists of around
+150,000 lines of C++ code, with a much smaller amount of Prolog code,
+We benchmark several library-style softwares written on top of PC.  We begin with a small domain specific language
+for distributed linear algebra that we implemented on top of PC, called \texttt{lilLinAlg}.  \texttt{lilLinAlg} was implemented in about six weeks by a developer
 who had no knowledge of PC at the outset, with the goal of demonstrating PC's suitability as a tool-development platform.  
-We show that \texttt{LilLinAlg} has better performance than other systems that have long been under development
-within the Apache ecosystem.   
-We also compare the performance of several standard machine learning codes written on top of PC, comparing them with similar
-codes written within the Apache ecosystem.  
-
+We also benchmark the performance of several standard machine learning codes written on top of PC.
