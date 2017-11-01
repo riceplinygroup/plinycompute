@@ -1,4 +1,31 @@
 
+\section{Overview of PC}
+
+The PC software consists of 
+(1) the PC object model, (2) the PC API and TCAP compiler (TCAP is a domain-specific language executed by PC),
+(3) the execution engine, and (4) various distributed services.  In the next few sections of the paper, 
+we discuss the first three software components in detail.
+
+PC is a distributed system, and a PC compute cluster has a \emph{master node} and one or more \emph{worker nodes}.
+Running on the master node are the managers for the various distributed services provided by PC, primarily 
+the \emph{catalog manager} and the \emph{distributed storage manager}.  Also running on the master
+node is the software responsible for powering the distributed execution engine: the \emph{TCAP optimizer} and
+the \emph{distributed query scheduler}.  
+When a user of PC requests a computation, the computation is compiled into TCAP on the user's process, then optimized
+by the master node's TCAP optimizer and executed by the master node's distributed query scheduler.
+
+Each worker node runs two processes: the \emph{worker front-end process} and the \emph{worker backend process}.
+Dual processes are used because the backend process
+executes potentially unsafe native user code.
+If
+user code happens to crash the worker backend process, the worker 
+front-end process can re-fork the worker
+backend process.  
+The worker front-end process interfaces with the master node, providing a local catalog manager and a local storage server (including
+a local buffer pool)
+and crucially, it acts as a proxy, forwarding requests to perform various computations to the worker backend process, where
+computations are actually run.
+
 \section{Object Model Overview}
 
 There is growing evidence that the CPU costs associated with manipulating data, especially data (de-)serialization and memory 
@@ -208,8 +235,17 @@ calculus, or not.  A programmer could, for example, hide the entire selection pr
 If the programmer chose to do this, PC would be unable to optimize the compute plan---the system relies on the willingness of the 
 programmer to expose intent via the lambda term construction function.
 
-\section{Computational Engine}
+\section{Execution Engine}
 \label{sec:engine}
+
+PC's execution engine is tasked with optimizing and executing TCAP programs (pronounced ``tee-cap'').  
+PC's TCAP compiler
+which calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in a
+user-supplied computation,
+and compiles all of those lambda terms into a DAG of small, atomic computations---a TCAP program.
+A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
+will discuss in the Appendix of the paper.
+In this Section, we discuss how TCAP programs are executed by PC.
 
 \subsection{Vectorized or Compiled?}
 Volcano-style, record-by-record iteration \cite{graefe1990encapsulation} has fallen out of favor over the last decade, largely replaced by
@@ -276,13 +312,6 @@ vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors 
 
 
 \subsection{TCAP and Vectorized Execution} \label{sec:vectorized}
-
-
-PC calls the various user-supplied lambda term construction functions for each of the \texttt{Computation} objects in an
-input graph, and compiles all of those lambda terms into a DAG of pipeline stages.  
-This entire computation is represented using a text-based internal representation that we call
-\emph{TCAP} (pronounced ``tee-cap'').  A TCAP program is fully optimizable, using many standard techniques from relational query execution, as we
-will discuss subsequently.
 
 As mentioned in Section \ref{sec:engine}, PC's vectorized execution engine repeatedly pushes 
 so-called \emph{vector lists}, which is a list of vectors, through a series of pipeline stages.  Each pipeline stage

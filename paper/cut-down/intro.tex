@@ -106,7 +106,7 @@ to utilize PC object model effectively
 in the small---results in a system ideal for the 
 development of data-oriented tools and libraries.
 
-The system consists of three main components: 
+The system consists of four main components: 
 
 \vspace{3pt}
 \noindent
@@ -127,20 +127,21 @@ sets of columns of PC \texttt{Object}s.
 
 \vspace{3pt}
 \noindent
-(3) The \emph{PC Cluster}, which is a distributed query processing
+(3) The \emph{execution engine}, which is a distributed query processing
   system for big data analytics.
   It consists of an optimizer for TCAP
-  programs, 
-a catalog server tasked with
-serving system meta-data, a
-distributed storage system that
-contains a buffer pool to buffer writes or cache data in pages, and a
+  programs and a 
 high-performance distributed, vectorized TCAP processing engine. 
 The TCAP processing engine 
 and has been designed to work closely with the PC object model to
 minimize memory-related costs during computation.
 
-
+\vspace{3pt}
+\noindent
+(4) Various \emph{distributed services}, which include a 
+a catalog manager tasked with
+managing system meta-data, a
+distributed storage manager.
 
 %\end{itemize}
 
