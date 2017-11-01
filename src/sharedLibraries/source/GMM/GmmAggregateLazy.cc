@@ -15,44 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_AGGREGATE_OUTPUT_H
-#define GMM_AGGREGATE_OUTPUT_H
+#ifndef GMM_AGGREGATE_LAZY_CC
+#define GMM_AGGREGATE_LAZY_CC
 
-#include "Object.h"
-#include "Handle.h"
-#include "GmmNewComp.h"
+#include "GMM/GmmAggregateLazy.h"
+#include "GetVTable.h"
 
-
-// By Tania, August 2017
-
-using namespace pdb;
-
-
-class GmmAggregateOutputType : public Object {
-
-private:
-    int key = 1;
-    GmmNewComp value;
-
-public:
-    ENABLE_DEEP_COPY
-
-    GmmAggregateOutputType() {}
-
-    int& getKey() {
-        return key;
-    }
-
-    GmmNewComp& getValue() {
-        return value;
-    }
-
-    void print() {
-        std::cout << "GmmAggregateOutputType: index: " << key << " value: "
-                  << "." << std::endl;
-    }
-
-    ~GmmAggregateOutputType() {}
-};
+GET_V_TABLE(GmmAggregateLazy)
 
 #endif

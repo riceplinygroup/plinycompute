@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_AGGREGATE_DATAPOINT_CC
-#define GMM_AGGREGATE_DATAPOINT_CC
+#ifndef GMM_AGGREGATE_NEWCOMP_CC
+#define GMM_AGGREGATE_NEWCOMP_CC
 
-#include "GMM2/GmmAggregateDatapoint.h"
+#include "GMM/GmmAggregateNewComp.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(GmmAggregateDatapoint)
+GET_V_TABLE(GmmAggregateNewComp)
 
 #endif

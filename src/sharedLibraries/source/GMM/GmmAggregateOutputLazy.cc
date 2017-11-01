@@ -15,12 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_AGGREGATE_NEWCOMP_CC
-#define GMM_AGGREGATE_NEWCOMP_CC
+#ifndef GMM_AGGREGATE_OUTPUT_LAZY_CC
+#define GMM_AGGREGATE_OUTPUT_LAZY_CC
 
-#include "GMM2/GmmAggregateNewComp.h"
+#include "GMM/GmmAggregateOutputLazy.h"
 #include "GetVTable.h"
 
-GET_V_TABLE(GmmAggregateNewComp)
+GET_V_TABLE(GmmAggregateOutputLazy)
 
 #endif

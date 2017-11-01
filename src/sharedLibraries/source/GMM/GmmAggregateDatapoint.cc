@@ -15,55 +15,12 @@
  *  limitations under the License.                                           *
  *                                                                           *
  *****************************************************************************/
-#ifndef GMM_AGGREGATE_DATAPOINT_H
-#define GMM_AGGREGATE_DATAPOINT_H
+#ifndef GMM_AGGREGATE_DATAPOINT_CC
+#define GMM_AGGREGATE_DATAPOINT_CC
 
-#include "Object.h"
-#include "PDBVector.h"
-#include "DoubleVector.h"
+#include "GMM/GmmAggregateDatapoint.h"
+#include "GetVTable.h"
 
-
-// By Tania, October 2017
-
-using namespace pdb;
-
-class GmmAggregateDatapoint : public Object {
-
-private:
-    DoubleVector datapoint;  // Datapoint to be processed
-    Vector<double> rvalues;  // Responsabilities
-    double logLikelihood;
-
-
-public:
-    ENABLE_DEEP_COPY
-
-    GmmAggregateDatapoint() {}
-
-    GmmAggregateDatapoint(DoubleVector datapoint, Vector<double> rvalues, double logLikelihood) {
-        this->datapoint = datapoint;
-        this->rvalues = rvalues;
-        this->logLikelihood = logLikelihood;
-    }
-
-    DoubleVector& getDatapoint() {
-        return this->datapoint;
-    }
-
-    Vector<double>& getRvalues() {
-        return this->rvalues;
-    }
-
-    double getLogLikelihood() {
-        return this->logLikelihood;
-    }
-
-    void setLogLikelihood(double logLikelihood) {
-        this->logLikelihood = logLikelihood;
-    }
-
-
-    ~GmmAggregateDatapoint() {}
-};
+GET_V_TABLE(GmmAggregateDatapoint)
 
 #endif
