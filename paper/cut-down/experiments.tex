@@ -7,54 +7,49 @@ In this section, we describe our experimental evaluation of PC.
 The aim is to answer
 following questions:
 
-\begin {enumerate}
-\item PC has been designed to facilitate the construction of high-performance Big Data tools and libraries by programmer
-comfortable with lower-level systems concepts, including memory management.
-How useful is PC for this task?
-\item PC's core design goals were ``declarative in the large,
-high-performance in the small.'' The latter goal---high performance in the small---was largely realized via the 
-PC object model.  We wish to answer the question: Can the PC object model be used to build 
-object-oriented computations
-that efficiently manipulate highly nested and complex objects?
-\item Finally, machine learning (ML) is an important component of many libraries---and ML will only increase in importance
-as a target for tool and library development in the future.
-So we wish to ask: How well does PC compare to alternative systems for developing scalable ML algorithm implementations?
-\end {enumerate}
+\vspace{5pt}
+\noindent
+(1) How useful is PC for this task for  the construction of high-performance Big Data tools and libraries.
+
+\vspace{5pt}
+\noindent
+(2) Can the PC object model be used to build 
+object-oriented computations that efficiently manipulate highly nested and complex objects?
+
+\vspace{5pt}
+\noindent
+(3) How well does PC compare to alternative systems for developing scalable ML algorithm implementations?
+
+\vspace{5pt}
 
 \noindent In an attempt to answer each of these questions, we perform three different benchmarking tasks:
 
-\begin {enumerate}
-\item To test the applicability of PC for tool and library construction, we constructed a scalable, distributed
+\vspace{5pt}
+\noindent
+(1) We constructed a scalable, distributed
 linear algebra library
 called \texttt{lilLinAlg} on top of PC, and evaluated \texttt{lilLinAlg}'s performance for running three
-computations that could reasonably be expressed in linear algebra: distributed Gram matrix construction, 
+computations: distributed Gram matrix construction, 
 distributed least squares linear regression, and distributed nearest neighbor search.
 
-\item To test the utility of the PC object model, we first denormalized the TPC-H database \cite{council2008tpc} into an object-oriented 
+\vspace{5pt}
+\noindent
+(2) To test the utility of the PC object model, we first denormalized the TPC-H database \cite{council2008tpc} into an object-oriented 
 representation, and then benchmarked two reasonably complex 
 analytical computations ---the
 first computes the list of customers and the parts they construct for each supplier, and the
 second is a top-$k$ similarity query that searches for the customers whose set of purchased items is most similar
 to a query set.
 
-\item Finally, we also implemented three widely used
+\vspace{5pt}
+\noindent
+(3) We also implemented three
   iterative machine learning algorithms on top of PC: Latent Dirichlet Allocation (LDA) which is used for
   textual topic mining;
   Gaussian mixture model (GMM) learning which is used to cluster data using a mixture of high-dimensional Normal
   distributions, and the simplest, $k$-means clustering (chosen because of its ubiquity as a Big Data ML benchmark).
-\end {enumerate}
 
-\vspace{5 pt}
-\noindent
-\textbf{Organization.}  The remainder of this section is organized as follows.  First, we describe the experimental
-environment used to evaluate these implementations.  
-Next we describe each of the three benchmarks, in sequence. We then conclude the experiments with a general
-discussion of the results.  This includes a discussion of implementation complexity, as well as a discussion on how much
-our results are (or are not) simply a direct result of coding using C++, as opposed to a managed language such as Java or
-C\#.
-
-\subsection {Experimental Environment}
-
+\subsubsection {Experimental Environment}
 All of the experiments reported in this paper were performed using a
 cluster that consists of eleven Amazon EC2 \texttt{m2.4xlarge} machines,
 running Ubuntu 16.04. Each machine had eight virtual cores, one SSD
@@ -64,18 +59,15 @@ node and the rest ten machines served as worker nodes.
 Since Apache Spark is most widely-used Big Data system both for applications programming and for tool and library
 development, most
 (though not all) of our comparisons were with Spark (version
-2.1.0). The configuration of the Spark cluster such as
-executor memory, number of cores for each executor, number of
-executors, data partitions and so on are carefully tuned for each
-experiment. We do not clear the OS buffer cache, so HDFS data can be buffered or
-cached in the OS buffer cache. For each experiment we read HDFS data
-via a binary format (Parquet for the Spark Dataset API,
+2.1.0). The configuration of the Spark cluster are carefully tuned for each
+experiment. We do not clear the OS buffer cache, so HDFS data can be
+buffered/cached in the OS buffer cache. For each experiment we read
+HDFS data via a binary format (Parquet for the Spark Dataset API,
 and a Java Object file for the Spark RDD API).  In all of the
 experiments, data are serialized in Kryo format. 
 
 
 \subsection {Distributed Linear Algebra}
-
 Since PC is designed to support the construction
 of high-performance tools and libraries, our first benchmarking effort was aimed at determining 
 whether PC is actually useful for that task.  Thus, we asked
