@@ -12,13 +12,12 @@ distributed/parallel codes that
 extract actionable information from the structured or unstructured data.
 But while existing Big Data systems offer
 excellent support for data munging,
-there is a class of application for which 
+there is a class of applications for which 
 existing systems are 
 used, but arguably are far less suitable:
 as a platform 
 for the development of high-performance codes, especially reusable
-Big Data tools and libraries, by a capable
-systems programmer.
+Big Data tools and libraries, by a capable systems programmer.
 
 The desire to build new tools
 on top of existing Big Data systems is understandable.  
@@ -138,10 +137,10 @@ minimize memory-related costs during computation.
 
 \vspace{3pt}
 \noindent
-(4) Various \emph{distributed services}, which include a 
-a catalog manager tasked with
-managing system meta-data, a
+(4) Various \emph{distributed services}, which include 
+a catalog manager serving system meta-data, a
 distributed storage manager.
+
 
 %\end{itemize}
 
@@ -150,8 +149,11 @@ distributed storage manager.
 \textbf{Our contributions.}
 We describe the design and implementation of PlinyCompute.  
 Currently, PC consists of around
-150,000 lines of C++ code, with a much smaller amount of Prolog code,
+150,000 lines of C++ code, with a small amount of Prolog code,
 We benchmark several library-style softwares written on top of PC.  We begin with a small domain specific language
-for distributed linear algebra that we implemented on top of PC, called \texttt{lilLinAlg}.  \texttt{lilLinAlg} was implemented in about six weeks by a developer
+for distributed linear algebra that we implemented on top of PC,
+called \texttt{lilLinAlg}.  \texttt{lilLinAlg} was implemented in
+about six weeks by a capable developer
 who had no knowledge of PC at the outset, with the goal of demonstrating PC's suitability as a tool-development platform.  
-We also benchmark the performance of several standard machine learning codes written on top of PC.
+We also benchmark the performance of two analytics queries against TPCH
+data, and also several standard machine learning codes written on top of PC.

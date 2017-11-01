@@ -68,7 +68,7 @@ development, most
 2.1.0). The configuration of the Spark cluster such as
 executor memory, number of cores for each executor, number of
 executors and so on are carefully tuned for each
-experiment, as shown in Table~\ref{sparkConf}. We do not clear the OS buffer cache, so HDFS data can be buffered or
+experiment, as shown in Table~\ref{fig:sparkConf}. We do not clear the OS buffer cache, so HDFS data can be buffered or
 cached in the OS buffer cache. For each experiment we read HDFS data
 via a binary format (Parquet for the Spark Dataset API,
 and a Java Object file for the Spark RDD API).  In all of the

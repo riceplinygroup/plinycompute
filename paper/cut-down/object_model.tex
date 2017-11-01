@@ -74,11 +74,11 @@ makeObjectAllocationBlock (ptr, blockSize);
 
 After such a call, \emph{all subsequent PC Object allocations by the thread creating the object allocation block will be performed directly to the memory
 region starting at location} \texttt{ptr}.
-Typically, when it runs a computation, PC's computation engine will obtain a page from its memory pool to buffer output data, calling
+Typically, when it runs a computation, PC's execution engine will obtain a page from its memory pool to buffer output data, calling
 PC's
 \texttt{makeObjectAllocationBlock ()} function with a pointer to the page where output data are to be written.  
-When an action taken by the computation engine or user-supplied code causes an
-out-of-memory execution, it means that the page is full.  At that point, the computation engine can take appropriate computation-specific 
+When an action taken by the execution engine or user-supplied code causes an
+out-of-memory execution, it means that the page is full.  At that point, the execution engine can take appropriate computation-specific 
 action, such as creating 
 an object allocation block out of a new (empty) page, writing the full page out to disk, sending it across the network, etc.  
 No serialization or deserialization or any sort of post-processing are needed, 
@@ -86,13 +86,14 @@ because all object allocations have taken place exclusively to the current alloc
 
 In order to guarantee zero-cost data movement,
 one rule that a PC programmer must follow is that any object that will
-be loaded into the PC Cluster must either be of a ``simple'' type (a simple type
-must contain no raw C-style pointers and no member variables that contain pointers, including no 
+be loaded into the distributed PC runtime must either be of a ``simple'' type (a simple type
+must contain no raw C-style pointers and no 
 virtual functions, and a \texttt{memmove}
 must suffice to copy the object), or else it must descend from PC's \texttt{Object} class, which serves as the base for all complex object types.
 Complex objects are those that include containers (\texttt{Vector}, \texttt{Map}) or pointer-like \texttt{Handle} objects.  Descending from PC's \texttt{Object} class
 ensures that the resulting class type has a set of virtual functions
-that allow it to be manipulated in and transferred across the PC Cluster, 
+that allow it to be manipulated in and transferred across the
+distributed PC runtime, 
 such as a virtual deep copy function.  
 
 \subsection{PC Handles}
@@ -142,8 +143,8 @@ type code retrieves a process-specific pointer to that class' \texttt{vTable} ob
 
 Obtaining a pointer to a class' \texttt{vTable} object is not straightforward.
 A user may run code on his/her machine that creates
-a PC \texttt{Object}, and then ships that PC \texttt{Object} into the
-PC Cluster.  At the other end, it arrives at a PC worker process that has never seen that type of object before and hence
+a PC \texttt{Object}, and then ships that PC \texttt{Object} into the distributed
+PC runtime.  At the other end, it arrives at a PC worker process that has never seen that type of object before and hence
 does not have access to a \texttt{vTable} pointer for that class.
 PC addresses this issue by requiring that all classes deriving from PC's \texttt{Object} base class be registered with the catalog
 manager before they are loaded into the distributed storage system.  This registration requires shipping a library file (a \texttt{.so} file in Linux/Unix) to
@@ -160,7 +161,7 @@ and returned to the requester.
 In this way, PC provides something akin to the automated,
 dynamic loading of classes (via JVM \texttt{.class} files) that is
 provided by most big data systems.  
-Objects of arbitrary type can be loaded into the PC Cluster and be
+Objects of arbitrary type can be loaded into the distributed PC runtime and be
 processed using dynamically loaded native code, as long
 as the object type is registered first.
 
@@ -193,7 +194,7 @@ reachable objects on it, it becomes an inactive, managed block.
 been loaded into RAM from disk or across the network for processing
 during a distributed computation.  Such blocks are paged in and out of the
 buffer pool in much the same way as a relational database would page data in and out.
-Rather than the PC object model being responsible for managing such blocks, PC's compute engine manages such blocks.
+Rather than the PC object model being responsible for managing such blocks, PC's execution engine manages such blocks.
 
 \vspace{5pt}
 
