@@ -133,8 +133,9 @@ is used \emph{internally}, integrated with PC's execution engine as well.
 For example, aggregation is implemented using PC's built-in
 \texttt{Map} class.  Each thread maintains
 a \texttt{Map} object that the thread aggregates its local data to; those are
-merged into maps that are sent to various workers around the PC
-cluster.  All sends and receives of these \texttt{Map} objects happen
+merged into maps that are sent to various workers around the
+distributed PC
+runtime.  All sends and receives of these \texttt{Map} objects happen
 without (de-)serialization.
 
 \section{PlinyCompute's Lambda Calculus}
@@ -302,7 +303,6 @@ assmebled into an optimized plan.
   \end{center}
   \caption{Execution of the first four stages of a pipeline constructed from the example TCAP program.  The first two stages extract new vectors from 
 existing vectors of PC \texttt{Object}s, first via a call to \texttt{Join\_2122.att\_acc\_1 ()}, which extracts \texttt{Dep.deptName} from each item in the vector
-\texttt{dep} 
 of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then, second
 via a call to \texttt{Join\_2122.method\_call\_2 ()}, which invokes \texttt{Dep :: getDeptName ()} on each of the \texttt{Emp} objects
 in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit vector \texttt{bl} is formed by checking the equality of those two 
