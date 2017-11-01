@@ -146,10 +146,12 @@ sets of columns of PC \texttt{Object}s.
 \vspace{5pt}
 \noindent
 The \emph{PC Cluster}, which is a distributed query processing
-  system for big data analytics. It consists of an optimizer for TCAP
+  system for big data analytics, where a Master node distributes data
+  and computations to worker nodes for storing or processing. It consists of an optimizer for TCAP
   programs, through which all PC computations are optimized using a rule-based
-optimizer; we plan to shift to a cost-based optimizer in the
-future. Among other components such as a distributed storage that
+optimize. Among other components such as a catalog server that is
+serving system meta-data, and a
+distributed storage system that
 contains a buffer pool to buffer writes or cache data in pages, it also consists of a
 high-performance distributed, vectorized TCAP processing engine. 
 The TCAP processing engine is intimately connected to the PC object model, 
