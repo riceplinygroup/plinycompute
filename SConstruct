@@ -487,23 +487,15 @@ common_env.SharedLibrary('libraries/libTopicAssignment.so', ['build/libraries/LD
 #common_env.SharedLibrary('libraries/libWriteLDATopicWordProbSet.so', ['build/libraries/LDA/WriteLDATopicWordProbSet.cc'] + all)
 common_env.SharedLibrary('libraries/libLDADocTopicFromCountAggregate.so', ['build/libraries/LDA/LDADocTopicFromCountAggregate.cc'] + all)
 
-
-common_env.SharedLibrary('libraries/libGmmNewComp.so', ['build/libraries/GMM/GmmNewComp.cc'] + all)
-common_env.SharedLibrary('libraries/libGmmAggregateOutputType.so', ['build/libraries/GMM/GmmAggregateOutputType.cc'] + all)
-common_env.SharedLibrary('libraries/libGmmAggregate.so', ['build/libraries/GMM/GmmAggregate.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmSampleSelection.so', ['build/libraries/GMM/GmmSampleSelection.cc'] + all)
 common_env.SharedLibrary('libraries/libGmmDataCountAggregate.so', ['build/libraries/GMM/GmmDataCountAggregate.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateLazy.so', ['build/libraries/GMM/GmmAggregateLazy.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateOutputLazy.so', ['build/libraries/GMM/GmmAggregateOutputLazy.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateDatapoint.so', ['build/libraries/GMM/GmmAggregateDatapoint.cc'] + all)
+common_env.SharedLibrary('libraries/libGmmAggregateNewComp.so', ['build/libraries/GMM/GmmAggregateNewComp.cc'] + all)
 
-common_env.SharedLibrary('libraries/libGmmAggregateLazy.so', ['build/libraries/GMM2/GmmAggregateLazy.cc'] + all)
-common_env.SharedLibrary('libraries/libGmmAggregateOutputLazy.so', ['build/libraries/GMM2/GmmAggregateOutputLazy.cc'] + all)
-common_env.SharedLibrary('libraries/libGmmAggregateDatapoint.so', ['build/libraries/GMM2/GmmAggregateDatapoint.cc'] + all)
-common_env.SharedLibrary('libraries/libGmmAggregateNewComp.so', ['build/libraries/GMM2/GmmAggregateNewComp.cc'] + all)
-
-common_env.Program('bin/TestGmm21', ['build/tests/TestGmm21.cc'] + all + pdb_client)
 common_env.Program('bin/TestGmmLoadData', ['build/tests/TestGmmLoadData.cc'] + all + pdb_client)
 common_env.Program('bin/TestGmmLazy', ['build/tests/TestGmmLazy.cc'] + all + pdb_client)
-#common_env.Program('bin/TestGmm23', ['build/tests/TestGmm23.cc'] + all)
-#common_env.Program('bin/TestGmmSerie', ['build/tests/TestGmmSerie.cc'] + all)
 
 common_env.Program('bin/CatalogServerTests', ['build/tests/CatalogServerTests.cc'] + all + pdb_client)
 common_env.Program('bin/CatalogTests', ['build/tests/CatalogTests.cc'] + all + pdb_client)
@@ -679,25 +671,19 @@ common_env.Depends(pdbTest, [
   'libraries/libScanOptimizedSupervisorSet.so'
 ])
 
+
 #GMM
 
 cgmm=common_env.Alias('cgmm', [
   'bin/CatalogTests',
   'bin/pdb-cluster',
   'bin/pdb-server',  
-  'bin/TestGmm21',
   'bin/TestGmmLoadData',
-  #'bin/TestGmm23',
   'bin/TestGmmLazy',
-  'libraries/libGmmNewComp.so',
-  'libraries/libGmmAggregate.so',
+
+  'libraries/libGmmModel.so',
   'libraries/libGmmSampleSelection.so',	
-
-  'libraries/libScanDoubleVectorSet.so',
-  'libraries/libWriteDoubleVectorSet.so',
-  'libraries/libGmmAggregateOutputType.so',
-  'libraries/libGmmDataCountAggregate.so',
-
+  #'libraries/libGmmDataCountAggregate.so',
   'libraries/libGmmAggregateLazy.so',
   'libraries/libGmmAggregateOutputLazy.so',
   'libraries/libGmmAggregateNewComp.so',
