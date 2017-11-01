@@ -282,6 +282,7 @@ SciDB   &00:03 &00:17 &03:20 &00:15 &00:33 &06:04 &00:28 &02:56 & 06:24 \\
 A star ($*$) indicates running in local mode.}
 \label{fig:LR}
 \end{center}
+\vspace{-10pt}
 \end{table*}
 
 We feel that overall, these results largely validate the hypothesis that PC is an excellent platform for the 
@@ -496,6 +497,7 @@ Spark: in-RAM deserialized RDD & 00:08& 	00:12& 	00:21 & 00:32& 	01:11& 	02:38\\
 \caption{PlinyCompute vs. Spark for large-scale OO computation. Times in MM:SS.}
 \label{fig:TPC}
 \end{center}
+\vspace{-10pt}
 \end{table*}
 
 
@@ -673,6 +675,7 @@ PlinyCompute & \makecell{Spark 1: \\vanilla} & \makecell{Spark 2: also with \\jo
 \caption{PlinyCompute vs. Spark for LDA. Times in MM:SS, averaged over five iterations.}
 \label{fig:LDA}
 \end{center}
+\vspace{-10pt}
 \end{table*}
 
 
@@ -698,6 +701,7 @@ Spark \texttt{mllib} &1:41  &1:54 &5:05 \\
 \caption{PlinyCompute vs. Spark for GMM. Times in MM:SS, averaged over five iterations.}
 \label{fig:Gmm}
 \end{center}
+\vspace{-10pt}
 \end{table}
 
 
@@ -732,6 +736,7 @@ Spark \texttt{mllib} Dataset API &15:12  &4:00 &3:07 &01:43 & 00:25 & 00:22\\
 \caption{PlinyCompute vs. Spark for $k$-means. Times in MM:SS, averaged over five iterations.}
 \label{fig:KMeans}
 \end{center}
+\vspace{-10pt}
 \end{table*}
 
 \vspace{5pt}
@@ -791,7 +796,7 @@ go \emph{against} PC.  We argue that the reason that PC was consistently faster
 than its competitors are the design principles underlying the system---which indeed was enabled by the choice of language---and 
 not the programming language itself.
 
-\begin{table*}[h!]
+\begin{table}[h!]
 \small
 \begin{center}
 \begin{tabular}{|c||c|c|}
@@ -799,17 +804,18 @@ not the programming language itself.
 Applications & PlinyCompute & Spark\\
 \hline
 \texttt{lilLinAlg} &3505& 3130 (Scala)\\
-TPC-H \texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
-TPC-H top-$k$ Jaccard &793 & 966 (Java)\\
+\texttt{Customer}s per \texttt{Supplier}&929 &953 (Java)\\
+top-$k$ Jaccard &793 & 966 (Java)\\
 LDA &1038  &343 (Scala with \texttt{breeze})\\
 GMM&932 & 474 (Scala with \texttt{breeze})\\
 $k$-means &695  &670 (Scala)\\
 \hline
 \end{tabular}
-\caption{PlinyCompute vs. Spark: lines of source code (LOC) comparison.}
+\caption{Lines of source code (LOC) comparison.}
 \label{fig:LOC}
 \end{center}
-\end{table*}
+\vspace{-10pt}
+\end{table}
 
 \begin{table}[h!]
 \small
@@ -832,4 +838,5 @@ Eigen &123 ms  &3:57\\
   recorded in hh:mm:ss format.)}
 \label{fig:matrixMult}
 \end{center}
+\vspace{-10pt}
 \end{table}
