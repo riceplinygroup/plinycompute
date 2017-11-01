@@ -1,0 +1,30 @@
+\section{Spark Configuration}
+\label{sec:spark}
+
+The configuration of the Spark cluster such as
+executor memory, number of cores for each executor, number of
+executors and so on are carefully tuned for each
+experiment, as shown in Table~\ref{fig:sparkConf}.
+
+For TPC-H and LDA, of which total volume of data for input and
+processing exceeds available memory, we run Spark in yarn client
+mode to avoid out-of-memory error. For other experiments, we run Spark
+in cluster mode to be consistent with PC.
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{|c||c|c|c|c|}
+\hline
+Platform & \makecell{num\\executors} & \makecell{executor \\mem} & \makecell{executor \\cores}& \makecell{driver \\mem}\\
+\hline
+\texttt{lilLinAlg} &10 & 60GB & 8 & 50GB \\
+TPC-H &10 & 50GB & 7 & 50GB \\
+LDA &20 & 30.5GB* &4 & 55GB\\
+GMM&80 & 70GB & 1 & 55GB\\
+$k$-means &10 &60GB & 8 & 50GB\\
+\hline
+\end{tabular}
+\caption{Workload-specific Spark Configurations for Different Experiments.}
+\label{fig:sparkConf}
+\end{center}
+\end{table}

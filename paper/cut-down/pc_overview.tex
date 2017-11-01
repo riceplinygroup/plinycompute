@@ -302,8 +302,10 @@ assmebled into an optimized plan.
     \includegraphics[width=3.3in]{TCAP}
   \end{center}
   \caption{Execution of the first four stages of a pipeline constructed from the example TCAP program.  The first two stages extract new vectors from 
-existing vectors of PC \texttt{Object}s, first via a call to \texttt{Join\_2122.att\_acc\_1 ()}, which extracts \texttt{Dep.deptName} from each item in the vector
-of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then, second
+existing vectors of objects, first via a call to
+\texttt{Join\_2122.att\_acc\_1 ()}, which extracts
+\texttt{Dep.deptName} from each item in the vector \texttt{dep}
+of \texttt{Dep} objects, producing a new vector called \texttt{nm1}. Then,
 via a call to \texttt{Join\_2122.method\_call\_2 ()}, which invokes \texttt{Dep :: getDeptName ()} on each of the \texttt{Emp} objects
 in the vector \texttt{emp}, producing a new vector called \texttt{nm2}.  A bit vector \texttt{bl} is formed by checking the equality of those two 
 vectors via a call to \texttt{Join\_2122.==\_3 ()}, and then all of the vectors are filtered.}
